@@ -25,8 +25,8 @@ export class UserMetaCardComponent {
 
   // Example user data (could be made dynamic)
   user = {
-    firstName: 'Musharof',
-    lastName: 'Chowdhury',
+    firstName: 'Cavalier',
+    lastName: 'Logistics',
     role: 'Team Manager',
     location: 'Arizona, United States',
     avatar: '/images/user/owner.jpg',

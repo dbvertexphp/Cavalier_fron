@@ -1,0 +1,96 @@
+/* --- 1. Main Background Fix --- */
+.browser-bg {
+  min-height: 100vh;
+  width: 100%;
+  background-color: #F8F9FA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px; /* Reduced padding for mobile */
+  box-sizing: border-box;
+}
+
+/* --- 2. Container Fix (Remove Fixed Height) --- */
+.dashboard-container {
+  background: white;
+  width: 100%;
+  max-width: 1440px;
+  display: flex;
+  flex-direction: row; /* Default side-by-side */
+  border-radius: 40px;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+/* --- 3. Welcome Card (Flexible Height) --- */
+.welcome-card {
+  width: 50%;
+  margin: 20px;
+  border-radius: 25px;
+  background: linear-gradient(180deg, #0A0F1A 0%, #8B6E6A 100%);
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  color: white;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* --- 4. Form Area --- */
+.form-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.form-wrapper {
+  width: 100%;
+  max-width: 350px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* --- 5. MOBILE RESPONSIVE OVERRIDES --- */
+@media (max-width: 768px) {
+  .dashboard-container {
+    flex-direction: column; /* Stack Welcome on top of Form */
+    height: auto;
+    border-radius: 20px;
+  }
+
+  .welcome-card {
+    width: calc(100% - 40px); /* Full width minus margins */
+    margin: 20px auto;
+    min-height: 250px; /* Smaller fixed height for top section */
+    padding: 30px 15px;
+  }
+
+  .welcome-card h2 {
+    font-size: 24px; /* Smaller text for mobile */
+    margin-top: 0;
+  }
+
+  .welcome-card p {
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+
+  .brand-logo {
+    width: 200px; /* Smaller logo for mobile */
+    margin-bottom: 20px;
+  }
+
+  .form-area {
+    padding: 10px 20px 40px 20px; /* Adjust padding to fit keyboard */
+  }
+
+  /* Make sure inputs don't zoom the screen on iPhone */
+  .input-group input, .system-select {
+    font-size: 16px;
+    height: 44px;
+  }
+}

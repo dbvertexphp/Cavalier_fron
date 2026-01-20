@@ -17,7 +17,7 @@ export class LoginComponent implements OnInit {
   slides = [0, 1, 2]; 
   currentSlide = 0;
 
-  private apiUrl = 'http://api.cavalierlogistic.graphicsvolume.com/api/Auth/login';
+  // private apiUrl = 'http://api.cavalierlogistic.graphicsvolume.com/api/Auth/login';
 
   constructor(private fb: FormBuilder, private router: Router, private http: HttpClient) {
     this.loginForm = this.fb.group({
@@ -38,25 +38,21 @@ export class LoginComponent implements OnInit {
   }
 
   onSubmit() {
- const loginData = {
-    Email: this.loginForm.get('email')?.value,
-    Password: this.loginForm.get('password')?.value,
-    Access: this.loginForm.get('systemType')?.value     // system type
-  };
+  const email = this.loginForm.get('email')?.value;
+  const password = this.loginForm.get('password')?.value;
+  const access = this.loginForm.get('systemType')?.value;
 
-  this.http.post(this.apiUrl, loginData, {
-    headers: { 'Content-Type': 'application/json' }
-  }).subscribe({
-    next: (res: any) => {
-      console.log('Login success:', res);
-      alert(res.message);
-       this.router.navigate(['/dashboard']);
-    },
-    error: (err) => {
-      console.error('Login failed:', err);
-      alert(err.error?.message || 'Login failed');
-    }
-  });
+  // ✅ Hard coded admin check
+  if (
+    email === 'admin@gmail.com' &&
+    password === '123456' &&
+    access === 'System Administrator'
+  ) {
+    alert('Admin Login Successful');
+    this.router.navigate(['/dashboard']);
+  } else {
+    alert('Invalid credentials or access denied');
+  }
 }
 
 }

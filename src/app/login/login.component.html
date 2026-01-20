@@ -44,42 +44,36 @@
         </div>
 
       <div class="w-full max-w-[400px] flex flex-col gap-6">
-        
-        <select class="text-white px-5 h-10 rounded-xl cursor-pointer outline-none w-full text-lg border-none transition-transform active:scale-[0.98]"
-                style="background: linear-gradient(90deg, #5B5B63 0%, #8E736E 100%);">
-          <option class="text-black">Select System Type</option>
-          <option class="text-black">Admin</option>
-          <option class="text-black">User</option>
-        </select>
 
-        <div class="flex flex-col gap-2">
-          <label class="text-sm font-semibold text-gray-600 ml-1">Username</label>
-          <input type="text" placeholder="Enter Username" class="border border-gray-200 rounded-xl px-5 h-14 outline-none focus:border-[#8E736E] w-full text-lg transition-colors">
-        </div>
+  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="w-full max-w-[400px] flex flex-col gap-6">
 
-        <div class="flex flex-col gap-2">
-          <label class="text-sm font-semibold text-gray-600 ml-1">Email Id</label>
-          <input type="email" placeholder="Enter Email Id" class="border border-gray-200 rounded-xl px-5 h-14 outline-none focus:border-[#8E736E] w-full text-lg transition-colors">
-        </div>
+  <select formControlName="systemType" class="system-select">
+  <option value="">Select System Type</option>
+  <option value="System Administrator">System Administrator</option>
+  <option value="Branch Administrator">Branch Administrator</option>
+</select>
 
-        <div class="flex flex-col gap-2">
-          <label class="text-sm font-semibold text-gray-600 ml-1">Password</label>
-          <input type="password" placeholder="Enter Password" class="border border-gray-200 rounded-xl px-5 h-14 outline-none focus:border-[#8E736E] w-full text-lg transition-colors">
-        </div>
 
-        <div class="flex flex-col gap-2 text-[13px] text-gray-500 ml-1">
+  <div class="flex flex-col gap-2">
+    <label class="text-sm font-semibold text-gray-600 ml-1">Email Id</label>
+    <input type="email" formControlName="email" placeholder="Enter Email Id" class="border border-gray-200 rounded-xl px-5 h-14 outline-none focus:border-[#8E736E] w-full text-lg transition-colors">
+  </div>
+
+  <div class="flex flex-col gap-2">
+    <label class="text-sm font-semibold text-gray-600 ml-1">Password</label>
+    <input type="password" formControlName="password" placeholder="Enter Password" class="border border-gray-200 rounded-xl px-5 h-14 outline-none focus:border-[#8E736E] w-full text-lg transition-colors">
+  </div>
+<div class="flex flex-col gap-2 text-[13px] text-gray-500 ml-1">
           <p class="flex items-center gap-2"><span class="text-[#8E736E] font-bold">✓</span> Password Strength : <span class="font-medium">Weak</span></p>
           <p class="flex items-center gap-2"><span class="text-[#8E736E] font-bold">✓</span> Cannot contain your name or email address</p>
           <p class="flex items-center gap-2"><span class="text-[#8E736E] font-bold">✓</span> At least 8 characters</p>
           <p class="flex items-center gap-2"><span class="text-[#8E736E] font-bold">✓</span> Contains a number or symbol</p>
         </div>
-
-        <button class="text-white font-bold h-14 rounded-xl transition-all w-full text-lg mt-2 shadow-lg hover:brightness-110 active:scale-[0.98]"
-                style="background: linear-gradient(90deg, #5B5B63 0%, #8E736E 100%);">
-          Create Account
-        </button>
-
-        <div class="flex flex-col items-center gap-6 mt-4">
+  <button type="submit" class="text-white font-bold h-14 rounded-xl transition-all w-full text-lg mt-2 shadow-lg hover:brightness-110 active:scale-[0.98]"
+          style="background: linear-gradient(90deg, #5B5B63 0%, #8E736E 100%);">
+    Login
+  </button>
+ <div class="flex flex-col items-center gap-6 mt-4">
             <div class="flex items-center w-full">
                 <hr class="flex-grow border-gray-200"><span class="px-4 text-sm text-gray-400 font-medium">OR</span><hr class="flex-grow border-gray-200">
             </div>
@@ -103,7 +97,11 @@
           By signing up to create an account I accept Company's <br>
           <span class="font-bold text-gray-800 cursor-pointer hover:underline">Terms of use & Privacy Policy.</span>
         </p>
-      </div>
+</form>
+
+
+</div>
+
     </div>
   </div>
 </div>

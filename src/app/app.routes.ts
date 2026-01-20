@@ -19,6 +19,8 @@ import { VideosComponent } from './pages/ui-elements/videos/videos.component';
 import { SignInComponent } from './pages/auth-pages/sign-in/sign-in.component';
 import { SignUpComponent } from './pages/auth-pages/sign-up/sign-up.component';
 import { CalenderComponent } from './pages/calender/calender.component';
+import { UserComponent } from './user/user.component';
+import { BranchComponent } from './branch/branch.component';
 
 export const routes: Routes = [
   // 1. WELCOME/LOGIN PAGE (Root)
@@ -47,11 +49,17 @@ export const routes: Routes = [
         component: CalenderComponent,
         title: 'Angular Calender'
       },
-      {
-        path: 'profile',
-        component: ProfileComponent,
-        title: 'Profile'
-      },
+       {
+    path:'users',
+    component:UserComponent,
+    title:'User Management'
+  },
+       {
+    path:'branch',
+    component:BranchComponent,
+    title:'Branch Management'
+  },
+     
       {
         path: 'form-elements',
         component: FormElementsComponent,
@@ -114,6 +122,12 @@ export const routes: Routes = [
       },
     ]
   },
+ 
+   {
+        path: 'profile',
+        component: ProfileComponent,
+        title: 'Profile'
+      },
 
   // 3. AUTH PAGES (Outside Dashboard Layout)
   {

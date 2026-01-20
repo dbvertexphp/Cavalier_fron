@@ -1,0 +1,69 @@
+<section class="container mx-auto p-6 font-mono">
+
+  <div class="w-full mb-8 overflow-hidden rounded-lg shadow-lg">
+    <div class="w-full overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-xs font-semibold tracking-wide text-left text-gray-900 bg-gray-100 uppercase border-b">
+            <th class="px-4 py-3">User</th>
+            <th class="px-4 py-3">Role</th>
+            <th class="px-4 py-3">Department</th>
+            <th class="px-4 py-3">License</th>
+            <th class="px-4 py-3">Country</th>
+            <th class="px-4 py-3">DOB</th>
+            <th class="px-4 py-3">Gender</th>
+            <th class="px-4 py-3">User Type</th>
+            <th class="px-4 py-3">Report To</th>
+            <th class="px-4 py-3">IP</th>
+            <th class="px-4 py-3">Telephone</th>
+            <th class="px-4 py-3">Mobile</th>
+            <th class="px-4 py-3">Status</th>
+          </tr>
+        </thead>
+
+        <tbody class="bg-white">
+
+          <tr *ngFor="let u of users" class="text-gray-700">
+
+            <!-- USER -->
+            <td class="px-4 py-3 border">
+              <div class="flex items-center gap-3">
+                <img class="w-8 h-8 rounded-full object-cover"
+                     [src]="u.profilePicture"
+                     alt="profile">
+                <div>
+                  <p class="font-semibold">{{ u.name }}</p>
+                  <p class="text-xs text-gray-500">{{ u.role }}</p>
+                </div>
+              </div>
+            </td>
+
+            <td class="px-4 py-3 border">{{ u.role }}</td>
+            <td class="px-4 py-3 border">{{ u.department }}</td>
+            <td class="px-4 py-3 border">{{ u.licenseType }}</td>
+            <td class="px-4 py-3 border">{{ u.country }}</td>
+            <td class="px-4 py-3 border">{{ u.dob }}</td>
+            <td class="px-4 py-3 border">{{ u.gender }}</td>
+            <td class="px-4 py-3 border">{{ u.userType }}</td>
+            <td class="px-4 py-3 border">{{ u.reportTo }}</td>
+            <td class="px-4 py-3 border">{{ u.ipAddress }}</td>
+            <td class="px-4 py-3 border">{{ u.telephone }}</td>
+            <td class="px-4 py-3 border">{{ u.mobile }}</td>
+
+            <!-- STATUS -->
+            <td class="px-4 py-3 border">
+              <span
+                class="px-2 py-1 rounded-sm font-semibold"
+                [ngClass]="u.status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
+                {{ u.status ? 'Active' : 'Inactive' }}
+              </span>
+            </td>
+
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</section>

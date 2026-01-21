@@ -1,10 +1,41 @@
 <section class="container mx-auto p-6 font-mono">
 
+  <!-- Action buttons -->
+  <div class="flex justify-end mb-4 gap-2">
+
+  <!-- Add User -->
+  <button (click)="addUser()" class="flex items-center gap-2 px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+    </svg>
+    Add User
+  </button>
+
+  <!-- Delete User -->
+  <button (click)="deleteUser()" class="flex items-center gap-2 px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded-lg shadow">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H3a1 1 0 000 2h1v10a2 2 0 002 2h8a2 2 0 002-2V6h1a1 1 0 100-2h-2V3a1 1 0 00-1-1H6zm2 3a1 1 0 012 0v8a1 1 0 11-2 0V5zm4 0a1 1 0 112 0v8a1 1 0 11-2 0V5z" clip-rule="evenodd" />
+    </svg>
+    Delete User
+  </button>
+
+  <!-- Modify User -->
+  <button (click)="modifyUser()" class="flex items-center gap-2 px-4 py-2 text-white bg-yellow-600 hover:bg-yellow-700 rounded-lg shadow">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+      <path d="M17.414 2.586a2 2 0 010 2.828l-10 10a2 2 0 01-1.414.586H4a1 1 0 01-1-1v-2.586a2 2 0 01.586-1.414l10-10a2 2 0 012.828 0zM15 3l2 2-10 10H5v-2L15 3z"/>
+    </svg>
+    Modify User
+  </button>
+
+</div>
+
+
   <div class="w-full mb-8 overflow-hidden rounded-lg shadow-lg">
     <div class="w-full overflow-x-auto">
       <table class="w-full text-sm">
         <thead>
           <tr class="text-xs font-semibold tracking-wide text-left text-gray-900 bg-gray-100 uppercase border-b">
+            <th *ngIf="showCheckbox" class="px-4 py-3">Select</th>
             <th class="px-4 py-3">User</th>
             <th class="px-4 py-3">Role</th>
             <th class="px-4 py-3">Department</th>
@@ -22,15 +53,20 @@
         </thead>
 
         <tbody class="bg-white">
-
           <tr *ngFor="let u of users" class="text-gray-700">
 
-            <!-- USER -->
+            <!-- Selection column -->
+            <td *ngIf="showCheckbox" class="px-4 py-3 border text-center">
+              <input 
+                [type]="selectionType" 
+                (change)="toggleSelection(u, $event)" 
+                [checked]="selectionType==='checkbox' ? selectedUsers.includes(u) : selectedUser===u" />
+            </td>
+
+            <!-- User info -->
             <td class="px-4 py-3 border">
               <div class="flex items-center gap-3">
-                <img class="w-8 h-8 rounded-full object-cover"
-                     [src]="u.profilePicture"
-                     alt="profile">
+                <img class="w-8 h-8 rounded-full object-cover" [src]="u.profilePicture" alt="profile">
                 <div>
                   <p class="font-semibold">{{ u.name }}</p>
                   <p class="text-xs text-gray-500">{{ u.role }}</p>
@@ -49,18 +85,13 @@
             <td class="px-4 py-3 border">{{ u.ipAddress }}</td>
             <td class="px-4 py-3 border">{{ u.telephone }}</td>
             <td class="px-4 py-3 border">{{ u.mobile }}</td>
-
-            <!-- STATUS -->
             <td class="px-4 py-3 border">
-              <span
-                class="px-2 py-1 rounded-sm font-semibold"
-                [ngClass]="u.status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
+              <span class="px-2 py-1 rounded-sm font-semibold" [ngClass]="u.status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
                 {{ u.status ? 'Active' : 'Inactive' }}
               </span>
             </td>
 
           </tr>
-
         </tbody>
       </table>
     </div>

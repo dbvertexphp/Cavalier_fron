@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
-import { RouterModule } from '@angular/router';
+
+import { Router, RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-root',
@@ -12,4 +13,12 @@ import { RouterModule } from '@angular/router';
 })
 export class AppComponent {
   title = 'Cavalier Logistics Dashboard';
+    constructor(private router: Router) {}
+    ngOnInit(): void {
+    const isAdminLoggedIn = localStorage.getItem('adminlogin');
+
+    if (isAdminLoggedIn !== '1') {
+      this.router.navigate(['']); // login route
+    }
+  }
 }

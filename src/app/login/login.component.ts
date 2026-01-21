@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
+
 
 @Component({
   selector: 'app-login',
@@ -37,22 +39,29 @@ export class LoginComponent implements OnInit {
     this.currentSlide = index;
   }
 
-  onSubmit() {
-  const email = this.loginForm.get('email')?.value;
-  const password = this.loginForm.get('password')?.value;
-  const access = this.loginForm.get('systemType')?.value;
+ onSubmit() {
+  
 
-  // ✅ Hard coded admin check
-  if (
-    email === 'admin@gmail.com' &&
-    password === '123456' &&
-    access === 'System Administrator'
-  ) {
-    alert('Admin Login Successful');
-    this.router.navigate(['/dashboard']);
-  } else {
-    alert('Invalid credentials or access denied');
-  }
+  const loginData = {
+    email: this.loginForm.value.email,
+    password: this.loginForm.value.password,
+    access: this.loginForm.value.systemType
+  };
+
+  this.http.post(
+    `${environment.apiUrl}/Auth/login`,
+    loginData
+  ).subscribe({
+    next: (res: any) => {
+      alert(res.message || 'Login Successful');
+       localStorage.setItem('adminlogin', '1');
+      this.router.navigate(['/dashboard']);
+    },
+    error: (err) => {
+      alert(err.error?.message || 'Login failed');
+    }
+  });
 }
+
 
 }

@@ -40,27 +40,23 @@ export class LoginComponent implements OnInit {
   }
 
  onSubmit() {
-  
+const email = this.loginForm.value.email;
+  const password = this.loginForm.value.password;
+  const access = this.loginForm.value.systemType;
 
-  const loginData = {
-    email: this.loginForm.value.email,
-    password: this.loginForm.value.password,
-    access: this.loginForm.value.systemType
-  };
-
-  this.http.post(
-    `${environment.apiUrl}/Auth/login`,
-    loginData
-  ).subscribe({
-    next: (res: any) => {
-      alert(res.message || 'Login Successful');
-       localStorage.setItem('adminlogin', '1');
-      this.router.navigate(['/dashboard']);
-    },
-    error: (err) => {
-      alert(err.error?.message || 'Login failed');
-    }
-  });
+  if (
+    email === 'admin@cavalierlogistic.com' &&
+    password === '123456' &&
+    access === 'System Administrator'
+  ) {
+    // login success
+    localStorage.setItem('adminlogin', '1');
+    alert('Login Successful');
+    this.router.navigate(['/dashboard']);
+  } else {
+    // login failed
+    alert('Invalid Email, Password or Access');
+  }
 }
 
 

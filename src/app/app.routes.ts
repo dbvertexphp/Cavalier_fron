@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { LoginComponent } from './login/login.component'; // Ensure this path is correct
+import { LoginComponent } from './login/login.component';
 import { EcommerceComponent } from './pages/dashboard/ecommerce/ecommerce.component';
 import { ProfileComponent } from './pages/profile/profile.component';
 import { FormElementsComponent } from './pages/forms/form-elements/form-elements.component';
@@ -19,10 +19,14 @@ import { VideosComponent } from './pages/ui-elements/videos/videos.component';
 import { SignInComponent } from './pages/auth-pages/sign-in/sign-in.component';
 import { SignUpComponent } from './pages/auth-pages/sign-up/sign-up.component';
 import { CalenderComponent } from './pages/calender/calender.component';
+import { UserComponent } from './user/user.component';
+import { BranchComponent } from './branch/branch.component';
+
+// Import the BranchDashboardComponent
+import { BranchDashboardComponent } from './pages/branch-dashboard/branch-dashboard.component';
 
 export const routes: Routes = [
   // 1. WELCOME/LOGIN PAGE (Root)
-  // This opens when you go to http://localhost:4200/
   {
     path: '',
     component: LoginComponent,
@@ -30,8 +34,7 @@ export const routes: Routes = [
     title: 'Welcome to Cavalier | Login'
   },
 
-  // 2. DASHBOARD LAYOUT (Restricted path)
-  // This opens when you go to http://localhost:4200/Dashbord
+  // 2. MAIN DASHBOARD LAYOUT (With Sidebar & Header)
   {
     path: 'dashboard',
     component: AppLayoutComponent,
@@ -48,9 +51,14 @@ export const routes: Routes = [
         title: 'Angular Calender'
       },
       {
-        path: 'profile',
-        component: ProfileComponent,
-        title: 'Profile'
+        path: 'users',
+        component: UserComponent,
+        title: 'User Management'
+      },
+      {
+        path: 'branch',
+        component: BranchComponent,
+        title: 'Branch Management'
       },
       {
         path: 'form-elements',
@@ -112,10 +120,23 @@ export const routes: Routes = [
         component: VideosComponent,
         title: 'Videos'
       },
+      {
+        path: 'profile',
+        component: ProfileComponent,
+        title: 'Profile'
+      },
     ]
   },
 
-  // 3. AUTH PAGES (Outside Dashboard Layout)
+  // 3. SEPARATE BRANCH DASHBOARD (Ab ye kisi layout ke andar nahi hai)
+  // URL: http://localhost:4200/branchdashboard
+  {
+    path: 'branchdashboard',
+    component: BranchDashboardComponent,
+    title: 'Branch Administrator Dashboard'
+  },
+
+  // 4. AUTH PAGES
   {
     path: 'signin',
     component: SignInComponent,
@@ -127,7 +148,7 @@ export const routes: Routes = [
     title: 'Sign Up'
   },
 
-  // 4. ERROR PAGES
+  // 5. ERROR PAGES
   {
     path: '**',
     component: NotFoundComponent,

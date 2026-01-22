@@ -29,7 +29,7 @@
       'justify-start': (isExpanded$ | async) || (isHovered$ | async)
     }"
   >
-    <a routerLink="/dashboard">
+    <a routerLink="/">
       @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
       <img
         class="dark:hidden"
@@ -117,7 +117,7 @@
                   @if ((isExpanded$ | async) || (isHovered$ | async) ||
                   (isMobileOpen$ | async)) {
 
-                  <span class="menu-item-text text-white" >
+                  <span class="menu-item-text" style="color: white;" >
                     {{ nav.name }}
                   </span>
                   } 

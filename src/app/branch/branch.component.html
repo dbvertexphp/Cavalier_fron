@@ -1,0 +1,100 @@
+<section class="container mx-auto p-6 font-mono">
+
+  <div *ngIf="loading" class="text-center py-10">
+    Loading branches...
+  </div>
+
+  <div *ngIf="!loading" class="w-full mb-8 overflow-hidden rounded-lg shadow-lg">
+    <div class="w-full overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr
+            class="text-md font-semibold tracking-wide text-left text-gray-900 bg-gray-100 uppercase border-b">
+            <th class="px-4 py-3">Company</th>
+            <th class="px-4 py-3">Branch</th>
+            <th class="px-4 py-3">City</th>
+            <th class="px-4 py-3">State</th>
+            <th class="px-4 py-3">GSTIN</th>
+            <th class="px-4 py-3">Status</th>
+            <th class="px-4 py-3">Company Alias</th>
+            <th class="px-4 py-3">Contact No</th>
+            <th class="px-4 py-3">Country</th>
+            <th class="px-4 py-3">Email</th>
+            <th class="px-4 py-3">faxNumber</th>
+            <th class="px-4 py-3">gstCategory</th>
+            <th class="px-4 py-3">gstin</th>
+            <th class="px-4 py-3">postalCode</th>
+            <th class="px-4 py-3">state</th>
+            <th class="px-4 py-3">timeZone</th>
+          </tr>
+        </thead>
+
+        <tbody class="bg-white">
+          <tr *ngFor="let b of branches" class="text-gray-700">
+            <td class="px-4 py-3 border font-semibold">
+              {{ b.companyName }}
+            </td>
+
+            <td class="px-4 py-3 border">
+              {{ b.branchName }}
+            </td>
+
+            <td class="px-4 py-3 border">
+              {{ b.city }}
+            </td>
+
+            <td class="px-4 py-3 border">
+              {{ b.state }}
+            </td>
+
+            <td class="px-4 py-3 border">
+              {{ b.gstin }}
+            </td>
+
+            <td class="px-4 py-3 border text-xs">
+              <span
+                class="px-2 py-1 font-semibold rounded-sm"
+                [ngClass]="b.isActive == 1 
+                  ? 'text-green-700 bg-green-100'
+                  : 'text-red-700 bg-red-100'">
+                {{ b.isActive == 1 ? 'Active' : 'Inactive' }}
+              </span>
+            </td>
+            <td class="px-4 py-3 border">
+              {{ b.companyAlias }}
+            </td>
+            <td class="px-4 py-3 border">
+              {{ b.contactNo }}
+            </td>
+            <td class="px-4 py-3 border">
+              {{ b.country }}
+            </td>
+            <td class="px-4 py-3 border">
+              {{ b.email }}
+            </td>
+            <td class="px-4 py-3 border">
+              {{ b.faxNumber }}
+            </td>
+            <td class="px-4 py-3 border">
+              {{ b.gstCategory }}
+            </td>
+            <td class="px-4 py-3 border">
+              {{ b.gstin }}
+            </td>
+            <td class="px-4 py-3 border">
+              {{ b.postalCode }}
+            </td>
+            <td class="px-4 py-3 border">
+              {{ b.state }}
+            </td>
+            <td class="px-4 py-3 border">
+              {{ b.timeZone }}
+            </td>
+          </tr>
+        </tbody>
+
+      </table>
+    </div>
+  </div>
+
+</section>

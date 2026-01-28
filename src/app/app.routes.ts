@@ -21,6 +21,8 @@ import { SignUpComponent } from './pages/auth-pages/sign-up/sign-up.component';
 import { CalenderComponent } from './pages/calender/calender.component';
 import { UserComponent } from './user/user.component';
 import { BranchComponent } from './branch/branch.component';
+import { authGuard } from './guards/auth.guard';
+import { guestGuard } from './guards/guest.guard';
 
 export const routes: Routes = [
   // 1. WELCOME/LOGIN PAGE (Root)
@@ -28,6 +30,7 @@ export const routes: Routes = [
   {
     path: '',
     component: LoginComponent,
+    canActivate: [guestGuard],
     pathMatch: 'full',
     title: 'Welcome to Cavalier | Login'
   },
@@ -37,6 +40,7 @@ export const routes: Routes = [
   {
     path: 'dashboard',
     component: AppLayoutComponent,
+    canActivate: [authGuard],
     children: [
       {
         path: '',

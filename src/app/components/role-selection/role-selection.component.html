@@ -1,0 +1,23 @@
+<div class="min-h-screen flex items-center justify-center bg-gray-100">
+  <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md text-center">
+    <img src="assets/logo.png" alt="Logi-Sys" class="mx-auto mb-6 h-12">
+    
+    <h3 class="text-blue-600 font-bold mb-4 uppercase">Hi Bharat Juyal,</h3>
+    <p class="text-gray-600 mb-6">Select System Type to proceed</p>
+
+    <div class="space-y-4 text-left">
+      <div>
+        <label class="text-xs font-bold text-gray-500 uppercase">System Type</label>
+        <select [(ngModel)]="selectedRole" class="w-full p-3 border rounded-lg mt-1 outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">Select Role</option>
+          <option value="admin">System Administrator</option>
+          <option value="branch">Branch Administrator</option>
+        </select>
+      </div>
+
+      <button (click)="submitRole()" class="w-full bg-cyan-500 text-white py-3 rounded-lg font-bold hover:bg-cyan-600 transition shadow-md">
+        SUBMIT
+      </button>
+    </div>
+  </div>
+</div>

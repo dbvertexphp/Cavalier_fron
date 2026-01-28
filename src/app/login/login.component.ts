@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
+
 
 @Component({
   selector: 'app-login',
@@ -22,7 +24,7 @@ export class LoginComponent implements OnInit {
 
   constructor(private fb: FormBuilder, private router: Router, private http: HttpClient) {
     this.loginForm = this.fb.group({
-      systemType: ['', Validators.required], // System Administrator / Branch Administrator
+      //systemType: ['', Validators.required], // System Administrator / Branch Administrator
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
@@ -38,22 +40,44 @@ export class LoginComponent implements OnInit {
     this.currentSlide = index;
   }
 
-  onSubmit() {
-  const email = this.loginForm.get('email')?.value;
-  const password = this.loginForm.get('password')?.value;
-  const access = this.loginForm.get('systemType')?.value;
+ /*onSubmit() {
+const email = this.loginForm.value.email;
+  const password = this.loginForm.value.password;
+  const access = this.loginForm.value.systemType;
 
-  // ✅ Hard coded admin check
   if (
-    email === 'admin@gmail.com' &&
+    email === 'admin@cavalierlogistic.com' &&
     password === '123456' &&
     access === 'System Administrator'
   ) {
-    alert('Admin Login Successful');
+    // login success
+    localStorage.setItem('adminlogin', '1');
+    alert('Login Successful');
     this.router.navigate(['/dashboard']);
   } else {
-    alert('Invalid credentials or access denied');
+    // login failed
+    alert('Invalid Email, Password or Access');
+  }
+}*/
+onSubmit() {
+  const email = this.loginForm.value.email;
+  const password = this.loginForm.value.password;
+
+  // Pehle sirf email aur password check karein
+  if (email === 'admin@cavalierlogistic.com' && password === '123456') {
+    
+    // Login basic success ho gaya
+    localStorage.setItem('temp_login', 'true'); 
+    
+    alert('Credentials Verified! Please select your system type.');
+    
+    // Yahan hum naye page par redirect kar rahe hain
+    this.router.navigate(['/select-role']); 
+    
+  } else {
+    alert('Invalid Email or Password');
   }
 }
+
 
 }

@@ -21,20 +21,28 @@ import { SignUpComponent } from './pages/auth-pages/sign-up/sign-up.component';
 import { CalenderComponent } from './pages/calender/calender.component';
 import { UserComponent } from './user/user.component';
 import { BranchComponent } from './branch/branch.component';
-
-// Import the BranchDashboardComponent
+import { UserFormComponent } from './components/user-form/user-form.component'; 
 import { BranchDashboardComponent } from './pages/branch-dashboard/branch-dashboard.component';
 
+// Naya component jo humne banaya hai use yahan import kiya
+import { RoleSelectionComponent } from './components/role-selection/role-selection.component';
+import { BranchFormComponent } from './components/branch-form/branch-form.component';
+
 export const routes: Routes = [
-  // 1. WELCOME/LOGIN PAGE (Root)
-  {
-    path: '',
-    component: LoginComponent,
-    pathMatch: 'full',
-    title: 'Welcome to Cavalier | Login'
+
+  // 1. AUTH & ROLE SELECTION (Root Pages)
+  { 
+    path: '', 
+    component: LoginComponent, 
+    title: 'Welcome to Cavalier | Login' 
+  },
+  { 
+    path: 'select-role', 
+    component: RoleSelectionComponent, 
+    title: 'Select System Type' 
   },
 
-  // 2. MAIN DASHBOARD LAYOUT (With Sidebar & Header)
+  // 2. MAIN DASHBOARD LAYOUT (All Sidebar Routes)
   {
     path: 'dashboard',
     component: AppLayoutComponent,
@@ -46,9 +54,14 @@ export const routes: Routes = [
         title: 'Cavalier Logistics Dashboard',
       },
       {
-        path: 'calendar',
-        component: CalenderComponent,
-        title: 'Angular Calender'
+        path: 'branch',
+        component: BranchComponent,
+        title: 'Branch Management'
+      },
+      { 
+        path: 'branch-form', 
+        component: BranchFormComponent, // Yahan BranchFormComponent use karein UserForm ki jagah
+        title: 'Branch Registration' 
       },
       {
         path: 'users',
@@ -56,9 +69,14 @@ export const routes: Routes = [
         title: 'User Management'
       },
       {
-        path: 'branch',
-        component: BranchComponent,
-        title: 'Branch Management'
+        path: 'register-user',
+        component: UserFormComponent,
+        title: 'Register New User'
+      },
+      {
+        path: 'calendar',
+        component: CalenderComponent,
+        title: 'Angular Calender'
       },
       {
         path: 'form-elements',
@@ -128,15 +146,14 @@ export const routes: Routes = [
     ]
   },
 
-  // 3. SEPARATE BRANCH DASHBOARD (Ab ye kisi layout ke andar nahi hai)
-  // URL: http://localhost:4200/branchdashboard
+  // 3. SEPARATE BRANCH DASHBOARD
   {
     path: 'branchdashboard',
     component: BranchDashboardComponent,
     title: 'Branch Administrator Dashboard'
   },
 
-  // 4. AUTH PAGES
+  // 4. AUTH PAGES (Stand-alone)
   {
     path: 'signin',
     component: SignInComponent,

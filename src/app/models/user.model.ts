@@ -1,0 +1,39 @@
+// src/app/models/user.model.ts
+
+export interface User {
+  id?: number;
+  empCode: string;
+  firstName: string;
+  middleName?: string;
+  lastName: string;
+  dob: string;
+  dateOfJoining: string;
+  dateOfLeft?: string;
+  ctc_Monthly: string;
+  designation: string;
+  functionalArea: string;
+  email: string;
+  password?: string;
+  contactPersonal: string;
+  location: string;
+  presentAddress: string;
+  permanentAddress: string;
+  paN_No: string;
+  aadhaarNo: string;
+  tenthYear: string;
+  twelfthYear: string;
+  graduationYear: string;
+  postGraduationYear?: string;
+  photoPath?: string;
+  bloodGroup: string;
+  salaryAccountNo: string;
+  maritalStatus: string;
+  emergencyName: string;
+  emergencyRelation: string;
+  emergencyContactNo: string;
+  sourceOfSelection: string;
+  branchId: number;
+  status: boolean;
+  invitationLetter?: boolean;
+  simIssued?: boolean;
+}

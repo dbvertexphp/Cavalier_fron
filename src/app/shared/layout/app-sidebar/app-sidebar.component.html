@@ -224,12 +224,14 @@
                 </div>
               } @else {
                 @if (nav.path) {
-                <a
-                  [routerLink]="nav.path"
-                  routerLinkActive="menu-item-active"
-                  class="menu-item group"
-                  [ngClass]="{ 'menu-item-inactive': !isActive(nav.path) }"
-                >
+              <a
+  [routerLink]="nav.path"
+  routerLinkActive="menu-item-active"
+  [routerLinkActiveOptions]="{ exact: true }"
+  class="menu-item group"
+  [ngClass]="{ 'menu-item-inactive': !isActive(nav.path) }"
+>
+
                   <span
                     class="menu-item-icon-size"
                     [ngClass]="{

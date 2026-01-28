@@ -1,100 +1,95 @@
 <section class="container mx-auto p-6 font-mono">
+  <div class="flex justify-end mb-4 gap-2">
+    <button (click)="addBranch()" class="flex items-center gap-2 px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow transition">
+      <i class="fas fa-plus"></i> Add Branch
+    </button>
 
-  <div *ngIf="loading" class="text-center py-10">
-    Loading branches...
+    <button (click)="deleteBranch()" [ngClass]="{'bg-red-800': selectionType === 'checkbox'}" class="flex items-center gap-2 px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded-lg shadow transition">
+      {{ selectionType === 'checkbox' ? 'Confirm Delete' : 'Delete Branch' }}
+    </button>
+
+    <button (click)="modifyBranch()" [ngClass]="{'bg-yellow-800': selectionType === 'radio'}" class="flex items-center gap-2 px-4 py-2 text-white bg-yellow-600 hover:bg-yellow-700 rounded-lg shadow transition">
+      {{ selectionType === 'radio' ? 'Confirm Modify' : 'Modify Branch' }}
+    </button>
   </div>
 
-  <div *ngIf="!loading" class="w-full mb-8 overflow-hidden rounded-lg shadow-lg">
+  <div *ngIf="loading" class="text-center py-10">
+    <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-600"></div>
+    <p class="mt-2 text-gray-600">Loading Branches...</p>
+  </div>
+
+  <div *ngIf="!loading" class="w-full mb-8 overflow-hidden rounded-lg shadow-lg border border-gray-200">
     <div class="w-full overflow-x-auto">
-      <table class="w-full">
+      <table class="w-full border-collapse">
         <thead>
-          <tr
-            class="text-md font-semibold tracking-wide text-left text-gray-900 bg-gray-100 uppercase border-b">
-            <th class="px-4 py-3">Company</th>
-            <th class="px-4 py-3">Branch</th>
-            <th class="px-4 py-3">City</th>
-            <th class="px-4 py-3">State</th>
-            <th class="px-4 py-3">GSTIN</th>
+          <tr class="text-xs font-bold text-left text-gray-700 bg-gray-100 uppercase border-b whitespace-nowrap">
+            <th *ngIf="showSelection" class="px-4 py-3 text-center">Select</th>
+            <th class="px-4 py-3">Company Details</th>
+            <th class="px-4 py-3">Branch & Code</th>
+            <th class="px-4 py-3">Location & Address</th>
+            <th class="px-4 py-3">Tax (GST/IEC)</th>
+            <th class="px-4 py-3">Customs Details</th>
+            <th class="px-4 py-3">Contact Information</th>
             <th class="px-4 py-3">Status</th>
-            <th class="px-4 py-3">Company Alias</th>
-            <th class="px-4 py-3">Contact No</th>
-            <th class="px-4 py-3">Country</th>
-            <th class="px-4 py-3">Email</th>
-            <th class="px-4 py-3">faxNumber</th>
-            <th class="px-4 py-3">gstCategory</th>
-            <th class="px-4 py-3">gstin</th>
-            <th class="px-4 py-3">postalCode</th>
-            <th class="px-4 py-3">state</th>
-            <th class="px-4 py-3">timeZone</th>
           </tr>
         </thead>
-
-        <tbody class="bg-white">
-          <tr *ngFor="let b of branches" class="text-gray-700">
-            <td class="px-4 py-3 border font-semibold">
-              {{ b.companyName }}
+        <tbody class="bg-white text-sm">
+          <tr *ngFor="let b of branches" class="text-gray-700 hover:bg-blue-50/30 transition-colors border-b last:border-0">
+            <td *ngIf="showSelection" class="px-4 py-3 border-r text-center">
+              <input 
+                [type]="selectionType" 
+                [name]="selectionType === 'radio' ? 'branchSelection' : ''"
+                (change)="toggleSelection(b, $event)"
+                class="w-4 h-4 text-blue-600">
+            </td>
+            
+            <td class="px-4 py-3 border-r">
+              <div class="font-bold text-blue-800">{{ b.companyName }}</div>
+              <div class="text-xs text-gray-500 italic">{{ b.companyAlias }}</div>
             </td>
 
-            <td class="px-4 py-3 border">
-              {{ b.branchName }}
+            <td class="px-4 py-3 border-r">
+              <div class="font-semibold">{{ b.branchName }}</div>
+              <div class="text-xs font-mono bg-gray-100 px-1 inline-block rounded">{{ b.branchCode }}</div>
             </td>
 
-            <td class="px-4 py-3 border">
-              {{ b.city }}
+            <td class="px-4 py-3 border-r max-w-xs">
+              <div class="font-semibold">{{ b.city }}, {{ b.state }}</div>
+              <div class="text-xs text-gray-600 truncate hover:text-clip" [title]="b.address">
+                {{ b.address }}
+              </div>
+              <div class="text-xs text-gray-400">PIN: {{ b.postalCode }} | {{ b.country }}</div>
             </td>
 
-            <td class="px-4 py-3 border">
-              {{ b.state }}
+            <td class="px-4 py-3 border-r">
+              <div class="text-xs"><span class="font-bold">GST:</span> {{ b.gstin }}</div>
+              <div class="text-xs text-gray-500">Cat: {{ b.gstCategory }}</div>
+              <div class="text-xs"><span class="font-bold">IEC:</span> {{ b.iecCode }}</div>
             </td>
 
-            <td class="px-4 py-3 border">
-              {{ b.gstin }}
+            <td class="px-4 py-3 border-r">
+              <div class="text-xs font-semibold">House Code:</div>
+              <div class="text-xs text-blue-600">{{ b.defaultCustomHouseCode || 'N/A' }}</div>
+              <div class="text-[10px] text-gray-400">Copy From: {{ b.copyDefaultFrom || '-' }}</div>
             </td>
 
-            <td class="px-4 py-3 border text-xs">
-              <span
-                class="px-2 py-1 font-semibold rounded-sm"
-                [ngClass]="b.isActive == 1 
-                  ? 'text-green-700 bg-green-100'
-                  : 'text-red-700 bg-red-100'">
-                {{ b.isActive == 1 ? 'Active' : 'Inactive' }}
+            <td class="px-4 py-3 border-r">
+              <div class="flex items-center gap-1">
+                <span class="text-xs">📞 {{ b.contactNo }}</span>
+              </div>
+              <div class="text-xs text-blue-600 underline">{{ b.email }}</div>
+              <div *ngIf="b.faxNumber" class="text-[10px] text-gray-400">Fax: {{ b.faxNumber }}</div>
+            </td>
+
+            <td class="px-4 py-3 text-center">
+              <span class="px-3 py-1 text-[10px] font-bold rounded-full uppercase tracking-wider" 
+                [ngClass]="b.isActive ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-red-100 text-red-700 border border-red-200'">
+                {{ b.isActive ? 'Active' : 'Inactive' }}
               </span>
-            </td>
-            <td class="px-4 py-3 border">
-              {{ b.companyAlias }}
-            </td>
-            <td class="px-4 py-3 border">
-              {{ b.contactNo }}
-            </td>
-            <td class="px-4 py-3 border">
-              {{ b.country }}
-            </td>
-            <td class="px-4 py-3 border">
-              {{ b.email }}
-            </td>
-            <td class="px-4 py-3 border">
-              {{ b.faxNumber }}
-            </td>
-            <td class="px-4 py-3 border">
-              {{ b.gstCategory }}
-            </td>
-            <td class="px-4 py-3 border">
-              {{ b.gstin }}
-            </td>
-            <td class="px-4 py-3 border">
-              {{ b.postalCode }}
-            </td>
-            <td class="px-4 py-3 border">
-              {{ b.state }}
-            </td>
-            <td class="px-4 py-3 border">
-              {{ b.timeZone }}
             </td>
           </tr>
         </tbody>
-
       </table>
     </div>
   </div>
-
 </section>

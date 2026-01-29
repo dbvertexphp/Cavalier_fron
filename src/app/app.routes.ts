@@ -25,7 +25,6 @@ import { UserFormComponent } from './components/user-form/user-form.component';
 import { BranchDashboardComponent } from './pages/branch-dashboard/branch-dashboard.component';
 
 // Naya component jo humne banaya hai use yahan import kiya
-import { RoleSelectionComponent } from './components/role-selection/role-selection.component';
 import { BranchFormComponent } from './components/branch-form/branch-form.component';
 
 export const routes: Routes = [
@@ -36,11 +35,7 @@ export const routes: Routes = [
     component: LoginComponent, 
     title: 'Welcome to Cavalier | Login' 
   },
-  { 
-    path: 'select-role', 
-    component: RoleSelectionComponent, 
-    title: 'Select System Type' 
-  },
+  
 
   // 2. MAIN DASHBOARD LAYOUT (All Sidebar Routes)
   {

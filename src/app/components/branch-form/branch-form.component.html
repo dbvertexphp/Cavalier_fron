@@ -11,33 +11,45 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
       <div class="space-y-1">
         <label class="text-xs font-bold uppercase text-gray-500">Company Name*</label>
-        <input type="text" formControlName="companyName" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none shadow-sm">
+        <input type="text" formControlName="companyName" 
+          [class.border-red-500]="branchForm.get('companyName')?.invalid && branchForm.get('companyName')?.touched"
+          class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none shadow-sm">
+        <p *ngIf="branchForm.get('companyName')?.invalid && branchForm.get('companyName')?.touched" class="text-[10px] text-red-500 font-semibold italic">Company Name is required</p>
       </div>
       <div class="space-y-1">
         <label class="text-xs font-bold uppercase text-gray-500">Company Alias</label>
-        <input type="text" formControlName="companyAlias" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none shadow-sm">
+        <input type="text" formControlName="companyAlias" class="w-full p-2.5 border rounded-lg outline-none shadow-sm">
       </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 bg-blue-50/20 p-4 rounded-lg">
       <div class="space-y-1">
         <label class="text-xs font-bold uppercase text-gray-500">Branch Name*</label>
-        <input type="text" formControlName="branchName" class="w-full p-2.5 border rounded-lg bg-white shadow-sm">
+        <input type="text" formControlName="branchName" 
+          [class.border-red-500]="branchForm.get('branchName')?.invalid && branchForm.get('branchName')?.touched"
+          class="w-full p-2.5 border rounded-lg bg-white shadow-sm">
       </div>
       <div class="space-y-1">
         <label class="text-xs font-bold uppercase text-gray-500">Branch Code*</label>
-        <input type="text" formControlName="branchCode" class="w-full p-2.5 border rounded-lg bg-white shadow-sm">
+        <input type="text" formControlName="branchCode" 
+          [class.border-red-500]="branchForm.get('branchCode')?.invalid && branchForm.get('branchCode')?.touched"
+          class="w-full p-2.5 border rounded-lg bg-white shadow-sm">
       </div>
       <div class="space-y-1">
         <label class="text-xs font-bold uppercase text-gray-500">Official Email*</label>
-        <input type="email" formControlName="email" class="w-full p-2.5 border rounded-lg bg-white shadow-sm">
+        <input type="email" formControlName="email" 
+          [class.border-red-500]="branchForm.get('email')?.invalid && branchForm.get('email')?.touched"
+          class="w-full p-2.5 border rounded-lg bg-white shadow-sm">
+        <p *ngIf="branchForm.get('email')?.invalid && branchForm.get('email')?.touched" class="text-[10px] text-red-500 font-semibold italic">Valid email required</p>
       </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
       <div class="space-y-1">
         <label class="text-xs font-bold uppercase text-gray-500">Contact No*</label>
-        <input type="text" formControlName="contactNo" class="w-full p-2.5 border rounded-lg shadow-sm">
+        <input type="text" formControlName="contactNo" 
+          [class.border-red-500]="branchForm.get('contactNo')?.invalid && branchForm.get('contactNo')?.touched"
+          class="w-full p-2.5 border rounded-lg shadow-sm">
       </div>
       <div class="space-y-1">
         <label class="text-xs font-bold uppercase text-gray-500">Fax Number</label>
@@ -56,63 +68,77 @@
       </div>
       <div class="space-y-1">
         <label class="text-xs font-bold uppercase text-gray-500">State*</label>
-        <input type="text" formControlName="state" class="w-full p-2.5 border rounded-lg shadow-sm">
+        <input type="text" formControlName="state" 
+          [class.border-red-500]="branchForm.get('state')?.invalid && branchForm.get('state')?.touched"
+          class="w-full p-2.5 border rounded-lg shadow-sm">
       </div>
       <div class="space-y-1">
         <label class="text-xs font-bold uppercase text-gray-500">City*</label>
-        <input type="text" formControlName="city" class="w-full p-2.5 border rounded-lg shadow-sm">
+        <input type="text" formControlName="city" 
+          [class.border-red-500]="branchForm.get('city')?.invalid && branchForm.get('city')?.touched"
+          class="w-full p-2.5 border rounded-lg shadow-sm">
       </div>
       <div class="space-y-1">
         <label class="text-xs font-bold uppercase text-gray-500">Postal Code*</label>
-        <input type="text" formControlName="postalCode" class="w-full p-2.5 border rounded-lg shadow-sm">
+        <input type="text" formControlName="postalCode" placeholder="6 Digits" 
+          [class.border-red-500]="branchForm.get('postalCode')?.invalid && branchForm.get('postalCode')?.touched"
+          class="w-full p-2.5 border rounded-lg shadow-sm">
+        <p *ngIf="branchForm.get('postalCode')?.invalid && branchForm.get('postalCode')?.touched" class="text-[10px] text-red-500 font-semibold italic">Enter 6 digits</p>
       </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 p-4 border border-yellow-100 rounded-lg bg-yellow-50/10">
       <div class="space-y-1">
+        <label class="text-xs font-bold uppercase text-gray-500">System Role*</label>
+        <select formControlName="roleId" 
+          [class.border-red-500]="branchForm.get('roleId')?.invalid && branchForm.get('roleId')?.touched"
+          class="w-full p-2.5 border rounded-lg bg-white outline-none shadow-sm">
+          <option value="">Select Role</option>
+          <option *ngFor="let role of roles" [value]="role.id">{{ role.name }}</option>
+          <ng-container *ngIf="roles.length === 0">
+            <option value="2">Branch Administrator</option>
+            <option value="3">User</option>
+          </ng-container>
+        </select>
+      </div>
+
+      <div class="space-y-1">
         <label class="text-xs font-bold uppercase text-gray-500">GST Category*</label>
-        <select formControlName="gstCategory" class="w-full p-2.5 border rounded-lg bg-white outline-none">
+        <select formControlName="gstCategory" 
+          [class.border-red-500]="branchForm.get('gstCategory')?.invalid && branchForm.get('gstCategory')?.touched"
+          class="w-full p-2.5 border rounded-lg bg-white outline-none">
           <option value="">Select Category</option>
           <option value="Registered">Registered</option>
           <option value="Unregistered">Unregistered</option>
         </select>
       </div>
+
       <div class="space-y-1">
         <label class="text-xs font-bold uppercase text-gray-500">GSTIN*</label>
-        <input type="text" formControlName="gstin" class="w-full p-2.5 border rounded-lg shadow-sm bg-white">
-      </div>
-      <div class="space-y-1">
-        <label class="text-xs font-bold uppercase text-gray-500">IEC Code</label>
-        <input type="text" formControlName="iecCode" class="w-full p-2.5 border rounded-lg shadow-sm bg-white">
-      </div>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-      <div class="space-y-1">
-        <label class="text-xs font-bold uppercase text-gray-500">Default Custom House Code</label>
-        <input type="text" formControlName="defaultCustomHouseCode" class="w-full p-2.5 border rounded-lg shadow-sm">
-      </div>
-      <div class="space-y-1">
-        <label class="text-xs font-bold uppercase text-gray-500">Copy Default From</label>
-        <input type="text" formControlName="copyDefaultFrom" class="w-full p-2.5 border rounded-lg shadow-sm">
+        <input type="text" formControlName="gstin" 
+          [class.border-red-500]="branchForm.get('gstin')?.invalid && branchForm.get('gstin')?.touched"
+          class="w-full p-2.5 border rounded-lg shadow-sm bg-white uppercase">
+        <p *ngIf="branchForm.get('gstin')?.invalid && branchForm.get('gstin')?.touched" class="text-[10px] text-red-500 font-semibold italic">Format: 07AAAAA0000A1Z5</p>
       </div>
     </div>
 
     <div class="mb-8">
       <label class="text-xs font-bold uppercase text-gray-500">Full Physical Address*</label>
-      <textarea formControlName="address" rows="3" class="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"></textarea>
+      <textarea formControlName="address" rows="3" 
+        [class.border-red-500]="branchForm.get('address')?.invalid && branchForm.get('address')?.touched"
+        class="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"></textarea>
     </div>
 
     <div class="flex items-center gap-2 mb-8">
-      <input type="checkbox" formControlName="isActive" id="isActiveCheckbox" class="w-4 h-4 text-blue-600">
+      <input type="checkbox" formControlName="isActive" id="isActiveCheckbox" class="w-4 h-4 text-blue-600 rounded">
       <label for="isActiveCheckbox" class="text-sm font-bold text-gray-700">Set as Active Branch</label>
     </div>
 
     <div class="flex justify-end gap-4 pt-6 border-t mt-4">
-      <button type="button" (click)="cancel()" class="px-8 py-2.5 bg-gray-100 text-gray-700 font-bold rounded-lg hover:bg-gray-200 transition">
+      <button type="button" (click)="cancel()" class="px-8 py-2.5 bg-gray-100 text-gray-700 font-bold rounded-lg hover:bg-gray-200">
         Cancel
       </button>
-      <button type="submit" [disabled]="branchForm.invalid || loading" 
+      <button type="submit" [disabled]="loading" 
         class="px-8 py-2.5 bg-blue-700 text-white font-bold rounded-lg hover:bg-blue-800 disabled:opacity-50 shadow-md">
         {{ loading ? 'Saving...' : (isEdit ? 'Update Branch' : 'Register Branch') }}
       </button>

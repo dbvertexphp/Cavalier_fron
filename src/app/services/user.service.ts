@@ -25,7 +25,7 @@ export class UserService {
 
   // 3. User update karne ke liye
   // Id ko FormData mein bhi add kiya gaya hai backend compatibility ke liye
-  updateUser(id: number, userData: any): Observable<any> {
+  /*updateUser(id: number, userData: any): Observable<any> {
     const formData = this.convertToFormData(userData);
     
     // Agar backend DTO mein 'Id' field hai, toh ise append karein
@@ -34,7 +34,14 @@ export class UserService {
     // Backend URL mapping check karein: /update/{id}
     return this.http.put(`${this.apiUrl}/update/${id}`, formData);
   }
+*/
 
+// Is method ko apni service mein replace karein
+updateUser(userData: any): Observable<any> {
+  const formData = this.convertToFormData(userData);
+  // Backend direct /update endpoint accept kar raha hai
+  return this.http.put(`${this.apiUrl}/update`, formData);
+}
   // 4. User delete karne ke liye
   deleteUser(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/delete/${id}`);

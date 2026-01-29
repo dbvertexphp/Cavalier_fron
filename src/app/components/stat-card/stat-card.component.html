@@ -1,0 +1,18 @@
+<div [ngClass]="isPrimary ? 'bg-indigo-600 text-white' : 'bg-white text-slate-800'" 
+     class="p-6 rounded-3xl shadow-sm relative overflow-hidden h-full border border-slate-100">
+  <div class="flex justify-between items-start mb-4">
+    <p class="text-sm font-medium opacity-80">{{ title }}</p>
+    <div class="bg-white/20 p-2 rounded-full">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H7M17 7V17" stroke-width="2"/></svg>
+    </div>
+  </div>
+  
+  <div class="flex items-end gap-3">
+    <h2 class="text-3xl font-bold">{{ value }}</h2>
+    <span [ngClass]="isPositive ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'" 
+          class="text-[10px] px-2 py-0.5 rounded-lg font-bold flex items-center mb-1">
+      {{ isPositive ? '↑' : '↓' }} {{ trend }}
+    </span>
+  </div>
+  <p class="text-[10px] mt-2 opacity-60">This month vs last</p>
+</div>

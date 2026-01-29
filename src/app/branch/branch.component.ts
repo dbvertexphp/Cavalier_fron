@@ -1,201 +1,130 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
+import { HttpClientModule } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { BranchService } from '../services/branch.service'; 
 
 @Component({
   selector: 'app-branch',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, HttpClientModule],
   templateUrl: './branch.component.html',
   styleUrl: './branch.component.css',
 })
-export class BranchComponent{
-
-  // branches: any[] = [];
-  // loading = true;
-
-  // constructor(private http: HttpClient) {}
-
-  // ngOnInit(): void {
-  //   this.getBranches();
-  // }
-
-  // getBranches() {
-  //   this.http.get<any>('http://api.cavalierlogistic.graphicsvolume.com/api/branch/list')
-  //     .subscribe({
-  //       next: (res) => {
-  //         // agar API direct array bhej rahi hai
-  //         this.branches = res;
-  //         this.loading = false;
-  //         console.log(this.branches);
-  //       },
-  //       error: (err) => {
-  //         console.error(err);
-  //         this.loading = false;
-  //       }
-  //     });
-  // }
-  loading = false;
-
-  branches = [
-    {
-      companyName: 'Alpha Corp',
-      branchName: 'Alpha Main',
-      city: 'Mumbai',
-      state: 'Maharashtra',
-      gstin: '27AAAAA0000A1Z5',
-      isActive: 1,
-      companyAlias: 'AC',
-      contactNo: '9876543210',
-      country: 'India',
-      email: 'contact@alphacorp.com',
-      faxNumber: '022-123456',
-      gstCategory: 'Regular',
-      postalCode: '400001',
-      timeZone: 'IST'
-    },
-    {
-      companyName: 'Beta Ltd',
-      branchName: 'Beta HQ',
-      city: 'Delhi',
-      state: 'Delhi',
-      gstin: '07BBBBB1111B1Z6',
-      isActive: 0,
-      companyAlias: 'BL',
-      contactNo: '9123456780',
-      country: 'India',
-      email: 'info@betaltd.com',
-      faxNumber: '011-987654',
-      gstCategory: 'Composition',
-      postalCode: '110001',
-      timeZone: 'IST'
-    },
-    {
-      companyName: 'Gamma Pvt',
-      branchName: 'Gamma East',
-      city: 'Kolkata',
-      state: 'West Bengal',
-      gstin: '19CCCCC2222C1Z7',
-      isActive: 1,
-      companyAlias: 'GP',
-      contactNo: '9876501234',
-      country: 'India',
-      email: 'support@gammapvt.com',
-      faxNumber: '033-234567',
-      gstCategory: 'Regular',
-      postalCode: '700001',
-      timeZone: 'IST'
-    },
-    {
-      companyName: 'Delta Inc',
-      branchName: 'Delta North',
-      city: 'Chennai',
-      state: 'Tamil Nadu',
-      gstin: '33DDDDD3333D1Z8',
-      isActive: 1,
-      companyAlias: 'DI',
-      contactNo: '9876123456',
-      country: 'India',
-      email: 'hello@deltainc.com',
-      faxNumber: '044-345678',
-      gstCategory: 'Composition',
-      postalCode: '600001',
-      timeZone: 'IST'
-    },
-    {
-      companyName: 'Epsilon Co',
-      branchName: 'Epsilon West',
-      city: 'Bengaluru',
-      state: 'Karnataka',
-      gstin: '29EEEEE4444E1Z9',
-      isActive: 0,
-      companyAlias: 'EC',
-      contactNo: '9988776655',
-      country: 'India',
-      email: 'contact@epsilonco.com',
-      faxNumber: '080-456789',
-      gstCategory: 'Regular',
-      postalCode: '560001',
-      timeZone: 'IST'
-    },
-    {
-      companyName: 'Gamma Pvt',
-      branchName: 'Gamma East',
-      city: 'Kolkata',
-      state: 'West Bengal',
-      gstin: '19CCCCC2222C1Z7',
-      isActive: 1,
-      companyAlias: 'GP',
-      contactNo: '9876501234',
-      country: 'India',
-      email: 'support@gammapvt.com',
-      faxNumber: '033-234567',
-      gstCategory: 'Regular',
-      postalCode: '700001',
-      timeZone: 'IST'
-    },
-    {
-      companyName: 'Delta Inc',
-      branchName: 'Delta North',
-      city: 'Chennai',
-      state: 'Tamil Nadu',
-      gstin: '33DDDDD3333D1Z8',
-      isActive: 1,
-      companyAlias: 'DI',
-      contactNo: '9876123456',
-      country: 'India',
-      email: 'hello@deltainc.com',
-      faxNumber: '044-345678',
-      gstCategory: 'Composition',
-      postalCode: '600001',
-      timeZone: 'IST'
-    },
-    {
-      companyName: 'Epsilon Co',
-      branchName: 'Epsilon West',
-      city: 'Bengaluru',
-      state: 'Karnataka',
-      gstin: '29EEEEE4444E1Z9',
-      isActive: 0,
-      companyAlias: 'EC',
-      contactNo: '9988776655',
-      country: 'India',
-      email: 'contact@epsilonco.com',
-      faxNumber: '080-456789',
-      gstCategory: 'Regular',
-      postalCode: '560001',
-      timeZone: 'IST'
-    }
-  ];
-  showCheckbox = false;
+export class BranchComponent implements OnInit {
+  branches: any[] = [];
+  loading = true;
+  
+  // Selection Controls
+  showSelection = false;
   selectionType: 'checkbox' | 'radio' | null = null;
-  selectedUser: any = null; // for modify radio selection
-  selectedUsers: any[] = []; // for delete checkbox selection
+  selectedBranch: any = null; // Radio (Modify) ke liye
+  selectedBranches: any[] = []; // Checkbox (Delete) ke liye
 
+  constructor(
+    private branchService: BranchService, 
+    private router: Router
+  ) {}
+
+  ngOnInit(): void {
+    this.getBranches();
+  }
+
+  getBranches() {
+    this.loading = true;
+    this.branchService.getBranches().subscribe({
+      next: (res) => {
+        this.branches = res;
+        this.loading = false;
+        this.resetSelection(); 
+      },
+      error: (err) => {
+        console.error("Fetch Error:", err);
+        this.loading = false;
+      }
+    });
+  }
+
+  // 1. Add Branch Logic
   addBranch() {
-    alert('Working, please wait for some time…');
+    this.router.navigate(['/dashboard/branch-form'], { 
+      state: { isBranch: true, isEdit: false } 
+    });
   }
 
-  deleteBranch() {
-    this.showCheckbox = true;
-    this.selectionType = 'checkbox';
-  }
-
+  // 2. Modify Branch Logic (FIXED)
   modifyBranch() {
-    this.showCheckbox = true;
-    this.selectionType = 'radio';
+    // Step A: Agar selection mode on nahi hai, toh radio buttons dikhayein
+    if (!this.showSelection || this.selectionType !== 'radio') {
+      this.showSelection = true;
+      this.selectionType = 'radio';
+      this.selectedBranches = []; // Clear any previous checkbox selections
+      alert("Please select a branch using the radio button and click Modify again.");
+      return;
+    }
+
+    // Step B: Agar selection mode on hai aur branch select ho gayi hai
+    if (this.selectedBranch) {
+      console.log("Navigating with data:", this.selectedBranch);
+      this.router.navigate(['/dashboard/branch-form'], { 
+        state: { 
+          data: this.selectedBranch, 
+          isEdit: true, 
+          isBranch: true 
+        } 
+      });
+    } else {
+      alert("Please select a branch to modify.");
+    }
   }
 
-  toggleSelection(user: any, event: any) {
+  // 3. Delete Branch Logic
+  deleteBranch() {
+    if (!this.showSelection || this.selectionType !== 'checkbox') {
+      this.showSelection = true;
+      this.selectionType = 'checkbox';
+      this.selectedBranch = null; 
+    } 
+    else if (this.selectedBranches.length > 0) {
+      if (confirm(`Are you sure you want to delete ${this.selectedBranches.length} branch(es)?`)) {
+        this.loading = true;
+        
+        const deleteRequests = this.selectedBranches.map(b => 
+          this.branchService.deleteBranch(b.id).toPromise()
+        );
+
+        Promise.all(deleteRequests)
+          .then(() => {
+            alert('Selection deleted successfully');
+            this.getBranches();
+          })
+          .catch(err => {
+            alert('Error deleting some branches. Check if they are linked to users.');
+            this.loading = false;
+          });
+      }
+    } else {
+      alert("Please select at least one branch to delete.");
+    }
+  }
+
+  // Selection toggle handler
+  toggleSelection(item: any, event: any) {
     if (this.selectionType === 'checkbox') {
       if (event.target.checked) {
-        this.selectedUsers.push(user);
+        this.selectedBranches.push(item);
       } else {
-        this.selectedUsers = this.selectedUsers.filter(u => u !== user);
+        this.selectedBranches = this.selectedBranches.filter(b => b.id !== item.id);
       }
     } else if (this.selectionType === 'radio') {
-      this.selectedUser = user;
+      this.selectedBranch = item;
     }
   }
 
+  resetSelection() {
+    this.showSelection = false;
+    this.selectionType = null;
+    this.selectedBranch = null;
+    this.selectedBranches = [];
+  }
 }

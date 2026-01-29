@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { LoginComponent } from './login/login.component'; // Ensure this path is correct
+import { LoginComponent } from './login/login.component';
 import { EcommerceComponent } from './pages/dashboard/ecommerce/ecommerce.component';
 import { ProfileComponent } from './pages/profile/profile.component';
 import { FormElementsComponent } from './pages/forms/form-elements/form-elements.component';
@@ -23,6 +23,9 @@ import { UserComponent } from './user/user.component';
 import { BranchComponent } from './branch/branch.component';
 import { authGuard } from './guards/auth.guard';
 import { guestGuard } from './guards/guest.guard';
+import { BranchFormComponent } from './components/branch-form/branch-form.component';
+import { UserFormComponent } from './components/user-form/user-form.component';
+import { BranchDashboardComponent } from './pages/branch-dashboard/branch-dashboard.component';
 
 export const routes: Routes = [
   // 1. WELCOME/LOGIN PAGE (Root)
@@ -35,8 +38,7 @@ export const routes: Routes = [
     title: 'Welcome to Cavalier | Login'
   },
 
-  // 2. DASHBOARD LAYOUT (Restricted path)
-  // This opens when you go to http://localhost:4200/Dashbord
+  // 2. MAIN DASHBOARD LAYOUT (All Sidebar Routes)
   {
     path: 'dashboard',
     component: AppLayoutComponent,
@@ -49,21 +51,30 @@ export const routes: Routes = [
         title: 'Cavalier Logistics Dashboard',
       },
       {
+        path: 'branch',
+        component: BranchComponent,
+        title: 'Branch Management'
+      },
+      { 
+        path: 'branch-form', 
+        component: BranchFormComponent, // Yahan BranchFormComponent use karein UserForm ki jagah
+        title: 'Branch Registration' 
+      },
+      {
+        path: 'users',
+        component: UserComponent,
+        title: 'User Management'
+      },
+      {
+        path: 'register-user',
+        component: UserFormComponent,
+        title: 'Register New User'
+      },
+      {
         path: 'calendar',
         component: CalenderComponent,
         title: 'Angular Calender'
       },
-       {
-    path:'users',
-    component:UserComponent,
-    title:'User Management'
-  },
-       {
-    path:'branch',
-    component:BranchComponent,
-    title:'Branch Management'
-  },
-     
       {
         path: 'form-elements',
         component: FormElementsComponent,
@@ -124,16 +135,22 @@ export const routes: Routes = [
         component: VideosComponent,
         title: 'Videos'
       },
-    ]
-  },
- 
-   {
+      {
         path: 'profile',
         component: ProfileComponent,
         title: 'Profile'
       },
+    ]
+  },
 
-  // 3. AUTH PAGES (Outside Dashboard Layout)
+  // 3. SEPARATE BRANCH DASHBOARD
+  {
+    path: 'branchdashboard',
+    component: BranchDashboardComponent,
+    title: 'Branch Administrator Dashboard'
+  },
+
+  // 4. AUTH PAGES (Stand-alone)
   {
     path: 'signin',
     component: SignInComponent,
@@ -145,7 +162,7 @@ export const routes: Routes = [
     title: 'Sign Up'
   },
 
-  // 4. ERROR PAGES
+  // 5. ERROR PAGES
   {
     path: '**',
     component: NotFoundComponent,

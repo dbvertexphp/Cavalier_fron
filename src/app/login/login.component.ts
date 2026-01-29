@@ -9,13 +9,15 @@ import { environment } from '../../environments/environment';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  // Added HttpClientModule to imports
+  imports: [CommonModule, FormsModule, ReactiveFormsModule,], 
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent implements OnInit {
   loginForm: FormGroup;
-
+  isLoggedIn = true;
+  selectedSystemType = true;
   slides = [0, 1, 2]; 
   currentSlide = 0;
 
@@ -23,9 +25,9 @@ export class LoginComponent implements OnInit {
 
   constructor(private fb: FormBuilder, private router: Router, private http: HttpClient) {
     this.loginForm = this.fb.group({
-      systemType: ['', Validators.required], // System Administrator / Branch Administrator
+      //systemType: ['', Validators.required], // System Administrator / Branch Administrator
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(8)]]
+      password: ['', [Validators.required, Validators.minLength(6)]]
     });
   }
 

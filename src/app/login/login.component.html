@@ -1,107 +1,113 @@
-<div class="min-h-screen w-full bg-[#F3F4F6] flex items-center justify-center font-sans p-4 md:p-8">
-  
-  <div class="relative bg-white shadow-2xl overflow-hidden flex flex-col lg:flex-row w-full max-w-[1440px] min-h-[600px] lg:h-[960px] rounded-[20px] lg:rounded-[40px]">
 
-    <div class="welcome-card hidden lg:flex flex-col items-center justify-between text-white p-12 m-8 rounded-[30px] lg:w-[676px] relative overflow-hidden"
-         style="background: linear-gradient(180deg, #5B5B63 0%, #8E736E 100%);">
+
+<div class="min-h-screen w-full bg-[#F3F4F6] flex items-center justify-center font-sans p-4 md:p-8">
+  <div class="relative bg-white shadow-2xl overflow-hidden flex flex-col lg:flex-row w-full max-w-[1440px] min-h-[600px] lg:h-[960px] rounded-[20px] lg:rounded-[40px]">
+    
+    <div class="welcome-card hidden lg:flex flex-col items-center justify-between text-white p-12 m-8 rounded-[30px] lg:w-[40%] relative overflow-hidden"
+      style="background: linear-gradient(180deg, #5B5B63 0%, #8E736E 100%);">
       
-      <div class="absolute inset-0 opacity-10 pointer-events-none" 
-         style="background-image: url('images/assets/background.jpg'); background-size: cover;">
+      <div class="absolute inset-0 opacity-10 pointer-events-none"
+        style="background-image: url('images/assets/background.jpg'); background-size: cover; background-repeat: no-repeat;">
       </div>
 
       <ng-container *ngFor="let slide of slides; let i = index">
-        <div class="slide-item flex flex-col items-center justify-between h-full w-full relative z-10" *ngIf="i === currentSlide">
+        <div class="slide-item flex flex-col items-center justify-between h-full w-full relative z-10" [class.hidden]="i !== currentSlide">
+          <div class="text-center mt-12">
+            <h1 class="text-[36px] font-semibold mb-2 leading-tight">Welcome to Cavalier</h1>
+            <p class="text-gray-200 text-lg opacity-90">Your Gateway to Effortless Management.</p>
+          </div>
           
-          <div class="text-center mt-12 animate-fade">
-            <h1 class="text-[42px] font-semibold mb-2 leading-tight tracking-tight">Welcome to Cavalier</h1>
-            <p class="text-gray-200 text-xl opacity-90">Your Gateway to Effortless Management.</p>
+          <div class="w-full flex justify-center mb-4">
+            <img src="images/assets/logo.png" alt="Logo" class="w-full max-w-[380px] h-auto object-contain">
           </div>
 
-          <div class="logo-placeholder text-[56px] font-bold tracking-[0.2em] opacity-100">
-            LOGO
-          </div>
-
-          <div class="text-center mb-12 animate-fade">
-            <h2 class="text-3xl font-medium mb-4">Seamless Collaboration</h2>
-            <p class="text-gray-200 opacity-80 mb-8 max-w-sm mx-auto leading-relaxed">
+          <div class="text-center mb-12">
+            <h2 class="text-2xl font-medium mb-4">Seamless Collaboration</h2>
+            <p class="text-gray-200 opacity-80 mb-8 max-w-xs mx-auto text-sm">
               Effortlessly work together with your team in real-time.
             </p>
-            
-            <div class="flex justify-center gap-3">
-              <span *ngFor="let dot of slides; let dotIndex = index" 
-                    [class]="dotIndex === currentSlide ? 'w-8 h-2 bg-white rounded-full transition-all duration-300' : 'w-2 h-2 bg-white opacity-40 rounded-full transition-all duration-300'">
+            <div class="flex justify-center gap-3 mt-4">
+              <span *ngFor="let dot of slides; let dotIndex = index" (click)="setSlide(dotIndex)"
+                class="cursor-pointer transition-all duration-300 rounded-full" 
+                [ngClass]="{'w-8 h-2 bg-white': dotIndex === currentSlide,'w-2 h-2': dotIndex !== currentSlide}" 
+                [style.backgroundColor]="dotIndex !== currentSlide ? '#7289DA' : 'white'">
               </span>
             </div>
           </div>
         </div>
       </ng-container>
     </div>
-
-    <div class="flex-1 flex flex-col items-center justify-center p-6 lg:p-12 bg-white">
-      
-        <div class="w-full max-w-[400px] mt-15 mb-10">
-            <img src="images/assets/logo.png" alt="Cavalier Logistics" class="w-full h-auto object-contain">
-        </div>
-
+          
+    <div class="flex-1 lg:w-[60%] flex flex-col items-center justify-center p-6 lg:p-12 bg-white">
       <div class="w-full max-w-[400px] flex flex-col gap-6">
+        <div class="w-full flex justify-center mb-4">
+            <img src="images/assets/logo.png" alt="Logo" class="w-full max-w-[350px] h-auto object-contain">
+          </div>
+        <div *ngIf="isLoggedIn" >
+          <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+          
+          
 
-  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="w-full max-w-[400px] flex flex-col gap-6">
+         <!-- <div class="flex flex-col gap-2">
+            <select formControlName="systemType" 
+              class="w-full border border-gray-400 bg-[#7b6b68] text-white rounded-lg px-4 h-12 outline-none shadow-[0_0_15px_rgba(135,206,235,0.6)] appearance-none cursor-pointer"
+              style="background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1em;">
+              <option value="" class="bg-white text-gray-800">Select System Type</option>
+              <option value="System Administrator" class="bg-white text-gray-800">System Administrator</option>
+              <option value="Branch Administrator" class="bg-white text-gray-800">Branch Administrator</option>
+            </select>
+          </div> -->
 
-  <select formControlName="systemType" class="system-select">
-  <option value="">Select System Type</option>
-  <option value="System Administrator">System Administrator</option>
-  <option value="Branch Administrator">Branch Administrator</option>
-</select>
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-semibold text-gray-600 ml-1">Email Id</label>
+            <input type="email" formControlName="email" placeholder="Enter Email Id" 
+              class="border border-gray-200 rounded-xl px-5 h-14 outline-none focus:border-blue-500 focus:ring-4 focus:ring-sky-100 w-full text-lg transition-all">
+          </div>
 
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-semibold text-gray-600 ml-1">Password</label>
+            <input type="password" formControlName="password" placeholder="Enter Password" 
+              class="border border-gray-200 rounded-xl px-5 h-14 outline-none focus:border-blue-500 focus:ring-4 focus:ring-sky-100 w-full text-lg transition-all">
+          </div>
 
-  <div class="flex flex-col gap-2">
-    <label class="text-sm font-semibold text-gray-600 ml-1">Email Id</label>
-    <input type="email" formControlName="email" placeholder="Enter Email Id" class="border border-gray-200 rounded-xl px-5 h-14 outline-none focus:border-[#8E736E] w-full text-lg transition-colors">
-  </div>
+          <div class="flex flex-col gap-1 text-[12px] text-gray-500 ml-1">
+            <p class="flex items-center gap-2"><span class="text-blue-500 font-bold">✓</span> Password Strength: <span class="font-medium text-gray-400">Weak</span></p>
+            <p class="flex items-center gap-2"><span class="text-blue-500 font-bold">✓</span> At least 8 characters</p>
+            <p class="flex items-center gap-2"><span class="text-blue-500 font-bold">✓</span> Contains a number or symbol</p>
+            <p class="flex items-center gap-2"><span class="text-blue-500 font-bold">✓</span> Cannot contain your name or email address</p>
+          </div>
 
-  <div class="flex flex-col gap-2">
-    <label class="text-sm font-semibold text-gray-600 ml-1">Password</label>
-    <input type="password" formControlName="password" placeholder="Enter Password" class="border border-gray-200 rounded-xl px-5 h-14 outline-none focus:border-[#8E736E] w-full text-lg transition-colors">
-  </div>
-<div class="flex flex-col gap-2 text-[13px] text-gray-500 ml-1">
-          <p class="flex items-center gap-2"><span class="text-[#8E736E] font-bold">✓</span> Password Strength : <span class="font-medium">Weak</span></p>
-          <p class="flex items-center gap-2"><span class="text-[#8E736E] font-bold">✓</span> Cannot contain your name or email address</p>
-          <p class="flex items-center gap-2"><span class="text-[#8E736E] font-bold">✓</span> At least 8 characters</p>
-          <p class="flex items-center gap-2"><span class="text-[#8E736E] font-bold">✓</span> Contains a number or symbol</p>
-        </div>
-  <button type="submit" class="text-white font-bold h-14 rounded-xl transition-all w-full text-lg mt-2 shadow-lg hover:brightness-110 active:scale-[0.98]"
-          style="background: linear-gradient(90deg, #5B5B63 0%, #8E736E 100%);">
-    Login
-  </button>
- <div class="flex flex-col items-center gap-6 mt-4">
-            <div class="flex items-center w-full">
-                <hr class="flex-grow border-gray-200"><span class="px-4 text-sm text-gray-400 font-medium">OR</span><hr class="flex-grow border-gray-200">
-            </div>
-        <div class="flex justify-between w-full gap-4 px-2">
-                <button class="flex-1 h-10 border border-gray-200 rounded-xl flex items-center justify-center hover:bg-gray-50 transition-all">
-                  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" class="w-6 h-6">
-                </button>
-                <button class="flex-1 h-10 border border-gray-200 rounded-xl flex items-center justify-center hover:bg-gray-50 transition-all">
-                  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apple/apple-original.svg" class="w-6 h-6">
-                </button>
-                <button class="flex-1 h-10 border border-gray-200 rounded-xl flex items-center justify-center hover:bg-gray-50 transition-all">
-                  <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" class="w-6 h-6">
-                </button>
-                <button class="flex-1 h-10 border border-gray-200 rounded-xl flex items-center justify-center hover:bg-gray-50 transition-all">
-                  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/linkedin/linkedin-original.svg" class="w-6 h-6">
-                </button>
-            </div>
-        </div>
+          <button type="submit" 
+            class="text-white font-bold h-14 rounded-xl transition-all w-full text-lg mt-2 shadow-lg hover:brightness-110 active:scale-[0.98]"
+            style="background: linear-gradient(90deg, #5B5B63 0%, #8E736E 100%);">
+            Login
+          </button>
+
         
-        <p class="text-[12px] text-center text-gray-400 mt-4 leading-relaxed">
-          By signing up to create an account I accept Company's <br>
-          <span class="font-bold text-gray-800 cursor-pointer hover:underline">Terms of use & Privacy Policy.</span>
-        </p>
-</form>
+        </form>
+        </div>
+     
 
+       
+          <div class="flex items-center justify-center w-full mt-4 gap-4">
+            <hr class="w-full border-gray-200">
+            <span class="text-sm text-gray-400 font-medium whitespace-nowrap">OR</span>
+            <hr class="w-full border-gray-200">
+          </div>
 
-</div>
+          <div class="flex justify-between w-full gap-4">
+            <button type="button" class="flex-1 h-12 border border-gray-200 rounded-xl flex items-center justify-center hover:bg-gray-50 transition-colors shadow-sm"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" class="w-6 h-6"></button>
+            <button type="button" class="flex-1 h-12 border border-gray-200 rounded-xl flex items-center justify-center hover:bg-gray-50 transition-colors shadow-sm"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apple/apple-original.svg" class="w-6 h-6"></button>
+            <button type="button" class="flex-1 h-12 border border-gray-200 rounded-xl flex items-center justify-center hover:bg-gray-50 transition-colors shadow-sm"><img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" class="w-6 h-6"></button>
+            <button type="button" class="flex-1 h-12 border border-gray-200 rounded-xl flex items-center justify-center hover:bg-gray-50 transition-colors shadow-sm"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/linkedin/linkedin-original.svg" class="w-6 h-6"></button>
+          </div>
 
+          <p class="text-[12px] text-center text-gray-400 mt-4">
+            By signing up to create an account I accept Company's <br>
+            <span class="font-bold text-gray-800 cursor-pointer hover:underline">Terms of use & Privacy Policy.</span>
+          </p>
+      </div>
     </div>
   </div>
 </div>
+

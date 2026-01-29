@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://localhost:7215', // Live URL
+  apiUrl: 'http://api.cavalierlogistic.graphicsvolume.com', // Live URL
 };

@@ -39,22 +39,12 @@
     <div class="flex-1 lg:w-[60%] flex flex-col items-center justify-center p-6 lg:p-12 bg-white">
       <div class="w-full max-w-[400px] flex flex-col gap-6">
         
-        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+        <div class="w-full flex justify-center mb-4">
+          <img src="images/assets/logo.png" alt="Logo" class="w-full max-w-[350px] h-auto object-contain">
+        </div>
+
+        <form *ngIf="!isStepTwo" [formGroup]="loginForm" (ngSubmit)="onNextStep()" class="flex flex-col gap-4">
           
-          <div class="w-full flex justify-center mb-4">
-            <img src="images/assets/logo.png" alt="Logo" class="w-full max-w-[350px] h-auto object-contain">
-          </div>
-
-         <!-- <div class="flex flex-col gap-2">
-            <select formControlName="systemType" 
-              class="w-full border border-gray-400 bg-[#7b6b68] text-white rounded-lg px-4 h-12 outline-none shadow-[0_0_15px_rgba(135,206,235,0.6)] appearance-none cursor-pointer"
-              style="background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1em;">
-              <option value="" class="bg-white text-gray-800">Select System Type</option>
-              <option value="System Administrator" class="bg-white text-gray-800">System Administrator</option>
-              <option value="Branch Administrator" class="bg-white text-gray-800">Branch Administrator</option>
-            </select>
-          </div> -->
-
           <div class="flex flex-col gap-2">
             <label class="text-sm font-semibold text-gray-600 ml-1">Email Id</label>
             <input type="email" formControlName="email" placeholder="Enter Email Id" 
@@ -71,7 +61,6 @@
             <p class="flex items-center gap-2"><span class="text-blue-500 font-bold">✓</span> Password Strength: <span class="font-medium text-gray-400">Weak</span></p>
             <p class="flex items-center gap-2"><span class="text-blue-500 font-bold">✓</span> At least 8 characters</p>
             <p class="flex items-center gap-2"><span class="text-blue-500 font-bold">✓</span> Contains a number or symbol</p>
-            <p class="flex items-center gap-2"><span class="text-blue-500 font-bold">✓</span> Cannot contain your name or email address</p>
           </div>
 
           <button type="submit" 
@@ -81,9 +70,7 @@
           </button>
 
           <div class="flex items-center justify-center w-full mt-4 gap-4">
-            <hr class="w-full border-gray-200">
-            <span class="text-sm text-gray-400 font-medium whitespace-nowrap">OR</span>
-            <hr class="w-full border-gray-200">
+            <hr class="w-full border-gray-200"><span class="text-sm text-gray-400 font-medium">OR</span><hr class="w-full border-gray-200">
           </div>
 
           <div class="flex justify-between w-full gap-4">
@@ -98,6 +85,44 @@
             <span class="font-bold text-gray-800 cursor-pointer hover:underline">Terms of use & Privacy Policy.</span>
           </p>
         </form>
+
+        <form *ngIf="isStepTwo" [formGroup]="selectionForm" (ngSubmit)="onFinalSubmit()" class="flex flex-col gap-6 animate-fade-in">
+          <div class="text-center">
+            <h2 class="text-2xl font-bold text-gray-700">Select Configuration</h2>
+            <p class="text-sm text-gray-500">Choose your workspace details</p>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-semibold text-gray-600 ml-1">System Role</label>
+            <select formControlName="selectedRole" 
+              class="w-full border border-gray-200 rounded-xl px-5 h-14 outline-none focus:border-blue-500 focus:ring-4 focus:ring-sky-100 bg-white text-lg transition-all appearance-none cursor-pointer"
+              style="background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%20fill%3D%22none%22%20stroke%3D%22%23666%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1.25rem center; background-size: 1em;">
+              <option value="" disabled>-- Select Role --</option>
+              <option *ngFor="let role of roles" [value]="role">{{role}}</option>
+            </select>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-semibold text-gray-600 ml-1">Select City</label>
+            <select formControlName="selectedCity" 
+              class="w-full border border-gray-200 rounded-xl px-5 h-14 outline-none focus:border-blue-500 focus:ring-4 focus:ring-sky-100 bg-white text-lg transition-all appearance-none cursor-pointer"
+              style="background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%20fill%3D%22none%22%20stroke%3D%22%23666%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1.25rem center; background-size: 1em;">
+              <option value="" disabled>-- Select City --</option>
+              <option *ngFor="let city of cities" [value]="city">{{city}}</option>
+            </select>
+          </div>
+
+          <button type="submit" 
+            class="text-white font-bold h-14 rounded-xl transition-all w-full text-lg mt-2 shadow-lg hover:brightness-110 active:scale-[0.98]"
+            style="background: linear-gradient(90deg, #5B5B63 0%, #8E736E 100%);">
+            Proceed to Dashboard
+          </button>
+
+          <button type="button" (click)="isStepTwo = false" class="text-center text-sm text-blue-500 font-medium hover:underline">
+            Back to Login
+          </button>
+        </form>
+
       </div>
     </div>
   </div>

@@ -8,12 +8,16 @@
         placeholder="Search by name / ID / phone"
         class="w-1/3 px-4 py-2 border rounded-md focus:outline-none focus:ring"
       />
+      <h1>
+        Total Employees: <span class="font-semibold">{{ employees.length }}</span>
+      </h1>
       <button
         class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
         (click)="goToAddEmployee()"
       >
         ➕ Add Employee
       </button>
+      
     </div>
 
     <!-- Employee Table -->
@@ -67,8 +71,12 @@
                 (click)="viewEmployee(emp)"
               >View</button>
               <button
-                class="px-3 py-1 text-sm text-yellow-600 border border-yellow-600 rounded hover:bg-yellow-600 hover:text-white"
-              >Edit</button>
+  class="px-3 py-1 text-sm text-yellow-600 border border-yellow-600 rounded hover:bg-yellow-600 hover:text-white"
+  (click)="goToEdit()"
+>
+  Edit
+</button>
+
               <button
                 class="px-3 py-1 text-sm text-purple-600 border border-purple-600 rounded hover:bg-purple-600 hover:text-white"
                 (click)="checkDocs(emp)"

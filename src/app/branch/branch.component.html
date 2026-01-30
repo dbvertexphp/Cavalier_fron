@@ -1,4 +1,4 @@
-<section class="container mx-auto p-6 font-mono">
+<!-- <section class="container mx-auto p-6 font-mono">
   <div class="flex justify-end mb-4 gap-2">
     <button (click)="addBranch()" class="flex items-center gap-2 px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow transition">
       <i class="fas fa-plus"></i> Add Branch
@@ -88,6 +88,172 @@
               </span>
             </td>
           </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section> -->
+<section class="container mx-auto p-6 font-mono">
+  <div class="flex justify-end mb-4 gap-2">
+    <button class="flex items-center gap-2 px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow transition">
+      <i class="fas fa-plus"></i> Add Branch
+    </button>
+
+    <button class="flex items-center gap-2 px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded-lg shadow transition">
+      Delete Branch
+    </button>
+
+    <button class="flex items-center gap-2 px-4 py-2 text-white bg-yellow-600 hover:bg-yellow-700 rounded-lg shadow transition">
+      Modify Branch
+    </button>
+  </div>
+
+  <div class="w-full mb-8 overflow-hidden rounded-lg shadow-lg border border-gray-200">
+    <div class="w-full overflow-x-auto">
+      <table class="w-full border-collapse">
+        <thead>
+          <tr class="text-xs font-bold text-left text-gray-700 bg-gray-100 uppercase border-b whitespace-nowrap">
+            <th class="px-4 py-3 text-center">Select</th>
+            <th class="px-4 py-3">Company Details</th>
+            <th class="px-4 py-3">Branch & Code</th>
+            <th class="px-4 py-3">Location & Address</th>
+            <th class="px-4 py-3">Tax (GST/IEC)</th>
+            <th class="px-4 py-3">Customs Details</th>
+            <th class="px-4 py-3">Contact Information</th>
+            <th class="px-4 py-3">Status</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white text-sm">
+          <!-- Branch 1 -->
+          <tr class="text-gray-700 hover:bg-blue-50/30 transition-colors border-b last:border-0">
+            <td class="px-4 py-3 border-r text-center">
+              <input type="checkbox" class="w-4 h-4 text-blue-600">
+            </td>
+            <td class="px-4 py-3 border-r">
+              <div class="font-bold text-blue-800">ABC Pvt Ltd</div>
+              <div class="text-xs text-gray-500 italic">ABC</div>
+            </td>
+            <td class="px-4 py-3 border-r">
+              <div class="font-semibold">Main Branch</div>
+              <div class="text-xs font-mono bg-gray-100 px-1 inline-block rounded">MB001</div>
+            </td>
+            <td class="px-4 py-3 border-r max-w-xs">
+              <div class="font-semibold">Mumbai, Maharashtra</div>
+              <div class="text-xs text-gray-600 truncate hover:text-clip" title="123 Main Street, Business Park">
+                123 Main Street, Business Park
+              </div>
+              <div class="text-xs text-gray-400">PIN: 400001 | India</div>
+            </td>
+            <td class="px-4 py-3 border-r">
+              <div class="text-xs"><span class="font-bold">GST:</span> 27ABCDE1234F1Z5</div>
+              <div class="text-xs text-gray-500">Cat: Regular</div>
+              <div class="text-xs"><span class="font-bold">IEC:</span> 1234567890</div>
+            </td>
+            <td class="px-4 py-3 border-r">
+              <div class="text-xs font-semibold">House Code:</div>
+              <div class="text-xs text-blue-600">HC1001</div>
+              <div class="text-[10px] text-gray-400">Copy From: -</div>
+            </td>
+            <td class="px-4 py-3 border-r">
+              <div class="flex items-center gap-1">
+                <span class="text-xs">📞 +91 9876543210</span>
+              </div>
+              <div class="text-xs text-blue-600 underline">contact@abc.com</div>
+              <div class="text-[10px] text-gray-400">Fax: 022-123456</div>
+            </td>
+            <td class="px-4 py-3 text-center">
+              <span class="px-3 py-1 text-[10px] font-bold rounded-full uppercase tracking-wider bg-green-100 text-green-700 border border-green-200">
+                Active
+              </span>
+            </td>
+          </tr>
+
+          <!-- Branch 2 -->
+          <tr class="text-gray-700 hover:bg-blue-50/30 transition-colors border-b last:border-0">
+            <td class="px-4 py-3 border-r text-center">
+              <input type="checkbox" class="w-4 h-4 text-blue-600">
+            </td>
+            <td class="px-4 py-3 border-r">
+              <div class="font-bold text-blue-800">XYZ Industries</div>
+              <div class="text-xs text-gray-500 italic">XYZ</div>
+            </td>
+            <td class="px-4 py-3 border-r">
+              <div class="font-semibold">Export Branch</div>
+              <div class="text-xs font-mono bg-gray-100 px-1 inline-block rounded">EX002</div>
+            </td>
+            <td class="px-4 py-3 border-r max-w-xs">
+              <div class="font-semibold">Delhi, Delhi</div>
+              <div class="text-xs text-gray-600 truncate hover:text-clip" title="456 Industrial Road, Sector 5">
+                456 Industrial Road, Sector 5
+              </div>
+              <div class="text-xs text-gray-400">PIN: 110001 | India</div>
+            </td>
+            <td class="px-4 py-3 border-r">
+              <div class="text-xs"><span class="font-bold">GST:</span> 07XYZDE1234G1Z8</div>
+              <div class="text-xs text-gray-500">Cat: Composition</div>
+              <div class="text-xs"><span class="font-bold">IEC:</span> 9876543210</div>
+            </td>
+            <td class="px-4 py-3 border-r">
+              <div class="text-xs font-semibold">House Code:</div>
+              <div class="text-xs text-blue-600">HC2002</div>
+              <div class="text-[10px] text-gray-400">Copy From: Main Branch</div>
+            </td>
+            <td class="px-4 py-3 border-r">
+              <div class="flex items-center gap-1">
+                <span class="text-xs">📞 +91 9123456780</span>
+              </div>
+              <div class="text-xs text-blue-600 underline">info@xyz.com</div>
+            </td>
+            <td class="px-4 py-3 text-center">
+              <span class="px-3 py-1 text-[10px] font-bold rounded-full uppercase tracking-wider bg-red-100 text-red-700 border border-red-200">
+                Inactive
+              </span>
+            </td>
+          </tr>
+
+          <!-- Branch 3 -->
+          <tr class="text-gray-700 hover:bg-blue-50/30 transition-colors border-b last:border-0">
+            <td class="px-4 py-3 border-r text-center">
+              <input type="checkbox" class="w-4 h-4 text-blue-600">
+            </td>
+            <td class="px-4 py-3 border-r">
+              <div class="font-bold text-blue-800">LMN Traders</div>
+              <div class="text-xs text-gray-500 italic">LMN</div>
+            </td>
+            <td class="px-4 py-3 border-r">
+              <div class="font-semibold">Sales Office</div>
+              <div class="text-xs font-mono bg-gray-100 px-1 inline-block rounded">SO003</div>
+            </td>
+            <td class="px-4 py-3 border-r max-w-xs">
+              <div class="font-semibold">Chennai, Tamil Nadu</div>
+              <div class="text-xs text-gray-600 truncate hover:text-clip" title="789 Trade Street, Industrial Estate">
+                789 Trade Street, Industrial Estate
+              </div>
+              <div class="text-xs text-gray-400">PIN: 600001 | India</div>
+            </td>
+            <td class="px-4 py-3 border-r">
+              <div class="text-xs"><span class="font-bold">GST:</span> 33LMNDE1234H1Z2</div>
+              <div class="text-xs text-gray-500">Cat: Regular</div>
+              <div class="text-xs"><span class="font-bold">IEC:</span> 1122334455</div>
+            </td>
+            <td class="px-4 py-3 border-r">
+              <div class="text-xs font-semibold">House Code:</div>
+              <div class="text-xs text-blue-600">HC3003</div>
+              <div class="text-[10px] text-gray-400">Copy From: Export Branch</div>
+            </td>
+            <td class="px-4 py-3 border-r">
+              <div class="flex items-center gap-1">
+                <span class="text-xs">📞 +91 9988776655</span>
+              </div>
+              <div class="text-xs text-blue-600 underline">sales@lmn.com</div>
+            </td>
+            <td class="px-4 py-3 text-center">
+              <span class="px-3 py-1 text-[10px] font-bold rounded-full uppercase tracking-wider bg-green-100 text-green-700 border border-green-200">
+                Active
+              </span>
+            </td>
+          </tr>
+
         </tbody>
       </table>
     </div>

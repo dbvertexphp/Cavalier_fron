@@ -21,24 +21,33 @@ import { SignUpComponent } from './pages/auth-pages/sign-up/sign-up.component';
 import { CalenderComponent } from './pages/calender/calender.component';
 import { UserComponent } from './user/user.component';
 import { BranchComponent } from './branch/branch.component';
-import { authGuard } from './guards/auth.guard';
-import { guestGuard } from './guards/guest.guard';
+import { UserFormComponent } from './components/user-form/user-form.component'; 
+
+import { RolesComponent } from './dashboard/roles/roles.component';
+import { DepartmentsComponent } from './dashboard/departments/departments.component';
+import { DesignationsComponent } from './dashboard/designations/designations.component';
+
+// Naya component jo humne banaya hai use yahan import kiya
 import { BranchFormComponent } from './components/branch-form/branch-form.component';
-import { UserFormComponent } from './components/user-form/user-form.component';
+
 import { BranchDashboardComponent } from './pages/branch-dashboard/branch-dashboard.component';
 import { EmployeeListComponent } from './employee-list/employee-list.component';
 import { EmployeeAddComponent } from './employee-add/employee-add.component';
+import { EmployeeEditComponent } from './employee-edit/employee-edit.component';
 
 export const routes: Routes = [
-  // 1. WELCOME/LOGIN PAGE (Root)
-  // This opens when you go to http://localhost:4200/
-  {
-    path: '',
-    component: LoginComponent,
-    canActivate: [guestGuard],
-    pathMatch: 'full',
-    title: 'Welcome to Cavalier | Login'
+
+  // 1. AUTH & ROLE SELECTION (Root Pages)
+  { 
+    path: '', 
+    component: LoginComponent, 
+    title: 'Welcome to Cavalier | Login' 
   },
+   
+  
+  // Ye line honi chahiye
+  // ... other routes
+
 
   // 2. MAIN DASHBOARD LAYOUT (All Sidebar Routes)
   {
@@ -52,6 +61,16 @@ export const routes: Routes = [
         pathMatch: 'full',
         title: 'Cavalier Logistics Dashboard',
       },
+      { path: 'roles', 
+        component: RolesComponent 
+      },
+      { path: 'departments', 
+        component: DepartmentsComponent
+       },
+      { path: 'designations', 
+        component: DesignationsComponent
+
+       },
       {
         path: 'branch',
         component: BranchComponent,
@@ -152,6 +171,11 @@ export const routes: Routes = [
         component: EmployeeAddComponent,
         title: 'Add Employee'
       },
+      {
+        path: 'employee/edit',
+        component: EmployeeEditComponent,
+        title: 'Edit Employee'
+      },
       
     ]
   },
@@ -163,6 +187,8 @@ export const routes: Routes = [
     component: BranchDashboardComponent,
     title: 'Branch Administrator Dashboard'
   },
+
+
 
   // 4. AUTH PAGES (Stand-alone)
   {

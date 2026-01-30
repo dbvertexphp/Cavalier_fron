@@ -1,4 +1,4 @@
-<section class="container mx-auto p-4 font-sans">
+<!--<section class="container mx-auto p-4 font-sans">
 
   <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
     <h2 class="text-2xl font-bold text-slate-800">Cavalier User Directory</h2>
@@ -138,4 +138,100 @@
     <p class="text-slate-400">No user records found in Cavalier database.</p>
   </div>
 
+</section>-->
+
+
+<section class="p-4 md:p-6 bg-white min-h-screen font-sans">
+  <div class="flex flex-col lg:flex-row justify-between items-center mb-8 gap-4 px-2">
+    <h2 class="text-2xl font-bold text-gray-800">Cavalier User Directory</h2>
+    
+    <div class="flex flex-wrap justify-end gap-3 mr-4 lg:mr-12 xl:pr-20">
+      <button (click)="addUser()" class="flex items-center gap-2 px-6 py-2.5 text-white bg-[#2563eb] hover:bg-blue-700 rounded-lg shadow-md transition-all text-sm font-semibold">
+        <span class="text-xl">+</span> Add User
+      </button>
+
+      <button (click)="showCheckbox && selectionType === 'checkbox' ? confirmDelete() : deleteUser()" 
+              [class]="showCheckbox && selectedUsers.length > 0 ? 'bg-red-600 text-white' : 'bg-gray-50 text-gray-700 border-gray-200'"
+              class="flex items-center gap-2 px-6 py-2.5 rounded-lg shadow-sm hover:bg-gray-100 transition-all border text-sm font-semibold">
+        🗑️ {{ showCheckbox && selectedUsers.length > 0 ? 'Confirm (' + selectedUsers.length + ')' : 'Delete User' }}
+      </button>
+
+      <button (click)="modifyUser()" class="flex items-center gap-2 px-6 py-2.5 text-white bg-[#f59e0b] hover:bg-orange-600 rounded-lg shadow-md transition-all text-sm font-semibold">
+        ✏️ Modify
+      </button>
+    </div>
+  </div>
+
+  <div class="rounded-xl border border-gray-200 overflow-hidden shadow-sm bg-white">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse min-w-[1200px]">
+        <thead class="bg-gray-50 border-b border-gray-200">
+          <tr class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+            <th *ngIf="showCheckbox" class="p-4 text-center w-16">Select</th>
+            <th class="px-6 py-4">Profile & Personal</th>
+            <th class="px-6 py-4">Employee ID & Role</th>
+            <th class="px-6 py-4">Contact & Location</th>
+            <th class="px-6 py-4">Addresses</th>
+            <th class="px-6 py-4">KYC (PAN/UID)</th>
+          </tr>
+        </thead>
+        
+        <tbody class="divide-y divide-gray-100">
+          <tr *ngFor="let u of users" class="hover:bg-blue-50/30 transition-colors">
+            <td *ngIf="showCheckbox" class="p-4 text-center border-r">
+              <input [type]="selectionType" (change)="toggleSelection(u, $event)" 
+                     [checked]="selectionType === 'checkbox' ? selectedUsers.includes(u) : selectedUser === u"
+                     class="w-4 h-4 text-blue-600 rounded">
+            </td>
+
+            <td class="px-6 py-5">
+              <div class="flex items-start gap-4">
+                <div class="w-12 h-12 rounded-full border border-gray-200 overflow-hidden bg-gray-50">
+                  <img [src]="'https://ui-avatars.com/api/?name=' + u.firstName + '&background=random'" alt="user">
+                </div>
+                <div>
+                  <div class="font-bold text-gray-900 leading-tight">{{ u.firstName }} {{ u.lastName }}</div>
+                  <div class="text-[11px] text-blue-600 mt-0.5">{{ u.email }}</div>
+                  <div class="text-[10px] text-gray-400 mt-1 font-medium">
+                    DOB: {{ u.dob }} | {{ u.maritalStatus }} | Blood: {{ u.bloodGroup }}
+                  </div>
+                </div>
+              </div>
+            </td>
+
+            <td class="px-6 py-5">
+              <div class="text-sm">
+                <div class="font-bold text-blue-700 uppercase tracking-tight">{{ u.empCode }}</div>
+                <div class="font-semibold text-gray-700">{{ u.designation }}</div>
+                <div class="text-[11px] text-gray-500">{{ u.functionalArea }}</div>
+                <div class="text-[10px] text-gray-500 mt-1 bg-gray-100 inline-block px-1.5 py-0.5 rounded font-bold">
+                  Join: {{ u.dateOfJoining }}
+                </div>
+              </div>
+            </td>
+
+            <td class="px-6 py-5">
+              <div class="space-y-1 text-xs font-semibold">
+                <div class="text-gray-800">📞 {{ u.contactPersonal }}</div>
+                <div class="text-gray-600">📍 {{ u.location }}</div>
+                <div class="text-[10px] text-gray-400 italic">Branch ID: {{ u.branchId }}</div>
+              </div>
+            </td>
+
+            <td class="px-6 py-5 text-[11px] text-gray-600 leading-relaxed">
+              <p><span class="font-bold text-gray-800">Pres:</span> {{ u.presentAddress }}</p>
+              <p class="mt-1"><span class="font-bold text-gray-800">Perm:</span> {{ u.permanentAddress }}</p>
+            </td>
+
+            <td class="px-6 py-5 text-[11px] font-mono">
+              <div class="bg-gray-50 p-2 rounded border border-gray-100">
+                <p>PAN: {{ u.paN_No }}</p>
+                <p>UID: {{ u.aadhaarNo }}</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </section>

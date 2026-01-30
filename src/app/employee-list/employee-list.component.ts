@@ -80,4 +80,10 @@ export class EmployeeListComponent {
     this.showViewModal = false;
     this.showDocsModal = false;
   }
+   
+
+  goToEdit() {
+    // Redirect to the edit route
+    this.router.navigate(['/dashboard/employee/edit']);
+  }
 }

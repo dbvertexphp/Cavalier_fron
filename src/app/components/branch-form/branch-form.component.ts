@@ -14,15 +14,16 @@ export class BranchFormComponent implements OnInit {
   branchForm: FormGroup;
   isEdit: boolean = false;
   loading: boolean = false;
+  roles: any[] = [];
 
   constructor(
     private fb: FormBuilder,
     private branchService: BranchService,
     private router: Router
   ) {
-    // Adding all missing fields based on your SQL schema
     this.branchForm = this.fb.group({
       id: [0],
+      roleId: ['', Validators.required],
       companyName: ['', [Validators.required, Validators.maxLength(250)]],
       companyAlias: ['', Validators.maxLength(100)],
       branchName: ['', [Validators.required, Validators.maxLength(250)]],
@@ -32,12 +33,12 @@ export class BranchFormComponent implements OnInit {
       city: ['', Validators.required],
       address: ['', Validators.required],
       state: ['', Validators.required],
-      postalCode: ['', [Validators.required, Validators.pattern('^[0-9]{6}$')]], // Indian Pin Code
-      contactNo: ['', [Validators.required, Validators.maxLength(20)]],
+      postalCode: ['', [Validators.required, Validators.pattern('^[0-9]{6}$')]], 
+      contactNo: ['', [Validators.required, Validators.pattern('^[0-9]{10,12}$')]],
       email: ['', [Validators.required, Validators.email]],
       faxNumber: [''],
       gstCategory: ['', Validators.required],
-      gstin: ['', [Validators.required, Validators.maxLength(15)]],
+      gstin: [''],
       iecCode: [''],
       defaultCustomHouseCode: [''],
       copyDefaultFrom: [''],
@@ -46,6 +47,7 @@ export class BranchFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadRoles();
     const state = history.state;
     if (state && state.data && state.isEdit) {
       this.isEdit = true;
@@ -53,9 +55,15 @@ export class BranchFormComponent implements OnInit {
     }
   }
 
+  loadRoles() {
+    this.branchService.getRoles().subscribe({
+      next: (data) => this.roles = data,
+      error: (err) => console.error('Roles fetch failed', err)
+    });
+  }
+
   saveDetails() {
     if (this.branchForm.invalid) {
-      // Form invalid hai toh user ko missing fields dikhane ke liye mark karein
       this.branchForm.markAllAsTouched();
       return;
     }
@@ -63,29 +71,22 @@ export class BranchFormComponent implements OnInit {
     this.loading = true;
     const formData = this.branchForm.value;
 
-    if (this.isEdit) {
-      this.branchService.updateBranch(formData.id, formData).subscribe({
-        next: () => {
-          alert('Branch details updated successfully!');
-          this.router.navigate(['/dashboard/branch']);
-        },
-        error: (err: any) => { 
-          console.error('Update Error:', err); 
-          this.loading = false; 
-        }
-      });
-    } else {
-      this.branchService.addBranch(formData).subscribe({
-        next: () => {
-          alert('New Branch registered successfully!');
-          this.router.navigate(['/dashboard/branch']);
-        },
-        error: (err: any) => { 
-          console.error('Save Error:', err); 
-          this.loading = false; 
-        }
-      });
-    }
+    const request = this.isEdit 
+      ? this.branchService.updateBranch(formData.id, formData)
+      : this.branchService.addBranch(formData); // Ensure this calls /api/branch/create in service
+
+    request.subscribe({
+      next: () => {
+        this.loading = false;
+        alert(this.isEdit ? 'Updated successfully!' : 'Registered successfully!');
+        this.router.navigate(['/dashboard/branch']);
+      },
+      error: (err) => {
+        this.loading = false;
+        console.error('API Error:', err);
+        alert('Action Failed: ' + (err.error?.message || 'Check network tab for 405/500 error'));
+      }
+    });
   }
 
   cancel() {

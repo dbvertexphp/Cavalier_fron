@@ -1,68 +1,3 @@
-/*import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
-
-@Component({
-  selector: 'app-login',
-  standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule], 
-  templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css']
-})
-export class LoginComponent implements OnInit {
-  loginForm: FormGroup;
-  slides = [0, 1, 2]; 
-  currentSlide = 0;
-
-  constructor(private fb: FormBuilder, private router: Router, private http: HttpClient) {
-    this.loginForm = this.fb.group({
-      // Role selection hatane ke liye systemType ko remove kiya gaya hai
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]]
-    });
-  }
-
-  ngOnInit() {
-    // Background slider logic
-    setInterval(() => {
-      this.currentSlide = (this.currentSlide + 1) % this.slides.length;
-    }, 5000);
-  }
-
-  setSlide(index: number) {
-    this.currentSlide = index;
-  }
-
-  onSubmit() {
-    if (this.loginForm.invalid) {
-      alert('Please fill all fields correctly.');
-      return;
-    }
-
-    const email = this.loginForm.value.email;
-    const password = this.loginForm.value.password;
-
-    // Hardcoded check for admin credentials
-    if (email === 'admin@cavalierlogistic.com' && password === '123456') {
-      
-      // Login Success Logic
-      localStorage.setItem('adminlogin', '1'); 
-      alert('Login Successful!');
-      
-      // Seedha dashboard par navigation (select-role skip kar diya)
-      this.router.navigate(['/dashboard']); 
-      
-    } else {
-      // Login Failed Logic
-      alert('Invalid Email or Password');
-    }
-  }
-}*/
-
-
-
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -84,21 +19,24 @@ export class LoginComponent implements OnInit {
   slides = [0, 1, 2]; 
   currentSlide = 0;
   
-  // Step tracking (Isi property ka error aa raha tha terminal mein)
+  // Step tracking
   isStepTwo: boolean = false; 
+
+  // Dynamic User Name
+  displayUserName: string = '';
 
   // Dropdown options
   roles = ['System Administrator', 'Branch Administrator'];
   cities = ['Indore', 'Delhi', 'Mumbai', 'Bangalore', 'Chennai'];
 
   constructor(private fb: FormBuilder, private router: Router, private http: HttpClient) {
-    // Form 1 initialization
+    // Step 1: Login Form
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
 
-    // Form 2 initialization
+    // Step 2: Role & City Selection Form
     this.selectionForm = this.fb.group({
       selectedRole: ['', Validators.required],
       selectedCity: ['', Validators.required]
@@ -106,18 +44,24 @@ export class LoginComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Automatic Background Slider
+    // Background Slider
     setInterval(() => {
       this.currentSlide = (this.currentSlide + 1) % this.slides.length;
     }, 5000);
+
+    // Agar page refresh ho toh localStorage se naam wapas nikalne ke liye
+    const savedName = localStorage.getItem('userName');
+    if (savedName) {
+      this.displayUserName = savedName;
+    }
   }
 
   setSlide(index: number): void {
     this.currentSlide = index;
   }
 
-  // Pehle Step ka function (Login Check)
-  onNextStep(): void {
+  // Pehle Step ka function (Email/Password Verification)
+  /*onNextStep(): void {
     if (this.loginForm.invalid) {
       alert('Please fill email and password correctly.');
       return;
@@ -127,25 +71,83 @@ export class LoginComponent implements OnInit {
 
     // Hardcoded authentication check
     if (email === 'admin@cavalierlogistic.com' && password === '123456') {
-      this.isStepTwo = true; // Email/Password hata kar dropdowns dikhayega
+      
+      // --- DYNAMIC NAME LOGIC ---
+      // 1. Email se name nikalna (admin@cavalier... -> admin)
+      const namePart = email.split('@')[0]; 
+      // 2. First letter Capitalize karna (admin -> Admin)
+      this.displayUserName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
+      // 3. Save for persistence
+      localStorage.setItem('userName', this.displayUserName);
+
+      this.isStepTwo = true; 
     } else {
       alert('Invalid Email or Password. Please try again.');
     }
+  }*/
+ // Component ke andar variable declare karein
+displayCompanyName: string = '';
+
+onNextStep(): void {
+  if (this.loginForm.invalid) {
+    alert('Please fill email and password correctly.');
+    return;
   }
 
-  // Dusre Step ka function (Final Navigation)
+  const { email, password } = this.loginForm.value;
+
+  // Hardcoded Check (Real scenario mein ye API response se aayega)
+  if (email === 'admin@cavalierlogistic.in' && password === '123456') {
+    
+    // 1. Name Logic
+    const namePart = email.split('@')[0];
+    this.displayUserName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
+    
+    // 2. DYNAMIC COMPANY LOGIC
+    // Agar email mein 'cavalier' hai toh 'Cavalier Logistics' dikhao
+    if (email.includes('cavalier')) {
+      this.displayCompanyName = 'Cavalier Logistics Private Limited';
+    } else {
+      this.displayCompanyName = 'Logi-Sys Global'; // Default company
+    }
+
+    // Storage mein save karein
+    localStorage.setItem('userName', this.displayUserName);
+    localStorage.setItem('companyName', this.displayCompanyName);
+
+    this.isStepTwo = true; 
+  } else {
+    alert('Invalid Email or Password.');
+  }
+}
+
+  // Dusre Step ka function (Conditional Routing based on Role)
   onFinalSubmit(): void {
+    console.log("Submit button clicked!"); 
+    console.log("Form Values:", this.selectionForm.value); 
+
     if (this.selectionForm.invalid) {
+      console.log("Form is Invalid!"); 
       alert('Please select both Role and City.');
       return;
     }
 
-    // Login session details store karna
+    const role = this.selectionForm.value.selectedRole;
+    const city = this.selectionForm.value.selectedCity;
+
+    // Session details save karna
     localStorage.setItem('adminlogin', '1');
-    localStorage.setItem('userRole', this.selectionForm.value.selectedRole);
-    localStorage.setItem('userCity', this.selectionForm.value.selectedCity);
-    
-    alert('Login Successful!');
-    this.router.navigate(['/dashboard']);
+    localStorage.setItem('userRole', role);
+    localStorage.setItem('userCity', city);
+
+    console.log("Role Selected:", role);
+
+    if (role === 'Branch Administrator') {
+      console.log("Navigating to Branch Dashboard...");
+      this.router.navigate(['/branchdashboard']);
+    } else {
+      console.log("Navigating to System Dashboard...");
+      this.router.navigate(['/dashboard']);
+    }
   }
 }

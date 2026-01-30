@@ -23,6 +23,9 @@ import { UserComponent } from './user/user.component';
 import { BranchComponent } from './branch/branch.component';
 import { UserFormComponent } from './components/user-form/user-form.component'; 
 import { BranchDashboardComponent } from './pages/branch-dashboard/branch-dashboard.component';
+import { RolesComponent } from './dashboard/roles/roles.component';
+import { DepartmentsComponent } from './dashboard/departments/departments.component';
+import { DesignationsComponent } from './dashboard/designations/designations.component';
 
 // Naya component jo humne banaya hai use yahan import kiya
 import { BranchFormComponent } from './components/branch-form/branch-form.component';
@@ -35,7 +38,11 @@ export const routes: Routes = [
     component: LoginComponent, 
     title: 'Welcome to Cavalier | Login' 
   },
+   
   
+  // Ye line honi chahiye
+  // ... other routes
+
 
   // 2. MAIN DASHBOARD LAYOUT (All Sidebar Routes)
   {
@@ -48,6 +55,16 @@ export const routes: Routes = [
         pathMatch: 'full',
         title: 'Cavalier Logistics Dashboard',
       },
+      { path: 'roles', 
+        component: RolesComponent 
+      },
+      { path: 'departments', 
+        component: DepartmentsComponent
+       },
+      { path: 'designations', 
+        component: DesignationsComponent
+
+       },
       {
         path: 'branch',
         component: BranchComponent,
@@ -147,6 +164,8 @@ export const routes: Routes = [
     component: BranchDashboardComponent,
     title: 'Branch Administrator Dashboard'
   },
+
+
 
   // 4. AUTH PAGES (Stand-alone)
   {

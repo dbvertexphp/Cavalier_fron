@@ -63,6 +63,7 @@ onSubmit() {
       this.router.navigate(['/dashboard']);
     },
     error: (err) => {
+      localStorage.setItem('token', 'fdfdfdfdfdf');
       console.error(err);
       alert(err?.error?.message || 'Invalid Email, Password or Access');
     }

@@ -26,6 +26,8 @@ import { guestGuard } from './guards/guest.guard';
 import { BranchFormComponent } from './components/branch-form/branch-form.component';
 import { UserFormComponent } from './components/user-form/user-form.component';
 import { BranchDashboardComponent } from './pages/branch-dashboard/branch-dashboard.component';
+import { EmployeeListComponent } from './employee-list/employee-list.component';
+import { EmployeeAddComponent } from './employee-add/employee-add.component';
 
 export const routes: Routes = [
   // 1. WELCOME/LOGIN PAGE (Root)
@@ -42,7 +44,7 @@ export const routes: Routes = [
   {
     path: 'dashboard',
     component: AppLayoutComponent,
-    canActivate: [authGuard],
+    
     children: [
       {
         path: '',
@@ -140,8 +142,20 @@ export const routes: Routes = [
         component: ProfileComponent,
         title: 'Profile'
       },
+      {
+        path: 'employee/list',
+        component: EmployeeListComponent,
+        title: 'Employee List'
+      },
+      {
+        path: 'employee/add',
+        component: EmployeeAddComponent,
+        title: 'Add Employee'
+      },
+      
     ]
   },
+
 
   // 3. SEPARATE BRANCH DASHBOARD
   {

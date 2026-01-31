@@ -34,6 +34,10 @@ import { BranchDashboardComponent } from './pages/branch-dashboard/branch-dashbo
 import { EmployeeListComponent } from './employee-list/employee-list.component';
 import { EmployeeAddComponent } from './employee-add/employee-add.component';
 import { EmployeeEditComponent } from './employee-edit/employee-edit.component';
+import { AttendanceListComponent } from './attendance-list/attendance-list.component';
+import { AttendanceAddComponent } from './attendance-add/attendance-add.component';
+import { AttendanceEditComponent } from './attendance-edit/attendance-edit.component';
+import { ShiftManagementComponent } from './shift-management/shift-management.component';
 
 export const routes: Routes = [
 
@@ -175,6 +179,26 @@ export const routes: Routes = [
         path: 'employee/edit',
         component: EmployeeEditComponent,
         title: 'Edit Employee'
+      },
+      {
+        path: 'attendance/list',
+        component: AttendanceListComponent,
+        title: 'Attendance List'
+      },
+      {
+        path: 'attendance/add',
+        component: AttendanceAddComponent,
+        title: 'Add Attendance'
+      },
+      {
+        path: 'attendance/edit',
+        component: AttendanceEditComponent,
+        title: 'Edit Attendance'
+      },
+      {
+        path: 'shift/list',
+        component: ShiftManagementComponent,
+        title: 'Shift List'
       },
       
     ]

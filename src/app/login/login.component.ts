@@ -96,7 +96,6 @@ onNextStep(): void {
 
   const { email, password } = this.loginForm.value;
 
-  // Hardcoded Check (Real scenario mein ye API response se aayega)
   if (email === 'admin@cavalierlogistic.in' && password === '123456') {
     
     // 1. Name Logic
@@ -114,6 +113,7 @@ onNextStep(): void {
     // Storage mein save karein
     localStorage.setItem('userName', this.displayUserName);
     localStorage.setItem('companyName', this.displayCompanyName);
+   
 
     this.isStepTwo = true; 
   } else {
@@ -141,6 +141,7 @@ onNextStep(): void {
     localStorage.setItem('userCity', city);
 
     console.log("Role Selected:", role);
+    
 
     if (role === 'Branch Administrator') {
       console.log("Navigating to Branch Dashboard...");

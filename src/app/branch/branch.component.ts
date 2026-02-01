@@ -29,6 +29,9 @@ export class BranchComponent implements OnInit {
   ngOnInit(): void {
     this.getBranches();
   }
+  onAddBranch(){
+    this.router.navigate(['/dashboard/branch-form']);
+  }
 
   getBranches() {
     this.loading = true;

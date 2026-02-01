@@ -7,7 +7,7 @@ import { environment } from '../../environments/environment';
   providedIn: 'root'
 })
 export class BranchService {
-  private apiUrl = `${environment.apiUrl}/api/branch`;
+  private apiUrl = `${environment.apiUrl}/branch`;
 
   constructor(private http: HttpClient) { }
 

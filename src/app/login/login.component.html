@@ -43,7 +43,9 @@
           <img src="images/assets/logo.png" alt="Logo" class="w-full max-w-[350px] h-auto object-contain">
         </div>
 
-        <form *ngIf="!isStepTwo" [formGroup]="loginForm" (ngSubmit)="onNextStep()" class="flex flex-col gap-4">
+        <form *ngIf="!isStepTwo"
+      [formGroup]="loginForm"
+      (ngSubmit)="onNextStep()" class="flex flex-col gap-4">
           
           <div class="flex flex-col gap-2">
             <label class="text-sm font-semibold text-gray-600 ml-1">Email Id</label>
@@ -93,46 +95,67 @@
             <p class="text-sm text-gray-500">Choose your workspace details</p>
           </div>-->
 
-          <form *ngIf="isStepTwo" [formGroup]="selectionForm" (ngSubmit)="onFinalSubmit()" class="flex flex-col gap-6 animate-fade-in">
-  
-           <div class="text-center mb-6">
-            <h2 class="text-2xl font-bold text-gray-800">Hi, {{ displayUserName }}!</h2>
-           <p class="text-gray-500 text-sm mt-1">Choose your workspace details to continue</p>
-           </div>
+          <form *ngIf="isStepTwo"
+      [formGroup]="selectionForm"
+      (ngSubmit)="onFinalSubmit()"
+      class="flex flex-col gap-6 animate-fade-in">
 
-          <div class="flex flex-col gap-2">
-            <label class="text-sm font-semibold text-gray-600 ml-1">System Role</label>
-            <select formControlName="selectedRole" 
-              class="w-full border border-gray-200 rounded-xl px-5 h-14 outline-none focus:border-blue-500 focus:ring-4 focus:ring-sky-100 bg-white text-lg transition-all appearance-none cursor-pointer"
-              style="background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%20fill%3D%22none%22%20stroke%3D%22%23666%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1.25rem center; background-size: 1em;">
-              <option value="" disabled>-- Select Role --</option>
-              <option *ngFor="let role of roles" [value]="role">{{role}}</option>
-              
-            </select>
-          </div>
-            <p class="text-lg font-semibold text-[#8E736E] mt-1">{{ displayCompanyName }}</p>
-          <div class="flex flex-col gap-2">
-            <label class="text-sm font-semibold text-gray-600 ml-1">Select City</label>
-            <select formControlName="selectedCity" 
-              class="w-full border border-gray-200 rounded-xl px-5 h-14 outline-none focus:border-blue-500 focus:ring-4 focus:ring-sky-100 bg-white text-lg transition-all appearance-none cursor-pointer"
-              style="background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%20fill%3D%22none%22%20stroke%3D%22%23666%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1.25rem center; background-size: 1em;">
-              <option value="" disabled>-- Select City --</option>
-              <option *ngFor="let city of cities" [value]="city">{{city}}</option>
-            </select>
-          </div>
+  <div class="text-center mb-6">
+    <h2 class="text-2xl font-bold text-gray-800">
+      Hi, {{ displayUserName }}!
+    </h2>
+    <p class="text-gray-500 text-sm mt-1">
+      Choose your workspace details to continue
+    </p>
+  </div>
 
-          <button 
-           type="button" 
-           (click)="onFinalSubmit()"
-            class="text-white font-bold h-14 rounded-xl transition-all w-full text-lg mt-2 shadow-lg hover:brightness-110 active:scale-[0.98]"
-          style="background: linear-gradient(90deg, #5B5B63 0%, #8E736E 100%);">
-          Submit
-          </button>
+  <div class="flex flex-col gap-2">
+    <label class="text-sm font-semibold text-gray-600 ml-1">
+      System Role
+    </label>
 
-          <button type="button" (click)="isStepTwo = false" class="text-center text-sm text-blue-500 font-medium hover:underline">
-            Back to Login
-          </button>
-        </form>
+    <select formControlName="selectedRole"
+      class="w-full border border-gray-200 rounded-xl px-5 h-14">
+      <option value="" disabled>-- Select Role --</option>
+      <option *ngFor="let role of roles" [value]="role">
+        {{ role }}
+      </option>
+    </select>
+  </div>
+
+  <p class="text-lg font-semibold text-[#8E736E] mt-1">
+    {{ displayCompanyName }}
+  </p>
+
+  <div class="flex flex-col gap-2">
+    <label class="text-sm font-semibold text-gray-600 ml-1">
+      Select City
+    </label>
+
+    <select formControlName="selectedCity"
+      class="w-full border border-gray-200 rounded-xl px-5 h-14">
+      <option value="" disabled>-- Select City --</option>
+      <option *ngFor="let city of cities" [value]="city">
+        {{ city }}
+      </option>
+    </select>
+  </div>
+
+  <!-- ✅ ONLY SUBMIT -->
+  <button type="submit"
+    class="text-white font-bold h-14 rounded-xl w-full text-lg mt-2"
+    style="background: linear-gradient(90deg, #5B5B63 0%, #8E736E 100%);">
+    Submit
+  </button>
+
+  <button type="button"
+          (click)="isStepTwo = false"
+          class="text-center text-sm text-blue-500 font-medium hover:underline">
+    Back to Login
+  </button>
+
+</form>
+
 
       </div>
     </div>

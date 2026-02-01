@@ -23,7 +23,7 @@ export class BranchFormComponent implements OnInit {
   ) {
     this.branchForm = this.fb.group({
       id: [0],
-      roleId: ['', Validators.required],
+      
       companyName: ['', [Validators.required, Validators.maxLength(250)]],
       companyAlias: ['', Validators.maxLength(100)],
       branchName: ['', [Validators.required, Validators.maxLength(250)]],
@@ -47,7 +47,7 @@ export class BranchFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loadRoles();
+    // this.loadRoles();
     const state = history.state;
     if (state && state.data && state.isEdit) {
       this.isEdit = true;
@@ -55,12 +55,12 @@ export class BranchFormComponent implements OnInit {
     }
   }
 
-  loadRoles() {
-    this.branchService.getRoles().subscribe({
-      next: (data) => this.roles = data,
-      error: (err) => console.error('Roles fetch failed', err)
-    });
-  }
+  // loadRoles() {
+  //   this.branchService.getRoles().subscribe({
+  //     next: (data) => this.roles = data,
+  //     error: (err) => console.error('Roles fetch failed', err)
+  //   });
+  // }
 
   saveDetails() {
     if (this.branchForm.invalid) {

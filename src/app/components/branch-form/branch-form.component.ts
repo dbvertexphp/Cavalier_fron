@@ -24,7 +24,10 @@ export class BranchFormComponent implements OnInit {
     this.branchForm = this.fb.group({
       id: [0],
       
-      companyName: ['', [Validators.required, Validators.maxLength(250)]],
+        companyName: [
+    { value: 'Cavalier Logistic Private Limited', disabled: false }
+  ],
+
       companyAlias: ['', Validators.maxLength(100)],
       branchName: ['', [Validators.required, Validators.maxLength(250)]],
       branchCode: ['', [Validators.required, Validators.maxLength(50)]],

@@ -15,7 +15,8 @@ jobs:
         with:
           host: 69.62.73.69
           username: root
-          key: ${{ secrets.CAVALIER_FRON }}
+          key: ${{ secrets.CAVALIER_FRON}}
+          port: 22
           script: |
             cd /var/www
             rm -rf Cavalier_fron

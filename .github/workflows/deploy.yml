@@ -1,0 +1,25 @@
+name: Cavalier Angular CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy to server (rm -rf + fresh clone)
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: 69.62.73.69
+          username: root
+          key: ${{ secrets.CAVALIER_FRON}}
+          script: |
+            cd /var/www
+            rm -rf Cavalier_fron
+            git clone https://github.com/dbvertexphp/Cavalier_fron.git

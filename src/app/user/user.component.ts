@@ -45,7 +45,17 @@ export class UserComponent implements OnInit {
     });
   }
 
-  modifyUser() {
+  // ✅ Updated to accept a specific user object from the table
+  modifyUser(user?: any) {
+    // If a user is passed directly from the table button
+    if (user) {
+      this.router.navigate(['/dashboard/register-user'], { 
+        state: { data: user, isEdit: true } 
+      });
+      return;
+    }
+
+    // Original logic kept for compatibility
     if (this.selectionType !== 'radio' || !this.showCheckbox) {
       this.showCheckbox = true;
       this.selectionType = 'radio';
@@ -62,7 +72,28 @@ export class UserComponent implements OnInit {
     }
   }
 
-  deleteUser() {
+  // ✅ Updated to accept a specific ID from the table button
+  deleteUser(id?: number) {
+    // If an ID is passed directly from the table button
+    if (id) {
+      if (confirm(`Are you sure you want to delete this user?`)) {
+        this.loading = true;
+        this.userService.deleteUser(id).subscribe({
+          next: () => {
+            alert('User deleted successfully');
+            this.loadUsers();
+          },
+          error: (err) => {
+            console.error("Delete Error:", err);
+            alert('Error deleting user.');
+            this.loading = false;
+          }
+        });
+      }
+      return;
+    }
+
+    // Original logic kept for compatibility
     if (this.selectionType !== 'checkbox' || !this.showCheckbox) {
       this.showCheckbox = true;
       this.selectionType = 'checkbox';

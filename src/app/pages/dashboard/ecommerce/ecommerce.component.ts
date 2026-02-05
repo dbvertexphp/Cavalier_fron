@@ -1,21 +1,39 @@
-import { Component } from '@angular/core';
-import { EcommerceMetricsComponent } from '../../../shared/components/ecommerce/ecommerce-metrics/ecommerce-metrics.component';
-import { MonthlySalesChartComponent } from '../../../shared/components/ecommerce/monthly-sales-chart/monthly-sales-chart.component';
-import { MonthlyTargetComponent } from '../../../shared/components/ecommerce/monthly-target/monthly-target.component';
-import { StatisticsChartComponent } from '../../../shared/components/ecommerce/statics-chart/statics-chart.component';
-import { DemographicCardComponent } from '../../../shared/components/ecommerce/demographic-card/demographic-card.component';
-import { RecentOrdersComponent } from '../../../shared/components/ecommerce/recent-orders/recent-orders.component';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-ecommerce',
-  imports: [
-    EcommerceMetricsComponent,
-    MonthlySalesChartComponent,
-    MonthlyTargetComponent,
-    StatisticsChartComponent,
-    DemographicCardComponent,
-    RecentOrdersComponent,
-  ],
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './ecommerce.component.html',
 })
-export class EcommerceComponent {}
+export class EcommerceComponent implements OnInit {
+  lastLoginUser: any = null;
+  loginTime: string = '';
+
+  ngOnInit() {
+    // Fetching logged-in user data from storage
+    const userData = localStorage.getItem('user'); 
+    if (userData) {
+      this.lastLoginUser = JSON.parse(userData);
+    } else {
+      // Fallback for testing purposes [cite: 2026-02-02]
+      this.lastLoginUser = {
+        firstName: 'Admin',
+        lastName: 'User',
+        email: 'admin@cavalierlogistic.in',
+        userType: 'Super Admin'
+      };
+    }
+    
+    // Formatting the current login time
+    this.loginTime = new Date().toLocaleString('en-US', { 
+      day: '2-digit', 
+      month: 'short', 
+      year: 'numeric', 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: true
+    });
+  }
+}

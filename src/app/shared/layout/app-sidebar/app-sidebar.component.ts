@@ -1,7 +1,7 @@
-import { CommonModule } from '@angular/common';
 import { Component, ElementRef, QueryList, ViewChildren, ChangeDetectorRef, OnInit, OnDestroy } from '@angular/core';
-import { SidebarService } from '../../services/sidebar.service';
+import { CommonModule } from '@angular/common';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
+import { SidebarService } from '../../services/sidebar.service';
 import { SafeHtmlPipe } from '../../pipe/safe-html.pipe';
 import { SidebarWidgetComponent } from './app-sidebar-widget.component';
 import { combineLatest, Subscription } from 'rxjs';
@@ -33,53 +33,37 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
       name: "Dashboard",
       path: "/dashboard",
     },
-     {
-  icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M3 21V10.5L12 3L21 10.5V21H15V15H9V21H3Z" fill="#ffffff"/>
-  <path d="M8 10H16V12H8V10Z" fill="#ffffff"/>
-  <path d="M10 14H14V16H10V14Z" fill="#ffffff"/>
-</svg>`,
-  name: "Branch",
-  path: "/dashboard/branch",
-},
+    {
+      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 21V10.5L12 3L21 10.5V21H15V15H9V21H3Z" fill="#ffffff"/><path d="M8 10H16V12H8V10Z" fill="#ffffff"/><path d="M10 14H14V16H10V14Z" fill="#ffffff"/></svg>`,
+      name: "Branch",
+      path: "/dashboard/branch",
+    },
     {
       icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 3.5C7.30558 3.5 3.5 7.30558 3.5 12C3.5 14.1526 4.3002 16.1184 5.61936 17.616C6.17279 15.3096 8.24852 13.5955 10.7246 13.5955H13.2746C15.7509 13.5955 17.8268 15.31 18.38 17.6167C19.6996 16.119 20.5 14.153 20.5 12C20.5 7.30558 16.6944 3.5 12 3.5ZM17.0246 18.8566V18.8455C17.0246 16.7744 15.3457 15.0955 13.2746 15.0955H10.7246C8.65354 15.0955 6.97461 16.7744 6.97461 18.8455V18.856C8.38223 19.8895 10.1198 20.5 12 20.5C13.8798 20.5 15.6171 19.8898 17.0246 18.8566ZM2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12ZM11.9991 7.25C10.8847 7.25 9.98126 8.15342 9.98126 9.26784C9.98126 10.3823 10.8847 11.2857 11.9991 11.2857C13.1135 11.2857 14.0169 10.3823 14.0169 9.26784C14.0169 8.15342 13.1135 7.25 11.9991 7.25ZM8.48126 9.26784C8.48126 7.32499 10.0563 5.75 11.9991 5.75C13.9419 5.75 15.5169 7.32499 15.5169 9.26784C15.5169 11.2107 13.9419 12.7857 11.9991 12.7857C10.0563 12.7857 8.48126 11.2107 8.48126 9.26784Z" fill="#ffffff"></path></svg>`,
       name: "Users and Management",
       subItems: [
-        { name: "Roles & Permissions", path: "/dashboard/roles" },
+        { name: "Roles", path: "/dashboard/roles" },
         { name: "Users Management", path: "/dashboard/users" },
         { name: "Departments", path: "/dashboard/departments" },
         { name: "Designations", path: "/dashboard/designations" }
       ]
     },
-  
-     {
-  icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M17 21V19C17 16.7909 15.2091 15 13 15H5C2.79086 15 1 16.7909 1 19V21" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M23 20.9999V18.9999C22.9993 17.1739 22.128 15.4626 20.624 14.2899" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M16 3.12988C17.5013 3.61984 18.4999 5.01984 18.4999 6.68988C18.4999 8.35992 17.5013 9.75992 16 10.2499" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>`,
-  name: "Employee Management",
-  subItems: [
-    { name: "Employee List", path: "/dashboard/employee/list" },
-  ],
-},
-{
-  icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M19 4H5C3.89543 4 3 4.89543 3 6V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V6C21 4.89543 20.1046 4 19 4Z" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M16 2V6" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M8 2V6" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M3 10H21" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="12" cy="16" r="2" stroke="#ffffff" stroke-width="2"/>
-  <path d="M12 14V18" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
-</svg>`,
-  name: "Attendance & Time Management",
-  subItems: [
-    { name: "Attendance List", path: "/dashboard/attendance/list" },
-    { name: "Shift Management", path: "/dashboard/shift/list" },
-  ],
-},
+    {
+      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z" fill="white"/></svg>`,
+      name: "HRM",
+      subItems: [
+        { name: "Employee Management", path: "/dashboard/employee/list" },
+        { name: "Attendance Management", path: "/dashboard/attendance/list" },
+        { name: "Time Management", path: "/dashboard/shift/list" },
+      ]
+    },
+    {
+      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42142 16.9217 1 17.9391 1 19V21" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.5 11C10.7091 11 12.5 9.20914 12.5 7C12.5 4.79086 10.7091 3 8.5 3C6.29086 3 4.5 4.79086 4.5 7C4.5 9.20914 6.29086 11 8.5 11Z" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 21V19C21.9988 18.1731 21.6853 17.3801 21.119 16.764" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 3.13C16.1305 3.61367 16.9996 4.67107 17.0001 5.922C17.0006 7.17293 16.1325 8.23157 15.0025 8.717" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+      name: "CRM",
+      subItems: [
+        {name:"Qoutation", path:"/dashboard/crm/qoutation"}
+      ],
+    },
   ];
 
   othersItems: NavItem[] = [];
@@ -125,7 +109,6 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
     this.subscription.unsubscribe();
   }
 
-  // Helper function: Check if any child of this nav item is active
   isAnyChildActive(nav: NavItem): boolean {
     if (!nav.subItems) return false;
     return nav.subItems.some(sub => this.router.url === sub.path);

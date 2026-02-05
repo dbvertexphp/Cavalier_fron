@@ -1,5 +1,4 @@
 export const environment = {
-  production: false,
-  // apiUrl: 'http://api.cavalierlogistic.graphicsvolume.com', // Local URL
-  apiUrl: 'https://localhost:7215/api', // Local URL
+  // 🚨 7161 ko hata kar 5000 karein
+  apiUrl: 'http://localhost:5000/api' 
 };

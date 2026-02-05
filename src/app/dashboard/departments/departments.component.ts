@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, NgZone, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { UserService } from '../../services/user.service';
 
 @Component({
   selector: 'app-departments',
@@ -9,52 +10,93 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './departments.component.html',
   styleUrl: './departments.component.css',
 })
-export class DepartmentsComponent {
+export class DepartmentsComponent implements OnInit {
   isModalOpen = false;
+  departments: any[] = []; 
+  newDept = { name: '' };
+  isLoading = false; 
 
-  // Form Model (Count hata diya gaya hai)
-  newDept = {
-    name: '',
-    head: ''
-  };
+  constructor(
+    private userService: UserService,
+    private ngZone: NgZone,
+    private cdr: ChangeDetectorRef
+  ) {}
 
-  departments = [
-    { id: 1, name: 'IT Department', head: 'Rahul Sharma', count: 25 },
-    { id: 2, name: 'Human Resources', head: 'Priya Singh', count: 8 },
-    { id: 3, name: 'Operations', head: 'Suresh Patel', count: 40 },
-    { id: 4, name: 'Sales & Marketing', head: 'Amit Sharma', count: 15 }
-  ];
-
-  openModal() {
-    this.isModalOpen = true;
+  ngOnInit(): void {
+    this.loadDepartments();
   }
 
-  closeModal() {
-    this.isModalOpen = false;
-    this.newDept = { name: '', head: '' }; // Reset form
+  loadDepartments() {
+    this.userService.getDepartments().subscribe({
+      next: (res: any[]) => {
+        if (Array.isArray(res)) {
+          // Backend mapping fix: d.id aur d.name (jo aapne backend mein select kiya hai)
+          this.departments = res.map((d: any) => ({
+            id: d.id || d.Id || 0, 
+            name: d.name || d.Name || 'Unknown',
+            count: d.count || d.EmployeeCount || 0
+          }));
+          this.cdr.detectChanges();
+        }
+      },
+      error: (err) => console.error("Error loading departments:", err)
+    });
   }
 
   addDepartment() {
-    if (this.newDept.name && this.newDept.head) {
-      // Naya ID generate karna
-      const nextId = this.departments.length + 1;
+  if (!this.newDept.name.trim()) return;
+  this.isLoading = true;
 
-      this.departments.unshift({
-        id: nextId,
-        name: this.newDept.name,
-        head: this.newDept.head,
-        count: 0 // Naye department ke liye default count 0
+  // FIX: Sirf naam bhejna hai, object nahi
+  this.userService.addDepartment(this.newDept.name).subscribe({
+    next: (res: any) => {
+      this.ngZone.run(() => {
+        const newEntry = {
+          id: res.id || res.Id, 
+          name: res.name || this.newDept.name,
+          count: 0
+        };
+
+        this.departments.unshift(newEntry);
+        this.closeModal();
+        this.isLoading = false;
+        this.cdr.detectChanges();
       });
+    },
+    error: (err) => {
+      console.error("Add Error:", err);
+      this.isLoading = false;
+      this.cdr.detectChanges();
+    }
+  });
+}
 
-      this.closeModal();
-    } else {
-      alert("Please enter Department Name and Head Name");
+  deleteDept(id: number) {
+    if (!id || id === 0) {
+      alert("Error: Department ID is missing (ID: " + id + ")");
+      return;
+    }
+
+    if (confirm('Are you sure you want to delete this department?')) {
+      this.userService.deleteDepartment(id).subscribe({
+        next: () => {
+          // Frontend se delete karein refresh bina
+          this.departments = this.departments.filter(d => d.id !== id);
+          this.cdr.detectChanges();
+          alert('Department deleted successfully!');
+        },
+        error: (err: any) => {
+          console.error("Delete Error:", err);
+          alert('Delete failed! Ensure you have created the Delete API in backend.');
+        }
+      });
     }
   }
 
-  deleteDept(index: number) {
-    if(confirm('Are you sure you want to delete this department?')) {
-      this.departments.splice(index, 1);
-    }
+  openModal() { this.isModalOpen = true; }
+  
+  closeModal() { 
+    this.isModalOpen = false; 
+    this.newDept.name = ''; 
   }
 }

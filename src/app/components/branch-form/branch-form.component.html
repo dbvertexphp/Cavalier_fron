@@ -10,18 +10,10 @@
     
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
       <div class="space-y-1">
-  <label class="text-xs font-bold uppercase text-gray-500">
-    Company Name*
-  </label>
-
-  <input
-    type="text"
-    formControlName="companyName"
-    readonly
-    class="w-full p-2.5 border rounded-lg bg-gray-100 cursor-not-allowed
-           focus:ring-0 outline-none shadow-sm"
-  />
-</div>
+        <label class="text-xs font-bold uppercase text-gray-500">Company Name*</label>
+        <input type="text" formControlName="companyName" readonly
+          class="w-full p-2.5 border rounded-lg bg-gray-100 cursor-not-allowed focus:ring-0 outline-none shadow-sm" />
+      </div>
 
       <div class="space-y-1">
         <label class="text-xs font-bold uppercase text-gray-500">Company Alias</label>
@@ -40,80 +32,86 @@
         <label class="text-xs font-bold uppercase text-gray-500">Branch Code*</label>
         <input type="text" formControlName="branchCode" 
           [class.border-red-500]="branchForm.get('branchCode')?.invalid && branchForm.get('branchCode')?.touched"
-          class="w-full p-2.5 border rounded-lg bg-white shadow-sm">
+          class="w-full p-2.5 border rounded-lg bg-white shadow-sm uppercase">
       </div>
       <div class="space-y-1">
         <label class="text-xs font-bold uppercase text-gray-500">Official Email*</label>
         <input type="email" formControlName="email" 
           [class.border-red-500]="branchForm.get('email')?.invalid && branchForm.get('email')?.touched"
           class="w-full p-2.5 border rounded-lg bg-white shadow-sm">
-        <p *ngIf="branchForm.get('email')?.invalid && branchForm.get('email')?.touched" class="text-[10px] text-red-500 font-semibold italic">Valid email required</p>
       </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-      <div class="space-y-1">
-        <label class="text-xs font-bold uppercase text-gray-500">Contact No*</label>
-        <input type="text" formControlName="contactNo" 
-          [class.border-red-500]="branchForm.get('contactNo')?.invalid && branchForm.get('contactNo')?.touched"
-          class="w-full p-2.5 border rounded-lg shadow-sm">
-      </div>
-      <div class="space-y-1">
-        <label class="text-xs font-bold uppercase text-gray-500">Fax Number</label>
-        <input type="text" formControlName="faxNumber" class="w-full p-2.5 border rounded-lg shadow-sm">
-      </div>
-      <div class="space-y-1">
-        <label class="text-xs font-bold uppercase text-gray-500">Time Zone</label>
-        <input type="text" formControlName="timeZone" class="w-full p-2.5 border rounded-lg shadow-sm">
+    <div class="mb-6 p-4 border border-gray-200 rounded-lg">
+      <h3 class="text-sm font-bold text-blue-800 mb-4 border-b pb-2 uppercase tracking-wider">Physical Address Details</h3>
+      
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold uppercase text-gray-400">House/Flat No</label>
+          <input type="text" formControlName="houseNo" class="w-full p-2 border rounded shadow-sm text-sm">
+        </div>
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold uppercase text-gray-400">Building Name</label>
+          <input type="text" formControlName="buildingName" class="w-full p-2 border rounded shadow-sm text-sm">
+        </div>
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold uppercase text-gray-400">Floor/Block</label>
+          <input type="text" formControlName="floorBlock" class="w-full p-2 border rounded shadow-sm text-sm">
+        </div>
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold uppercase text-gray-400">Landmark</label>
+          <input type="text" formControlName="landmark" class="w-full p-2 border rounded shadow-sm text-sm font-medium text-blue-600">
+        </div>
+
+        <div class="space-y-1 col-span-1 md:col-span-2">
+          <label class="text-[10px] font-bold uppercase text-gray-400">Street/Road Name</label>
+          <input type="text" formControlName="streetName" class="w-full p-2 border rounded shadow-sm text-sm">
+        </div>
+        <div class="space-y-1 col-span-1 md:col-span-2">
+          <label class="text-[10px] font-bold uppercase text-gray-400">Area/Sector/Village</label>
+          <input type="text" formControlName="areaSector" class="w-full p-2 border rounded shadow-sm text-sm">
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold uppercase text-gray-400">City*</label>
+          <input type="text" formControlName="city" class="w-full p-2 border rounded shadow-sm text-sm bg-blue-50/30">
+        </div>
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold uppercase text-gray-400">District</label>
+          <input type="text" formControlName="district" class="w-full p-2 border rounded shadow-sm text-sm">
+        </div>
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold uppercase text-gray-400">State*</label>
+          <input type="text" formControlName="state" class="w-full p-2 border rounded shadow-sm text-sm bg-blue-50/30">
+        </div>
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold uppercase text-gray-400">Postal Code*</label>
+          <input type="text" formControlName="postalCode" class="w-full p-2 border rounded shadow-sm text-sm bg-blue-50/30">
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold uppercase text-gray-400">Country</label>
+          <input type="text" formControlName="country" class="w-full p-2 border rounded shadow-sm text-sm bg-gray-50">
+        </div>
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold uppercase text-gray-400">Time Zone</label>
+          <input type="text" formControlName="timeZone" class="w-full p-2 border rounded shadow-sm text-sm">
+        </div>
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold uppercase text-gray-400">Fax Number</label>
+          <input type="text" formControlName="faxNumber" class="w-full p-2 border rounded shadow-sm text-sm">
+        </div>
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold uppercase text-gray-400">Contact No*</label>
+          <input type="text" formControlName="contactNo" class="w-full p-2 border rounded shadow-sm text-sm">
+        </div>
       </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-      <div class="space-y-1">
-        <label class="text-xs font-bold uppercase text-gray-500">Country</label>
-        <input type="text" formControlName="country" class="w-full p-2.5 border rounded-lg shadow-sm">
-      </div>
-      <div class="space-y-1">
-        <label class="text-xs font-bold uppercase text-gray-500">State*</label>
-        <input type="text" formControlName="state" 
-          [class.border-red-500]="branchForm.get('state')?.invalid && branchForm.get('state')?.touched"
-          class="w-full p-2.5 border rounded-lg shadow-sm">
-      </div>
-      <div class="space-y-1">
-        <label class="text-xs font-bold uppercase text-gray-500">City*</label>
-        <input type="text" formControlName="city" 
-          [class.border-red-500]="branchForm.get('city')?.invalid && branchForm.get('city')?.touched"
-          class="w-full p-2.5 border rounded-lg shadow-sm">
-      </div>
-      <div class="space-y-1">
-        <label class="text-xs font-bold uppercase text-gray-500">Postal Code*</label>
-        <input type="text" formControlName="postalCode" placeholder="6 Digits" 
-          [class.border-red-500]="branchForm.get('postalCode')?.invalid && branchForm.get('postalCode')?.touched"
-          class="w-full p-2.5 border rounded-lg shadow-sm">
-        <p *ngIf="branchForm.get('postalCode')?.invalid && branchForm.get('postalCode')?.touched" class="text-[10px] text-red-500 font-semibold italic">Enter 6 digits</p>
-      </div>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 p-4 border border-yellow-100 rounded-lg bg-yellow-50/10">
-      <!-- <div class="space-y-1">
-        <label class="text-xs font-bold uppercase text-gray-500">System Role*</label>
-        <select formControlName="roleId" 
-          [class.border-red-500]="branchForm.get('roleId')?.invalid && branchForm.get('roleId')?.touched"
-          class="w-full p-2.5 border rounded-lg bg-white outline-none shadow-sm">
-          <option value="">Select Role</option>
-          <option *ngFor="let role of roles" [value]="role.id">{{ role.name }}</option>
-          <ng-container *ngIf="roles.length === 0">
-            <option value="2">Branch Administrator</option>
-            <option value="3">User</option>
-          </ng-container>
-        </select>
-      </div> -->
-
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 p-4 border border-yellow-100 rounded-lg bg-yellow-50/10">
       <div class="space-y-1">
         <label class="text-xs font-bold uppercase text-gray-500">GST Category*</label>
-        <select formControlName="gstCategory" 
-          [class.border-red-500]="branchForm.get('gstCategory')?.invalid && branchForm.get('gstCategory')?.touched"
-          class="w-full p-2.5 border rounded-lg bg-white outline-none">
+        <select formControlName="gstCategory" class="w-full p-2.5 border rounded-lg bg-white outline-none">
           <option value="">Select Category</option>
           <option value="Registered">Registered</option>
           <option value="Unregistered">Unregistered</option>
@@ -122,18 +120,14 @@
 
       <div class="space-y-1">
         <label class="text-xs font-bold uppercase text-gray-500">GSTIN*</label>
-        <input type="text" formControlName="gstin" 
-          [class.border-red-500]="branchForm.get('gstin')?.invalid && branchForm.get('gstin')?.touched"
-          class="w-full p-2.5 border rounded-lg shadow-sm bg-white uppercase">
-        <p *ngIf="branchForm.get('gstin')?.invalid && branchForm.get('gstin')?.touched" class="text-[10px] text-red-500 font-semibold italic">Format: 07AAAAA0000A1Z5</p>
+        <input type="text" formControlName="gstin" class="w-full p-2.5 border rounded-lg shadow-sm bg-white uppercase">
       </div>
     </div>
 
     <div class="mb-8">
-      <label class="text-xs font-bold uppercase text-gray-500">Full Physical Address*</label>
-      <textarea formControlName="address" rows="3" 
-        [class.border-red-500]="branchForm.get('address')?.invalid && branchForm.get('address')?.touched"
-        class="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"></textarea>
+      <label class="text-xs font-bold uppercase text-gray-500">Full Address Summary (For Reports)</label>
+      <textarea formControlName="address" rows="2" readonly placeholder="Auto-generated summary from above fields..."
+        class="w-full p-3 border rounded-lg bg-gray-50 outline-none text-gray-500 italic shadow-sm"></textarea>
     </div>
 
     <div class="flex items-center gap-2 mb-8">
@@ -142,11 +136,11 @@
     </div>
 
     <div class="flex justify-end gap-4 pt-6 border-t mt-4">
-      <button type="button" (click)="cancel()" class="px-8 py-2.5 bg-gray-100 text-gray-700 font-bold rounded-lg hover:bg-gray-200">
+      <button type="button" (click)="cancel()" class="px-8 py-2.5 bg-gray-100 text-gray-700 font-bold rounded-lg hover:bg-gray-200 transition">
         Cancel
       </button>
       <button type="submit" [disabled]="loading" 
-        class="px-8 py-2.5 bg-blue-700 text-white font-bold rounded-lg hover:bg-blue-800 disabled:opacity-50 shadow-md">
+        class="px-8 py-2.5 bg-blue-700 text-white font-bold rounded-lg hover:bg-blue-800 disabled:opacity-50 shadow-md transition-all active:scale-95">
         {{ loading ? 'Saving...' : (isEdit ? 'Update Branch' : 'Register Branch') }}
       </button>
     </div>

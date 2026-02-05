@@ -38,7 +38,11 @@ import { AttendanceListComponent } from './attendance-list/attendance-list.compo
 import { AttendanceAddComponent } from './attendance-add/attendance-add.component';
 import { AttendanceEditComponent } from './attendance-edit/attendance-edit.component';
 import { ShiftManagementComponent } from './shift-management/shift-management.component';
+import { QuotationFormComponent } from './pages/quotation-form/quotation-form.component';
+// Sabse upar ye line add karein
+import { OrganizationAddComponent } from './pages/organization-add/organization-add.component';
 
+// Phir routes array mein isko add ka
 export const routes: Routes = [
 
   // 1. AUTH & ROLE SELECTION (Root Pages)
@@ -65,6 +69,12 @@ export const routes: Routes = [
         pathMatch: 'full',
         title: 'Cavalier Logistics Dashboard',
       },
+      { 
+      path: 'crm/qoutation', 
+      component: QuotationFormComponent 
+      },
+      { path: 'crm/organization-add', 
+        component: OrganizationAddComponent },
       { path: 'roles', 
         component: RolesComponent 
       },

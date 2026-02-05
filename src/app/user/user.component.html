@@ -1,129 +1,153 @@
-<!--<section class="container mx-auto p-4 font-sans">
-
-  <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-    <h2 class="text-2xl font-bold text-slate-800">Cavalier User Directory</h2>
+<section class="container mx-auto p-4 font-sans">
+  <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-6 bg-slate-50 p-4 rounded-xl border border-slate-200">
+    <h2 class="text-2xl font-extrabold text-slate-800 tracking-tight">User Directory</h2>
     
-    <div class="flex gap-2">
-      <button (click)="addUser()" class="flex items-center gap-2 px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-md transition-all">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+    <div class="flex flex-wrap items-center gap-3">
+      <button (click)="addUser()" class="flex items-center gap-2 px-5 py-2.5 text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-md transition-all active:scale-95">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor font-bold">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
         </svg>
-        <span>Add User</span>
+        <span class="font-bold">Add User</span>
       </button>
 
-      <button (click)="showCheckbox ? confirmDelete() : deleteUser()" 
-              [class]="showCheckbox && selectedUsers.length > 0 ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-700'"
-              class="flex items-center gap-2 px-4 py-2 rounded-lg shadow-sm hover:opacity-90 transition-all border border-gray-200">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+      <button (click)="deleteUser()" 
+              [ngClass]="selectionType === 'checkbox' ? 'bg-red-700 text-white' : 'bg-white text-red-600 border-red-200'"
+              class="flex items-center gap-2 px-5 py-2.5 rounded-lg shadow-sm border hover:shadow-md transition-all active:scale-95">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
         </svg>
-        <span>{{ showCheckbox && selectedUsers.length > 0 ? 'Confirm Delete (' + selectedUsers.length + ')' : 'Delete User' }}</span>
+        <span class="font-bold">{{ selectionType === 'checkbox' && selectedUsers.length > 0 ? 'Confirm Delete (' + selectedUsers.length + ')' : 'Delete User' }}</span>
       </button>
 
-      <button (click)="modifyUser()" class="flex items-center gap-2 px-4 py-2 text-white bg-amber-500 hover:bg-amber-600 rounded-lg shadow-md transition-all">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-          <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+      <button (click)="modifyUser()" 
+              [ngClass]="selectionType === 'radio' ? 'bg-amber-600 text-white' : 'bg-white text-amber-600 border-amber-200'"
+              class="flex items-center gap-2 px-5 py-2.5 rounded-lg shadow-sm border hover:shadow-md transition-all active:scale-95">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
         </svg>
-        <span>Modify</span>
+        <span class="font-bold">Modify User</span>
       </button>
     </div>
   </div>
 
-  <div class="bg-white rounded-xl shadow-xl overflow-hidden border border-gray-200">
+  <div *ngIf="loading" class="text-center py-20 bg-white rounded-xl shadow border">
+    <div class="inline-block animate-spin rounded-full h-10 w-10 border-t-4 border-b-4 border-blue-600"></div>
+    <p class="mt-4 text-slate-500 font-medium">Loading User Records...</p>
+  </div>
+
+  <div *ngIf="!loading" class="bg-white rounded-xl shadow-xl overflow-hidden border border-gray-200">
     <div class="overflow-x-auto">
       <table class="w-full text-left border-collapse min-w-[2800px]">
         <thead>
-          <tr class="bg-slate-100 border-b border-gray-300">
-            <th *ngIf="showCheckbox" class="p-4 sticky left-0 bg-slate-100 z-10 w-12 text-center">Select</th>
-            <th class="p-4 font-bold text-slate-700 uppercase text-xs">Profile & Personal</th>
-            <th class="p-4 font-bold text-slate-700 uppercase text-xs">Employee ID & Role</th>
-            <th class="p-4 font-bold text-slate-700 uppercase text-xs">Contact & Location</th>
-            <th class="p-4 font-bold text-slate-700 uppercase text-xs">Addresses</th>
-            <th class="p-4 font-bold text-slate-700 uppercase text-xs">KYC (PAN/UID)</th>
-            <th class="p-4 font-bold text-slate-700 uppercase text-xs">Education Years</th>
-            <th class="p-4 font-bold text-slate-700 uppercase text-xs">Payroll & Bank</th>
-            <th class="p-4 font-bold text-slate-700 uppercase text-xs">Assets & Selection</th>
-            <th class="p-4 font-bold text-slate-700 uppercase text-xs">Emergency Contact</th>
-            <th class="p-4 font-bold text-slate-700 uppercase text-xs text-center">Status</th>
+          <tr class="bg-slate-100 border-b border-gray-300 text-[11px] uppercase tracking-wider text-slate-600">
+            <th *ngIf="showCheckbox" class="p-4 sticky left-0 bg-slate-100 z-10 w-16 text-center border-r">Select</th>
+            <th class="p-4 font-bold">Profile Details</th>
+            <th class="p-4 font-bold">Work & Designation</th>
+            <th class="p-4 font-bold">Contact & Location</th>
+            <th class="p-4 font-bold bg-blue-50/50">Detailed Address Info</th>
+            <th class="p-4 font-bold">KYC & Identifiers</th>
+            <th class="p-4 font-bold">Education Details</th>
+            <th class="p-4 font-bold">Payroll Info</th>
+            <th class="p-4 font-bold">Assets & Emergency</th>
+            <th class="p-4 font-bold text-center">Status</th>
           </tr>
         </thead>
         
         <tbody class="divide-y divide-gray-200">
-          <tr *ngFor="let u of users" class="hover:bg-blue-50/30 transition-colors">
+          <tr *ngFor="let u of users" class="hover:bg-blue-50/20 transition-colors group">
             
-            <td *ngIf="showCheckbox" class="p-4 sticky left-0 bg-white hover:bg-slate-50 z-10 text-center border-r">
+            <td *ngIf="showCheckbox" class="p-4 sticky left-0 bg-white group-hover:bg-blue-50 z-10 text-center border-r shadow-sm">
               <input [type]="selectionType" 
+                     [name]="selectionType === 'radio' ? 'userGroup' : ''"
                      (change)="toggleSelection(u, $event)" 
-                     [checked]="selectionType === 'checkbox' ? selectedUsers.includes(u) : selectedUser === u"
-                     class="w-4 h-4 text-blue-600 rounded cursor-pointer">
+                     class="w-5 h-5 text-blue-600 rounded-md cursor-pointer border-gray-300">
             </td>
 
             <td class="p-4 border-r">
               <div class="flex items-center gap-3">
-                <img class="w-12 h-12 rounded-full border shadow-sm object-cover" 
+                <img class="w-12 h-12 rounded-full ring-2 ring-slate-100 object-cover shadow-sm" 
                      [src]="u.photoPath ? 'http://localhost:5000' + u.photoPath : 'assets/default-avatar.png'">
                 <div class="flex flex-col">
-                  <span class="font-bold text-slate-900">{{ u.firstName }} {{ u.middleName }} {{ u.lastName }}</span>
-                  <span class="text-xs text-blue-600">{{ u.email }}</span>
-                  <span class="text-[10px] text-slate-500 mt-1">DOB: {{ u.dob | date:'dd MMM yyyy' }} | {{ u.maritalStatus }} | Blood: {{ u.bloodGroup }}</span>
+                  <span class="font-bold text-slate-900">{{ u.firstName }} {{ u.lastName }}</span>
+                  <span class="text-xs text-blue-600 font-medium lowercase italic">{{ u.email }}</span>
+                  <span class="text-[9px] text-slate-400 mt-1 uppercase font-bold">Blood: {{ u.bloodGroup }} | {{ u.maritalStatus }}</span>
                 </div>
               </div>
             </td>
 
-            <td class="p-4 border-r text-sm">
-              <p class="font-bold text-indigo-700">{{ u.empCode }}</p>
-              <p class="font-medium text-slate-700">{{ u.designation }}</p>
-              <p class="text-xs text-slate-500">{{ u.functionalArea }}</p>
-              <p class="text-[10px] bg-slate-100 inline-block px-1 mt-1">Join: {{ u.dateOfJoining | date:'mediumDate' }}</p>
+            <td class="p-4 border-r">
+              <p class="font-black text-indigo-700 text-xs">{{ u.empCode }}</p>
+              <p class="font-bold text-slate-800 text-sm mt-0.5">{{ u.designation }}</p>
+              <p class="text-[10px] text-slate-500 uppercase tracking-tighter">{{ u.functionalArea }}</p>
             </td>
 
             <td class="p-4 border-r text-sm">
-              <p class="text-slate-800 font-medium">📞 {{ u.contactPersonal }}</p>
-              <p class="text-slate-600">📍 {{ u.location }}</p>
-              <p class="text-[10px] text-slate-400">Branch ID: {{ u.branchId }}</p>
+              <p class="text-slate-800 font-bold">📞 {{ u.contactPersonal }}</p>
+              <p class="text-slate-500 text-xs mt-1">📍 {{ u.location }}</p>
+              <p class="text-[9px] bg-slate-100 px-1 inline-block rounded mt-2">Join: {{ u.dateOfJoining | date:'mediumDate' }}</p>
             </td>
 
-            <td class="p-4 border-r text-xs max-w-xs">
-              <p class="truncate"><span class="font-semibold">Pres:</span> {{ u.presentAddress }}</p>
-              <p class="truncate mt-1"><span class="font-semibold">Perm:</span> {{ u.permanentAddress }}</p>
-            </td>
+            <td class="p-4 border-r bg-blue-50/10 min-w-[550px]">
+              <div class="flex flex-col gap-3">
+                <div class="bg-white border-l-4 border-blue-500 p-2 rounded shadow-sm">
+                  <span class="text-[9px] font-black text-blue-500 uppercase tracking-widest block mb-1">Present Address</span>
+                  <div class="grid grid-cols-2 gap-x-6 text-[10px] text-slate-700">
+                    <p><b>H.No:</b> {{u.presHouseNo}} | {{u.presBuilding}}</p>
+                    <p><b>Street:</b> {{u.presStreet}}</p>
+                    <p class="col-span-2 text-indigo-600"><b>Landmark:</b> {{u.presLandmark}}</p>
+                    <p><b>City:</b> {{u.presCity}} ({{u.presPincode}})</p>
+                    <p><b>Dist/State:</b> {{u.presDistrict}}, {{u.presState}}</p>
+                  </div>
+                </div>
 
-            <td class="p-4 border-r text-xs font-mono">
-              <p class="bg-gray-50 p-1 mb-1">PAN: {{ u.paN_No }}</p>
-              <p class="bg-gray-50 p-1">UID: {{ u.aadhaarNo }}</p>
-            </td>
-
-            <td class="p-4 border-r text-xs">
-              <div class="grid grid-cols-2 gap-1">
-                <span>10th: <b>{{ u.tenthYear }}</b></span>
-                <span>12th: <b>{{ u.twelfthYear }}</b></span>
-                <span>Grad: <b>{{ u.graduationYear }}</b></span>
-                <span>PG: <b>{{ u.postGraduationYear }}</b></span>
+                <div class="bg-white border-l-4 border-slate-400 p-2 rounded shadow-sm">
+                  <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Permanent Address</span>
+                  <div class="grid grid-cols-2 gap-x-6 text-[10px] text-slate-600">
+                    <p><b>H.No:</b> {{u.permHouseNo}} | {{u.permBuilding}}</p>
+                    <p><b>City:</b> {{u.permCity}} - {{u.permPincode}}</p>
+                    <p class="col-span-2 italic"><b>State:</b> {{u.permState}}</p>
+                  </div>
+                </div>
               </div>
             </td>
 
-            <td class="p-4 border-r text-sm">
-              <p class="text-green-700 font-bold">CTC: ₹{{ u.ctC_Monthly }}</p>
-              <p class="text-[11px] text-slate-600 font-mono">Acc: {{ u.salaryAccountNo }}</p>
-            </td>
-
-            <td class="p-4 border-r text-xs">
-              <div class="flex flex-col gap-1">
-                <span [class]="u.simIssued ? 'text-green-600' : 'text-gray-400'">SIM Issued: {{ u.simIssued ? 'Yes' : 'No' }}</span>
-                <span [class]="u.invitationLetter ? 'text-blue-600' : 'text-gray-400'">Inv. Letter: {{ u.invitationLetter ? 'Yes' : 'No' }}</span>
-                <span class="text-slate-500 mt-1">Source: {{ u.sourceOfSelection }}</span>
+            <td class="p-4 border-r font-mono text-[10px]">
+              <div class="space-y-1">
+                <p class="bg-slate-50 border p-1 rounded">PAN: <span class="font-bold uppercase">{{ u.paN_No }}</span></p>
+                <p class="bg-slate-50 border p-1 rounded">UID: <span class="font-bold">{{ u.aadhaarNo }}</span></p>
               </div>
             </td>
 
-            <td class="p-4 border-r text-sm">
-              <p class="font-bold text-slate-700">{{ u.emergencyName }}</p>
-              <p class="text-xs italic">{{ u.emergencyRelation }}</p>
-              <p class="text-blue-600 font-medium">{{ u.emergencyContactNo }}</p>
+            <td class="p-4 border-r text-[10px]">
+              <div class="grid grid-cols-2 gap-2 font-semibold">
+                <span class="text-slate-400">10th: <b class="text-slate-800">{{ u.tenthYear }}</b></span>
+                <span class="text-slate-400">12th: <b class="text-slate-800">{{ u.twelfthYear }}</b></span>
+                <span class="text-slate-400">Grad: <b class="text-slate-800">{{ u.graduationYear }}</b></span>
+                <span class="text-slate-400">PG: <b class="text-slate-800">{{ u.postGraduationYear }}</b></span>
+              </div>
+            </td>
+
+            <td class="p-4 border-r">
+              <p class="text-emerald-700 font-black text-sm">₹{{ u.ctC_Monthly }}/mo</p>
+              <p class="text-[9px] text-slate-400 font-mono mt-1">Acc: {{ u.salaryAccountNo }}</p>
+            </td>
+
+            <td class="p-4 border-r">
+              <div class="flex flex-col gap-2">
+                <div class="flex gap-1">
+                  <span class="text-[8px] font-bold px-1 rounded border" [ngClass]="u.simIssued ? 'bg-green-50 text-green-600 border-green-200' : 'bg-gray-50 text-gray-400 border-gray-100'">SIM</span>
+                  <span class="text-[8px] font-bold px-1 rounded border" [ngClass]="u.invitationLetter ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-gray-50 text-gray-400 border-gray-100'">INV</span>
+                </div>
+                <div class="text-[10px]">
+                  <p class="font-bold text-slate-700">{{ u.emergencyName }}</p>
+                  <p class="text-blue-600">{{ u.emergencyContactNo }}</p>
+                </div>
+              </div>
             </td>
 
             <td class="p-4 text-center">
-              <span [class]="u.status ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-rose-100 text-rose-700 border-rose-200'" 
-                    class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border">
+              <span [class]="u.status ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'" 
+                    class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-tighter border">
                 {{ u.status ? 'Active' : 'Inactive' }}
               </span>
             </td>
@@ -134,104 +158,8 @@
     </div>
   </div>
 
-  <div *ngIf="users.length === 0" class="flex flex-col items-center justify-center p-20 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200 mt-4">
-    <p class="text-slate-400">No user records found in Cavalier database.</p>
+  <div *ngIf="!loading && users.length === 0" class="flex flex-col items-center justify-center p-20 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 mt-4">
+    <p class="text-slate-400 font-bold italic">Cavalier Database: No users found.</p>
   </div>
 
-</section>-->
-
-
-<section class="p-4 md:p-6 bg-white min-h-screen font-sans">
-  <div class="flex flex-col lg:flex-row justify-between items-center mb-8 gap-4 px-2">
-    <h2 class="text-2xl font-bold text-gray-800">Cavalier User Directory</h2>
-    
-    <div class="flex flex-wrap justify-end gap-3 mr-4 lg:mr-12 xl:pr-20">
-      <button (click)="addUser()" class="flex items-center gap-2 px-6 py-2.5 text-white bg-[#2563eb] hover:bg-blue-700 rounded-lg shadow-md transition-all text-sm font-semibold">
-        <span class="text-xl">+</span> Add User
-      </button>
-
-      <button (click)="showCheckbox && selectionType === 'checkbox' ? confirmDelete() : deleteUser()" 
-              [class]="showCheckbox && selectedUsers.length > 0 ? 'bg-red-600 text-white' : 'bg-gray-50 text-gray-700 border-gray-200'"
-              class="flex items-center gap-2 px-6 py-2.5 rounded-lg shadow-sm hover:bg-gray-100 transition-all border text-sm font-semibold">
-        🗑️ {{ showCheckbox && selectedUsers.length > 0 ? 'Confirm (' + selectedUsers.length + ')' : 'Delete User' }}
-      </button>
-
-      <button (click)="modifyUser()" class="flex items-center gap-2 px-6 py-2.5 text-white bg-[#f59e0b] hover:bg-orange-600 rounded-lg shadow-md transition-all text-sm font-semibold">
-        ✏️ Modify
-      </button>
-    </div>
-  </div>
-
-  <div class="rounded-xl border border-gray-200 overflow-hidden shadow-sm bg-white">
-    <div class="overflow-x-auto">
-      <table class="w-full text-left border-collapse min-w-[1200px]">
-        <thead class="bg-gray-50 border-b border-gray-200">
-          <tr class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-            <th *ngIf="showCheckbox" class="p-4 text-center w-16">Select</th>
-            <th class="px-6 py-4">Profile & Personal</th>
-            <th class="px-6 py-4">Employee ID & Role</th>
-            <th class="px-6 py-4">Contact & Location</th>
-            <th class="px-6 py-4">Addresses</th>
-            <th class="px-6 py-4">KYC (PAN/UID)</th>
-          </tr>
-        </thead>
-        
-        <tbody class="divide-y divide-gray-100">
-          <tr *ngFor="let u of users" class="hover:bg-blue-50/30 transition-colors">
-            <td *ngIf="showCheckbox" class="p-4 text-center border-r">
-              <input [type]="selectionType" (change)="toggleSelection(u, $event)" 
-                     [checked]="selectionType === 'checkbox' ? selectedUsers.includes(u) : selectedUser === u"
-                     class="w-4 h-4 text-blue-600 rounded">
-            </td>
-
-            <td class="px-6 py-5">
-              <div class="flex items-start gap-4">
-                <div class="w-12 h-12 rounded-full border border-gray-200 overflow-hidden bg-gray-50">
-                  <img [src]="'https://ui-avatars.com/api/?name=' + u.firstName + '&background=random'" alt="user">
-                </div>
-                <div>
-                  <div class="font-bold text-gray-900 leading-tight">{{ u.firstName }} {{ u.lastName }}</div>
-                  <div class="text-[11px] text-blue-600 mt-0.5">{{ u.email }}</div>
-                  <div class="text-[10px] text-gray-400 mt-1 font-medium">
-                    DOB: {{ u.dob }} | {{ u.maritalStatus }} | Blood: {{ u.bloodGroup }}
-                  </div>
-                </div>
-              </div>
-            </td>
-
-            <td class="px-6 py-5">
-              <div class="text-sm">
-                <div class="font-bold text-blue-700 uppercase tracking-tight">{{ u.empCode }}</div>
-                <div class="font-semibold text-gray-700">{{ u.designation }}</div>
-                <div class="text-[11px] text-gray-500">{{ u.functionalArea }}</div>
-                <div class="text-[10px] text-gray-500 mt-1 bg-gray-100 inline-block px-1.5 py-0.5 rounded font-bold">
-                  Join: {{ u.dateOfJoining }}
-                </div>
-              </div>
-            </td>
-
-            <td class="px-6 py-5">
-              <div class="space-y-1 text-xs font-semibold">
-                <div class="text-gray-800">📞 {{ u.contactPersonal }}</div>
-                <div class="text-gray-600">📍 {{ u.location }}</div>
-                <div class="text-[10px] text-gray-400 italic">Branch ID: {{ u.branchId }}</div>
-              </div>
-            </td>
-
-            <td class="px-6 py-5 text-[11px] text-gray-600 leading-relaxed">
-              <p><span class="font-bold text-gray-800">Pres:</span> {{ u.presentAddress }}</p>
-              <p class="mt-1"><span class="font-bold text-gray-800">Perm:</span> {{ u.permanentAddress }}</p>
-            </td>
-
-            <td class="px-6 py-5 text-[11px] font-mono">
-              <div class="bg-gray-50 p-2 rounded border border-gray-100">
-                <p>PAN: {{ u.paN_No }}</p>
-                <p>UID: {{ u.aadhaarNo }}</p>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
 </section>

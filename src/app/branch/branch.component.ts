@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+//import { Component, OnInit } from '@angular/common';
+import { Component, OnInit } from '@angular/core'; // Yeh @angular/core hona chahiye
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -18,8 +19,8 @@ export class BranchComponent implements OnInit {
   // Selection Controls
   showSelection = false;
   selectionType: 'checkbox' | 'radio' | null = null;
-  selectedBranch: any = null; // Radio (Modify) ke liye
-  selectedBranches: any[] = []; // Checkbox (Delete) ke liye
+  selectedBranch: any = null; // Radio (Modify) mode ke liye
+  selectedBranches: any[] = []; // Checkbox (Delete) mode ke liye
 
   constructor(
     private branchService: BranchService, 
@@ -28,9 +29,6 @@ export class BranchComponent implements OnInit {
 
   ngOnInit(): void {
     this.getBranches();
-  }
-  onAddBranch(){
-    this.router.navigate(['/dashboard/branch-form']);
   }
 
   getBranches() {
@@ -48,27 +46,27 @@ export class BranchComponent implements OnInit {
     });
   }
 
-  // 1. Add Branch Logic
+  // 1. Add Branch - Navigates to form with fresh state
   addBranch() {
     this.router.navigate(['/dashboard/branch-form'], { 
       state: { isBranch: true, isEdit: false } 
     });
   }
 
-  // 2. Modify Branch Logic (FIXED)
+  // 2. Modify Branch - Radio button selection logic
   modifyBranch() {
-    // Step A: Agar selection mode on nahi hai, toh radio buttons dikhayein
+    // Agar mode select nahi hai ya checkbox mode mein tha, toh Radio mode on karo
     if (!this.showSelection || this.selectionType !== 'radio') {
       this.showSelection = true;
       this.selectionType = 'radio';
-      this.selectedBranches = []; // Clear any previous checkbox selections
-      alert("Please select a branch using the radio button and click Modify again.");
+      this.selectedBranches = []; // Clear delete selections
+      this.selectedBranch = null;  // Reset previous modify selection
       return;
     }
 
-    // Step B: Agar selection mode on hai aur branch select ho gayi hai
+    // Agar mode on hai aur branch select ho gayi hai
     if (this.selectedBranch) {
-      console.log("Navigating with data:", this.selectedBranch);
+      console.log("Modifying branch:", this.selectedBranch.branchName);
       this.router.navigate(['/dashboard/branch-form'], { 
         state: { 
           data: this.selectedBranch, 
@@ -77,37 +75,45 @@ export class BranchComponent implements OnInit {
         } 
       });
     } else {
-      alert("Please select a branch to modify.");
+      alert("Please click the radio button for the branch you want to modify.");
     }
   }
 
-  // 3. Delete Branch Logic
+  // 3. Delete Branch - Checkbox selection logic
   deleteBranch() {
+    // Agar mode select nahi hai ya radio mode mein tha, toh Checkbox mode on karo
     if (!this.showSelection || this.selectionType !== 'checkbox') {
       this.showSelection = true;
       this.selectionType = 'checkbox';
-      this.selectedBranch = null; 
+      this.selectedBranch = null; // Clear modify selection
+      this.selectedBranches = []; // Reset previous delete selections
+      return;
     } 
-    else if (this.selectedBranches.length > 0) {
-      if (confirm(`Are you sure you want to delete ${this.selectedBranches.length} branch(es)?`)) {
+
+    // Agar mode on hai aur branches select ho gayi hain
+    if (this.selectedBranches.length > 0) {
+      const branchNames = this.selectedBranches.map(b => b.branchName).join(', ');
+      if (confirm(`Are you sure you want to delete: ${branchNames}?`)) {
         this.loading = true;
         
+        // Multi-delete logic
         const deleteRequests = this.selectedBranches.map(b => 
           this.branchService.deleteBranch(b.id).toPromise()
         );
 
         Promise.all(deleteRequests)
           .then(() => {
-            alert('Selection deleted successfully');
+            alert('Selected branch(es) deleted successfully.');
             this.getBranches();
           })
           .catch(err => {
-            alert('Error deleting some branches. Check if they are linked to users.');
+            console.error("Delete Error:", err);
+            alert('Some branches could not be deleted. They might have active users linked to them.');
             this.loading = false;
           });
       }
     } else {
-      alert("Please select at least one branch to delete.");
+      alert("Please select at least one checkbox to delete.");
     }
   }
 
@@ -124,6 +130,7 @@ export class BranchComponent implements OnInit {
     }
   }
 
+  // Reset function to clear UI states
   resetSelection() {
     this.showSelection = false;
     this.selectionType = null;

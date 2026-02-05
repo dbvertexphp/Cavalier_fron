@@ -1,6 +1,6 @@
-/*import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router'; // Router import kiya
+import { Router } from '@angular/router';
 import { UserService } from '../services/user.service';
 
 @Component({
@@ -12,12 +12,12 @@ import { UserService } from '../services/user.service';
 })
 export class UserComponent implements OnInit {
   users: any[] = []; 
+  loading = true;
   showCheckbox = false;
   selectionType: 'checkbox' | 'radio' | null = null;
   selectedUser: any = null; 
   selectedUsers: any[] = []; 
 
-  // Constructor mein Router add kiya
   constructor(private userService: UserService, private router: Router) {}
 
   ngOnInit(): void {
@@ -25,125 +25,74 @@ export class UserComponent implements OnInit {
   }
 
   loadUsers() {
+    this.loading = true;
     this.userService.getUsers().subscribe({
       next: (data: any[]) => {
         this.users = data;
-        console.log('Database Data:', this.users);
+        this.loading = false;
+        this.resetSelection();
       },
-      error: (err) => console.error("Data fetch error:", err)
-    });
-  }
-
-  // Ab ye button alert ke baad page change karega
-  addUser() {
-    this.router.navigate(['/dashboard/register-user']);
-  }
-
-  deleteUser() {
-    this.showCheckbox = !this.showCheckbox;
-    this.selectionType = 'checkbox';
-    this.selectedUsers = [];
-  }
-
- modifyUser() {
-  if (this.selectionType === 'radio' && this.selectedUser) {
-    // Selected user ka data navigation ke saath bhej rahe hain
-    this.router.navigate(['/dashboard/register-user'], { 
-      state: { data: this.selectedUser, isEdit: true } 
-    });
-  } else {
-    this.showCheckbox = true;
-    this.selectionType = 'radio';
-    alert("Please select a user to modify");
-  }
-}
-
-  toggleSelection(user: any, event: any) {
-    if (this.selectionType === 'checkbox') {
-      if (event.target.checked) {
-        this.selectedUsers.push(user);
-      } else {
-        this.selectedUsers = this.selectedUsers.filter(u => u !== user);
+      error: (err) => {
+        console.error("Data fetch error:", err);
+        this.loading = false;
       }
-    } else if (this.selectionType === 'radio') {
-      this.selectedUser = user;
-    }
+    });
   }
-
-  confirmDelete() {
-    if (this.selectedUsers.length === 0) return;
-    if(confirm(`Are you sure you want to delete ${this.selectedUsers.length} users?`)) {
-      this.selectedUsers.forEach(user => {
-        this.userService.deleteUser(user.id).subscribe(() => {
-          this.loadUsers();
-        });
-      });
-      this.showCheckbox = false;
-      this.selectedUsers = [];
-    }
-  }
-}*/
-
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
-
-@Component({
-  selector: 'app-user',
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: './user.component.html',
-  styleUrls: ['./user.component.css']
-})
-export class UserComponent implements OnInit {
-  // Static data based on your requirements
-  users: any[] = [
-    {
-      firstName: 'Rahul Kumar', lastName: 'Sharma', email: 'rahul.sharma@example.com',
-      dob: '15 May 1995', maritalStatus: 'Single', bloodGroup: 'B+',
-      empCode: 'EMP1001', designation: 'Software Engineer', functionalArea: 'IT Department',
-      dateOfJoining: 'Jan 10, 2023', contactPersonal: '9876543210', location: 'New Delhi',
-      branchId: '1', presentAddress: 'H.No 123, Sector 5, Rohini, Delhi', permanentAddress: 'Vill-Aakashpur, Dist-Meerut, UP',
-      paN_No: 'ABCDE1234F', aadhaarNo: '1234-5678-9012', status: true
-    },
-    {
-      firstName: 'Amit', lastName: 'Sharma', email: 'amit.s@cavalier.com',
-      dob: '15 May 1990', maritalStatus: 'Married', bloodGroup: 'O+',
-      empCode: 'EMP001', designation: 'Manager', functionalArea: 'Operations',
-      dateOfJoining: 'Jan 10, 2023', contactPersonal: '9876543210', location: 'Mumbai',
-      branchId: '1', presentAddress: 'Andheri West, Mumbai', permanentAddress: 'Same as present',
-      paN_No: 'FGHIJ5678K', aadhaarNo: '9876-5432-1098', status: true
-    }
-  ];
-
-  showCheckbox = false;
-  selectionType: 'checkbox' | 'radio' | null = null;
-  selectedUser: any = null; 
-  selectedUsers: any[] = []; 
-
-  constructor(private router: Router) {}
-
-  ngOnInit(): void {}
 
   addUser() {
-    this.router.navigate(['/dashboard/register-user']);
-  }
-
-  deleteUser() {
-    this.showCheckbox = !this.showCheckbox;
-    this.selectionType = 'checkbox';
-    this.selectedUsers = [];
+    this.router.navigate(['/dashboard/register-user'], { 
+      state: { isEdit: false } 
+    });
   }
 
   modifyUser() {
-    if (this.selectionType === 'radio' && this.selectedUser) {
+    if (this.selectionType !== 'radio' || !this.showCheckbox) {
+      this.showCheckbox = true;
+      this.selectionType = 'radio';
+      this.selectedUsers = [];
+      return;
+    }
+
+    if (this.selectedUser) {
       this.router.navigate(['/dashboard/register-user'], { 
         state: { data: this.selectedUser, isEdit: true } 
       });
     } else {
+      alert("Please select a user to modify.");
+    }
+  }
+
+  deleteUser() {
+    if (this.selectionType !== 'checkbox' || !this.showCheckbox) {
       this.showCheckbox = true;
-      this.selectionType = 'radio';
-      alert("Please select a user to modify");
+      this.selectionType = 'checkbox';
+      this.selectedUser = null;
+      return;
+    }
+
+    if (this.selectedUsers.length > 0) {
+      this.confirmDelete();
+    } else {
+      alert("Please select at least one user to delete.");
+    }
+  }
+
+  confirmDelete() {
+    const count = this.selectedUsers.length;
+    if (confirm(`Are you sure you want to delete ${count} user(s)?`)) {
+      this.loading = true;
+      const deleteRequests = this.selectedUsers.map(u => 
+        this.userService.deleteUser(u.id).toPromise()
+      );
+
+      Promise.all(deleteRequests).then(() => {
+        alert('Users deleted successfully');
+        this.loadUsers();
+      }).catch(err => {
+        console.error("Delete Error:", err);
+        alert('Error deleting some users.');
+        this.loading = false;
+      });
     }
   }
 
@@ -152,17 +101,17 @@ export class UserComponent implements OnInit {
       if (event.target.checked) {
         this.selectedUsers.push(user);
       } else {
-        this.selectedUsers = this.selectedUsers.filter(u => u !== user);
+        this.selectedUsers = this.selectedUsers.filter(u => u.id !== user.id);
       }
     } else if (this.selectionType === 'radio') {
       this.selectedUser = user;
     }
   }
 
-  confirmDelete() {
-    if (this.selectedUsers.length > 0 && confirm('Are you sure?')) {
-      this.users = this.users.filter(u => !this.selectedUsers.includes(u));
-      this.showCheckbox = false;
-    }
+  resetSelection() {
+    this.showCheckbox = false;
+    this.selectionType = null;
+    this.selectedUser = null;
+    this.selectedUsers = [];
   }
 }

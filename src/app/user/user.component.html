@@ -1,31 +1,15 @@
 <section class="container mx-auto p-4 font-sans">
-  <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-6 bg-slate-50 p-4 rounded-xl border border-slate-200">
+  <div
+    class="flex flex-col md:flex-row justify-between items-center mb-6 gap-6 bg-slate-50 p-4 rounded-xl border border-slate-200">
     <h2 class="text-2xl font-extrabold text-slate-800 tracking-tight">User Directory</h2>
-    
-    <div class="flex flex-wrap items-center gap-3">
-      <button (click)="addUser()" class="flex items-center gap-2 px-5 py-2.5 text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-md transition-all active:scale-95">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor font-bold">
+
+    <div class="flex flex-wrap items-center gap-3 mr-12">
+      <button (click)="addUser()"
+        class="flex items-center gap-2 px-6 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-md transition-all active:scale-95 whitespace-nowrap">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
         </svg>
         <span class="font-bold">Add User</span>
-      </button>
-
-      <button (click)="deleteUser()" 
-              [ngClass]="selectionType === 'checkbox' ? 'bg-red-700 text-white' : 'bg-white text-red-600 border-red-200'"
-              class="flex items-center gap-2 px-5 py-2.5 rounded-lg shadow-sm border hover:shadow-md transition-all active:scale-95">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-        </svg>
-        <span class="font-bold">{{ selectionType === 'checkbox' && selectedUsers.length > 0 ? 'Confirm Delete (' + selectedUsers.length + ')' : 'Delete User' }}</span>
-      </button>
-
-      <button (click)="modifyUser()" 
-              [ngClass]="selectionType === 'radio' ? 'bg-amber-600 text-white' : 'bg-white text-amber-600 border-amber-200'"
-              class="flex items-center gap-2 px-5 py-2.5 rounded-lg shadow-sm border hover:shadow-md transition-all active:scale-95">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-        </svg>
-        <span class="font-bold">Modify User</span>
       </button>
     </div>
   </div>
@@ -37,10 +21,9 @@
 
   <div *ngIf="!loading" class="bg-white rounded-xl shadow-xl overflow-hidden border border-gray-200">
     <div class="overflow-x-auto">
-      <table class="w-full text-left border-collapse min-w-[2800px]">
+      <table class="w-full text-left border-collapse min-w-[3000px]">
         <thead>
           <tr class="bg-slate-100 border-b border-gray-300 text-[11px] uppercase tracking-wider text-slate-600">
-            <th *ngIf="showCheckbox" class="p-4 sticky left-0 bg-slate-100 z-10 w-16 text-center border-r">Select</th>
             <th class="p-4 font-bold">Profile Details</th>
             <th class="p-4 font-bold">Work & Designation</th>
             <th class="p-4 font-bold">Contact & Location</th>
@@ -50,27 +33,24 @@
             <th class="p-4 font-bold">Payroll Info</th>
             <th class="p-4 font-bold">Assets & Emergency</th>
             <th class="p-4 font-bold text-center">Status</th>
+            <th
+              class="p-4 font-bold text-center bg-slate-200 sticky right-0 z-20 shadow-[-5px_0_10px_rgba(0,0,0,0.05)]">
+              Actions</th>
           </tr>
         </thead>
-        
+
         <tbody class="divide-y divide-gray-200">
           <tr *ngFor="let u of users" class="hover:bg-blue-50/20 transition-colors group">
-            
-            <td *ngIf="showCheckbox" class="p-4 sticky left-0 bg-white group-hover:bg-blue-50 z-10 text-center border-r shadow-sm">
-              <input [type]="selectionType" 
-                     [name]="selectionType === 'radio' ? 'userGroup' : ''"
-                     (change)="toggleSelection(u, $event)" 
-                     class="w-5 h-5 text-blue-600 rounded-md cursor-pointer border-gray-300">
-            </td>
 
             <td class="p-4 border-r">
               <div class="flex items-center gap-3">
-                <img class="w-12 h-12 rounded-full ring-2 ring-slate-100 object-cover shadow-sm" 
-                     [src]="u.photoPath ? 'http://localhost:5000' + u.photoPath : 'assets/default-avatar.png'">
+                <img class="w-12 h-12 rounded-full ring-2 ring-slate-100 object-cover shadow-sm"
+                  [src]="u.photoPath ? 'http://localhost:5000' + u.photoPath : 'assets/default-avatar.png'">
                 <div class="flex flex-col">
                   <span class="font-bold text-slate-900">{{ u.firstName }} {{ u.lastName }}</span>
                   <span class="text-xs text-blue-600 font-medium lowercase italic">{{ u.email }}</span>
-                  <span class="text-[9px] text-slate-400 mt-1 uppercase font-bold">Blood: {{ u.bloodGroup }} | {{ u.maritalStatus }}</span>
+                  <span class="text-[9px] text-slate-400 mt-1 uppercase font-bold">Blood: {{ u.bloodGroup }} | {{
+                    u.maritalStatus }}</span>
                 </div>
               </div>
             </td>
@@ -84,13 +64,15 @@
             <td class="p-4 border-r text-sm">
               <p class="text-slate-800 font-bold">📞 {{ u.contactPersonal }}</p>
               <p class="text-slate-500 text-xs mt-1">📍 {{ u.location }}</p>
-              <p class="text-[9px] bg-slate-100 px-1 inline-block rounded mt-2">Join: {{ u.dateOfJoining | date:'mediumDate' }}</p>
+              <p class="text-[9px] bg-slate-100 px-1 inline-block rounded mt-2">Join: {{ u.dateOfJoining |
+                date:'mediumDate' }}</p>
             </td>
 
             <td class="p-4 border-r bg-blue-50/10 min-w-[550px]">
               <div class="flex flex-col gap-3">
                 <div class="bg-white border-l-4 border-blue-500 p-2 rounded shadow-sm">
-                  <span class="text-[9px] font-black text-blue-500 uppercase tracking-widest block mb-1">Present Address</span>
+                  <span class="text-[9px] font-black text-blue-500 uppercase tracking-widest block mb-1">Present
+                    Address</span>
                   <div class="grid grid-cols-2 gap-x-6 text-[10px] text-slate-700">
                     <p><b>H.No:</b> {{u.presHouseNo}} | {{u.presBuilding}}</p>
                     <p><b>Street:</b> {{u.presStreet}}</p>
@@ -99,21 +81,13 @@
                     <p><b>Dist/State:</b> {{u.presDistrict}}, {{u.presState}}</p>
                   </div>
                 </div>
-
-                <div class="bg-white border-l-4 border-slate-400 p-2 rounded shadow-sm">
-                  <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Permanent Address</span>
-                  <div class="grid grid-cols-2 gap-x-6 text-[10px] text-slate-600">
-                    <p><b>H.No:</b> {{u.permHouseNo}} | {{u.permBuilding}}</p>
-                    <p><b>City:</b> {{u.permCity}} - {{u.permPincode}}</p>
-                    <p class="col-span-2 italic"><b>State:</b> {{u.permState}}</p>
-                  </div>
-                </div>
               </div>
             </td>
 
             <td class="p-4 border-r font-mono text-[10px]">
               <div class="space-y-1">
-                <p class="bg-slate-50 border p-1 rounded">PAN: <span class="font-bold uppercase">{{ u.paN_No }}</span></p>
+                <p class="bg-slate-50 border p-1 rounded">PAN: <span class="font-bold uppercase">{{ u.paN_No }}</span>
+                </p>
                 <p class="bg-slate-50 border p-1 rounded">UID: <span class="font-bold">{{ u.aadhaarNo }}</span></p>
               </div>
             </td>
@@ -135,8 +109,10 @@
             <td class="p-4 border-r">
               <div class="flex flex-col gap-2">
                 <div class="flex gap-1">
-                  <span class="text-[8px] font-bold px-1 rounded border" [ngClass]="u.simIssued ? 'bg-green-50 text-green-600 border-green-200' : 'bg-gray-50 text-gray-400 border-gray-100'">SIM</span>
-                  <span class="text-[8px] font-bold px-1 rounded border" [ngClass]="u.invitationLetter ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-gray-50 text-gray-400 border-gray-100'">INV</span>
+                  <span class="text-[8px] font-bold px-1 rounded border"
+                    [ngClass]="u.simIssued ? 'bg-green-50 text-green-600 border-green-200' : 'bg-gray-50 text-gray-400 border-gray-100'">SIM</span>
+                  <span class="text-[8px] font-bold px-1 rounded border"
+                    [ngClass]="u.invitationLetter ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-gray-50 text-gray-400 border-gray-100'">INV</span>
                 </div>
                 <div class="text-[10px]">
                   <p class="font-bold text-slate-700">{{ u.emergencyName }}</p>
@@ -145,11 +121,36 @@
               </div>
             </td>
 
-            <td class="p-4 text-center">
-              <span [class]="u.status ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'" 
-                    class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-tighter border">
+            <td class="p-4 text-center border-r">
+              <span
+                [class]="u.status ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'"
+                class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-tighter border">
                 {{ u.status ? 'Active' : 'Inactive' }}
               </span>
+            </td>
+
+            <td
+              class="p-4 text-center sticky right-0 bg-white group-hover:bg-blue-50 z-10 shadow-[-5px_0_10px_rgba(0,0,0,0.05)] border-l">
+              <div class="flex justify-center gap-2">
+                <button (click)="modifyUser(u)"
+                  class="p-2 text-amber-600 hover:bg-amber-100 rounded-lg transition border border-amber-200"
+                  title="Edit User">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+                <button (click)="deleteUser(u.id)"
+                  class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition border border-red-200"
+                  title="Delete User">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
             </td>
 
           </tr>
@@ -158,8 +159,8 @@
     </div>
   </div>
 
-  <div *ngIf="!loading && users.length === 0" class="flex flex-col items-center justify-center p-20 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 mt-4">
+  <div *ngIf="!loading && users.length === 0"
+    class="flex flex-col items-center justify-center p-20 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 mt-4">
     <p class="text-slate-400 font-bold italic">Cavalier Database: No users found.</p>
   </div>
-
 </section>

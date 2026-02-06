@@ -1,14 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { environment } from '../../../environments/environment';
-
-interface Role {
-  id?: number;
-  name: string;
-  perms?: string[];
-}
+import { UserService } from '../../services/user.service'; // Path sahi kar lena
 
 @Component({
   selector: 'app-roles',
@@ -17,86 +10,109 @@ interface Role {
   templateUrl: './roles.component.html',
   styleUrls: ['./roles.component.css'], // fixed typo: styleUrls
 })
-export class RolesComponent {
+export class RolesComponent implements OnInit {
   isModalOpen = false;
-  rolesList: Role[] = [];
-  newRole: Role = { name: '' };
+  isLoading = false;
+  isEditMode = false; // Edit track karne ke liye
+  rolesList: any[] = []; // Ab ye API se bharega
+
+  // Form Model matching your Backend 'Role' class
+  newRole = {
+    id: 0,
+    name: '',
+    status: true
+  };
 
   showPopup = false;
-  roleIndexToDelete: number | null = null;
+  roleIdToDelete: number | null = null;
 
-  constructor(private http: HttpClient) {
-    this.loadRoles(); // Load roles on init
+  constructor(private userService: UserService) {}
+
+  ngOnInit(): void {
+    this.loadRoles();
   }
 
-  // Load roles from API
+  // --- 1. GET ROLES ---
   loadRoles() {
-    this.http.get<Role[]>(`${environment.apiUrl}/Role`).subscribe({
-      next: (res) => this.rolesList = res,
-      error: (err) => console.error('Error loading roles:', err)
+    this.userService.getRoles().subscribe({
+      next: (data: any) => {
+        this.rolesList = data;
+      },
+      error: (err) => console.error("Roles load nahi hue:", err)
     });
   }
 
-  // Open modal
-  openModal() {
-    this.isModalOpen = true;
-  }
+  // --- 2. SAVE ROLE (Add or Update) ---
+  saveRole() {
+    if (this.newRole.name.trim()) {
+      this.isLoading = true;
+      
+      // Logic decide karega add karna hai ya update
+      const request = this.isEditMode 
+        ? this.userService.updateRole(this.newRole) 
+        : this.userService.addRole({ name: this.newRole.name });
 
-  // Close modal & reset
-  closeModal() {
-    this.isModalOpen = false;
-    this.newRole.name = '';
-  }
-
-  // Add a new role
-  addRole() {
-    if (!this.newRole.name.trim()) {
-      alert("Enter Role Name!");
-      return;
-    }
-
-    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-    this.http.post<Role>(`${environment.apiUrl}/Role`, this.newRole, { headers })
-      .subscribe({
+      request.subscribe({
         next: (res) => {
-          this.rolesList.unshift(res); // Add role to local list
-           this.isModalOpen = false;
+          this.loadRoles(); // List refresh karein
+          this.closeModal();
+          this.isLoading = false;
         },
-        error: (err) => console.error('Error creating role:', err)
+        error: (err) => {
+          console.error("Role save nahi hua:", err);
+          this.isLoading = false;
+          alert("Error saving role!");
+        }
       });
-  }
-
-  // Edit role (optional, can open modal for editing)
-  editRole(role: Role) {
-    alert('Editing: ' + role.name);
-    // Could open modal prefilled with role.name if needed
-  }
-
-  // Delete Role
-  deleteRole(index: number) {
-    this.roleIndexToDelete = index;
-    this.showPopup = true;
-  }
-
-  confirmDelete() {
-    if (this.roleIndexToDelete !== null) {
-      const roleToDelete = this.rolesList[this.roleIndexToDelete];
-      this.http.delete(`${environment.apiUrl}/Role/${roleToDelete.id}`)
-        .subscribe({
-          next: () => {
-            this.rolesList.splice(this.roleIndexToDelete!, 1);
-            this.roleIndexToDelete = null;
-            this.showPopup = false;
-          },
-          error: (err) => console.error('Error deleting role:', err)
-        });
     } else {
       this.showPopup = false;
     }
   }
 
+  // --- 3. DELETE ROLE ---
+  deleteRole(id: number) {
+    this.roleIdToDelete = id;
+    this.showPopup = true;
+  }
+
+  confirmDelete() {
+    if (this.roleIdToDelete !== null) {
+      this.userService.deleteRole(this.roleIdToDelete).subscribe({
+        next: () => {
+          this.loadRoles();
+          this.roleIdToDelete = null;
+          this.showPopup = false;
+        },
+        error: (err) => alert("Delete fail ho gaya!")
+      });
+    }
+  }
+
+  // --- UI Helpers ---
+  openModal() {
+    this.isEditMode = false;
+    this.isModalOpen = true;
+  }
+
+  closeModal() {
+    this.isModalOpen = false;
+    this.isEditMode = false;
+    this.newRole = { id: 0, name: '', status: true };
+  }
+
   cancelDelete() {
-    this.roleIndexToDelete = null;
+    this.roleIdToDelete = null;
     this.showPopup = false;
+  }
+
+  editRole(role: any) {
+    this.isEditMode = true;
+    // Data populate kar rahe hain modal mein
+    this.newRole = { 
+      id: role.id, 
+      name: role.name, 
+      status: role.status 
+    };
+    this.isModalOpen = true;
   }
 }

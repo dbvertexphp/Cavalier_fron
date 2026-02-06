@@ -12,9 +12,12 @@ import { UserService } from '../../services/user.service';
 })
 export class DepartmentsComponent implements OnInit {
   isModalOpen = false;
+  isEditMode = false; // Track if we are editing
+  isLoading = false; 
+  currentDeptId: number | null = null; // Store ID for update
+
   departments: any[] = []; 
   newDept = { name: '' };
-  isLoading = false; 
 
   constructor(
     private userService: UserService,
@@ -30,7 +33,6 @@ export class DepartmentsComponent implements OnInit {
     this.userService.getDepartments().subscribe({
       next: (res: any[]) => {
         if (Array.isArray(res)) {
-          // Backend mapping fix: d.id aur d.name (jo aapne backend mein select kiya hai)
           this.departments = res.map((d: any) => ({
             id: d.id || d.Id || 0, 
             name: d.name || d.Name || 'Unknown',
@@ -43,60 +45,82 @@ export class DepartmentsComponent implements OnInit {
     });
   }
 
-  addDepartment() {
-  if (!this.newDept.name.trim()) return;
-  this.isLoading = true;
+  // ✅ Unified Save function for both Add and Edit
+  saveDepartment() {
+    if (!this.newDept.name.trim()) return;
+    this.isLoading = true;
 
-  // FIX: Sirf naam bhejna hai, object nahi
-  this.userService.addDepartment(this.newDept.name).subscribe({
-    next: (res: any) => {
-      this.ngZone.run(() => {
-        const newEntry = {
-          id: res.id || res.Id, 
-          name: res.name || this.newDept.name,
-          count: 0
-        };
-
-        this.departments.unshift(newEntry);
-        this.closeModal();
-        this.isLoading = false;
-        this.cdr.detectChanges();
+    if (this.isEditMode && this.currentDeptId) {
+      // Logic for Update
+      this.userService.updateDepartment(this.currentDeptId, this.newDept.name).subscribe({
+        next: (res: any) => {
+          alert('Department updated successfully!');
+          this.loadDepartments(); // Refresh list
+          this.closeModal();
+        },
+        error: (err) => {
+          console.error("Update Error:", err);
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        }
       });
-    },
-    error: (err) => {
-      console.error("Add Error:", err);
-      this.isLoading = false;
-      this.cdr.detectChanges();
+    } else {
+      // Logic for Add
+      this.userService.addDepartment(this.newDept.name).subscribe({
+        next: (res: any) => {
+          alert('Department added successfully!');
+          this.loadDepartments();
+          this.closeModal();
+        },
+        error: (err) => {
+          console.error("Add Error:", err);
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        }
+      });
     }
-  });
-}
+  }
+
+  // ✅ Open modal for editing
+  editDept(dept: any) {
+    this.isEditMode = true;
+    this.currentDeptId = dept.id;
+    this.newDept.name = dept.name;
+    this.isModalOpen = true;
+  }
 
   deleteDept(id: number) {
     if (!id || id === 0) {
-      alert("Error: Department ID is missing (ID: " + id + ")");
+      alert("Error: Department ID is missing.");
       return;
     }
 
     if (confirm('Are you sure you want to delete this department?')) {
       this.userService.deleteDepartment(id).subscribe({
         next: () => {
-          // Frontend se delete karein refresh bina
           this.departments = this.departments.filter(d => d.id !== id);
           this.cdr.detectChanges();
           alert('Department deleted successfully!');
         },
         error: (err: any) => {
           console.error("Delete Error:", err);
-          alert('Delete failed! Ensure you have created the Delete API in backend.');
+          alert('Delete failed!');
         }
       });
     }
   }
 
-  openModal() { this.isModalOpen = true; }
+  openModal() { 
+    this.isEditMode = false;
+    this.newDept.name = '';
+    this.isModalOpen = true; 
+  }
   
   closeModal() { 
     this.isModalOpen = false; 
+    this.isEditMode = false;
     this.newDept.name = ''; 
+    this.isLoading = false;
+    this.currentDeptId = null;
   }
 }

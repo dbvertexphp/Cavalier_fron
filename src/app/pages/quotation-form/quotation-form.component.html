@@ -1,53 +1,91 @@
 <div class="p-3 bg-gray-100 min-h-screen font-sans text-[12px]">
-  <div class="bg-white border border-gray-300 shadow-sm">
+
+  <div *ngIf="!isFormOpen" class="bg-white border border-gray-300 shadow-sm rounded-sm overflow-hidden">
+    <div class="bg-[#4a3f3f] p-2 flex justify-between items-center text-white">
+      <div class="font-bold uppercase text-[10px] tracking-widest px-2">Quotation Records</div>
+      <div class="flex gap-2">
+        <button class="bg-blue-600 hover:bg-blue-700 px-3 py-1 text-[10px] font-bold">
+          <i class="fas fa-building mr-1"></i> NEW ORGANIZATION
+        </button>
+        <button (click)="toggleForm()" class="bg-green-600 hover:bg-green-700 px-4 py-1 text-[10px] font-bold">
+          <i class="fas fa-plus mr-1"></i> ADD NEW QUOTATION
+        </button>
+      </div>
+    </div>
     
+    <div class="p-4 overflow-x-auto">
+      <table class="w-full border-collapse border border-gray-200">
+        <thead>
+          <tr class="bg-gray-50 text-gray-700 uppercase text-[9px]">
+            <th class="border p-2 text-left">QTN ID</th>
+            <th class="border p-2 text-left">Customer</th>
+            <th class="border p-2 text-left">Destination</th>
+            <th class="border p-2 text-left">Status</th>
+            <th class="border p-2 text-center">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let q of quotations" class="hover:bg-gray-50 border-b">
+            <td class="p-2 font-bold text-[#4a3f3f]">{{q.qtnId || q.qtn_id}}</td>
+            <td class="p-2 uppercase">{{q.customerName || q.customer_name}}</td>
+            <td class="p-2">{{q.portOfDestination || q.port_of_destination}}</td>
+            <td class="p-2">
+              <span [ngClass]="{'bg-green-100 text-green-700': (q.inquiryOutcome || q.inquiry_outcome) === 'Won', 'bg-yellow-100 text-yellow-700': (q.inquiryOutcome || q.inquiry_outcome) === 'Pending'}" 
+                    class="px-2 py-0.5 rounded text-[9px] font-bold">
+                {{q.inquiryOutcome || q.inquiry_outcome}}
+              </span>
+            </td>
+            <td class="p-2 text-center flex justify-center gap-2">
+              <button class="text-blue-600 hover:bg-blue-50 px-2 py-1 rounded"><i class="fas fa-edit"></i></button>
+              <button (click)="deleteQuotation(q.id)" class="text-red-600 hover:bg-red-50 px-2 py-1 rounded">
+                <i class="fas fa-trash"></i>
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="quotations.length === 0">
+            <td colspan="5" class="p-4 text-center text-gray-500 italic">No records found. Click 'Add New' to start.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div *ngIf="isFormOpen" class="bg-white border border-gray-300 shadow-sm">
     <div class="bg-[#4a3f3f] p-1 flex justify-between items-center text-white">
       <div class="flex gap-4 px-2">
-        <button class="hover:text-gray-300"><i class="fas fa-save"></i></button>
-        <button class="hover:text-gray-300"><i class="fas fa-print"></i></button>
-        <button class="hover:text-gray-300"><i class="fas fa-sync"></i></button>
+        <button (click)="saveQuotation()" title="Save" class="hover:text-green-400">
+          <i class="fas fa-save text-lg"></i>
+        </button>
       </div>
       <div class="font-bold uppercase text-[10px] tracking-widest">Quotation Entry</div>
-      <button class="bg-red-500 hover:bg-red-600 px-3 py-1 text-[10px]">CLOSE</button>
+      <button (click)="toggleForm()" class="bg-red-500 hover:bg-red-600 px-3 py-1 text-[10px]">CLOSE</button>
     </div>
 
     <div class="p-4 bg-white">
-      
       <h3 class="font-bold text-[#4a3f3f] border-b mb-3 pb-1 uppercase text-[10px]">Quotation & Customer Details</h3>
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div class="space-y-2">
           <label class="font-bold text-red-600 block uppercase">Customer Name</label>
-          <div class="flex flex-col gap-1">
-            <input type="text" class="w-full border p-1 outline-none focus:border-[#4a3f3f]" placeholder="Enter Customer Name">
-            <button routerLink="/dashboard/crm/organization-add" 
-                    class="w-fit text-[9px] bg-[#4a3f3f] text-white px-2 py-0.5 rounded flex items-center gap-1 hover:bg-black transition-colors">
-              <i class="fas fa-plus"></i> ADD NEW ORGANIZATION
-            </button>
-          </div>
+          <input name="customerName" [(ngModel)]="quotation.customerName" type="text" class="w-full border p-1 outline-none focus:border-blue-500">
           
           <label class="font-bold text-red-600 block uppercase mt-2">Consignee Name</label>
-          <input type="text" class="w-full border p-1 outline-none" placeholder="Enter Consignee Name">
+          <input type="text" name="consigneeName" [(ngModel)]="quotation.consigneeName" class="w-full border p-1 outline-none focus:border-blue-500">
         </div>
-
         <div class="space-y-2">
           <label class="font-semibold text-gray-600 block">QTN ID</label>
-          <input type="text" placeholder="Auto-Generated" class="w-full border p-1 bg-gray-50" readonly>
-          
+          <input type="text" name="qtnId" [(ngModel)]="quotation.qtnId" placeholder="e.g. QTN/2026/001" class="w-full border p-1">
           <label class="font-semibold text-gray-600 block">QTN DT & TIME</label>
-          <input type="datetime-local" class="w-full border p-1">
+          <input type="datetime-local" name="qtnDateTime" [(ngModel)]="quotation.qtnDateTime" class="w-full border p-1">
         </div>
-
         <div class="space-y-2">
           <label class="font-semibold text-gray-600 block">QTN DONE BY</label>
-          <input type="text" class="w-full border p-1" placeholder="Quotation Maker">
-          
+          <input type="text" name="qtnDoneBy" [(ngModel)]="quotation.qtnDoneBy" class="w-full border p-1">
           <label class="font-semibold text-gray-600 block">QTN VALIDITY</label>
-          <input type="date" class="w-full border p-1">
+          <input type="date" name="qtnValidity" [(ngModel)]="quotation.qtnValidity" class="w-full border p-1">
         </div>
-
         <div class="space-y-2">
           <label class="font-semibold text-gray-600 block">QUOTATION REMARKS</label>
-          <textarea class="w-full border p-1 h-[65px] outline-none" placeholder="Enter notes about quotation..."></textarea>
+          <textarea name="qtnRemarks" [(ngModel)]="quotation.qtnRemarks" class="w-full border p-1 h-[65px] outline-none"></textarea>
         </div>
       </div>
 
@@ -55,120 +93,84 @@
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div class="space-y-2">
           <label class="font-semibold text-gray-600 block">INQ ID</label>
-          <input type="text" class="w-full border p-1">
+          <input type="text" name="inquiryId" [(ngModel)]="quotation.inquiryId" class="w-full border p-1">
           <label class="font-semibold text-gray-600 block">INQ OUTCOME</label>
-          <select class="w-full border p-1">
-            <option>Select Outcome</option>
-            <option>Pending</option>
-            <option>Won</option>
-            <option>Lost</option>
+          <select name="inquiryOutcome" [(ngModel)]="quotation.inquiryOutcome" class="w-full border p-1">
+            <option value="Pending">Pending</option><option value="Won">Won</option><option value="Lost">Lost</option>
           </select>
         </div>
         <div class="space-y-2">
-          <label class="font-semibold text-gray-600 block">INQ RECD DT & TIME</label>
-          <input type="datetime-local" class="w-full border p-1">
-          <label class="font-semibold text-gray-600 block">PRICING DONE BY</label>
-          <input type="text" class="w-full border p-1">
+          <label class="font-semibold text-gray-600 block">INQ RECD DT</label>
+          <input type="datetime-local" name="inqReceivedDate" [(ngModel)]="quotation.inqReceivedDate" class="w-full border p-1">
+          <label class="font-semibold text-gray-600 block">PRICING BY</label>
+          <input type="text" name="pricingDoneBy" [(ngModel)]="quotation.pricingDoneBy" class="w-full border p-1">
         </div>
         <div class="space-y-2">
-          <label class="font-semibold text-gray-600 block">INQ REPLIED DT & TIME</label>
-          <input type="datetime-local" class="w-full border p-1">
-          <label class="font-semibold text-gray-600 block">NO OF REV</label>
-          <input type="number" class="w-full border p-1" value="0">
+          <label class="font-semibold text-gray-600 block">INQ REPLIED DT</label>
+          <input type="datetime-local" name="inqRepliedDate" [(ngModel)]="quotation.inqRepliedDate" class="w-full border p-1">
+          <label class="font-semibold text-gray-600 block">REVISIONS</label>
+          <input type="number" name="noOfRevisions" [(ngModel)]="quotation.noOfRevisions" class="w-full border p-1">
         </div>
         <div class="space-y-2">
           <label class="font-semibold text-gray-600 block">INQ REMARKS</label>
-          <textarea class="w-full border p-1 h-[65px] outline-none" placeholder="Internal remarks..."></textarea>
+          <textarea name="inquiryRemarks" [(ngModel)]="quotation.inquiryRemarks" class="w-full border p-1 h-[65px] outline-none"></textarea>
         </div>
       </div>
 
       <h3 class="font-bold text-[#4a3f3f] border-b mb-3 pb-1 uppercase text-[10px]">Sales & Operations Team</h3>
       <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-        <div>
-          <label class="font-semibold text-gray-600 block">SALES PERSON</label>
-          <input type="text" class="w-full border p-1">
-        </div>
-        <div>
-          <label class="font-semibold text-gray-600 block">SALES MANAGER</label>
-          <input type="text" class="w-full border p-1">
-        </div>
-        <div>
-          <label class="font-semibold text-gray-600 block">REPORTING HEAD</label>
-          <input type="text" class="w-full border p-1">
-        </div>
-        <div>
-          <label class="font-semibold text-gray-600 block">OPS MGR</label>
-          <input type="text" class="w-full border p-1">
-        </div>
-        <div>
-          <label class="font-semibold text-gray-600 block">OPS HANDLED BY</label>
-          <input type="text" class="w-full border p-1">
-        </div>
+        <div><label class="font-semibold text-gray-600 block uppercase">Sales Person</label><input type="text" name="salesPerson" [(ngModel)]="quotation.salesPerson" class="w-full border p-1"></div>
+        <div><label class="font-semibold text-gray-600 block uppercase">Sales Manager</label><input type="text" name="salesManager" [(ngModel)]="quotation.salesManager" class="w-full border p-1"></div>
+        <div><label class="font-semibold text-gray-600 block uppercase">Reporting Head</label><input type="text" name="reportingHead" [(ngModel)]="quotation.reportingHead" class="w-full border p-1"></div>
+        <div><label class="font-semibold text-gray-600 block uppercase">Ops Mgr</label><input type="text" name="opsManager" [(ngModel)]="quotation.opsManager" class="w-full border p-1"></div>
+        <div><label class="font-semibold text-gray-600 block uppercase">Ops Handled By</label><input type="text" name="opsHandledBy" [(ngModel)]="quotation.opsHandledBy" class="w-full border p-1"></div>
       </div>
 
       <h3 class="font-bold text-[#4a3f3f] border-b mb-3 pb-1 uppercase text-[10px]">Shipment & Cargo Details</h3>
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div class="space-y-2">
-          <label class="font-semibold text-gray-600 block">CARGO TYPE</label>
-          <select class="w-full border p-1">
-            <option>GENERAL</option>
-            <option>PERISHABLE</option>
-            <option>HAZARDOUS</option>
-            <option>OVER DIMENSION</option>
+          <label class="font-semibold text-gray-600 block uppercase">Cargo Type</label>
+          <select name="cargoType" [(ngModel)]="quotation.cargoType" class="w-full border p-1">
+            <option value="GENERAL">GENERAL</option><option value="PERISHABLE">PERISHABLE</option><option value="HAZARDOUS">HAZARDOUS</option>
           </select>
-          <label class="font-semibold text-gray-600 block">COMMODITY (AS PER HAWB)</label>
-          <input type="text" class="w-full border p-1">
+          <label class="font-semibold text-gray-600 block uppercase">Commodity</label>
+          <input type="text" name="commodityHawb" [(ngModel)]="quotation.commodityHawb" class="w-full border p-1">
         </div>
         <div class="space-y-2">
-          <label class="font-semibold text-gray-600 block">PORT OF LOADING</label>
-          <input type="text" class="w-full border p-1" placeholder="Origin Port">
-          <label class="font-semibold text-gray-600 block">PORT OF DESTINATION</label>
-          <input type="text" class="w-full border p-1" placeholder="Destination Port">
+          <label class="font-semibold text-gray-600 block uppercase">POL</label>
+          <input type="text" name="portOfLoading" [(ngModel)]="quotation.portOfLoading" class="w-full border p-1">
+          <label class="font-semibold text-gray-600 block uppercase">POD</label>
+          <input type="text" name="portOfDestination" [(ngModel)]="quotation.portOfDestination" class="w-full border p-1">
         </div>
         <div class="space-y-2">
           <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="font-semibold text-gray-600 block">INCOTERM</label>
-              <select class="w-full border p-1">
-                <option>EXW</option><option>FCA</option><option>FOB</option><option>CIF</option><option>DDP</option>
+            <div><label class="font-semibold text-[9px]">Incoterm</label>
+              <select name="incoterm" [(ngModel)]="quotation.incoterm" class="w-full border p-1">
+                <option value="EXW">EXW</option><option value="CIF">CIF</option><option value="FOB">FOB</option><option value="DDP">DDP</option>
               </select>
             </div>
-            <div>
-              <label class="font-semibold text-gray-600 block">PACKAGING</label>
-              <input type="text" class="w-full border p-1" placeholder="Cartons/Pallets">
-            </div>
+            <div><label class="font-semibold text-[9px]">Packaging</label><input type="text" name="packagingType" [(ngModel)]="quotation.packagingType" class="w-full border p-1"></div>
           </div>
           <div class="grid grid-cols-3 gap-2">
-            <div>
-              <label class="font-semibold text-gray-600 block">NO OF PKGS</label>
-              <input type="number" class="w-full border p-1">
-            </div>
-            <div>
-              <label class="font-semibold text-gray-600 block">GW (KGS)</label>
-              <input type="text" class="w-full border p-1">
-            </div>
-            <div>
-              <label class="font-semibold text-gray-600 block">CW (KGS)</label>
-              <input type="text" class="w-full border p-1">
-            </div>
+            <div><label class="text-[8px]">PKGS</label><input type="number" name="noOfPkgs" [(ngModel)]="quotation.noOfPkgs" class="w-full border p-1"></div>
+            <div><label class="text-[8px]">GW (KG)</label><input type="number" name="grossWeightKg" [(ngModel)]="quotation.grossWeightKg" class="w-full border p-1"></div>
+            <div><label class="text-[8px]">CW (KG)</label><input type="number" name="chargeableWeightKg" [(ngModel)]="quotation.chargeableWeightKg" class="w-full border p-1"></div>
           </div>
         </div>
         <div class="space-y-2">
-          <label class="font-semibold text-gray-600 block">JOB NO</label>
-          <input type="text" class="w-full border p-1 bg-yellow-50 font-bold" placeholder="Linked Job No">
-          <label class="font-semibold text-gray-600 block">JOB DATE</label>
-          <input type="date" class="w-full border p-1">
+          <label class="font-semibold text-gray-600 block uppercase">Job No</label>
+          <input type="text" name="jobNo" [(ngModel)]="quotation.jobNo" class="w-full border p-1 bg-yellow-50 font-bold border-yellow-300">
+          <label class="font-semibold text-gray-600 block uppercase text-[9px]">Job Date</label>
+          <input type="date" name="jobDate" [(ngModel)]="quotation.jobDate" class="w-full border p-1">
         </div>
       </div>
-
     </div>
 
-    <div class="p-2 bg-gray-50 border-t flex justify-between items-center">
-
-      <div class="text-[9px] text-gray-400 italic">
-        Customer and Consignee fields are mandatory.
-      </div>
+    <div class="p-2 bg-gray-50 border-t flex justify-end gap-2">
+      <button (click)="toggleForm()" class="bg-gray-200 hover:bg-gray-300 px-4 py-1 text-[10px] font-bold">CANCEL</button>
+      <button (click)="saveQuotation()" class="bg-[#4a3f3f] hover:bg-black text-white px-4 py-1 text-[10px] font-bold shadow-md">
+        <i class="fas fa-save mr-1"></i> SAVE QUOTATION
+      </button>
     </div>
-
   </div>
 </div>

@@ -99,10 +99,16 @@ console.log('STEP TWO ENABLED',this.isStepTwo);
         } else {
 
           this.roles = ['Branch Administrator'];
-
+const branchCity = res.user.branch.branchName;
+ this.cities = [branchCity];
           this.selectionForm.patchValue({
-            selectedRole: 'Branch Administrator'
+            selectedRole: 'Branch Administrator',
+            selectedCity: branchCity
           });
+          
+          
+          console.log('Available Cities for Branch Admin:', this.cities);
+         
         }
 
         // Save role & branch details

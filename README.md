@@ -1,28 +1,21 @@
-# Free Angular Tailwind Admin Dashboard Template - TailAdmin Angular
+Cavalier Logistics Dashboard - Angular + Tailwind CSS
 
-TailAdmin Angular is a **free and open-source admin dashboard template** built with **Angular** and **Tailwind CSS**. It provides developers with everything they need to create a feature-rich, data-driven **back-end, dashboard, or admin panel** for any type of web project.
-
-![TailAdmin Angular Admin Dashboard](./angular-tailwind.png)
+Cavalier Logistic Angular is a **free and open-source admin dashboard template** built with **Angular** and **Tailwind CSS**. It provides developers with everything they need to create a feature-rich, data-driven **back-end, dashboard, or admin panel** for any type of web project.
 
 
-With TailAdmin Angular, you’ll get access to a complete set of **dashboard UI components, elements, and ready-to-use pages** to build a modern, high-quality admin panel. Whether it’s for a **complex web application** or a **lightweight project**, TailAdmin Angular is designed to speed up development of any kind of dashboards and admin panels.
 
-TailAdmin leverages the **powerful ecosystem of Angular 20+**, along with **TypeScript** and the utility-first styling of **Tailwind CSS v4**. Combined, they make TailAdmin Angular a perfect foundation to launch your dashboard or admin panel quickly and effectively.
 
-TailAdmin Angular comes with essential UI components and layouts for building **feature-rich, data-driven dashboards** and **admin panels**. TailAdmin Angular is built on:
+With Cavalier Logistic Angular, you’ll get access to a complete set of **dashboard UI components, elements, and ready-to-use pages** to build a modern, high-quality admin panel. Whether it’s for a **complex web application** or a **lightweight project**, Cavalier Logistic Angular is designed to speed up development of any kind of dashboards and admin panels.
+
+Cavalier Logistic leverages the **powerful ecosystem of Angular 20+**, along with **TypeScript** and the utility-first styling of **Tailwind CSS v4**. Combined, they make Cavalier Logistic Angular a perfect foundation to launch your dashboard or admin panel quickly and effectively.
+
+Cavalier Logistic Angular comes with essential UI components and layouts for building **feature-rich, data-driven dashboards** and **admin panels**. Cavalier Logistic Angular is built on:
 
 * **Angular 20+**
 * **TypeScript**
 * **Tailwind CSS v4**
 
-### Quick Links
 
-- ✨ [Visit Website](https://tailadmin.com/)
-- 🚀 [Angular Demo](https://angular-demo.tailadmin.com/)
-- 📄 [Documentation](https://tailadmin.com/docs)
-- ⬇️ [Download](https://tailadmin.com/download)
-- 🖌️ [Figma Design File (Free Edition)](https://www.figma.com/community/file/1463141366275764364)
-- ⚡ [Get PRO Version](https://tailadmin.com/pricing)
 ---
 
 ## Feature Comparison
@@ -34,15 +27,7 @@ TailAdmin Angular comes with essential UI components and layouts for building **
 | **Design Files** | Basic Figma design files | Complete Figma design system file |
 | **Support** | Community support| Email support |
 
-### Other Versions
 
-- [Next.js Version](https://github.com/TailAdmin/free-nextjs-admin-dashboard)
-- [React.js Version](https://github.com/TailAdmin/free-react-tailwind-admin-dashboard)
-- [Vue.js Version](https://github.com/TailAdmin/vue-tailwind-admin-dashboard)
-- [Angular Version](https://github.com/TailAdmin/free-angular-tailwind-dashboard)
-- [Laravel Version](https://github.com/TailAdmin/tailadmin-laravel)
-
-## Installation
 
 ### Prerequisites
 
@@ -59,11 +44,7 @@ npm install -g @angular/cli
 
 ### Cloning the Repository
 
-Clone the repository:
 
-```bash
-git clone https://github.com/TailAdmin/free-angular-admin-dashboard.git
-```
 
 ---
 
@@ -88,9 +69,9 @@ Then open:
 
 ---
 
-## Angualr.js Tailwind Components
 
-TailAdmin Angular ships with a rich set of **ready-to-use dashboard features**:
+
+Cavalier Logistic Angular ships with a rich set of **ready-to-use dashboard features**:
 
 * **Ecommerce Dashboard** with essential elements
 * Modern, accessible **sidebar navigation**

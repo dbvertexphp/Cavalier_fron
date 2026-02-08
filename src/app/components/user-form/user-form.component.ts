@@ -14,6 +14,8 @@ import { environment } from '../../../environments/environment';
   templateUrl: './user-form.component.html'
 })
 export class UserFormComponent implements OnInit {
+ permissions: any[] = [];
+selectedPermissionIds: number[] = [];
 showPassword = false;
   userForm!: FormGroup;
   isEditMode = false;
@@ -48,6 +50,7 @@ showPassword = false;
     if (!this.isBranchForm) {
       this.loadDropdowns();
       this.getBranches();
+       this.loadPermissions();
     }
 
     if (this.initialData) {
@@ -56,8 +59,44 @@ showPassword = false;
       });
     }
   }
+loadPermissions() {
+  this.http
+    .get<any[]>(`${environment.apiUrl}/permissions/list`) // 👈 direct call
+    .subscribe({
+      next: (res) => {
+        // route '#' wale hata do
+        this.permissions = res.filter(p => p.route !== '#');
+        console.log('✅ Permissions Loaded:', this.permissions);
+      },
+      error: (err) => {
+        console.error('❌ Permission API Error', err);
+      }
+    });
+}
 
   // ================= FORM INIT =================
+onPermissionToggle(permission: any, event: any) {
+  const id = permission.permissionID;
+
+  let current = this.userForm.get('permissionIds')?.value || [];
+
+  if (event.target.checked) {
+    if (!current.includes(id)) {
+      current.push(id);
+    }
+  } else {
+    current = current.filter((x: number) => x !== id);
+  }
+
+  // 🔥 form ke andar set karo
+  this.userForm.patchValue({
+    permissionIds: current
+  });
+
+  console.log('✅ PermissionIds in Form:', this.userForm.value.permissionIds);
+}
+
+
 
   initForm() {
     if (this.isBranchForm) {
@@ -110,7 +149,7 @@ showPassword = false;
         paN_No: ['', Validators.required],
         aadhaarNo: ['', Validators.required],
         ipAdress: [''],
-
+  permissionIds: [[]], 
         // ADDRESS (PRESENT)
         presHouseNo: [''],
         presBuilding: [''],
@@ -249,7 +288,19 @@ Object.keys(this.userForm.controls).forEach(key => {
     formData.append(key, value);
   }
 });
-  console.log('🔥 FINAL SUBMIT DATA:', formData);
+Object.keys(this.userForm.controls).forEach(key => {
+  const value = this.userForm.get(key)?.value;
+
+  if (key === 'permissionIds') {
+    // 🔥 array ko multiple values me bhejo
+    value.forEach((id: number) => {
+      formData.append('PermissionIds', id.toString());
+    });
+  } 
+  else if (value !== null && value !== '') {
+    formData.append(key, value);
+  }
+});
 
   if (this.isBranchForm) {
     this.branchService.addBranch(formData).subscribe(() => {

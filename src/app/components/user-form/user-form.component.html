@@ -305,6 +305,24 @@
           <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" formControlName="status" class="w-4 h-4 text-green-600"> Active Status</label>
         </div>
       </div>
+      <div class="bg-gray-50 p-4 rounded border border-gray-200">
+  <h3 class="font-bold text-gray-600 mb-3">System Permissions</h3>
+
+  <div class="flex flex-wrap gap-6">
+    <label
+      *ngFor="let p of permissions"
+      class="flex items-center gap-2 cursor-pointer"
+    >
+      <input
+        type="checkbox"
+        class="w-4 h-4"
+        (change)="onPermissionToggle(p, $event)"
+      />
+      {{ p.name }}
+    </label>
+  </div>
+</div>
+
     </div>
 
     <div class="flex justify-end gap-3 pt-6 border-t">

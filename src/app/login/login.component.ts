@@ -82,7 +82,7 @@ console.log('STEP TWO ENABLED',this.isStepTwo);
         localStorage.setItem('companyName', this.displayCompanyName);
 
         // ✅ TOKEN
-        localStorage.setItem('token', res.token);
+        localStorage.setItem('cavalier_token', res.token);
 
         // ✅ ROLE LOGIC
         if (user.role?.name === 'Admin') {
@@ -133,7 +133,7 @@ const branchCity = res.user.branch.branchName;
     localStorage.setItem('adminlogin', '1');
 
     if (role === 'Branch Administrator') {
-      this.router.navigate(['/branchdashboard']);
+      this.router.navigate(['/dashboard']);
     } else {
       this.router.navigate(['/dashboard']);
     }

@@ -1,14 +1,16 @@
-import { Component, ElementRef, QueryList, ViewChildren, ChangeDetectorRef, OnInit, OnDestroy } from '@angular/core';
+import { Component, ElementRef, QueryList, ViewChildren, ChangeDetectorRef, OnInit, OnDestroy, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { SidebarService } from '../../services/sidebar.service';
 import { SafeHtmlPipe } from '../../pipe/safe-html.pipe';
 import { SidebarWidgetComponent } from './app-sidebar-widget.component';
 import { combineLatest, Subscription } from 'rxjs';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
 
 type NavItem = {
   name: string;
-  icon: string;
+  icon?: string;
   path?: string;
   new?: boolean;
   subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
@@ -27,45 +29,8 @@ type NavItem = {
 })
 export class AppSidebarComponent implements OnInit, OnDestroy {
 
-  navItems: NavItem[] = [
-    {
-      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.5 3.25C4.25736 3.25 3.25 4.25736 3.25 5.5V8.99998C3.25 10.2426 4.25736 11.25 5.5 11.25H9C10.2426 11.25 11.25 10.2426 11.25 8.99998V5.5C11.25 4.25736 10.2426 3.25 9 3.25H5.5ZM4.75 5.5C4.75 5.08579 5.08579 4.75 5.5 4.75H9C9.41421 4.75 9.75 5.08579 9.75 5.5V8.99998C9.75 9.41419 9.41421 9.74998 9 9.74998H5.5C5.08579 9.74998 4.75 9.41419 4.75 8.99998V5.5ZM5.5 12.75C4.25736 12.75 3.25 13.7574 3.25 15V18.5C3.25 19.7426 4.25736 20.75 5.5 20.75H9C10.2426 20.75 11.25 19.7427 11.25 18.5V15C11.25 13.7574 10.2426 12.75 9 12.75H5.5ZM4.75 15C4.75 14.5858 5.08579 14.25 5.5 14.25H9C9.41421 14.25 9.75 14.5858 9.75 15V18.5C9.75 18.9142 9.41421 19.25 9 19.25H5.5C5.08579 19.25 4.75 18.9142 4.75 18.5V15ZM12.75 5.5C12.75 4.25736 13.7574 3.25 15 3.25H18.5C19.7426 3.25 20.75 4.25736 20.75 5.5V8.99998C20.75 10.2426 19.7426 11.25 18.5 11.25H15C13.7574 11.25 12.75 10.2426 12.75 8.99998V5.5ZM15 4.75C14.5858 4.75 14.25 5.08579 14.25 5.5V8.99998C14.25 9.41419 14.5858 9.74998 15 9.74998H18.5C18.9142 9.74998 19.25 9.41419 19.25 8.99998V5.5C19.25 5.08579 18.9142 4.75 18.5 4.75H15ZM15 12.75C13.7574 12.75 12.75 13.7574 12.75 15V18.5C12.75 19.7426 13.7574 20.75 15 20.75H18.5C19.7426 20.75 20.75 19.7427 20.75 18.5V15C20.75 13.7574 19.7426 12.75 18.5 12.75H15ZM14.25 15C14.25 14.5858 14.5858 14.25 15 14.25H18.5C18.9142 14.25 19.25 14.5858 19.25 15V18.5C19.25 18.9142 18.9142 19.25 18.5 19.25H15C14.5858 19.25 14.25 18.9142 14.25 18.5V15Z" fill="#ffffff"></path></svg>`,
-      name: "Dashboard",
-      path: "/dashboard",
-    },
-    {
-      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 21V10.5L12 3L21 10.5V21H15V15H9V21H3Z" fill="#ffffff"/><path d="M8 10H16V12H8V10Z" fill="#ffffff"/><path d="M10 14H14V16H10V14Z" fill="#ffffff"/></svg>`,
-      name: "Branch",
-      path: "/dashboard/branch",
-    },
-    {
-      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 3.5C7.30558 3.5 3.5 7.30558 3.5 12C3.5 14.1526 4.3002 16.1184 5.61936 17.616C6.17279 15.3096 8.24852 13.5955 10.7246 13.5955H13.2746C15.7509 13.5955 17.8268 15.31 18.38 17.6167C19.6996 16.119 20.5 14.153 20.5 12C20.5 7.30558 16.6944 3.5 12 3.5ZM17.0246 18.8566V18.8455C17.0246 16.7744 15.3457 15.0955 13.2746 15.0955H10.7246C8.65354 15.0955 6.97461 16.7744 6.97461 18.8455V18.856C8.38223 19.8895 10.1198 20.5 12 20.5C13.8798 20.5 15.6171 19.8898 17.0246 18.8566ZM2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12ZM11.9991 7.25C10.8847 7.25 9.98126 8.15342 9.98126 9.26784C9.98126 10.3823 10.8847 11.2857 11.9991 11.2857C13.1135 11.2857 14.0169 10.3823 14.0169 9.26784C14.0169 8.15342 13.1135 7.25 11.9991 7.25ZM8.48126 9.26784C8.48126 7.32499 10.0563 5.75 11.9991 5.75C13.9419 5.75 15.5169 7.32499 15.5169 9.26784C15.5169 11.2107 13.9419 12.7857 11.9991 12.7857C10.0563 12.7857 8.48126 11.2107 8.48126 9.26784Z" fill="#ffffff"></path></svg>`,
-      name: "Users and Management",
-      subItems: [
-        { name: "Roles", path: "/dashboard/roles" },
-       
-        { name: "Departments", path: "/dashboard/departments" },
-        { name: "Designations", path: "/dashboard/designations" }
-      ]
-    },
-    {
-      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z" fill="white"/></svg>`,
-      name: "HRM",
-      subItems: [
-         { name: "Users Management", path: "/dashboard/users" },
-        { name: "Attendance Management", path: "/dashboard/attendance/list" },
-        { name: "Time Management", path: "/dashboard/shift/list" },
-      ]
-    },
-    {
-      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42142 16.9217 1 17.9391 1 19V21" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.5 11C10.7091 11 12.5 9.20914 12.5 7C12.5 4.79086 10.7091 3 8.5 3C6.29086 3 4.5 4.79086 4.5 7C4.5 9.20914 6.29086 11 8.5 11Z" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 21V19C21.9988 18.1731 21.6853 17.3801 21.119 16.764" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 3.13C16.1305 3.61367 16.9996 4.67107 17.0001 5.922C17.0006 7.17293 16.1325 8.23157 15.0025 8.717" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-      name: "CRM",
-      subItems: [
-        {name:"Qoutation", path:"/dashboard/crm/qoutation"}
-      ],
-    },
-  ];
-
+loadings: boolean = true;
+  navItems: NavItem[] = [];
   othersItems: NavItem[] = [];
   openSubmenu: string | null | number = null;
   subMenuHeights: { [key: string]: number } = {};
@@ -80,7 +45,8 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
   constructor(
     public sidebarService: SidebarService,
     private router: Router,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private http: HttpClient
   ) {
     this.isExpanded$ = this.sidebarService.isExpanded$;
     this.isMobileOpen$ = this.sidebarService.isMobileOpen$;
@@ -88,6 +54,8 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.loadNavItemsFromApi();
+
     this.subscription.add(
       this.router.events.subscribe(event => {
         if (event instanceof NavigationEnd) {
@@ -109,11 +77,76 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
     this.subscription.unsubscribe();
   }
 
+  /** API call to fetch permissions and build navItems */
+  private loadNavItemsFromApi() {
+    const token = localStorage.getItem('cavalier_token') || '';
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+
+    this.http.get<any>(`${environment.apiUrl}/Permissions/get`, { headers }).subscribe(
+  res => {
+    if (res.permissions) {
+      this.navItems = this.buildNav(res.permissions);
+    }
+    this.loadings = false; // ✅ sidebar ready
+  },
+  err => {
+    console.error('Failed to load sidebar permissions', err);
+    this.loadings = false;
+  }
+);
+
+  }
+
+  /** Build nested navItems from permissions */
+  private buildNav(permissions: any[]): NavItem[] {
+    const navMap: { [key: string]: NavItem } = {};
+
+    permissions.forEach(p => {
+      if (!p.subMenu) {
+        // Top-level menu without subMenu
+        if (p.route === '#' || p.route === '') {
+          navMap[p.menu] = {
+            name: p.menu,
+            icon: p.icon || undefined,
+            subItems: []
+          };
+        } else {
+          navMap[p.menu] = {
+            name: p.menu,
+            icon: p.icon || undefined,
+            path: p.route
+          };
+        }
+      } else {
+        // Menu with subMenu
+        if (!navMap[p.menu]) {
+          navMap[p.menu] = {
+            name: p.menu,
+            icon: p.icon || undefined,
+            subItems: []
+          };
+        }
+        navMap[p.menu].subItems!.push({
+          name: p.subMenu,
+          path: p.route,
+          new: false
+        });
+      }
+    });
+
+    return Object.values(navMap);
+  }
+
+  /** Check if any child is active */
   isAnyChildActive(nav: NavItem): boolean {
     if (!nav.subItems) return false;
     return nav.subItems.some(sub => this.router.url === sub.path);
   }
 
+  /** Toggle submenu open/close */
   toggleSubmenu(section: string, index: number) {
     const key = `${section}-${index}`;
     if (this.openSubmenu === key) {
@@ -131,6 +164,7 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** Sidebar hover behavior */
   onSidebarMouseEnter() {
     this.subscription.add(
       this.isExpanded$.subscribe(expanded => {
@@ -141,6 +175,7 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
     );
   }
 
+  /** Set active menu based on current route */
   private setActiveMenuFromRoute(currentUrl: string) {
     const menuGroups = [{ items: this.navItems, prefix: 'main' }];
     menuGroups.forEach(group => {
@@ -164,6 +199,7 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
     });
   }
 
+  /** Close mobile sidebar on submenu click */
   onSubmenuClick() {
     this.subscription.add(
       this.isMobileOpen$.subscribe(isMobile => {

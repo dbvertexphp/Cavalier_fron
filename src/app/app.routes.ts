@@ -41,6 +41,7 @@ import { ShiftManagementComponent } from './shift-management/shift-management.co
 import { QuotationFormComponent } from './pages/quotation-form/quotation-form.component';
 // Sabse upar ye line add karein
 import { OrganizationAddComponent } from './pages/organization-add/organization-add.component';
+import { PermissionComponent } from './permission/permission.component';
 
 // Phir routes array mein isko add ka
 export const routes: Routes = [
@@ -85,6 +86,10 @@ export const routes: Routes = [
         component: DesignationsComponent
 
        },
+      { path: 'permissions', 
+        component: PermissionComponent
+
+       },
       {
         path: 'branch',
         component: BranchComponent,
@@ -105,71 +110,7 @@ export const routes: Routes = [
         component: UserFormComponent,
         title: 'Register New User'
       },
-      {
-        path: 'calendar',
-        component: CalenderComponent,
-        title: 'Angular Calender'
-      },
-      {
-        path: 'form-elements',
-        component: FormElementsComponent,
-        title: 'Form Elements'
-      },
-      {
-        path: 'basic-tables',
-        component: BasicTablesComponent,
-        title: 'Basic Tables'
-      },
-      {
-        path: 'blank',
-        component: BlankComponent,
-        title: 'Blank Page'
-      },
-      {
-        path: 'invoice',
-        component: InvoicesComponent,
-        title: 'Invoice Details'
-      },
-      {
-        path: 'line-chart',
-        component: LineChartComponent,
-        title: 'Line Chart'
-      },
-      {
-        path: 'bar-chart',
-        component: BarChartComponent,
-        title: 'Bar Chart'
-      },
-      {
-        path: 'alerts',
-        component: AlertsComponent,
-        title: 'Alerts'
-      },
-      {
-        path: 'avatars',
-        component: AvatarElementComponent,
-        title: 'Avatars'
-      },
-      {
-        path: 'badge',
-        component: BadgesComponent,
-        title: 'Badges'
-      },
-      {
-        path: 'buttons',
-        component: ButtonsComponent,
-        title: 'Buttons'
-      },
-      {
-        path: 'images',
-        component: ImagesComponent,
-        title: 'Images'
-      },
-      {
-        path: 'videos',
-        component: VideosComponent,
-        title: 'Videos'
-      },
+      
       {
         path: 'profile',
         component: ProfileComponent,

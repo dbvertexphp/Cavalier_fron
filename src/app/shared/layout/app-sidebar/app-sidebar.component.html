@@ -25,7 +25,10 @@
 
   <div class="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
     <nav class="mb-6">
-      <div class="flex flex-col gap-4">
+       <div *ngIf="loadings" class="flex justify-center items-center h-full py-4">
+        <span class="text-white">Loading sidebar...</span>
+      </div>
+      <div *ngIf="!loadings" class="flex flex-col gap-4">
         <div>
           <h2 class="mb-4 text-xs uppercase flex leading-[20px] text-white" [ngClass]="{
               'xl:justify-center': !((isExpanded$ | async) || (isHovered$ | async)),
@@ -51,7 +54,8 @@
                     'xl:justify-center': !((isExpanded$ | async) || (isHovered$ | async)),
                     'xl:justify-start': (isExpanded$ | async) || (isHovered$ | async)
                   }">
-                <span class="menu-item-icon-size" [innerHTML]="nav.icon | safeHtml"></span>
+                <span class="menu-item-icon-size" [innerHTML]="nav.icon || '' | safeHtml"></span>
+
                 @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
                 <span class="menu-item-text text-white">{{ nav.name }}</span>
                 <svg [ngClass]="{'rotate-180': openSubmenu === 'main-' + i}" width="1em" height="1em"
@@ -88,7 +92,8 @@
                       'pl-0': nav.name === 'Branch',
                       'justify-start': nav.name === 'Branch'
                     }">
-                <span class="menu-item-icon-size flex justify-start" [innerHTML]="nav.icon | safeHtml"></span>
+               <span class="menu-item-icon-size" [innerHTML]="nav.icon || '' | safeHtml"></span>
+
                 @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
                 <span class="menu-item-text">{{ nav.name }}</span>
                 }

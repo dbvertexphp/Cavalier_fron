@@ -14,9 +14,12 @@ export class UserService {
   constructor(private http: HttpClient) { }
 
   // 1. ✅ Get All Users (Table ke liye)
-  getUsers(): Observable<User[]> {
-    return this.http.get<User[]>(`${this.apiUrl}/list`);
-  }
+  getUsers(userType: string = 'all'): Observable<User[]> {
+  return this.http.get<User[]>(
+    `${this.apiUrl}/list?user_type=${userType}`
+  );
+}
+
 
   // 2. ✅ Delete Department
   deleteDepartment(id: number): Observable<any> {

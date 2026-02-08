@@ -24,20 +24,22 @@ export class UserComponent implements OnInit {
     this.loadUsers(); 
   }
 
-  loadUsers() {
-    this.loading = true;
-    this.userService.getUsers().subscribe({
-      next: (data: any[]) => {
-        this.users = data;
-        this.loading = false;
-        this.resetSelection();
-      },
-      error: (err) => {
-        console.error("Data fetch error:", err);
-        this.loading = false;
-      }
-    });
-  }
+  loadUsers(userType: string = 'all') {
+  this.loading = true;
+
+  this.userService.getUsers(userType).subscribe({
+    next: (data: any[]) => {
+      this.users = data;
+      this.loading = false;
+      this.resetSelection();
+    },
+    error: (err) => {
+      console.error("Data fetch error:", err);
+      this.loading = false;
+    }
+  });
+}
+
 
   addUser() {
     this.router.navigate(['/dashboard/register-user'], { 

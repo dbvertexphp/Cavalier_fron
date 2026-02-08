@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 
@@ -20,7 +20,7 @@ private apiUrl = 'http://localhost:5000/api/Quotations';
   quotations: any[] = [];
   quotation: any = this.resetQuotationModel();
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient,private router: Router) {}
 
   ngOnInit() {
     this.loadQuotations();
@@ -132,5 +132,8 @@ private apiUrl = 'http://localhost:5000/api/Quotations';
       jobDate: null,
       isActive: true
     };
+  }
+  neworg(){
+this.router.navigate(['/dashboard/crm/organization-add']);
   }
 }

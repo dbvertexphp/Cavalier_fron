@@ -2,48 +2,65 @@
 
   <div *ngIf="!isFormOpen" class="bg-white border border-gray-300 shadow-sm rounded-sm overflow-hidden">
     <div class="bg-[#4a3f3f] p-2 flex justify-between items-center text-white">
-      <div class="font-bold uppercase text-[10px] tracking-widest px-2">Quotation Records</div>
+      <div class="font-bold uppercase text-[10px] tracking-widest px-2">Inquiry Records</div>
       <div class="flex gap-2">
-        <button class="bg-blue-600 hover:bg-blue-700 px-3 py-1 text-[10px] font-bold">
-          <i class="fas fa-building mr-1"></i> NEW ORGANIZATION
-        </button>
-        <button (click)="toggleForm()" class="bg-green-600 hover:bg-green-700 px-4 py-1 text-[10px] font-bold">
-          <i class="fas fa-plus mr-1"></i> ADD NEW QUOTATION
-        </button>
+        
+        <button (click)="toggleForm()" class="bg-green-600 hover:bg-green-700 px-4 py-1 text-[10px] font-bold uppercase">Add New Inquiry</button>
       </div>
     </div>
     
-    <div class="p-4 overflow-x-auto">
-      <table class="w-full border-collapse border border-gray-200">
+    <div class="p-0 overflow-x-auto">
+      <table class="w-full border-collapse border border-gray-200 whitespace-nowrap">
         <thead>
-          <tr class="bg-gray-50 text-gray-700 uppercase text-[9px]">
-            <th class="border p-2 text-left">QTN ID</th>
-            <th class="border p-2 text-left">Customer</th>
-            <th class="border p-2 text-left">Destination</th>
-            <th class="border p-2 text-left">Status</th>
-            <th class="border p-2 text-center">Action</th>
+          <tr class="bg-gray-50 text-gray-500 uppercase text-[9px] border-b">
+            <th class="p-3 text-left font-bold">QTN ID</th>
+            <th class="p-3 text-left font-bold">Customer Name</th>
+            <th class="p-3 text-left font-bold">Consignee</th>
+            <th class="p-3 text-left font-bold">POL</th>
+            <th class="p-3 text-left font-bold">POD</th>
+            <th class="p-3 text-left font-bold">Cargo Type</th>
+            <th class="p-3 text-left font-bold">Incoterm</th>
+            <th class="p-3 text-left font-bold">Sales Person</th>
+            <th class="p-3 text-left font-bold">Job No</th>
+            <th class="p-3 text-left font-bold">Status</th>
+            <th class="p-3 text-center font-bold sticky right-0 bg-gray-50 border-l shadow-sm">Action</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let q of quotations" class="hover:bg-gray-50 border-b">
-            <td class="p-2 font-bold text-[#4a3f3f]">{{q.qtnId || q.qtn_id}}</td>
-            <td class="p-2 uppercase">{{q.customerName || q.customer_name}}</td>
-            <td class="p-2">{{q.portOfDestination || q.port_of_destination}}</td>
-            <td class="p-2">
-              <span [ngClass]="{'bg-green-100 text-green-700': (q.inquiryOutcome || q.inquiry_outcome) === 'Won', 'bg-yellow-100 text-yellow-700': (q.inquiryOutcome || q.inquiry_outcome) === 'Pending'}" 
-                    class="px-2 py-0.5 rounded text-[9px] font-bold">
-                {{q.inquiryOutcome || q.inquiry_outcome}}
+          <tr *ngFor="let q of quotations" class="hover:bg-gray-50 border-b text-gray-700">
+            <td class="p-3 font-bold">{{q.qtnId}}</td>
+            <td class="p-3 uppercase">{{q.customerName}}</td>
+            <td class="p-3 uppercase">{{q.consigneeName}}</td>
+            <td class="p-3">{{q.portOfLoading}}</td>
+            <td class="p-3 uppercase">{{q.portOfDestination}}</td>
+            <td class="p-3 text-[10px]">{{q.cargoType}}</td>
+            <td class="p-3 font-semibold">{{q.incoterm}}</td>
+            <td class="p-3 uppercase">{{q.salesPerson}}</td>
+            <td class="p-3 font-bold text-blue-600">{{q.jobNo}}</td>
+            <td class="p-3">
+              <span [ngClass]="{
+                'bg-yellow-100 text-yellow-700': q.inquiryOutcome === 'Pending',
+                'bg-green-100 text-green-700': q.inquiryOutcome === 'Won',
+                'bg-red-100 text-red-700': q.inquiryOutcome === 'Lost'
+              }" class="px-2 py-0.5 rounded text-[10px] font-bold">
+                {{q.inquiryOutcome}}
               </span>
             </td>
-            <td class="p-2 text-center flex justify-center gap-2">
-              <button class="text-blue-600 hover:bg-blue-50 px-2 py-1 rounded"><i class="fas fa-edit"></i></button>
-              <button (click)="deleteQuotation(q.id)" class="text-red-600 hover:bg-red-50 px-2 py-1 rounded">
-                <i class="fas fa-trash"></i>
-              </button>
+            <td class="p-3 sticky right-0 bg-white border-l shadow-sm">
+              <div class="flex justify-center gap-2">
+                <button (click)="editQuotation(q)" 
+                        class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-[9px] font-bold uppercase transition-all shadow-sm">
+                  Edit
+                </button>
+                <button (click)="deleteQuotation(q.id)" 
+                        class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-[9px] font-bold uppercase transition-all shadow-sm">
+                  Delete
+                </button>
+              </div>
             </td>
           </tr>
           <tr *ngIf="quotations.length === 0">
-            <td colspan="5" class="p-4 text-center text-gray-500 italic">No records found. Click 'Add New' to start.</td>
+            <td colspan="11" class="p-4 text-center text-gray-400 italic">No records found.</td>
           </tr>
         </tbody>
       </table>
@@ -53,11 +70,11 @@
   <div *ngIf="isFormOpen" class="bg-white border border-gray-300 shadow-sm">
     <div class="bg-[#4a3f3f] p-1 flex justify-between items-center text-white">
       <div class="flex gap-4 px-2">
-        <button (click)="saveQuotation()" title="Save" class="hover:text-green-400">
-          <i class="fas fa-save text-lg"></i>
-        </button>
+        <button (click)="saveQuotation()" class="text-white hover:text-green-400 font-bold text-[10px] border border-white px-2 py-0.5 uppercase">SAVE</button>
       </div>
-      <div class="font-bold uppercase text-[10px] tracking-widest">Quotation Entry</div>
+      <div class="font-bold uppercase text-[10px] tracking-widest">
+        {{ quotation.id ? 'Edit Quotation' : 'New Quotation Entry' }}
+      </div>
       <button (click)="toggleForm()" class="bg-red-500 hover:bg-red-600 px-3 py-1 text-[10px]">CLOSE</button>
     </div>
 
@@ -66,14 +83,17 @@
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div class="space-y-2">
           <label class="font-bold text-red-600 block uppercase">Customer Name</label>
-          <input name="customerName" [(ngModel)]="quotation.customerName" type="text" class="w-full border p-1 outline-none focus:border-blue-500">
-          
+          <input name="customerName" [(ngModel)]="quotation.customerName" type="text" class="w-full border p-1 outline-none">
           <label class="font-bold text-red-600 block uppercase mt-2">Consignee Name</label>
-          <input type="text" name="consigneeName" [(ngModel)]="quotation.consigneeName" class="w-full border p-1 outline-none focus:border-blue-500">
+          <input type="text" name="consigneeName" [(ngModel)]="quotation.consigneeName" class="w-full border p-1 outline-none">
+          <button (click)="createNewOrganization()" class="mt-2 bg-[#007bff] text-white px-3 py-1.5 rounded text-[10px] font-bold hover:bg-[#0069d9] transition-all shadow-sm">
+          + NEW ORGANIZATION
+    </button>
         </div>
+        
         <div class="space-y-2">
           <label class="font-semibold text-gray-600 block">QTN ID</label>
-          <input type="text" name="qtnId" [(ngModel)]="quotation.qtnId" placeholder="e.g. QTN/2026/001" class="w-full border p-1">
+          <input type="text" name="qtnId" [(ngModel)]="quotation.qtnId" class="w-full border p-1">
           <label class="font-semibold text-gray-600 block">QTN DT & TIME</label>
           <input type="datetime-local" name="qtnDateTime" [(ngModel)]="quotation.qtnDateTime" class="w-full border p-1">
         </div>
@@ -117,59 +137,55 @@
         </div>
       </div>
 
-      <h3 class="font-bold text-[#4a3f3f] border-b mb-3 pb-1 uppercase text-[10px]">Sales & Operations Team</h3>
+      <h3 class="font-bold text-[#4a3f3f] border-b mb-3 pb-1 uppercase text-[10px]">Sales & Operations</h3>
       <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-        <div><label class="font-semibold text-gray-600 block uppercase">Sales Person</label><input type="text" name="salesPerson" [(ngModel)]="quotation.salesPerson" class="w-full border p-1"></div>
-        <div><label class="font-semibold text-gray-600 block uppercase">Sales Manager</label><input type="text" name="salesManager" [(ngModel)]="quotation.salesManager" class="w-full border p-1"></div>
-        <div><label class="font-semibold text-gray-600 block uppercase">Reporting Head</label><input type="text" name="reportingHead" [(ngModel)]="quotation.reportingHead" class="w-full border p-1"></div>
-        <div><label class="font-semibold text-gray-600 block uppercase">Ops Mgr</label><input type="text" name="opsManager" [(ngModel)]="quotation.opsManager" class="w-full border p-1"></div>
-        <div><label class="font-semibold text-gray-600 block uppercase">Ops Handled By</label><input type="text" name="opsHandledBy" [(ngModel)]="quotation.opsHandledBy" class="w-full border p-1"></div>
+        <div><label class="text-gray-600 block uppercase">Sales Person</label><input type="text" name="salesPerson" [(ngModel)]="quotation.salesPerson" class="w-full border p-1"></div>
+        <div><label class="text-gray-600 block uppercase">Sales Mgr</label><input type="text" name="salesManager" [(ngModel)]="quotation.salesManager" class="w-full border p-1"></div>
+        <div><label class="text-gray-600 block uppercase">Rep Head</label><input type="text" name="reportingHead" [(ngModel)]="quotation.reportingHead" class="w-full border p-1"></div>
+        <div><label class="text-gray-600 block uppercase">Ops Mgr</label><input type="text" name="opsManager" [(ngModel)]="quotation.opsManager" class="w-full border p-1"></div>
+        <div><label class="text-gray-600 block uppercase">Ops Handled</label><input type="text" name="opsHandledBy" [(ngModel)]="quotation.opsHandledBy" class="w-full border p-1"></div>
       </div>
 
-      <h3 class="font-bold text-[#4a3f3f] border-b mb-3 pb-1 uppercase text-[10px]">Shipment & Cargo Details</h3>
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <h3 class="font-bold text-[#4a3f3f] border-b mb-3 pb-1 uppercase text-[10px]">Shipment Details</h3>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div class="space-y-2">
-          <label class="font-semibold text-gray-600 block uppercase">Cargo Type</label>
+          <label class="text-gray-600 block uppercase">Cargo Type</label>
           <select name="cargoType" [(ngModel)]="quotation.cargoType" class="w-full border p-1">
-            <option value="GENERAL">GENERAL</option><option value="PERISHABLE">PERISHABLE</option><option value="HAZARDOUS">HAZARDOUS</option>
+            <option value="GENERAL">GENERAL</option><option value="HAZARDOUS">HAZARDOUS</option><option value="OVER DIMENSION">OVER DIMENSION</option>
           </select>
-          <label class="font-semibold text-gray-600 block uppercase">Commodity</label>
+          <label class="text-gray-600 block uppercase">Commodity</label>
           <input type="text" name="commodityHawb" [(ngModel)]="quotation.commodityHawb" class="w-full border p-1">
         </div>
         <div class="space-y-2">
-          <label class="font-semibold text-gray-600 block uppercase">POL</label>
+          <label class="text-gray-600 block uppercase">POL</label>
           <input type="text" name="portOfLoading" [(ngModel)]="quotation.portOfLoading" class="w-full border p-1">
-          <label class="font-semibold text-gray-600 block uppercase">POD</label>
+          <label class="text-gray-600 block uppercase">POD</label>
           <input type="text" name="portOfDestination" [(ngModel)]="quotation.portOfDestination" class="w-full border p-1">
         </div>
         <div class="space-y-2">
-          <div class="grid grid-cols-2 gap-2">
-            <div><label class="font-semibold text-[9px]">Incoterm</label>
-              <select name="incoterm" [(ngModel)]="quotation.incoterm" class="w-full border p-1">
-                <option value="EXW">EXW</option><option value="CIF">CIF</option><option value="FOB">FOB</option><option value="DDP">DDP</option>
-              </select>
-            </div>
-            <div><label class="font-semibold text-[9px]">Packaging</label><input type="text" name="packagingType" [(ngModel)]="quotation.packagingType" class="w-full border p-1"></div>
-          </div>
-          <div class="grid grid-cols-3 gap-2">
+          <label class="text-gray-600 block uppercase">Incoterm</label>
+          <select name="incoterm" [(ngModel)]="quotation.incoterm" class="w-full border p-1">
+            <option value="EXW">EXW</option><option value="CIF">CIF</option><option value="FOB">FOB</option><option value="DDP">DDP</option>
+          </select>
+          <div class="grid grid-cols-3 gap-1 mt-2">
             <div><label class="text-[8px]">PKGS</label><input type="number" name="noOfPkgs" [(ngModel)]="quotation.noOfPkgs" class="w-full border p-1"></div>
-            <div><label class="text-[8px]">GW (KG)</label><input type="number" name="grossWeightKg" [(ngModel)]="quotation.grossWeightKg" class="w-full border p-1"></div>
-            <div><label class="text-[8px]">CW (KG)</label><input type="number" name="chargeableWeightKg" [(ngModel)]="quotation.chargeableWeightKg" class="w-full border p-1"></div>
+            <div><label class="text-[8px]">GW</label><input type="number" name="grossWeightKg" [(ngModel)]="quotation.grossWeightKg" class="w-full border p-1"></div>
+            <div><label class="text-[8px]">CW</label><input type="number" name="chargeableWeightKg" [(ngModel)]="quotation.chargeableWeightKg" class="w-full border p-1"></div>
           </div>
         </div>
         <div class="space-y-2">
-          <label class="font-semibold text-gray-600 block uppercase">Job No</label>
+          <label class="text-gray-600 block uppercase">Job No</label>
           <input type="text" name="jobNo" [(ngModel)]="quotation.jobNo" class="w-full border p-1 bg-yellow-50 font-bold border-yellow-300">
-          <label class="font-semibold text-gray-600 block uppercase text-[9px]">Job Date</label>
+          <label class="text-gray-600 block uppercase">Job Date</label>
           <input type="date" name="jobDate" [(ngModel)]="quotation.jobDate" class="w-full border p-1">
         </div>
       </div>
     </div>
 
     <div class="p-2 bg-gray-50 border-t flex justify-end gap-2">
-      <button (click)="toggleForm()" class="bg-gray-200 hover:bg-gray-300 px-4 py-1 text-[10px] font-bold">CANCEL</button>
-      <button (click)="saveQuotation()" class="bg-[#4a3f3f] hover:bg-black text-white px-4 py-1 text-[10px] font-bold shadow-md">
-        <i class="fas fa-save mr-1"></i> SAVE QUOTATION
+      <button (click)="toggleForm()" class="bg-gray-200 px-4 py-1 font-bold">CANCEL</button>
+      <button (click)="saveQuotation()" class="bg-[#4a3f3f] text-white px-4 py-1 font-bold shadow-md hover:bg-black uppercase">
+        {{ quotation.id ? 'Update' : 'Save' }} Quotation
       </button>
     </div>
   </div>

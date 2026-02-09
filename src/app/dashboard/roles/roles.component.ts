@@ -20,7 +20,7 @@ export class RolesComponent implements OnInit {
   newRole = {
     id: 0,
     name: '',
-    status: true
+    status: true // Default Active Set kar diya hai
   };
 
   showPopup = false;
@@ -48,9 +48,10 @@ export class RolesComponent implements OnInit {
       this.isLoading = true;
       
       // Logic decide karega add karna hai ya update
+      // Naya role banate waqt hum name aur status dono bhej rahe hain
       const request = this.isEditMode 
         ? this.userService.updateRole(this.newRole) 
-        : this.userService.addRole({ name: this.newRole.name });
+        : this.userService.addRole({ name: this.newRole.name, status: this.newRole.status });
 
       request.subscribe({
         next: (res) => {
@@ -91,6 +92,7 @@ export class RolesComponent implements OnInit {
   // --- UI Helpers ---
   openModal() {
     this.isEditMode = false;
+    this.newRole = { id: 0, name: '', status: true }; // Har baar open pe status Active rahega
     this.isModalOpen = true;
   }
 

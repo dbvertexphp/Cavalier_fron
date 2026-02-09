@@ -61,7 +61,7 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
       icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42142 16.9217 1 17.9391 1 19V21" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.5 11C10.7091 11 12.5 9.20914 12.5 7C12.5 4.79086 10.7091 3 8.5 3C6.29086 3 4.5 4.79086 4.5 7C4.5 9.20914 6.29086 11 8.5 11Z" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 21V19C21.9988 18.1731 21.6853 17.3801 21.119 16.764" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 3.13C16.1305 3.61367 16.9996 4.67107 17.0001 5.922C17.0006 7.17293 16.1325 8.23157 15.0025 8.717" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
       name: "CRM",
       subItems: [
-        {name:"Qoutation", path:"/dashboard/crm/qoutation"}
+        {name:"Inquiry", path:"/dashboard/crm/qoutation"}
       ],
     },
   ];

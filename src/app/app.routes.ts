@@ -45,6 +45,11 @@ import { PermissionComponent } from './permission/permission.component';
 import { ActivityComponent } from './activity/activity.component';
 import { EmailComponent } from './logs/email/email.component';
 import { SmsComponent } from './logs/sms/sms.component';
+//import { StorageWidgetComponent } from './shared/components/storage-widget/storage-widget.component';
+import { StorageWidgetComponent } from './shared/components/storage-widget/storage-widget.component';
+import { PortSetupComponent } from './pages/port-setup/port-setup.component';
+import { CompanyDetailsComponent } from './pages/company-details/company-details.component';
+import { RegistrationsComponent } from './pages/registrations/registrations.component';
 
 // Phir routes array mein isko add ka
 export const routes: Routes = [
@@ -55,13 +60,6 @@ export const routes: Routes = [
     component: LoginComponent, 
     title: 'Welcome to Cavalier | Login' 
   },
-   
-  
-  // Ye line honi chahiye
-  // ... other routes
-
-
-  // 2. MAIN DASHBOARD LAYOUT (All Sidebar Routes)
   {
     path: 'dashboard',
     component: AppLayoutComponent,
@@ -93,10 +91,27 @@ export const routes: Routes = [
         component: PermissionComponent
 
        },
+      { 
+        path: 'storage-utilization', 
+        component: StorageWidgetComponent,
+        title: 'Storage Utilization | Cavalier' 
+      },
+      {
+        path: 'port-setup', // ✅ Sidebar path se match karta hai
+        component: PortSetupComponent   // ✅ Direct component use ho raha hai
+      },
       {
         path: 'branch',
         component: BranchComponent,
         title: 'Branch Management'
+      },
+      {
+        path: 'company-details',
+        component: CompanyDetailsComponent
+      },
+      {
+        path: 'registrations',
+        component: RegistrationsComponent
       },
       { 
         path: 'branch-form', 

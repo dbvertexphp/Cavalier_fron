@@ -1,0 +1,64 @@
+<div class="p-6 min-h-screen bg-gray-50/50 dark:bg-gray-900/50">
+  <div class="mb-8 flex justify-between items-center">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Registrations</h1>
+      <p class="text-sm text-gray-500">Task : Manage License & Registration Details</p>
+    </div>
+    <div class="flex gap-3">
+      <button (click)="onAction('New')" class="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-black rounded-xl shadow-lg shadow-emerald-500/20 transition-all">
+        + New Registration
+      </button>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left">
+        <thead class="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-100 dark:border-gray-700">
+          <tr>
+            <th class="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest">Registration Type</th>
+            <th class="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest">Branch</th>
+            <th class="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest">Registration No.</th>
+            <th class="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest text-center">Valid Date</th>
+            <th class="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+          @for (reg of registrations; track reg.regNo) {
+          <tr class="group hover:bg-emerald-50/30 dark:hover:bg-emerald-500/5 transition-colors">
+            <td class="px-6 py-4">
+              <span class="font-bold text-gray-700 dark:text-gray-200 group-hover:text-emerald-600 transition-colors">{{ reg.type }}</span>
+            </td>
+            <td class="px-6 py-4">
+              <span class="text-xs font-black px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-gray-500 uppercase">{{ reg.branch || 'Global' }}</span>
+            </td>
+            <td class="px-6 py-4">
+              <span class="font-mono text-sm text-gray-600 dark:text-gray-400 tracking-wider">{{ reg.regNo }}</span>
+            </td>
+            <td class="px-6 py-4 text-center">
+              <span class="text-xs text-gray-500">{{ reg.validDate || '--' }}</span>
+            </td>
+            <td class="px-6 py-4 text-right flex justify-end gap-2">
+              <button (click)="onAction('Edit')" class="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" stroke-width="2" stroke-linecap="round"/></svg>
+              </button>
+              <button (click)="onAction('Delete')" class="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-all">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2" stroke-linecap="round"/></svg>
+              </button>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="p-4 bg-gray-50 dark:bg-gray-900/50 flex justify-between items-center px-8 border-t border-gray-100 dark:border-gray-700">
+      <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Total Registrations: {{ registrations.length }}</span>
+      <div class="flex gap-4 text-[10px] font-black text-emerald-600 uppercase">
+        <button class="hover:underline">Prev</button>
+        <span class="text-gray-400">Page 1 of 1</span>
+        <button class="hover:underline">Next</button>
+      </div>
+    </div>
+  </div>
+</div>

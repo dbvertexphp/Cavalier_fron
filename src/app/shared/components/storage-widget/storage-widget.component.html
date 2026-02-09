@@ -1,0 +1,84 @@
+<div class="p-6 min-h-screen bg-gray-50/50 dark:bg-gray-900/50">
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-gray-800 dark:text-white tracking-tight">Storage Utilization</h1>
+    <p class="text-sm text-gray-500">Real-time monitoring of your organization's cloud infrastructure.</p>
+  </div>
+
+  <div class="max-w-4xl bg-white dark:bg-gray-800 rounded-3xl shadow-2xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-700 overflow-hidden">
+    <div class="p-8">
+      
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
+        <div class="flex items-center gap-5">
+          <div class="p-4 bg-rose-500 rounded-2xl shadow-xl shadow-rose-500/30">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-gray-800 dark:text-white">System Storage Status</h2>
+            <p class="text-sm text-rose-500 font-semibold flex items-center gap-1.5">
+              <span class="relative flex h-2 w-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+              </span>
+              Critical: Storage limit exceeded
+            </p>
+          </div>
+        </div>
+        <div class="flex">
+          <span class="px-4 py-2 bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400 text-xs font-black rounded-xl border border-rose-100 dark:border-rose-500/20 uppercase tracking-widest">
+            Over Limit
+          </span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+        <div class="relative group p-6 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 transition-all hover:border-rose-200 dark:hover:border-rose-500/30">
+          <p class="text-xs text-gray-400 uppercase font-bold mb-3 tracking-widest">Used Space</p>
+          <div class="flex items-baseline gap-2">
+            <p class="text-4xl font-black text-rose-500 tracking-tighter">62.52</p>
+            <p class="text-lg font-bold text-gray-400 uppercase">GB</p>
+          </div>
+          <div class="absolute bottom-0 left-0 h-1 w-0 group-hover:w-full bg-rose-500 transition-all duration-500 rounded-b-2xl"></div>
+        </div>
+        
+        <div class="relative group p-6 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 transition-all hover:border-emerald-200 dark:hover:border-emerald-500/30">
+          <p class="text-xs text-gray-400 uppercase font-bold mb-3 tracking-widest">Total Allocation</p>
+          <div class="flex items-baseline gap-2">
+            <p class="text-4xl font-black text-emerald-500 tracking-tighter">26.00</p>
+            <p class="text-lg font-bold text-gray-400 uppercase">GB</p>
+          </div>
+          <div class="absolute bottom-0 left-0 h-1 w-0 group-hover:w-full bg-emerald-500 transition-all duration-500 rounded-b-2xl"></div>
+        </div>
+      </div>
+
+      <div class="mb-10 p-8 bg-gray-50 dark:bg-gray-900/40 rounded-3xl border border-dashed border-gray-200 dark:border-gray-700">
+        <div class="flex justify-between items-end mb-4">
+          <div>
+            <span class="text-xs font-black text-gray-400 uppercase tracking-widest block mb-1">Overall Utilization</span>
+            <span class="text-2xl font-black text-rose-600 dark:text-rose-400">240.4% <span class="text-sm font-medium opacity-60">Capacity</span></span>
+          </div>
+         <!--<button class="text-xs font-bold text-rose-500 hover:text-rose-600 underline decoration-2 underline-offset-4">Upgrade Plan</button>-->
+        </div>
+        
+        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 overflow-hidden shadow-inner flex">
+          <div class="bg-rose-500 h-full rounded-full animate-pulse shadow-[0_0_15px_rgba(244,63,94,0.4)]" style="width: 100%"></div>
+        </div>
+        
+        <div class="mt-4 flex items-center gap-2 text-[11px] text-gray-400 font-medium">
+          <svg class="w-4 h-4 text-rose-500" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+          </svg>
+          System is currently in read-only mode due to storage overflow.
+        </div>
+      </div>
+
+      <div class="flex flex-col items-center justify-center pt-6 border-t border-gray-100 dark:border-gray-700">
+        <div class="flex items-center gap-2 px-4 py-1.5 bg-gray-50 dark:bg-gray-800 rounded-full border border-gray-100 dark:border-gray-700">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span class="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-tight">Last Sync: 09-Feb-2026 02:33 PM</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

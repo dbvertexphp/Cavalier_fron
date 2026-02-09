@@ -30,18 +30,31 @@ export class DepartmentsComponent implements OnInit {
   }
 
   loadDepartments() {
-    this.userService.getDepartments().subscribe({
-      next: (res: any[]) => {
-        if (Array.isArray(res)) {
-          this.departments = res.map((d: any) => ({
-            id: d.id || d.Id || 0, 
-            name: d.name || d.Name || 'Unknown',
-            count: d.count || d.EmployeeCount || 0
-          }));
-          this.cdr.detectChanges();
-        }
+    // Pehle users fetch karenge count ke liye
+    this.userService.getUsers().subscribe({
+      next: (users: any[]) => {
+        const usersList = users || [];
+        
+        // Phir departments fetch karenge
+        this.userService.getDepartments().subscribe({
+          next: (res: any[]) => {
+            if (Array.isArray(res)) {
+              this.departments = res.map((d: any) => {
+                const deptId = d.id || d.Id || 0;
+                return {
+                  id: deptId, 
+                  name: d.name || d.Name || 'Unknown',
+                  // Yahan filter karke count nikal rahe hain
+                  count: usersList.filter((u: any) => u.departmentId === deptId).length
+                };
+              });
+              this.cdr.detectChanges();
+            }
+          },
+          error: (err) => console.error("Error loading departments:", err)
+        });
       },
-      error: (err) => console.error("Error loading departments:", err)
+      error: (err) => console.error("Error loading users for count:", err)
     });
   }
 

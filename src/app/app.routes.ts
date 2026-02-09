@@ -42,6 +42,9 @@ import { QuotationFormComponent } from './pages/quotation-form/quotation-form.co
 // Sabse upar ye line add karein
 import { OrganizationAddComponent } from './pages/organization-add/organization-add.component';
 import { PermissionComponent } from './permission/permission.component';
+import { ActivityComponent } from './activity/activity.component';
+import { EmailComponent } from './logs/email/email.component';
+import { SmsComponent } from './logs/sms/sms.component';
 
 // Phir routes array mein isko add ka
 export const routes: Routes = [
@@ -150,6 +153,21 @@ export const routes: Routes = [
         path: 'shift/list',
         component: ShiftManagementComponent,
         title: 'Shift List'
+      },
+      {
+        path: 'logs/activity',
+        component: ActivityComponent,
+        title: 'Activity Logs'
+      },
+      {
+        path: 'logs/email',
+        component: EmailComponent,
+        title: 'Email Logs'
+      },
+      {
+        path: 'logs/sms',
+        component: SmsComponent,
+        title: 'SMS Logs'
       },
       
     ]

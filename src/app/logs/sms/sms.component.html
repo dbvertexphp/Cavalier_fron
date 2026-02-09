@@ -1,0 +1,188 @@
+<div class="h-full bg-[#e9f2ff] text-[11px] font-[Arial] flex flex-col">
+
+  <!-- ================= TOOLBAR ================= -->
+ <div class="flex items-center gap-2">
+
+      <!-- Refresh -->
+      <button
+        class="flex items-center gap-2 px-3 py-1.5 rounded border
+               bg-gradient-to-b from-white to-gray-100
+               hover:from-gray-100 hover:to-gray-200
+               active:scale-95 transition shadow-sm text-gray-700">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
+          viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M4 4v6h6M20 20v-6h-6M5 19a9 9 0 0114-7M19 5a9 9 0 01-14 7" />
+        </svg>
+        <span class="font-semibold">Refresh</span>
+      </button>
+
+      <!-- Print -->
+      <button
+        class="flex items-center gap-2 px-3 py-1.5 rounded border
+               bg-gradient-to-b from-white to-gray-100
+               hover:from-gray-100 hover:to-gray-200
+               active:scale-95 transition shadow-sm text-gray-700">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
+          viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z" />
+        </svg>
+        <span class="font-semibold">Print</span>
+      </button>
+
+      <!-- Export -->
+      <button
+        class="flex items-center gap-2 px-3 py-1.5 rounded border
+               bg-gradient-to-b from-white to-gray-100
+               hover:from-gray-100 hover:to-gray-200
+               active:scale-95 transition shadow-sm text-gray-700">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
+          viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M12 5v14M5 12l7-7 7 7M4 19h16" />
+        </svg>
+        <span class="font-semibold">Export</span>
+      </button>
+
+      <!-- Download -->
+      <button
+        class="flex items-center gap-2 px-3 py-1.5 rounded border
+               bg-gradient-to-b from-white to-gray-100
+               hover:from-gray-100 hover:to-gray-200
+               active:scale-95 transition shadow-sm text-gray-700">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
+          viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 4v12m0 0l-4-4m4 4l4-4" />
+        </svg>
+        <span class="font-semibold">Download</span>
+      </button>
+
+    </div>
+
+  <!-- ================= FILTER BAR ================= -->
+  <div class="grid grid-cols-8 gap-2 bg-white border-b border-blue-300 px-2 py-1">
+
+    <div>
+      <label class="font-semibold">Sent On</label>
+      <input class="border w-full h-5 px-1 rounded-none">
+    </div>
+
+    <div>
+      <label class="font-semibold">Mobile No</label>
+      <input class="border w-full h-5 px-1 rounded-none">
+    </div>
+
+    <div>
+      <label class="font-semibold">User ID</label>
+      <input class="border w-full h-5 px-1 rounded-none">
+    </div>
+
+   
+
+    <div>
+      <label class="font-semibold">Sender By</label>
+      <input class="border w-full h-5 px-1 rounded-none">
+    </div>
+
+    <div>
+      <label class="font-semibold">Status</label>
+      <select class="border w-full h-5 rounded-none">
+        <option></option>
+        <option>DELIVERED</option>
+        <option>FAILED</option>
+        <option>PENDING</option>
+      </select>
+    </div>
+
+    
+
+    <div class="flex items-end gap-2">
+      <button class="text-blue-700 underline">Clear</button>
+      <button class="px-3 py-[2px] bg-blue-700 text-white border">
+        Search
+      </button>
+    </div>
+
+  </div>
+
+  <!-- ================= TABLE ================= -->
+  <div class="flex-1 overflow-auto bg-white">
+
+    <table class="w-full border-collapse select-none">
+
+      <thead class="bg-[#3b6fc4] text-white sticky top-0">
+        <tr>
+          <th class="border border-blue-900 px-1 py-[2px] w-[120px] text-left">Sent On</th>
+          <th class="border border-blue-900 px-1 py-[2px] w-[110px] text-left">Mobile No</th>
+          <th class="border border-blue-900 px-1 py-[2px] w-[80px] text-left">User ID</th>
+          <th class="border border-blue-900 px-1 py-[2px] w-[90px] text-left">Sender By</th>
+          <th class="border border-blue-900 px-1 py-[2px] w-[90px] text-center">Status</th>
+          
+          <th class="border border-blue-900 px-1 py-[2px] w-[400px] text-left">Message</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        <tr class="hover:bg-[#dbe8ff]">
+          <td class="border border-blue-200 px-1 py-[2px] whitespace-nowrap">
+            09-Feb-2026 10:12 AM
+          </td>
+          <td class="border border-blue-200">9876543210</td>
+          <td class="border border-blue-200">SYSTEM</td>
+          <td class="border border-blue-200">CAVLOG</td>
+          <td class="border border-blue-200 text-center text-green-700 font-semibold">
+            DELIVERED
+          </td>
+          
+          <td class="border border-blue-200">
+            Your shipment has been successfully delivered.
+          </td>
+        </tr>
+
+        <tr class="hover:bg-[#dbe8ff]">
+          <td class="border border-blue-200 px-1 py-[2px] whitespace-nowrap">
+            09-Feb-2026 09:45 AM
+          </td>
+          <td class="border border-blue-200">9123456789</td>
+          <td class="border border-blue-200">SONALIR</td>
+          <td class="border border-blue-200">CAVLOG</td>
+          <td class="border border-blue-200 text-center text-red-700 font-semibold">
+            FAILED
+          </td>
+         
+          <td class="border border-blue-200">
+            OTP is 458921. Do not share with anyone.
+          </td>
+        </tr>
+
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ================= PAGINATION ================= -->
+  <div class="flex items-center justify-between bg-[#e9f2ff] border-t px-2 py-1">
+
+    <div>Page <b>1</b> of <b>53</b></div>
+
+    <div class="flex gap-1">
+      <button class="px-2 py-[2px] border bg-white">«</button>
+      <button class="px-2 py-[2px] border bg-white">‹</button>
+      <button class="px-3 py-[2px] border bg-blue-700 text-white">1</button>
+      <button class="px-3 py-[2px] border bg-white">2</button>
+      <button class="px-3 py-[2px] border bg-white">3</button>
+      <button class="px-2 py-[2px] border bg-white">›</button>
+      <button class="px-2 py-[2px] border bg-white">»</button>
+    </div>
+
+    <select class="border h-5">
+      <option>25 / page</option>
+      <option>50 / page</option>
+      <option>100 / page</option>
+    </select>
+
+  </div>
+
+</div>

@@ -8,7 +8,7 @@ import { UserService } from '../../services/user.service'; // Path sahi kar lena
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './roles.component.html',
-  styleUrl: './roles.component.css',
+  styleUrls: ['./roles.component.css'], // fixed typo: styleUrls
 })
 export class RolesComponent implements OnInit {
   isModalOpen = false;
@@ -66,7 +66,7 @@ export class RolesComponent implements OnInit {
         }
       });
     } else {
-      alert("Role ka naam likhna zaroori hai!");
+      this.showPopup = false;
     }
   }
 

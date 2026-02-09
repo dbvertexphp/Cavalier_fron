@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router'; // Router import kiya
+import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 
@@ -17,8 +17,7 @@ export class QuotationFormComponent implements OnInit {
   quotations: any[] = [];
   quotation: any = this.resetQuotationModel();
 
-  // Router ko yahan inject kiya taaki createNewOrganization kaam kare
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private http: HttpClient,private router: Router) {}
 
   ngOnInit() {
     this.loadQuotations();
@@ -103,5 +102,8 @@ createNewOrganization() {
       packagingType: '', noOfPkgs: 0, grossWeightKg: 0, chargeableWeightKg: 0,
       jobNo: '', jobDate: null, isActive: true
     };
+  }
+  neworg(){
+this.router.navigate(['/dashboard/crm/organization-add']);
   }
 }

@@ -39,7 +39,7 @@
 
     <div *ngIf="!isBranchForm" class="space-y-6">
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-gray-50 p-4 rounded">
-        <div><label class="font-bold">Emp Code*</label> <input formControlName="empCode" class="w-full border p-2 rounded"></div>
+        <!-- <div><label class="font-bold">Emp Code*</label> <input formControlName="empCode" class="w-full border p-2 rounded"></div> -->
         <div><label class="font-bold">First Name*</label> <input formControlName="firstName" class="w-full border p-2 rounded"></div>
         <div><label>Middle Name</label> <input formControlName="middleName" class="w-full border p-2 rounded"></div>
         <div><label class="font-bold">Last Name*</label> <input formControlName="lastName" class="w-full border p-2 rounded"></div>
@@ -47,12 +47,21 @@
 
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div><label>DOB*</label> <input type="date" formControlName="dob" class="w-full border p-2 rounded"></div>
-        <div><label>Date of Joining</label> <input type="date" formControlName="dateOfJoining" class="w-full border p-2 rounded"></div>
-        <div><label>Gender</label>
+        
+        <div>
+          <label>Gender</label>
           <select formControlName="gender" class="w-full border p-2 rounded">
             <option value="Male">Male</option>
             <option value="Female">Female</option>
             <option value="Other">Other</option>
+          </select>
+        </div>
+        <div>
+          <label>Marital Status</label>
+          <select formControlName="maritalStatus" class="w-full border p-2 rounded">
+            <option value="Single">Single</option>
+            <option value="Married">Married</option>
+            <option value="Divorced">Divorced</option>
           </select>
         </div>
       </div>
@@ -80,11 +89,36 @@
           <label class="font-semibold text-gray-600 block uppercase">User Type</label>
           <select formControlName="userType" class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f] bg-white">
             <option value="" disabled selected>Select User Type</option>
-            <option value="Train">Training</option>
-            <option value="Perol">Payroll</option>
-            <option value="Freelancing">Freelancing</option>
+            <option value="training">Training</option>
+            <option value="payroll">Payroll</option>
+            <option value="freelancing">Freelancing</option>
           </select>
         </div> 
+
+       <div class="mb-4">
+  <label class="block text-sm font-semibold text-gray-700 mb-1">
+    Branch
+  </label>
+
+  <select formControlName="branchId"
+    class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-200 outline-none">
+
+    <option [ngValue]="null" disabled>
+      -- Select Branch --
+    </option>
+
+    <option *ngFor="let branch of branches" [value]="branch.id">
+      {{ branch.branchName }}
+    </option>
+
+  </select>
+
+  <span class="text-red-500 text-xs"
+    *ngIf="userForm.get('branchId')?.touched && userForm.get('branchId')?.invalid">
+    Branch is required
+  </span>
+</div>
+
 
         <div class="mb-4">
           <label class="block text-sm font-semibold text-gray-700 mb-1">Role</label>
@@ -104,15 +138,62 @@
         <div><label>Email (Username)*</label> <input formControlName="email" class="w-full border p-2 rounded"></div>
         <div><label>Mobile*</label> <input formControlName="mobile" class="w-full border p-2 rounded"></div>
         <div><label>Telephone</label> <input formControlName="telephone" class="w-full border p-2 rounded"></div>
-        <div><label>Monthly CTC</label> <input type="number" formControlName="ctc_Monthly" class="w-full border p-2 rounded"></div>
+        <div>
+    <label>Password*</label>
+
+    <div class="flex gap-2">
+      <input
+        [type]="showPassword ? 'text' : 'password'"
+        formControlName="password"
+        class="w-full border p-2 rounded"
+        placeholder="Enter or generate password">
+
+      <button
+        type="button"
+        (click)="generatePassword()"
+        class="bg-blue-600 text-white px-3 rounded hover:bg-blue-700">
+        Generate
+      </button>
+    </div>
+
+    <!-- SHOW / HIDE -->
+    <div class="text-xs mt-1 cursor-pointer text-blue-600"
+         (click)="showPassword = !showPassword">
+      {{ showPassword ? 'Hide' : 'Show' }} password
+    </div>
+  </div>
+        
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-blue-50/30 p-4 rounded">
         <div><label class="font-bold">PAN No*</label> <input formControlName="paN_No" class="w-full border p-2 rounded uppercase"></div>
         <div><label class="font-bold">Aadhaar No*</label> <input formControlName="aadhaarNo" class="w-full border p-2 rounded"></div>
-        <div><label>IP Address</label> <input formControlName="ipAdress" class="w-full border p-2 rounded"></div>
+       
       </div>
+ <div class="border p-4 rounded-lg space-y-4">
+      <h3 class="font-semibold text-lg">Job & Salary</h3>
 
+      <div class="grid grid-cols-2 gap-4">
+       
+
+       
+
+        <div>
+          <label class="block font-medium">Joining Date</label>
+          <input type="date" formControlName="dateOfJoining" class="w-full border rounded px-3 py-2"/>
+        </div>
+
+        <div>
+          <label class="block font-medium">CTC (Annual)</label>
+          <input type="number" name="ctc_Monthly" class="w-full border rounded px-3 py-2"/>
+        </div>
+
+        <div>
+          <label class="block font-medium">Salary Account No.</label>
+          <input formControlName="salaryAccountNo"  class="w-full border rounded px-3 py-2"/>
+        </div>
+      </div>
+    </div>
       <div class="space-y-6 border-t pt-4">
         <h3 class="font-bold text-blue-600 underline">Residential & Office Address Details</h3>
         
@@ -154,19 +235,58 @@
       </div>
 
       <div class="border-t pt-4">
-        <h3 class="font-bold text-gray-600 mb-2 underline">Education & Profile Media</h3>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-          <input formControlName="tenthYear" placeholder="10th Year" class="border p-2 rounded">
-          <input formControlName="twelfthYear" placeholder="12th Year" class="border p-2 rounded">
-          <input formControlName="graduationYear" placeholder="Graduation Year" class="border p-2 rounded">
-          <input formControlName="postGraduationYear" placeholder="PG Year" class="border p-2 rounded">
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div><label>Profile Picture Path</label> <input formControlName="profilePicture" class="w-full border p-2 rounded" placeholder="path/to/photo.jpg"></div>
-          <div><label>Signature Path</label> <input formControlName="signature" class="w-full border p-2 rounded" placeholder="path/to/sign.png"></div>
-          <div><label>Profile Select</label> <input formControlName="profileSelect" class="w-full border p-2 rounded"></div>
-        </div>
-      </div>
+  <h3 class="font-bold text-gray-600 mb-2 underline">
+    Education & Profile Media
+  </h3>
+
+  <!-- Education -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+    <input formControlName="tenthYear" placeholder="10th Year" class="border p-2 rounded">
+    <input formControlName="tenthPercentage" placeholder="10th %" class="border p-2 rounded">
+    <input type="file"  (change)="onFileSelect($event,'tenthMarksheet')" class="border p-2 rounded">
+    <span class="text-xs text-gray-400">10th Marksheet</span>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+    <input formControlName="twelfthYear" placeholder="12th Year" class="border p-2 rounded">
+    <input formControlName="twelfthPercentage" placeholder="12th %" class="border p-2 rounded">
+    <input type="file" (change)="onFileSelect($event,'twelfthMarksheet')" class="border p-2 rounded">
+    <span class="text-xs text-gray-400">12th Marksheet</span>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+    <input formControlName="graduationYear" placeholder="Graduation Year" class="border p-2 rounded">
+    <input formControlName="graduationPercentage" placeholder="Graduation %" class="border p-2 rounded">
+    <input type="file" (change)="onFileSelect($event,'graduationMarksheet')" class="border p-2 rounded">
+    <span class="text-xs text-gray-400">Graduation Marksheet</span>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <input formControlName="postGraduationYear" placeholder="PG Year" class="border p-2 rounded">
+    <input formControlName="postGraduationPercentage" placeholder="PG %" class="border p-2 rounded">
+    <input type="file" (change)="onFileSelect($event,'postGraduationMarksheet')" class="border p-2 rounded">
+    <span class="text-xs text-gray-400">PG Marksheet</span>
+  </div>
+
+  <!-- Profile Media -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div>
+      <label class="text-sm font-semibold">Profile Picture</label>
+      <input type="file" (change)="onFileSelect($event,'profilePicture')" class="w-full border p-2 rounded">
+    </div>
+
+    <div>
+      <label class="text-sm font-semibold">Signature</label>
+      <input type="file" (change)="onFileSelect($event,'signature')" class="w-full border p-2 rounded">
+    </div>
+
+    <div>
+      <label class="text-sm font-semibold">Profile Select</label>
+      <input formControlName="profileSelect" class="w-full border p-2 rounded">
+    </div>
+  </div>
+</div>
+
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 border-t pt-4">
         <div><label>Report To (ID)</label> <input type="number" formControlName="reportTo" class="w-full border p-2 rounded"></div>
@@ -185,6 +305,24 @@
           <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" formControlName="status" class="w-4 h-4 text-green-600"> Active Status</label>
         </div>
       </div>
+      <div class="bg-gray-50 p-4 rounded border border-gray-200">
+  <h3 class="font-bold text-gray-600 mb-3">System Permissions</h3>
+
+  <div class="flex flex-wrap gap-6">
+    <label
+      *ngFor="let p of permissions"
+      class="flex items-center gap-2 cursor-pointer"
+    >
+      <input
+        type="checkbox"
+        class="w-4 h-4"
+        (change)="onPermissionToggle(p, $event)"
+      />
+      {{ p.name }}
+    </label>
+  </div>
+</div>
+
     </div>
 
     <div class="flex justify-end gap-3 pt-6 border-t">

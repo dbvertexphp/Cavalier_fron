@@ -18,8 +18,13 @@ export class UserDropdownComponent {
     this.isOpen = !this.isOpen;
   }
   logout() {
-  localStorage.removeItem('adminlogin');  // adminlogin remove kar diya
-  this.router.navigate(['']);
+
+  localStorage.removeItem('adminlogin');
+  localStorage.removeItem('userRole');
+  localStorage.removeItem('session_expiry_time');
+  this.router.navigate(['/']);
+  // adminlogin remove kar diya
+  
 }
 
 

@@ -50,6 +50,8 @@ import { StorageWidgetComponent } from './shared/components/storage-widget/stora
 import { PortSetupComponent } from './pages/port-setup/port-setup.component';
 import { CompanyDetailsComponent } from './pages/company-details/company-details.component';
 import { RegistrationsComponent } from './pages/registrations/registrations.component';
+import { LeadFormComponent } from './pages/lead-form/lead-form.component';
+import { InquiryComponent } from './pages/inquiry/inquiry.component';
 
 // Phir routes array mein isko add ka
 export const routes: Routes = [
@@ -75,7 +77,15 @@ export const routes: Routes = [
       path: 'salecrm/qoutation', 
       component: QuotationFormComponent 
       },
-      { path: 'crm/organization-add', 
+      {
+         path: 'salescrm/lead', 
+      component: LeadFormComponent 
+      },
+        {
+         path: 'salescrm/inquiry', 
+      component: InquiryComponent 
+      },
+      { path: 'organization-add', 
         component: OrganizationAddComponent },
       { path: 'roles', 
         component: RolesComponent 
@@ -121,7 +131,7 @@ export const routes: Routes = [
       {
         path: 'hr/employee-master',
         component: UserComponent,
-        title: 'Employee Master'
+        title: 'Employee Masters'
       },
       {
         path: 'register-user',

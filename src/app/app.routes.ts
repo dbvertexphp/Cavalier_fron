@@ -72,7 +72,7 @@ export const routes: Routes = [
         title: 'Cavalier Logistics Dashboard',
       },
       { 
-      path: 'crm/qoutation', 
+      path: 'salecrm/qoutation', 
       component: QuotationFormComponent 
       },
       { path: 'crm/organization-add', 
@@ -119,9 +119,9 @@ export const routes: Routes = [
         title: 'Branch Registration' 
       },
       {
-        path: 'users',
+        path: 'hr/employee-master',
         component: UserComponent,
-        title: 'User Management'
+        title: 'Employee Master'
       },
       {
         path: 'register-user',

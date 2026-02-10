@@ -13,7 +13,8 @@ import { environment } from '../../environments/environment';
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent implements OnInit {
-
+branches: any[] = [];
+isBranchDisabled = false;
   loginForm!: FormGroup;
   selectionForm!: FormGroup;
 
@@ -57,85 +58,131 @@ export class LoginComponent implements OnInit {
 
   // 🔐 LOGIN STEP (API BASED)
   onNextStep(): void {
-    if (this.loginForm.invalid) {
-      alert('Email & Password required');
-      return;
-    }
-
-    this.http.post<any>(
-      `${environment.apiUrl}/Auth/login`,
-      this.loginForm.value
-    ).subscribe({
-      next: (res) => {
-        console.log('LOGIN RESPONSE:', res);
-
-        const user = res.user;
-this.isStepTwo = true;
-console.log('STEP TWO ENABLED',this.isStepTwo);
-
-        // ✅ USERNAME
-        this.displayUserName = user.firstName;
-        localStorage.setItem('userName', user.firstName);
-
-        // ✅ COMPANY NAME
-        this.displayCompanyName = user.branch?.companyName || '';
-        localStorage.setItem('companyName', this.displayCompanyName);
-
-        // ✅ TOKEN
-        localStorage.setItem('cavalier_token', res.token);
-
-        // ✅ ROLE LOGIC
-        if (user.role?.name === 'Admin') {
-
-          this.roles = ['System Administrator'];
-          this.cities = []; // city blank
-  
-          this.selectionForm.patchValue({
-            selectedRole: 'System Administrator',
-            selectedCity: ''
-          });
-          this.selectionForm.get('selectedCity')?.disable();
-
-        } else {
-
-          this.roles = ['Branch Administrator'];
-const branchCity = res.user.branch.branchName;
- this.cities = [branchCity];
-          this.selectionForm.patchValue({
-            selectedRole: 'Branch Administrator',
-            selectedCity: branchCity
-          });
-          
-          
-          console.log('Available Cities for Branch Admin:', this.cities);
-         
-        }
-
-        // Save role & branch details
-        localStorage.setItem('userRole', user.role.name);
-        localStorage.setItem('branchId', user.branch?.id);
-        localStorage.setItem('branchCity', user.branch?.city || '');
-
-        
-      },
-      error: (err) => {
-        console.error(err);
-        alert(err.error?.message || 'Login Failed');
-      }
-    });
+  if (this.loginForm.invalid) {
+    alert('Email & Password required');
+    return;
   }
+
+  this.http.post<any>(
+    `${environment.apiUrl}/Auth/login`,
+    this.loginForm.value
+  ).subscribe({
+    next: (res) => {
+
+      const user = res.user;
+      this.isStepTwo = true;
+
+      // ✅ USER + COMPANY
+      this.displayUserName = user.firstName;
+      this.displayCompanyName = user.branches?.[0]?.companyName || '';
+
+      localStorage.setItem('userName', user.firstName);
+      localStorage.setItem('companyName', this.displayCompanyName);
+      localStorage.setItem('cavalier_token', res.token);
+
+      // ✅ MASTER ROLE LOGIC
+      if (user.role?.name === 'Master') {
+
+        // 🔥 BOTH ROLES
+        this.roles = [
+          'System Administrator',
+          'Branch Administrator'
+        ];
+
+        // 🔥 BRANCHES FROM API
+        this.branches = user.branches || [];
+
+        this.selectionForm.patchValue({
+          selectedRole: '',
+          selectedCity: ''
+        });
+
+        this.isBranchDisabled = true;
+        this.selectionForm.get('selectedCity')?.disable();
+      }
+
+      // SAVE
+      localStorage.setItem('userRole', user.role.name);
+    },
+    error: (err) => {
+      alert(err.error?.message || 'Login Failed');
+    }
+  });
+}
+onRoleChange(): void {
+  const role = this.selectionForm.value.selectedRole;
+
+  if (role === 'System Administrator') {
+    this.isBranchDisabled = true;
+    this.selectionForm.patchValue({ selectedCity: '' });
+    this.selectionForm.get('selectedCity')?.disable();
+  }
+
+  if (role === 'Branch Administrator') {
+    this.isBranchDisabled = false;
+    this.selectionForm.get('selectedCity')?.enable();
+  }
+}
+
 
   // 🚀 FINAL SUBMIT
   onFinalSubmit(): void {
 
-    const role = this.selectionForm.value.selectedRole;
+  const role = this.selectionForm.value.selectedRole;
+  const branch = this.selectionForm.value.selectedCity;
 
-    localStorage.setItem('adminlogin', '1');
-
-    if (role === 'Branch Administrator') {
-      this.router.navigate(['/dashboard']);
-    } else {
-      this.router.navigate(['/dashboard']);
-    }
+  if (!role) {
+    alert('Please select role');
+    return;
   }
+
+  if (role === 'Branch Administrator' && !branch) {
+    alert('Please select branch');
+    return;
+  }
+
+  // 🔥 ACCESS TYPE DECISION
+  let accessType = '';
+
+  if (role === 'System Administrator') {
+    accessType = 'system';
+  }
+
+  if (role === 'Branch Administrator') {
+    accessType = 'branch';
+  }
+
+  // 🔥 CALL BACKEND TO UPDATE CLAIM
+  this.http.post<any>(
+    `${environment.apiUrl}/Auth/set-access-type`,
+    { accessType },
+    {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('cavalier_token')}`
+      }
+    }
+  ).subscribe({
+    next: (res) => {
+
+      // ✅ SAVE NEW TOKEN + ACCESS TYPE
+      localStorage.setItem('cavalier_token', res.token);
+      localStorage.setItem('accessType', res.accessType);
+
+      // OPTIONAL
+      localStorage.setItem('adminlogin', '1');
+      localStorage.setItem('selectedRole', role);
+
+      if (accessType === 'branch') {
+        localStorage.setItem('selectedBranch', branch);
+      }
+
+      // 🚀 REDIRECT
+      this.router.navigate(['/dashboard']);
+    },
+    error: () => {
+      alert('Failed to set access type');
+    }
+  });
+}
+
 }

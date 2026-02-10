@@ -115,12 +115,14 @@
     </label>
 
     <select formControlName="selectedRole"
-      class="w-full border border-gray-200 rounded-xl px-5 h-14">
-      <option value="" disabled>-- Select Role --</option>
-      <option *ngFor="let role of roles" [value]="role">
-        {{ role }}
-      </option>
-    </select>
+        (change)="onRoleChange()"
+        class="w-full border border-gray-200 rounded-xl px-5 h-14">
+  <option value="" disabled>-- Select Role --</option>
+  <option *ngFor="let role of roles" [value]="role">
+    {{ role }}
+  </option>
+</select>
+
   </div>
 
   <p class="text-lg font-semibold text-[#8E736E] mt-1">
@@ -129,16 +131,18 @@
 
   <div class="flex flex-col gap-2">
     <label class="text-sm font-semibold text-gray-600 ml-1">
-      Select City
+      Select Branch
     </label>
 
     <select formControlName="selectedCity"
-      class="w-full border border-gray-200 rounded-xl px-5 h-14">
-      <option value="" disabled>-- Select City --</option>
-      <option *ngFor="let city of cities" [value]="city">
-        {{ city }}
-      </option>
-    </select>
+        [disabled]="isBranchDisabled"
+        class="w-full border border-gray-200 rounded-xl px-5 h-14">
+  <option value="" disabled>-- Select Branch --</option>
+  <option *ngFor="let branch of branches" [value]="branch.branchName">
+    {{ branch.branchName }}
+  </option>
+</select>
+
   </div>
 
   <!-- ✅ ONLY SUBMIT -->

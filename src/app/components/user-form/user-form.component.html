@@ -1,6 +1,6 @@
 <div class="max-w-6xl mx-auto p-6 bg-white rounded-xl shadow-lg border border-gray-100 overflow-y-auto max-h-[85vh]">
   <h2 class="text-2xl font-bold text-blue-700 mb-6 border-b pb-4">
-    {{ isBranchForm ? 'Cavalier Branch Registration' : 'Cavalier User Registration' }}
+    {{ isBranchForm ? 'Cavalier Branch Registration' : 'Cavalier Employee Registration' }}
   </h2>
   
   <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="space-y-6 text-sm">
@@ -120,7 +120,7 @@
 </div>
 
 
-        <div class="mb-4">
+        <!-- <div class="mb-4">
           <label class="block text-sm font-semibold text-gray-700 mb-1">Role</label>
           <select formControlName="roleId" 
             class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-200 outline-none">
@@ -129,9 +129,18 @@
               {{ role.name }}
             </option>
           </select>
-        </div>
+        </div> -->
 
-        <div><label>Licence Type</label> <input formControlName="licenceType" class="w-full border p-2 rounded"></div>
+        <div><label>HOD</label> <input formControlName="licenceType" class="w-full border p-2 rounded"></div>
+        <div class="flex flex-col gap-1">
+    <label class="font-bold text-gray-600">Team </label>
+    <select class="border border-gray-300 p-1 bg-white outline-none w-full">
+      <option value="">Select Team</option>
+      <option value="Sales">Sales Team</option>
+      <option value="Pricing">Pricing Team</option>
+      <option value="Operations">Operations Team</option>
+    </select>
+  </div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -139,9 +148,9 @@
         <div><label>Mobile*</label> <input formControlName="mobile" class="w-full border p-2 rounded"></div>
         <div><label>Telephone</label> <input formControlName="telephone" class="w-full border p-2 rounded"></div>
         <div>
-    <label>Password*</label>
+    <!-- <label>Password*</label> -->
 
-    <div class="flex gap-2">
+    <!-- <div class="flex gap-2">
       <input
         [type]="showPassword ? 'text' : 'password'"
         formControlName="password"
@@ -154,13 +163,13 @@
         class="bg-blue-600 text-white px-3 rounded hover:bg-blue-700">
         Generate
       </button>
-    </div>
+    </div> -->
 
     <!-- SHOW / HIDE -->
-    <div class="text-xs mt-1 cursor-pointer text-blue-600"
+    <!-- <div class="text-xs mt-1 cursor-pointer text-blue-600"
          (click)="showPassword = !showPassword">
       {{ showPassword ? 'Hide' : 'Show' }} password
-    </div>
+    </div> -->
   </div>
         
       </div>
@@ -289,11 +298,11 @@
 
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 border-t pt-4">
-        <div><label>Report To (ID)</label> <input type="number" formControlName="reportTo" class="w-full border p-2 rounded"></div>
+        <!-- <div><label>Report To (ID)</label> <input type="number" formControlName="reportTo" class="w-full border p-2 rounded"></div> -->
         <div><label>Emergency Contact Name</label> <input formControlName="emergencyName" class="w-full border p-2 rounded"></div>
         <div><label>Emergency Mobile</label> <input formControlName="emergencyContactNo" class="w-full border p-2 rounded"></div>
       </div>
-
+<!-- 
       <div class="bg-gray-50 p-4 rounded border border-gray-200">
         <h3 class="font-bold text-gray-600 mb-3">System Permissions & Status</h3>
         <div class="flex flex-wrap gap-6">
@@ -304,8 +313,8 @@
           <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" formControlName="simIssued" class="w-4 h-4"> SIM Issued</label>
           <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" formControlName="status" class="w-4 h-4 text-green-600"> Active Status</label>
         </div>
-      </div>
-      <div class="bg-gray-50 p-4 rounded border border-gray-200">
+      </div> -->
+      <!-- <div class="bg-gray-50 p-4 rounded border border-gray-200">
   <h3 class="font-bold text-gray-600 mb-3">System Permissions</h3>
 
   <div class="flex flex-wrap gap-6">
@@ -321,7 +330,7 @@
       {{ p.name }}
     </label>
   </div>
-</div>
+</div> -->
 
     </div>
 

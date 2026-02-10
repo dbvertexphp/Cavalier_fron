@@ -50,6 +50,8 @@ import { StorageWidgetComponent } from './shared/components/storage-widget/stora
 import { PortSetupComponent } from './pages/port-setup/port-setup.component';
 import { CompanyDetailsComponent } from './pages/company-details/company-details.component';
 import { RegistrationsComponent } from './pages/registrations/registrations.component';
+import { LeadFormComponent } from './pages/lead-form/lead-form.component';
+import { InquiryComponent } from './pages/inquiry/inquiry.component';
 
 // Phir routes array mein isko add ka
 export const routes: Routes = [
@@ -72,10 +74,18 @@ export const routes: Routes = [
         title: 'Cavalier Logistics Dashboard',
       },
       { 
-      path: 'crm/qoutation', 
+      path: 'salecrm/qoutation', 
       component: QuotationFormComponent 
       },
-      { path: 'crm/organization-add', 
+      {
+         path: 'salescrm/lead', 
+      component: LeadFormComponent 
+      },
+        {
+         path: 'salescrm/inquiry', 
+      component: InquiryComponent 
+      },
+      { path: 'salescrm/organization-add', 
         component: OrganizationAddComponent },
       { path: 'roles', 
         component: RolesComponent 
@@ -119,9 +129,9 @@ export const routes: Routes = [
         title: 'Branch Registration' 
       },
       {
-        path: 'users',
+        path: 'hr/employee-master',
         component: UserComponent,
-        title: 'User Management'
+        title: 'Employee Masters'
       },
       {
         path: 'register-user',

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core'; // ChangeDetectorRef add kiya precision ke liye
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core'; 
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 
@@ -15,21 +15,24 @@ export class EcommerceComponent implements OnInit, OnDestroy {
   // Timer Variables
   timeLeft: number = 0; 
   interval: any;
-  displayTime: string = "20:00:00"; 
+  displayTime: string = "20:00"; 
   private readonly TIMER_KEY = 'session_expiry_time';
 
-  constructor(private router: Router, private cdr: ChangeDetectorRef) {} // Inject cdr
+  constructor(private router: Router, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
-    const userData = localStorage.getItem('user'); 
-    if (userData) {
-      this.lastLoginUser = JSON.parse(userData);
+    // Local storage se seedha 'userName' fetch kar rahe hain
+    const storedName = localStorage.getItem('userName');
+    
+    if (storedName) {
+      this.lastLoginUser = {
+        userName: storedName,
+        email: 'admin@cavalierlogistics.in' // Default as per your session data
+      };
     } else {
       this.lastLoginUser = {
-        firstName: 'Admin',
-        lastName: 'User',
-        email: 'admin@cavalierlogistic.in',
-        userType: 'Super Admin'
+        userName: 'Admin User',
+        email: 'admin@cavalierlogistic.in'
       };
     }
     
@@ -45,21 +48,18 @@ export class EcommerceComponent implements OnInit, OnDestroy {
     this.startTimer();
   }
 
-  // UPDATED TIMER LOGIC
   startTimer() {
     const sessionExpiry = localStorage.getItem(this.TIMER_KEY);
     let endTime: number;
     const now = Date.now();
 
-    // Logic: Check if valid expiry exists, otherwise set new one
     if (sessionExpiry && parseInt(sessionExpiry, 10) > now) {
       endTime = parseInt(sessionExpiry, 10);
     } else {
-      endTime = now + (20 * 60 * 1000); // 20 minutes from now
+      endTime = now + (20 * 60 * 1000); 
       localStorage.setItem(this.TIMER_KEY, endTime.toString());
     }
 
-    // Clear existing interval if any
     if (this.interval) clearInterval(this.interval);
 
     this.interval = setInterval(() => {
@@ -69,20 +69,26 @@ export class EcommerceComponent implements OnInit, OnDestroy {
       if (this.timeLeft > 0) {
         const minutes = Math.floor(this.timeLeft / 60000);
         const seconds = Math.floor((this.timeLeft % 60000) / 1000);
-        const milliseconds = Math.floor((this.timeLeft % 1000) / 10);
-        
-        this.displayTime = 
-          `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}:${milliseconds.toString().padStart(2, '0')}`;
-        
-        // Milliseconds fast chalte hain isliye manual detection help karti hai
+        this.displayTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         this.cdr.detectChanges(); 
       } else {
-        this.stopTimer();
-        this.displayTime = "00:00:00";
-        localStorage.removeItem(this.TIMER_KEY);
-        this.router.navigate(['/']); 
+        this.handleLogout(); 
       }
-    }, 50); // 50ms is better for performance and visual smoothness
+    }, 50); 
+  }
+
+  refreshTimer() {
+    const newEndTime = Date.now() + (20 * 60 * 1000);
+    localStorage.setItem(this.TIMER_KEY, newEndTime.toString());
+    this.startTimer();
+  }
+
+  handleLogout() {
+    this.stopTimer();
+    this.displayTime = "00:00";
+    localStorage.removeItem(this.TIMER_KEY);
+    localStorage.removeItem('cavalier_token'); 
+    this.router.navigate(['/']); 
   }
 
   stopTimer() {

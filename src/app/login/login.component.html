@@ -139,7 +139,7 @@
         class="w-full border border-gray-200 rounded-xl px-5 h-14">
   <option value="" disabled>-- Select Branch --</option>
   <option *ngFor="let branch of branches" [value]="branch.branchName">
-    {{ branch.branchName }}
+    {{ branch.branchName | uppercase }}
   </option>
 </select>
 

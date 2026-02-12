@@ -52,6 +52,14 @@ import { CompanyDetailsComponent } from './pages/company-details/company-details
 import { RegistrationsComponent } from './pages/registrations/registrations.component';
 import { LeadFormComponent } from './pages/lead-form/lead-form.component';
 import { InquiryComponent } from './pages/inquiry/inquiry.component';
+import { CargoTypeComponent } from './pages/cargo-type/cargo-type.component';
+import { CommodityTypeComponent } from './pages/commodity-type/commodity-type.component';
+import { PartyRoleComponent } from './pages/party-role/party-role.component';
+import { OriginComponent } from './pages/origin/origin.component';
+import { PortOfLoadingComponent } from './pages/port-of-loading/port-of-loading.component';
+import { PortOfDischargeComponent } from './pages/port-of-discharge/port-of-discharge.component';
+
+
 
 // Phir routes array mein isko add ka
 export const routes: Routes = [
@@ -90,6 +98,26 @@ export const routes: Routes = [
       { path: 'roles', 
         component: RolesComponent 
       },
+          { path: 'cargotype',      
+        component: CargoTypeComponent        //cargo type
+      },
+        { path: 'commoditytype', 
+        component: CommodityTypeComponent         //CommodityType
+      },
+        { path: 'partyrole', 
+        component: PartyRoleComponent         //Party role
+      },
+       { path: 'origin', 
+        component: OriginComponent         //Origin
+      },
+           { path: 'origin', 
+        component: OriginComponent         //Origin
+      },
+               { path: 'port-of-loading', 
+        component: PortOfLoadingComponent   },      //Port Setup
+       { path: 'port-of-discharge', 
+        component: PortOfDischargeComponent   }, 
+       
       { path: 'departments', 
         component: DepartmentsComponent
        },

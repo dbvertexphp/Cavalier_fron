@@ -1,8 +1,12 @@
 <div class="p-4 bg-gray-100 min-h-screen font-sans text-[12px]">
   <div class="bg-[#4a3f3f] p-1.5 flex justify-between items-center text-white shadow-sm">
     <div class="flex gap-4 px-2">
-      <button class="hover:text-gray-300" title="Save"><i class="fas fa-save"></i></button>
-      <button routerLink="/dashboard/crm/qoutation" class="hover:text-red-400" title="Close"><i class="fas fa-times-circle"></i></button>
+      <button (click)="saveOrg()" class="hover:text-gray-300" title="Save">
+        <i class="fas fa-save"></i>
+      </button>
+      <button (click)="cancel()" class="hover:text-red-400" title="Close">
+        <i class="fas fa-times-circle"></i>
+      </button>
     </div>
     <div class="font-bold uppercase text-[10px] tracking-widest">New Organization Entry</div>
     <div class="px-2 text-[10px] italic opacity-80">Fields in red are mandatory</div>
@@ -63,11 +67,12 @@
     </div>
 
     <div class="mt-6 flex justify-end gap-3 border-t pt-4">
-      <button routerLink="/dashboard/crm/qoutation" 
+      <button type="button" (click)="cancel()" 
               class="px-6 py-2 border border-gray-400 font-bold text-gray-600 hover:bg-gray-100 transition-all uppercase text-[11px]">
         Cancel
       </button>
-      <button class="bg-[#4a3f3f] text-white px-10 py-2 font-bold shadow-md hover:bg-black transition-all uppercase text-[11px] tracking-wider">
+      <button (click)="saveOrg()"
+              class="bg-[#4a3f3f] text-white px-10 py-2 font-bold shadow-md hover:bg-black transition-all uppercase text-[11px] tracking-wider">
         Save Organization
       </button>
     </div>

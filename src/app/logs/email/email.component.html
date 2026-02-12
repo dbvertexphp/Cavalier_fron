@@ -1,164 +1,157 @@
-<div class="h-full bg-[#e9f2ff] text-[11px] font-[Arial] flex flex-col">
+<div class="h-full bg-[#f4f7f4] text-[13px] font-sans flex flex-col">
 
-  <!-- ================= TOOLBAR ================= -->
   <div class="flex items-center justify-between p-2 bg-white border-b shadow-sm">
 
     <div class="flex items-center gap-2">
 
-      <!-- Refresh -->
       <button
-        class="flex items-center gap-2 px-3 py-1.5 rounded border
+        class="flex items-center gap-2 px-4 py-2 rounded border
                bg-gradient-to-b from-white to-gray-100
-               hover:from-gray-100 hover:to-gray-200
+               hover:from-green-50 hover:to-green-100
                active:scale-95 transition shadow-sm text-gray-700">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
+        <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" stroke-width="2"
           viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round"
             d="M4 4v6h6M20 20v-6h-6M5 19a9 9 0 0114-7M19 5a9 9 0 01-14 7" />
         </svg>
-        <span class="font-semibold">Refresh</span>
+        <span class="font-bold">Refresh</span>
       </button>
 
-      <!-- Print -->
       <button
-        class="flex items-center gap-2 px-3 py-1.5 rounded border
+        class="flex items-center gap-2 px-4 py-2 rounded border
                bg-gradient-to-b from-white to-gray-100
-               hover:from-gray-100 hover:to-gray-200
+               hover:from-green-50 hover:to-green-100
                active:scale-95 transition shadow-sm text-gray-700">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
+        <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" stroke-width="2"
           viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round"
             d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z" />
         </svg>
-        <span class="font-semibold">Print</span>
+        <span class="font-bold">Print</span>
       </button>
 
-      <!-- Export -->
       <button
-        class="flex items-center gap-2 px-3 py-1.5 rounded border
+        class="flex items-center gap-2 px-4 py-2 rounded border
                bg-gradient-to-b from-white to-gray-100
-               hover:from-gray-100 hover:to-gray-200
+               hover:from-green-50 hover:to-green-100
                active:scale-95 transition shadow-sm text-gray-700">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
+        <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" stroke-width="2"
           viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round"
             d="M12 5v14M5 12l7-7 7 7M4 19h16" />
         </svg>
-        <span class="font-semibold">Export</span>
+        <span class="font-bold">Export</span>
       </button>
 
-      <!-- Download -->
       <button
-        class="flex items-center gap-2 px-3 py-1.5 rounded border
+        class="flex items-center gap-2 px-4 py-2 rounded border
                bg-gradient-to-b from-white to-gray-100
-               hover:from-gray-100 hover:to-gray-200
+               hover:from-green-50 hover:to-green-100
                active:scale-95 transition shadow-sm text-gray-700">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
+        <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" stroke-width="2"
           viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round"
             d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 4v12m0 0l-4-4m4 4l4-4" />
         </svg>
-        <span class="font-semibold">Download</span>
+        <span class="font-bold">Download</span>
       </button>
 
     </div>
 
-    <div class="text-xs text-gray-500">
+    <div class="text-[13px] text-gray-600">
       Showing <b>1–10</b> of <b>248</b> records
     </div>
   </div>
 
-  <!-- ================= FILTER BAR ================= -->
-  <div class="grid grid-cols-7 gap-2 bg-white border-b border-blue-300 px-2 py-1">
+  <div class="grid grid-cols-7 gap-3 bg-white border-b border-green-200 px-3 py-2 text-[13px]">
 
     <div>
-      <label class="font-semibold">Sent On</label>
-      <input class="border w-full h-5 px-1 rounded-none">
+      <label class="font-bold text-gray-700">Sent On</label>
+      <input class="border border-gray-300 w-full h-8 px-2 focus:border-green-600 focus:outline-none">
     </div>
 
     <div>
-      <label class="font-semibold">CC</label>
-      <input class="border w-full h-5 px-1 rounded-none">
+      <label class="font-bold text-gray-700">CC</label>
+      <input class="border border-gray-300 w-full h-8 px-2 focus:border-green-600 focus:outline-none">
     </div>
 
     <div>
-      <label class="font-semibold">BCC</label>
-      <input class="border w-full h-5 px-1 rounded-none">
+      <label class="font-bold text-gray-700">BCC</label>
+      <input class="border border-gray-300 w-full h-8 px-2 focus:border-green-600 focus:outline-none">
     </div>
 
     <div>
-      <label class="font-semibold">User ID</label>
-      <input class="border w-full h-5 px-1 rounded-none">
+      <label class="font-bold text-gray-700">User ID</label>
+      <input class="border border-gray-300 w-full h-8 px-2 focus:border-green-600 focus:outline-none">
     </div>
 
     <div>
-      <label class="font-semibold">Sender</label>
-      <input class="border w-full h-5 px-1 rounded-none">
+      <label class="font-bold text-gray-700">Sender</label>
+      <input class="border border-gray-300 w-full h-8 px-2 focus:border-green-600 focus:outline-none">
     </div>
 
     <div>
-      <label class="font-semibold">Subject</label>
-      <input class="border w-full h-5 px-1 rounded-none">
+      <label class="font-bold text-gray-700">Subject</label>
+      <input class="border border-gray-300 w-full h-8 px-2 focus:border-green-600 focus:outline-none">
     </div>
 
     <div class="flex items-end gap-2">
-      <button class="text-blue-700 underline">Clear</button>
-      <button class="px-3 py-[2px] bg-blue-700 text-white border">
+      <button class="text-green-700 font-semibold underline pb-1">Clear</button>
+      <button class="px-5 py-1.5 bg-green-700 text-white font-bold border border-green-800 shadow-sm hover:bg-green-800 transition-colors">
         Search
       </button>
     </div>
 
   </div>
 
-  <!-- ================= TABLE ================= -->
   <div class="flex-1 overflow-auto bg-white">
 
-    <table class="w-full border-collapse select-none">
+    <table class="w-full border-collapse select-none text-[13px]">
 
-      <thead class="bg-[#3b6fc4] text-white sticky top-0">
+      <thead class="bg-[#2d5a27] text-white sticky top-0 z-10">
         <tr>
-          <th class="border border-blue-900 px-1 py-[2px] text-left w-[110px]">Sent On</th>
-          <th class="border border-blue-900 px-1 py-[2px] text-center w-[40px]">CC</th>
-          <th class="border border-blue-900 px-1 py-[2px] text-center w-[50px]">BCC</th>
-          <th class="border border-blue-900 px-1 py-[2px] text-left w-[90px]">User ID</th>
-          <th class="border border-blue-900 px-1 py-[2px] text-left w-[220px]">Sender</th>
-          <th class="border border-blue-900 px-1 py-[2px] text-left w-[320px]">Subject</th>
-          <th class="border border-blue-900 px-1 py-[2px] text-left w-[240px]">Sent To</th>
+          <th class="border border-green-900 px-3 py-2 text-left uppercase tracking-wider w-[140px]">Sent On</th>
+          <th class="border border-green-900 px-3 py-2 text-center w-[50px]">CC</th>
+          <th class="border border-green-900 px-3 py-2 text-center w-[60px]">BCC</th>
+          <th class="border border-green-900 px-3 py-2 text-left w-[110px]">User ID</th>
+          <th class="border border-green-900 px-3 py-2 text-left w-[250px]">Sender</th>
+          <th class="border border-green-900 px-3 py-2 text-left w-[350px]">Subject</th>
+          <th class="border border-green-900 px-3 py-2 text-left w-[260px]">Sent To</th>
         </tr>
       </thead>
 
-      <tbody>
+      <tbody class="text-gray-700">
 
-        <tr class="hover:bg-[#dbe8ff]">
-          <td class="border border-blue-200 px-1 py-[2px] whitespace-nowrap">
+        <tr class="hover:bg-green-50 odd:bg-white even:bg-green-50/30 transition-colors">
+          <td class="border border-green-100 px-3 py-2 whitespace-nowrap">
             09-Feb-2026 09:53 AM
           </td>
-          <td class="border border-blue-200 text-center">✔</td>
-          <td class="border border-blue-200 text-center"></td>
-          <td class="border border-blue-200">SONALIR</td>
-          <td class="border border-blue-200">cavalier@cavalierlogistics.in</td>
-          <td class="border border-blue-200">
+          <td class="border border-green-100 text-center text-green-700 font-bold">✔</td>
+          <td class="border border-green-100 text-center"></td>
+          <td class="border border-green-100 px-3 py-2">SONALIR</td>
+          <td class="border border-green-100 px-3 py-2">cavalier@cavalierlogistics.in</td>
+          <td class="border border-green-100 px-3 py-2">
             test
           </td>
-          <td class="border border-blue-200">
+          <td class="border border-green-100 px-3 py-2">
             indel4@icegate.gov.in
           </td>
         </tr>
 
-        <tr class="hover:bg-[#dbe8ff]">
-          <td class="border border-blue-200 px-1 py-[2px] whitespace-nowrap">
+        <tr class="hover:bg-green-50 odd:bg-white even:bg-green-50/30 transition-colors">
+          <td class="border border-green-100 px-3 py-2 whitespace-nowrap">
             09-Feb-2026 07:32 AM
           </td>
-          <td class="border border-blue-200 text-center"></td>
-          <td class="border border-blue-200 text-center">✔</td>
-          <td class="border border-blue-200">SYSTEM</td>
-          <td class="border border-blue-200">
-            "CAVALIER LOGISTICS" &lt;cavalier@cavalierlogistics.in&gt;
+          <td class="border border-green-100 text-center"></td>
+          <td class="border border-green-100 text-center text-green-700 font-bold">✔</td>
+          <td class="border border-green-100 px-3 py-2">SYSTEM</td>
+          <td class="border border-green-100 px-3 py-2">
+            <span class="font-semibold text-green-900">"CAVALIER LOGISTICS"</span> &lt;cavalier@cavalierlogistics.in&gt;
           </td>
-          <td class="border border-blue-200">
+          <td class="border border-green-100 px-3 py-2 font-medium">
             List of Shipments which are pending for: ACTUAL DATE OF RECEIPT
           </td>
-          <td class="border border-blue-200">
+          <td class="border border-green-100 px-3 py-2">
             cavalier@cavalierlogistics.in
           </td>
         </tr>
@@ -167,26 +160,28 @@
     </table>
   </div>
 
-  <!-- ================= PAGINATION ================= -->
-  <div class="flex items-center justify-between bg-[#e9f2ff] border-t px-2 py-1">
+  <div class="flex items-center justify-between bg-[#e8f5e9] border-t border-green-200 px-3 py-2 text-[12px]">
 
-    <div>Page <b>1</b> of <b>25</b></div>
+    <div class="font-semibold text-gray-700">Page <b>1</b> of <b>25</b></div>
 
     <div class="flex gap-1">
-      <button class="px-2 py-[2px] border bg-white">«</button>
-      <button class="px-2 py-[2px] border bg-white">‹</button>
-      <button class="px-3 py-[2px] border bg-blue-700 text-white">1</button>
-      <button class="px-3 py-[2px] border bg-white">2</button>
-      <button class="px-3 py-[2px] border bg-white">3</button>
-      <button class="px-2 py-[2px] border bg-white">›</button>
-      <button class="px-2 py-[2px] border bg-white">»</button>
+      <button class="px-2 py-1 border border-green-300 bg-white hover:bg-green-50 rounded">«</button>
+      <button class="px-2 py-1 border border-green-300 bg-white hover:bg-green-50 rounded">‹</button>
+      <button class="px-4 py-1 border border-green-800 bg-green-700 text-white font-bold rounded">1</button>
+      <button class="px-4 py-1 border border-green-300 bg-white hover:bg-green-50 rounded">2</button>
+      <button class="px-4 py-1 border border-green-300 bg-white hover:bg-green-50 rounded">3</button>
+      <button class="px-2 py-1 border border-green-300 bg-white hover:bg-green-50 rounded">›</button>
+      <button class="px-2 py-1 border border-green-300 bg-white hover:bg-green-50 rounded">»</button>
     </div>
 
-    <select class="border h-5">
-      <option>25 / page</option>
-      <option>50 / page</option>
-      <option>100 / page</option>
-    </select>
+    <div class="flex items-center gap-2">
+      <span class="text-gray-600 font-semibold">Rows:</span>
+      <select class="border border-green-300 h-8 rounded px-1 focus:outline-none focus:border-green-600">
+        <option>25 / page</option>
+        <option>50 / page</option>
+        <option>100 / page</option>
+      </select>
+    </div>
 
   </div>
 

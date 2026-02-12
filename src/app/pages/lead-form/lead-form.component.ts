@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, FormArray, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router'; // Router import kiya
 
 @Component({
   selector: 'app-lead-form',
@@ -11,97 +12,83 @@ import { FormBuilder, FormGroup, FormArray, ReactiveFormsModule, Validators } fr
 })
 export class LeadFormComponent implements OnInit {
   leadForm!: FormGroup;
-
-  // --- Naya Table Logic (Untouched existing logic ke sath) ---
   isFormOpen = false; 
+  
   leads: any[] = [
-    { leadNo: 'LD-2026-001', organization: 'ABC SHIPPING', type: 'New Business', leadOwner: 'BHARAT JUYAL', status: 'Inquiry Received', date: '09-Feb-2026' },
-    { leadNo: 'LD-2026-002', organization: 'XYZ LOGISTICS', type: 'New Business', leadOwner: 'BHARAT JUYAL', status: 'Won', date: '10-Feb-2026' }
+    { date: '12-Feb-2026', organization: 'ABC SHIPPING', type: 'New Business', leadOwner: 'BHARAT JUYAL', status: 'Inquiry Received', branch: 'DELHI' },
+    { date: '12-Feb-2026', organization: 'XYZ LOGISTICS', type: 'New Business', leadOwner: 'BHARAT JUYAL', status: 'Won', branch: 'DELHI' }
   ];
 
-  toggleForm() {
-    this.isFormOpen = !this.isFormOpen;
-  }
-  // -------------------------------------------------------
-
-  constructor(private fb: FormBuilder) {}
+  constructor(private fb: FormBuilder, private router: Router) {} // router yahan inject kiya
 
   ngOnInit(): void {
     this.initForm();
-    // Shuruat mein ek empty contact row add karne ke liye
-    this.addContactRow();
   }
 
-  initForm() {
-    this.leadForm = this.fb.group({
-      // Lead Info Section
-      leadNo: [{ value: '-----New Entry-----', disabled: true }],
-      type: ['New Business'],
-      source: [''],
-      branch: ['DELHI'],
-      pricingTeam: [''],
-      date: ['09-Feb-2026'],
-      leadOwner: ['BHARAT JUYAL', Validators.required],
-      salesProcess: ['Sales Process'],
-      salesCoordinator: ['BHARAT JUYAL'],
-      expectedValidity: [''],
-      prospectNo: [''],
-      campaign: [''],
-      salesStage: ['Inquiry Received'],
-
-      // Organization Section
-      organization: ['', Validators.required],
-      branchName: [''],
-      addressLine1: [''],
-      addressLine2: [''],
-      addressLine3: [''],
-      orgRole: ['Shipper'],
-      shipper: [''],
-      country: ['', Validators.required],
-      state: [''],
-      city: [''],
-      zipCode: [''],
-      telephone: [''],
-      fax: [''],
-
-      // Table (FormArray)
-      contacts: this.fb.array([])
-    });
+  // Naya function jo Organization page par le jayega
+  navigateToNewOrg() {
+    this.router.navigate(['/dashboard/organization-add']);
   }
 
-  // Contact rows ko access karne ke liye getter
-  get contacts(): FormArray {
-    return this.leadForm.get('contacts') as FormArray;
-  }
-
-  // Nayi row add karne ka function
-  addContactRow() {
-    const row = this.fb.group({
-      name: [''],
-      designation: [''],
-      department: [''],
-      telephone: [''],
-      mobile: [''],
-      email: ['', Validators.email]
-    });
-    this.contacts.push(row);
-  }
-
-  // Row delete karne ka function
-  removeContactRow(index: number) {
-    if (this.contacts.length > 1) {
-      this.contacts.removeAt(index);
+  toggleForm() {
+    this.isFormOpen = !this.isFormOpen;
+    if (this.isFormOpen) {
+      this.calculateExpectedValidity();
     }
   }
 
-  // Save Button Action
+  initForm() {
+    const today = new Date();
+    this.leadForm = this.fb.group({
+      type: ['New Business'],
+      source: [''], 
+      salesProcess: [''],
+      salesCoordinator: [''],
+      branch: ['DELHI'],
+      date: [this.formatDate(today)],
+      leadOwner: ['BHARAT JUYAL', Validators.required],
+      expectedValidity: [''],
+      salesStage: ['Inquiry Received'],
+      reportingManager: [''],
+      hod: [''],
+      team: [''],
+
+      // Organization & Contact Details
+      organization: ['', Validators.required],
+      roleShipper: [true],
+      roleConsignee: [false],
+      roleServices: [false],
+      contactPerson: [''],
+      emailId: ['', [Validators.email]],
+      mobileNumber: [''],
+      whatsappNumber: [''],
+      department: ['']
+    });
+  }
+
+  calculateExpectedValidity() {
+    const date = new Date();
+    date.setDate(date.getDate() + 90);
+    this.leadForm.patchValue({
+      expectedValidity: this.formatDate(date)
+    });
+  }
+
+  formatDate(date: Date): string {
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  }
+
   onSave() {
     if (this.leadForm.valid) {
-      console.log('Final Data:', this.leadForm.getRawValue());
-      alert('Form Submitted! Check console for data.');
-      this.isFormOpen = false; // Save karne ke baad wapas table par jane ke liye
+      console.log('Form Data:', this.leadForm.getRawValue());
+      alert('Success: Lead Information Saved!');
+      this.isFormOpen = false;
     } else {
-      alert('Form is invalid! Please check mandatory fields.');
+      alert('Error: Mandatory fields missing.');
     }
   }
 }

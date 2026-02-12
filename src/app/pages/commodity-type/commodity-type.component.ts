@@ -34,18 +34,18 @@ export class CommodityTypeComponent implements OnInit {
     } else {
       // Agar first time hai to default data set karein
       this.rolesList = [
-        { id: 1, name: 'General Cargo', status: true },
-        { id: 2, name: 'Hazardous Material', status: true },
-        { id: 3, name: 'Perishable Goods', status: false }
+        { id: 1, name: 'Hazard', status: true },
+        { id: 2, name: 'Non Hazard', status: true },
+        { id: 3, name: 'Perishable ', status: false },
+        { id: 4, name: 'General', status: false },
+        { id: 5, name: 'Temperature Controlled', status: false }
       ];
-      this.saveToLocalStorage();
+      
     }
   }
 
   // --- Helper: LocalStorage mein data save karne ke liye ---
-  saveToLocalStorage() {
-    localStorage.setItem('myCommodityData', JSON.stringify(this.rolesList));
-  }
+  
 
   // --- 1. SAVE (Add or Update) ---
   saveRole() {
@@ -63,7 +63,7 @@ export class CommodityTypeComponent implements OnInit {
           status: this.newRole.status
         });
       }
-      this.saveToLocalStorage(); // Array update hote hi save karein
+      // Array update hote hi save karein
       this.closeModal();
     }
   }
@@ -72,7 +72,7 @@ export class CommodityTypeComponent implements OnInit {
   confirmDelete() {
     if (this.roleIdToDelete !== null) {
       this.rolesList = this.rolesList.filter(r => r.id !== this.roleIdToDelete);
-      this.saveToLocalStorage(); // Delete ke baad storage update karein
+       // Delete ke baad storage update karein
       this.roleIdToDelete = null;
       this.showPopup = false;
     }

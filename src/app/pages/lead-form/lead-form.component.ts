@@ -14,6 +14,7 @@ export class LeadFormComponent implements OnInit {
   leadForm!: FormGroup;
   isFormOpen = false; 
   
+  
   leads: any[] = [
     { date: '12-Feb-2026', organization: 'ABC SHIPPING', type: 'New Business', leadOwner: 'BHARAT JUYAL', status: 'Inquiry Received', branch: 'DELHI' },
     { date: '12-Feb-2026', organization: 'XYZ LOGISTICS', type: 'New Business', leadOwner: 'BHARAT JUYAL', status: 'Won', branch: 'DELHI' }

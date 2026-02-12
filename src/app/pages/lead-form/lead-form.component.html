@@ -54,70 +54,108 @@
       </div>-->
 
       <div class="p-6 bg-white">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4">
-          
-          <div class="grid grid-cols-1 sm:grid-cols-2 items-center gap-3">
-            <label class="font-bold text-gray-600">Type</label>
-            <select formControlName="type" class="border border-gray-300 p-2 bg-white outline-none">
-              <option value="New Business">New Business</option>
-            </select>
-            
-            <label class="font-bold text-gray-600">Lead Source</label>
-            <select formControlName="source" class="border border-gray-300 p-2 bg-white outline-none">
-              <option value="">Select Source</option>
-            </select>
+      <!-- ===== FIRST 9 FIELDS ===== -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4">
 
-            <label class="font-bold text-gray-600">Sales Process</label>
-            <select formControlName="salesProcess" class="border border-gray-300 p-2 bg-white outline-none">
-              <option value="">Select Process</option>
-            </select>
+  <!-- Column 1 -->
+  <div class="flex flex-col gap-3">
+    <label class="font-bold text-gray-600">Lead No.</label>
+    <input type="text" value="LD-14321" readonly
+      class="border border-gray-300 p-2 bg-gray-100 outline-none w-full" />
 
-            <label class="font-bold text-gray-600">Reporting Manager</label>
-            <select formControlName="reportingManager" class="border border-gray-300 p-2 bg-white outline-none">
-              <option value="">Select Manager</option>
-            </select>
-          </div>
+    <label class="font-bold text-gray-600">Type</label>
+    <select formControlName="type" class="border border-gray-300 p-2 w-full">
+      <option>New Business</option>
+      <option>Existing Business</option>
+    </select>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 items-center gap-3">
-            <label class="font-bold text-gray-600">Date</label>
-            <input type="text" formControlName="date" class="border border-gray-300 p-2 bg-white outline-none">
-            
-            <label class="text-red-700 font-bold">Lead Owner</label>
-            <select formControlName="leadOwner" class="border border-red-200 p-2 outline-none">
-              <option value="BHARAT JUYAL">BHARAT JUYAL</option>
-            </select>
-            
-            <label class="font-bold text-gray-600">Sales Co-ordinator</label>
-            <select formControlName="salesCoordinator" class="border border-gray-300 p-2 bg-white outline-none">
-              <option value="">Select Co-ordinator</option>
-            </select>
+    <label class="font-bold text-gray-600">Sales Process</label>
+    <select formControlName="salesProcess" class="border border-gray-300 p-2 w-full">
+      <option>Select Process</option>
+    </select>
+  </div>
 
-            <label class="font-bold text-gray-600">HOD</label>
-            <select formControlName="hod" class="border border-gray-300 p-2 bg-white outline-none">
-              <option value="">Select HOD</option>
-            </select>
-          </div>
+  <!-- Column 2 -->
+  <div class="flex flex-col gap-3">
+    <label class="font-bold text-gray-600">Date</label>
+    <input type="text" formControlName="date"
+      class="border border-gray-300 p-2 w-full">
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 items-center gap-3">
-            <label class="font-bold text-gray-600">Branch</label>
-            <select formControlName="branch" class="border border-gray-300 p-2 bg-white outline-none">
-              <option value="DELHI">DELHI</option>
-            </select>
+    <label class="text-red-700 font-bold">Lead Owner</label>
+    <select formControlName="leadOwner" class="border border-red-200 p-2 w-full">
+      <option>BHARAT JUYAL</option>
+    </select>
 
-            <label class="font-bold text-gray-600">Expected Validity</label>
-            <input type="text" formControlName="expectedValidity" class="border border-gray-300 p-2 bg-white outline-none" placeholder="dd-mmm-yyyy">
-            
-            <label class="font-bold text-gray-600">Sales Stage</label>
-            <select formControlName="salesStage" class="border border-gray-300 p-2 bg-white outline-none">
-              <option value="Inquiry Received">Inquiry Received</option>
-            </select>
+    <label class="font-bold text-gray-600">Sales Coordinator</label>
+    <select formControlName="salesCoordinator"
+      class="border border-gray-300 p-2 w-full">
+      <option>Select Co-ordinator</option>
+    </select>
+  </div>
 
-            <label class="font-bold text-gray-600">Team</label>
-            <select formControlName="team" class="border border-gray-300 p-2 bg-white outline-none">
-              <option value="">Select Team</option>
-            </select>
-          </div>
-        </div>
+  <!-- Column 3 -->
+  <div class="flex flex-col gap-3">
+    <label class="font-bold text-gray-600">Expected Validity</label>
+    <input type="text" formControlName="expectedValidity"
+      class="border border-gray-300 p-2 w-full">
+
+    <label class="font-bold text-gray-600">Lead Source</label>
+    <select formControlName="source"
+      class="border border-gray-300 p-2 w-full">
+      <option>Select Source</option>
+    </select>
+
+    <label class="font-bold text-gray-600">Sales Stage</label>
+    <select formControlName="salesStage"
+      class="border border-gray-300 p-2 w-full">
+      <option>Inquiry Received</option>
+      <option>Sales Closed</option>
+    </select>
+  </div>
+
+</div>
+
+
+<!-- ===== HOD / BRANCH / TEAM (SAME STYLE ROW) ===== -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4 mt-6">
+ <div class="flex flex-col gap-3">
+    <label class="font-bold text-gray-600">Branch</label>
+    <select formControlName="branch"
+      class="border border-gray-300 p-2 w-full">
+      <option>DELHI</option>
+    </select>
+  </div>
+  
+
+   <div class="flex flex-col gap-3">
+    <label class="font-bold text-gray-600">Reporting Manager</label>
+    <select formControlName="hod"
+      class="border border-gray-300 p-2 w-full">
+      <option>Select HOD</option>
+    </select>
+  </div>
+
+  <div class="flex flex-col gap-3">
+    <label class="font-bold text-gray-600">Team</label>
+    <select formControlName="team"
+      class="border border-gray-300 p-2 w-full">
+      <option>Select Team</option>
+    </select>
+  </div>
+  <div class="flex flex-col gap-3">
+    <label class="font-bold text-gray-600">Team</label>
+    <select formControlName="team"
+      class="border border-gray-300 p-2 w-full">
+      <option>Select Team</option>
+    </select>
+  </div>
+
+</div>
+
+
+<!-- Baaki fields waise hi niche continue ho -->
+
+
 
         <hr class="my-6 border-gray-200">
 
@@ -134,35 +172,7 @@
               <button type="button" (click)="navigateToNewOrg()" class="bg-green-800 text-white px-2 rounded-sm font-bold text-[10px] hover:bg-black transition-colors">NEW</button>
             </div>
 
-            <label class="font-bold text-gray-600">Organization Role</label>
-            <div class="sm:col-span-2 flex flex-wrap items-center gap-4">
-              <label class="flex items-center gap-1 cursor-pointer">
-                <input type="checkbox" formControlName="roleShipper" class="w-4 h-4"> Shipper
-              </label>
-              <label class="flex items-center gap-1 cursor-pointer">
-                <input type="checkbox" formControlName="roleConsignee" class="w-4 h-4"> Consignee
-              </label>
-              <label class="flex items-center gap-1 cursor-pointer">
-                <input type="checkbox" formControlName="roleServices" class="w-4 h-4"> Services
-              </label>
-            </div>
-
-            <label class="font-bold text-gray-600">Contact Person</label>
-            <input type="text" formControlName="contactPerson" class="sm:col-span-2 border border-gray-300 p-2 outline-none bg-white">
             
-            <label class="font-bold text-gray-600">Department</label>
-            <input type="text" formControlName="department" class="sm:col-span-2 border border-gray-300 p-2 outline-none bg-white">
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-3 items-center gap-3">
-            <label class="font-bold text-gray-600">Email ID</label>
-            <input type="email" formControlName="emailId" class="sm:col-span-2 border border-gray-300 p-2 outline-none bg-white">
-            
-            <label class="font-bold text-gray-600">Mobile Number</label>
-            <input type="text" formControlName="mobileNumber" class="sm:col-span-2 border border-gray-300 p-2 outline-none bg-white">
-
-            <label class="font-bold text-gray-600">WhatsApp Number</label>
-            <input type="text" formControlName="whatsappNumber" class="sm:col-span-2 border border-gray-300 p-2 outline-none bg-white">
           </div>
         </div>
 

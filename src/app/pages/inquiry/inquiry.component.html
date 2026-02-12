@@ -56,10 +56,25 @@
       <div class="bg-gray-50 p-4 border border-gray-200 rounded">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-x-8 gap-y-3">
           <div class="space-y-2">
-            <div class="grid grid-cols-2 items-center">
-              <label class="font-bold text-gray-700">Inquiry No</label>
-              <input [(ngModel)]="quotation.qtnId" placeholder="---New Entry---" class="border p-1.5 bg-white outline-none text-gray-500" readonly>
-            </div>
+            <div class="grid grid-cols-2 items-center gap-3">
+
+  <label class="font-bold text-gray-700">Inquiry No</label>
+
+  <div class="relative">
+    <input
+      [(ngModel)]="quotation.qtnId"
+      placeholder="Search Inquiry..."
+      class="border border-gray-300 p-2 pr-10 bg-white outline-none w-full text-gray-600 rounded"
+    />
+
+    <!-- Search Icon -->
+    <span class="absolute inset-y-0 right-3 flex items-center text-gray-400 cursor-pointer">
+      🔍
+    </span>
+  </div>
+
+</div>
+
             <div class="grid grid-cols-2 items-center">
               <label class="font-bold text-gray-700">Inq. Received</label>
               <input type="datetime-local" [(ngModel)]="quotation.receivedDate" class="border p-1 text-[11px] outline-none">
@@ -100,6 +115,10 @@
                 <option value="">--Select--</option>
                 <option value="Shipper">Shipper</option>
                 <option value="Consignee">Consignee</option>
+                <option value="Consignee">Dest.Agent</option>
+                <option value="Consignee">Origin Agent</option>
+                <option value="Consignee">Customer</option>
+                <option value="Consignee">Global</option>
               </select>
             </div>
             <div class="grid grid-cols-2 items-center">
@@ -163,11 +182,15 @@
                 <option value="International">International</option>
               </select>
             </div>
-            <div class="flex items-center gap-2">
+           <div class="flex items-center">
               <label class="w-40 font-bold text-gray-700">Commodity</label>
-              <div class="flex flex-1 border items-center p-1">
-                <input type="text" [(ngModel)]="quotation.commodity" class="flex-1 outline-none px-1" placeholder="Enter commodity...">
-              </div>
+              <select [(ngModel)]="quotation.commodity" class="flex-1 border p-2 outline-none">
+                <option value="Hazard">Hazard</option>
+                <option value="Non-Hazard">Non-Hazard</option>
+                <option value="Perishable">Perishable</option>
+                <option value="General">General</option>
+                <option value="Temperature Controlled">Temperature Controlled</option>
+              </select>
             </div>
             <div class="flex items-center gap-2">
               <label class="w-40 font-bold text-gray-700">Gross Weight</label>

@@ -142,7 +142,59 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
 
     // Convert map to array
     const finalNav = Object.values(navMap);
+// ✅ Added Cargo Type
+// ✅ Access Type Check: Sirf 'system' hone par hi push hoga
+    const accessType = localStorage.getItem('accessType'); 
 
+    if (accessType === 'system') {
+      // 1. Adding Cargo Type
+      finalNav.push({
+        name: 'Cargo Type',
+        icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>`,
+        path: '/dashboard/cargotype'
+      });
+
+      // 2. Adding Commodity Type
+      finalNav.push({
+        name: 'Commodity Type',
+        icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>`,
+        path: '/dashboard/commoditytype'
+      });
+        finalNav.push({
+        name: 'Party Role',
+        icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>`,
+        path: '/dashboard/partyrole'
+      });
+          finalNav.push({
+        name: 'Origin',
+        icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+  <circle cx="12" cy="10" r="3"></circle>
+</svg>`,
+        path: '/dashboard/origin'
+      });
+       finalNav.push({
+        name: 'Port of Loading',
+        icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M12 22V8"></path>
+  <path d="M5 12H2a10 10 0 0 0 20 0h-3"></path>
+  <circle cx="12" cy="5" r="3"></circle>
+</svg>`,
+        path: '/dashboard/port-of-loading'
+      });
+             finalNav.push({
+        name: 'Port of Discharge',
+        icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M2 17h20l-2 4H4l-2-4z"></path>
+  <path d="M6 17V9"></path>
+  <path d="M10 17V9"></path>
+  <path d="M18 13l-3 3-3-3"></path>
+  <path d="M15 4v12"></path>
+</svg>`,
+        path: '/dashboard/port-of-discharge'
+      });
+  
+    }
     // ✅ Manually adding Storage Utilization at the end (Normal Link, No Dropdown)
     // finalNav.push({
     //   name: 'Storage Utilization',

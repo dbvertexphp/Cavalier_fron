@@ -74,7 +74,7 @@ isBranchDisabled = false;
 
       // ✅ USER + COMPANY
       this.displayUserName = user.firstName;
-      this.displayCompanyName = user.branches?.[0]?.companyName || '';
+    this.displayCompanyName = (user.branches?.[0]?.companyName || '').toUpperCase();
 
       localStorage.setItem('userName', user.firstName);
       localStorage.setItem('companyName', this.displayCompanyName);
@@ -90,7 +90,14 @@ isBranchDisabled = false;
         ];
 
         // 🔥 BRANCHES FROM API
-        this.branches = user.branches || [];
+        // this.branches = user.branches || [];
+        // 🔥 BRANCHES FROM API
+this.branches = user.branches || [];
+console.log(this.branches)
+
+// Loop chala kar har branch ke name ko capital kar do
+
+        // this.branches = (user.branches || []).map((b: string) => b.toUpperCase());
 
         this.selectionForm.patchValue({
           selectedRole: '',

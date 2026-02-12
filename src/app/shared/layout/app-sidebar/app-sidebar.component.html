@@ -6,8 +6,10 @@
     'translate-x-0': isMobileOpen$ | async,
     '-translate-x-full': !(isMobileOpen$ | async),
     'xl:translate-x-0': true
-  }" (mouseenter)="onSidebarMouseEnter()" (mouseleave)="sidebarService.setHovered(false)">
-  
+  }"
+  (mouseenter)="onSidebarMouseEnter()"
+  (mouseleave)="sidebarService.setHovered(false)"
+>
   <div class="py-8 flex items-center justify-start pl-6">
     <a routerLink="/dashboard" class="cursor-pointer">
       @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
@@ -22,83 +24,148 @@
 
   <div class="flex flex-col flex-grow overflow-y-auto no-scrollbar">
     <nav class="mb-6 px-3">
-        <div *ngIf="loadings" class="flex justify-center items-center py-4">
-          <div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+<!-- ✅ Ultra Dark Stylish Skeleton START -->
+<!-- ✅ Deeper Dark Stylish Skeleton START -->
+<div *ngIf="loadings" class="flex flex-col gap-2 px-2">
+
+  <!-- Heading skeleton -->
+  <div class="px-3 mb-3 h-5 flex items-center">
+    <div class="h-2 w-16 rounded bg-white/20 animate-pulse"></div>
+  </div>
+
+  @for (i of [1,2,3,4,5]; track i) {
+    <div
+      class="flex items-center w-full p-3 rounded-2xl
+             bg-white/15 border border-white/20
+             backdrop-blur-sm transition-all duration-300">
+
+      <!-- Icon skeleton -->
+      <div
+        class="flex-shrink-0 w-6 h-6 rounded-lg
+               bg-gradient-to-br from-white/35 via-white/20 to-transparent
+               animate-pulse">
+      </div>
+
+      @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
+
+        <!-- Text skeleton -->
+        <div
+          class="ml-4 h-3 w-32 rounded-md
+                 bg-gradient-to-r from-white/35 via-white/20 to-white/35
+                 animate-pulse">
         </div>
 
-        <div *ngIf="!loadings" class="flex flex-col">
-          <div class="px-3 mb-4 h-5 flex items-center">
-            <h2 class="text-[10px] font-black uppercase tracking-[2px] text-white/50">
-              @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) { Menu }
-              @else { ••• }
-            </h2>
-          </div>
+        <!-- Arrow skeleton -->
+        <div class="ml-auto h-3 w-3 rounded bg-white/25 animate-pulse"></div>
+      }
+    </div>
+  }
+</div>
+<!-- ✅ Deeper Dark Stylish Skeleton END -->
+<!-- ✅ Ultra Dark Stylish Skeleton END -->
 
-          <ul class="flex flex-col gap-1">
-            @for (nav of navItems; track $index; let i = $index) {
-            <li class="w-full">
-              
-              @if (nav.subItems && nav.subItems.length > 0) {
-                <button (click)="toggleSubmenu('main', i)"
-                  class="group flex items-center w-full p-3 rounded-xl transition-all duration-200 hover:bg-black/20" 
-                  [ngClass]="{
-                    'bg-black/40 shadow-inner': openSubmenu === 'main-' + i && ((isExpanded$ | async) || (isHovered$ | async))
-                  }">
-                  
-                  <span class="flex-shrink-0 w-6 h-6 flex items-center justify-center text-white/80 group-hover:text-white" 
-                        [innerHTML]="nav.icon || '' | safeHtml"></span>
+      <div *ngIf="!loadings" class="flex flex-col">
+        <div class="px-3 mb-4 h-5 flex items-center">
+          <h2 class="text-[10px] font-black uppercase tracking-[2px] text-white/50">
+            @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) { Menu }
+            @else { ••• }
+          </h2>
+        </div>
 
-                  @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-                    <span class="ml-4 text-[13px] font-semibold tracking-wide text-white/90 group-hover:text-white whitespace-nowrap">
-                      {{ nav.name }}
-                    </span>
-                    <svg [ngClass]="{'rotate-180': openSubmenu === 'main-' + i}" width="16" height="16"
-                      viewBox="0 0 20 20" fill="none" stroke="currentColor" class="ml-auto transition-transform duration-300 text-white/50 group-hover:text-white">
-                      <path d="M4.79175 7.396L10.0001 12.6043L15.2084 7.396" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-                    </svg>
+        <ul class="flex flex-col gap-1">
+          @for (nav of navItems; track $index; let i = $index) {
+          <li class="w-full">
+
+            @if (nav.subItems && nav.subItems.length > 0) {
+              <button
+                (click)="toggleSubmenu('main', i)"
+                class="group flex items-center w-full p-3 rounded-xl transition-all duration-200 hover:bg-black/20"
+                [ngClass]="{
+                  'bg-black/40 shadow-inner': openSubmenu === 'main-' + i && ((isExpanded$ | async) || (isHovered$ | async))
+                }"
+              >
+                <span
+                  class="flex-shrink-0 w-6 h-6 flex items-center justify-center text-white/80 group-hover:text-white"
+                  [innerHTML]="nav.icon || '' | safeHtml"
+                ></span>
+
+                @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
+                  <span class="ml-4 text-[13px] font-semibold tracking-wide text-white/90 group-hover:text-white whitespace-nowrap">
+                    {{ nav.name }}
+                  </span>
+
+                  <svg
+                    [ngClass]="{ 'rotate-180': openSubmenu === 'main-' + i }"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    stroke="currentColor"
+                    class="ml-auto transition-transform duration-300 text-white/50 group-hover:text-white"
+                  >
+                    <path
+                      d="M4.79175 7.396L10.0001 12.6043L15.2084 7.396"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    ></path>
+                  </svg>
+                }
+              </button>
+
+              <div
+                class="overflow-hidden transition-all duration-300"
+                [ngClass]="{
+                  'bg-black/10 rounded-b-xl': (isExpanded$ | async) || (isHovered$ | async),
+                  'hidden': !((isExpanded$ | async) || (isHovered$ | async))
+                }"
+                [style.height]="
+                  openSubmenu === 'main-' + i && ((isExpanded$ | async) || (isHovered$ | async))
+                    ? 'auto'
+                    : '0px'
+                "
+              >
+                <ul class="py-1 ml-10 border-l border-white/10">
+                  @for (subItem of nav.subItems; track $index) {
+                    <li>
+                      <a
+                        [routerLink]="subItem.path"
+                        (click)="onSubmenuClick()"
+                        routerLinkActive="text-white font-bold bg-white/5"
+                        class="block py-2.5 px-4 text-xs text-white/60 hover:text-white hover:bg-white/5 transition-all rounded-r-lg"
+                      >
+                        {{ subItem.name }}
+                      </a>
+                    </li>
                   }
-                </button>
-
-                <div class="overflow-hidden transition-all duration-300" 
-                  [ngClass]="{
-                    'bg-black/10 rounded-b-xl': (isExpanded$ | async) || (isHovered$ | async),
-                    'hidden': !((isExpanded$ | async) || (isHovered$ | async))
-                  }"
-                  [style.height]="(openSubmenu === 'main-' + i && ((isExpanded$ | async) || (isHovered$ | async))) ? 'auto' : '0px'">
-                  
-                  <ul class="py-1 ml-10 border-l border-white/10">
-                    @for (subItem of nav.subItems; track $index) {
-                      <li>
-                        <a [routerLink]="subItem.path" (click)="onSubmenuClick()" 
-                           routerLinkActive="text-white font-bold bg-white/5"
-                           class="block py-2.5 px-4 text-xs text-white/60 hover:text-white hover:bg-white/5 transition-all rounded-r-lg">
-                          {{ subItem.name }}
-                        </a>
-                      </li>
-                    }
-                  </ul>
-                </div>
-              }
-
-              @else {
-                <a [routerLink]="nav.path" routerLinkActive="bg-black shadow-lg border border-white/5"
-                  [routerLinkActiveOptions]="{ exact: true }"
-                  class="group flex items-center w-full p-3 rounded-xl transition-all duration-200 hover:bg-black/20">
-                  
-                  <span class="flex-shrink-0 w-6 h-6 flex items-center justify-center text-white/80 group-hover:text-white" 
-                        [innerHTML]="nav.icon || '' | safeHtml"></span>
-
-                  @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-                    <span class="ml-4 text-[13px] font-semibold tracking-wide text-white/90 group-hover:text-white whitespace-nowrap">
-                      {{ nav.name }}
-                    </span>
-                  }
-                </a>
-              }
-            </li>
+                </ul>
+              </div>
             }
-          </ul>
-        </div>
+
+            @else {
+              <a
+                [routerLink]="nav.path"
+                routerLinkActive="bg-black shadow-lg border border-white/5"
+                [routerLinkActiveOptions]="{ exact: true }"
+                class="group flex items-center w-full p-3 rounded-xl transition-all duration-200 hover:bg-black/20"
+              >
+                <span
+                  class="flex-shrink-0 w-6 h-6 flex items-center justify-center text-white/80 group-hover:text-white"
+                  [innerHTML]="nav.icon || '' | safeHtml"
+                ></span>
+
+                @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
+                  <span class="ml-4 text-[13px] font-semibold tracking-wide text-white/90 group-hover:text-white whitespace-nowrap">
+                    {{ nav.name }}
+                  </span>
+                }
+              </a>
+            }
+
+          </li>
+          }
+        </ul>
+      </div>
     </nav>
   </div>
 </aside>

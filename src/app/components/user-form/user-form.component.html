@@ -239,6 +239,9 @@
         </div>
       </div>
     </div>
+
+    <!-- experience  -->
+     
 <!-- Bank details  -->
  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-blue-50/10 p-4 rounded border border-blue-100">
   
@@ -290,6 +293,9 @@
   </div>
 
 </div>
+
+
+
 <!-- bank details end  -->
 
 
@@ -417,7 +423,26 @@
         <!-- <div><label>Report To (ID)</label> <input type="number" formControlName="reportTo" class="w-full border p-2 rounded"></div> -->
         <div><label>Emergency Contact Name</label> <input formControlName="emergencyName" class="w-full border p-2 rounded"></div>
         
-        <div><label>Relation</label> <input formControlName="emergencyRelationship" class="w-full border p-2 rounded"></div>
+       <div>
+  <label class="text-sm font-semibold">Relation</label>
+  <input 
+    list="relationsList" 
+    formControlName="emergencyRelationship" 
+    placeholder="Select or Type Relation" 
+    class="w-full border p-2 rounded bg-white"
+  >
+  <datalist id="relationsList">
+    <option value="Father">
+    <option value="Mother">
+    <option value="Spouse">
+    <option value="Brother">
+    <option value="Sister">
+    <option value="Son">
+    <option value="Daughter">
+    <option value="Friend">
+    <option value="Colleague">
+  </datalist>
+</div>
         <div><label>Emergency Mobile</label> <input formControlName="emergencyContactNo" class="w-full border p-2 rounded"></div>
       </div>
 <!-- 

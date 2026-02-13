@@ -341,10 +341,9 @@
 
 
 // }
-
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule, FormArray } from '@angular/forms'; // 👈 FormArray add kiya
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule, FormArray } from '@angular/forms';
 import { Router } from '@angular/router';
 import { UserService } from '../../services/user.service';
 import { BranchService } from '../../services/branch.service';
@@ -490,10 +489,11 @@ export class UserFormComponent implements OnInit {
         presPincode: [''],
         presCountry: ['India'],
 
-        // Dynamic Educations Array (Adding this here)
         educations: this.fb.array([]),
+        
+        // ✅ 1. Added Experiences Array
+        experiences: this.fb.array([]),
 
-        // Education Names (Matching your HTML)
         tenthName: ['10th'],
         tenthYear: [''],
         tenthPercentage: [''],
@@ -543,7 +543,7 @@ export class UserFormComponent implements OnInit {
     }
   }
 
-  // ============= ADDED DYNAMIC EDUCATION METHODS =============
+  // ============= DYNAMIC EDUCATION METHODS =============
   
   createEducationGroup(): FormGroup {
     return this.fb.group({
@@ -566,17 +566,45 @@ export class UserFormComponent implements OnInit {
     this.educations.removeAt(index);
   }
 
+  // ✅ 2. DYNAMIC EXPERIENCE METHODS
+  
+  createExperienceGroup(): FormGroup {
+    return this.fb.group({
+      organizationName: [''],
+      designation: [''],
+      annualSalary: [''],
+      joiningDate: [''],
+      exitDate: [''],
+      salarySlip: [null],
+      relievingLetter: [null],
+      experienceLetter: [null],
+      appointmentLetter: [null]
+    });
+  }
+
+  get experiences() {
+    return this.userForm.get('experiences') as FormArray;
+  }
+
+  addExperience() {
+    this.experiences.push(this.createExperienceGroup());
+  }
+
+  removeExperience(index: number) {
+    this.experiences.removeAt(index);
+  }
+
   // ==========================================================
 
-  onFileSelect(event: any, field: string, index?: number) {
+  // ✅ 3. Updated FileSelect to handle both Edu and Exp arrays
+  onFileSelect(event: any, field: string, index?: number, type: 'edu' | 'exp' = 'edu') {
     const file = event.target.files[0];
     if (file) {
       if (index !== undefined) {
-        // Handle file for dynamic array
-        const control = this.educations.at(index).get(field);
+        const array = type === 'edu' ? this.educations : this.experiences;
+        const control = array.at(index).get(field);
         control?.patchValue(file);
       } else {
-        // Handle regular fields
         this.userForm.patchValue({ [field]: file });
         this.userForm.get(field)?.updateValueAndValidity();
       }
@@ -616,7 +644,8 @@ export class UserFormComponent implements OnInit {
         value.forEach((id: number) => {
           formData.append('PermissionIds', id.toString());
         });
-      } else if (key === 'educations') {
+      } else if (key === 'educations' || key === 'experiences') {
+         // ✅ 4. Appending both dynamic arrays
          formData.append(key, JSON.stringify(value));
       } else if (value !== null && value !== '') {
         formData.append(key, value);

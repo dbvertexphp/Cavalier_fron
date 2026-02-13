@@ -1,3 +1,5 @@
+
+
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -107,8 +109,8 @@ console.log(this.branches)
           selectedCity: ''
         });
 
-        this.isBranchDisabled = true;
-        this.selectionForm.get('selectedCity')?.disable();
+        this.isBranchDisabled = false; // Initial state jab Select Role ho
+        this.selectionForm.get('selectedCity')?.enable();
       }
 
       // SAVE
@@ -123,13 +125,12 @@ onRoleChange(): void {
   const role = this.selectionForm.value.selectedRole;
 
   if (role === 'System Administrator') {
-    this.isBranchDisabled = true;
+    this.isBranchDisabled = true; // Isse HTML mein hide karenge
     this.selectionForm.patchValue({ selectedCity: '' });
     this.selectionForm.get('selectedCity')?.disable();
-  }
-
-  if (role === 'Branch Administrator') {
-    this.isBranchDisabled = false;
+  } else {
+    // Branch Administrator ya empty (Select Role) par show hoga
+    this.isBranchDisabled = false; 
     this.selectionForm.get('selectedCity')?.enable();
   }
 }

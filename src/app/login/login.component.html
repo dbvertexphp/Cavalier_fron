@@ -1,20 +1,23 @@
 <div class="min-h-screen w-full bg-[#F3F4F6] flex items-center justify-center font-sans p-4 md:p-8">
-  <div class="relative bg-white shadow-2xl overflow-hidden flex flex-col lg:flex-row w-full max-w-[1440px] min-h-[600px] lg:h-[960px] rounded-[20px] lg:rounded-[40px]">
-    
-    <div class="welcome-card hidden lg:flex flex-col items-center justify-between text-white p-12 m-8 rounded-[30px] lg:w-[40%] relative overflow-hidden"
+  <div
+    class="relative bg-white shadow-2xl overflow-hidden flex flex-col lg:flex-row w-full max-w-[1440px] min-h-[600px] lg:h-[960px] rounded-[20px] lg:rounded-[40px]">
+
+    <div
+      class="welcome-card hidden lg:flex flex-col items-center justify-between text-white p-12 m-8 rounded-[30px] lg:w-[40%] relative overflow-hidden"
       style="background: linear-gradient(180deg, #5B5B63 0%, #8E736E 100%);">
-      
+
       <div class="absolute inset-0 opacity-10 pointer-events-none"
         style="background-image: url('images/assets/background.jpg'); background-size: cover; background-repeat: no-repeat;">
       </div>
 
       <ng-container *ngFor="let slide of slides; let i = index">
-        <div class="slide-item flex flex-col items-center justify-between h-full w-full relative z-10" [class.hidden]="i !== currentSlide">
+        <div class="slide-item flex flex-col items-center justify-between h-full w-full relative z-10"
+          [class.hidden]="i !== currentSlide">
           <div class="text-center mt-12">
             <h1 class="text-[36px] font-semibold mb-2 leading-tight">Welcome to Logistics</h1>
             <p class="text-gray-200 text-lg opacity-90">Your Gateway to Effortless Management.</p>
           </div>
-          
+
           <div class="w-full flex justify-center mb-4">
             <img src="images/assets/logo.png" alt="Logo" class="w-full max-w-[380px] h-auto object-contain">
           </div>
@@ -26,8 +29,8 @@
             </p>
             <div class="flex justify-center gap-3 mt-4">
               <span *ngFor="let dot of slides; let dotIndex = index" (click)="setSlide(dotIndex)"
-                class="cursor-pointer transition-all duration-300 rounded-full" 
-                [ngClass]="{'w-8 h-2 bg-white': dotIndex === currentSlide,'w-2 h-2': dotIndex !== currentSlide}" 
+                class="cursor-pointer transition-all duration-300 rounded-full"
+                [ngClass]="{'w-8 h-2 bg-white': dotIndex === currentSlide,'w-2 h-2': dotIndex !== currentSlide}"
                 [style.backgroundColor]="dotIndex !== currentSlide ? '#7289DA' : 'white'">
               </span>
             </div>
@@ -35,132 +38,128 @@
         </div>
       </ng-container>
     </div>
-          
+
     <div class="flex-1 lg:w-[60%] flex flex-col items-center justify-center p-6 lg:p-12 bg-white">
       <div class="w-full max-w-[400px] flex flex-col gap-6">
-        
+
         <div class="w-full flex justify-center mb-4">
           <img src="images/assets/logo.png" alt="Logo" class="w-full max-w-[350px] h-auto object-contain">
         </div>
 
-        <form *ngIf="!isStepTwo"
-      [formGroup]="loginForm"
-      (ngSubmit)="onNextStep()" class="flex flex-col gap-4">
-          
+        <form *ngIf="!isStepTwo" [formGroup]="loginForm" (ngSubmit)="onNextStep()" class="flex flex-col gap-4">
+
           <div class="flex flex-col gap-2">
             <label class="text-sm font-semibold text-gray-600 ml-1">Email Id</label>
-            <input type="email" formControlName="email" placeholder="Enter Email Id" 
+            <input type="email" formControlName="email" placeholder="Enter Email Id"
               class="border border-gray-200 rounded-xl px-5 h-14 outline-none focus:border-blue-500 focus:ring-4 focus:ring-sky-100 w-full text-lg transition-all">
           </div>
 
           <div class="flex flex-col gap-2">
             <label class="text-sm font-semibold text-gray-600 ml-1">Password</label>
-            <input type="password" formControlName="password" placeholder="Enter Password" 
+            <input type="password" formControlName="password" placeholder="Enter Password"
               class="border border-gray-200 rounded-xl px-5 h-14 outline-none focus:border-blue-500 focus:ring-4 focus:ring-sky-100 w-full text-lg transition-all">
           </div>
 
           <div class="flex flex-col gap-1 text-[12px] text-gray-500 ml-1">
-            <p class="flex items-center gap-2"><span class="text-blue-500 font-bold">✓</span> Password Strength: <span class="font-medium text-gray-400">Weak</span></p>
+            <p class="flex items-center gap-2"><span class="text-blue-500 font-bold">✓</span> Password Strength: <span
+                class="font-medium text-gray-400">Weak</span></p>
             <p class="flex items-center gap-2"><span class="text-blue-500 font-bold">✓</span> At least 8 characters</p>
-            <p class="flex items-center gap-2"><span class="text-blue-500 font-bold">✓</span> Contains a number or symbol</p>
-            <p class="flex items-center gap-2"><span class="text-blue-500 font-bold">✓</span> Cannot Contain your name or email address</p>
+            <p class="flex items-center gap-2"><span class="text-blue-500 font-bold">✓</span> Contains a number or
+              symbol</p>
+            <p class="flex items-center gap-2"><span class="text-blue-500 font-bold">✓</span> Cannot Contain your name
+              or email address</p>
           </div>
 
-          <button type="submit" 
+          <button type="submit"
             class="text-white font-bold h-14 rounded-xl transition-all w-full text-lg mt-2 shadow-lg hover:brightness-110 active:scale-[0.98]"
             style="background: linear-gradient(90deg, #5B5B63 0%, #8E736E 100%);">
             Login
           </button>
 
           <div class="flex items-center justify-center w-full mt-4 gap-4">
-            <hr class="w-full border-gray-200"><span class="text-sm text-gray-400 font-medium">OR</span><hr class="w-full border-gray-200">
+            <hr class="w-full border-gray-200"><span class="text-sm text-gray-400 font-medium">OR</span>
+            <hr class="w-full border-gray-200">
           </div>
 
           <div class="flex justify-between w-full gap-4">
-            <button type="button" class="flex-1 h-12 border border-gray-200 rounded-xl flex items-center justify-center hover:bg-gray-50 transition-colors shadow-sm"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" class="w-6 h-6"></button>
-            <button type="button" class="flex-1 h-12 border border-gray-200 rounded-xl flex items-center justify-center hover:bg-gray-50 transition-colors shadow-sm"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apple/apple-original.svg" class="w-6 h-6"></button>
-            <button type="button" class="flex-1 h-12 border border-gray-200 rounded-xl flex items-center justify-center hover:bg-gray-50 transition-colors shadow-sm"><img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" class="w-6 h-6"></button>
-            <button type="button" class="flex-1 h-12 border border-gray-200 rounded-xl flex items-center justify-center hover:bg-gray-50 transition-colors shadow-sm"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/linkedin/linkedin-original.svg" class="w-6 h-6"></button>
+            <button type="button"
+              class="flex-1 h-12 border border-gray-200 rounded-xl flex items-center justify-center hover:bg-gray-50 transition-colors shadow-sm"><img
+                src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg"
+                class="w-6 h-6"></button>
+            <button type="button"
+              class="flex-1 h-12 border border-gray-200 rounded-xl flex items-center justify-center hover:bg-gray-50 transition-colors shadow-sm"><img
+                src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apple/apple-original.svg"
+                class="w-6 h-6"></button>
+            <button type="button"
+              class="flex-1 h-12 border border-gray-200 rounded-xl flex items-center justify-center hover:bg-gray-50 transition-colors shadow-sm"><img
+                src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" class="w-6 h-6"></button>
+            <button type="button"
+              class="flex-1 h-12 border border-gray-200 rounded-xl flex items-center justify-center hover:bg-gray-50 transition-colors shadow-sm"><img
+                src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/linkedin/linkedin-original.svg"
+                class="w-6 h-6"></button>
           </div>
 
           <p class="text-[12px] text-center text-gray-400 mt-4">
             By signing up to create an account I accept Company's <br>
-            <span class="font-bold text-gray-800 cursor-pointer hover:underline">Terms of use & Privacy Policyfdfd.</span>
+            <span class="font-bold text-gray-800 cursor-pointer hover:underline">Terms of use & Privacy
+              Policyfdfd.</span>
           </p>
         </form>
 
-        <!--<form *ngIf="isStepTwo" [formGroup]="selectionForm" (ngSubmit)="onFinalSubmit()" class="flex flex-col gap-6 animate-fade-in">
-          <div class="text-center">
-            <h2 class="text-2xl font-bold text-gray-700">Select Configuration</h2>
-            <p class="text-sm text-gray-500">Choose your workspace details</p>
-          </div>-->
+        <form *ngIf="isStepTwo" [formGroup]="selectionForm" (ngSubmit)="onFinalSubmit()"
+          class="flex flex-col gap-6 animate-fade-in">
 
-          <form *ngIf="isStepTwo"
-      [formGroup]="selectionForm"
-      (ngSubmit)="onFinalSubmit()"
-      class="flex flex-col gap-6 animate-fade-in">
+          <div class="text-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800">
+              Hi, {{ displayUserName }}!
+            </h2>
+            <p class="text-gray-500 text-sm mt-1">
+              Choose your workspace details to continue
+            </p>
+          </div>
 
-  <div class="text-center mb-6">
-    <h2 class="text-2xl font-bold text-gray-800">
-      Hi, {{ displayUserName }}!
-    </h2>
-    <p class="text-gray-500 text-sm mt-1">
-      Choose your workspace details to continue
-    </p>
-  </div>
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-semibold text-gray-600 ml-1">
+              System Role
+            </label>
 
-  <div class="flex flex-col gap-2">
-    <label class="text-sm font-semibold text-gray-600 ml-1">
-      System Role
-    </label>
+            <select formControlName="selectedRole" (change)="onRoleChange()"
+              class="w-full border border-gray-200 rounded-xl px-5 h-14 outline-none focus:border-blue-500 transition-all">
+              <option value="" disabled>-- Select Role --</option>
+              <option *ngFor="let role of roles" [value]="role">
+                {{ role }}
+              </option>
+            </select>
+          </div>
 
-    <select formControlName="selectedRole"
-        (change)="onRoleChange()"
-        class="w-full border border-gray-200 rounded-xl px-5 h-14">
-  <option value="" disabled>-- Select Role --</option>
-  <option *ngFor="let role of roles" [value]="role">
-    {{ role }}
-  </option>
-</select>
+          <p class="text-lg font-semibold text-[#8E736E] mt-1">
+            {{ displayCompanyName }}
+          </p>
 
-  </div>
+          <div *ngIf="!selectionForm.get('selectedRole')?.value || selectionForm.get('selectedRole')?.value !== 'System Administrator'" 
+               class="flex flex-col gap-2 animate-fade-in">
+            <label class="text-sm font-semibold text-gray-600 ml-1">
+              Select Branch
+            </label>
 
-  <p class="text-lg font-semibold text-[#8E736E] mt-1">
-    {{ displayCompanyName }}
-  </p>
+            <select formControlName="selectedCity"
+              class="w-full border border-gray-200 rounded-xl px-5 h-14 outline-none focus:border-blue-500 transition-all">
+              <option value="" disabled>-- Select Branch --</option>
+              <option *ngFor="let branch of branches" [value]="branch.branchName">
+                {{ branch.branchName | uppercase }}
+              </option>
+            </select>
+          </div>
 
-  <div class="flex flex-col gap-2">
-    <label class="text-sm font-semibold text-gray-600 ml-1">
-      Select Branch
-    </label>
-
-    <select formControlName="selectedCity"
-        [disabled]="isBranchDisabled"
-        class="w-full border border-gray-200 rounded-xl px-5 h-14">
-  <option value="" disabled>-- Select Branch --</option>
-  <option *ngFor="let branch of branches" [value]="branch.branchName">
-    {{ branch.branchName | uppercase }}
-  </option>
-</select>
-
-  </div>
-
-  <!-- ✅ ONLY SUBMIT -->
-  <button type="submit"
-    class="text-white font-bold h-14 rounded-xl w-full text-lg mt-2"
-    style="background: linear-gradient(90deg, #5B5B63 0%, #8E736E 100%);">
-    Submit
-  </button>
-
-  <button type="button"
-          (click)="isStepTwo = false"
-          class="text-center text-sm text-blue-500 font-medium hover:underline">
-    Back to Login
-  </button>
-
-</form>
-
-
+          <button type="submit" class="text-white font-bold h-14 rounded-xl w-full text-lg mt-2 shadow-lg hover:brightness-110 active:scale-[0.98]"
+            style="background: linear-gradient(90deg, #5B5B63 0%, #8E736E 100%);">
+            Submit
+          </button>
+          <button type="button" (click)="isStepTwo = false"
+            class="text-center text-sm text-blue-500 font-medium hover:underline">
+            Back to Login
+          </button>
+        </form>
       </div>
     </div>
   </div>

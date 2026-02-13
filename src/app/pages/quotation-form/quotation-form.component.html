@@ -89,8 +89,18 @@
               <option value="Single">Single</option>
               <option value="Multiple">Multiple</option>
             </select>
-            <label class="text-gray-700 font-bold mt-3 block mb-1 uppercase">Contact Person</label>
-            <input [(ngModel)]="quotation.quotedBy" class="w-full border p-2 outline-none">
+            <label class="text-gray-700 font-bold mt-3 block mb-1 uppercase">Line Of Business</label>
+            <select [(ngModel)]="quotation.lineOfBusiness" class="w-full border p-2 outline-none">
+              <option value="" disabled selected>Select Business Line</option>
+              <option value="Air Import">Air Import</option>
+              <option value="Air Export">Air Export</option>
+              <option value="Sea Import">Sea Import</option>
+              <option value="Sea Export">Sea Export</option>
+              <option value="Courier Import">Courier Import</option>
+              <option value="Courier Export">Courier Export</option>
+              <option value="Clearance Import">Clearance Import</option>
+              <option value="Clearance Export">Clearance Export</option>
+            </select>
           </div>
 
           <div>

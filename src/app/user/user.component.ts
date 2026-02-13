@@ -17,6 +17,7 @@ export class UserComponent implements OnInit {
   selectionType: 'checkbox' | 'radio' | null = null;
   selectedUser: any = null; 
   selectedUsers: any[] = []; 
+  newEmployeeID:any=0;
 
   constructor(private userService: UserService, private router: Router) {}
 
@@ -24,7 +25,23 @@ export class UserComponent implements OnInit {
     this.loadUsers(); 
   }
 
-  loadUsers(userType: string = 'all') {
+//   loadUsers(userType: string = 'all') {
+//   this.loading = true;
+
+//   this.userService.getUsers(userType).subscribe({
+//     next: (data: any[]) => {
+//       this.users = data;
+//       this.loading = false;
+//       this.resetSelection();
+//     },
+//     error: (err) => {
+//       console.error("Data fetch error:", err);
+//       this.loading = false;
+//     }
+//   });
+// }
+
+loadUsers(userType: string = 'all') {
   this.loading = true;
 
   this.userService.getUsers(userType).subscribe({
@@ -32,6 +49,10 @@ export class UserComponent implements OnInit {
       this.users = data;
       this.loading = false;
       this.resetSelection();
+
+      // --- START GENERATION LOGIC ---
+      this.generateNextEmployeeID();
+      // --- END GENERATION LOGIC ---
     },
     error: (err) => {
       console.error("Data fetch error:", err);
@@ -40,6 +61,22 @@ export class UserComponent implements OnInit {
   });
 }
 
+/**
+ * Logic to find the highest ID in the current list and increment it.
+ * Assumes your user object has a numeric property like 'empId'.
+ */
+generateNextEmployeeID() {
+  if (this.users && this.users.length > 0) {
+    // Extract IDs, convert to numbers, and find the maximum
+    const maxId = Math.max(...this.users.map(u => Number(u.empId) || 0));
+    this.newEmployeeID = maxId + 1;
+  } else {
+    // Starting ID if no users exist
+    this.newEmployeeID = 101; 
+  }
+  
+  console.log("Next Generated ID:", this.newEmployeeID);
+}
 
   addUser() {
     this.router.navigate(['/dashboard/register-user'], { 

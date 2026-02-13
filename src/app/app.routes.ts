@@ -164,7 +164,7 @@ export const routes: Routes = [
       {
         path: 'register-user',
         component: UserFormComponent,
-        title: 'Register New User'
+        title: 'Register New Employee'
       },
       
       {

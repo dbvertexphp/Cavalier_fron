@@ -124,6 +124,13 @@ export class InquiryComponent implements OnInit {
       inquiryOutcome: 'Pending'
     };
   }
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      console.log("Selected file:", file.name);
+      // Aap yahan file upload ki logic likh sakte hain
+    }
+  }
 
   neworg() {
     this.router.navigate(['/dashboard/organization-add']);

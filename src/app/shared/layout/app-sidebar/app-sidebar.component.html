@@ -168,4 +168,101 @@
       </div>
     </nav>
   </div>
+ <div class="mt-auto px-4 pb-6 flex flex-col gap-1">
+
+  <!-- Access Controller Card -->
+ <button
+  type="button"
+  (click)="goToAccessController()"
+  class="w-full text-left
+         group relative overflow-hidden
+         rounded-2xl
+         bg-[#704e4c]
+        
+         shadow-2xl
+         transition-all duration-300
+         hover:shadow-[0_0_25px_rgba(255,255,255,0.15)]
+         hover:-translate-y-1
+         active:scale-[0.98]"
+>
+
+  <div class="flex items-center gap-4">
+
+    <!-- Icon Box -->
+    <div class="w-11 h-11 rounded-xl flex items-center justify-center
+                bg-white/20 backdrop-blur-sm
+                border border-white/20
+                group-hover:scale-110 transition duration-300">
+
+      <svg width="20" height="20" viewBox="0 0 24 24"
+           fill="none" stroke="white" stroke-width="2">
+        <rect x="3" y="11" width="18" height="11" rx="2"></rect>
+        <path d="M7 11V7a5 5 0 0110 0v4"></path>
+      </svg>
+
+    </div>
+
+    @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
+      <div class="flex flex-col">
+        <span class="text-sm font-semibold text-white">
+         Admin Controller
+        </span>
+      </div>
+    }
+
+  </div>
+
+</button>
+
+
+
+  <!-- Directory Card -->
+<button
+  type="button"
+  (click)="goToDirectory()"
+  class="w-full text-left
+         group relative overflow-hidden
+         rounded-2xl
+         bg-[#704e4c]
+         
+         shadow-2xl
+         transition-all duration-300
+         hover:shadow-[0_0_25px_rgba(255,255,255,0.15)]
+         hover:-translate-y-1
+         active:scale-[0.98]"
+>
+
+  <div class="flex items-center gap-4">
+
+    <!-- Icon Box -->
+    <div class="w-11 h-11 rounded-xl flex items-center justify-center
+                bg-white/20 backdrop-blur-sm
+                border border-white/20
+                group-hover:scale-110 transition duration-300">
+
+      <svg width="20" height="20" viewBox="0 0 24 24"
+           fill="none" stroke="white" stroke-width="2">
+        <path d="M3 7h5l2 3h11v11H3z"></path>
+      </svg>
+
+    </div>
+
+    @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
+      <div class="flex flex-col">
+        <span class="text-sm font-semibold text-white">
+          Directory
+        </span>
+      </div>
+    }
+
+  </div>
+
+</button>
+
+
+</div>
+
+
+
+  <!-- fdfd -->
 </aside>

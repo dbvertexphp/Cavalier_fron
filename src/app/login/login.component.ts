@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -32,7 +32,8 @@ isBranchDisabled = false;
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private http: HttpClient
+    private http: HttpClient,
+    private c:ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -58,6 +59,7 @@ isBranchDisabled = false;
 
   // 🔐 LOGIN STEP (API BASED)
   onNextStep(): void {
+    console.log('clicked next step');
   if (this.loginForm.invalid) {
     alert('Email & Password required');
     return;
@@ -71,6 +73,7 @@ isBranchDisabled = false;
 
       const user = res.user;
       this.isStepTwo = true;
+      this.c.detectChanges(); // Force UI update for step 2
 
       // ✅ USER + COMPANY
       this.displayUserName = user.firstName;

@@ -57,6 +57,7 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.loadNavItemsFromApi();
+    this.cdr.detectChanges();
 
     this.subscription.add(
       this.router.events.subscribe(event => {
@@ -79,6 +80,7 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
     this.subscription.unsubscribe();
   }
 
+
   /** API call to fetch permissions and build navItems */
   private loadNavItemsFromApi() {
     const token = localStorage.getItem('cavalier_token') || '';
@@ -91,6 +93,7 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
   res => {
     if (res.permissions) {
       this.navItems = this.buildNav(res.permissions);
+      this.cdr.detectChanges();
     }
     this.loadings = false; // ✅ sidebar ready
   },
@@ -101,6 +104,47 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
 );
 
   }
+  goToAccessController() {
+
+  const accessType = 'system';
+
+  const token = localStorage.getItem('cavalier_token') || '';
+
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  });
+
+  this.http.post<any>(
+    `${environment.apiUrl}/Auth/set-access-type`,
+    { accessType },
+    { headers }
+  ).subscribe({
+
+    next: (res) => {
+
+      // ✅ Save new token + access type
+      localStorage.setItem('cavalier_token', res.token);
+      localStorage.setItem('accessType', res.accessType);
+
+      // 🔥 IMPORTANT: reload sidebar permissions
+      this.loadings = true;
+      this.cdr.detectChanges();
+      this.loadNavItemsFromApi();
+      
+
+    },
+
+    error: (err) => {
+      console.error('Access switch failed', err);
+      alert('Something went wrong!');
+    }
+
+  });
+}
+goToDirectory(){
+  alert('fdfdf');
+}
 
   /** Build nested navItems from permissions */
   private buildNav(permissions: any[]): NavItem[] {
@@ -193,8 +237,10 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
 </svg>`,
         path: '/dashboard/port-of-discharge'
       });
-  
+ 
+
     }
+    
     // ✅ Manually adding Storage Utilization at the end (Normal Link, No Dropdown)
     // finalNav.push({
     //   name: 'Storage Utilization',

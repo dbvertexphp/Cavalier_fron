@@ -51,7 +51,7 @@ loadUsers(userType: string = 'all') {
       this.resetSelection();
 
       // --- START GENERATION LOGIC ---
-      this.generateNextEmployeeID();
+     
       // --- END GENERATION LOGIC ---
     },
     error: (err) => {
@@ -65,22 +65,12 @@ loadUsers(userType: string = 'all') {
  * Logic to find the highest ID in the current list and increment it.
  * Assumes your user object has a numeric property like 'empId'.
  */
-generateNextEmployeeID() {
-  if (this.users && this.users.length > 0) {
-    // Extract IDs, convert to numbers, and find the maximum
-    const maxId = Math.max(...this.users.map(u => Number(u.empId) || 0));
-    this.newEmployeeID = maxId + 1;
-  } else {
-    // Starting ID if no users exist
-    this.newEmployeeID = 101; 
-  }
-  
-  console.log("Next Generated ID:", this.newEmployeeID);
-}
+
 
   addUser() {
     this.router.navigate(['/dashboard/register-user'], { 
       state: { isEdit: false } 
+      
     });
   }
 
@@ -157,7 +147,7 @@ generateNextEmployeeID() {
 
       Promise.all(deleteRequests).then(() => {
         alert('Users deleted successfully');
-        this.loadUsers();
+        this.loadUsers(); 
       }).catch(err => {
         console.error("Delete Error:", err);
         alert('Error deleting some users.');

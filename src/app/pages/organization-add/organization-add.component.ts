@@ -12,7 +12,12 @@ import { FormsModule } from '@angular/forms';
 export class OrganizationAddComponent {
   activeTab: string = 'general';
   selectedRoles: string[] = []; 
-  
+  organization = {
+  organizationName: '',
+  alias: '',
+  branchName: ''
+};
+
   // Dynamic Branch List
   branches = [
     { id: 1, name: 'Branch 01', isDefault: true },
@@ -48,6 +53,10 @@ export class OrganizationAddComponent {
     this.selectedBranch = branch;
   }
 
-  saveOrg() { alert('Organization Saved Successfully!'); }
+ saveOrg() {
+
+  alert('changed now');
+}
+
   cancel() { this.location.back(); }
 }

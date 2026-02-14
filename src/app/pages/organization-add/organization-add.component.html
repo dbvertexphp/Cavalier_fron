@@ -13,11 +13,11 @@
       <div class="space-y-3">
         <div class="flex items-center gap-2">
           <label class="w-24 text-red-700 font-bold">Name</label>
-          <input type="text" placeholder="Full Organization Name" class="flex-1 border border-gray-300 p-1.5 focus:border-[#4a3f3f] outline-none shadow-sm">
+          <input type="text" placeholder="Full Organization Name" [(ngModel)]="organization.organizationName"name="organizationName" class="flex-1 border border-gray-300 p-1.5 focus:border-[#4a3f3f] outline-none shadow-sm">
         </div>
         <div class="flex items-center gap-2">
           <label class="w-24 text-red-700 font-bold">Alias</label>
-          <input type="text" placeholder="Short Name" class="w-48 border border-gray-300 p-1.5 focus:border-[#4a3f3f] outline-none">
+          <input type="text"  [(ngModel)]="organization.alias"   name="alias" placeholder="Short Name" class="w-48 border border-gray-300 p-1.5 focus:border-[#4a3f3f] outline-none">
         </div>
       </div>
 
@@ -67,7 +67,7 @@
           <div class="flex-1 p-6 space-y-4 max-w-5xl">
             <div class="flex items-center gap-4">
               <label class="w-40 text-red-700 font-bold">Branch Name</label>
-              <input type="text" [value]="selectedBranch.name" class="flex-1 border border-gray-300 p-1.5 outline-none focus:border-[#4a3f3f]">
+              <input type="text" [(ngModel)]="organization.branchName"  name="branchName" class="flex-1 border border-gray-300 p-1.5 outline-none focus:border-[#4a3f3f]">
               <label class="flex items-center gap-2 text-sm font-semibold"><input type="checkbox" [checked]="selectedBranch.isDefault" class="accent-[#4a3f3f]"> Set as Default</label>
               <label class="flex items-center gap-2 text-sm font-semibold"><input type="checkbox" class="accent-[#4a3f3f]"> Deactivate</label>
             </div>

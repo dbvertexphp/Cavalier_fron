@@ -33,6 +33,11 @@ export class OrganizationAddComponent implements OnInit {
   salesPerson: string = '';
   collectionExec: string = '';
 
+  // --- Dynamic Contact Detail Array ---
+  contactList: any[] = [
+    { name: '', designation: '', department: '', mobile: '', whatsapp: '', email: '' }
+  ];
+
   branches = [
     { id: 1, name: 'Branch 01', isDefault: true },
     { id: 2, name: 'Branch 02', isDefault: false }
@@ -53,7 +58,25 @@ export class OrganizationAddComponent implements OnInit {
     });
   }
 
-  // --- YE FUNCTION ADD KAREIN (Errors hatane ke liye) ---
+  // --- Contact Row Functions ---
+  addContactRow() {
+    this.contactList.push({
+      name: '',
+      designation: '',
+      department: '',
+      mobile: '',
+      whatsapp: '',
+      email: ''
+    });
+  }
+
+  removeContactRow(index: number) {
+    if (this.contactList.length > 1) {
+      this.contactList.splice(index, 1);
+    }
+  }
+
+  // --- Helper Functions ---
   isRoleSelected(role: string): boolean {
     return this.selectedRoles.includes(role);
   }
@@ -86,7 +109,8 @@ export class OrganizationAddComponent implements OnInit {
       fax: this.fax,
       whatsAppNumber: this.whatsAppNumber,
       salesPerson: this.salesPerson,
-      collectionExec: this.collectionExec
+      collectionExec: this.collectionExec,
+      contacts: this.contactList // Sending dynamic contact list to API
     };
 
     this.http.post('http://localhost:5000/api/Organization/save', payload).subscribe({

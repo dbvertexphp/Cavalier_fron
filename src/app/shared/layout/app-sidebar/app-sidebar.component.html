@@ -24,50 +24,27 @@
 
   <div class="flex flex-col flex-grow overflow-y-auto no-scrollbar">
     <nav class="mb-6 px-3">
-<!-- ✅ Ultra Dark Stylish Skeleton START -->
-<!-- ✅ Deeper Dark Stylish Skeleton START -->
-<div *ngIf="loadings" class="flex flex-col gap-2 px-2">
-
-  <!-- Heading skeleton -->
-  <div class="px-3 mb-3 h-5 flex items-center">
-    <div class="h-2 w-16 rounded bg-white/20 animate-pulse"></div>
-  </div>
-
-  @for (i of [1,2,3,4,5]; track i) {
-    <div
-      class="flex items-center w-full p-3 rounded-2xl
-             bg-white/15 border border-white/20
-             backdrop-blur-sm transition-all duration-300">
-
-      <!-- Icon skeleton -->
-      <div
-        class="flex-shrink-0 w-6 h-6 rounded-lg
-               bg-gradient-to-br from-white/35 via-white/20 to-transparent
-               animate-pulse">
-      </div>
-
-      @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-
-        <!-- Text skeleton -->
-        <div
-          class="ml-4 h-3 w-32 rounded-md
-                 bg-gradient-to-r from-white/35 via-white/20 to-white/35
-                 animate-pulse">
+      <div *ngIf="loadings" class="flex flex-col gap-2 px-2">
+        <div class="px-3 mb-3 h-5 flex items-center">
+          <div class="h-2 w-16 rounded bg-white/20 animate-pulse"></div>
         </div>
-
-        <!-- Arrow skeleton -->
-        <div class="ml-auto h-3 w-3 rounded bg-white/25 animate-pulse"></div>
-      }
-    </div>
-  }
-</div>
-<!-- ✅ Deeper Dark Stylish Skeleton END -->
-<!-- ✅ Ultra Dark Stylish Skeleton END -->
+        @for (i of [1,2,3,4,5]; track i) {
+          <div class="flex items-center w-full p-3 rounded-2xl bg-white/15 border border-white/20 backdrop-blur-sm transition-all duration-300">
+            <div class="flex-shrink-0 w-6 h-6 rounded-lg bg-gradient-to-br from-white/35 via-white/20 to-transparent animate-pulse"></div>
+            @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
+              <div class="ml-4 h-3 w-32 rounded-md bg-gradient-to-r from-white/35 via-white/20 to-white/35 animate-pulse"></div>
+              <div class="ml-auto h-3 w-3 rounded bg-white/25 animate-pulse"></div>
+            }
+          </div>
+        }
+      </div>
 
       <div *ngIf="!loadings" class="flex flex-col">
         <div class="px-3 mb-4 h-5 flex items-center">
           <h2 class="text-[10px] font-black uppercase tracking-[2px] text-white/50">
-            @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) { Menu }
+            @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
+              {{ currentAccessType === 'system' ? 'System Administrator' : 'Menu' }}
+            }
             @else { ••• }
           </h2>
         </div>
@@ -75,194 +52,106 @@
         <ul class="flex flex-col gap-1">
           @for (nav of navItems; track $index; let i = $index) {
           <li class="w-full">
-
             @if (nav.subItems && nav.subItems.length > 0) {
               <button
                 (click)="toggleSubmenu('main', i)"
                 class="group flex items-center w-full p-3 rounded-xl transition-all duration-200 hover:bg-black/20"
-                [ngClass]="{
-                  'bg-black/40 shadow-inner': openSubmenu === 'main-' + i && ((isExpanded$ | async) || (isHovered$ | async))
-                }"
+                [ngClass]="{ 'bg-black/40 shadow-inner': openSubmenu === 'main-' + i && ((isExpanded$ | async) || (isHovered$ | async)) }"
               >
-                <span
-                  class="flex-shrink-0 w-6 h-6 flex items-center justify-center text-white/80 group-hover:text-white"
-                  [innerHTML]="nav.icon || '' | safeHtml"
-                ></span>
-
+                <span class="flex-shrink-0 w-6 h-6 flex items-center justify-center text-white/80 group-hover:text-white" [innerHTML]="nav.icon || '' | safeHtml"></span>
                 @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-                  <span class="ml-4 text-[13px] font-semibold tracking-wide text-white/90 group-hover:text-white whitespace-nowrap">
-                    {{ nav.name }}
-                  </span>
-
-                  <svg
-                    [ngClass]="{ 'rotate-180': openSubmenu === 'main-' + i }"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 20 20"
-                    fill="none"
-                    stroke="currentColor"
-                    class="ml-auto transition-transform duration-300 text-white/50 group-hover:text-white"
-                  >
-                    <path
-                      d="M4.79175 7.396L10.0001 12.6043L15.2084 7.396"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    ></path>
+                  <span class="ml-4 text-[13px] font-semibold tracking-wide text-white/90 group-hover:text-white whitespace-nowrap">{{ nav.name }}</span>
+                  <svg [ngClass]="{ 'rotate-180': openSubmenu === 'main-' + i }" width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" class="ml-auto transition-transform duration-300 text-white/50 group-hover:text-white">
+                    <path d="M4.79175 7.396L10.0001 12.6043L15.2084 7.396" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
                   </svg>
                 }
               </button>
-
-              <div
-                class="overflow-hidden transition-all duration-300"
-                [ngClass]="{
-                  'bg-black/10 rounded-b-xl': (isExpanded$ | async) || (isHovered$ | async),
-                  'hidden': !((isExpanded$ | async) || (isHovered$ | async))
-                }"
-                [style.height]="
-                  openSubmenu === 'main-' + i && ((isExpanded$ | async) || (isHovered$ | async))
-                    ? 'auto'
-                    : '0px'
-                "
-              >
+              <div class="overflow-hidden transition-all duration-300" [ngClass]="{ 'bg-black/10 rounded-b-xl': (isExpanded$ | async) || (isHovered$ | async), 'hidden': !((isExpanded$ | async) || (isHovered$ | async)) }" [style.height]="openSubmenu === 'main-' + i && ((isExpanded$ | async) || (isHovered$ | async)) ? 'auto' : '0px'">
                 <ul class="py-1 ml-10 border-l border-white/10">
                   @for (subItem of nav.subItems; track $index) {
                     <li>
-                      <a
-                        [routerLink]="subItem.path"
-                        (click)="onSubmenuClick()"
-                        routerLinkActive="text-white font-bold bg-white/5"
-                        class="block py-2.5 px-4 text-xs text-white/60 hover:text-white hover:bg-white/5 transition-all rounded-r-lg"
-                      >
-                        {{ subItem.name }}
-                      </a>
+                      <a [routerLink]="subItem.path" (click)="onSubmenuClick()" routerLinkActive="text-white font-bold bg-white/5" class="block py-2.5 px-4 text-xs text-white/60 hover:text-white hover:bg-white/5 transition-all rounded-r-lg">{{ subItem.name }}</a>
                     </li>
                   }
                 </ul>
               </div>
             }
-
             @else {
-              <a
-                [routerLink]="nav.path"
-                routerLinkActive="bg-black shadow-lg border border-white/5"
-                [routerLinkActiveOptions]="{ exact: true }"
-                class="group flex items-center w-full p-3 rounded-xl transition-all duration-200 hover:bg-black/20"
-              >
-                <span
-                  class="flex-shrink-0 w-6 h-6 flex items-center justify-center text-white/80 group-hover:text-white"
-                  [innerHTML]="nav.icon || '' | safeHtml"
-                ></span>
-
+              <a [routerLink]="nav.path" routerLinkActive="bg-black shadow-lg border border-white/5" [routerLinkActiveOptions]="{ exact: true }" class="group flex items-center w-full p-3 rounded-xl transition-all duration-200 hover:bg-black/20">
+                <span class="flex-shrink-0 w-6 h-6 flex items-center justify-center text-white/80 group-hover:text-white" [innerHTML]="nav.icon || '' | safeHtml"></span>
                 @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-                  <span class="ml-4 text-[13px] font-semibold tracking-wide text-white/90 group-hover:text-white whitespace-nowrap">
-                    {{ nav.name }}
-                  </span>
+                  <span class="ml-4 text-[13px] font-semibold tracking-wide text-white/90 group-hover:text-white whitespace-nowrap">{{ nav.name }}</span>
                 }
               </a>
             }
-
           </li>
           }
+
+          <li class="w-full">
+            <a routerLink="/hod" routerLinkActive="bg-black shadow-lg border border-white/5" class="group flex items-center w-full p-3 rounded-xl transition-all duration-200 hover:bg-black/20">
+              <span class="flex-shrink-0 w-6 h-6 flex items-center justify-center text-white/80 group-hover:text-white">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+              </span>
+              @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
+                <span class="ml-4 text-[13px] font-semibold tracking-wide text-white/90 group-hover:text-white whitespace-nowrap">HOD</span>
+              }
+            </a>
+          </li>
+
+          <li class="w-full">
+            <a routerLink="/teams" routerLinkActive="bg-black shadow-lg border border-white/5" class="group flex items-center w-full p-3 rounded-xl transition-all duration-200 hover:bg-black/20">
+              <span class="flex-shrink-0 w-6 h-6 flex items-center justify-center text-white/80 group-hover:text-white">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+              </span>
+              @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
+                <span class="ml-4 text-[13px] font-semibold tracking-wide text-white/90 group-hover:text-white whitespace-nowrap">Teams</span>
+              }
+            </a>
+          </li>
         </ul>
       </div>
     </nav>
   </div>
- <div class="mt-auto px-4 pb-6 flex flex-col gap-1">
 
-  <!-- Access Controller Card -->
- <button
-  type="button"
-  (click)="goToAccessController()"
-  class="w-full text-left
-         group relative overflow-hidden
-         rounded-2xl
-         bg-[#704e4c]
-        
-         shadow-2xl
-         transition-all duration-300
-         hover:shadow-[0_0_25px_rgba(255,255,255,0.15)]
-         hover:-translate-y-1
-         active:scale-[0.98]"
->
-
-  <div class="flex items-center gap-4">
-
-    <!-- Icon Box -->
-    <div class="w-11 h-11 rounded-xl flex items-center justify-center
-                bg-white/20 backdrop-blur-sm
-                border border-white/20
-                group-hover:scale-110 transition duration-300">
-
-      <svg width="20" height="20" viewBox="0 0 24 24"
-           fill="none" stroke="white" stroke-width="2">
-        <rect x="3" y="11" width="18" height="11" rx="2"></rect>
-        <path d="M7 11V7a5 5 0 0110 0v4"></path>
-      </svg>
-
-    </div>
-
-    @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-      <div class="flex flex-col">
-        <span class="text-sm font-semibold text-white">
-         Admin Controller
-        </span>
+  <div class="mt-auto px-4 pb-6 flex flex-col gap-1">
+    <button type="button" (click)="goToAccessController()" class="w-full text-left group relative overflow-hidden rounded-2xl bg-[#704e4c] shadow-2xl transition-all duration-300 hover:shadow-[0_0_25px_rgba(255,255,255,0.15)] hover:-translate-y-1 active:scale-[0.98]">
+      <div class="flex items-center gap-4">
+        <div class="w-11 h-11 rounded-xl flex items-center justify-center bg-white/20 backdrop-blur-sm border border-white/20 group-hover:scale-110 transition duration-300">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2"></rect>
+            <path d="M7 11V7a5 5 0 0110 0v4"></path>
+          </svg>
+        </div>
+        @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
+          <div class="flex flex-col">
+            <span class="text-sm font-semibold text-white">Admin Controller</span>
+          </div>
+        }
       </div>
-    }
-
-  </div>
-
-</button>
-
-
-
-  <!-- Directory Card -->
-<button
-  type="button"
-  (click)="goToDirectory()"
-  class="w-full text-left
-         group relative overflow-hidden
-         rounded-2xl
-         bg-[#704e4c]
-         
-         shadow-2xl
-         transition-all duration-300
-         hover:shadow-[0_0_25px_rgba(255,255,255,0.15)]
-         hover:-translate-y-1
-         active:scale-[0.98]"
->
-
-  <div class="flex items-center gap-4">
-
-    <!-- Icon Box -->
-    <div class="w-11 h-11 rounded-xl flex items-center justify-center
-                bg-white/20 backdrop-blur-sm
-                border border-white/20
-                group-hover:scale-110 transition duration-300">
-
-      <svg width="20" height="20" viewBox="0 0 24 24"
-           fill="none" stroke="white" stroke-width="2">
-        <path d="M3 7h5l2 3h11v11H3z"></path>
-      </svg>
-
-    </div>
-
-    @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-      <div class="flex flex-col">
-        <span class="text-sm font-semibold text-white">
-          Directory
-        </span>
+    </button>
+    <button type="button" (click)="goToDirectory()" class="w-full text-left group relative overflow-hidden rounded-2xl bg-[#704e4c] shadow-2xl transition-all duration-300 hover:shadow-[0_0_25px_rgba(255,255,255,0.15)] hover:-translate-y-1 active:scale-[0.98]">
+      <div class="flex items-center gap-4">
+        <div class="w-11 h-11 rounded-xl flex items-center justify-center bg-white/20 backdrop-blur-sm border border-white/20 group-hover:scale-110 transition duration-300">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+            <path d="M3 7h5l2 3h11v11H3z"></path>
+          </svg>
+        </div>
+        @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
+          <div class="flex flex-col">
+            <span class="text-sm font-semibold text-white">Directory</span>
+          </div>
+        }
       </div>
-    }
-
+    </button>
   </div>
-
-</button>
-
-
-</div>
-
-
-
-  <!-- fdfd -->
 </aside>

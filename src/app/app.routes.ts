@@ -21,7 +21,7 @@ import { SignUpComponent } from './pages/auth-pages/sign-up/sign-up.component';
 import { CalenderComponent } from './pages/calender/calender.component';
 import { UserComponent } from './user/user.component';
 import { BranchComponent } from './branch/branch.component';
-import { UserFormComponent } from './components/user-form/user-form.component'; 
+import { UserFormComponent } from './components/user-form/user-form.component';
 
 import { RolesComponent } from './dashboard/roles/roles.component';
 import { DepartmentsComponent } from './dashboard/departments/departments.component';
@@ -58,6 +58,8 @@ import { PartyRoleComponent } from './pages/party-role/party-role.component';
 import { OriginComponent } from './pages/origin/origin.component';
 import { PortOfLoadingComponent } from './pages/port-of-loading/port-of-loading.component';
 import { PortOfDischargeComponent } from './pages/port-of-discharge/port-of-discharge.component';
+import { CompanyServiceComponent } from './pages/company-service/company-service.component';
+import { HodComponent } from './pages/hod/hod.component';
 
 
 
@@ -65,15 +67,15 @@ import { PortOfDischargeComponent } from './pages/port-of-discharge/port-of-disc
 export const routes: Routes = [
 
   // 1. AUTH & ROLE SELECTION (Root Pages)
-  { 
-    path: '', 
-    component: LoginComponent, 
-    title: 'Welcome to Cavalier | Login' 
+  {
+    path: '',
+    component: LoginComponent,
+    title: 'Welcome to Cavalier | Login'
   },
   {
     path: 'dashboard',
     component: AppLayoutComponent,
-    
+
     children: [
       {
         path: '',
@@ -81,58 +83,82 @@ export const routes: Routes = [
         pathMatch: 'full',
         title: 'Cavalier Logistics Dashboard',
       },
-      { 
-      path: 'salecrm/qoutation', 
-      component: QuotationFormComponent 
+      {
+        path: 'salecrm/qoutation',
+        component: QuotationFormComponent
       },
       {
-         path: 'salescrm/lead', 
-      component: LeadFormComponent 
+        path: 'salescrm/lead',
+        component: LeadFormComponent
       },
-        {
-         path: 'salescrm/inquiry', 
-      component: InquiryComponent 
+      {
+        path: 'salescrm/inquiry',
+        component: InquiryComponent
       },
-      { path: 'organization-add', 
-        component: OrganizationAddComponent },
-      { path: 'roles', 
-        component: RolesComponent 
+      {
+        path: 'organization-add',
+        component: OrganizationAddComponent
       },
-          { path: 'cargotype',      
+      {
+        path: 'roles',
+        component: RolesComponent
+      },
+      {
+        path: 'cargotype',
         component: CargoTypeComponent        //cargo type
       },
-        { path: 'commoditytype', 
+      {
+        path: 'commoditytype',
         component: CommodityTypeComponent         //CommodityType
       },
-        { path: 'partyrole', 
+      {
+        path: 'partyrole',
         component: PartyRoleComponent         //Party role
       },
-       { path: 'origin', 
+      {
+        path: 'origin',
         component: OriginComponent         //Origin
       },
-           { path: 'origin', 
+      {
+        path: 'origin',
         component: OriginComponent         //Origin
       },
-               { path: 'port-of-loading', 
-        component: PortOfLoadingComponent   },      //Port Setup
-       { path: 'port-of-discharge', 
-        component: PortOfDischargeComponent   }, 
-       
-      { path: 'departments', 
+      {
+        path: 'port-of-loading',
+        component: PortOfLoadingComponent
+      },      //Port Setup
+      {
+        path: 'port-of-discharge',
+        component: PortOfDischargeComponent
+      },
+      {
+        path: 'company-service',
+        component: CompanyServiceComponent
+      },
+      {
+        path: 'hod',
+        component: HodComponent,
+        title: 'HOD Management | Cavalier'
+      },
+
+      {
+        path: 'departments',
         component: DepartmentsComponent
-       },
-      { path: 'designations', 
+      },
+      {
+        path: 'designations',
         component: DesignationsComponent
 
-       },
-      { path: 'permissions', 
+      },
+      {
+        path: 'permissions',
         component: PermissionComponent
 
-       },
-      { 
-        path: 'storage-utilization', 
+      },
+      {
+        path: 'storage-utilization',
         component: StorageWidgetComponent,
-        title: 'Storage Utilization | Cavalier' 
+        title: 'Storage Utilization | Cavalier'
       },
       {
         path: 'port-setup', // ✅ Sidebar path se match karta hai
@@ -151,10 +177,10 @@ export const routes: Routes = [
         path: 'registrations',
         component: RegistrationsComponent
       },
-      { 
-        path: 'branch-form', 
+      {
+        path: 'branch-form',
         component: BranchFormComponent, // Yahan BranchFormComponent use karein UserForm ki jagah
-        title: 'Branch Registration' 
+        title: 'Branch Registration'
       },
       {
         path: 'hr/employee-master',
@@ -166,7 +192,7 @@ export const routes: Routes = [
         component: UserFormComponent,
         title: 'Register New Employee'
       },
-      
+
       {
         path: 'profile',
         component: ProfileComponent,
@@ -222,7 +248,7 @@ export const routes: Routes = [
         component: SmsComponent,
         title: 'SMS Logs'
       },
-      
+
     ]
   },
 

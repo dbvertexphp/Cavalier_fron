@@ -1,15 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 @Component({
   selector: 'app-origin',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, HttpClientModule],
   templateUrl: './origin.component.html',
   styleUrl: './origin.component.css'
 })
 export class OriginComponent implements OnInit {
+  private apiUrl = 'http://localhost:5000/api/Origin'; // Apne backend ka port check kar lena
+
   isModalOpen = false;
   isEditMode = false;
   showPopup = false;
@@ -18,69 +21,59 @@ export class OriginComponent implements OnInit {
   rolesList: any[] = [];
   newRole = { id: 0, name: '', status: true };
 
+  constructor(private http: HttpClient) {}
+
   ngOnInit(): void {
-    const savedData = localStorage.getItem('originData');
-    if (savedData) {
-      this.rolesList = JSON.parse(savedData);
-    } else {
-      // Default Data
-      this.rolesList = [
-        { id: 1, name: 'Mumbai, India', status: true },
-        { id: 2, name: 'Dubai, UAE', status: true }
-      ];
-      this.saveToStorage();
-    }
+    this.fetchOrigins();
   }
 
-  saveToStorage() {
-    localStorage.setItem('originData', JSON.stringify(this.rolesList));
+  // 1. GET DATA
+  fetchOrigins() {
+    this.http.get<any[]>(this.apiUrl).subscribe({
+      next: (data) => this.rolesList = data,
+      error: (err) => console.error('Error fetching origins:', err)
+    });
   }
 
+  // 2. SAVE (ADD)
   saveRole() {
     if (this.newRole.name.trim()) {
       if (this.isEditMode) {
-        const index = this.rolesList.findIndex(r => r.id === this.newRole.id);
-        if (index !== -1) this.rolesList[index] = { ...this.newRole };
+        // Edit logic abhi skip hai
+        this.closeModal();
       } else {
-        const newId = this.rolesList.length > 0 ? Math.max(...this.rolesList.map(r => r.id)) + 1 : 1;
-        this.rolesList.push({ ...this.newRole, id: newId });
+        const payload = { name: this.newRole.name, status: this.newRole.status };
+        this.http.post(this.apiUrl, payload).subscribe({
+          next: () => {
+            this.fetchOrigins();
+            this.closeModal();
+          }
+        });
       }
-      this.saveToStorage();
-      this.closeModal();
     }
   }
 
+  // 3. DELETE
   confirmDelete() {
     if (this.roleIdToDelete !== null) {
-      this.rolesList = this.rolesList.filter(r => r.id !== this.roleIdToDelete);
-      this.saveToStorage();
-      this.roleIdToDelete = null;
-      this.showPopup = false;
+      this.http.delete(`${this.apiUrl}/${this.roleIdToDelete}`).subscribe({
+        next: () => {
+          this.fetchOrigins();
+          this.showPopup = false;
+          this.roleIdToDelete = null;
+        }
+      });
     }
   }
 
+  // UI Helpers
   openModal() {
     this.isEditMode = false;
     this.newRole = { id: 0, name: '', status: true };
     this.isModalOpen = true;
   }
-
-  closeModal() {
-    this.isModalOpen = false;
-  }
-
-  editRole(role: any) {
-    this.isEditMode = true;
-    this.newRole = { ...role };
-    this.isModalOpen = true;
-  }
-
-  deleteRole(id: number) {
-    this.roleIdToDelete = id;
-    this.showPopup = true;
-  }
-
-  cancelDelete() {
-    this.showPopup = false;
-  }
+  closeModal() { this.isModalOpen = false; }
+  editRole(role: any) { this.isEditMode = true; this.newRole = { ...role }; this.isModalOpen = true; }
+  deleteRole(id: number) { this.roleIdToDelete = id; this.showPopup = true; }
+  cancelDelete() { this.showPopup = false; }
 }

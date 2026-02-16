@@ -1,14 +1,9 @@
-
 <div class="p-3 md:p-6">
   <div class="flex flex-row justify-between items-center mb-6 gap-2">
     <div class="flex items-center gap-3">
       <div class="bg-gray-100 p-2.5 rounded-xl hidden sm:flex items-center justify-center text-[#654E51]">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M2 17h20l-2 4H4l-2-4z"></path>
-          <path d="M6 17V9"></path>
-          <path d="M10 17V9"></path>
-          <path d="M18 13l-3 3-3-3"></path>
-          <path d="M15 4v12"></path>
+          <path d="M2 17h20l-2 4H4l-2-4z"></path><path d="M6 17V9"></path><path d="M10 17V9"></path><path d="M18 13l-3 3-3-3"></path><path d="M15 4v12"></path>
         </svg>
       </div>
       <div>
@@ -17,9 +12,9 @@
       </div>
     </div>
     
-    <button (click)="openModal()" class="bg-[#654E51] text-white px-3 py-2 md:px-5 md:py-2.5 rounded-lg hover:bg-[#4A3739] transition flex items-center gap-1.5 shadow-md shrink-0 active:scale-95">
+    <button (click)="openModal()" class="bg-[#654E51] text-white px-3 py-2 md:px-5 md:py-2.5 rounded-lg hover:bg-[#4A3739] transition flex items-center gap-1.5 shadow-md active:scale-95">
       <span class="text-lg md:text-xl font-bold">+</span> 
-      <span class="text-xs md:text-base font-semibold uppercase md:capitalize">Add POD</span>
+      <span class="text-xs md:text-base font-semibold uppercase">Add POD</span>
     </button>
   </div>
 
@@ -28,15 +23,13 @@
       <table class="w-full text-left">
         <thead class="bg-gray-50 border-b border-gray-200">
           <tr>
-            <th class="px-4 md:px-6 py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-widest">Discharge Port Name</th>
-            <th class="px-4 md:px-6 py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-widest text-center">Actions</th>
+            <th class="px-4 md:px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Discharge Port Name</th>
+            <th class="px-4 md:px-6 py-4 text-xs font-bold text-gray-500 uppercase text-center">Actions</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
           <tr *ngIf="rolesList.length === 0">
-            <td colspan="2" class="px-6 py-12 text-center text-gray-400">
-              No Port of Discharge found.
-            </td>
+            <td colspan="2" class="px-6 py-12 text-center text-gray-400">No Port of Discharge found.</td>
           </tr>
           
           <tr *ngFor="let role of rolesList" class="hover:bg-gray-50/50 transition-colors group">
@@ -45,16 +38,8 @@
             </td>
             <td class="px-4 md:px-6 py-4">
               <div class="flex justify-center gap-2 md:gap-3">
-                <button (click)="editRole(role)" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                </button>
-                <button (click)="deleteRole(role.id)" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
+                <button (click)="editRole(role)" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
+                <button (click)="deleteRole(role.id)" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
               </div>
             </td>
           </tr>
@@ -64,20 +49,18 @@
   </div>
 
   <div *ngIf="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-    <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
-      <div class="bg-gray-50 px-6 py-5 border-b border-gray-100 flex justify-between items-center">
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl animate-in fade-in zoom-in duration-300">
+      <div class="bg-gray-50 px-6 py-5 border-b flex justify-between items-center">
         <h3 class="text-lg font-bold text-gray-800">{{ isEditMode ? 'Update' : 'Create' }} POD</h3>
         <button (click)="closeModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
       </div>
       <div class="p-6">
         <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Discharge Port Name</label>
-        <input type="text" [(ngModel)]="newRole.name" placeholder="Enter POD name..."
-          class="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:border-[#654E51] focus:ring-0 outline-none transition-all font-medium">
+        <input type="text" [(ngModel)]="newRole.name" placeholder="Enter POD name..." class="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:border-[#654E51] outline-none font-medium">
       </div>
-      <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex gap-3">
-        <button (click)="closeModal()" class="flex-1 py-2.5 text-gray-600 font-bold hover:bg-gray-200 rounded-lg transition">Cancel</button>
-        <button (click)="saveRole()" [disabled]="!newRole.name" 
-          class="flex-1 py-2.5 bg-[#654E51] text-white font-bold rounded-lg hover:bg-[#4A3739] shadow-lg transition">
+      <div class="px-6 py-4 bg-gray-50 border-t flex gap-3">
+        <button (click)="closeModal()" class="flex-1 py-2.5 text-gray-600 font-bold hover:bg-gray-200 rounded-lg">Cancel</button>
+        <button (click)="saveRole()" [disabled]="!newRole.name" class="flex-1 py-2.5 bg-[#654E51] text-white font-bold rounded-lg hover:bg-[#4A3739] shadow-lg">
           {{ isEditMode ? 'Update POD' : 'Save POD' }}
         </button>
       </div>
@@ -85,17 +68,15 @@
   </div>
 
   <div *ngIf="showPopup" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-    <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-sm text-center border border-gray-100 animate-in fade-in zoom-in duration-200">
+    <div class="bg-white rounded-3xl p-8 w-full max-w-sm text-center">
       <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-        </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
       </div>
       <h3 class="text-xl font-bold text-gray-800 mb-2">Delete POD?</h3>
       <p class="text-gray-500 mb-8 leading-relaxed">This port will be removed from your destination list.</p>
       <div class="flex gap-3">
-        <button (click)="cancelDelete()" class="flex-1 py-3 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-200 transition">Cancel</button>
-        <button (click)="confirmDelete()" class="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 shadow-lg transition">Confirm</button>
+        <button (click)="cancelDelete()" class="flex-1 py-3 bg-gray-100 text-gray-600 font-bold rounded-xl">Cancel</button>
+        <button (click)="confirmDelete()" class="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl shadow-lg">Confirm</button>
       </div>
     </div>
   </div>

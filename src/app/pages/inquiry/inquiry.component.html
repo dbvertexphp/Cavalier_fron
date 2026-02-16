@@ -58,7 +58,7 @@
       <button (click)="toggleForm()"
         class="bg-red-500 hover:bg-red-600 px-4 py-1.5 text-[12px] font-bold">CLOSE</button>
     </div>
-             
+
     <div class="p-5 space-y-6">
       <div class="bg-gray-50 p-4 border border-gray-200 rounded">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-x-8 gap-y-3">
@@ -66,7 +66,7 @@
             <div class="grid grid-cols-2 items-center gap-3">
               <label class="font-bold text-gray-600">Lead No.</label>
               <input type="text" value="LD-14321" readonly
-              class="border border-gray-300 p-2 bg-gray-100 outline-none w-full" />
+                class="border border-gray-300 p-2 bg-gray-100 outline-none w-full" />
               <label class="font-bold text-gray-700">Inquiry No</label>
 
               <div class="relative">
@@ -216,15 +216,27 @@
                 <option value="International">International</option>
               </select>
             </div>
-            <div class="flex items-center">
-              <label class="w-40 font-bold text-gray-700">Commodity</label>
-              <select [(ngModel)]="quotation.commodity" class="flex-1 border p-2 outline-none">
-                <option value="Hazard">Hazard</option>
-                <option value="Non-Hazard">Non-Hazard</option>
-                <option value="Perishable">Perishable</option>
-                <option value="General">General</option>
-                <option value="Temperature Controlled">Temperature Controlled</option>
-              </select>
+            <div class="flex flex-col gap-4">
+              <div class="flex items-center">
+                <label class="w-40 font-bold text-gray-700">Commodity</label>
+                <select [(ngModel)]="quotation.commodity" class="flex-1 border p-2 outline-none">
+                  <option value="" disabled selected>Select Commodity</option>
+                  <option value="Hazard">Hazard</option>
+                  <option value="Non-Hazard">Non-Hazard</option>
+                  <option value="Perishable">Perishable</option>
+                  <option value="General">General</option>
+                  <option value="Temperature Controlled">Temperature Controlled</option>
+                </select>
+              </div>
+
+              <div *ngIf="quotation.commodity === 'Hazard'"
+                class="flex items-center animate-in fade-in slide-in-from-top-2 duration-300">
+                <label class="w-40 font-bold text-gray-700">Upload Document</label>
+                <div class="flex-1 flex items-center gap-2">
+                  <input type="file" (change)="onFileSelected($event)"
+                    class="flex-1 border p-1 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100">
+                </div>
+              </div>
             </div>
             <div class="flex items-center gap-2">
               <label class="w-40 font-bold text-gray-700">Gross Weight</label>

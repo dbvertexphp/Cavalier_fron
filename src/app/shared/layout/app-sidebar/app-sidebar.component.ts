@@ -9,6 +9,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 //import { StorageWidgetComponent } from '../../components/storage-widget/storage-widget.component';
 
+
 type NavItem = {
   name: string;
   icon?: string;
@@ -30,7 +31,8 @@ type NavItem = {
   templateUrl: './app-sidebar.component.html',
 })
 export class AppSidebarComponent implements OnInit, OnDestroy {
-
+  branches: any[] = [];
+  showBranchPopup = false;
   loadings: boolean = true;
   navItems: NavItem[] = [];
   othersItems: NavItem[] = [];
@@ -74,11 +76,83 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
     );
 
     this.setActiveMenuFromRoute(this.router.url);
+      this.loadBranches();
   }
 
   ngOnDestroy() {
     this.subscription.unsubscribe();
   }
+loadBranches() {
+    this.http.get<any[]>(`${environment.apiUrl}/branch/list`)
+      .subscribe({
+        next: (res) => {
+
+          // Sirf branchName nikalo
+          this.branches = res
+            .filter(x => x.isActive)
+            .map(x => ({
+              id: x.id,
+              name: x.branchName
+            }));
+
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Branch API Error:', err);
+        }
+      });
+  }
+
+  toggleBranchPopup() {
+    this.showBranchPopup = !this.showBranchPopup;
+  }
+
+  selectBranch(branch: any) {
+
+  // ✅ Console me id + name
+  console.log('Selected Branch ID:', branch.id);
+  console.log('Selected Branch Name:', branch.name);
+
+  const token = localStorage.getItem('cavalier_token') || '';
+
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  });
+
+  this.http.post<any>(
+    `${environment.apiUrl}/Auth/set-access-type`,
+    { accessType: 'branch' },   // 🔥 Sirf "branch" bhejna hai
+    { headers }
+  ).subscribe({
+
+    next: (res) => {
+
+      // token update
+      localStorage.setItem('cavalier_token', res.token);
+      localStorage.setItem('accessType', 'branch');
+
+      // optional: branch ko localStorage me save kar sakte ho
+      localStorage.setItem('selectedBranchId', branch.id);
+      localStorage.setItem('selectedBranchName', branch.name);
+
+      this.showBranchPopup = false;
+
+      // sidebar reload
+      this.loadings = true;
+      this.cdr.detectChanges();
+      this.loadNavItemsFromApi();
+
+    },
+
+    error: (err) => {
+      console.error('Branch switch failed', err);
+      alert('Something went wrong!');
+    }
+
+  });
+}
+
 
 
   /** API call to fetch permissions and build navItems */

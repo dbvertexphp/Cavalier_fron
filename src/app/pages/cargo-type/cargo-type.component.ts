@@ -26,22 +26,47 @@ export class CargoTypeComponent {
 
   constructor() {}
 
-  ngOnInit(): void {
-    // Refresh hone par LocalStorage se data load karein
-    const savedData = localStorage.getItem('myCommodityData');
-    if (savedData) {
-      this.rolesList = JSON.parse(savedData);
-    } else {
-      // Agar first time hai to default data set karein
-      this.rolesList = [
-        { id: 1, name: 'Loose', status: true },
-        { id: 2, name: 'ULD', status: true },
+  // ngOnInit(): void {
+  //   // Refresh hone par LocalStorage se data load karein
+  //   const savedData = localStorage.getItem('myCommodityData');
+  //   if (savedData) {
+  //     this.rolesList = JSON.parse(savedData);
+  //   } else {
+  //     // Agar first time hai to default data set karein
+  //     this.rolesList = [
+  //       { id: 1, name: 'Loose', status: true },
+  //       { id: 2, name: 'ULD', status: true },
        
-      ];
+  //     ];
       
-    }
+  //   }
+  // }
+ngOnInit(): void {
+  // Refresh hone par LocalStorage se data load karein
+  const savedData = localStorage.getItem('myCommodityData');
+  
+  if (savedData) {
+    const parsedData = JSON.parse(savedData);
+    // Data load karte waqt hi Name ko Uppercase mein convert kar rahe hain
+    this.rolesList = parsedData.map((item: any) => ({
+      ...item,
+      name: item.name ? item.name.toUpperCase() : ''
+    }));
+  } else {
+    // Agar first time hai to default data (Pehle se hi Uppercase rakha hai)
+    this.rolesList = [
+      { id: 1, name: 'LOOSE', status: true },
+      { id: 2, name: 'ULD', status: true },
+    ];
+    // Default data ko bhi uppercase mein save kar dete hain
+    this.saveToLocalStorage(); 
   }
+}
 
+// Ek helper function taaki baar-baar save na likhna pade
+saveToLocalStorage() {
+  localStorage.setItem('myCommodityData', JSON.stringify(this.rolesList));
+}
   // --- Helper: LocalStorage mein data save karne ke liye ---
   
 

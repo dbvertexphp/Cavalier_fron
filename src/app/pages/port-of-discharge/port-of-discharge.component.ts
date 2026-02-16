@@ -18,18 +18,24 @@ isModalOpen = false;
   newRole = { id: 0, name: '', status: true };
 
   ngOnInit(): void {
-    const savedData = localStorage.getItem('podData');
-    if (savedData) {
-      this.rolesList = JSON.parse(savedData);
-    } else {
-      // Default Data for POD
-      this.rolesList = [
-        { id: 1, name: 'Port of Hamburg, Germany', status: true },
-        { id: 2, name: 'Port of Rotterdam, Netherlands', status: true }
-      ];
-      this.saveToStorage();
-    }
+  const savedData = localStorage.getItem('podData');
+  
+  if (savedData) {
+    const parsedData = JSON.parse(savedData);
+    // Purane data ko load karte waqt uppercase mein convert kar rahe hain
+    this.rolesList = parsedData.map((item: any) => ({
+      ...item,
+      name: item.name ? item.name.toUpperCase() : ''
+    }));
+  } else {
+    // Default POD Data ko uppercase mein set kiya hai
+    this.rolesList = [
+      { id: 1, name: 'PORT OF HAMBURG, GERMANY', status: true },
+      { id: 2, name: 'PORT OF ROTTERDAM, NETHERLANDS', status: true }
+    ];
+    this.saveToStorage();
   }
+}
 
   saveToStorage() {
     localStorage.setItem('podData', JSON.stringify(this.rolesList));

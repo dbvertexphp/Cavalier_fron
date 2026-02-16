@@ -135,4 +135,42 @@ export class InquiryComponent implements OnInit {
   neworg() {
     this.router.navigate(['/dashboard/organization-add']);
   }
+  // 1. Modal control aur data storage
+isDimModalOpen = false;
+appliedDimensions: any[] = []; // Bahar dikhane ke liye final data
+dimRows: any[] = [
+  { box: null, l: null, w: null, h: null, unit: 'CMS' }
+];
+
+// 2. Modal handlers
+openDimModal() {
+  this.isDimModalOpen = true;
+}
+
+closeDimModal() {
+  this.isDimModalOpen = false;
+}
+
+addNewDimRow() {
+  this.dimRows.push({ box: null, l: null, w: null, h: null, unit: 'CMS' });
+}
+
+removeDimRow(index: number) {
+  if (this.dimRows.length > 1) {
+    this.dimRows.splice(index, 1);
+  }
+}
+
+// 3. APPLY LOGIC
+saveDimensions() {
+  // Filter kar rahe hain taaki sirf wahi data bahar aaye jisme value bhari ho
+  const validDims = this.dimRows.filter(d => d.box && d.l && d.w && d.h);
+  
+  if (validDims.length > 0) {
+    this.appliedDimensions = JSON.parse(JSON.stringify(validDims)); // Deep copy
+    this.closeDimModal();
+  } else {
+    alert("Bhai, kam se kam ek dimension toh dhang se bharo!");
+  }
+}
 }

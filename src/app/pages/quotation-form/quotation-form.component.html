@@ -1,3 +1,269 @@
+<!-- <div class="p-3 bg-gray-100 min-h-screen font-sans text-[13px]">
+
+  <div *ngIf="!isFormOpen" class="bg-white border border-gray-300 shadow-sm rounded-sm overflow-hidden">
+    <div class="bg-[#4a3f3f] p-3 flex justify-between items-center text-white">
+      <div class="font-bold uppercase text-[12px] tracking-widest px-2">Inquiry Records</div>
+      <div class="flex gap-2">
+        <button class="bg-[#5a4f4f] hover:bg-[#3d3434] border border-gray-500 px-4 py-1.5 text-[11px] font-bold" (click)="neworg()">
+          <i class="fas fa-building mr-1"></i> NEW ORGANIZATION
+        </button>
+        <button (click)="toggleForm()" class="bg-green-600 hover:bg-green-700 px-5 py-1.5 text-[11px] font-bold">
+          <i class="fas fa-plus mr-1"></i> ADD NEW QUOTATION
+        </button>
+      </div>
+    </div>
+    
+    <div class="p-0 overflow-x-auto">
+      <table class="w-full border-collapse border border-gray-200 whitespace-nowrap">
+        <thead>
+          <tr class="bg-gray-50 text-gray-500 uppercase text-[11px] border-b">
+            <th class="p-4 text-left font-bold">QTN ID</th>
+            <th class="p-4 text-left font-bold">Customer Name</th>
+            <th class="p-4 text-left font-bold">POL / POD</th>
+            <th class="p-4 text-left font-bold">Transport</th>
+            <th class="p-4 text-left font-bold">Incoterm</th>
+            <th class="p-4 text-left font-bold">Status</th>
+            <th class="p-4 text-center font-bold sticky right-0 bg-gray-50 border-l">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let q of quotations" class="hover:bg-gray-50 border-b text-gray-700">
+            <td class="p-4 font-bold">{{q.qtnId}}</td>
+            <td class="p-4 uppercase font-medium">{{q.customerName}}</td>
+            <td class="p-4">{{q.portOfLoading}} -> {{q.portOfDestination}}</td>
+            <td class="p-4">{{q.transportMode}} ({{q.transportType}})</td>
+            <td class="p-4 font-semibold">{{q.incoterm}}</td>
+            <td class="p-4">
+              <span [ngClass]="{'bg-yellow-100 text-yellow-700': q.inquiryOutcome === 'Pending','bg-green-100 text-green-700': q.inquiryOutcome === 'Won'}" class="px-3 py-1 rounded text-[11px] font-bold">
+                {{q.inquiryOutcome}}
+              </span>
+            </td>
+            <td class="p-4 sticky right-0 bg-white border-l text-center">
+              <button (click)="editQuotation(q)" class="text-blue-600 mr-3 font-bold uppercase hover:underline">Edit</button>
+              <button (click)="deleteQuotation(q.id)" class="text-red-600 font-bold uppercase hover:underline">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div *ngIf="isFormOpen" class="bg-white border border-gray-300 shadow-lg">
+    <div class="bg-[#4a3f3f] p-2 flex justify-between items-center text-white">
+      <div class="flex gap-2 px-2">
+        <button (click)="saveQuotation()" class="bg-green-600 hover:bg-green-700 text-white font-bold text-[12px] px-4 py-1.5 uppercase shadow-sm">SAVE</button>
+      </div>
+      <div class="font-bold uppercase text-[12px] tracking-widest">
+        {{ quotation.id ? 'Edit Quotation' : 'New Quotation Entry' }}
+      </div>
+      <button (click)="toggleForm()" class="bg-red-500 hover:bg-red-600 px-4 py-1.5 text-[12px] font-bold">CLOSE</button>
+    </div>
+
+    <div class="p-5 space-y-5">
+      
+      <div class="bg-gray-50 p-4 border border-gray-200 rounded">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-x-6 gap-y-4">
+          
+      <div>
+  <label class="text-gray-700 font-bold block mb-1 uppercase">Refrence by inquiry</label>
+  <div class="flex gap-1">
+    <div class="relative flex-1">
+      <input [(ngModel)]="quotation.qtnId" placeholder="Search Inquiry..." class="w-full border p-2 bg-white outline-none pr-8">
+      <span class="absolute right-2 top-2.5 text-gray-400">🔍</span>
+    </div>
+    
+    <input type="date" [(ngModel)]="quotation.qtnDateTime" class="border p-2 outline-none">
+    
+  </div>
+
+            <div>
+  <label class="text-gray-700 font-bold block mb-1 uppercase">Quotation Number</label>
+  <input 
+    type="text" 
+    [(ngModel)]="quotation.quotationNo" 
+    readonly 
+    placeholder="QTN-2026-0001"
+    class="w-full border p-2 bg-gray-100 text-gray-600 outline-none cursor-not-allowed font-semibold rounded-sm">
+</div>
+            
+            <label class="text-red-700 font-bold uppercase block mt-3 mb-1">Organization</label>
+            <div class="flex items-center">
+              <input [(ngModel)]="quotation.customerName" class="w-full border p-2 border-red-300 outline-none rounded-l-sm" placeholder="Search Organization..">
+              <button (click)="neworg()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 text-[11px] font-bold shadow-sm border border-green-800 rounded-r-sm uppercase">
+                NEW
+              </button>
+            </div>
+            <textarea class="w-full border mt-2 text-[12px] bg-white p-2 text-gray-500 italic" rows="2" placeholder="Organization Address..." readonly></textarea>
+          </div>
+          
+
+          <div>
+            
+            <label class="text-gray-700 font-bold block mb-1 uppercase">Valid From</label>
+            <input type="date" [(ngModel)]="quotation.validFrom" class="w-full border p-2 outline-none">
+            <label class="text-[#4a3f3f] font-bold mt-3 block mb-1 uppercase">Usability</label>
+            <select [(ngModel)]="quotation.usability" class="w-full border p-2 outline-none">
+              <option value="Single">Single</option>
+              <option value="Multiple">Multiple</option>
+            </select>
+            <label class="text-gray-700 font-bold mt-3 block mb-1 uppercase">Line Of Business</label>
+            <select [(ngModel)]="quotation.lineOfBusiness" class="w-full border p-2 outline-none">
+              <option value="" disabled selected>Select Business Line</option>
+              <option value="Air Import">Air Import</option>
+              <option value="Air Export">Air Export</option>
+              <option value="Sea Import">Sea Import</option>
+              <option value="Sea Export">Sea Export</option>
+              <option value="Courier Import">Courier Import</option>
+              <option value="Courier Export">Courier Export</option>
+              <option value="Clearance Import">Clearance Import</option>
+              <option value="Clearance Export">Clearance Export</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="text-red-700 font-bold block mb-1 uppercase">Valid Till</label>
+            <input type="date" [(ngModel)]="quotation.validTill" class="w-full border p-2 border-red-300 outline-none">
+            <label class="text-gray-700 font-bold mt-3 block mb-1 uppercase">Version</label>
+            <input [(ngModel)]="quotation.version" class="w-full border p-2 outline-none">
+            <label class="text-gray-700 font-bold mt-3 block mb-1 uppercase">Cargo Status</label>
+            <div class="flex gap-1">
+              <select [(ngModel)]="quotation.cargoStatus" class="border p-2 w-1/2 outline-none">
+                <option value="Ready By">Ready By</option>
+              </select>
+              <input type="date" [(ngModel)]="quotation.cargoReadyDate" class="border p-2 w-1/2 outline-none">
+            </div>
+          </div>
+
+          <div class="bg-white p-3 border border-gray-200">
+             <label class="text-gray-700 font-bold block mb-1 uppercase">Location</label>
+             <select [(ngModel)]="quotation.location" class="w-full border p-2 mb-2 outline-none">
+               <option value="DELHI">DELHI</option>
+             </select>
+             <label class="text-gray-700 font-bold block mb-1 uppercase">Pricing By</label>
+             <input [(ngModel)]="quotation.pricingBy" class="w-full border p-2 mb-2 outline-none">
+             <label class="text-gray-700 font-bold block mb-1 uppercase">Sales Coor.</label>
+             <select [(ngModel)]="quotation.salesCoordinator" class="w-full border p-2 outline-none">
+               <option value="">--Select--</option>
+             </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="border border-gray-300">
+        <div class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px]">- Cargo Details</div>
+        <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-10 bg-white">
+          <div class="space-y-3">
+            <div class="flex items-center"><label class="w-40 font-bold text-gray-700">Lead</label><input [(ngModel)]="quotation.lead" class="flex-1 border p-2 outline-none"></div>
+            <div class="flex items-center"><label class="w-40 font-bold text-gray-700">Transport Mode</label>
+              <select [(ngModel)]="quotation.transportMode" class="flex-1 border p-2 outline-none">
+                <option value="Air">Air</option><option value="Sea">Sea</option><option value="Road">Road</option>
+              </select>
+            </div>
+            <div class="flex items-center"><label class="w-40 font-bold text-gray-700">Business Dims.</label><input class="flex-1 border p-2 bg-gray-50 outline-none" readonly></div>
+            <div class="flex items-start"><label class="w-40 font-bold text-gray-700 mt-2">Description</label><textarea [(ngModel)]="quotation.description" class="flex-1 border p-2 h-16 outline-none"></textarea></div>
+            
+            <div class="flex gap-2">
+              <label class="w-40 font-bold text-gray-700">Gross / Net Wt</label>
+              <input type="number" placeholder="Gross" [(ngModel)]="quotation.grossWeight" class="w-24 border p-2 outline-none">
+              <input type="number" placeholder="Net" [(ngModel)]="quotation.netWeight" class="w-24 border p-2 outline-none">
+              <span class="pt-2 font-bold text-gray-500">KGS</span>
+            </div>
+            
+            <div class="flex gap-2 items-center">
+              <label class="w-40 font-bold text-gray-700">Dimensions</label>
+              <input placeholder="L" [(ngModel)]="quotation.dimL" class="w-12 border p-2 text-center outline-none">
+              <input placeholder="W" [(ngModel)]="quotation.dimW" class="w-12 border p-2 text-center outline-none">
+              <input placeholder="H" [(ngModel)]="quotation.dimH" class="w-12 border p-2 text-center outline-none">
+              <select [(ngModel)]="quotation.dimUnit" class="border p-2 text-[12px] outline-none"><option>CMS</option></select>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <div class="flex items-center"><label class="w-40 font-bold text-gray-700">Transport Type</label><select [(ngModel)]="quotation.transportType" class="flex-1 border p-2 outline-none"><option>Export</option></select></div>
+            <div class="flex items-center"><label class="w-40 font-bold text-gray-700">Cargo Type</label><select [(ngModel)]="quotation.cargoType" class="flex-1 border p-2 outline-none"><option>Loose</option></select></div>
+            <div class="flex items-center"><label class="w-40 font-bold text-gray-700">Commodity</label><input [(ngModel)]="quotation.commodity" class="flex-1 border p-2 outline-none"></div>
+            
+            <div class="flex gap-2">
+              <label class="w-40 font-bold text-gray-700">Packages</label>
+              <input type="number" [(ngModel)]="quotation.packages" class="w-24 border p-2 outline-none">
+              <select class="border p-2 flex-1 text-[12px] outline-none"><option>Cartons</option></select>
+            </div>
+
+            <div class="flex gap-2">
+              <label class="w-40 font-bold text-gray-700">Volume / Chrg Wt</label>
+              <input type="number" placeholder="CBM" [(ngModel)]="quotation.volume" class="w-24 border p-2 outline-none">
+              <input type="number" placeholder="Chrg" [(ngModel)]="quotation.chargeWeight" class="w-24 border p-2 outline-none">
+              <span class="pt-2 font-bold text-gray-500 text-[12px]">CBM/KGS</span>
+            </div>
+            
+            <div class="flex items-center"><label class="w-40 font-bold text-gray-700">Humidity (%)</label><input type="number" [(ngModel)]="quotation.humidityPercent" class="flex-1 border p-2 outline-none"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="border border-gray-300">
+        <div class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px] flex justify-between">
+          <span>+ Forwarding & Movement</span>
+          <label class="text-[12px] font-normal flex items-center gap-1 cursor-pointer">
+            <input type="checkbox" [(ngModel)]="quotation.serviceForwarding"> Service Required
+          </label>
+        </div>
+        <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-10 bg-white">
+          <div class="space-y-3">
+            <div class="flex items-center"><label class="w-40 font-bold text-red-700">Movement</label><select [(ngModel)]="quotation.movementType" class="flex-1 border p-2 border-red-300 outline-none"><option>Door-to-Door</option></select></div>
+            <div class="flex items-center"><label class="w-40 font-bold text-gray-700">AWB Issued By</label><input class="flex-1 border p-2 outline-none"></div>
+            <div class="flex items-center"><label class="w-40 font-bold text-gray-700">Transit Dest</label>
+              <div class="flex flex-1 gap-1">
+                <input class="flex-1 border p-2 outline-none">
+                <input placeholder="Days" class="w-16 border p-2 outline-none">
+              </div>
+            </div>
+            <div class="flex items-center text-red-700 font-bold"><label class="w-40">Place of Receipt</label><input class="flex-1 border p-2 border-red-300 outline-none"></div>
+            <div class="flex items-center text-red-700 font-bold"><label class="w-40">Origin / POL</label>
+              <div class="flex flex-1 gap-1">
+                <input [(ngModel)]="quotation.origin" class="flex-1 border p-2 border-red-300 outline-none">
+                <input [(ngModel)]="quotation.portOfLoading" class="flex-1 border p-2 border-red-300 outline-none">
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <div class="flex items-center"><label class="w-40 font-bold text-gray-700">IncoTerms</label><select [(ngModel)]="quotation.incoterm" class="flex-1 border p-2 outline-none"><option>EXW</option></select></div>
+            <div class="flex items-center"><label class="w-40 font-bold text-gray-700">Carrier / Agent</label><input class="flex-1 border p-2 outline-none"></div>
+            <div class="flex items-center"><label class="w-40 font-bold text-gray-700">Cargo Value</label><input class="flex-1 border p-2 outline-none" placeholder="Currency & Amount"></div>
+            <div class="flex items-center text-red-700 font-bold"><label class="w-40">Place of Delivery</label><input class="flex-1 border p-2 border-red-300 outline-none"></div>
+            <div class="flex items-center text-red-700 font-bold"><label class="w-40">POD / Final Dest</label>
+              <div class="flex flex-1 gap-1">
+                <input [(ngModel)]="quotation.portOfDischarge" class="flex-1 border p-2 border-red-300 outline-none">
+                <input [(ngModel)]="quotation.finalDestination" class="flex-1 border p-2 border-red-300 outline-none">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6 p-4 bg-gray-50 border-t">
+          <div class="border p-3 bg-white shadow-sm">
+            <div class="bg-gray-200 text-[#4a3f3f] px-3 py-1 mb-2 font-bold uppercase text-[11px]">Pickup Address</div>
+            <input placeholder="Organization" [(ngModel)]="quotation.pickupOrg" class="w-full border p-2 mb-2 outline-none">
+            <textarea placeholder="Full Address" [(ngModel)]="quotation.pickupAddress" class="w-full border p-2 h-16 outline-none"></textarea>
+          </div>
+          <div class="border p-3 bg-white shadow-sm">
+            <div class="bg-gray-200 text-[#4a3f3f] px-3 py-1 mb-2 font-bold uppercase text-[11px]">Delivery Address</div>
+            <input placeholder="Organization" [(ngModel)]="quotation.deliveryOrg" class="w-full border p-2 mb-2 outline-none">
+            <textarea placeholder="Full Address" [(ngModel)]="quotation.deliveryAddress" class="w-full border p-2 h-16 outline-none"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-4 bg-gray-100 border-t flex justify-end gap-3">
+      <button (click)="toggleForm()" class="bg-white border border-gray-400 px-6 py-2 font-bold text-gray-700 hover:bg-gray-200">CANCEL</button>
+      <button (click)="saveQuotation()" class="bg-[#4a3f3f] text-white px-8 py-2 font-bold shadow-md hover:bg-black uppercase">
+        {{ quotation.id ? 'Update' : 'Save' }} Quotation
+      </button>
+    </div>
+  </div>
+</div> -->
 <div class="p-3 bg-gray-100 min-h-screen font-sans text-[13px]">
 
   <div *ngIf="!isFormOpen" class="bg-white border border-gray-300 shadow-sm rounded-sm overflow-hidden">
@@ -64,11 +330,21 @@
       <div class="bg-gray-50 p-4 border border-gray-200 rounded">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-x-6 gap-y-4">
           
-          <div>
-            <label class="text-gray-700 font-bold block mb-1 uppercase">Quotation No</label>
-            <div class="flex gap-1">
-              <input [(ngModel)]="quotation.qtnId" placeholder="---New Entry---" class="w-full border p-2 bg-white outline-none">
-              <input type="date" [(ngModel)]="quotation.qtnDateTime" class="border p-2 outline-none">
+          <div class="md:col-span-1">
+            <div class="grid grid-cols-2 gap-2 mb-3">
+              <div>
+                <label class="text-gray-700 font-bold block mb-1 uppercase text-[11px]">Refrence by inquiry</label>
+                <div class="relative">
+                  <input [(ngModel)]="quotation.qtnId" placeholder="Search Inquiry..." class="w-full border p-2 bg-white outline-none pr-7">
+                  <span class="absolute right-1 top-2.5 text-gray-400">🔍</span>
+                </div>
+              </div>
+              
+              <div>
+                <label class="text-gray-700 font-bold block mb-1 uppercase text-[11px]">Quotation No</label>
+                <input type="text" [(ngModel)]="quotation.quotationNo" readonly placeholder="QTN-2026-0001"
+                  class="w-full border p-2 bg-gray-100 text-gray-600 outline-none cursor-not-allowed font-semibold rounded-sm">
+              </div>
             </div>
             
             <label class="text-red-700 font-bold uppercase block mt-3 mb-1">Organization</label>
@@ -237,7 +513,204 @@
           </div>
         </div>
       </div>
+      <div class="border border-gray-300 shadow-sm rounded-sm">
+  <div class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px] flex justify-between items-center">
+    <span>REVENUE</span>
+    <!-- <span class="text-[10px] font-normal italic">* Amount = Rate x Exchange Rate</span> -->
+  </div>
+
+  <div class="overflow-x-auto bg-white">
+    <table class="w-full border-collapse text-[11px]">
+      <thead class="bg-gray-50 uppercase border-b border-gray-300">
+        <tr class="text-gray-600">
+          <th class="border p-2 text-left min-w-[100px]">LOB</th>
+          <th class="border p-2 text-left min-w-[150px]">Charge Name</th>
+          <th class="border p-2 text-left min-w-[100px]">Charge Type</th>
+          <th class="border p-2 text-left min-w-[80px]">Basis</th>
+          <th class="border p-2 text-center min-w-[60px]">Cur</th>
+          <th class="border p-2 text-right min-w-[90px]">Rate</th>
+          <th class="border p-2 text-right min-w-[120px]">Exchange Rate</th>
+          <th class="border p-2 text-right min-w-[100px] bg-blue-50">Amount</th>
+          <th class="border p-2 text-center w-[50px] bg-gray-100">
+            <button (click)="addRevenueRow()" class="bg-green-600 text-white w-6 h-6 rounded-full hover:bg-green-700 shadow-sm flex items-center justify-center mx-auto">
+              +
+            </button>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of revenueRows; let i = index" class="hover:bg-gray-50">
+          <td class="border p-1">
+            <input [(ngModel)]="r.lob" placeholder="Select LOB" class="w-full outline-none p-1 bg-transparent">
+          </td>
+          <td class="border p-1">
+            <input [(ngModel)]="r.chargeName" placeholder="Enter Charge" class="w-full outline-none p-1 bg-transparent">
+          </td>
+          <td class="border p-1">
+            <select [(ngModel)]="r.chargeType" class="w-full outline-none p-1 bg-transparent">
+              <option value="">--Select--</option>
+              <option value="Prepaid"></option>
+              <option value="Collect"></option>
+            </select>
+          </td>
+          <td class="border p-1">
+            <input [(ngModel)]="r.basis" placeholder="e.g. Per KG" class="w-full outline-none p-1 bg-transparent text-center">
+          </td>
+          <td class="border p-1">
+            <input [(ngModel)]="r.currency" class="w-full outline-none p-1 text-center uppercase font-semibold text-blue-600">
+          </td>
+          <td class="border p-1">
+            <input type="number" [(ngModel)]="r.rate" (input)="calculateRevenue()" class="w-full outline-none p-1 text-right font-medium">
+          </td>
+          <td class="border p-1">
+            <input type="number" [(ngModel)]="r.exchangeRate" (input)="calculateRevenue()" class="w-full outline-none p-1 text-right">
+          </td>
+          <td class="border p-1 bg-blue-50 font-bold text-right px-2 text-blue-800">
+            <!-- {{ r.amount | number:'1.2-2' }} --> <input type="text">
+          </td>
+          <td class="border p-1 text-center">
+            <button *ngIf="revenueRows.length > 1" (click)="removeRow(i)" class="text-red-400 hover:text-red-600 transition-colors">
+              <i class="fas fa-trash-alt text-[10px]"></i> x
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="border border-gray-300 shadow-sm rounded-sm mt-6">
+   <div class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px] flex justify-between items-center">
+    <span>COST</span>
+    <!-- <span class="text-[10px] font-normal italic uppercase tracking-wider">Buying Rates / Expense</span> -->
+  </div>
+
+  <div class="overflow-x-auto bg-white">
+    <table class="w-full border-collapse text-[11px]">
+      <thead class="bg-gray-50 uppercase border-b border-gray-300">
+        <tr class="text-gray-600">
+          <th class="border p-2 text-left min-w-[100px]">LOB (Combo)</th>
+          <th class="border p-2 text-left min-w-[150px]">Charge Name</th>
+          <th class="border p-2 text-left min-w-[100px]">Charge Type</th>
+          <th class="border p-2 text-left min-w-[80px]">Basis</th>
+          <th class="border p-2 text-center min-w-[60px]">Cur</th>
+          <th class="border p-2 text-right min-w-[90px]">Rate</th>
+          <th class="border p-2 text-right min-w-[120px]">Exchange Rate</th>
+          <th class="border p-2 text-right min-w-[100px] bg-red-50">Amount</th>
+          <th class="border p-2 text-center w-[50px] bg-gray-100">
+            <button (click)="addCostRow()" class="bg-green-600 text-white w-6 h-6 rounded-full hover:bg-green-700 shadow-sm flex items-center justify-center mx-auto">
+              +
+            </button>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let c of costRows; let i = index" class="hover:bg-gray-50">
+          <td class="border p-1">
+            <input [(ngModel)]="c.lob" placeholder="LOB" class="w-full outline-none p-1 bg-transparent">
+          </td>
+          <td class="border p-1">
+            <input [(ngModel)]="c.chargeName" placeholder="Charge Name" class="w-full outline-none p-1 bg-transparent">
+          </td>
+          <td class="border p-1">
+            <select [(ngModel)]="c.chargeType" class="w-full outline-none p-1 bg-transparent">
+              <option value="">--Select--</option>
+              <option value="Prepaid"></option>
+              <option value="Collect"></option>
+            </select>
+          </td>
+          <td class="border p-1">
+            <input [(ngModel)]="c.basis" placeholder="Basis" class="w-full outline-none p-1 bg-transparent text-center">
+          </td>
+          <td class="border p-1">
+            <input [(ngModel)]="c.currency" class="w-full outline-none p-1 text-center uppercase font-semibold text-red-600">
+          </td>
+          <td class="border p-1">
+            <input type="number" [(ngModel)]="c.rate" (input)="calculateCost()" class="w-full outline-none p-1 text-right">
+          </td>
+          <td class="border p-1">
+            <input type="number" [(ngModel)]="c.exchangeRate" (input)="calculateCost()" class="w-full outline-none p-1 text-right">
+          </td>
+          <td class="border p-1 bg-red-50 font-bold text-right px-2 text-red-800">
+           <input [(ngModel)]="c.amount" placeholder="Amount" class="w-full outline-none p-1 bg-transparent">
+          </td>
+          <td class="border p-1 text-center">
+            <button *ngIf="costRows.length > 1" (click)="removeCostRow(i)" class="text-red-400 hover:text-red-600">
+              x
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="border border-gray-300 shadow-md mt-8 rounded-sm overflow-hidden">
+  <div class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px] flex justify-between items-center">
+    <span>Profit & Loss Summary</span>
+    <!-- <span class="text-[10px] font-normal italic">Financial Analysis</span> -->
+  </div>
+
+  <div class="overflow-x-auto bg-white">
+    <table class="w-full border-collapse text-[11px]">
+      <thead class="bg-gray-100 uppercase border-b-2 border-gray-300">
+        <tr class="text-gray-700">
+          <th class="border p-2 text-left w-[120px]">LOB</th>
+          <th class="border p-2 text-left">Charge Name</th>
+          <th class="border p-2 text-right w-[120px]">Revenue</th>
+          <th class="border p-2 text-right w-[120px]">Cost</th>
+          <th class="border p-2 text-right w-[120px]">Profit</th>
+          <th class="border p-2 text-center w-[100px]">Profit %</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="pnLRows.length === 0">
+          <td colspan="6" class="p-6 text-center text-gray-400 italic bg-gray-50">
+            No data available. Please add charges in Revenue and Cost sections.
+          </td>
+        </tr>
+
+        <tr *ngFor="let p of pnLRows" class="hover:bg-green-50/50 transition-colors">
+          <td class="border p-2 font-semibold text-gray-400 uppercase">{{ p.lob }}</td>
+          <td class="border p-2 font-bold text-gray-800">{{ p.chargeName }}</td>
+          <td class="border p-2 text-right text-blue-700 font-medium">
+            {{ p.revenue | number:'1.2-2' }}
+          </td>
+          <td class="border p-2 text-right text-red-600 font-medium">
+            {{ p.cost | number:'1.2-2' }}
+          </td>
+          <td class="border p-2 text-right font-bold" 
+              [ngClass]="p.profit >= 0 ? 'text-green-700' : 'text-red-700'">
+            {{ p.profit | number:'1.2-2' }}
+          </td>
+          <td class="border p-2 text-center">
+            <span class="px-2 py-0.5 rounded text-[10px] font-black"
+                  [ngClass]="p.profit >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+              {{ p.profitPercent | number:'1.1-1' }}%
+            </span>
+          </td>
+        </tr>
+      </tbody>
+      
+      <tfoot *ngIf="pnLRows.length > 0" class="bg-gray-800 text-white font-bold border-t-2 border-gray-600">
+        <tr>
+          <td colspan="2" class="p-2 text-right uppercase tracking-widest text-gray-400">Total Calculation:</td>
+          <td class="p-2 text-right border-l border-gray-600 text-blue-300">
+            {{ totalRevFinal | number:'1.2-2' }}
+          </td>
+          <td class="p-2 text-right border-l border-gray-600 text-red-300">
+            {{ totalCostFinal | number:'1.2-2' }}
+          </td>
+          <td class="p-2 text-right border-l border-gray-600" 
+              [ngClass]="totalProfitFinal >= 0 ? 'text-green-400' : 'text-red-400'">
+            {{ totalProfitFinal | number:'1.2-2' }}
+          </td>
+          <td class="p-2 text-center border-l border-gray-600 text-gray-400">-</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
     </div>
+    
 
     <div class="p-4 bg-gray-100 border-t flex justify-end gap-3">
       <button (click)="toggleForm()" class="bg-white border border-gray-400 px-6 py-2 font-bold text-gray-700 hover:bg-gray-200">CANCEL</button>

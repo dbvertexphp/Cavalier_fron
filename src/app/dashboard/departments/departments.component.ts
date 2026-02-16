@@ -29,34 +29,64 @@ export class DepartmentsComponent implements OnInit {
     this.loadDepartments();
   }
 
-  loadDepartments() {
-    // Pehle users fetch karenge count ke liye
-    this.userService.getUsers().subscribe({
-      next: (users: any[]) => {
-        const usersList = users || [];
+  // loadDepartments() {
+  //   // Pehle users fetch karenge count ke liye
+  //   this.userService.getUsers().subscribe({
+  //     next: (users: any[]) => {
+  //       const usersList = users || [];
         
-        // Phir departments fetch karenge
-        this.userService.getDepartments().subscribe({
-          next: (res: any[]) => {
-            if (Array.isArray(res)) {
-              this.departments = res.map((d: any) => {
-                const deptId = d.id || d.Id || 0;
-                return {
-                  id: deptId, 
-                  name: d.name || d.Name || 'Unknown',
-                  // Yahan filter karke count nikal rahe hain
-                  count: usersList.filter((u: any) => u.departmentId === deptId).length
-                };
-              });
-              this.cdr.detectChanges();
-            }
-          },
-          error: (err) => console.error("Error loading departments:", err)
-        });
-      },
-      error: (err) => console.error("Error loading users for count:", err)
-    });
-  }
+  //       // Phir departments fetch karenge
+  //       this.userService.getDepartments().subscribe({
+  //         next: (res: any[]) => {
+  //           if (Array.isArray(res)) {
+  //             this.departments = res.map((d: any) => {
+  //               const deptId = d.id || d.Id || 0;
+  //               return {
+  //                 id: deptId, 
+  //                 name: d.name || d.Name || 'Unknown',
+  //                 // Yahan filter karke count nikal rahe hain
+  //                 count: usersList.filter((u: any) => u.departmentId === deptId).length
+  //               };
+  //             });
+  //             this.cdr.detectChanges();
+  //           }
+  //         },
+  //         error: (err) => console.error("Error loading departments:", err)
+  //       });
+  //     },
+  //     error: (err) => console.error("Error loading users for count:", err)
+  //   });
+  // }
+  loadDepartments() {
+  // Pehle users fetch karenge count ke liye
+  this.userService.getUsers().subscribe({
+    next: (users: any[]) => {
+      const usersList = users || [];
+      
+      // Phir departments fetch karenge
+      this.userService.getDepartments().subscribe({
+        next: (res: any[]) => {
+          if (Array.isArray(res)) {
+            this.departments = res.map((d: any) => {
+              const deptId = d.id || d.Id || 0;
+              const originalName = d.name || d.Name || 'Unknown'; // Pehle name nikala
+              
+              return {
+                id: deptId, 
+                name: originalName.toUpperCase(), // Yahan UPPERCASE kar diya
+                // Yahan filter karke count nikal rahe hain
+                count: usersList.filter((u: any) => u.departmentId === deptId).length
+              };
+            });
+            this.cdr.detectChanges();
+          }
+        },
+        error: (err) => console.error("Error loading departments:", err)
+      });
+    },
+    error: (err) => console.error("Error loading users for count:", err)
+  });
+}
 
   // ✅ Unified Save function for both Add and Edit
   saveDepartment() {

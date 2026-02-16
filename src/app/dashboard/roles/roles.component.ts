@@ -32,16 +32,27 @@ export class RolesComponent implements OnInit {
     this.loadRoles();
   }
 
-  // --- 1. GET ROLES ---
-  loadRoles() {
-    this.userService.getRoles().subscribe({
-      next: (data: any) => {
-        this.rolesList = data;
-      },
-      error: (err) => console.error("Roles load nahi hue:", err)
-    });
-  }
-
+  // // --- 1. GET ROLES ---
+  // loadRoles() {
+  //   this.userService.getRoles().subscribe({
+  //     next: (data: any) => {
+  //       this.rolesList = data;
+  //     },
+  //     error: (err) => console.error("Roles load nahi hue:", err)
+  //   });
+  // }
+loadRoles() {
+  this.userService.getRoles().subscribe({
+    next: (data: any) => {
+      // Har role ko upper case mein convert kar raha hoon
+      this.rolesList = data.map((role: any) => ({
+        ...role,
+        name: role.name.toUpperCase() // Maan lete hain property ka naam 'name' hai
+      }));
+    },
+    error: (err) => console.error("Roles load nahi hue:", err)
+  });
+}
   // --- 2. SAVE ROLE (Add or Update) ---
   saveRole() {
     if (this.newRole.name.trim()) {

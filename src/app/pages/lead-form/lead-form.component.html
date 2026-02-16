@@ -143,13 +143,26 @@
     </select>
   </div>
   <div class="flex flex-col gap-3">
-    <label class="font-bold text-gray-600">Team</label>
+    <label class="font-bold text-gray-600">HOD</label>
     <select formControlName="team"
       class="border border-gray-300 p-2 w-full">
-      <option>Select Team</option>
+      <option>Select HOD</option>
     </select>
   </div>
-
+ <div class="flex flex-col gap-3">
+    <label class="font-bold text-gray-600">Report To.</label>
+    <select formControlName="team"
+      class="border border-gray-300 p-2 w-full">
+      <option>Select</option>
+    </select>
+  </div>
+   <div class="flex flex-col gap-3">
+    <label class="font-bold text-gray-600">Report By.</label>
+    <select formControlName="team"
+      class="border border-gray-300 p-2 w-full">
+      <option>Select</option>
+    </select>
+  </div>
 </div>
 
 
@@ -164,7 +177,7 @@
             <label class="text-red-700 font-bold">Organization</label>
             <div class="sm:col-span-2 flex gap-1">
               <div class="flex border border-red-300 w-full bg-white shadow-sm">
-                <input type="text" formControlName="organization" class="w-full p-2 border-none outline-none">
+                <input type="text" class="w-full p-2 border-none outline-none">
                 <span class="p-2 bg-gray-100 border-l border-gray-300 cursor-pointer flex items-center justify-center">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                 </span>

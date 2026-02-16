@@ -233,4 +233,137 @@ export class QuotationFormComponent implements OnInit {
   neworg() {
     this.router.navigate(['/dashboard/organization-add']);
   }
+  // Revenue List: Default ek row ke saath
+  revenueRows: any[] = [
+    { 
+      lob: '', 
+      chargeName: '', 
+      chargeType: '', 
+      basis: '', 
+      currency: 'USD', 
+      rate: 0, 
+      exchangeRate: 1, 
+      amount: 0 
+    }
+  ];
+
+  // Nayi row add karne ka function
+  addRevenueRow() {
+    this.revenueRows.push({
+      lob: '',
+      chargeName: '',
+      chargeType: '',
+      basis: '',
+      currency: 'USD',
+      rate: 0,
+      exchangeRate: 1,
+      amount: 0
+    });
+  }
+
+  // Rate ya Exchange Rate badalne par Amount calculate karne ke liye
+  calculateRevenue() {
+    this.revenueRows.forEach(row => {
+      // Amount = Rate * Exchange Rate
+      row.amount = (row.rate || 0) * (row.exchangeRate || 1);
+    });
+  }
+
+  // Row delete karne ke liye
+  removeRow(index: number) {
+    if (this.revenueRows.length > 1) {
+      this.revenueRows.splice(index, 1);
+    }
+  }
+  // Cost List: Default ek row ke saath
+costRows: any[] = [
+  { 
+    lob: '', 
+    chargeName: '', 
+    chargeType: '', 
+    basis: '', 
+    currency: 'USD', 
+    rate: 0, 
+    exchangeRate: 1, 
+    amount: 0 
+  }
+];
+
+// Nayi row add karne ka function for Cost
+addCostRow() {
+  this.costRows.push({
+    lob: '',
+    chargeName: '',
+    chargeType: '',
+    basis: '',
+    currency: 'USD',
+    rate: 0,
+    exchangeRate: 1,
+    amount: 0
+  });
+}
+
+// Cost calculate karne ke liye
+calculateCost() {
+  this.costRows.forEach(row => {
+    row.amount = (row.rate || 0) * (row.exchangeRate || 1);
+  });
+}
+
+// Cost row delete karne ke liye
+removeCostRow(index: number) {
+  if (this.costRows.length > 1) {
+    this.costRows.splice(index, 1);
+  }
+}
+  // 1. Variables define karein
+pnLRows: any[] = [];
+totalRevFinal: number = 0;
+totalCostFinal: number = 0;
+totalProfitFinal: number = 0;
+
+// 2. Calculation Function
+calculateAll() {
+  // Pehle Revenue aur Cost ke individual amounts update karein
+  this.revenueRows.forEach(row => row.amount = (row.rate || 0) * (row.exchangeRate || 1));
+  this.costRows.forEach(row => row.amount = (row.rate || 0) * (row.exchangeRate || 1));
+
+  // Unique Charge Names ki list banayein
+  const allCharges = Array.from(new Set([
+    ...this.revenueRows.map(r => r.chargeName), 
+    ...this.costRows.map(c => c.chargeName)
+  ])).filter(name => name && name.trim() !== '');
+
+  // P&L Rows generate karein
+  this.pnLRows = allCharges.map(charge => {
+    const rev = this.revenueRows
+      .filter(r => r.chargeName === charge)
+      .reduce((sum, r) => sum + (r.amount || 0), 0);
+
+    const cost = this.costRows
+      .filter(c => c.chargeName === charge)
+      .reduce((sum, c) => sum + (c.amount || 0), 0);
+
+    const profit = rev - cost;
+    const profitPercent = cost !== 0 ? (profit / cost) * 100 : 0;
+
+    // LOB uthane ke liye
+    const lob = this.revenueRows.find(r => r.chargeName === charge)?.lob || 
+                this.costRows.find(c => c.chargeName === charge)?.lob;
+
+    return {
+      lob: lob,
+      chargeName: charge,
+      revenue: rev,
+      cost: cost,
+      profit: profit,
+      profitPercent: profitPercent
+    };
+  });
+
+  // Grand Totals calculate karein (Pipes ki zaroorat nahi padegi)
+  this.totalRevFinal = this.pnLRows.reduce((sum, p) => sum + p.revenue, 0);
+  this.totalCostFinal = this.pnLRows.reduce((sum, p) => sum + p.cost, 0);
+  this.totalProfitFinal = this.pnLRows.reduce((sum, p) => sum + p.profit, 0);
+}
 }

@@ -58,6 +58,7 @@ import { PartyRoleComponent } from './pages/party-role/party-role.component';
 import { OriginComponent } from './pages/origin/origin.component';
 import { PortOfLoadingComponent } from './pages/port-of-loading/port-of-loading.component';
 import { PortOfDischargeComponent } from './pages/port-of-discharge/port-of-discharge.component';
+import { ListOfUnitComponent } from './pages/list-of-unit/list-of-unit.component';
 
 
 
@@ -117,6 +118,8 @@ export const routes: Routes = [
         component: PortOfLoadingComponent   },      //Port Setup
        { path: 'port-of-discharge', 
         component: PortOfDischargeComponent   }, 
+         { path: 'list-of-units',                          //list of unit
+        component: ListOfUnitComponent   }, 
        
       { path: 'departments', 
         component: DepartmentsComponent

@@ -17,19 +17,25 @@ isModalOpen = false;
   rolesList: any[] = []; 
   newRole = { id: 0, name: '', status: true };
 
-  ngOnInit(): void {
-    const savedData = localStorage.getItem('polData');
-    if (savedData) {
-      this.rolesList = JSON.parse(savedData);
-    } else {
-      this.rolesList = [
-        { id: 1, name: 'Nhava Sheva (INNSA)', status: true },
-        { id: 2, name: 'Mundra (INMUN)', status: true }
-      ];
-      this.saveToStorage();
-    }
+ngOnInit(): void {
+  const savedData = localStorage.getItem('polData');
+  
+  if (savedData) {
+    const parsedData = JSON.parse(savedData);
+    // LocalStorage se data nikalte hi use uppercase mein convert kar rahe hain
+    this.rolesList = parsedData.map((item: any) => ({
+      ...item,
+      name: item.name ? item.name.toUpperCase() : ''
+    }));
+  } else {
+    // Default Data ko uppercase mein set kiya hai
+    this.rolesList = [
+      { id: 1, name: 'NHAVA SHEVA (INNSA)', status: true },
+      { id: 2, name: 'MUNDRA (INMUN)', status: true }
+    ];
+    this.saveToStorage();
   }
-
+}
   saveToStorage() {
     localStorage.setItem('polData', JSON.stringify(this.rolesList));
   }

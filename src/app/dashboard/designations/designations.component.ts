@@ -28,16 +28,52 @@ export class DesignationsComponent implements OnInit {
     this.loadDepartments();
   }
 
-  loadDesignations() {
+  // loadDesignations() {
+  //   this.isLoading = true;
+  //   this.userService.getDesignations().subscribe({
+  //     next: (res: any[]) => {
+  //       if (Array.isArray(res)) {
+  //         this.designationList = res.map(d => ({
+  //           id: d.id || d.Id,
+  //           name: d.name || d.Name,
+  //           departmentId: d.departmentId || d.DepartmentId,
+  //           departmentName: d.departmentName || d.DepartmentName || 'N/A'
+  //         }));
+  //       }
+  //       this.isLoading = false;
+  //       this.cdr.detectChanges(); 
+  //     },
+  //     error: (err) => {
+  //       console.error('API Error:', err);
+  //       this.isLoading = false;
+  //     }
+  //   });
+  // }
+
+  // loadDepartments() {
+  //   this.userService.getDepartments().subscribe({
+  //     next: (res: any[]) => { 
+  //       this.departments = res.map(d => ({ 
+  //         id: d.id || d.Id, 
+  //         name: d.name || d.Name 
+  //       })); 
+  //       this.cdr.detectChanges();
+  //     },
+  //     error: (err) => console.error('Error loading departments:', err)
+  //   });
+  // }
+loadDesignations() {
     this.isLoading = true;
     this.userService.getDesignations().subscribe({
       next: (res: any[]) => {
         if (Array.isArray(res)) {
           this.designationList = res.map(d => ({
             id: d.id || d.Id,
-            name: d.name || d.Name,
+            // Yahan name ko uppercase kiya
+            name: (d.name || d.Name || '').toUpperCase(),
             departmentId: d.departmentId || d.DepartmentId,
-            departmentName: d.departmentName || d.DepartmentName || 'N/A'
+            // Yahan departmentName ko uppercase kiya
+            departmentName: (d.departmentName || d.DepartmentName || 'N/A').toUpperCase()
           }));
         }
         this.isLoading = false;
@@ -55,14 +91,14 @@ export class DesignationsComponent implements OnInit {
       next: (res: any[]) => { 
         this.departments = res.map(d => ({ 
           id: d.id || d.Id, 
-          name: d.name || d.Name 
+          // Yahan name ko uppercase kiya
+          name: (d.name || d.Name || '').toUpperCase() 
         })); 
         this.cdr.detectChanges();
       },
       error: (err) => console.error('Error loading departments:', err)
     });
   }
-
   addDesignation() {
     if (!this.newDesignation.name || !this.newDesignation.departmentId) {
       alert("Please fill in all required details.");

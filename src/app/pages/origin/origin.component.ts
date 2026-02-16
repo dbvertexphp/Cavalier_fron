@@ -18,19 +18,25 @@ export class OriginComponent implements OnInit {
   rolesList: any[] = [];
   newRole = { id: 0, name: '', status: true };
 
-  ngOnInit(): void {
-    const savedData = localStorage.getItem('originData');
-    if (savedData) {
-      this.rolesList = JSON.parse(savedData);
-    } else {
-      // Default Data
-      this.rolesList = [
-        { id: 1, name: 'Mumbai, India', status: true },
-        { id: 2, name: 'Dubai, UAE', status: true }
-      ];
-      this.saveToStorage();
-    }
+ ngOnInit(): void {
+  const savedData = localStorage.getItem('originData');
+  
+  if (savedData) {
+    const parsedData = JSON.parse(savedData);
+    // Purane saved data ko uppercase mein convert kar rahe hain
+    this.rolesList = parsedData.map((item: any) => ({
+      ...item,
+      name: item.name ? item.name.toUpperCase() : ''
+    }));
+  } else {
+    // Default Data ko uppercase mein set kiya hai
+    this.rolesList = [
+      { id: 1, name: 'MUMBAI, INDIA', status: true },
+      { id: 2, name: 'DUBAI, UAE', status: true }
+    ];
+    this.saveToStorage();
   }
+}
 
   saveToStorage() {
     localStorage.setItem('originData', JSON.stringify(this.rolesList));

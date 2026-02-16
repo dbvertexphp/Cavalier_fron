@@ -65,12 +65,26 @@
 <!-- ✅ Ultra Dark Stylish Skeleton END -->
 
       <div *ngIf="!loadings" class="flex flex-col">
-        <div class="px-3 mb-4 h-5 flex items-center">
-          <h2 class="text-[10px] font-black uppercase tracking-[2px] text-white/50">
-            @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) { Menu }
-            @else { ••• }
-          </h2>
-        </div>
+        <div *ngIf="!loadings" class="flex flex-col">
+  <div class="px-3 mb-4 h-5 flex items-center">
+    <h2 class="text-[10px] font-black uppercase tracking-[2px] text-white/50">
+      @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
+        
+        @if (accessType === 'system') {
+           SYSTEM ADMINISTRATOR
+        } 
+        @else if (accessType === 'branch') {
+           BRANCH ADMINISTRATOR
+        }
+        @else {
+           MENU
+        }
+
+      }
+      @else { ••• }
+    </h2>
+  </div>
+</div>
 
         <ul class="flex flex-col gap-1">
           @for (nav of navItems; track $index; let i = $index) {

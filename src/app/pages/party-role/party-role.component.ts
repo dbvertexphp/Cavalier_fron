@@ -26,22 +26,30 @@ export class PartyRoleComponent {
   constructor() {}
 
   ngOnInit(): void {
-    // Refresh hone par LocalStorage se data load karein
-    const savedData = localStorage.getItem('myCommodityData');
-    if (savedData) {
-      this.rolesList = JSON.parse(savedData);
-    } else {
-      // Agar first time hai to default data set karein
-      this.rolesList = [
-        { id: 1, name: 'Shipper', status: true },
-        { id: 2, name: 'Consignee', status: true },
-        { id: 3, name: 'Dest. Agent', status: false },
-        { id: 4, name: 'Origin Agent', status: false },
-        { id: 5, name: 'Customer', status: false }
-      ];
-      
-    }
+  // Refresh hone par LocalStorage se data load karein
+  const savedData = localStorage.getItem('myCommodityData');
+  
+  if (savedData) {
+    const parsedData = JSON.parse(savedData);
+    // Purane data ko load karte waqt uppercase mein convert kar rahe hain
+    this.rolesList = parsedData.map((item: any) => ({
+      ...item,
+      name: item.name ? item.name.toUpperCase() : ''
+    }));
+  } else {
+    // Default data ko uppercase mein set kiya hai
+    this.rolesList = [
+      { id: 1, name: 'SHIPPER', status: true },
+      { id: 2, name: 'CONSIGNEE', status: true },
+      { id: 3, name: 'DEST. AGENT', status: false },
+      { id: 4, name: 'ORIGIN AGENT', status: false },
+      { id: 5, name: 'CUSTOMER', status: false }
+    ];
+    
+    // Default data ko save karne ke liye (Optional, depend on your logic)
+    localStorage.setItem('myCommodityData', JSON.stringify(this.rolesList));
   }
+}
 
   // --- Helper: LocalStorage mein data save karne ke liye ---
  

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
@@ -11,7 +11,7 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
   styleUrl: './commodity-type.component.css',
 })
 export class CommodityTypeComponent implements OnInit {
-  private apiUrl = 'http://localhost:5000/api/CommodityType'; // Check your port
+  private apiUrl = 'http://localhost:5000/api/CommodityType'; 
 
   isModalOpen = false;
   isEditMode = false;
@@ -26,23 +26,22 @@ export class CommodityTypeComponent implements OnInit {
   showPopup = false;
   roleIdToDelete: number | null = null;
 
-  constructor(private http: HttpClient) {}
+  // ChangeDetectorRef ko inject kiya gaya hai
+  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.fetchCommodities();
   }
 
-  // API se data lana
   fetchCommodities() {
     this.http.get<any[]>(this.apiUrl).subscribe(res => {
       this.rolesList = res;
+      this.cdr.detectChanges(); // Data aane par UI refresh
     });
   }
 
-  // Save (Add logic)
   saveRole() {
     if (this.newRole.name.trim()) {
-      // Logic: Save karne se pehle name ko Uppercase mein convert karein
       const upperName = this.newRole.name.trim().toUpperCase();
 
       if (this.isEditMode) {
@@ -51,10 +50,8 @@ export class CommodityTypeComponent implements OnInit {
           name: upperName, 
           status: this.newRole.status 
         };
-        // Edit API call
         this.http.put(`${this.apiUrl}/${this.newRole.id}`, payload).subscribe(() => {
-          this.fetchCommodities();
-          this.closeModal();
+          this.handleResponse();
         });
       } else {
         const payload = { 
@@ -62,36 +59,57 @@ export class CommodityTypeComponent implements OnInit {
           status: this.newRole.status 
         };
         this.http.post(this.apiUrl, payload).subscribe(() => {
-          this.fetchCommodities();
-          this.closeModal();
+          this.handleResponse();
         });
       }
     }
   }
 
-  // Delete logic
+  // Common response handler for Save/Edit/Delete
+  private handleResponse() {
+    this.fetchCommodities();
+    this.closeModal();
+    this.cdr.detectChanges(); // Forceful UI update
+  }
+
   confirmDelete() {
     if (this.roleIdToDelete !== null) {
       this.http.delete(`${this.apiUrl}/${this.roleIdToDelete}`).subscribe(() => {
         this.fetchCommodities();
         this.showPopup = false;
         this.roleIdToDelete = null;
+        this.cdr.detectChanges(); // Delete ke baad refresh
       });
     }
   }
 
-  // UI Helpers
   openModal() {
     this.isEditMode = false;
     this.newRole = { id: 0, name: '', status: true };
     this.isModalOpen = true;
+    this.cdr.detectChanges();
   }
-  closeModal() { this.isModalOpen = false; }
-  deleteRole(id: number) { this.roleIdToDelete = id; this.showPopup = true; }
-  cancelDelete() { this.showPopup = false; }
+
+  closeModal() { 
+    this.isModalOpen = false; 
+    this.cdr.detectChanges();
+  }
+
+  deleteRole(id: number) { 
+    this.roleIdToDelete = id; 
+    this.showPopup = true; 
+    this.cdr.detectChanges();
+  }
+
+  cancelDelete() { 
+    this.showPopup = false; 
+    this.cdr.detectChanges();
+  }
+
   editRole(role: any) { 
     this.isEditMode = true; 
     this.newRole = { ...role }; 
     this.isModalOpen = true; 
+    this.cdr.detectChanges();
   }
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
@@ -21,7 +21,8 @@ export class PortOfLoadingComponent implements OnInit {
   rolesList: any[] = []; 
   newRole = { id: 0, name: '', status: true };
 
-  constructor(private http: HttpClient) {}
+  // ChangeDetectorRef inject kiya gaya hai
+  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.fetchPorts();
@@ -31,13 +32,13 @@ export class PortOfLoadingComponent implements OnInit {
   fetchPorts() {
     this.http.get<any[]>(this.apiUrl).subscribe(res => {
       this.rolesList = res;
+      this.cdr.detectChanges(); // Data fetch ke baad UI refresh
     });
   }
 
   // 2. SAVE (ADD / EDIT)
   saveRole() {
     if (this.newRole.name.trim()) {
-      // Logic: Save karne se pehle hamesha Uppercase karein
       const upperName = this.newRole.name.trim().toUpperCase();
 
       if (this.isEditMode) {
@@ -48,10 +49,7 @@ export class PortOfLoadingComponent implements OnInit {
         };
         
         this.http.put(`${this.apiUrl}/${this.newRole.id}`, payload).subscribe({
-          next: () => {
-            this.fetchPorts();
-            this.closeModal();
-          },
+          next: () => this.handleSuccess(),
           error: (err) => console.error('Error updating port:', err)
         });
       } else {
@@ -60,12 +58,19 @@ export class PortOfLoadingComponent implements OnInit {
           status: this.newRole.status 
         };
         
-        this.http.post(this.apiUrl, payload).subscribe(() => {
-          this.fetchPorts();
-          this.closeModal();
+        this.http.post(this.apiUrl, payload).subscribe({
+          next: () => this.handleSuccess(),
+          error: (err) => console.error('Error adding port:', err)
         });
       }
     }
+  }
+
+  // Common response handler
+  private handleSuccess() {
+    this.fetchPorts();
+    this.closeModal();
+    this.cdr.detectChanges();
   }
 
   // 3. DELETE
@@ -75,6 +80,7 @@ export class PortOfLoadingComponent implements OnInit {
         this.fetchPorts();
         this.showPopup = false;
         this.selectedId = null;
+        this.cdr.detectChanges(); // Delete ke baad UI refresh
       });
     }
   }
@@ -84,13 +90,29 @@ export class PortOfLoadingComponent implements OnInit {
     this.isEditMode = false;
     this.newRole = { id: 0, name: '', status: true };
     this.isModalOpen = true;
+    this.cdr.detectChanges();
   }
-  closeModal() { this.isModalOpen = false; }
+
+  closeModal() { 
+    this.isModalOpen = false; 
+    this.cdr.detectChanges();
+  }
+
   editRole(role: any) { 
     this.isEditMode = true; 
     this.newRole = { ...role }; 
     this.isModalOpen = true; 
+    this.cdr.detectChanges();
   }
-  deleteRole(id: number) { this.selectedId = id; this.showPopup = true; }
-  cancelDelete() { this.showPopup = false; }
+
+  deleteRole(id: number) { 
+    this.selectedId = id; 
+    this.showPopup = true; 
+    this.cdr.detectChanges();
+  }
+
+  cancelDelete() { 
+    this.showPopup = false; 
+    this.cdr.detectChanges();
+  }
 }

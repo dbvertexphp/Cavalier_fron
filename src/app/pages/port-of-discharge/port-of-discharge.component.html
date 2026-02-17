@@ -29,12 +29,12 @@
         </thead>
         <tbody class="divide-y divide-gray-100">
           <tr *ngIf="rolesList.length === 0">
-            <td colspan="2" class="px-6 py-12 text-center text-gray-400">No Port of Discharge found.</td>
+            <td colspan="2" class="px-6 py-12 text-center text-gray-400 text-sm font-medium">No Port of Discharge found.</td>
           </tr>
           
           <tr *ngFor="let role of rolesList" class="hover:bg-gray-50/50 transition-colors group">
-            <td class="px-4 md:px-6 py-4">
-              <span class="font-semibold text-gray-900 text-sm md:text-base uppercase">{{role.name}}</span>
+            <td class="px-4 md:px-6 py-4 font-semibold text-gray-900 text-sm md:text-base uppercase">
+              {{role.name}}
             </td>
             <td class="px-4 md:px-6 py-4">
               <div class="flex justify-center gap-2 md:gap-3">
@@ -53,7 +53,7 @@
   </div>
 
   <div *ngIf="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-    <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl animate-in fade-in zoom-in duration-300">
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl animate-in fade-in zoom-in duration-300 overflow-hidden">
       <div class="bg-gray-50 px-6 py-5 border-b flex justify-between items-center">
         <h3 class="text-lg font-bold text-gray-800">{{ isEditMode ? 'Update' : 'Create' }} POD</h3>
         <button (click)="closeModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
@@ -64,11 +64,11 @@
           [(ngModel)]="newRole.name" 
           (input)="newRole.name = newRole.name.toUpperCase()"
           placeholder="ENTER POD NAME (E.G. HAMBURG)..." 
-          class="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:border-[#654E51] outline-none font-medium uppercase">
+          class="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:border-[#654E51] outline-none font-medium uppercase transition-colors">
       </div>
       <div class="px-6 py-4 bg-gray-50 border-t flex gap-3">
-        <button (click)="closeModal()" class="flex-1 py-2.5 text-gray-600 font-bold hover:bg-gray-200 rounded-lg">Cancel</button>
-        <button (click)="saveRole()" [disabled]="!newRole.name" class="flex-1 py-2.5 bg-[#654E51] text-white font-bold rounded-lg hover:bg-[#4A3739] shadow-lg disabled:bg-gray-400">
+        <button (click)="closeModal()" class="flex-1 py-2.5 text-gray-600 font-bold hover:bg-gray-200 rounded-lg transition-colors">Cancel</button>
+        <button (mousedown)="saveRole()" [disabled]="!newRole.name" class="flex-1 py-2.5 bg-[#654E51] text-white font-bold rounded-lg hover:bg-[#4A3739] shadow-lg disabled:bg-gray-400 transition-all">
           {{ isEditMode ? 'Update POD' : 'Save POD' }}
         </button>
       </div>
@@ -76,15 +76,15 @@
   </div>
 
   <div *ngIf="showPopup" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-    <div class="bg-white rounded-3xl p-8 w-full max-w-sm text-center">
+    <div class="bg-white rounded-3xl p-8 w-full max-w-sm text-center shadow-2xl animate-in fade-in zoom-in duration-300">
       <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
       </div>
       <h3 class="text-xl font-bold text-gray-800 mb-2">Delete POD?</h3>
       <p class="text-gray-500 mb-8 leading-relaxed">This port will be removed from your destination list.</p>
       <div class="flex gap-3">
-        <button (click)="cancelDelete()" class="flex-1 py-3 bg-gray-100 text-gray-600 font-bold rounded-xl">Cancel</button>
-        <button (click)="confirmDelete()" class="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl shadow-lg">Confirm</button>
+        <button (click)="cancelDelete()" class="flex-1 py-3 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-200 transition-colors">Cancel</button>
+        <button (click)="confirmDelete()" class="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition-all">Confirm</button>
       </div>
     </div>
   </div>

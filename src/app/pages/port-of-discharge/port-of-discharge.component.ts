@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-
+import { environment } from '../../../environments/environment';
 @Component({
   selector: 'app-port-of-discharge',
   standalone: true,
@@ -11,7 +11,7 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
   styleUrl: './port-of-discharge.component.css',
 })
 export class PortOfDischargeComponent implements OnInit {
-  private apiUrl = 'http://localhost:5000/api/PortOfDischarge';
+  private apiUrl = environment.apiUrl + '/PortOfDischarge';
 
   isModalOpen = false;
   isEditMode = false;
@@ -35,17 +35,37 @@ export class PortOfDischargeComponent implements OnInit {
     });
   }
 
-  // 2. SAVE (ADD)
+  // 2. SAVE (ADD / EDIT)
   saveRole() {
     if (this.newRole.name.trim()) {
+      // Data entry consistency ke liye hamesha uppercase
+      const upperName = this.newRole.name.trim().toUpperCase();
+
       if (this.isEditMode) {
-        // Edit logic abhi skip kar rahe hain as per requirement
-        this.closeModal();
+        const payload = { 
+          id: this.newRole.id, 
+          name: upperName, 
+          status: this.newRole.status 
+        };
+        
+        this.http.put(`${this.apiUrl}/${this.newRole.id}`, payload).subscribe({
+          next: () => {
+            this.fetchPorts();
+            this.closeModal();
+          },
+          error: (err) => console.error('Error updating POD:', err)
+        });
       } else {
-        const payload = { name: this.newRole.name, status: this.newRole.status };
-        this.http.post(this.apiUrl, payload).subscribe(() => {
-          this.fetchPorts();
-          this.closeModal();
+        const payload = { 
+          name: upperName, 
+          status: this.newRole.status 
+        };
+        
+        this.http.post(this.apiUrl, payload).subscribe({
+          next: () => {
+            this.fetchPorts();
+            this.closeModal();
+          }
         });
       }
     }
@@ -69,7 +89,11 @@ export class PortOfDischargeComponent implements OnInit {
     this.isModalOpen = true;
   }
   closeModal() { this.isModalOpen = false; }
-  editRole(role: any) { this.isEditMode = true; this.newRole = { ...role }; this.isModalOpen = true; }
+  editRole(role: any) { 
+    this.isEditMode = true; 
+    this.newRole = { ...role }; 
+    this.isModalOpen = true; 
+  }
   deleteRole(id: number) { this.selectedId = id; this.showPopup = true; }
   cancelDelete() { this.showPopup = false; }
 }

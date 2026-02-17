@@ -34,12 +34,16 @@
           
           <tr *ngFor="let role of rolesList" class="hover:bg-gray-50/50 transition-colors group">
             <td class="px-4 md:px-6 py-4">
-              <span class="font-semibold text-gray-900 text-sm md:text-base">{{role.name}}</span>
+              <span class="font-semibold text-gray-900 text-sm md:text-base uppercase">{{role.name}}</span>
             </td>
             <td class="px-4 md:px-6 py-4">
               <div class="flex justify-center gap-2 md:gap-3">
-                <button (click)="editRole(role)" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
-                <button (click)="deleteRole(role.id)" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+                <button (click)="editRole(role)" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                </button>
+                <button (click)="deleteRole(role.id)" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                </button>
               </div>
             </td>
           </tr>
@@ -56,11 +60,15 @@
       </div>
       <div class="p-6">
         <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Discharge Port Name</label>
-        <input type="text" [(ngModel)]="newRole.name" placeholder="Enter POD name..." class="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:border-[#654E51] outline-none font-medium">
+        <input type="text" 
+          [(ngModel)]="newRole.name" 
+          (input)="newRole.name = newRole.name.toUpperCase()"
+          placeholder="ENTER POD NAME (E.G. HAMBURG)..." 
+          class="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:border-[#654E51] outline-none font-medium uppercase">
       </div>
       <div class="px-6 py-4 bg-gray-50 border-t flex gap-3">
         <button (click)="closeModal()" class="flex-1 py-2.5 text-gray-600 font-bold hover:bg-gray-200 rounded-lg">Cancel</button>
-        <button (click)="saveRole()" [disabled]="!newRole.name" class="flex-1 py-2.5 bg-[#654E51] text-white font-bold rounded-lg hover:bg-[#4A3739] shadow-lg">
+        <button (click)="saveRole()" [disabled]="!newRole.name" class="flex-1 py-2.5 bg-[#654E51] text-white font-bold rounded-lg hover:bg-[#4A3739] shadow-lg disabled:bg-gray-400">
           {{ isEditMode ? 'Update POD' : 'Save POD' }}
         </button>
       </div>

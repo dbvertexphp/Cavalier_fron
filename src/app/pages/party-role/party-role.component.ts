@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-party-role',
@@ -11,7 +12,7 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
   styleUrl: './party-role.component.css',
 })
 export class PartyRoleComponent implements OnInit {
-  private apiUrl = 'http://localhost:5000/api/PartyRole';
+  private apiUrl = environment.apiUrl + '/PartyRole';
 
   isModalOpen = false;
   isEditMode = false;
@@ -29,30 +30,7 @@ export class PartyRoleComponent implements OnInit {
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
-  // Refresh hone par LocalStorage se data load karein
-  const savedData = localStorage.getItem('myCommodityData');
-  
-  if (savedData) {
-    const parsedData = JSON.parse(savedData);
-    // Purane data ko load karte waqt uppercase mein convert kar rahe hain
-    this.rolesList = parsedData.map((item: any) => ({
-      ...item,
-      name: item.name ? item.name.toUpperCase() : ''
-    }));
-  } else {
-    // Default data ko uppercase mein set kiya hai
-    this.rolesList = [
-      { id: 1, name: 'SHIPPER', status: true },
-      { id: 2, name: 'CONSIGNEE', status: true },
-      { id: 3, name: 'DEST. AGENT', status: false },
-      { id: 4, name: 'ORIGIN AGENT', status: false },
-      { id: 5, name: 'CUSTOMER', status: false }
-    ];
-    
-    // Default data ko save karne ke liye (Optional, depend on your logic)
-    localStorage.setItem('myCommodityData', JSON.stringify(this.rolesList));
-    this.fetchRoles();
-  }
+  this.fetchRoles();
 }
 
   // 1. GET ALL ROLES
@@ -63,14 +41,34 @@ export class PartyRoleComponent implements OnInit {
     });
   }
 
-  // 2. SAVE (ADD)
+  // 2. SAVE (ADD / EDIT)
   saveRole() {
     if (this.newRole.name.trim()) {
+      // Logic: Save karne se pehle hamesha Capitalize karein
+      const upperName = this.newRole.name.trim().toUpperCase();
+
       if (this.isEditMode) {
-        // Edit logic skipped as per requirement
-        this.closeModal();
+        // Edit logic payload
+        const payload = { 
+          id: this.newRole.id, 
+          name: upperName, 
+          status: this.newRole.status 
+        };
+        
+        this.http.put(`${this.apiUrl}/${this.newRole.id}`, payload).subscribe({
+          next: () => {
+            this.fetchRoles();
+            this.closeModal();
+          },
+          error: (err) => console.error('Error updating role:', err)
+        });
       } else {
-        const payload = { name: this.newRole.name, status: this.newRole.status };
+        // Add Logic
+        const payload = { 
+          name: upperName, 
+          status: this.newRole.status 
+        };
+        
         this.http.post(this.apiUrl, payload).subscribe({
           next: () => {
             this.fetchRoles();
@@ -102,5 +100,9 @@ export class PartyRoleComponent implements OnInit {
   closeModal() { this.isModalOpen = false; }
   deleteRole(id: number) { this.roleIdToDelete = id; this.showPopup = true; }
   cancelDelete() { this.showPopup = false; }
-  editRole(role: any) { this.isEditMode = true; this.newRole = { ...role }; this.isModalOpen = true; }
+  editRole(role: any) { 
+    this.isEditMode = true; 
+    this.newRole = { ...role }; 
+    this.isModalOpen = true; 
+  }
 }

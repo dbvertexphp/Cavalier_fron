@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-
+import { environment } from '../../../environments/environment';
 @Component({
   selector: 'app-origin',
   standalone: true,
@@ -12,7 +12,7 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 })
 export class OriginComponent implements OnInit {
   constructor(private http: HttpClient) {}
-  private apiUrl = 'http://localhost:5000/api/Origin'; // Apne backend ka port check kar lena
+  private apiUrl = environment.apiUrl + '/Origin';
 
   isModalOpen = false;
   isEditMode = false;
@@ -23,23 +23,7 @@ export class OriginComponent implements OnInit {
   newRole = { id: 0, name: '', status: true };
 
  ngOnInit(): void {
-  const savedData = localStorage.getItem('originData');
-  
-  if (savedData) {
-    const parsedData = JSON.parse(savedData);
-    // Purane saved data ko uppercase mein convert kar rahe hain
-    this.rolesList = parsedData.map((item: any) => ({
-      ...item,
-      name: item.name ? item.name.toUpperCase() : ''
-    }));
-  } else {
-    // Default Data ko uppercase mein set kiya hai
-    this.rolesList = [
-      { id: 1, name: 'MUMBAI, INDIA', status: true },
-      { id: 2, name: 'DUBAI, UAE', status: true }
-    ];
-    
-  }
+  this.fetchOrigins();
 }
 
   // 1. GET DATA
@@ -50,14 +34,32 @@ export class OriginComponent implements OnInit {
     });
   }
 
-  // 2. SAVE (ADD)
+  // 2. SAVE (ADD / EDIT)
   saveRole() {
     if (this.newRole.name.trim()) {
+      // Logic: Save karne se pehle hamesha Uppercase karein
+      const upperName = this.newRole.name.trim().toUpperCase();
+
       if (this.isEditMode) {
-        // Edit logic abhi skip hai
-        this.closeModal();
+        const payload = { 
+          id: this.newRole.id, 
+          name: upperName, 
+          status: this.newRole.status 
+        };
+        
+        this.http.put(`${this.apiUrl}/${this.newRole.id}`, payload).subscribe({
+          next: () => {
+            this.fetchOrigins();
+            this.closeModal();
+          },
+          error: (err) => console.error('Error updating origin:', err)
+        });
       } else {
-        const payload = { name: this.newRole.name, status: this.newRole.status };
+        const payload = { 
+          name: upperName, 
+          status: this.newRole.status 
+        };
+        
         this.http.post(this.apiUrl, payload).subscribe({
           next: () => {
             this.fetchOrigins();

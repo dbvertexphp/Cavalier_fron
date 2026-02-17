@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-
+import { environment } from '../../../environments/environment';
 @Component({
   selector: 'app-commodity-type',
   standalone: true,
@@ -11,7 +11,7 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
   styleUrl: './commodity-type.component.css',
 })
 export class CommodityTypeComponent implements OnInit {
-  private apiUrl = 'http://localhost:5000/api/CommodityType'; // Check your port
+  private apiUrl = environment.apiUrl + '/CommodityType';
 
   isModalOpen = false;
   isEditMode = false;
@@ -29,35 +29,10 @@ export class CommodityTypeComponent implements OnInit {
   constructor(private http: HttpClient) {}
 
  ngOnInit(): void {
-  // Refresh hone par LocalStorage se data load karein
-  const savedData = localStorage.getItem('myCommodityData');
-  
-  if (savedData) {
-    const parsedData = JSON.parse(savedData);
-    // Purane data ko load karte waqt uppercase mein badal rahe hain
-    this.rolesList = parsedData.map((item: any) => ({
-      ...item,
-      name: item.name ? item.name.toUpperCase() : ''
-    }));
-  } else {
-    // Default data ko uppercase mein set kiya hai
-    this.rolesList = [
-      { id: 1, name: 'HAZARD', status: true },
-      { id: 2, name: 'NON HAZARD', status: true },
-      { id: 3, name: 'PERISHABLE', status: false },
-      { id: 4, name: 'GENERAL', status: false },
-      { id: 5, name: 'TEMPERATURE CONTROLLED', status: false }
-    ];
-    
-    // Default data ko bhi LocalStorage mein save kar dete hain
-    this.saveToLocalStorage();
-  }
+  this.fetchCommodities();
 }
 
-// Data save karne ka helper function (agar aapke paas pehle se nahi hai)
-saveToLocalStorage() {
-  localStorage.setItem('myCommodityData', JSON.stringify(this.rolesList));
-}
+
 
   // API se data lana
   fetchCommodities() {
@@ -69,11 +44,25 @@ saveToLocalStorage() {
   // Save (Add logic)
   saveRole() {
     if (this.newRole.name.trim()) {
+      // Logic: Save karne se pehle name ko Uppercase mein convert karein
+      const upperName = this.newRole.name.trim().toUpperCase();
+
       if (this.isEditMode) {
-        // Edit logic skipped as per requirement
-        this.closeModal();
+        const payload = { 
+          id: this.newRole.id, 
+          name: upperName, 
+          status: this.newRole.status 
+        };
+        // Edit API call
+        this.http.put(`${this.apiUrl}/${this.newRole.id}`, payload).subscribe(() => {
+          this.fetchCommodities();
+          this.closeModal();
+        });
       } else {
-        const payload = { name: this.newRole.name, status: this.newRole.status };
+        const payload = { 
+          name: upperName, 
+          status: this.newRole.status 
+        };
         this.http.post(this.apiUrl, payload).subscribe(() => {
           this.fetchCommodities();
           this.closeModal();
@@ -102,5 +91,9 @@ saveToLocalStorage() {
   closeModal() { this.isModalOpen = false; }
   deleteRole(id: number) { this.roleIdToDelete = id; this.showPopup = true; }
   cancelDelete() { this.showPopup = false; }
-  editRole(role: any) { this.isEditMode = true; this.newRole = { ...role }; this.isModalOpen = true; }
+  editRole(role: any) { 
+    this.isEditMode = true; 
+    this.newRole = { ...role }; 
+    this.isModalOpen = true; 
+  }
 }

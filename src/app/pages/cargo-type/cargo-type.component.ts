@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-cargo-type',
@@ -12,7 +13,7 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 })
 export class CargoTypeComponent implements OnInit {
   // Aapki API URL
-  private apiUrl = 'http://localhost:5000/api/CargoType';
+  private apiUrl = environment.apiUrl + '/CargoType';
 
   isModalOpen = false;
   isEditMode = false;
@@ -45,31 +46,12 @@ export class CargoTypeComponent implements OnInit {
   //   }
   // }
 ngOnInit(): void {
-  // Refresh hone par LocalStorage se data load karein
-  const savedData = localStorage.getItem('myCommodityData');
-  
-  if (savedData) {
-    const parsedData = JSON.parse(savedData);
-    // Data load karte waqt hi Name ko Uppercase mein convert kar rahe hain
-    this.rolesList = parsedData.map((item: any) => ({
-      ...item,
-      name: item.name ? item.name.toUpperCase() : ''
-    }));
-  } else {
-    // Agar first time hai to default data (Pehle se hi Uppercase rakha hai)
-    this.rolesList = [
-      { id: 1, name: 'LOOSE', status: true },
-      { id: 2, name: 'ULD', status: true },
-    ];
-    // Default data ko bhi uppercase mein save kar dete hain
-    this.saveToLocalStorage(); 
-  }
+  this.getCargoTypes();
 }
 
+
 // Ek helper function taaki baar-baar save na likhna pade
-saveToLocalStorage() {
-  localStorage.setItem('myCommodityData', JSON.stringify(this.rolesList));
-}
+
   // --- Helper: LocalStorage mein data save karne ke liye ---
   
   // --- 1. GET DATA FROM API ---
@@ -85,14 +67,28 @@ saveToLocalStorage() {
   // --- 2. SAVE / ADD DATA ---
   saveRole() {
     if (this.newRole.name.trim()) {
+      // Input ko capital mein convert kar rahe hain
+      const upperName = this.newRole.name.trim().toUpperCase();
+
       if (this.isEditMode) {
-        // Edit logic (Abhi sirf UI button hai as per your request)
-        console.log("Edit Mode is active, but logic is skipped.");
-        this.closeModal();
+        // Edit logic 
+        const payload = {
+          id: this.newRole.id,
+          name: upperName,
+          status: this.newRole.status
+        };
+
+        this.http.put(`${this.apiUrl}/${this.newRole.id}`, payload).subscribe({
+          next: () => {
+            this.getCargoTypes();
+            this.closeModal();
+          },
+          error: (err) => console.error('Error updating cargo:', err)
+        });
       } else {
         // Dynamic Add Logic
         const payload = {
-          name: this.newRole.name,
+          name: upperName,
           status: this.newRole.status
         };
 
@@ -144,7 +140,6 @@ saveToLocalStorage() {
   }
 
   editRole(role: any) {
-    // Sirf modal khulega, edit functionality static rakhi hai
     this.isEditMode = true;
     this.newRole = { ...role };
     this.isModalOpen = true;

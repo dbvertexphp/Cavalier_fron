@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-teams',
@@ -14,7 +15,7 @@ export class TeamsComponent implements OnInit {
   isEditMode = false;
   selectedTeamId: number | null = null;
   
-  private apiUrl = 'http://localhost:5000/api/Teams';
+  private apiUrl = environment.apiUrl + '/Teams';
   teams: any[] = [];
   newTeam = { teamName: '' };
 
@@ -51,16 +52,31 @@ export class TeamsComponent implements OnInit {
   
   saveTeam() { 
     if (this.newTeam.teamName.trim()) {
-      if (this.isEditMode) {
-        // Update logic (UI only for now as requested)
-        this.closeModal();
-      } else {
-        this.http.post(this.apiUrl, this.newTeam).subscribe({
+      // Logic: Convert to UPPERCASE before saving
+      const upperTeamName = this.newTeam.teamName.trim().toUpperCase();
+
+      if (this.isEditMode && this.selectedTeamId) {
+        // PUT API Call for Updating Team
+        const payload = { id: this.selectedTeamId, teamName: upperTeamName };
+        this.http.put(`${this.apiUrl}/${this.selectedTeamId}`, payload).subscribe({
           next: () => {
             this.fetchTeams();
             this.closeModal();
           },
-          error: (err) => alert('can not add team!')
+          error: (err) => console.error('Update team failed:', err)
+        });
+      } else {
+        // POST API Call for Adding Team
+        const payload = { teamName: upperTeamName };
+        this.http.post(this.apiUrl, payload).subscribe({
+          next: () => {
+            this.fetchTeams();
+            this.closeModal();
+          },
+          error: (err) => {
+            console.error('Add team failed:', err);
+            alert('Cannot add team!');
+          }
         });
       }
     }

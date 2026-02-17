@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+/*import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router'; // Router import kiya
@@ -91,5 +91,87 @@ export class LeadFormComponent implements OnInit {
     } else {
       alert('Error: Mandatory fields missing.');
     }
+  }
+}*/
+
+
+
+
+
+
+
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+// 🔄 Drag-Drop aur Transfer ke liye zaroori imports
+import { 
+  CdkDragDrop, 
+  moveItemInArray, 
+  transferArrayItem, 
+  DragDropModule 
+} from '@angular/cdk/drag-drop';
+
+@Component({
+  selector: 'app-lead-form',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule, DragDropModule],
+  templateUrl: './lead-form.component.html',
+  styleUrl: './lead-form.component.css'
+})
+export class LeadFormComponent implements OnInit {
+  leadForm!: FormGroup;
+  isFormOpen = false;
+
+  // 1. Dual List ke liye do Arrays
+  availableColumns: string[] = ['Date', 'Type', 'Lead Owner', 'Stage', 'Branch', 'Team', 'Sales Process'];
+  selectedColumns: string[] = ['Organization']; // Default selected
+
+  constructor(private fb: FormBuilder, private router: Router) {}
+
+  ngOnInit(): void {
+    this.initForm();
+  }
+
+  // 🔄 Drag and Drop + Transfer Logic
+  drop(event: CdkDragDrop<string[]>) {
+    if (event.previousContainer === event.container) {
+      // Usi list mein upar-niche karna
+      moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
+    } else {
+      // Ek list se dusri list mein bhejna
+      transferArrayItem(
+        event.previousContainer.data,
+        event.container.data,
+        event.previousIndex,
+        event.currentIndex
+      );
+    }
+    console.log('Selected Columns Order:', this.selectedColumns);
+  }
+
+  // ➡️ Arrow Function: Available se Selected mein bhejna
+  moveToSelected(index: number) {
+    const item = this.availableColumns.splice(index, 1)[0];
+    this.selectedColumns.push(item);
+  }
+
+  // ⬅️ Arrow Function: Selected se Available mein bhejna
+  moveToAvailable(index: number) {
+    const item = this.selectedColumns.splice(index, 1)[0];
+    this.availableColumns.push(item);
+  }
+
+  // --- Baaki Form Methods ---
+  initForm() {
+    this.leadForm = this.fb.group({
+      organization: ['', Validators.required],
+      type: ['New Business'],
+      leadOwner: ['BHARAT JUYAL']
+    });
+  }
+
+  toggleForm() {
+    this.isFormOpen = !this.isFormOpen;
   }
 }

@@ -66,6 +66,7 @@
                   </svg>
                 }
               </button>
+              
               <div class="overflow-hidden transition-all duration-300" [ngClass]="{ 'bg-black/10 rounded-b-xl': (isExpanded$ | async) || (isHovered$ | async), 'hidden': !((isExpanded$ | async) || (isHovered$ | async)) }" [style.height]="openSubmenu === 'main-' + i && ((isExpanded$ | async) || (isHovered$ | async)) ? 'auto' : '0px'">
                 <ul class="py-1 ml-10 border-l border-white/10">
                   @for (subItem of nav.subItems; track $index) {
@@ -86,38 +87,6 @@
             }
           </li>
           }
-
-          <li class="w-full">
-            <a routerLink="/hod" routerLinkActive="bg-black shadow-lg border border-white/5" class="group flex items-center w-full p-3 rounded-xl transition-all duration-200 hover:bg-black/20">
-              <span class="flex-shrink-0 w-6 h-6 flex items-center justify-center text-white/80 group-hover:text-white">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
-              </span>
-              @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-                <span class="ml-4 text-[13px] font-semibold tracking-wide text-white/90 group-hover:text-white whitespace-nowrap">HOD</span>
-              }
-            </a>
-          </li>
-
-          <li class="w-full">
-            <a routerLink="/teams" routerLinkActive="bg-black shadow-lg border border-white/5" class="group flex items-center w-full p-3 rounded-xl transition-all duration-200 hover:bg-black/20">
-              <span class="flex-shrink-0 w-6 h-6 flex items-center justify-center text-white/80 group-hover:text-white">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
-              </span>
-              @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-                <span class="ml-4 text-[13px] font-semibold tracking-wide text-white/90 group-hover:text-white whitespace-nowrap">Teams</span>
-              }
-            </a>
-          </li>
         </ul>
       </div>
     </nav>

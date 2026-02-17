@@ -5,37 +5,34 @@
 
     <div class="flex flex-wrap items-center gap-3 mr-12">
       <button (click)="loadUsers('all')"
-    class="flex items-center gap-2 px-6 py-2 text-white bg-gray-600 hover:bg-gray-700 rounded-lg shadow-md transition-all active:scale-95 whitespace-nowrap">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-        d="M4 6h16M4 12h16M4 18h16" />
-    </svg>
-    <span class="font-bold">All</span>
-  </button>
-  <button (click)="loadUsers('training')"
-    class="flex items-center gap-2 px-6 py-2 text-white bg-green-600 hover:bg-green-700 rounded-lg shadow-md transition-all active:scale-95 whitespace-nowrap">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-        d="M12 6v6l4 2" />
-    </svg>
-    <span class="font-bold">Training</span>
-  </button>
-  <button (click)="loadUsers('payroll')"
-    class="flex items-center gap-2 px-6 py-2 text-white bg-purple-600 hover:bg-purple-700 rounded-lg shadow-md transition-all active:scale-95 whitespace-nowrap">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-        d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h10" />
-    </svg>
-    <span class="font-bold">Payroll</span>
-  </button>
-    <button (click)="loadUsers('freelancing')"
-    class="flex items-center gap-2 px-6 py-2 text-white bg-orange-600 hover:bg-orange-700 rounded-lg shadow-md transition-all active:scale-95 whitespace-nowrap">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-        d="M9 12h6M9 16h6M9 8h6" />
-    </svg>
-    <span class="font-bold">Freelancing</span>
-  </button>
+        class="flex items-center gap-2 px-6 py-2 text-white bg-gray-600 hover:bg-gray-700 rounded-lg shadow-md transition-all active:scale-95 whitespace-nowrap">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+        <span class="font-bold">All</span>
+      </button>
+      <button (click)="loadUsers('training')"
+        class="flex items-center gap-2 px-6 py-2 text-white bg-green-600 hover:bg-green-700 rounded-lg shadow-md transition-all active:scale-95 whitespace-nowrap">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6l4 2" />
+        </svg>
+        <span class="font-bold">Training</span>
+      </button>
+      <button (click)="loadUsers('payroll')"
+        class="flex items-center gap-2 px-6 py-2 text-white bg-purple-600 hover:bg-purple-700 rounded-lg shadow-md transition-all active:scale-95 whitespace-nowrap">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h10" />
+        </svg>
+        <span class="font-bold">Payroll</span>
+      </button>
+      <button (click)="loadUsers('freelancing')"
+        class="flex items-center gap-2 px-6 py-2 text-white bg-orange-600 hover:bg-orange-700 rounded-lg shadow-md transition-all active:scale-95 whitespace-nowrap">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6M9 16h6M9 8h6" />
+        </svg>
+        <span class="font-bold">Freelancing</span>
+      </button>
 
       <button (click)="addUser()"
         class="flex items-center gap-2 px-6 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-md transition-all active:scale-95 whitespace-nowrap">
@@ -75,15 +72,11 @@
 
         <tbody class="divide-y divide-gray-200">
           <tr *ngFor="let u of users" class="hover:bg-blue-50/20 transition-colors group">
-<td class="p-4 border-r">
-             <p class="font-black text-indigo-700 text-xs">
-  {{ u.userType.toUpperCase() }}
-  
-</p>
+            <td class="p-4 border-r">
+              <p class="font-black text-indigo-700 text-xs">
+                {{ u.userType.toUpperCase() }}
 
-
-
-              
+              </p>
             </td>
             <td class="p-4 border-r">
               <div class="flex items-center gap-3">
@@ -168,7 +161,7 @@
               <span
                 [class]="u.status ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'"
                 class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-tighter border">
-               {{ u.status ? 'Default' : 'Inactive' }}
+                {{ u.status ? 'Default' : 'Inactive' }}
               </span>
             </td>
 
@@ -195,7 +188,6 @@
                 </button>
               </div>
             </td>
-
           </tr>
         </tbody>
       </table>

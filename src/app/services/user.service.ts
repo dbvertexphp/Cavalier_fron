@@ -45,6 +45,17 @@ updateDepartment(id: number, name: string): Observable<any> {
   getDesignations(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/get-designations`);
   }
+  //cahnge here 
+// ... existing code ...
+
+// 🔄 ADD THESE TWO FUNCTIONS IN YOUR USER SERVICE
+getHods(): Observable<any[]> {
+  return this.http.get<any[]>('http://localhost:5000/api/Hod');
+}
+
+getTeams(): Observable<any[]> {
+  return this.http.get<any[]>('http://localhost:5000/api/Teams');
+}
 
   // 6. ✅ Add Designation
   addDesignation(designationData: any): Observable<any> {

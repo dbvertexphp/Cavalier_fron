@@ -46,14 +46,28 @@ export class CargoTypeComponent implements OnInit {
   // --- 2. SAVE / ADD DATA ---
   saveRole() {
     if (this.newRole.name.trim()) {
+      // Input ko capital mein convert kar rahe hain
+      const upperName = this.newRole.name.trim().toUpperCase();
+
       if (this.isEditMode) {
-        // Edit logic (Abhi sirf UI button hai as per your request)
-        console.log("Edit Mode is active, but logic is skipped.");
-        this.closeModal();
+        // Edit logic 
+        const payload = {
+          id: this.newRole.id,
+          name: upperName,
+          status: this.newRole.status
+        };
+
+        this.http.put(`${this.apiUrl}/${this.newRole.id}`, payload).subscribe({
+          next: () => {
+            this.getCargoTypes();
+            this.closeModal();
+          },
+          error: (err) => console.error('Error updating cargo:', err)
+        });
       } else {
         // Dynamic Add Logic
         const payload = {
-          name: this.newRole.name,
+          name: upperName,
           status: this.newRole.status
         };
 
@@ -105,7 +119,6 @@ export class CargoTypeComponent implements OnInit {
   }
 
   editRole(role: any) {
-    // Sirf modal khulega, edit functionality static rakhi hai
     this.isEditMode = true;
     this.newRole = { ...role };
     this.isModalOpen = true;

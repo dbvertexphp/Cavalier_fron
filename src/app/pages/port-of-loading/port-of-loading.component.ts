@@ -34,14 +34,32 @@ export class PortOfLoadingComponent implements OnInit {
     });
   }
 
-  // 2. SAVE (ADD)
+  // 2. SAVE (ADD / EDIT)
   saveRole() {
     if (this.newRole.name.trim()) {
+      // Logic: Save karne se pehle hamesha Uppercase karein
+      const upperName = this.newRole.name.trim().toUpperCase();
+
       if (this.isEditMode) {
-        // Edit functionality ignored as per current request
-        this.closeModal();
+        const payload = { 
+          id: this.newRole.id, 
+          name: upperName, 
+          status: this.newRole.status 
+        };
+        
+        this.http.put(`${this.apiUrl}/${this.newRole.id}`, payload).subscribe({
+          next: () => {
+            this.fetchPorts();
+            this.closeModal();
+          },
+          error: (err) => console.error('Error updating port:', err)
+        });
       } else {
-        const payload = { name: this.newRole.name, status: this.newRole.status };
+        const payload = { 
+          name: upperName, 
+          status: this.newRole.status 
+        };
+        
         this.http.post(this.apiUrl, payload).subscribe(() => {
           this.fetchPorts();
           this.closeModal();
@@ -68,7 +86,11 @@ export class PortOfLoadingComponent implements OnInit {
     this.isModalOpen = true;
   }
   closeModal() { this.isModalOpen = false; }
-  editRole(role: any) { this.isEditMode = true; this.newRole = { ...role }; this.isModalOpen = true; }
+  editRole(role: any) { 
+    this.isEditMode = true; 
+    this.newRole = { ...role }; 
+    this.isModalOpen = true; 
+  }
   deleteRole(id: number) { this.selectedId = id; this.showPopup = true; }
   cancelDelete() { this.showPopup = false; }
 }

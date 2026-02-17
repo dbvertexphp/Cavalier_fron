@@ -30,7 +30,7 @@
             <td colspan="2" class="px-6 py-12 text-center text-gray-400 text-sm font-medium">No Port of Loading added yet.</td>
           </tr>
           <tr *ngFor="let role of rolesList" class="hover:bg-gray-50/50 transition-colors">
-            <td class="px-4 md:px-6 py-4 font-semibold text-gray-900 text-sm md:text-base">{{role.name}}</td>
+            <td class="px-4 md:px-6 py-4 font-semibold text-gray-900 text-sm md:text-base uppercase">{{role.name}}</td>
             <td class="px-4 md:px-6 py-4 text-center">
               <div class="flex justify-center gap-2">
                 <button (click)="editRole(role)" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
@@ -51,7 +51,11 @@
       </div>
       <div class="p-6">
         <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Port Full Name / Code</label>
-        <input type="text" [(ngModel)]="newRole.name" placeholder="e.g. Mundra Port (INMUN)" class="w-full px-4 py-3 border-2 border-gray-100 rounded-xl outline-none focus:border-[#654E51]">
+        <input type="text" 
+          [(ngModel)]="newRole.name" 
+          (input)="newRole.name = newRole.name.toUpperCase()"
+          placeholder="E.G. MUNDRA PORT (INMUN)" 
+          class="w-full px-4 py-3 border-2 border-gray-100 rounded-xl outline-none focus:border-[#654E51] uppercase">
       </div>
       <div class="px-6 py-4 bg-gray-50 border-t flex gap-3">
         <button (click)="closeModal()" class="flex-1 py-2.5 text-gray-600 font-bold hover:bg-gray-200 rounded-lg">Cancel</button>

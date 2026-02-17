@@ -42,11 +42,25 @@ export class CommodityTypeComponent implements OnInit {
   // Save (Add logic)
   saveRole() {
     if (this.newRole.name.trim()) {
+      // Logic: Save karne se pehle name ko Uppercase mein convert karein
+      const upperName = this.newRole.name.trim().toUpperCase();
+
       if (this.isEditMode) {
-        // Edit logic skipped as per requirement
-        this.closeModal();
+        const payload = { 
+          id: this.newRole.id, 
+          name: upperName, 
+          status: this.newRole.status 
+        };
+        // Edit API call
+        this.http.put(`${this.apiUrl}/${this.newRole.id}`, payload).subscribe(() => {
+          this.fetchCommodities();
+          this.closeModal();
+        });
       } else {
-        const payload = { name: this.newRole.name, status: this.newRole.status };
+        const payload = { 
+          name: upperName, 
+          status: this.newRole.status 
+        };
         this.http.post(this.apiUrl, payload).subscribe(() => {
           this.fetchCommodities();
           this.closeModal();
@@ -75,5 +89,9 @@ export class CommodityTypeComponent implements OnInit {
   closeModal() { this.isModalOpen = false; }
   deleteRole(id: number) { this.roleIdToDelete = id; this.showPopup = true; }
   cancelDelete() { this.showPopup = false; }
-  editRole(role: any) { this.isEditMode = true; this.newRole = { ...role }; this.isModalOpen = true; }
+  editRole(role: any) { 
+    this.isEditMode = true; 
+    this.newRole = { ...role }; 
+    this.isModalOpen = true; 
+  }
 }

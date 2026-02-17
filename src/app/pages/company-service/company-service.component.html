@@ -2,9 +2,10 @@
   
   <div class="flex justify-between items-center mb-8">
     <h2 class="text-2xl font-black text-gray-800 tracking-tight">Company Services</h2>
+    
     <button (click)="openModal()" 
-      class="flex items-center gap-2 px-7 py-3 bg-[#1e293b] text-white rounded-2xl font-black shadow-xl hover:bg-black transition-all active:scale-95">
-      <span class="text-xl">+</span> Add Service
+      class="flex items-center gap-2 px-7 py-3 bg-[#5d4b4b] text-white rounded-xl font-black shadow-lg hover:brightness-110 transition-all active:scale-95 uppercase text-sm tracking-wider">
+      <span class="text-xl leading-none">+</span> Add Service
     </button>
   </div>
 
@@ -19,8 +20,13 @@
       </thead>
       
       <tbody class="divide-y divide-gray-50">
+        <tr *ngIf="services.length === 0">
+          <td colspan="3" class="px-8 py-10 text-center text-gray-400 font-bold uppercase text-[10px] tracking-widest">
+            No services found
+          </td>
+        </tr>
+
         <tr *ngFor="let s of services" class="group hover:bg-blue-50/40 transition-all duration-200">
-          
           <td class="px-8 py-6 border-r border-gray-50">
             <span class="text-[#1e293b] font-black text-[14px] uppercase tracking-wide group-hover:text-blue-700 transition-colors">
               {{ s.serviceName }}
@@ -29,7 +35,7 @@
 
           <td class="px-8 py-6 border-r border-gray-50 text-center">
             <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black border border-emerald-100 uppercase">
-              DEFAULT
+              ACTIVE
             </div>
           </td>
 
@@ -63,7 +69,7 @@
     <div class="bg-white w-full max-w-md rounded-[30px] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
       
       <div class="px-8 py-6 bg-gray-50 border-b flex justify-between items-center font-black text-gray-800 uppercase text-xs tracking-widest">
-        Add New Service
+        {{ isEditMode ? 'Update' : 'Add New' }} Service
         <button (click)="closeModal()" class="text-gray-400 hover:text-red-500 transition-colors">✕</button>
       </div>
 
@@ -72,15 +78,16 @@
         <input 
           type="text" 
           [(ngModel)]="newServiceName"
-          placeholder="e.g. Air Import" 
-          class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
+          (input)="newServiceName = newServiceName.toUpperCase()"
+          placeholder="E.G. AIR IMPORT" 
+          class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-700 outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-inner uppercase"
         >
         
         <button 
           (click)="saveService()" 
           [disabled]="!newServiceName.trim()"
-          class="w-full mt-6 py-4 bg-[#1e293b] text-white rounded-xl font-black text-xs uppercase tracking-[2px] hover:bg-black transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
-          Save Service
+          class="w-full mt-6 py-4 bg-[#5d4b4b] text-white rounded-xl font-black text-xs uppercase tracking-[2px] hover:brightness-110 transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+          {{ isEditMode ? 'Update' : 'Save' }} Service
         </button>
       </div>
     </div>

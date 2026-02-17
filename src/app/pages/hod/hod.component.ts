@@ -14,7 +14,6 @@ export class HodComponent implements OnInit {
   isEditMode = false;
   selectedHodId: number | null = null;
   
-  // Aapka API URL
   private apiUrl = 'http://localhost:5000/api/Hod';
 
   hods: any[] = [];
@@ -39,11 +38,10 @@ export class HodComponent implements OnInit {
     this.isModalOpen = true; 
   }
 
-  // Ye method miss ho gaya tha, ab add kar diya hai
   editHod(hod: any) {
     this.isEditMode = true;
     this.selectedHodId = hod.id;
-    this.newHod = { name: hod.name };
+    this.newHod = { name: hod.name }; // Modal mein existing name dikhega
     this.isModalOpen = true;
   }
 
@@ -54,20 +52,30 @@ export class HodComponent implements OnInit {
   
   saveHod() { 
     if (this.newHod.name.trim()) {
-      if (this.isEditMode) {
-        // Edit logic (Abhi UI level par hai, agar backend mein PUT API hai toh call karein)
-        console.log('Update logic for:', this.selectedHodId);
-        this.closeModal();
+      // Logic: Convert to UPPERCASE before saving
+      const upperName = this.newHod.name.trim().toUpperCase();
+
+      if (this.isEditMode && this.selectedHodId) {
+        // PUT API Call for Updating HOD
+        const payload = { id: this.selectedHodId, name: upperName };
+        this.http.put(`${this.apiUrl}/${this.selectedHodId}`, payload).subscribe({
+          next: () => {
+            this.fetchHods();
+            this.closeModal();
+          },
+          error: (err) => console.error('Update HOD failed:', err)
+        });
       } else {
         // POST API Call for Adding HOD
-        this.http.post(this.apiUrl, this.newHod).subscribe({
+        const payload = { name: upperName };
+        this.http.post(this.apiUrl, payload).subscribe({
           next: () => {
-            this.fetchHods(); // Success ke baad list refresh karein
+            this.fetchHods();
             this.closeModal();
           },
           error: (err) => {
             console.error('Add HOD failed:', err);
-            alert('HOD add nahi ho raha! Check karein backend mein [HttpPost] method hai ya nahi.');
+            alert('Could not add HOD. Please check API.');
           }
         });
       }

@@ -51,16 +51,31 @@ export class TeamsComponent implements OnInit {
   
   saveTeam() { 
     if (this.newTeam.teamName.trim()) {
-      if (this.isEditMode) {
-        // Update logic (UI only for now as requested)
-        this.closeModal();
-      } else {
-        this.http.post(this.apiUrl, this.newTeam).subscribe({
+      // Logic: Convert to UPPERCASE before saving
+      const upperTeamName = this.newTeam.teamName.trim().toUpperCase();
+
+      if (this.isEditMode && this.selectedTeamId) {
+        // PUT API Call for Updating Team
+        const payload = { id: this.selectedTeamId, teamName: upperTeamName };
+        this.http.put(`${this.apiUrl}/${this.selectedTeamId}`, payload).subscribe({
           next: () => {
             this.fetchTeams();
             this.closeModal();
           },
-          error: (err) => alert('can not add team!')
+          error: (err) => console.error('Update team failed:', err)
+        });
+      } else {
+        // POST API Call for Adding Team
+        const payload = { teamName: upperTeamName };
+        this.http.post(this.apiUrl, payload).subscribe({
+          next: () => {
+            this.fetchTeams();
+            this.closeModal();
+          },
+          error: (err) => {
+            console.error('Add team failed:', err);
+            alert('Cannot add team!');
+          }
         });
       }
     }

@@ -39,7 +39,6 @@ import { AttendanceAddComponent } from './attendance-add/attendance-add.componen
 import { AttendanceEditComponent } from './attendance-edit/attendance-edit.component';
 import { ShiftManagementComponent } from './shift-management/shift-management.component';
 import { QuotationFormComponent } from './pages/quotation-form/quotation-form.component';
-// Sabse upar ye line add karein
 import { OrganizationAddComponent } from './pages/organization-add/organization-add.component';
 import { PermissionComponent } from './permission/permission.component';
 import { ActivityComponent } from './activity/activity.component';
@@ -60,11 +59,9 @@ import { PortOfLoadingComponent } from './pages/port-of-loading/port-of-loading.
 import { PortOfDischargeComponent } from './pages/port-of-discharge/port-of-discharge.component';
 import { ListOfUnitComponent } from './pages/list-of-unit/list-of-unit.component';
 import { CompanyServiceComponent } from './pages/company-service/company-service.component';
+import { HodComponent } from './pages/hod/hod.component';
+import { TeamsComponent } from './pages/teams/teams.component';
 
-
-
-
-// Phir routes array mein isko add ka
 export const routes: Routes = [
 
   // 1. AUTH & ROLE SELECTION (Root Pages)
@@ -106,23 +103,19 @@ export const routes: Routes = [
       },
       {
         path: 'cargotype',
-        component: CargoTypeComponent        //cargo type
+        component: CargoTypeComponent         //cargo type
       },
       {
         path: 'commoditytype',
-        component: CommodityTypeComponent         //CommodityType
+        component: CommodityTypeComponent          //CommodityType
       },
       {
         path: 'partyrole',
-        component: PartyRoleComponent         //Party role
+        component: PartyRoleComponent          //Party role
       },
       {
         path: 'origin',
-        component: OriginComponent         //Origin
-      },
-      {
-        path: 'origin',
-        component: OriginComponent         //Origin
+        component: OriginComponent          //Origin
       },
                { path: 'port-of-loading', 
         component: PortOfLoadingComponent   },      //Port Setup
@@ -144,8 +137,16 @@ export const routes: Routes = [
         path: 'company-service',
         component: CompanyServiceComponent
       },
-     
-
+      {
+        path: 'hod',
+        component: HodComponent,
+  
+      },
+      {
+        path: 'teams',
+        component: TeamsComponent,
+    
+      },
       {
         path: 'departments',
         component: DepartmentsComponent

@@ -29,6 +29,10 @@ export class UserFormComponent implements OnInit {
   roles: any[] = [];
   branches: any[] = [];
 
+  // 🔄 CHANGE HERE: Naye variables add karein dropdown data store karne ke liye
+  hods: any[] = [];
+  teams: any[] = [];
+
   constructor(
     private fb: FormBuilder,
     private userService: UserService,
@@ -52,15 +56,17 @@ export class UserFormComponent implements OnInit {
       this.loadDropdowns();
       this.getBranches();
       this.loadPermissions();
+      
     }
+
 
     if (this.initialData) {
       setTimeout(() => {
         this.userForm.patchValue(this.initialData);
       });
     }
-  }
-
+  }//change
+  
   loadPermissions() {
     this.http
       .get<any[]>(`${environment.apiUrl}/permissions/list`)
@@ -195,7 +201,10 @@ export class UserFormComponent implements OnInit {
         alwaysBccmyself: [false],
         invitationLetter: [false],
         simIssued: [false],
-        status: [true]
+        status: [true],
+        //change
+        hodId: [null], 
+        teamId: [null],
       });
     }
   }
@@ -301,6 +310,8 @@ export class UserFormComponent implements OnInit {
     this.userService.getDepartments().subscribe(res => this.departments = res);
     this.userService.getDesignations().subscribe(res => this.designations = res);
     this.userService.getRoles().subscribe(res => this.roles = res);
+    this.userService.getHods().subscribe(res => this.hods = res);
+    this.userService.getTeams().subscribe(res => this.teams = res);
   }
 
   getBranches() {

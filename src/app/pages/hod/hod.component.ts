@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
@@ -20,7 +20,8 @@ export class HodComponent implements OnInit {
   hods: any[] = [];
   newHod = { name: '' };
 
-  constructor(private http: HttpClient) {}
+  // ChangeDetectorRef inject kiya gaya hai
+  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.fetchHods();
@@ -28,7 +29,10 @@ export class HodComponent implements OnInit {
 
   fetchHods() {
     this.http.get<any[]>(this.apiUrl).subscribe({
-      next: (data) => this.hods = data,
+      next: (data) => {
+        this.hods = data;
+        this.cdr.detectChanges(); // Data aate hi UI refresh
+      },
       error: (err) => console.error('Error fetching HODs', err)
     });
   }
@@ -37,43 +41,37 @@ export class HodComponent implements OnInit {
     this.isEditMode = false;
     this.newHod = { name: '' };
     this.isModalOpen = true; 
+    this.cdr.detectChanges();
   }
 
   editHod(hod: any) {
     this.isEditMode = true;
     this.selectedHodId = hod.id;
-    this.newHod = { name: hod.name }; // Modal mein existing name dikhega
+    this.newHod = { name: hod.name };
     this.isModalOpen = true;
+    this.cdr.detectChanges();
   }
 
   closeModal() { 
     this.isModalOpen = false; 
     this.selectedHodId = null;
+    this.cdr.detectChanges();
   }
   
   saveHod() { 
     if (this.newHod.name.trim()) {
-      // Logic: Convert to UPPERCASE before saving
       const upperName = this.newHod.name.trim().toUpperCase();
 
       if (this.isEditMode && this.selectedHodId) {
-        // PUT API Call for Updating HOD
         const payload = { id: this.selectedHodId, name: upperName };
         this.http.put(`${this.apiUrl}/${this.selectedHodId}`, payload).subscribe({
-          next: () => {
-            this.fetchHods();
-            this.closeModal();
-          },
+          next: () => this.handleSuccess(),
           error: (err) => console.error('Update HOD failed:', err)
         });
       } else {
-        // POST API Call for Adding HOD
         const payload = { name: upperName };
         this.http.post(this.apiUrl, payload).subscribe({
-          next: () => {
-            this.fetchHods();
-            this.closeModal();
-          },
+          next: () => this.handleSuccess(),
           error: (err) => {
             console.error('Add HOD failed:', err);
             alert('Could not add HOD. Please check API.');
@@ -82,11 +80,20 @@ export class HodComponent implements OnInit {
       }
     }
   }
+
+  private handleSuccess() {
+    this.fetchHods();
+    this.closeModal();
+    this.cdr.detectChanges();
+  }
   
   deleteHod(id: number) {
     if(confirm('Are you sure you want to delete this HOD?')) {
       this.http.delete(`${this.apiUrl}/${id}`).subscribe({
-        next: () => this.fetchHods(),
+        next: () => {
+          this.fetchHods();
+          this.cdr.detectChanges();
+        },
         error: (err) => console.error('Error deleting HOD', err)
       });
     }

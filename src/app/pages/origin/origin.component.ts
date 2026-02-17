@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
@@ -11,7 +11,7 @@ import { environment } from '../../../environments/environment';
   styleUrl: './origin.component.css'
 })
 export class OriginComponent implements OnInit {
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
   private apiUrl = environment.apiUrl + '/Origin';
 
   isModalOpen = false;
@@ -22,14 +22,20 @@ export class OriginComponent implements OnInit {
   rolesList: any[] = [];
   newRole = { id: 0, name: '', status: true };
 
- ngOnInit(): void {
-  this.fetchOrigins();
-}
+  // ChangeDetectorRef inject kiya gaya hai
+
+
+  ngOnInit(): void {
+    this.fetchOrigins();
+  }
 
   // 1. GET DATA
   fetchOrigins() {
     this.http.get<any[]>(this.apiUrl).subscribe({
-      next: (data) => this.rolesList = data,
+      next: (data) => {
+        this.rolesList = data;
+        this.cdr.detectChanges(); // Table refresh ke liye
+      },
       error: (err) => console.error('Error fetching origins:', err)
     });
   }
@@ -37,37 +43,33 @@ export class OriginComponent implements OnInit {
   // 2. SAVE (ADD / EDIT)
   saveRole() {
     if (this.newRole.name.trim()) {
-      // Logic: Save karne se pehle hamesha Uppercase karein
       const upperName = this.newRole.name.trim().toUpperCase();
 
+      const payload = { 
+        id: this.isEditMode ? this.newRole.id : 0, 
+        name: upperName, 
+        status: this.newRole.status 
+      };
+
       if (this.isEditMode) {
-        const payload = { 
-          id: this.newRole.id, 
-          name: upperName, 
-          status: this.newRole.status 
-        };
-        
         this.http.put(`${this.apiUrl}/${this.newRole.id}`, payload).subscribe({
-          next: () => {
-            this.fetchOrigins();
-            this.closeModal();
-          },
+          next: () => this.handleSuccess(),
           error: (err) => console.error('Error updating origin:', err)
         });
       } else {
-        const payload = { 
-          name: upperName, 
-          status: this.newRole.status 
-        };
-        
         this.http.post(this.apiUrl, payload).subscribe({
-          next: () => {
-            this.fetchOrigins();
-            this.closeModal();
-          }
+          next: () => this.handleSuccess(),
+          error: (err) => console.error('Error adding origin:', err)
         });
       }
     }
+  }
+
+  // Helper function for common logic
+  private handleSuccess() {
+    this.fetchOrigins();
+    this.closeModal();
+    this.cdr.detectChanges();
   }
 
   // 3. DELETE
@@ -78,6 +80,7 @@ export class OriginComponent implements OnInit {
           this.fetchOrigins();
           this.showPopup = false;
           this.roleIdToDelete = null;
+          this.cdr.detectChanges();
         }
       });
     }
@@ -88,9 +91,29 @@ export class OriginComponent implements OnInit {
     this.isEditMode = false;
     this.newRole = { id: 0, name: '', status: true };
     this.isModalOpen = true;
+    this.cdr.detectChanges();
   }
-  closeModal() { this.isModalOpen = false; }
-  editRole(role: any) { this.isEditMode = true; this.newRole = { ...role }; this.isModalOpen = true; }
-  deleteRole(id: number) { this.roleIdToDelete = id; this.showPopup = true; }
-  cancelDelete() { this.showPopup = false; }
+
+  closeModal() { 
+    this.isModalOpen = false; 
+    this.cdr.detectChanges();
+  }
+
+  editRole(role: any) { 
+    this.isEditMode = true; 
+    this.newRole = { ...role }; 
+    this.isModalOpen = true; 
+    this.cdr.detectChanges();
+  }
+
+  deleteRole(id: number) { 
+    this.roleIdToDelete = id; 
+    this.showPopup = true; 
+    this.cdr.detectChanges();
+  }
+
+  cancelDelete() { 
+    this.showPopup = false; 
+    this.cdr.detectChanges();
+  }
 }

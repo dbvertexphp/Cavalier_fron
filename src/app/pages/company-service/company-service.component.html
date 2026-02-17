@@ -10,59 +10,61 @@
   </div>
 
   <div class="bg-white rounded-[24px] shadow-2xl border border-gray-100 overflow-hidden">
-    <table class="w-full text-left border-collapse">
-      <thead>
-        <tr class="bg-gray-50/80 border-b border-gray-100">
-          <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[2px] text-gray-400">Services</th>
-          <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[2px] text-gray-400 text-center">Status</th>
-          <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[2px] text-gray-400 text-center">Actions</th>
-        </tr>
-      </thead>
-      
-      <tbody class="divide-y divide-gray-50">
-        <tr *ngIf="services.length === 0">
-          <td colspan="3" class="px-8 py-10 text-center text-gray-400 font-bold uppercase text-[10px] tracking-widest">
-            No services found
-          </td>
-        </tr>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-gray-50/80 border-b border-gray-100">
+            <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[2px] text-gray-400">Services</th>
+            <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[2px] text-gray-400 text-center">Status</th>
+            <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[2px] text-gray-400 text-center">Actions</th>
+          </tr>
+        </thead>
+        
+        <tbody class="divide-y divide-gray-50">
+          <tr *ngIf="services.length === 0">
+            <td colspan="3" class="px-8 py-10 text-center text-gray-400 font-bold uppercase text-[10px] tracking-widest">
+              No services found
+            </td>
+          </tr>
 
-        <tr *ngFor="let s of services" class="group hover:bg-blue-50/40 transition-all duration-200">
-          <td class="px-8 py-6 border-r border-gray-50">
-            <span class="text-[#1e293b] font-black text-[14px] uppercase tracking-wide group-hover:text-blue-700 transition-colors">
-              {{ s.serviceName }}
-            </span>
-          </td>
+          <tr *ngFor="let s of services" class="group hover:bg-blue-50/40 transition-all duration-200">
+            <td class="px-8 py-6 border-r border-gray-50">
+              <span class="text-[#1e293b] font-black text-[14px] uppercase tracking-wide group-hover:text-blue-700 transition-colors">
+                {{ s.serviceName }}
+              </span>
+            </td>
 
-          <td class="px-8 py-6 border-r border-gray-50 text-center">
-            <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black border border-emerald-100 uppercase">
-              ACTIVE
-            </div>
-          </td>
+            <td class="px-8 py-6 border-r border-gray-50 text-center">
+              <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black border border-emerald-100 uppercase">
+                ACTIVE
+              </div>
+            </td>
 
-          <td class="px-8 py-6 text-center">
-            <div class="flex items-center justify-center gap-6">
-              
-              <button (click)="modifyService(s)" class="transition-transform hover:scale-110" title="Edit">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                </svg>
-              </button>
+            <td class="px-8 py-6 text-center">
+              <div class="flex items-center justify-center gap-6">
+                
+                <button (click)="modifyService(s)" class="transition-transform hover:scale-110" title="Edit">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                </button>
 
-              <button (click)="deleteService(s.id)" class="transition-transform hover:scale-110" title="Delete">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M3 6h18"></path>
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                  <line x1="10" y1="11" x2="10" y2="17"></line>
-                  <line x1="14" y1="11" x2="14" y2="17"></line>
-                </svg>
-              </button>
+                <button (click)="deleteService(s.id)" class="transition-transform hover:scale-110" title="Delete">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 6h18"></path>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                  </svg>
+                </button>
 
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <div *ngIf="isModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
@@ -84,7 +86,7 @@
         >
         
         <button 
-          (click)="saveService()" 
+          (mousedown)="saveService()" 
           [disabled]="!newServiceName.trim()"
           class="w-full mt-6 py-4 bg-[#5d4b4b] text-white rounded-xl font-black text-xs uppercase tracking-[2px] hover:brightness-110 transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
           {{ isEditMode ? 'Update' : 'Save' }} Service

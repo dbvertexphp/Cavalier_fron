@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
@@ -28,7 +28,7 @@ export class CargoTypeComponent implements OnInit {
   showPopup = false;
   roleIdToDelete: number | null = null;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
 
   // ngOnInit(): void {
   //   // Refresh hone par LocalStorage se data load karein
@@ -59,64 +59,55 @@ ngOnInit(): void {
     this.http.get<any[]>(this.apiUrl).subscribe({
       next: (data) => {
         this.rolesList = data;
+        this.cdr.detectChanges(); // UI update trigger
       },
       error: (err) => console.error('Error fetching data:', err)
     });
   }
 
-  // --- 2. SAVE / ADD DATA ---
   saveRole() {
-    if (this.newRole.name.trim()) {
-      // Input ko capital mein convert kar rahe hain
+    if (this.newRole.name && this.newRole.name.trim()) {
       const upperName = this.newRole.name.trim().toUpperCase();
+      
+      const payload = {
+        id: this.isEditMode ? this.newRole.id : 0,
+        name: upperName,
+        status: this.newRole.status
+      };
 
       if (this.isEditMode) {
-        // Edit logic 
-        const payload = {
-          id: this.newRole.id,
-          name: upperName,
-          status: this.newRole.status
-        };
-
         this.http.put(`${this.apiUrl}/${this.newRole.id}`, payload).subscribe({
-          next: () => {
-            this.getCargoTypes();
-            this.closeModal();
-          },
+          next: () => this.handleSuccess(),
           error: (err) => console.error('Error updating cargo:', err)
         });
       } else {
-        // Dynamic Add Logic
-        const payload = {
-          name: upperName,
-          status: this.newRole.status
-        };
-
         this.http.post(this.apiUrl, payload).subscribe({
-          next: () => {
-            this.getCargoTypes(); // Table refresh karein
-            this.closeModal();
-          },
+          next: () => this.handleSuccess(),
           error: (err) => console.error('Error saving cargo:', err)
         });
       }
     }
   }
 
-  // --- 3. DELETE DATA ---
+  handleSuccess() {
+    this.getCargoTypes();
+    this.closeModal();
+    this.cdr.detectChanges();
+  }
+
   confirmDelete() {
     if (this.roleIdToDelete !== null) {
       this.http.delete(`${this.apiUrl}/${this.roleIdToDelete}`).subscribe({
         next: () => {
-          this.getCargoTypes(); // Table refresh karein
+          this.getCargoTypes();
           this.cancelDelete();
+          this.cdr.detectChanges();
         },
         error: (err) => console.error('Error deleting cargo:', err)
       });
     }
   }
 
-  // --- UI Helpers ---
   openModal() {
     this.isEditMode = false;
     this.newRole = { id: 0, name: '', status: true };
@@ -127,6 +118,7 @@ ngOnInit(): void {
     this.isModalOpen = false;
     this.isEditMode = false;
     this.newRole = { id: 0, name: '', status: true };
+    this.cdr.detectChanges();
   }
 
   deleteRole(id: number) {

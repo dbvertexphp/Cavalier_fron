@@ -1,0 +1,81 @@
+<div class="p-6 min-h-screen bg-transparent relative">
+  
+  <div class="flex justify-between items-center mb-8">
+    <h2 class="text-2xl font-black text-gray-800 tracking-tight">Head of Departments (HOD)</h2>
+    <button (click)="openModal()" 
+      class="flex items-center gap-2 px-7 py-3 bg-[#1e293b] text-white rounded-2xl font-black shadow-xl hover:bg-black transition-all active:scale-95">
+      <span class="text-xl">+</span> Add HOD
+    </button>
+  </div>
+
+  <div class="bg-white rounded-[24px] shadow-2xl border border-gray-100 overflow-hidden">
+    <table class="w-full text-left border-collapse">
+      <thead>
+        <tr class="bg-gray-50/80 border-b border-gray-100">
+          <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[2px] text-gray-400">HOD Name</th>
+          <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[2px] text-gray-400">Department</th>
+          <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[2px] text-gray-400 text-center">Actions</th>
+        </tr>
+      </thead>
+      
+      <tbody class="divide-y divide-gray-50">
+        <tr *ngFor="let h of hods" class="group hover:bg-blue-50/40 transition-all duration-200">
+          <td class="px-8 py-6 border-r border-gray-50">
+            <span class="text-[#1e293b] font-black text-[14px] uppercase tracking-wide">
+              {{ h.name }}
+            </span>
+          </td>
+          <td class="px-8 py-6 border-r border-gray-50">
+            <span class="px-3 py-1 bg-gray-100 rounded-lg text-[12px] font-bold text-gray-600">
+              {{ h.department }}
+            </span>
+          </td>
+          <td class="px-8 py-6 text-center">
+            <div class="flex items-center justify-center gap-6">
+              <button (click)="deleteHod(h.id)" class="transition-transform hover:scale-110" title="Delete">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 6h18"></path>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="isModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+    <div class="bg-white w-full max-w-md rounded-[30px] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+      <div class="px-8 py-6 bg-gray-50 border-b flex justify-between items-center font-black text-gray-800 uppercase text-xs tracking-widest">
+        Add New HOD
+        <button (click)="closeModal()" class="text-gray-400 hover:text-red-500 transition-colors">✕</button>
+      </div>
+
+      <div class="p-8 flex flex-col gap-4">
+        <div>
+          <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[2px] mb-2 ml-1">Full Name</label>
+          <input type="text" [(ngModel)]="newHod.name" placeholder="Enter HOD Name" 
+            class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        
+        <div>
+          <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[2px] mb-2 ml-1">Department</label>
+          <select [(ngModel)]="newHod.department" 
+            class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="" disabled>Select Department</option>
+            <option value="Operations">Operations</option>
+            <option value="Sales">Sales</option>
+            <option value="Accounts">Accounts</option>
+            <option value="Customer Service">Customer Service</option>
+          </select>
+        </div>
+        
+        <button (click)="saveHod()" [disabled]="!newHod.name || !newHod.department"
+          class="w-full mt-2 py-4 bg-[#1e293b] text-white rounded-xl font-black text-xs uppercase tracking-[2px] hover:bg-black transition-all shadow-lg disabled:opacity-50">
+          Save HOD
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

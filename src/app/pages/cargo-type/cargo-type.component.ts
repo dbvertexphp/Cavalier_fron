@@ -1,18 +1,21 @@
-import { Component } from '@angular/core';
-// import { UserService } from '../../services/user.service';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 @Component({
   selector: 'app-cargo-type',
-  imports: [CommonModule, FormsModule],
+  standalone: true,
+  imports: [CommonModule, FormsModule, HttpClientModule],
   templateUrl: './cargo-type.component.html',
   styleUrl: './cargo-type.component.css',
 })
-export class CargoTypeComponent {
-   isModalOpen = false;
+export class CargoTypeComponent implements OnInit {
+  // Aapki API URL
+  private apiUrl = 'http://localhost:5000/api/CargoType';
+
+  isModalOpen = false;
   isEditMode = false;
-  
   rolesList: any[] = [];
 
   newRole = {
@@ -24,8 +27,9 @@ export class CargoTypeComponent {
   showPopup = false;
   roleIdToDelete: number | null = null;
 
-  constructor() {}
+  constructor(private http: HttpClient) {}
 
+<<<<<<< HEAD
   // ngOnInit(): void {
   //   // Refresh hone par LocalStorage se data load karein
   //   const savedData = localStorage.getItem('myCommodityData');
@@ -60,44 +64,67 @@ ngOnInit(): void {
     ];
     // Default data ko bhi uppercase mein save kar dete hain
     this.saveToLocalStorage(); 
+=======
+  ngOnInit(): void {
+    this.getCargoTypes();
+>>>>>>> 621835e844dbe242b940aab1ab2dd49df73b2e16
   }
 }
 
+<<<<<<< HEAD
 // Ek helper function taaki baar-baar save na likhna pade
 saveToLocalStorage() {
   localStorage.setItem('myCommodityData', JSON.stringify(this.rolesList));
 }
   // --- Helper: LocalStorage mein data save karne ke liye ---
   
+=======
+  // --- 1. GET DATA FROM API ---
+  getCargoTypes() {
+    this.http.get<any[]>(this.apiUrl).subscribe({
+      next: (data) => {
+        this.rolesList = data;
+      },
+      error: (err) => console.error('Error fetching data:', err)
+    });
+  }
+>>>>>>> 621835e844dbe242b940aab1ab2dd49df73b2e16
 
-  // --- 1. SAVE (Add or Update) ---
+  // --- 2. SAVE / ADD DATA ---
   saveRole() {
     if (this.newRole.name.trim()) {
       if (this.isEditMode) {
-        const index = this.rolesList.findIndex(r => r.id === this.newRole.id);
-        if (index !== -1) {
-          this.rolesList[index] = { ...this.newRole };
-        }
+        // Edit logic (Abhi sirf UI button hai as per your request)
+        console.log("Edit Mode is active, but logic is skipped.");
+        this.closeModal();
       } else {
-        const newId = this.rolesList.length > 0 ? Math.max(...this.rolesList.map(r => r.id)) + 1 : 1;
-        this.rolesList.push({
-          id: newId,
+        // Dynamic Add Logic
+        const payload = {
           name: this.newRole.name,
           status: this.newRole.status
+        };
+
+        this.http.post(this.apiUrl, payload).subscribe({
+          next: () => {
+            this.getCargoTypes(); // Table refresh karein
+            this.closeModal();
+          },
+          error: (err) => console.error('Error saving cargo:', err)
         });
       }
-     // Array update hote hi save karein
-      this.closeModal();
     }
   }
 
-  // --- 2. DELETE ---
+  // --- 3. DELETE DATA ---
   confirmDelete() {
     if (this.roleIdToDelete !== null) {
-      this.rolesList = this.rolesList.filter(r => r.id !== this.roleIdToDelete);
-       // Delete ke baad storage update karein
-      this.roleIdToDelete = null;
-      this.showPopup = false;
+      this.http.delete(`${this.apiUrl}/${this.roleIdToDelete}`).subscribe({
+        next: () => {
+          this.getCargoTypes(); // Table refresh karein
+          this.cancelDelete();
+        },
+        error: (err) => console.error('Error deleting cargo:', err)
+      });
     }
   }
 
@@ -125,6 +152,7 @@ saveToLocalStorage() {
   }
 
   editRole(role: any) {
+    // Sirf modal khulega, edit functionality static rakhi hai
     this.isEditMode = true;
     this.newRole = { ...role };
     this.isModalOpen = true;

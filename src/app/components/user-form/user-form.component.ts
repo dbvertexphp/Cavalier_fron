@@ -359,11 +359,11 @@ export class UserFormComponent implements OnInit {
     this.userForm.patchValue({ password: password });
   }
 
-  onCancel() {
-    this.router.navigate([
-      this.isBranchForm ? '/dashboard/branch' : '/dashboard/users'
-    ]);
-  }
+ onCancel() {
+  this.router.navigate([
+    this.isBranchForm ? '/dashboard/branch' : '/dashboard/hr/employee-master'
+  ]);
+}
 
   bloodGroups: string[] = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
   selectedBloodGroup: string = '';

@@ -28,7 +28,6 @@ export class CommodityTypeComponent implements OnInit {
 
   constructor(private http: HttpClient) {}
 
-<<<<<<< HEAD
  ngOnInit(): void {
   // Refresh hone par LocalStorage se data load karein
   const savedData = localStorage.getItem('myCommodityData');
@@ -52,10 +51,6 @@ export class CommodityTypeComponent implements OnInit {
     
     // Default data ko bhi LocalStorage mein save kar dete hain
     this.saveToLocalStorage();
-=======
-  ngOnInit(): void {
-    this.fetchCommodities();
->>>>>>> 621835e844dbe242b940aab1ab2dd49df73b2e16
   }
 }
 

@@ -29,7 +29,6 @@ export class CargoTypeComponent implements OnInit {
 
   constructor(private http: HttpClient) {}
 
-<<<<<<< HEAD
   // ngOnInit(): void {
   //   // Refresh hone par LocalStorage se data load karein
   //   const savedData = localStorage.getItem('myCommodityData');
@@ -64,21 +63,15 @@ ngOnInit(): void {
     ];
     // Default data ko bhi uppercase mein save kar dete hain
     this.saveToLocalStorage(); 
-=======
-  ngOnInit(): void {
-    this.getCargoTypes();
->>>>>>> 621835e844dbe242b940aab1ab2dd49df73b2e16
   }
 }
 
-<<<<<<< HEAD
 // Ek helper function taaki baar-baar save na likhna pade
 saveToLocalStorage() {
   localStorage.setItem('myCommodityData', JSON.stringify(this.rolesList));
 }
   // --- Helper: LocalStorage mein data save karne ke liye ---
   
-=======
   // --- 1. GET DATA FROM API ---
   getCargoTypes() {
     this.http.get<any[]>(this.apiUrl).subscribe({
@@ -88,7 +81,6 @@ saveToLocalStorage() {
       error: (err) => console.error('Error fetching data:', err)
     });
   }
->>>>>>> 621835e844dbe242b940aab1ab2dd49df73b2e16
 
   // --- 2. SAVE / ADD DATA ---
   saveRole() {

@@ -58,12 +58,9 @@ import { PartyRoleComponent } from './pages/party-role/party-role.component';
 import { OriginComponent } from './pages/origin/origin.component';
 import { PortOfLoadingComponent } from './pages/port-of-loading/port-of-loading.component';
 import { PortOfDischargeComponent } from './pages/port-of-discharge/port-of-discharge.component';
-<<<<<<< HEAD
 import { ListOfUnitComponent } from './pages/list-of-unit/list-of-unit.component';
-=======
 import { CompanyServiceComponent } from './pages/company-service/company-service.component';
-import { HodComponent } from './pages/hod/hod.component';
->>>>>>> 621835e844dbe242b940aab1ab2dd49df73b2e16
+
 
 
 
@@ -127,7 +124,6 @@ export const routes: Routes = [
         path: 'origin',
         component: OriginComponent         //Origin
       },
-<<<<<<< HEAD
                { path: 'port-of-loading', 
         component: PortOfLoadingComponent   },      //Port Setup
        { path: 'port-of-discharge', 
@@ -135,8 +131,7 @@ export const routes: Routes = [
          { path: 'list-of-units',                          //list of unit
         component: ListOfUnitComponent   }, 
        
-      { path: 'departments', 
-=======
+    
       {
         path: 'port-of-loading',
         component: PortOfLoadingComponent
@@ -149,15 +144,10 @@ export const routes: Routes = [
         path: 'company-service',
         component: CompanyServiceComponent
       },
-      {
-        path: 'hod',
-        component: HodComponent,
-        title: 'HOD Management | Cavalier'
-      },
+     
 
       {
         path: 'departments',
->>>>>>> 621835e844dbe242b940aab1ab2dd49df73b2e16
         component: DepartmentsComponent
       },
       {

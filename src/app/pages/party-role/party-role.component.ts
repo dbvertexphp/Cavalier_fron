@@ -29,7 +29,6 @@ export class PartyRoleComponent implements OnInit {
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
-<<<<<<< HEAD
   // Refresh hone par LocalStorage se data load karein
   const savedData = localStorage.getItem('myCommodityData');
   
@@ -52,9 +51,7 @@ export class PartyRoleComponent implements OnInit {
     
     // Default data ko save karne ke liye (Optional, depend on your logic)
     localStorage.setItem('myCommodityData', JSON.stringify(this.rolesList));
-=======
     this.fetchRoles();
->>>>>>> 621835e844dbe242b940aab1ab2dd49df73b2e16
   }
 }
 

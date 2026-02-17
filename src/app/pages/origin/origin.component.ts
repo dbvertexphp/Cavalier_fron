@@ -11,6 +11,7 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
   styleUrl: './origin.component.css'
 })
 export class OriginComponent implements OnInit {
+  constructor(private http: HttpClient) {}
   private apiUrl = 'http://localhost:5000/api/Origin'; // Apne backend ka port check kar lena
 
   isModalOpen = false;
@@ -21,7 +22,6 @@ export class OriginComponent implements OnInit {
   rolesList: any[] = [];
   newRole = { id: 0, name: '', status: true };
 
-<<<<<<< HEAD
  ngOnInit(): void {
   const savedData = localStorage.getItem('originData');
   
@@ -38,13 +38,7 @@ export class OriginComponent implements OnInit {
       { id: 1, name: 'MUMBAI, INDIA', status: true },
       { id: 2, name: 'DUBAI, UAE', status: true }
     ];
-    this.saveToStorage();
-=======
-  constructor(private http: HttpClient) {}
-
-  ngOnInit(): void {
-    this.fetchOrigins();
->>>>>>> 621835e844dbe242b940aab1ab2dd49df73b2e16
+    
   }
 }
 

@@ -40,37 +40,35 @@
       </div>
 
       <div *ngIf="!loadings" class="flex flex-col">
-<<<<<<< HEAD
         <div *ngIf="!loadings" class="flex flex-col">
   <div class="px-3 mb-4 h-5 flex items-center">
     <h2 class="text-[10px] font-black uppercase tracking-[2px] text-white/50">
       @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
         
-        @if (accessType === 'system') {
-           SYSTEM ADMINISTRATOR
-        } 
-        @else if (accessType === 'branch') {
-           BRANCH ADMINISTRATOR
-        }
-        @else {
-           MENU
-        }
+       @if (accessType === 'system') {
+  <span class="text-black">SYSTEM ADMINISTRATOR</span>
+}
+@else if (accessType === 'branch') {
+  <span class="text-black">BRANCH ADMINISTRATOR</span>
+}
+@else {
+  <span class="text-black">MENU</span>
+}
+
 
       }
       @else { ••• }
     </h2>
   </div>
 </div>
-=======
         <div class="px-3 mb-4 h-5 flex items-center">
           <h2 class="text-[10px] font-black uppercase tracking-[2px] text-white/50">
             @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-              {{ currentAccessType === 'system' ? 'System Administrator' : 'Menu' }}
+              
             }
             @else { ••• }
           </h2>
         </div>
->>>>>>> 621835e844dbe242b940aab1ab2dd49df73b2e16
 
         <ul class="flex flex-col gap-1">
           @for (nav of navItems; track $index; let i = $index) {
@@ -176,12 +174,7 @@
         }
       </div>
     </button>
-  </div>
-<<<<<<< HEAD
-
-</button>
-
-<div class="relative inline-block">
+    <div class="relative inline-block">
 
   <!-- Button -->
   <button
@@ -236,14 +229,17 @@
   </div>
 
 </div>
+  </div>
 
 
-</div>
+
+
+
+
+
 
 
 
   <!-- fdfd -->
 </aside>
-=======
-</aside>
->>>>>>> 621835e844dbe242b940aab1ab2dd49df73b2e16
+

@@ -5,7 +5,7 @@
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22V8M5 12H2a10 10 0 0 0 20 0h-3M12 2a3 3 0 1 1 0 6 3 3 0 0 1 0-6z"></path></svg>
       </div>
       <div>
-        <h2 class="text-xl md:text-2xl font-bold text-gray-800 leading-none">PORT OF LOADING</h2>
+        <h2 class="text-xl md:text-2xl font-bold text-gray-800 leading-none">Port of Loading</h2>
         <p class="hidden md:block text-xs text-gray-500 mt-1 uppercase tracking-wider font-semibold">Origin Ports (POL)</p>
       </div>
     </div>
@@ -49,20 +49,6 @@
         <h3 class="text-lg font-bold text-gray-800">{{ isEditMode ? 'Update' : 'Register' }} Port</h3>
         <button (click)="closeModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
       </div>
-<<<<<<< HEAD
-     <div class="p-6">
-  <label class="block text-xs font-bold text-gray-500 uppercase mb-2 tracking-wider">Port Full Name / Code</label>
-  <input type="text" 
-    [(ngModel)]="newRole.name" 
-    (ngModelChange)="newRole.name = $event.toUpperCase()"
-    placeholder="E.G. MUNDRA PORT (INMUN)"
-    class="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:border-[#654E51] focus:ring-0 outline-none transition-all font-medium uppercase">
-</div>
-      <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex gap-3">
-        <button (click)="closeModal()" class="flex-1 py-2.5 text-gray-600 font-bold hover:bg-gray-200 rounded-lg transition">Cancel</button>
-        <button (click)="saveRole()" [disabled]="!newRole.name" 
-          class="flex-1 py-2.5 bg-[#654E51] text-white font-bold rounded-lg hover:bg-[#4A3739] shadow-lg transition disabled:bg-gray-300 disabled:shadow-none">
-=======
       <div class="p-6">
         <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Port Full Name / Code</label>
         <input type="text" [(ngModel)]="newRole.name" placeholder="e.g. Mundra Port (INMUN)" class="w-full px-4 py-3 border-2 border-gray-100 rounded-xl outline-none focus:border-[#654E51]">
@@ -70,7 +56,6 @@
       <div class="px-6 py-4 bg-gray-50 border-t flex gap-3">
         <button (click)="closeModal()" class="flex-1 py-2.5 text-gray-600 font-bold hover:bg-gray-200 rounded-lg">Cancel</button>
         <button (click)="saveRole()" [disabled]="!newRole.name" class="flex-1 py-2.5 bg-[#654E51] text-white font-bold rounded-lg shadow-lg disabled:bg-gray-300">
->>>>>>> 621835e844dbe242b940aab1ab2dd49df73b2e16
           {{ isEditMode ? 'Apply Changes' : 'Add Port' }}
         </button>
       </div>

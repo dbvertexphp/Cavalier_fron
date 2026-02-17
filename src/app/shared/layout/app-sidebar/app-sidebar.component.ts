@@ -23,8 +23,8 @@ type NavItem = {
   imports: [
     CommonModule,
     RouterModule,
-    SafeHtmlPipe,
-    SidebarWidgetComponent,
+    SafeHtmlPipe
+    
   ],
   templateUrl: './app-sidebar.component.html',
 })
@@ -55,7 +55,7 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
     this.isMobileOpen$ = this.sidebarService.isMobileOpen$;
     this.isHovered$ = this.sidebarService.isHovered$;
   }
-
+accessType=localStorage.getItem('accessType');
   ngOnInit() {
     this.loadNavItemsFromApi();
     this.cdr.detectChanges();
@@ -287,6 +287,18 @@ loadBranches() {
         name: 'Company Service',
         icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>`,
         path: '/dashboard/company-service'
+      });
+          finalNav.push({
+        name: 'List Of Units',
+        icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M4 6H20M4 6C2.89543 6 2 6.89543 2 8V9C2 10.1046 2.89543 11 4 11H20C21.1046 11 22 10.1046 22 9V8C22 6.89543 21.1046 6 20 6M4 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  
+  <path d="M4 13H20M4 13C2.89543 13 2 13.8954 2 15V16C2 17.1046 2.89543 18 4 18H20C21.1046 18 22 17.1046 22 16V15C22 13.8954 21.1046 13 20 13M4 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  
+  <circle cx="7" cy="8.5" r="1" fill="currentColor"/>
+  <circle cx="7" cy="15.5" r="1" fill="currentColor"/>
+</svg>`,
+        path: '/dashboard/list-of-units'
       });
     }
     return finalNav;

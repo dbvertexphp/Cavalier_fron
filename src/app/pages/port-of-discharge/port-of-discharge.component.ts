@@ -24,28 +24,8 @@ export class PortOfDischargeComponent implements OnInit {
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
-<<<<<<< HEAD
-  const savedData = localStorage.getItem('podData');
-  
-  if (savedData) {
-    const parsedData = JSON.parse(savedData);
-    // Purane data ko load karte waqt uppercase mein convert kar rahe hain
-    this.rolesList = parsedData.map((item: any) => ({
-      ...item,
-      name: item.name ? item.name.toUpperCase() : ''
-    }));
-  } else {
-    // Default POD Data ko uppercase mein set kiya hai
-    this.rolesList = [
-      { id: 1, name: 'PORT OF HAMBURG, GERMANY', status: true },
-      { id: 2, name: 'PORT OF ROTTERDAM, NETHERLANDS', status: true }
-    ];
-    this.saveToStorage();
-=======
     this.fetchPorts();
->>>>>>> 621835e844dbe242b940aab1ab2dd49df73b2e16
   }
-}
 
   // 1. GET ALL PORTS
   fetchPorts() {

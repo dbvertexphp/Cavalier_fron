@@ -1,4 +1,136 @@
-<div class="p-4 bg-gray-100 min-h-screen font-sans text-[12px]">
+<div class="p-6 bg-gray-100 min-h-screen font-sans text-[15px]">
+
+  <div *ngIf="!isFormOpen" class="bg-white border border-gray-300 shadow-md rounded-md overflow-hidden">
+    <div class="bg-gray-100 p-1.5 border-b border-gray-300 flex gap-4 items-center">
+      <!-- <div class="flex gap-2 border-r border-gray-300 pr-3">
+        <button title="Refresh" class="hover:bg-gray-200 p-1 rounded">🔄</button>
+        <button title="Delete" class="hover:bg-gray-200 p-1 rounded">🗑️</button>
+        <button title="Print" class="hover:bg-gray-200 p-1 rounded">🖨️</button>
+        <button title="Export Excel" class="hover:bg-gray-200 p-1 rounded text-green-700 font-bold text-[10px]">XLSX</button>
+      </div> -->
+      <div class="text-[11px] italic text-gray-500">
+        Status: <span class="text-green-600 font-bold">Active</span> | <span class="text-red-600 font-bold">Inactive</span>
+      </div>
+    </div>
+
+    <div class="p-4 bg-white border-b border-gray-200">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-3">
+        
+        <div class="space-y-2">
+          <div class="flex items-center">
+            <label class="w-28 font-bold text-red-700">Org Name</label>
+            <div class="flex-1 flex border border-red-200">
+               <input type="text" placeholder="Search Company..." class="w-full p-1 outline-none text-[12px]">
+               <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400">🔍</span>
+            </div>
+          </div>
+          <div class="flex items-center">
+            <label class="w-28 font-bold text-gray-600">Org Code</label>
+            <input type="text" placeholder="CODE001" class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm">
+          </div>
+          <div class="flex items-center">
+            <label class="w-28 font-bold text-gray-600">Org Type</label>
+            <select class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
+              <option value="">(Any Type)</option>
+              <option value="Customer">Customer</option>
+              <option value="Vendor">Vendor</option>
+              <option value="Agent">Agent</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <div class="flex items-center">
+            <label class="w-24 font-bold text-gray-600">City</label>
+            <div class="flex-1 flex border border-gray-300">
+               <input type="text" class="w-full p-1 outline-none text-[12px]">
+               <span class="p-1 bg-gray-50 border-l border-gray-200">📍</span>
+            </div>
+          </div>
+          <div class="flex items-center">
+            <label class="w-24 font-bold text-gray-600">Org Group</label>
+            <select class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
+              <option>(Any Group)</option>
+              <option>Local</option>
+              <option>International</option>
+            </select>
+          </div>
+          <div class="flex items-center">
+            <label class="w-24 font-bold text-gray-600">Status</label>
+            <select class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
+              <option>Active</option>
+              <option>Inactive</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex flex-col justify-between pt-1">
+          <div class="space-y-2 pl-4">
+            <div class="flex items-center mb-1">
+              <label class="w-20 font-bold text-gray-600">Branch</label>
+              <select class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
+                <option>DELHI</option>
+                <option>MUMBAI</option>
+              </select>
+            </div>
+            <div class="flex gap-4">
+              <span class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline">Advance Filter</span>
+              <span class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline">Clear</span>
+            </div>
+          </div>
+          
+          <div class="flex justify-end mt-4">
+            <button class="bg-[#4a3f3f] text-white px-8 py-1.5 font-bold shadow-md uppercase text-[11px] hover:bg-black transition-all">
+              Search Organization
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="bg-[#4a3f3f] p-4 flex justify-between items-center text-white">
+      <div class="font-bold uppercase tracking-widest text-[16px]">Organization Records</div>
+      <button (click)="toggleForm()"
+        class="bg-green-600 hover:bg-green-700 px-6 py-2 text-[14px] font-bold shadow-md flex items-center gap-2 rounded transition-all">
+        <span class="text-xl">+</span> ADD NEW ORGANIZATION
+      </button>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full border-collapse">
+        <thead>
+          <tr class="bg-gray-200 text-gray-700 uppercase text-[13px] border-b-2 border-gray-300">
+            <th class="p-5 text-left font-bold">Org Name</th>
+            <th class="p-5 text-left font-bold">Alias</th>
+            <th class="p-5 text-left font-bold">Type</th>
+            <!-- <th class="p-5 text-left font-bold">GST / Tax ID</th> -->
+            <th class="p-5 text-left font-bold">Location</th>
+            <th class="p-5 text-center font-bold sticky right-0 bg-gray-200 border-l shadow-sm">Action</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <tr *ngFor="let org of organizations" class="hover:bg-blue-50 transition-colors text-gray-800">
+            <td class="p-5 font-bold text-blue-700 uppercase">{{org.name}}</td>
+            <td class="p-5 font-medium">{{org.alias}}</td>
+            <td class="p-5">
+              <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-[12px] font-bold uppercase">
+                {{org.type}}
+              </span>
+            </td>
+            <!-- <td class="p-5 font-mono text-gray-600">{{org.gst}}</td> -->
+            <td class="p-5">{{org.location}}</td>
+            <td class="p-5 sticky right-0 bg-white border-l text-center">
+              <button (click)="editOrg(org)" class="text-blue-600 mr-4 font-bold hover:underline">EDIT</button>
+              <button (click)="deleteOrg(org.id)" class="text-red-600 font-bold hover:underline">DELETE</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div *ngIf="isFormOpen">
+   <div class="p-4 bg-gray-100 min-h-screen font-sans text-[12px]">
   <div class="bg-[#4a3f3f] p-1.5 flex justify-between items-center text-white shadow-sm">
     <div class="flex gap-4 px-2">
       <button (click)="saveOrg()" class="hover:text-gray-300" title="Save"><i class="fas fa-save"></i></button>
@@ -198,71 +330,71 @@
             </div> -->
 
     <div class="border-t pt-6 mt-8">
-  <div class="flex justify-between items-center mb-4">
-    <h3 class="text-lg font-bold text-gray-700 uppercase tracking-wider border-l-4 border-blue-600 pl-3">
+  <div class="mb-4">
+    <h3 class="text-lg font-bold text-gray-700 uppercase tracking-wider border-l-4 border-green-600 pl-3">
       Contact Details
     </h3>
-    <button type="button" (click)="addContact()" 
-      class="bg-blue-600 text-white px-4 py-2 rounded-full font-bold shadow hover:bg-blue-700 transition flex items-center gap-2">
-      <span class="text-xl">+</span> Add Contact
-    </button>
   </div>
 
-  <div class="space-y-4">
-    <div *ngFor="let contact of contacts; let i = index" 
-      class="grid grid-cols-1 md:grid-cols-6 gap-3 bg-white p-4 rounded-lg border border-gray-200 relative items-end">
-      
-      <button *ngIf="contacts.length > 1" type="button" (click)="removeContact(i)" 
-        class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow hover:bg-red-600">✕</button>
+  <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+    <div class="hidden md:grid grid-cols-6 gap-3 mb-2 px-1">
+      <label class="text-[11px] font-bold text-gray-500 uppercase">Contact Name</label>
+      <label class="text-[11px] font-bold text-gray-500 uppercase">Designation</label>
+      <label class="text-[11px] font-bold text-gray-500 uppercase">Department</label>
+      <label class="text-[11px] font-bold text-gray-500 uppercase">Mobile</label>
+      <label class="text-[11px] font-bold text-gray-500 uppercase">Whatsapp</label>
+      <label class="text-[11px] font-bold text-gray-500 uppercase">Email ID</label>
+    </div>
 
-      <div>
-        <label class="block text-xs font-bold text-gray-600 mb-1">CONTACT NAME</label>
-        <input [(ngModel)]="contact.contactName" [name]="'contactName' + i" placeholder="Name" class="w-full border p-2 rounded text-sm focus:ring-1 focus:ring-blue-500 outline-none">
+    <div class="space-y-3">
+      <div *ngFor="let contact of contacts; let i = index" 
+        class="grid grid-cols-1 md:grid-cols-6 gap-3 items-center">
+        
+        <input [(ngModel)]="contact.contactName" [name]="'name'+i" placeholder="Name" 
+          class="w-full border p-2 rounded text-sm outline-none focus:border-blue-400">
+
+        <select [(ngModel)]="contact.designation" [name]="'desig'+i" 
+          class="w-full border p-2 rounded text-sm bg-white outline-none focus:border-blue-400">
+          <option value="" disabled selected>Select Designation</option>
+          <option value="Manager">DROPDOWN</option>
+          <option value="HOD">DROPDOWN</option>
+        </select>
+
+        <select [(ngModel)]="contact.department" [name]="'dept'+i" 
+          class="w-full border p-2 rounded text-sm bg-white outline-none focus:border-blue-400">
+          <option value="" disabled selected>Select Department</option>
+          <option value="Sales">DROPDOWN</option>
+          <option value="Marketing">DROPDOWN</option>
+        </select>
+
+        <input [(ngModel)]="contact.mobile" [name]="'mob'+i" placeholder="Mobile No" 
+          class="w-full border p-2 rounded text-sm outline-none focus:border-blue-400">
+
+        <input [(ngModel)]="contact.whatsapp" [name]="'wa'+i" placeholder="Whatsapp No" 
+          class="w-full border p-2 rounded text-sm outline-none focus:border-blue-400">
+
+        <div class="flex items-center gap-3">
+          <input [(ngModel)]="contact.email" [name]="'email'+i" placeholder="Email Address" 
+            class="w-full border p-2 rounded text-sm flex-1 outline-none focus:border-blue-400">
+          
+          <button *ngIf="i === 0" type="button" (click)="addContact()" 
+            class="text-green-600 hover:text-green-700 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="Set12 4v16m8-8H4" />
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </button>
+
+          <button *ngIf="i > 0" type="button" (click)="removeContact(i)" 
+            class="text-red-500 hover:text-red-600 transition-colors px-1">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
       </div>
-
-<div>
-  <label class="block text-xs font-bold text-gray-600 mb-1">DESIGNATION</label>
-  <select 
-    [(ngModel)]="contact.designation" 
-    [name]="'designation' + i" 
-    class="w-full border p-2 rounded text-sm focus:ring-1 focus:ring-blue-500 outline-none bg-white">
-    <option value="" disabled selected>Select Designation</option>
-    <option value="Manager">Manager</option>
-    <option value="Developer">Developer</option>
-    <option value="HOD">HOD</option>
-    <option value="Executive">Executive</option>
-    <option value="Other">Other</option>
-  </select>
-</div>
-
-     <div>
-  <label class="block text-xs font-bold text-gray-600 mb-1">DEPARTMENT</label>
-  <select 
-    [(ngModel)]="contact.department" 
-    [name]="'department' + i" 
-    class="w-full border p-2 rounded text-sm focus:ring-1 focus:ring-blue-500 outline-none bg-white">
-    <option value="" disabled selected>Select Department</option>
-    <option value="Sales">Sales</option>
-    <option value="Marketing">Marketing</option>
-   
-  </select>
-</div>
-
-      <div>
-        <label class="block text-xs font-bold text-gray-600 mb-1">MOBILE</label>
-        <input [(ngModel)]="contact.mobile" [name]="'mobile' + i" placeholder="Mobile No" class="w-full border p-2 rounded text-sm focus:ring-1 focus:ring-blue-500 outline-none">
-      </div>
-
-      <div>
-        <label class="block text-xs font-bold text-gray-600 mb-1">WHATSAPP</label>
-        <input [(ngModel)]="contact.whatsapp" [name]="'whatsapp' + i" placeholder="Whatsapp No" class="w-full border p-2 rounded text-sm focus:ring-1 focus:ring-blue-500 outline-none">
-      </div>
-
-      <div>
-        <label class="block text-xs font-bold text-gray-600 mb-1">EMAIL ID</label>
-        <input [(ngModel)]="contact.email" [name]="'email' + i" placeholder="Email Address" class="w-full border p-2 rounded text-sm focus:ring-1 focus:ring-blue-500 outline-none">
-      </div>
-
     </div>
   </div>
 </div>
@@ -483,3 +615,10 @@
     </div>
   </div>
 </div> -->
+
+</div>
+
+
+
+
+

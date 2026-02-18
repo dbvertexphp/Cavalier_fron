@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-
+import { environment } from '../../../environments/environment';
 @Component({
   selector: 'app-list-of-unit',
   standalone: true,
@@ -11,7 +11,7 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 })
 export class ListOfUnitComponent implements OnInit {
   
-  private apiUrl = 'http://localhost:5000/api/UnitOfMeasurement';
+  private apiUrl = environment.apiUrl + '/UnitOfMeasurement';
   unitList: any[] = [];
   
   isModalOpen = false;

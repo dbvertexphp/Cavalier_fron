@@ -1,6 +1,74 @@
 <div class="p-2 md:p-3 bg-gray-100 min-h-screen font-sans text-[13px]">
 
   <div *ngIf="!isFormOpen" class="max-w-7xl mx-auto bg-white border border-gray-300 shadow-lg overflow-hidden">
+    <div class="bg-gray-100 p-1.5 border-b border-gray-300 flex gap-4 items-center">
+      <!-- <div class="flex gap-2 border-r border-gray-300 pr-3">
+        <button class="hover:bg-gray-200 p-1 rounded">📄</button>
+        <button class="hover:bg-gray-200 p-1 rounded">📝</button>
+        <button class="hover:bg-gray-200 p-1 rounded">🔄</button>
+        <button class="hover:bg-gray-200 p-1 rounded">🗑️</button>
+        <button class="hover:bg-gray-200 p-1 rounded">🖨️</button>
+        <button class="hover:bg-gray-200 p-1 rounded">📊</button>
+      </div> -->
+      <div class="text-[11px] italic text-gray-500">
+        Items in <span class="text-green-600 font-bold">green</span> = Succeeded | <span class="text-red-600 font-bold">red</span> = Failed
+      </div>
+    </div>
+
+    <div class="p-4 bg-white border-b border-gray-200">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-3">
+        
+        <div class="space-y-2">
+          <div class="flex items-center">
+            <label class="w-24 font-bold text-gray-600">Date</label>
+            <input type="text" value="01.02.26 - 28.02.26" class="flex-1 border border-gray-300 p-1 outline-none">
+          </div>
+          <div class="flex items-center">
+            <label class="w-24 font-bold text-gray-600 text-red-700">Organization</label>
+            <div class="flex-1 flex border border-red-200">
+               <input type="text" class="w-full p-1 outline-none">
+               <span class="p-1 bg-gray-50 border-l border-gray-200">🔍</span>
+            </div>
+          </div>
+          <div class="flex items-center">
+            <label class="w-24 font-bold text-gray-600">Services</label>
+            <select class="flex-1 border border-gray-300 p-1 outline-none"><option>(Any)</option></select>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <div class="flex items-center">
+            <label class="w-28 font-bold text-gray-600">Sales Process</label>
+            <select class="flex-1 border border-gray-300 p-1 outline-none"><option>(Any)</option></select>
+          </div>
+          <div class="flex items-center">
+            <label class="w-28 font-bold text-gray-600">Sales Stage</label>
+            <select class="flex-1 border border-gray-300 p-1 outline-none"><option>(Any)</option></select>
+          </div>
+          <div class="flex items-center">
+            <label class="w-28 font-bold text-gray-600">Lead No</label>
+            <input type="text" class="flex-1 border border-gray-300 p-1 outline-none">
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <div class="flex items-center">
+            <label class="w-24 font-bold text-gray-600">Assigned To</label>
+            <select class="flex-1 border border-gray-300 p-1 outline-none"><option>(Any)</option></select>
+          </div>
+          <div class="flex items-center">
+            <label class="w-24 font-bold text-gray-600">Rating</label>
+            <select class="flex-1 border border-gray-300 p-1 outline-none"><option>(Any)</option></select>
+          </div>
+          <div class="flex justify-end gap-3 pt-1">
+            <button class="text-blue-600 underline text-[11px] font-bold">Advance Filter</button>
+            <button class="text-blue-600 underline text-[11px] font-bold">Clear</button>
+            <button class="bg-[#4a3f3f] text-white px-6 py-1 font-bold shadow-md uppercase text-[11px]">Search</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
     <div class="bg-[#4a3f3f] p-3 flex justify-between items-center text-white">
       <div class="font-bold uppercase text-[12px] tracking-widest px-2">Lead Records</div>
       <button (click)="toggleForm()" class="bg-green-600 hover:bg-green-700 text-white font-bold text-[12px] px-5 py-1.5 uppercase shadow-sm">

@@ -124,7 +124,16 @@ export class OrganizationAddComponent implements OnInit {
 
   changeTab(tab: string) { this.activeTab = tab; }
   selectBranch(branch: any) { this.selectedBranch = branch; }
-  cancel() { this.location.back(); }
+ cancel() {
+  // Agar form khula hai, toh sirf form band karo (table apne aap dikh jayegi)
+  if (this.isFormOpen) {
+    this.isFormOpen = false;
+    this.organizations = []; // Data clear karne ke liye
+  } else {
+    // Agar pehle se table par ho aur tab cancel dabaya, tab back jaye
+    this.location.back();
+  }
+}
   // --- ISKE NEECHE NAYA CODE ADD KAREIN (Existing code ko bina chede) ---
 
   // Nayi Row ke liye array
@@ -150,6 +159,49 @@ export class OrganizationAddComponent implements OnInit {
       this.contacts.splice(index, 1);
     }
   }
+  organizations: any[] = [
+    // {
+    //   name: 'ABC SHIPPING LINE',
+    //   alias: 'ASL',
+    //   roles: ['Shipper', 'Agent'],
+    //   location: 'New Delhi',
+    //   taxId: '07AAACR1234H1Z5'
+    // },
+    // {
+    //   name: 'GLOBAL LOGISTICS',
+    //   alias: 'GL',
+    //   roles: ['Carrier'],
+    //   location: 'Mumbai',
+    //   taxId: '27BBBCR5678J1Z2'
+    // }
+  ];
+  editOrg(org: any) {
+    console.log('Editing:', org);
+    this.isFormOpen = true; // Edit click karne par form khul jaye
+    // Yahan aap purana data form mein fill karne ka logic likh sakte hain
+  }
+  // .ts file mein variables ke sath ye likhein
+isFormOpen: boolean = false; // By default list dikhegi
+
+// Naya form kholne ke liye function
+openForm() {
+  this.isFormOpen = true;
+}
+
+// Form band karke list par jane ke liye
+closeForm() {
+  this.isFormOpen = false;
+}
+  toggleForm() {
+    this.isFormOpen = !this.isFormOpen;
+    if(!this.isFormOpen) this.organizations = []; // Form band ho toh data saaf kar do
+  }
+deleteOrg(id: any) {
+    if (confirm('')) {
+      this.organizations = this.organizations.filter(o => o.id !== id);
+    }
+  }
+
 }
 
 

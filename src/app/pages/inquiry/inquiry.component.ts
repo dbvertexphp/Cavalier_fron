@@ -170,7 +170,7 @@ saveDimensions() {
     this.appliedDimensions = JSON.parse(JSON.stringify(validDims)); // Deep copy
     this.closeDimModal();
   } else {
-    alert("Bhai, kam se kam ek dimension toh dhang se bharo!");
+    alert("Please fill in all dimension fields before saving.");
   }
 }
 }

@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule, FormArray } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule, FormArray, FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
 import { UserService } from '../../services/user.service';
 import { BranchService } from '../../services/branch.service';
@@ -65,6 +65,7 @@ export class UserFormComponent implements OnInit {
         this.userForm.patchValue(this.initialData);
       });
     }
+   
   }//change
   
   loadPermissions() {
@@ -205,6 +206,8 @@ export class UserFormComponent implements OnInit {
         //change
         hodId: [null], 
         teamId: [null],
+        exitDate:[null],
+       
       });
     }
   }
@@ -378,4 +381,5 @@ export class UserFormComponent implements OnInit {
 
   bloodGroups: string[] = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
   selectedBloodGroup: string = '';
+  
 }

@@ -1,4 +1,5 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core'; 
+
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, HostListener } from '@angular/core'; 
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 
@@ -17,17 +18,42 @@ export class EcommerceComponent implements OnInit, OnDestroy {
   interval: any;
   displayTime: string = "20:00"; 
   private readonly TIMER_KEY = 'session_expiry_time';
+  
+  // Activity check karne ke liye variable
+  private idleTimeout: any;
 
   constructor(private router: Router, private cdr: ChangeDetectorRef) {}
 
+  // --- User Activity Logic ---
+  // Note: mousemove ko commented rakha hai aapki request ke hisaab se
+  // @HostListener('document:mousemove') 
+  @HostListener('document:click')
+  @HostListener('document:keydown')
+  @HostListener('document:scroll')
+  resetUserActivity() {
+    // 1. Chalte huye timer ko stop karo
+    this.stopTimer();
+    
+    // 2. Display ko reset karke 20:00 dikhao
+    this.displayTime = "20:00";
+    localStorage.removeItem(this.TIMER_KEY); 
+
+    // 3. Purana wait clear karo
+    if (this.idleTimeout) clearTimeout(this.idleTimeout);
+
+    // 4. AB SIRF 5 SECOND (5000ms) BAAD TIMER SHURU HOGA
+    this.idleTimeout = setTimeout(() => {
+      this.startTimer();
+    }, 5000); // 10 second se badal kar 5 second kar diya hai
+  }
+
   ngOnInit() {
-    // Local storage se seedha 'userName' fetch kar rahe hain
     const storedName = localStorage.getItem('userName');
     
     if (storedName) {
       this.lastLoginUser = {
         userName: storedName,
-        email: 'admin@cavalierlogistics.in' // Default as per your session data
+        email: 'admin@cavalierlogistics.in'
       };
     } else {
       this.lastLoginUser = {
@@ -37,15 +63,12 @@ export class EcommerceComponent implements OnInit, OnDestroy {
     }
     
     this.loginTime = new Date().toLocaleString('en-US', { 
-      day: '2-digit', 
-      month: 'short', 
-      year: 'numeric', 
-      hour: '2-digit', 
-      minute: '2-digit',
-      hour12: true
+      day: '2-digit', month: 'short', year: 'numeric', 
+      hour: '2-digit', minute: '2-digit', hour12: true
     });
 
-    this.startTimer();
+    // Pehli baar load hone par check shuru karega
+    this.resetUserActivity();
   }
 
   startTimer() {
@@ -100,5 +123,6 @@ export class EcommerceComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.stopTimer();
+    if (this.idleTimeout) clearTimeout(this.idleTimeout);
   }
 }

@@ -1,5 +1,91 @@
 <div class="p-3 bg-gray-100 min-h-screen font-sans text-[13px]">
   <div *ngIf="!isFormOpen" class="bg-white border border-gray-300 shadow-sm rounded-sm overflow-hidden">
+    <div class="bg-gray-100 p-1.5 border-b border-gray-300 flex gap-4 items-center">
+      <!-- <div class="flex gap-2 border-r border-gray-300 pr-3">
+        <button title="Refresh" class="hover:bg-gray-200 p-1 rounded">🔄</button>
+        <button title="Delete" class="hover:bg-gray-200 p-1 rounded">🗑️</button>
+        <button title="Print" class="hover:bg-gray-200 p-1 rounded">🖨️</button>
+        <button title="Export" class="hover:bg-gray-200 p-1 rounded text-green-700 font-bold text-[10px]">XLSX</button>
+      </div> -->
+      <div class="text-[11px] italic text-gray-500">
+        Items in <span class="text-green-600 font-bold">green</span> = Sucess | <span class="text-red-600 font-bold">Red</span> = Faild
+      </div>
+    </div>
+
+    <div class="p-4 bg-white border-b border-gray-200">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-3">
+        
+        <div class="space-y-2">
+          <div class="flex items-center">
+            <label class="w-28 font-bold text-gray-600">Services</label>
+            <select class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
+              <option>Any</option>
+            </select>
+          </div>
+          <div class="flex items-center">
+            <label class="w-28 font-bold text-gray-600">Inquiry No.</label>
+            <input type="text" class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm">
+          </div>
+          <div class="flex items-center">
+            <label class="w-28 font-bold text-red-700">Inquiry to</label>
+            <div class="flex-1 flex border border-red-200">
+               <input type="text" class="w-full p-1 outline-none text-[12px]">
+               <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400">🔍</span>
+            </div>
+          </div>
+          <div class="flex items-center">
+            <label class="w-28 font-bold text-gray-600">Show</label>
+            <select class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
+              <option>Valid Inquiry Only</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <div class="flex items-center">
+            <label class="w-24 font-bold text-gray-600">Date</label>
+            <div class="flex-1 flex border border-gray-300 items-center pr-2">
+               <input type="text" value="01.04.25 - 31.03.26" class="w-full p-1 outline-none text-[12px]">
+               <span>📅</span>
+            </div>
+          </div>
+          <div class="flex items-center">
+            <label class="w-24 font-bold text-gray-600">Inquiry By</label>
+            <div class="flex-1 flex border border-gray-300">
+               <input type="text" class="w-full p-1 outline-none text-[12px]">
+               <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400">🔍</span>
+            </div>
+          </div>
+          <div class="flex items-center">
+            <label class="w-24 font-bold text-gray-600">Status</label>
+            <select class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
+              <option>(Any)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex flex-col justify-between pt-1">
+          <div class="space-y-2 pl-4">
+            <div class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline flex items-center gap-1">
+              Advance Filter <span class="text-[10px]">▼</span>
+            </div>
+            <div class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline">
+              Clear
+            </div>
+            <div class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline">
+              Legend
+            </div>
+          </div>
+          
+          <div class="flex justify-end mt-4">
+            <button class="bg-[#4a3f3f] text-white px-8 py-1.5 font-bold shadow-md uppercase text-[11px] hover:bg-black transition-all">
+              Search
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
     <div class="bg-[#4a3f3f] p-3 flex justify-between items-center text-white">
       <div class="font-bold uppercase tracking-widest px-2 text-[12px]">Inquiry Records</div>
       <button (click)="toggleForm()"

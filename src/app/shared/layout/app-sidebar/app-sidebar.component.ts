@@ -83,7 +83,7 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.loadNavItemsFromApi();
     this.cdr.detectChanges();
-//  this.accessType = localStorage.getItem('accessType');
+ this.accessType = localStorage.getItem('accessType');
     this.subscription.add(
       this.router.events.subscribe(event => {
         if (event instanceof NavigationEnd) {

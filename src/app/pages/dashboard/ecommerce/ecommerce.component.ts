@@ -26,7 +26,7 @@ export class EcommerceComponent implements OnInit, OnDestroy {
 
   // --- User Activity Logic ---
   // Note: mousemove ko commented rakha hai aapki request ke hisaab se
-  // @HostListener('document:mousemove') 
+  @HostListener('document:mousemove') 
   @HostListener('document:click')
   @HostListener('document:keydown')
   @HostListener('document:scroll')

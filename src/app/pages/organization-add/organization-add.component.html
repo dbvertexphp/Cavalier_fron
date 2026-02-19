@@ -73,6 +73,24 @@
                 <option>MUMBAI</option>
               </select>
             </div>
+            <div class="space-y-2">
+  <div class="flex items-center">
+    <label class="w-24 font-bold text-gray-600">Date</label>
+    
+    <div 
+      class="flex-1 flex border border-gray-300 items-center pr-2 cursor-pointer"
+      (click)="datePicker.showPicker()">
+      
+      <input 
+        #datePicker
+        type="date" 
+        class="w-full p-1 outline-none text-[12px] cursor-pointer"
+        (focus)="datePicker.showPicker()">
+        
+      <span>📅</span>
+    </div>
+  </div>
+</div>
             <div class="flex gap-4">
               <span class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline">Advance Filter</span>
               <span class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline">Clear</span>

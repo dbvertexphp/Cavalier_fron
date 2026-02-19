@@ -22,7 +22,7 @@
     </a>
   </div>
 
-  <div class="flex flex-col flex-grow overflow-y-auto no-scrollbar">
+ <div class="flex flex-col flex-grow overflow-y-auto [&::-webkit-scrollbar]:w-2.5 [&::-webkit-scrollbar-track]:bg-[#654e51] [&::-webkit-scrollbar-track]:rounded-r-2xl /* The Rich Liquid Thumb */ [&::-webkit-scrollbar-thumb]:bg-[#dec9c7] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-[3px] [&::-webkit-scrollbar-thumb]:border-[#654e51] [&::-webkit-scrollbar-thumb]:bg-clip-content /* Hover state with brightness */ hover:[&::-webkit-scrollbar-thumb]:bg-[#f5e1df] active:[&::-webkit-scrollbar-thumb]:bg-white transition-all duration-300">
     <nav class="mb-6 px-3">
       <div *ngIf="loadings" class="flex flex-col gap-2 px-2">
         <div class="px-3 mb-3 h-5 flex items-center">

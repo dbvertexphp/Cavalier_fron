@@ -1,0 +1,98 @@
+<div class="p-4 md:p-10 min-h-screen bg-gray-200/50 flex justify-center font-sans">
+  <div class="max-w-5xl w-full bg-white shadow-2xl rounded-sm border border-gray-300 p-8 md:p-12 min-h-[11in]">
+    
+    <div class="flex justify-between items-start border-b-2 border-gray-800 pb-6 mb-8">
+      <div class="flex items-center gap-4">
+        <div class="w-16 h-16 bg-[#654E51] rounded-lg flex items-center justify-center text-white font-bold text-2xl shadow-inner">C</div>
+        <div>
+          <h1 class="text-2xl font-black text-gray-900 tracking-tighter uppercase leading-none">Cavalier Logistics Pvt Ltd</h1>
+          <p class="text-[10px] font-bold text-gray-500 mt-1 uppercase tracking-widest">Employee Leave Management System</p>
+        </div>
+      </div>
+      <div class="text-right">
+        <h2 class="text-xl font-black text-[#654E51] uppercase underline decoration-2 underline-offset-4">Leave Application</h2>
+        <p class="text-[10px] font-black text-gray-400 mt-2">FORM NO: CAV/HR/061</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-6 bg-gray-50 p-6 rounded-xl border border-gray-100 mb-8">
+      <div>
+        <label class="block text-[9px] font-black text-gray-400 uppercase mb-1">Name of Employee</label>
+        <p class="font-bold text-gray-800 border-b border-gray-200 pb-1">{{empInfo.name}}</p>
+      </div>
+      <div>
+        <label class="block text-[9px] font-black text-gray-400 uppercase mb-1">Employee Code</label>
+        <p class="font-bold text-gray-800 border-b border-gray-200 pb-1">{{empInfo.code}}</p>
+      </div>
+      <div>
+        <label class="block text-[9px] font-black text-gray-400 uppercase mb-1">Designation</label>
+        <p class="font-bold text-gray-800 border-b border-gray-200 pb-1">{{empInfo.desig}}</p>
+      </div>
+      <div>
+        <label class="block text-[9px] font-black text-gray-400 uppercase mb-1">Department</label>
+        <p class="font-bold text-gray-800 border-b border-gray-200 pb-1">{{empInfo.dept}}</p>
+      </div>
+      <div>
+        <label class="block text-[9px] font-black text-gray-400 uppercase mb-1">Date of Joining</label>
+        <p class="font-bold text-gray-800 border-b border-gray-200 pb-1">{{empInfo.doj}}</p>
+      </div>
+      <div class="bg-[#654E51] p-3 rounded-lg text-white flex justify-around items-center shadow-lg">
+        <div class="text-center"><p class="text-[8px] font-black uppercase opacity-70">PL</p><p class="font-black">{{balances.pl}}</p></div>
+        <div class="text-center border-x border-white/20 px-4"><p class="text-[8px] font-black uppercase opacity-70">CL</p><p class="font-black">{{balances.cl}}</p></div>
+        <div class="text-center"><p class="text-[8px] font-black uppercase opacity-70">SL</p><p class="font-black">{{balances.sl}}</p></div>
+      </div>
+    </div>
+
+    <form (submit)="submitLeave()" class="space-y-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
+        <div>
+          <label class="block text-[10px] font-black uppercase text-gray-400 mb-2">Nature of Leave</label>
+          <select [(ngModel)]="newLeave.type" name="type" class="w-full border-b-2 border-gray-200 focus:border-[#654E51] outline-none py-2 font-bold text-gray-700 bg-transparent transition-all">
+            <option value="">-- SELECT --</option>
+            <option value="P/L">Privilege Leave (P/L)</option>
+            <option value="C/L">Casual Leave (C/L)</option>
+            <option value="S/L">Sick Leave (S/L)</option>
+            <option value="LWP">LWP</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[10px] font-black uppercase text-gray-400 mb-2">From Date</label>
+          <input type="date" [(ngModel)]="newLeave.from" name="from" class="w-full border-b-2 border-gray-200 focus:border-[#654E51] outline-none py-2 font-bold text-gray-700">
+        </div>
+        <div>
+          <label class="block text-[10px] font-black uppercase text-gray-400 mb-2">To Date</label>
+          <input type="date" [(ngModel)]="newLeave.to" name="to" class="w-full border-b-2 border-gray-200 focus:border-[#654E51] outline-none py-2 font-bold text-gray-700">
+        </div>
+        <div>
+          <label class="block text-[10px] font-black uppercase text-gray-400 mb-2">No. of Days</label>
+          <input type="number" [(ngModel)]="newLeave.days" name="days" class="w-full border-b-2 border-gray-200 focus:border-[#654E51] outline-none py-2 font-bold text-gray-700" placeholder="0">
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-[10px] font-black uppercase text-gray-400 mb-2">Reasons / Details for Leave</label>
+        <textarea [(ngModel)]="newLeave.reason" name="reason" rows="4" class="w-full border-2 border-gray-100 p-4 rounded-xl focus:border-[#654E51] outline-none font-medium text-gray-700 bg-gray-50/50 resize-none" placeholder="Write reason here..."></textarea>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-12 pt-10">
+        <div class="border-t border-gray-300 pt-4 text-center">
+          <p class="font-black text-[#654E51] uppercase text-[10px] tracking-widest mb-1">{{newLeave.initials}}</p>
+          <p class="text-[9px] font-bold text-gray-400 uppercase">Employee Initials</p>
+        </div>
+        <div class="border-t border-dashed border-gray-300 pt-4 text-center italic text-gray-300">
+          <p class="text-[9px] font-bold uppercase mt-4">Department Head Sign</p>
+        </div>
+      </div>
+
+      <div class="flex justify-center pt-12">
+        <button type="submit" class="bg-[#654E51] text-white px-12 py-4 rounded-full font-black uppercase tracking-widest text-xs shadow-xl shadow-[#654E51]/30 hover:bg-[#4a393b] hover:scale-105 transition-all">
+          Submit Official Application
+        </button>
+      </div>
+    </form>
+
+    <div class="mt-20 pt-6 border-t border-gray-100 text-center">
+      <p class="text-[8px] font-bold text-gray-300 uppercase tracking-[4px]">Cavalier Logistics Confidential Document</p>
+    </div>
+  </div>
+</div>

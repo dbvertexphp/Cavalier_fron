@@ -244,6 +244,20 @@ loadBranches() {
       }
     });
 
+    // HR Management specific check to add Salary and Leave
+    if (navMap['HR Management']) {
+      navMap['HR Management'].subItems!.push({
+        name: 'Salary Table',
+        path: '/dashboard/salary-table',
+        new: false
+      });
+      navMap['HR Management'].subItems!.push({
+        name: 'Leave Application',
+        path: '/dashboard/leave-application',
+        new: false
+      });
+    }
+
     const finalNav = Object.values(navMap);
     const accessType = localStorage.getItem('accessType'); 
 

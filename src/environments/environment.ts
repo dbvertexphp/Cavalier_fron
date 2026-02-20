@@ -1,4 +1,3 @@
 export const environment = {
-  
-  apiUrl: 'https://api.cavalierlogistic.graphicsvolume.com/api' 
+  apiUrl: 'http://localhost:5000/api'
 };

@@ -103,18 +103,7 @@
         </div>
         <div><label>Telephone</label> <input formControlName="telephone" class="w-full border p-2 rounded"></div>
       </div>
-
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-blue-50/10 p-4 rounded border border-blue-100">
-        <!-- <div class="space-y-1">
-          <label class="font-semibold text-gray-600 block uppercase">User Type</label>
-          <select formControlName="userType"
-            class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f] bg-white">
-            <option value="" disabled selected>Select User Type</option>
-            <option value="training">Training</option>
-            <option value="payroll">Payroll</option>
-            <option value="freelancing">Freelancing</option>
-          </select>
-        </div> -->
         <div>
           <label class="block text-sm font-semibold text-gray-700 mb-1">Department</label>
           <select formControlName="department"
@@ -382,15 +371,7 @@
             <label class="text-sm font-semibold">Profile Picture</label>
             <input type="file" (change)="onFileSelect($event,'profilePicture')" class="w-full border p-2 rounded">
           </div>
-          <!-- <div>
-            <label class="text-sm font-semibold">Signature</label>
-            <input type="file" (change)="onFileSelect($event,'signature')" class="w-full border p-2 rounded">
           </div>
-          <div>
-            <label class="text-sm font-semibold">Profile Select</label>
-            <input formControlName="profileSelect" class="w-full border p-2 rounded">
-          </div> -->
-        </div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 border-t pt-4">
@@ -448,11 +429,8 @@
           </div>
         </div>
       </div>
-
     </div>
-
     <div class="flex justify-end gap-3 pt-6 border-t">
-
       <button type="button" (click)="onCancel()"
         class="px-6 py-2 border rounded hover:bg-gray-100 transition">Cancel</button>
       <button type="submit" [disabled]="userForm.invalid"

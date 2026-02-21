@@ -122,13 +122,13 @@ export class UserFormComponent implements OnInit {
         dob: ['', Validators.required],
         gender: ['Male'],
         maritalStatus: ['Single'],
-        password: ['', Validators.required],
+        // password: ['', Validators.required],
         department: ['', Validators.required],
         designation: ['', Validators.required],
         functionalArea: [''],
         userType: ['', Validators.required],
-        branchId: [null, Validators.required],
-        roleId: [null, Validators.required],
+        // branchId: [null, Validators.required],
+        // roleId: [null, Validators.required],
         licenceType: [''],
         dateOfJoining: ['', Validators.required],
         ctc_Monthly: [0, Validators.required],
@@ -325,44 +325,88 @@ export class UserFormComponent implements OnInit {
     });
   }
 
+  // onSubmit() {
+  //   console.log('================ FORM RAW VALUE ================');
+  //   console.log(this.userForm.value);
+
+  //   if (this.userForm.invalid) {
+  //     this.userForm.markAllAsTouched();
+  //     alert('Form invalid hai bhai');
+  //     return;
+  //   }
+
+  //   const payload = this.userForm.value;
+  //   const formData = new FormData();
+
+  //   Object.keys(this.userForm.controls).forEach(key => {
+  //     const value = this.userForm.get(key)?.value;
+  //     if (key === 'permissionIds') {
+  //       value.forEach((id: number) => {
+  //         formData.append('PermissionIds', id.toString());
+  //       });
+  //     } else if (key === 'educations' || key === 'experiences') {
+  //         formData.append(key, JSON.stringify(value));
+  //     } else if (value !== null && value !== '') {
+  //       formData.append(key, value);
+  //     }
+  //   });
+
+  //   if (this.isBranchForm) {
+  //     this.branchService.addBranch(formData).subscribe(() => {
+  //       alert('Branch Saved');
+  //       this.router.navigate(['/dashboard/branch']);
+  //     });
+  //   } else {
+  //     this.userService.registerUser(payload).subscribe(() => {
+  //       alert('User Saved');
+  //       this.router.navigate(['/dashboard/users']);
+  //     });
+  //   }
+  // }
   onSubmit() {
-    console.log('================ FORM RAW VALUE ================');
-    console.log(this.userForm.value);
 
-    if (this.userForm.invalid) {
-      this.userForm.markAllAsTouched();
-      alert('Form invalid hai bhai');
-      return;
-    }
+  console.log('================ FULL FORM DEBUG START ================');
 
-    const payload = this.userForm.value;
-    const formData = new FormData();
+  // 1️⃣ Pure form ka raw value (including disabled fields)
+  console.log('RAW VALUE:', this.userForm.getRawValue());
 
-    Object.keys(this.userForm.controls).forEach(key => {
-      const value = this.userForm.get(key)?.value;
-      if (key === 'permissionIds') {
-        value.forEach((id: number) => {
-          formData.append('PermissionIds', id.toString());
-        });
-      } else if (key === 'educations' || key === 'experiences') {
-          formData.append(key, JSON.stringify(value));
-      } else if (value !== null && value !== '') {
-        formData.append(key, value);
-      }
-    });
+  // 2️⃣ Simple value
+  console.log('NORMAL VALUE:', this.userForm.value);
 
-    if (this.isBranchForm) {
-      this.branchService.addBranch(formData).subscribe(() => {
-        alert('Branch Saved');
-        this.router.navigate(['/dashboard/branch']);
-      });
-    } else {
-      this.userService.registerUser(payload).subscribe(() => {
-        alert('User Saved');
-        this.router.navigate(['/dashboard/users']);
-      });
-    }
+  // 3️⃣ Individual Controls
+  Object.keys(this.userForm.controls).forEach(key => {
+    console.log(`FIELD => ${key} :`, this.userForm.get(key)?.value);
+  });
+
+  // 4️⃣ Experiences Deep Console
+  console.log('================ EXPERIENCES =================');
+  this.experiences.controls.forEach((exp: any, i: number) => {
+    console.log(`Experience ${i + 1}:`, exp.value);
+
+    const docs = exp.get('documents')?.value;
+    console.log(`Documents of Exp ${i + 1}:`, docs);
+  });
+
+  // 5️⃣ Educations Deep Console
+  console.log('================ EDUCATIONS =================');
+  this.educations.controls.forEach((edu: any, i: number) => {
+    console.log(`Education ${i + 1}:`, edu.value);
+  });
+
+  // 6️⃣ Permission IDs
+  console.log('Permission IDs:', this.userForm.get('permissionIds')?.value);
+
+  console.log('================ FORM DEBUG END ================');
+
+
+  if (this.userForm.invalid) {
+    this.userForm.markAllAsTouched();
+    alert('Form invalid hai bhai');
+    return;
   }
+
+  // 👇 Yahan se original submit logic
+}
 
   generatePassword() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%';

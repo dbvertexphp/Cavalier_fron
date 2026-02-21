@@ -50,11 +50,11 @@ updateDepartment(id: number, name: string): Observable<any> {
 
 // 🔄 ADD THESE TWO FUNCTIONS IN YOUR USER SERVICE
 getHods(): Observable<any[]> {
-  return this.http.get<any[]>('http://localhost:5000/api/Hod');
+  return this.http.get<any[]>(`${environment.apiUrl}/Hod`);
 }
 
 getTeams(): Observable<any[]> {
-  return this.http.get<any[]>('http://localhost:5000/api/Teams');
+  return this.http.get<any[]>(`${environment.apiUrl}/Teams`);
 }
 
   // 6. ✅ Add Designation

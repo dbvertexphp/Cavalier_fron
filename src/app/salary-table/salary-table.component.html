@@ -1,54 +1,201 @@
-<div class="p-6 min-h-screen bg-gray-50/50 font-sans">
-  <div class="mb-6">
-    <h2 class="text-2xl font-black text-[#654E51] tracking-tight uppercase">Payroll Register</h2>
-    <p class="text-gray-500 text-xs font-bold uppercase tracking-widest">Month: {{salaryMonth}} | Cavalier Logistics Pvt Ltd</p>
+<div class="p-6 bg-gray-100 min-h-screen font-sans text-gray-800">
+  
+  <div class="bg-white p-4 rounded-xl shadow-sm border-l-8 border-[#654E51] mb-6">
+    <div class="flex flex-wrap items-center gap-3">
+      
+      <button (click)="setTab('all')" [class.bg-blue-600]="activeTab === 'all'" class="bg-gray-500 text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase shadow-md transition-all">All</button>
+      <button (click)="setTab('payroll')" [class.bg-[#654E51]]="activeTab === 'payroll'" class="bg-gray-400 text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase shadow-md transition-all">Payroll</button>
+      <button (click)="setTab('training')" [class.bg-[#654E51]]="activeTab === 'training'" class="bg-gray-400 text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase shadow-md transition-all">Training</button>
+      <button (click)="setTab('freelancing')" [class.bg-[#654E51]]="activeTab === 'freelancing'" class="bg-gray-400 text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase shadow-md transition-all">Freelancing</button>
+
+      <div class="h-8 w-[2px] bg-gray-200 mx-2"></div>
+
+      <button (click)="onImport()" class="border border-[#654E51] text-[#654E51] px-3 py-2 rounded-lg text-[9px] font-bold uppercase hover:bg-gray-50 transition-all">Import</button>
+      <button (click)="onExport()" class="border border-[#654E51] text-[#654E51] px-3 py-2 rounded-lg text-[9px] font-bold uppercase hover:bg-gray-50 transition-all">Export</button>
+      <button (click)="onPrint()" class="border border-[#654E51] text-[#654E51] px-3 py-2 rounded-lg text-[9px] font-bold uppercase hover:bg-gray-50 transition-all">Print</button>
+      
+      <div *ngIf="activeTab !== 'none'" class="flex-1 flex justify-end">
+        <input type="text" [(ngModel)]="searchText" placeholder="Search..." class="border rounded-full px-4 py-1.5 text-[10px] w-48 outline-none focus:ring-1 focus:ring-[#654E51]">
+      </div>
+    </div>
   </div>
 
-  <div class="bg-white rounded-[2rem] shadow-xl border border-gray-100 overflow-hidden">
-    <div class="overflow-x-auto">
-      <table class="w-full text-left border-collapse">
-        <thead>
-          <tr class="bg-[#654E51] text-white border-b border-[#96736F]">
-            <th colspan="5" class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-center border-r border-white/10">Employee Info</th>
-            <th colspan="2" class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-center border-r border-white/10">Earnings</th>
-            <th colspan="4" class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-center">Employer Contribution</th>
-          </tr>
-          <tr class="bg-gray-50 text-[#654E51] border-b border-gray-100">
-            <th class="px-6 py-4 text-[9px] font-black uppercase tracking-tighter">Code</th>
-            <th class="px-6 py-4 text-[9px] font-black uppercase tracking-tighter">Name</th>
-            <th class="px-6 py-4 text-[9px] font-black uppercase tracking-tighter">Designation</th>
-            <th class="px-6 py-4 text-[9px] font-black uppercase tracking-tighter">PAN</th>
-            <th class="px-6 py-4 text-[9px] font-black uppercase tracking-tighter border-r">DOJ</th>
-            
-            <th class="px-6 py-4 text-[9px] font-black uppercase tracking-tighter bg-green-50/50">Payable</th>
-            <th class="px-6 py-4 text-[9px] font-black uppercase tracking-tighter bg-green-50/50 border-r text-green-700">Bonus</th>
-            
-            <th class="px-6 py-4 text-[9px] font-black uppercase tracking-tighter">ER ESI</th>
-            <th class="px-6 py-4 text-[9px] font-black uppercase tracking-tighter">ER EPS</th>
-            <th class="px-6 py-4 text-[9px] font-black uppercase tracking-tighter">ER EPF</th>
-            <th class="px-6 py-4 text-[9px] font-black uppercase tracking-tighter text-center">Admin</th>
+  <div *ngIf="activeTab === 'payroll' || activeTab === 'all'" class="mb-10 bg-white rounded-xl shadow-2xl overflow-hidden border border-gray-200 animate-in slide-in-from-top-2">
+    <div class="p-3 bg-[#654E51] text-white text-[10px] font-black uppercase tracking-widest">Employee Payroll Table</div>
+    <div class="overflow-x-auto max-h-[800px] overflow-y-auto">
+      <table class="w-full text-left text-[11px] border-collapse sticky-header">
+        <thead class="bg-[#654E51] text-white font-black uppercase sticky top-0 z-20">
+          <tr>
+            <th class="p-3 border-r border-white/10 text-center">Action</th>
+            <th class="p-3 border-r border-white/10">Employee Name</th>
+            <th class="p-3 border-r border-white/10">Employee Code</th>
+            <th class="p-3 border-r border-white/10">Designation</th>
+            <th class="p-3 border-r border-white/10 text-center">PAN</th>
+            <th class="p-3 border-r border-white/10 text-center">DOJ</th>
+            <th class="p-3 border-r border-white/10">CTC</th>
+            <th class="p-3 border-r border-white/10 text-center">Bonus</th>
+            <th class="p-3 text-center">Paid Days</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-gray-50">
-          @for (emp of payrollData; track emp.code) {
-            <tr class="hover:bg-gray-50 transition-colors group">
-              <td class="px-6 py-4 text-[11px] font-black text-[#96736F]">{{emp.code}}</td>
-              <td class="px-6 py-4 text-xs font-bold text-gray-800">{{emp.name}}</td>
-              <td class="px-6 py-4 text-[10px] font-medium text-gray-400 uppercase truncate max-w-[120px]">{{emp.designation}}</td>
-              <td class="px-6 py-4 text-[10px] font-mono font-bold text-gray-500 uppercase">{{emp.pan}}</td>
-              <td class="px-6 py-4 text-[10px] font-bold text-gray-400 border-r">{{emp.doj}}</td>
-              
-              <td class="px-6 py-4 text-sm font-black text-gray-900 bg-green-50/20">₹{{emp.payable}}</td>
-              <td class="px-6 py-4 text-sm font-black text-green-600 bg-green-50/20 border-r">₹{{emp.bonus}}</td>
-              
-              <td class="px-6 py-4 text-[11px] font-bold text-gray-500">{{emp.employerShare.esi || '-'}}</td>
-              <td class="px-6 py-4 text-[11px] font-bold text-gray-700">₹{{emp.employerShare.eps}}</td>
-              <td class="px-6 py-4 text-[11px] font-bold text-gray-700">₹{{emp.employerShare.epf}}</td>
-              <td class="px-6 py-4 text-center">
-                <span class="px-2 py-1 bg-gray-100 rounded text-[10px] font-black text-gray-500">₹{{emp.employerShare.admin}}</span>
-              </td>
-            </tr>
-          }
+        <tbody *ngFor="let emp of payrollData" class="border-b-8 border-gray-100">
+          <tr class="bg-white">
+            <td class="p-3 border-r border-gray-100 text-center">
+              <div class="flex justify-center gap-2">
+                <button (click)="onView(emp)" class="text-blue-600 font-bold uppercase text-[9px] hover:underline">View</button>
+                <button (click)="onDownload(emp)" class="text-green-600 font-bold uppercase text-[9px] hover:underline">Download</button>
+              </div>
+            </td>
+            <td class="p-3 border-r border-gray-100 font-black text-blue-900">{{emp.name}}</td>
+            <td class="p-3 border-r border-gray-100 font-bold text-[#654E51]">{{emp.code}}</td>
+            <td class="p-3 border-r border-gray-100 uppercase text-gray-500 text-[9px]">{{emp.designation}}</td>
+            <td class="p-3 border-r border-gray-100 text-center tracking-widest uppercase">{{emp.pan}}</td>
+            <td class="p-3 border-r border-gray-100 text-center">{{emp.doj}}</td>
+            <td class="p-3 border-r border-gray-100 font-bold">₹{{emp.ctc | number}}</td>
+            <td class="p-3 border-r border-gray-100 text-center">₹{{emp.bonus | number}}</td>
+            <td class="p-3 text-center text-blue-600 font-black">{{emp.paidDays}}</td>
+          </tr>
+          <tr class="bg-gray-100 border-t border-gray-300">
+            <td colspan="9" class="p-1 px-4 text-[#654E51] font-black text-[9px] uppercase italic">--- Monthly Salary ---</td>
+          </tr>
+          <tr class="bg-gray-50 text-[10px] font-black text-[#654E51] uppercase border-b border-gray-200 text-center">
+            <th class="p-2 border-r border-white" colspan="2">Basic</th>
+            <th class="p-2 border-r border-white">HRA</th>
+            <th class="p-2 border-r border-white">Conv. Allw.</th>
+            <th class="p-2 border-r border-white" colspan="2">Spl/Other Allw</th>
+            <th class="p-2 bg-[#654E51] text-white" colspan="3">Gross Salary</th>
+          </tr>
+          <tr class="bg-white text-[10px] text-center italic">
+            <td class="p-2 border-r border-gray-100" colspan="2">₹{{emp.monthly.basic | number}}</td>
+            <td class="p-2 border-r border-gray-100">₹{{emp.monthly.hra | number}}</td>
+            <td class="p-2 border-r border-gray-100">₹{{emp.monthly.conv | number}}</td>
+            <td class="p-2 border-r border-gray-100" colspan="2">₹{{emp.monthly.spl | number}}</td>
+            <td class="p-2 font-black bg-gray-50 text-[#654E51]" colspan="3">₹{{emp.monthly.gross | number}}</td>
+          </tr>
+          <tr class="bg-blue-100 border-t border-blue-200">
+            <td colspan="9" class="p-1 px-4 text-blue-900 font-black text-[9px] uppercase italic">--- Actual Salary ---</td>
+          </tr>
+          <tr class="bg-blue-50/50 text-[10px] font-black text-blue-700 uppercase border-b border-blue-100 text-center">
+            <th class="p-2 border-r border-white" colspan="2">Basic (Act)</th>
+            <th class="p-2 border-r border-white">HRA (Act)</th>
+            <th class="p-2 border-r border-white">Conv (Act)</th>
+            <th class="p-2 border-r border-white" colspan="2">Spl/Other (Act)</th>
+            <th class="p-2 bg-blue-600 text-white" colspan="3">Actual Gross</th>
+          </tr>
+          <tr class="bg-white text-[10px] text-center">
+            <td class="p-2 border-r border-gray-100" colspan="2">₹{{emp.actual.basic | number}}</td>
+            <td class="p-2 border-r border-gray-100">₹{{emp.actual.hra | number}}</td>
+            <td class="p-2 border-r border-gray-100">₹{{emp.actual.conv | number}}</td>
+            <td class="p-2 border-r border-gray-100" colspan="2">₹{{emp.actual.spl | number}}</td>
+            <td class="p-2 font-black bg-blue-50 text-blue-900" colspan="3">₹{{emp.actual.gross | number}}</td>
+          </tr>
+          <tr class="bg-red-100 border-t border-red-200">
+            <td colspan="9" class="p-1 px-4 text-red-900 font-black text-[9px] uppercase italic">--- Deductions ---</td>
+          </tr>
+          <tr class="bg-red-50/50 text-[9px] font-black text-red-700 uppercase border-b border-red-100 text-center">
+            <th class="p-2 border-r border-white" colspan="2">ESIC</th>
+            <th class="p-2 border-r border-white">EPF</th>
+            <th class="p-2 border-r border-white">Advance</th>
+            <th class="p-2 border-r border-white">Other/Hold</th>
+            <th class="p-2 border-r border-white">TDS</th>
+            <th class="p-2 border-r border-white text-red-900">Total Ded.</th>
+            <th class="p-2 border-r border-white">Arrear/Hold</th>
+            <th class="p-2 bg-red-600 text-white">Nett Payable</th>
+          </tr>
+          <tr class="bg-white text-[10px] text-center">
+            <td class="p-2 border-r border-gray-100" colspan="2">₹{{emp.deductions.esic}}</td>
+            <td class="p-2 border-r border-gray-100">₹{{emp.deductions.epf}}</td>
+            <td class="p-2 border-r border-gray-100">₹{{emp.deductions.advance}}</td>
+            <td class="p-2 border-r border-gray-100">₹{{emp.deductions.otherHold}}</td>
+            <td class="p-2 border-r border-gray-100 text-red-500">₹{{emp.deductions.tds}}</td>
+            <td class="p-2 border-r border-gray-100 font-bold bg-red-50 text-red-700">₹{{emp.deductions.total}}</td>
+            <td class="p-2 border-r border-gray-100">₹{{emp.deductions.arrearHold}}</td>
+            <td class="p-2 font-black bg-green-50 text-green-700 underline italic">₹{{emp.deductions.payable | number}}</td>
+          </tr>
+          <tr class="bg-gray-800 text-white border-t border-gray-700">
+            <td colspan="9" class="p-3 px-4">
+              <div class="flex justify-between items-center italic">
+                <div class="text-[10px]"><b>Calculation of Bonus:</b> ₹{{emp.deductions.bonusCalc | number}} (Included in CTC)</div>
+                <div class="flex items-center gap-4">
+                  <span class="text-[10px] text-gray-400 font-black uppercase tracking-widest">Total Amount:</span>
+                  <span class="text-lg font-black text-green-400 tracking-tighter">₹{{emp.deductions.payable | number}}</span>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div *ngIf="activeTab === 'training' || activeTab === 'all'" class="mb-10 bg-white rounded-xl shadow-2xl overflow-hidden border border-gray-200 animate-in slide-in-from-top-2">
+    <div class="p-3 bg-[#654E51] text-white text-[10px] font-black uppercase tracking-widest">Training Table</div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-[11px] border-collapse">
+        <thead class="bg-[#654E51] text-white font-black uppercase">
+          <tr>
+            <th class="p-4 border-r border-white/10 text-center">Action</th>
+            <th class="p-4 border-r border-white/10 text-center">S.No</th>
+            <th class="p-4 border-r border-white/10">Trainee Name</th>
+            <th class="p-4 border-r border-white/10 text-center">DOB</th>
+            <th class="p-4 border-r border-white/10 text-center">DOJ</th>
+            <th class="p-4 border-r border-white/10 text-center">Monthly Stipend</th>
+            <th class="p-4 border-r border-white/10 text-center">Days</th>
+            <th class="p-4 text-center bg-green-700">Total Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let trainee of trainingData" class="bg-white border-b border-gray-100">
+            <td class="p-4 border-r border-gray-50 text-center">
+              <div class="flex justify-center gap-2">
+                <button (click)="onView(trainee)" class="text-blue-600 font-bold uppercase text-[9px] hover:underline">View</button>
+                <button (click)="onDownload(trainee)" class="text-green-600 font-bold uppercase text-[9px] hover:underline">Download</button>
+              </div>
+            </td>
+            <td class="p-4 border-r border-gray-50 text-center font-bold text-gray-400">{{trainee.sNo}}</td>
+            <td class="p-4 border-r border-gray-50 font-black text-blue-900 uppercase">{{trainee.name}}</td>
+            <td class="p-4 border-r border-gray-50 text-center">{{trainee.dob}}</td>
+            <td class="p-4 border-r border-gray-50 text-center">{{trainee.doj}}</td>
+            <td class="p-4 border-r border-gray-50 text-center font-bold">₹{{trainee.stipend | number}}</td>
+            <td class="p-4 border-r border-gray-50 text-center font-black text-blue-600">{{trainee.days}}</td>
+            <td class="p-4 text-center font-black text-green-700 bg-green-50 text-sm italic">₹{{trainee.totalAmount | number}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div *ngIf="activeTab === 'freelancing' || activeTab === 'all'" class="mb-10 bg-white rounded-xl shadow-2xl overflow-hidden border border-gray-200 animate-in slide-in-from-top-2">
+    <div class="p-3 bg-[#654E51] text-white text-[10px] font-black uppercase tracking-widest">Freelancing Table</div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-[11px] border-collapse">
+        <thead class="bg-[#654E51] text-white font-black uppercase">
+          <tr>
+            <th class="p-4 border-r border-white/10 text-center">Action</th>
+            <th class="p-4 border-r border-white/10 text-center">S.No</th>
+            <th class="p-4 border-r border-white/10">Name</th>
+            <th class="p-4 border-r border-white/10 text-center">DOB</th>
+            <th class="p-4 border-r border-white/10 text-center">DOJ</th>
+            <th class="p-4 border-r border-white/10 text-center">Monthly Charges</th>
+            <th class="p-4 border-r border-white/10 text-center">Days</th>
+            <th class="p-4 text-center bg-green-700">Total Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let free of freelancingData" class="bg-white border-b border-gray-100">
+            <td class="p-4 border-r border-gray-50 text-center">
+              <div class="flex justify-center gap-2">
+                <button (click)="onView(free)" class="text-blue-600 font-bold uppercase text-[9px] hover:underline">View</button>
+                <button (click)="onDownload(free)" class="text-green-600 font-bold uppercase text-[9px] hover:underline">Download</button>
+              </div>
+            </td>
+            <td class="p-4 border-r border-gray-50 text-center font-bold text-gray-400">{{free.sNo}}</td>
+            <td class="p-4 border-r border-gray-50 font-black text-[#654E51] uppercase">{{free.name}}</td>
+            <td class="p-4 border-r border-gray-50 text-center">{{free.dob}}</td>
+            <td class="p-4 border-r border-gray-50 text-center">{{free.doj}}</td>
+            <td class="p-4 border-r border-gray-50 text-center font-bold">₹{{free.monthlyCharges | number}}</td>
+            <td class="p-4 border-r border-gray-50 text-center font-black text-blue-600">{{free.days}}</td>
+            <td class="p-4 text-center font-black text-green-700 bg-green-50 text-sm italic">₹{{free.totalAmount | number}}</td>
+          </tr>
         </tbody>
       </table>
     </div>

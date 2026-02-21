@@ -6,33 +6,41 @@ import { FormsModule } from '@angular/forms';
   selector: 'app-leave-application',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './leave-application.component.html',
-  styleUrls: ['./leave-application.component.css']
+  templateUrl: './leave-application.component.html'
 })
 export class LeaveApplicationComponent {
-  // Excel (image_d36c87.png) ke mutabik data
+  // Excel (image_5c2d08.png) Header Fields
   empInfo = {
-    name: 'Mohit Rawat',
+    name: 'Harsh rajput',
+    designation: 'Executive',
+    department: 'Operations- Sea Import',
     code: 'CAV/061',
-    desig: 'Executive',
-    dept: 'Operations- Sea Import',
-    doj: '5/1/2023'
+    doj: '5/1/2023',
+    year: '2025-26'
   };
 
-  // Leave Balance Section
-  balances = { pl: 22, cl: 6, sl: 6 };
+  // Excel Leave Tables
+  carryOver = { year: '2024-25', pl: 10 };
+  currentYear = { year: '2025-26', pl: 12, cl: 6, sl: 6 };
+  leaveBalance = { pl: 22, cl: 6, sl: 6 };
 
-  newLeave = {
+  // Form Fields (Grid Columns in Excel)
+  leaveForm = {
     dateApplied: new Date().toISOString().split('T')[0],
     from: '',
     to: '',
-    days: 0,
-    type: '',
+    noOfDays: null,
+    natureOfLeave: '',
     reason: '',
-    initials: 'MR'
+    employeeInitials: 'MR',
+    leaveGranted: '', // Yes/No
+    leaveNotGrantedReason: '',
+    deptHeadSign: '',
+    hrSign: ''
   };
 
-  submitLeave() {
-    alert('Leave Application Form Submitted Successfully!');
+  submitForm() {
+    console.log("Final Leave Data:", this.leaveForm);
+    alert("Application for " + this.empInfo.name + " submitted successfully!");
   }
 }

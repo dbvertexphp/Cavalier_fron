@@ -61,6 +61,8 @@ import { ListOfUnitComponent } from './pages/list-of-unit/list-of-unit.component
 import { CompanyServiceComponent } from './pages/company-service/company-service.component';
 import { HodComponent } from './pages/hod/hod.component';
 import { TeamsComponent } from './pages/teams/teams.component';
+import { SalaryTableComponent } from './salary-table/salary-table.component';
+import { LeaveApplicationComponent } from './leave-application/leave-application.component';
 
 export const routes: Routes = [
 
@@ -160,6 +162,14 @@ export const routes: Routes = [
         path: 'permissions',
         component: PermissionComponent
 
+      },
+      { 
+       path: 'salary-table', 
+       component: SalaryTableComponent 
+      },
+      { 
+      path: 'leave-application', 
+      component: LeaveApplicationComponent 
       },
       {
         path: 'storage-utilization',

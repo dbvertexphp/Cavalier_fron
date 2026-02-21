@@ -23,15 +23,17 @@ export class UserFormComponent implements OnInit {
   isBranchForm = false;
   id: number | null = null;
   initialData: any;
+  isLoading = false; // Fixed: Added missing property from image_2a47c4
 
   departments: any[] = [];
   designations: any[] = [];
   roles: any[] = [];
   branches: any[] = [];
 
-  // 🔄 CHANGE HERE: Naye variables add karein dropdown data store karne ke liye
   hods: any[] = [];
   teams: any[] = [];
+  bloodGroups: string[] = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+  selectedBloodGroup: string = '';
 
   constructor(
     private fb: FormBuilder,
@@ -56,17 +58,14 @@ export class UserFormComponent implements OnInit {
       this.loadDropdowns();
       this.getBranches();
       this.loadPermissions();
-      
     }
-
 
     if (this.initialData) {
       setTimeout(() => {
         this.userForm.patchValue(this.initialData);
       });
     }
-   
-  }//change
+  }
   
   loadPermissions() {
     this.http
@@ -100,46 +99,48 @@ export class UserFormComponent implements OnInit {
   initForm() {
     if (this.isBranchForm) {
       this.userForm = this.fb.group({
-        companyName: ['Cavalier Logistics', Validators.required],
+        companyName: ['Cavalier Logistics'],
         companyAlias: ['CL'],
-        branchName: ['', Validators.required],
-        branchCode: ['', Validators.required],
-        email: ['', [Validators.required, Validators.email]],
-        city: ['', Validators.required],
-        state: ['', Validators.required],
-        postalCode: ['', Validators.required],
-        contactNo: ['', Validators.required],
+        branchName: [''],
+        branchCode: [''],
+        email: ['admin@cavalierlogistic.in'], // Default as per your preference
+        city: [''],
+        state: [''],
+        postalCode: [''],
+        contactNo: [''],
         gstCategory: ['Regular'],
         gstin: [''],
-        address: ['', Validators.required],
+        address: [''],
         isActive: [true]
       });
     } else {
       this.userForm = this.fb.group({
-        firstName: ['', Validators.required],
+        firstName: [''],
         middleName: [''],
-        lastName: ['', Validators.required],
-        dob: ['', Validators.required],
+        lastName: [''],
+        dob: [''],
         gender: ['Male'],
         maritalStatus: ['Single'],
-        // password: ['', Validators.required],
-        department: ['', Validators.required],
-        designation: ['', Validators.required],
+        bloodGroup: [''],
+        password: ['123456'],
+        department: [''],
+        designation: [''],
         functionalArea: [''],
-        userType: ['', Validators.required],
-        // branchId: [null, Validators.required],
-        // roleId: [null, Validators.required],
+        userType: [''],
+        branchId: [null],
+        roleId: [null],
         licenceType: [''],
-        dateOfJoining: ['', Validators.required],
-        ctc_Monthly: [0, Validators.required],
+        dateOfJoining: [''],
+        ctc_Monthly: [0],
         salaryAccountNo: [''],
-        email: ['', [Validators.required, Validators.email]],
-        mobile: ['', Validators.required],
+        email: [''],
+        mobile: [''],
         telephone: [''],
-        paN_No: ['', Validators.required],
-        aadhaarNo: ['', Validators.required],
+        paN_No: [''],
+        aadhaarNo: [''],
         ipAdress: [''],
         permissionIds: [[]],
+        
         presHouseNo: [''],
         presBuilding: [''],
         presFloor: [''],
@@ -154,8 +155,6 @@ export class UserFormComponent implements OnInit {
         presCountry: ['India'],
 
         educations: this.fb.array([]),
-        
-        // ✅ Yahan maine empty array [] ki jagah default ek group daal diya hai
         experiences: this.fb.array([this.createExperienceGroup()]),
 
         tenthName: ['10th'],
@@ -190,8 +189,16 @@ export class UserFormComponent implements OnInit {
         permState: [''],
         permPincode: [''],
         permCountry: ['India'],
+
+        accountHolderName: [''],
+        bankName: [''],
+        ifscCode: [''],
+        accountType: [''],
+        accountNumber: [''],
+
         profileSelect: [''],
-        profilePicture: [''],
+        profilePicture: [null],
+        profilePicturePath: [''],
         signature: [''],
         reportTo: [''],
         emergencyName: [''],
@@ -200,14 +207,18 @@ export class UserFormComponent implements OnInit {
         mfaRegistration: [false],
         fieldVisit: [false],
         alwaysBccmyself: [false],
-        invitationLetter: [false],
+        invitationLetter: [null],
+        invitationLetterPath: [''],
         simIssued: [false],
         status: [true],
-        //change
         hodId: [null], 
         teamId: [null],
         exitDate:[null],
-       
+        
+        address: [''],
+        city: [''],
+        state: [''],
+        postalCode: ['']
       });
     }
   }
@@ -235,7 +246,7 @@ export class UserFormComponent implements OnInit {
     this.educations.removeAt(index);
   }
 
-  // ✅ 2. DYNAMIC EXPERIENCE METHODS (Updated for default docs)
+  // ============= DYNAMIC EXPERIENCE METHODS =============
   
   createExperienceGroup(): FormGroup {
     return this.fb.group({
@@ -246,7 +257,6 @@ export class UserFormComponent implements OnInit {
       exitDate: [''],
       totalYears: [''],
       verification: [false],
-      // Isme default 4 docs aayenge jo aapne HTML mein maange the
       documents: this.fb.array([
         this.createDocumentGroup('Appointment Letter'),
         this.createDocumentGroup('Joining Letter'),
@@ -287,16 +297,15 @@ export class UserFormComponent implements OnInit {
     this.getExperienceDocuments(expIndex).removeAt(docIndex);
   }
 
-  // ==========================================================
+  // ============= FILE HANDLER (FIXED FOR ALL BUILD ERRORS) =============
 
-  // ✅ 3. FileSelect handler
   onFileSelect(event: any, field: string, index?: number, type: 'edu' | 'exp' = 'edu', docIndex?: number) {
     const file = event.target.files[0];
     if (file) {
       if (index !== undefined) {
         if (type === 'exp' && docIndex !== undefined) {
           const docGroup = this.getExperienceDocuments(index).at(docIndex);
-          docGroup.get(field)?.patchValue(file);
+          docGroup.get('fileSource')?.patchValue(file);
         } else {
           const array = type === 'edu' ? this.educations : this.experiences;
           const control = array.at(index).get(field);
@@ -304,7 +313,6 @@ export class UserFormComponent implements OnInit {
         }
       } else {
         this.userForm.patchValue({ [field]: file });
-        this.userForm.get(field)?.updateValueAndValidity();
       }
     }
   }
@@ -417,13 +425,9 @@ export class UserFormComponent implements OnInit {
     this.userForm.patchValue({ password: password });
   }
 
- onCancel() {
-  this.router.navigate([
-    this.isBranchForm ? '/dashboard/branch' : '/dashboard/hr/employee-master'
-  ]);
-}
-
-  bloodGroups: string[] = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
-  selectedBloodGroup: string = '';
-  
+  onCancel() {
+    this.router.navigate([
+      this.isBranchForm ? '/dashboard/branch' : '/dashboard/hr/employee-master'
+    ]);
+  }
 }

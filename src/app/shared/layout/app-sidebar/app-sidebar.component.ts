@@ -58,6 +58,28 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
   accessType: string | null = null;
 
 
+//   ngOnInit() {
+//     this.loadNavItemsFromApi();
+//     this.cdr.detectChanges();
+// //  this.accessType = localStorage.getItem('accessType');
+//     this.subscription.add(
+//       this.router.events.subscribe(event => {
+//         if (event instanceof NavigationEnd) {
+//           this.setActiveMenuFromRoute(this.router.url);
+//         }
+//       })
+//     );
+
+//     this.subscription.add(
+//       combineLatest([this.isExpanded$, this.isMobileOpen$, this.isHovered$]).subscribe(() => {
+//           this.cdr.detectChanges();
+//       })
+//     );
+
+//     this.setActiveMenuFromRoute(this.router.url);
+//       this.loadBranches();
+//   }
+
   ngOnInit() {
     this.loadNavItemsFromApi();
     this.cdr.detectChanges();
@@ -78,8 +100,8 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
 
     this.setActiveMenuFromRoute(this.router.url);
       this.loadBranches();
+      
   }
-
   ngOnDestroy() {
     this.subscription.unsubscribe();
   }
@@ -108,8 +130,52 @@ loadBranches() {
     this.showBranchPopup = !this.showBranchPopup;
   }
 
-  selectBranch(branch: any) {
+//   selectBranch(branch: any) {
 
+//   // ✅ Console me id + name
+//   console.log('Selected Branch ID:', branch.id);
+//   console.log('Selected Branch Name:', branch.name);
+
+//   const token = localStorage.getItem('cavalier_token') || '';
+
+//   const headers = new HttpHeaders({
+//     'Authorization': `Bearer ${token}`,
+//     'Content-Type': 'application/json'
+//   });
+
+//   this.http.post<any>(
+//     `${environment.apiUrl}/Auth/set-access-type`,
+//     { accessType: 'branch' },   // 🔥 Sirf "branch" bhejna hai
+//     { headers }
+//   ).subscribe({
+
+//     next: (res) => {
+
+//       // token update
+//       localStorage.setItem('cavalier_token', res.token);
+//       localStorage.setItem('accessType', 'branch');
+
+//       // optional: branch ko localStorage me save kar sakte ho
+//       localStorage.setItem('selectedBranchId', branch.id);
+//       localStorage.setItem('selectedBranchName', branch.name);
+
+//       this.showBranchPopup = false;
+
+//       // sidebar reload
+//       this.loadings = true;
+//       this.cdr.detectChanges();
+//       this.loadNavItemsFromApi();
+
+//     },
+
+//     error: (err) => {
+//       console.error('Branch switch failed', err);
+//       alert('Something went wrong!');
+//     }
+
+//   });
+// }
+selectBranch(branch: any) {
   // ✅ Console me id + name
   console.log('Selected Branch ID:', branch.id);
   console.log('Selected Branch Name:', branch.name);
@@ -128,10 +194,12 @@ loadBranches() {
   ).subscribe({
 
     next: (res) => {
-
       // token update
       localStorage.setItem('cavalier_token', res.token);
       localStorage.setItem('accessType', 'branch');
+
+      // 🔥 YE LINE MAINE ADD KI HAI: Isse Sidebar ka text turant badal jayega
+      this.accessType = 'branch'; 
 
       // optional: branch ko localStorage me save kar sakte ho
       localStorage.setItem('selectedBranchId', branch.id);
@@ -143,7 +211,9 @@ loadBranches() {
       this.loadings = true;
       this.cdr.detectChanges();
       this.loadNavItemsFromApi();
+      this.router.navigate(['/dashboard']); 
 
+  this.cdr.detectChanges();
     },
 
     error: (err) => {
@@ -153,7 +223,6 @@ loadBranches() {
 
   });
 }
-
 
   private loadNavItemsFromApi() {
     const token = localStorage.getItem('cavalier_token') || '';
@@ -178,33 +247,67 @@ loadBranches() {
     );
   }
 
-  goToAccessController() {
-    const accessType = 'system';
-    const token = localStorage.getItem('cavalier_token') || '';
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    });
+  // goToAccessController() {
+  //   const accessType = 'system';
+  //   const token = localStorage.getItem('cavalier_token') || '';
+  //   const headers = new HttpHeaders({
+  //     'Authorization': `Bearer ${token}`,
+  //     'Content-Type': 'application/json'
+  //   });
 
-    this.http.post<any>(
-      `${environment.apiUrl}/Auth/set-access-type`,
-      { accessType },
-      { headers }
-    ).subscribe({
-      next: (res) => {
-        localStorage.setItem('cavalier_token', res.token);
-        localStorage.setItem('accessType', res.accessType);
-        this.currentAccessType = res.accessType;
-        this.loadings = true;
-        this.cdr.detectChanges();
-        this.loadNavItemsFromApi();
-      },
-      error: (err) => {
-        console.error('Access switch failed', err);
-        alert('Something went wrong!');
-      }
-    });
-  }
+  //   this.http.post<any>(
+  //     `${environment.apiUrl}/Auth/set-access-type`,
+  //     { accessType },
+  //     { headers }
+  //   ).subscribe({
+  //     next: (res) => {
+  //       localStorage.setItem('cavalier_token', res.token);
+  //       localStorage.setItem('accessType', res.accessType);
+  //       this.currentAccessType = res.accessType;
+  //       this.loadings = true;
+  //       this.cdr.detectChanges();
+  //       this.loadNavItemsFromApi();
+  //     },
+  //     error: (err) => {
+  //       console.error('Access switch failed', err);
+  //       alert('Something went wrong!');
+  //     }
+  //   });
+  // }
+  goToAccessController() {
+  const accessType = 'system';
+  const token = localStorage.getItem('cavalier_token') || '';
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  });
+
+  this.http.post<any>(
+    `${environment.apiUrl}/Auth/set-access-type`,
+    { accessType },
+    { headers }
+  ).subscribe({
+    next: (res) => {
+      localStorage.setItem('cavalier_token', res.token);
+      localStorage.setItem('accessType', res.accessType);
+      
+      // 🔥 YE LINE MAINE ADD KI HAI: Taaki UI ka text 'SYSTEM ADMINISTRATOR' ho jaye
+      this.accessType = res.accessType; 
+
+      this.currentAccessType = res.accessType;
+      this.loadings = true;
+      this.cdr.detectChanges();
+      this.loadNavItemsFromApi();
+      this.router.navigate(['dashboard/branch']); 
+
+  this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error('Access switch failed', err);
+      alert('Something went wrong!');
+    }
+  });
+}
 
   goToDirectory(){
     alert('fdfdf');
@@ -395,4 +498,5 @@ loadBranches() {
       })
     );
   }   
+  
 }

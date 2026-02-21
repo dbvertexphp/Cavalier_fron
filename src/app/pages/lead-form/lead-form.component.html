@@ -19,10 +19,24 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-3">
         
         <div class="space-y-2">
-          <div class="flex items-center">
-            <label class="w-24 font-bold text-gray-600">Date</label>
-            <input type="text" value="01.02.26 - 28.02.26" class="flex-1 border border-gray-300 p-1 outline-none">
-          </div>
+          <div class="space-y-2">
+  <div class="flex items-center">
+    <label class="w-24 font-bold text-gray-600">Date</label>
+    
+    <div 
+      class="flex-1 flex border border-gray-300 items-center pr-2 cursor-pointer"
+      (click)="datePicker.showPicker()">
+      
+      <input 
+        #datePicker
+        type="date" 
+        class="w-full p-1 outline-none text-[12px] cursor-pointer"
+        (focus)="datePicker.showPicker()">
+        
+      <span>📅</span>
+    </div>
+  </div>
+</div>
           <div class="flex items-center">
             <label class="w-24 font-bold text-gray-600 text-red-700">Organization</label>
             <div class="flex-1 flex border border-red-200">
@@ -218,14 +232,14 @@
     </select>
   </div>
  <div class="flex flex-col gap-3">
-    <label class="font-bold text-gray-600">Report To.</label>
-    <select formControlName="team"
+    <label class="font-bold text-gray-600">Location</label>
+    <select formControlName="location"
       class="border border-gray-300 p-2 w-full">
       <option>Select</option>
     </select>
   </div>
    <div class="flex flex-col gap-3">
-    <label class="font-bold text-gray-600">Report By.</label>
+    <label class="font-bold text-gray-600">Area</label>
     <select formControlName="team"
       class="border border-gray-300 p-2 w-full">
       <option>Select</option>

@@ -580,10 +580,11 @@ console.log('================ END DEBUG =================');
 
   } else {
        console.log('================ API CALL PAYLOAD =================');
-    this.userService.registerUser(formData).subscribe({
+        console.log("FORM VALUE:", this.userForm.value);
+    this.userService.registerUser(this.userForm.value).subscribe({
       next: () => {
         alert('User Saved Successfully');
-        this.router.navigate(['/dashboard/users']);
+        this.router.navigate(['/dashboard/hr/employee-master']);
       },
       error: err => {
         console.error(err);

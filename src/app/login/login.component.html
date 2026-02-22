@@ -140,7 +140,7 @@
             <select formControlName="selectedCity"
               class="w-full border border-gray-200 rounded-xl px-5 h-13 outline-none focus:border-blue-500 transition-all text-sm">
               <option value="" disabled>-- Select Branch --</option>
-              <option *ngFor="let branch of branches" [value]="branch.branchName">{{ branch.branchName | uppercase }}</option>
+              <option *ngFor="let branch of branches" [value]="branch.id">{{ branch.branchName | uppercase }}</option>
             </select>
           </div>
 

@@ -63,6 +63,7 @@ import { HodComponent } from './pages/hod/hod.component';
 import { TeamsComponent } from './pages/teams/teams.component';
 import { SalaryTableComponent } from './salary-table/salary-table.component';
 import { LeaveApplicationComponent } from './leave-application/leave-application.component';
+import { EmployeeComponent } from './pages/employee/employee.component';
 
 export const routes: Routes = [
 
@@ -125,7 +126,8 @@ export const routes: Routes = [
         component: PortOfDischargeComponent   }, 
          { path: 'list-of-units',                          //list of unit
         component: ListOfUnitComponent   }, 
-       
+            { path: 'Employee',                          //list of unit
+        component: EmployeeComponent   }, 
     
       {
         path: 'port-of-loading',

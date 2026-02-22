@@ -292,26 +292,44 @@ export class LoginComponent implements OnInit {
         localStorage.setItem('cavalier_token', res.token);
 
         // ✅ MASTER ROLE LOGIC
-        if (user.role?.name === 'Master') {
+        const userRole = user.role?.name;
 
-          // 🔥 BOTH ROLES
-          this.roles = [
-            'System Administrator',
-            'Branch Administrator'
-          ];
+if (userRole === 'Master') {
 
-          // 🔥 BRANCHES FROM API
-          this.branches = user.branches || [];
-          console.log(this.branches)
+  // 🔥 BOTH ROLES (Master ke liye)
+  this.roles = [
+    'System Administrator',
+    'Branch Administrator'
+  ];
 
-          this.selectionForm.patchValue({
-            selectedRole: '',
-            selectedCity: ''
-          });
+  this.branches = user.branches || [];
+  console.log(this.branches);
 
-          this.isBranchDisabled = false; // Initial state jab Select Role ho
-          this.selectionForm.get('selectedCity')?.enable();
-        }
+  this.selectionForm.patchValue({
+    selectedRole: '',
+    selectedCity: ''
+  });
+
+  this.isBranchDisabled = false;
+  this.selectionForm.get('selectedCity')?.enable();
+
+} else {
+
+  // 🔥 NON-MASTER ke liye sirf Branch Administrator
+  this.roles = ['Branch Administrator'];
+
+  this.branches = user.branches || [];
+  console.log(this.branches);
+
+  // Default role auto select
+  this.selectionForm.patchValue({
+    selectedRole: 'Branch Administrator',
+    selectedCity: ''
+  });
+
+  this.isBranchDisabled = false;
+  this.selectionForm.get('selectedCity')?.enable();
+}
 
         // SAVE
         localStorage.setItem('userRole', user.role.name);
@@ -363,11 +381,12 @@ export class LoginComponent implements OnInit {
     if (role === 'Branch Administrator') {
       accessType = 'branch';
     }
+const branchId = this.selectionForm.value.selectedCity;
 
     // 🔥 CALL BACKEND TO UPDATE CLAIM
     this.http.post<any>(
       `${environment.apiUrl}/Auth/set-access-type`,
-      { accessType },
+      { accessType, branchId },
       {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('cavalier_token')}`

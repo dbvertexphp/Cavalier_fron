@@ -14,9 +14,17 @@ export class UserService {
   constructor(private http: HttpClient) { }
 
   // 1. ✅ Get All Users (Table ke liye)
-  getUsers(userType: string = 'all'): Observable<User[]> {
+getUsers(userType: string = 'all'): Observable<User[]> {
+
+  const token = localStorage.getItem('cavalier_token');
+
+  const headers = {
+    Authorization: `Bearer ${token}`
+  };
+
   return this.http.get<User[]>(
-    `${this.apiUrl}/list?user_type=${userType}`
+    `${this.apiUrl}/list?user_type=${userType}`,
+    { headers }
   );
 }
 
@@ -82,10 +90,35 @@ getTeams(): Observable<any[]> {
   }
 
   // 9. ✅ Register New User (With File Upload Support)
-  registerUser(userData: any): Observable<any> {
-    const formData = this.convertToFormData(userData);
-    return this.http.post(`${this.apiUrl}/register`, formData);
+registerUser(userData: any) {
+
+  const formData = new FormData();
+
+  for (const key in userData) {
+    const value = userData[key];
+
+    if (value === null || value === undefined) continue;
+
+    if (Array.isArray(value)) {
+      formData.append(key, JSON.stringify(value));
+    }
+    else if (value instanceof File) {
+      formData.append(key, value);
+    }
+    else {
+      formData.append(key, value);
+    }
   }
+
+  // 🔥 TOKEN localStorage se lo
+  const token = localStorage.getItem('cavalier_token');
+
+  const headers = {
+    Authorization: `Bearer ${token}`
+  };
+
+  return this.http.post(`${this.apiUrl}/register`, formData, { headers });
+}
 
   // 10. ✅ Update Existing User
   updateUser(userData: any): Observable<any> {

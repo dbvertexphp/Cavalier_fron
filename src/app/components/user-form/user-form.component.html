@@ -84,7 +84,7 @@
         </div>
         <div>
           <label class="font-semibold text-gray-600 block uppercase">Blood Group</label>
-          <select class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f] bg-white">
+          <select formControlName="bloodGroup" class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f] bg-white">
             <option value="" disabled selected>Select Group</option>
             <option value="A+">A+</option>
             <option value="A-">A-</option>
@@ -160,7 +160,7 @@
           </div>
           <div>
             <label class="block font-medium">CTC (Monthly)</label>
-            <input type="number" name="ctc_Monthly" class="w-full border rounded px-3 py-2" />
+            <input type="number" formControlName="ctc_Monthly" class="w-full border rounded px-3 py-2" />
           </div>
           <!-- <div>
             <label class="block font-medium">Salary Account No.</label>
@@ -224,13 +224,13 @@
   <!-- Row 1 -->
   <div class="space-y-1">
     <label class="font-semibold text-gray-600 block uppercase text-sm">Account Holder Name</label>
-    <input type="text" name="accountHolderName" id="accountHolderName" placeholder="Enter Account Holder Name"
+    <input type="text" formControlName="accountHolderName" placeholder="Enter Account Holder Name"
       class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f]">
   </div>
 
   <div class="space-y-1">
     <label class="font-semibold text-gray-600 block uppercase text-sm">Bank Name</label>
-    <input type="text" name="bankName" id="bankName" list="bankSuggestions" placeholder="Enter Bank Name"
+    <input type="text" formControlName="bankName" list="bankSuggestions" placeholder="Enter Bank Name"
       class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f]">
     <datalist id="bankSuggestions">
       <option value="State Bank of India">
@@ -242,20 +242,20 @@
 
   <div class="space-y-1">
     <label class="font-semibold text-gray-600 block uppercase text-sm">Branch Name</label>
-    <input type="text" name="branchName" id="branchName" placeholder="Enter Branch Name"
+    <input type="text" formControlName="bankBranchName" placeholder="Enter Branch Name"
       class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f]">
   </div>
 
   <!-- Row 2 -->
   <div class="space-y-1">
     <label class="font-semibold text-gray-600 block uppercase text-sm">IFSC Code</label>
-    <input type="text" name="ifscCode" id="ifscCode" placeholder="SBIN0001234"
+    <input type="text" formControlName="ifscCode" placeholder="SBIN0001234"
       class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f] uppercase">
   </div>
 
   <div class="space-y-1">
     <label class="font-semibold text-gray-600 block uppercase text-sm">Account Type</label>
-    <select name="accountType" id="accountType"
+    <select formControlName="accountType"
       class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f]">
       <option value="">Select Account Type</option>
       <option value="salary">Salary</option>
@@ -266,8 +266,7 @@
   <label class="font-semibold text-gray-600 block uppercase text-[12px]">Account Number</label>
   <input 
     type="text" 
-    name="accountNumber" 
-    id="accountNumber" 
+  formControlName="accountNumber"
     value="ACC-2026-001" 
     placeholder="Enter Account Number"
     class="w-full border border-gray-300 p-2 rounded-sm outline-none focus:border-[#4a3f3f] text-[13px] shadow-sm bg-white"
@@ -300,21 +299,21 @@
         <h3 class="font-bold text-green-600 underline">Parmanent Address</h3>
         <div class="bg-gray-50 p-4 rounded border">
           <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <div><label>House/Flat No</label> <input formControlName="presHouseNo" class="w-full border p-1 rounded">
+            <div><label>House/Flat No</label> <input formControlName="permHouseNo" class="w-full border p-1 rounded">
             </div>
-            <div><label>Building/Society Name</label> <input formControlName="presBuilding"
+            <div><label>Building/Society Name</label> <input formControlName="permBuilding"
                 class="w-full border p-1 rounded"></div>
-            <div><label>Floor No</label> <input formControlName="presFloor" class="w-full border p-1 rounded"></div>
-            <div><label>Block/Wing</label> <input formControlName="presBlock" class="w-full border p-1 rounded"></div>
-            <div><label>Street/Lane</label> <input formControlName="presStreet" class="w-full border p-1 rounded"></div>
-            <div><label>Landmark</label> <input formControlName="presLandmark"
+            <div><label>Floor No</label> <input formControlName="permFloor" class="w-full border p-1 rounded"></div>
+            <div><label>Block/Wing</label> <input formControlName="permBlock" class="w-full border p-1 rounded"></div>
+            <div><label>Street/Lane</label> <input formControlName="permStreet" class="w-full border p-1 rounded"></div>
+            <div><label>Landmark</label> <input formControlName="permLandmark"
                 class="w-full border p-1 rounded text-blue-600 font-medium"></div>
-            <div><label>Area/Sector</label> <input formControlName="presArea" class="w-full border p-1 rounded"></div>
-            <div><label>City</label> <input formControlName="presCity" class="w-full border p-1 rounded"></div>
-            <div><label>District</label> <input formControlName="presDistrict" class="w-full border p-1 rounded"></div>
-            <div><label>State</label> <input formControlName="presState" class="w-full border p-1 rounded"></div>
-            <div><label>Pincode</label> <input formControlName="presPincode" class="w-full border p-1 rounded"></div>
-            <div><label>Country</label> <input formControlName="presCountry" class="w-full border p-1 rounded"></div>
+            <div><label>Area/Sector</label> <input formControlName="permArea" class="w-full border p-1 rounded"></div>
+            <div><label>City</label> <input formControlName="permCity" class="w-full border p-1 rounded"></div>
+            <div><label>District</label> <input formControlName="permDistrict" class="w-full border p-1 rounded"></div>
+            <div><label>State</label> <input formControlName="permState" class="w-full border p-1 rounded"></div>
+            <div><label>Pincode</label> <input formControlName="permPincode" class="w-full border p-1 rounded"></div>
+            <div><label>Country</label> <input formControlName="permCountry" class="w-full border p-1 rounded"></div>
           </div>
         </div>
       </div>

@@ -1,46 +1,51 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+export interface LeaveRequest {
+  employeeName: string;
+  type: string;
+  fromDate: string;
+  toDate: string;
+  reason: string;
+  initials: ''
+  status: 'Pending' | 'Approved' | 'Rejected';
+  hrComment?: string;
+}
 @Component({
   selector: 'app-leave-application',
   standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './leave-application.component.html'
+  imports: [CommonModule, FormsModule,ReactiveFormsModule],
+  templateUrl: './leave-application.component.html',
+  styles: []
 })
+
 export class LeaveApplicationComponent {
-  // Excel (image_5c2d08.png) Header Fields
-  empInfo = {
-    name: 'Harsh rajput',
-    designation: 'Executive',
-    department: 'Operations- Sea Import',
-    code: 'CAV/061',
-    doj: '5/1/2023',
-    year: '2025-26'
-  };
+// Test karne ke liye isko true ya false karein
+  isHR: boolean = true; // true for HR view, false for Employee view BHAI SAMAJO TRU HAI TO HR VIEW HOGA FALSE HAI TO EMPLOYEE VIEW HOGA SAMAJ GAY HARSH BHAI 
 
-  // Excel Leave Tables
-  carryOver = { year: '2024-25', pl: 10 };
-  currentYear = { year: '2025-26', pl: 12, cl: 6, sl: 6 };
-  leaveBalance = { pl: 22, cl: 6, sl: 6 };
-
-  // Form Fields (Grid Columns in Excel)
+  // Static Data (Jo backend se aayega)
   leaveForm = {
-    dateApplied: new Date().toISOString().split('T')[0],
-    from: '',
-    to: '',
-    noOfDays: null,
-    natureOfLeave: '',
+    employeeName: 'Mohit Rawat',
+    designation: 'Executive',
+    dept: 'Operations - Sea Import',
+    empCode: 'CAV/061',
+    joiningDate: '05/01/2023',
+    leaveType: 'P/L (Privilege Leave)',
+    fromDate: '',
+    toDate: '',
+    totalDays: 0,
     reason: '',
-    employeeInitials: 'MR',
-    leaveGranted: '', // Yes/No
-    leaveNotGrantedReason: '',
-    deptHeadSign: '',
-    hrSign: ''
+    initials: '',
+    granted: null, // 'yes' or 'no'
+    rejectionReason: ''
   };
 
-  submitForm() {
-    console.log("Final Leave Data:", this.leaveForm);
-    alert("Application for " + this.empInfo.name + " submitted successfully!");
+  onSubmit() {
+    console.log('Final Data:', this.leaveForm);
+    alert(this.isHR ? 'Status Updated by HR' : 'Request Submitted by Employee');
+  }
+  // Print function
+  printForm() {
+    window.print();
   }
 }

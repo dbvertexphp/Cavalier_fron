@@ -50,14 +50,14 @@ password?: string;
   monthlySalary?: number;
 
   // ✅ Bank Details
-bankDetails?: {
+
     accountHolderName?: string;
     bankName?: string;
     branchNameBank?: string;
     ifscCode?: string;
     accountType?: string;
     accountNumber?: string;
-  };
+
   // ✅ Address
   correspondenceAddress?: string;
   permanentAddress?: string;
@@ -368,6 +368,8 @@ getAllUsers(): void {
 
       // ✅ API data save ho raha hai
       this.employees = res;
+      console.log("department data:", this.employees.map(e => e.department));
+      console.log("team data:", this.employees.map(e => e.team));
 
       // ✅ Table ke liye copy
       this.filteredEmployees = [...this.employees];

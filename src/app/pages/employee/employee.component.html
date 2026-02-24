@@ -390,13 +390,13 @@
                           <div>
                             <label class="text-gray-500 text-xs">HOD</label>
                             <p class="font-semibold">
-                              {{ selectedEmployee?.hod || "---" }}
+                                {{ emp?.hod?.name || "N/A" }}
                             </p>
                           </div>
                           <div>
                             <label class="text-gray-500 text-xs">Team</label>
                             <p class="font-semibold">
-                              {{ selectedEmployee?.team || "---" }}
+                               {{ emp?.team?.teamName || "N/A" }}
                             </p>
                           </div>
 
@@ -517,8 +517,7 @@
                               Holder Name</label>
                             <p class="font-semibold text-[13px] text-gray-800">
                               {{
-                              selectedEmployee?.bankDetails
-                              ?.accountHolderName || "---"
+                              selectedEmployee?.accountHolderName || "---"
                               }}
                             </p>
                           </div>
@@ -528,7 +527,7 @@
                               Name</label>
                             <p class="font-semibold text-[13px] text-gray-800">
                               {{
-                              selectedEmployee?.bankDetails?.bankName || "---"
+                              selectedEmployee?.bankName || "---"
                               }}
                             </p>
                           </div>
@@ -538,7 +537,7 @@
                               Name</label>
                             <p class="font-semibold text-[13px] text-gray-800">
                               {{
-                              selectedEmployee?.bankDetails?.branchNameBank ||
+                              selectedEmployee?.branchNameBank ||
                               "---"
                               }}
                             </p>
@@ -549,7 +548,7 @@
                               Code</label>
                             <p class="font-mono font-semibold text-[13px] text-gray-800 uppercase">
                               {{
-                              selectedEmployee?.bankDetails?.ifscCode || "---"
+                              selectedEmployee?.ifscCode || "---"
                               }}
                             </p>
                           </div>
@@ -559,7 +558,7 @@
                               Type</label>
                             <p class="font-semibold text-[13px] text-gray-800">
                               {{
-                              selectedEmployee?.bankDetails?.accountType ||
+                              selectedEmployee?.accountType ||
                               "---"
                               }}
                             </p>
@@ -570,7 +569,7 @@
                               Number</label>
                             <p class="font-mono font-semibold text-[13px] text-gray-800">
                               {{
-                              selectedEmployee?.bankDetails?.accountNumber ||
+                              selectedEmployee?.accountNumber ||
                               "---"
                               }}
                             </p>

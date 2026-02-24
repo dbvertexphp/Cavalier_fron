@@ -56,7 +56,7 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
     this.isHovered$ = this.sidebarService.isHovered$;
   }
   accessType: string | null = null;
-
+branchId:number | null = null;
 
 //   ngOnInit() {
 //     this.loadNavItemsFromApi();
@@ -178,6 +178,7 @@ loadBranches() {
 selectBranch(branch: any) {
   // ✅ Console me id + name
   console.log('Selected Branch ID:', branch.id);
+  this.branchId = branch.id; // Store selected branch ID in component variable
   console.log('Selected Branch Name:', branch.name);
 
   const token = localStorage.getItem('cavalier_token') || '';
@@ -189,7 +190,7 @@ selectBranch(branch: any) {
 
   this.http.post<any>(
     `${environment.apiUrl}/Auth/set-access-type`,
-    { accessType: 'branch' },   // 🔥 Sirf "branch" bhejna hai
+    { accessType: 'branch',branchId: this.branchId },   // 🔥 Sirf "branch" bhejna hai
     { headers }
   ).subscribe({
 

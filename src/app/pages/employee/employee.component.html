@@ -1,69 +1,42 @@
 <div class="p-2 md:p-3 bg-gray-100 min-h-screen font-sans text-[13px]">
-  <div
-    *ngIf="!isFormOpen"
-    class="max-w-full mx-auto bg-white border border-gray-300 shadow-md mb-4"
-  >
+  <div *ngIf="!isFormOpen" class="max-w-full mx-auto bg-white border border-gray-300 shadow-md mb-4">
     <div class="p-4 bg-white border-b border-gray-200">
       <div class="flex flex-col md:flex-row justify-between items-end gap-4">
         <div class="flex items-end gap-3 w-full md:w-auto flex-1 max-w-2xl">
           <div class="space-y-1 flex-1 min-w-[200px]">
-            <label class="font-bold text-gray-600 text-[11px] uppercase"
-              >Quick Search</label
-            >
-            <div
-              class="flex border border-gray-300 shadow-sm focus-within:border-blue-500 bg-white"
-            >
-              <input
-                type="text"
-                [(ngModel)]="searchText"
-                (input)="search()"
-                placeholder="Name, Code, or Email..."
-                class="w-full p-2 outline-none text-[12px]"
-              />
+            <label class="font-bold text-gray-600 text-[11px] uppercase">Quick Search</label>
+            <div class="flex border border-gray-300 shadow-sm focus-within:border-blue-500 bg-white">
+              <input type="text" [(ngModel)]="searchText" (input)="search()" placeholder="Name, Code, or Email..."
+                class="w-full p-2 outline-none text-[12px]" />
               <span class="p-2 bg-gray-50 border-l border-gray-200">🔍</span>
             </div>
           </div>
 
           <div class="flex gap-2 shrink-0">
-            <button
-              (click)="search()"
-              class="bg-[#4a3f3f] text-white px-5 py-2 font-bold shadow-md uppercase text-[11px] hover:bg-black transition-all h-[35px]"
-            >
+            <button (click)="search()"
+              class="bg-[#4a3f3f] text-white px-5 py-2 font-bold shadow-md uppercase text-[11px] hover:bg-black transition-all h-[35px]">
               Search
             </button>
-            <button
-              (click)="searchText = ''; selectedBranch = ''; search()"
-              class="text-blue-600 underline text-[11px] font-bold hover:text-blue-800 self-center"
-            >
+            <button (click)="searchText = ''; selectedBranch = ''; search()"
+              class="text-blue-600 underline text-[11px] font-bold hover:text-blue-800 self-center">
               Clear
             </button>
           </div>
         </div>
 
         <div class="space-y-1 w-full md:w-64 shrink-0">
-          <label
-            class="font-bold text-gray-600 text-[11px] uppercase text-red-700"
-            >Branch</label
-          >
+          <label class="font-bold text-gray-600 text-[11px] uppercase text-red-700">Branch</label>
           <div class="relative">
-            <select
-              [(ngModel)]="selectedBranch"
-              (change)="search()"
-              class="w-full border border-gray-300 p-2 outline-none text-[12px] bg-white shadow-sm focus:border-blue-500 h-[35px] appearance-none cursor-pointer"
-            >
+            <select [(ngModel)]="selectedBranch" (change)="search()"
+              class="w-full border border-gray-300 p-2 outline-none text-[12px] bg-white shadow-sm focus:border-blue-500 h-[35px] appearance-none cursor-pointer">
               <option value="">(All Branches)</option>
 
-              <option
-                *ngFor="let branch of branchesList"
-                [value]="branch.branchName"
-              >
+              <option *ngFor="let branch of branchesList" [value]="branch.branchName">
                 {{ branch.branchName }}
               </option>
             </select>
 
-            <div
-              class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-400"
-            >
+            <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-400">
               <span class="text-[9px]">▼</span>
             </div>
           </div>
@@ -74,19 +47,15 @@
       <div class="font-bold uppercase text-[12px] tracking-widest px-2">
         Employee Records
       </div>
-      <button
-        (click)="toggleForm()"
-        class="bg-green-600 hover:bg-green-700 text-white font-bold text-[12px] px-5 py-1.5 uppercase shadow-sm"
-      >
+      <button (click)="toggleForm()"
+        class="bg-green-600 hover:bg-green-700 text-white font-bold text-[12px] px-5 py-1.5 uppercase shadow-sm">
         + Add New Employee
       </button>
     </div>
 
     <div class="overflow-x-auto">
       <table class="w-full border-collapse text-[12px]">
-        <thead
-          class="bg-gray-100 text-gray-600 uppercase border-b border-gray-300 font-bold whitespace-nowrap"
-        >
+        <thead class="bg-gray-100 text-gray-600 uppercase border-b border-gray-300 font-bold whitespace-nowrap">
           <tr class="divide-x divide-gray-300">
             <th class="p-3 text-left">EMPCode</th>
             <th class="p-3 text-left">Name</th>
@@ -107,18 +76,19 @@
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200 whitespace-nowrap">
-          <tr
-            *ngFor="let emp of filteredEmployees"
-            class="divide-x divide-gray-200 hover:bg-gray-50 transition-colors"
-          >
+          <tr *ngFor="let emp of filteredEmployees" class="divide-x divide-gray-200 hover:bg-gray-50 transition-colors">
             <td class="p-3 font-semibold text-blue-700">{{ emp.empCode }}</td>
             <td class="p-3 uppercase font-medium">
               {{ emp.firstName }} {{ emp.lastName }}
             </td>
             <td class="p-3 text-gray-700 font-bold">{{ emp.branch }}</td>
 
-            <td class="p-3 text-gray-700 font-bold">   {{ emp?.hod?.name || 'N/A' }}</td>
-            <td class="p-3 text-gray-600">   {{ emp?.team?.teamName || 'N/A' }}</td>
+            <td class="p-3 text-gray-700 font-bold">
+              {{ emp?.hod?.name || "N/A" }}
+            </td>
+            <td class="p-3 text-gray-600">
+              {{ emp?.team?.teamName || "N/A" }}
+            </td>
             <td class="p-3">{{ emp.department }}</td>
             <td class="p-3 text-gray-500">{{ emp.designation }}</td>
             <td class="p-3">{{ emp.dob || "N/A" }}</td>
@@ -126,102 +96,63 @@
             <td class="p-3">{{ emp.mobile || "N/A" }}</td>
             <td class="p-3 text-gray-600 lowercase">{{ emp.email }}</td>
             <td class="p-3">{{ emp.functionalArea || "N/A" }}</td>
-<td class="p-3">
-  <div class="flex items-center justify-center gap-3">
-    <label class="relative inline-flex items-center cursor-pointer">
-      
-      <input 
-        type="checkbox" 
-        [(ngModel)]="emp.isActive"
-        (change)="toggleRemoteStatus(emp)"
-        class="sr-only peer"
-      >
+            <td class="p-3">
+              <div class="flex items-center justify-center gap-3">
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" [(ngModel)]="emp.isActive" (change)="toggleRemoteStatus(emp)"
+                    class="sr-only peer" />
 
-      <div class="relative w-11 h-6 bg-gray-200 rounded-full 
-                  peer-focus:outline-none peer 
-                  peer-checked:bg-green-600 
-                  after:content-[''] after:absolute 
-                  after:top-[2px] after:left-[2px] 
-                  after:bg-white after:border 
-                  after:rounded-full 
-                  after:h-5 after:w-5 
-                  after:transition-all 
-                  peer-checked:after:translate-x-[58%]">
-      </div>
-      
-      <span class="ml-3 text-xs font-medium"
-            [ngClass]="emp.isActive ? 'text-green-700' : 'text-red-700'">
-        {{ emp.isActive ? 'Active' : 'Inactive' }}
-      </span>
+                  <div
+                    class="relative w-11 h-6 bg-gray-200 rounded-full peer-focus:outline-none peer peer-checked:bg-green-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-[58%]">
+                  </div>
 
-    </label>
-  </div>
-</td>
-            <td
-              class="p-3 sticky right-0 bg-white shadow-[-5px_0px_10px_rgba(0,0,0,0.05)]"
-            >
+                  <span class="ml-3 text-xs font-medium" [ngClass]="emp.isActive ? 'text-green-700' : 'text-red-700'">
+                    {{ emp.isActive ? "Active" : "Inactive" }}
+                  </span>
+                </label>
+              </div>
+            </td>
+            <td class="p-3 sticky right-0 bg-white shadow-[-5px_0px_10px_rgba(0,0,0,0.05)]">
               <div class="flex justify-center gap-1">
-                <button
-                  (click)="selectedEmployee = emp; isViewModalOpen = true"
-                  class="bg-blue-600 text-white px-2 py-1 rounded text-[10px] uppercase font-bold hover:bg-blue-800 transition-all"
-                >
+                <button (click)="selectedEmployee = emp; isViewModalOpen = true"
+                  class="bg-blue-600 text-white px-2 py-1 rounded text-[10px] uppercase font-bold hover:bg-blue-800 transition-all">
                   View
                 </button>
 
-                <button
-                  (click)="editEmployee(emp)"
-                  class="text-blue-600 border border-blue-200 px-2 py-1 rounded hover:bg-blue-50 transition-all font-bold text-[10px]"
-                >
+                <button (click)="editEmployee(emp)"
+                  class="text-blue-600 border border-blue-200 px-2 py-1 rounded hover:bg-blue-50 transition-all font-bold text-[10px]">
                   EDIT
                 </button>
 
-                <button
-                  (click)="deleteEmployee(emp.id)"
-                  class="text-red-600 border border-red-200 px-2 py-1 rounded hover:bg-red-50 transition-all font-bold text-[10px]"
-                >
+                <button (click)="deleteEmployee(emp.id)"
+                  class="text-red-600 border border-red-200 px-2 py-1 rounded hover:bg-red-50 transition-all font-bold text-[10px]">
                   DEL
                 </button>
 
-                <button
-                 type="button"
-                  (click)="RoleModal(emp)"
-                  class="bg-gray-700 text-white px-2 py-1 rounded text-[10px] uppercase font-bold hover:bg-black"
-                >
+                <button type="button" (click)="RoleModal(emp)"
+                  class="bg-gray-700 text-white px-2 py-1 rounded text-[10px] uppercase font-bold hover:bg-black">
                   Role
                 </button>
               </div>
 
-             <!-- ROLE MODAL OUTSIDE TABLE -->
-<div
-  *ngIf="isRoleModalOpen"
-  class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
->
-   <div
-                  class="bg-white w-full max-w-lg shadow-2xl border border-gray-300 overflow-hidden text-left rounded-lg"
-                >
-                  <div
-                    class="bg-[#4a3f3f] p-3 flex justify-between items-center text-white"
-                  >
-                    <h3
-                      class="font-bold uppercase text-[12px] tracking-widest px-2"
-                    >
+              <!-- ROLE MODAL OUTSIDE TABLE -->
+              <div *ngIf="isRoleModalOpen"
+                class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                <div
+                  class="bg-white w-full max-w-lg shadow-2xl border border-gray-300 overflow-hidden text-left rounded-lg">
+                  <div class="bg-[#4a3f3f] p-3 flex justify-between items-center text-white">
+                    <h3 class="font-bold uppercase text-[12px] tracking-widest px-2">
                       Access & Security Settings
                     </h3>
-                    <button
-                      (click)="closeRoleModal()"
-                      class="text-white hover:text-red-400 text-xl font-bold"
-                    >
+                    <button (click)="closeRoleModal()" class="text-white hover:text-red-400 text-xl font-bold">
                       &times;
                     </button>
                   </div>
 
                   <div class="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
-                    <div
-                      class="flex items-center gap-4 p-3 bg-gray-50 border border-gray-200"
-                    >
+                    <div class="flex items-center gap-4 p-3 bg-gray-50 border border-gray-200">
                       <div
-                        class="h-10 w-10 bg-blue-100 text-blue-700 flex items-center justify-center rounded-full font-bold"
-                      >
+                        class="h-10 w-10 bg-blue-100 text-blue-700 flex items-center justify-center rounded-full font-bold">
                         {{ selectedEmployee?.firstName?.charAt(0) }}
                       </div>
                       <div>
@@ -229,9 +160,7 @@
                           {{ selectedEmployee?.firstName }}
                           {{ selectedEmployee?.lastName }}
                         </p>
-                        <p
-                          class="text-[11px] text-gray-500 uppercase tracking-tighter"
-                        >
+                        <p class="text-[11px] text-gray-500 uppercase tracking-tighter">
                           {{ selectedEmployee?.empCode }} |
                           {{ selectedEmployee?.department }}
                         </p>
@@ -240,80 +169,38 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div class="space-y-1">
-                        <label
-                          class="block font-bold text-gray-600 text-[11px] uppercase"
-                          >Email</label
-                        >
-                        <input
-                          type="email"
-                          [(ngModel)]="selectedEmployeeEmail"
-                          class="w-full border border-gray-300 p-2 outline-none text-[13px] bg-gray-100"
-                          readonly
-                        />
+                        <label class="block font-bold text-gray-600 text-[11px] uppercase">Email</label>
+                        <input type="email" [(ngModel)]="selectedEmployeeEmail"
+                          class="w-full border border-gray-300 p-2 outline-none text-[13px] bg-gray-100" readonly />
                       </div>
                       <div class="space-y-1">
-                        <label
-                          class="block font-bold text-gray-600 text-[11px] uppercase"
-                          >Password</label
-                        >
+                        <label class="block font-bold text-gray-600 text-[11px] uppercase">Password</label>
                         <div class="relative flex items-center">
-                          <input
-                            [type]="isPasswordVisible ? 'text' : 'password'"
-                            [(ngModel)]="selectedEmployeePassword"
+                          <input [type]="isPasswordVisible ? 'text' : 'password'" [(ngModel)]="selectedEmployeePassword"
                             placeholder="Enter Password"
-                            class="w-full border border-gray-300 p-2 pr-24 outline-none text-[13px] focus:border-blue-500 transition-all"
-                          />
+                            class="w-full border border-gray-300 p-2 pr-24 outline-none text-[13px] focus:border-blue-500 transition-all" />
 
                           <div class="absolute right-1 flex items-center gap-1">
-                            <button
-                              (click)="isPasswordVisible = !isPasswordVisible"
-                              type="button"
-                              class="p-1 text-gray-400 hover:text-blue-600 transition-colors"
-                            >
-                              <svg
-                                *ngIf="!isPasswordVisible"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke-width="2"
-                                stroke="currentColor"
-                                class="w-4 h-4"
-                              >
-                                <path
-                                  stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                  d="M2.036 12.322a1.012 1.012 0 010-.644C3.399 8.049 7.21 5 12 5c4.791 0 8.601 3.049 9.964 6.678.045.122.045.253 0 .375C20.601 15.951 16.791 19 12 19c-4.791 0-8.601-3.049-9.964-6.678z"
-                                />
-                                <path
-                                  stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                />
+                            <button (click)="isPasswordVisible = !isPasswordVisible" type="button"
+                              class="p-1 text-gray-400 hover:text-blue-600 transition-colors">
+                              <svg *ngIf="!isPasswordVisible" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M2.036 12.322a1.012 1.012 0 010-.644C3.399 8.049 7.21 5 12 5c4.791 0 8.601 3.049 9.964 6.678.045.122.045.253 0 .375C20.601 15.951 16.791 19 12 19c-4.791 0-8.601-3.049-9.964-6.678z" />
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                               </svg>
-                              <svg
-                                *ngIf="isPasswordVisible"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke-width="2"
-                                stroke="currentColor"
-                                class="w-4 h-4"
-                              >
-                                <path
-                                  stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                  d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"
-                                />
+                              <svg *ngIf="isPasswordVisible" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
                               </svg>
                             </button>
 
                             <div class="h-4 w-[1px] bg-gray-300 mx-0.5"></div>
 
-                            <button
-                              (click)="generateRandomPassword()"
-                              type="button"
-                              class="px-2 py-1 bg-blue-100 text-blue-700 text-[9px] font-bold rounded hover:bg-blue-200 transition-colors uppercase"
-                            >
+                            <button (click)="generateRandomPassword()" type="button"
+                              class="px-2 py-1 bg-blue-100 text-blue-700 text-[9px] font-bold rounded hover:bg-blue-200 transition-colors uppercase">
                               Gen
                             </button>
                           </div>
@@ -323,48 +210,28 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div class="space-y-1">
-                        <label
-                          class="block font-bold text-gray-600 text-[11px] uppercase"
-                          >Assign Role</label
-                        >
-                        <select
-                          [(ngModel)]="selectedRole"
-                          class="w-full border border-gray-300 p-2 outline-none text-[13px] bg-white"
-                        >
+                        <label class="block font-bold text-gray-600 text-[11px] uppercase">Assign Role</label>
+                        <select [(ngModel)]="selectedRole"
+                          class="w-full border border-gray-300 p-2 outline-none text-[13px] bg-white">
                           <option value="" disabled>-- Select Role --</option>
-                          <option
-                            *ngFor="let role of rolesList"
-                           [value]="role.id"
-                          >
+                          <option *ngFor="let role of rolesList" [value]="role.id">
                             {{ role.name }}
                           </option>
                         </select>
                       </div>
                       <div class="space-y-1">
-                        <label
-                          class="block font-bold text-gray-600 text-[11px] uppercase"
-                          >Account Status</label
-                        >
+                        <label class="block font-bold text-gray-600 text-[11px] uppercase">Account Status</label>
                         <div class="flex items-center gap-3 p-1.5">
-                          <label
-                            class="relative inline-flex items-center cursor-pointer"
-                          >
-                            <input
-                              type="checkbox"
-                              [(ngModel)]="isAccountActive"
-                              class="sr-only peer"
-                            />
+                          <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" [(ngModel)]="isAccountActive" class="sr-only peer" />
                             <div
-                              class="w-9 h-5 bg-gray-300 rounded-full peer peer-checked:bg-green-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"
-                            ></div>
-                            <span
-                              class="ml-3 text-[12px] font-bold uppercase"
-                              [ngClass]="
+                              class="w-9 h-5 bg-gray-300 rounded-full peer peer-checked:bg-green-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full">
+                            </div>
+                            <span class="ml-3 text-[12px] font-bold uppercase" [ngClass]="
                                 isAccountActive
                                   ? 'text-green-600'
                                   : 'text-red-600'
-                              "
-                            >
+                              ">
                               {{ isAccountActive ? "Active" : "Inactive" }}
                             </span>
                           </label>
@@ -372,68 +239,49 @@
                       </div>
                     </div>
 
-                  <div class="space-y-2">
-  <label class="block font-bold text-gray-600 text-[11px] uppercase">
-    Permissions
-  </label>
+                    <div class="space-y-2">
+                      <label class="block font-bold text-gray-600 text-[11px] uppercase">
+                        Permissions
+                      </label>
 
-  <div
-    class="grid grid-cols-2 gap-3 p-3 border border-dashed border-gray-300 bg-gray-50 rounded"
-  >
-    <label
-      *ngFor="let perm of permissionsList"
-      class="flex items-center gap-2 cursor-pointer"
-    >
-      <input
-        type="checkbox"
-        [checked]="selectedPermissionIds.includes(perm.permissionID)"
-        (change)="togglePermission(perm.permissionID)"
-        class="w-4 h-4"
-      />
+                      <div class="grid grid-cols-2 gap-3 p-3 border border-dashed border-gray-300 bg-gray-50 rounded">
+                        <label *ngFor="let perm of permissionsList" class="flex items-center gap-2 cursor-pointer">
+                          <input type="checkbox" [checked]="
+                              selectedPermissionIds.includes(perm.permissionID)
+                            " (change)="togglePermission(perm.permissionID)" class="w-4 h-4" />
 
-      <span class="text-[12px]">
-        {{ perm.subMenu }}
-      </span>
+                          <span class="text-[12px]">
+                            {{ perm.subMenu }}
+                          </span>
 
-      <!-- Hidden ID display (optional) -->
-      <span class="text-[10px] text-gray-400">
-        (ID: {{ perm.permissionID }})
-      </span>
-    </label>
-  </div>
-</div>
+                          <!-- Hidden ID display (optional) -->
+                          <span class="text-[10px] text-gray-400">
+                            (ID: {{ perm.permissionID }})
+                          </span>
+                        </label>
+                      </div>
+                    </div>
                   </div>
 
-                  <div
-                    class="bg-gray-50 p-4 flex justify-end gap-3 border-t border-gray-200"
-                  >
-                    <button
-                      (click)="closeRoleModal()"
-                      class="px-4 py-1.5 text-[11px] font-bold text-gray-600 uppercase border"
-                    >
+                  <div class="bg-gray-50 p-4 flex justify-end gap-3 border-t border-gray-200">
+                    <button (click)="closeRoleModal()"
+                      class="px-4 py-1.5 text-[11px] font-bold text-gray-600 uppercase border">
                       Cancel
                     </button>
-                    <button
-                      (click)="saveRole()"
-                      class="bg-green-600 text-white px-6 py-1.5 font-bold text-[11px] uppercase"
-                    >
+                    <button (click)="saveRole()"
+                      class="bg-green-600 text-white px-6 py-1.5 font-bold text-[11px] uppercase">
                       Update
                     </button>
                   </div>
                 </div>
-</div>
+              </div>
 
-              <div
-                *ngIf="isViewModalOpen"
+              <div *ngIf="isViewModalOpen"
                 class="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4"
-                style="margin: top 50px"
-              >
+                style="margin: top 50px">
                 <div
-                  class="bg-white w-full max-w-4xl h-[85vh] shadow-2xl flex flex-col rounded-xl text-left border border-white/20"
-                >
-                  <div
-                    class="bg-[#4a3f3f] px-4 py-3 flex justify-between items-center text-white shrink-0 shadow-md"
-                  >
+                  class="bg-white w-full max-w-4xl h-[85vh] shadow-2xl flex flex-col rounded-xl text-left border border-white/20">
+                  <div class="bg-[#4a3f3f] px-4 py-3 flex justify-between items-center text-white shrink-0 shadow-md">
                     <div class="flex items-center gap-2">
                       <div class="h-5 w-1 bg-green-500 rounded-full"></div>
                       <h3 class="font-bold uppercase text-xs tracking-wider">
@@ -441,44 +289,27 @@
                         {{ selectedEmployee?.empCode || "Preview" }}
                       </h3>
                     </div>
-                    <button
-                      (click)="isViewModalOpen = false"
-                      class="text-2xl leading-none hover:text-red-400 transition-transform hover:rotate-90 duration-300"
-                    >
+                    <button (click)="isViewModalOpen = false"
+                      class="text-2xl leading-none hover:text-red-400 transition-transform hover:rotate-90 duration-300">
                       &times;
                     </button>
                   </div>
 
-                  <div
-                  id="profileCard"
-                    class="p-4 flex-1 overflow-y-auto bg-gray-50/50 custom-scrollbar"
-                  >
+                  <div id="profileCard" class="p-4 flex-1 overflow-y-auto bg-gray-50/50 custom-scrollbar">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
                       <!-- PERSONAL DETAILS -->
-                      
-                      <div
-                      i
-                        class="md:col-span-3 bg-white p-4 rounded-lg border shadow-sm"
-                      >
-                        <h4
-                          class="text-[10px] font-black text-blue-700 uppercase mb-3"
-                        >
+
+                      <div i class="md:col-span-3 bg-white p-4 rounded-lg border shadow-sm">
+                        <h4 class="text-[10px] font-black text-blue-700 uppercase mb-3">
                           Personal Details
                         </h4>
 
                         <div class="flex gap-4 mb-4">
-                          <div
-                            class="h-20 w-20 rounded-xl overflow-hidden border shadow"
-                          >
-                            <img
-                              *ngIf="selectedEmployee?.profileImage"
-                              [src]="selectedEmployee?.profileImage"
-                              class="h-full w-full object-cover"
-                            />
-                            <div
-                              *ngIf="!selectedEmployee?.profileImage"
-                              class="h-full w-full flex items-center justify-center bg-slate-200 text-lg font-bold"
-                            >
+                          <div class="h-20 w-20 rounded-xl overflow-hidden border shadow">
+                            <img *ngIf="selectedEmployee?.photoPath" [src]="'http://localhost:5000' + selectedEmployee?.photoPath"
+                              class="h-full w-full object-cover" />
+                            <div *ngIf="!selectedEmployee?.photoPath"
+                              class="h-full w-full flex items-center justify-center bg-slate-200 text-lg font-bold">
                               {{ selectedEmployee?.firstName?.charAt(0) }}
                             </div>
                           </div>
@@ -492,8 +323,7 @@
                               {{ selectedEmployee?.email || "---" }}
                             </p>
                             <span
-                              class="inline-block mt-1 px-2 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-bold rounded uppercase"
-                            >
+                              class="inline-block mt-1 px-2 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-bold rounded uppercase">
                               {{ selectedEmployee?.userType || "Staff" }}
                             </span>
                           </div>
@@ -503,7 +333,7 @@
                           <div>
                             <label class="text-gray-500 text-xs">DOB</label>
                             <p class="font-semibold">
-                              {{ selectedEmployee?.dob || "---" }}
+                              {{ selectedEmployee?.dob || "" }}
                             </p>
                           </div>
                           <div>
@@ -513,17 +343,13 @@
                             </p>
                           </div>
                           <div>
-                            <label class="text-gray-500 text-xs"
-                              >Marital Status</label
-                            >
+                            <label class="text-gray-500 text-xs">Marital Status</label>
                             <p class="font-semibold">
                               {{ selectedEmployee?.maritalStatus || "---" }}
                             </p>
                           </div>
                           <div>
-                            <label class="text-gray-500 text-xs"
-                              >Blood Group</label
-                            >
+                            <label class="text-gray-500 text-xs">Blood Group</label>
                             <p class="font-semibold text-red-600">
                               {{ selectedEmployee?.bloodGroup || "---" }}
                             </p>
@@ -536,34 +362,26 @@
                             </p>
                           </div>
                           <div>
-                            <label class="text-gray-500 text-xs"
-                              >Telephone</label
-                            >
+                            <label class="text-gray-500 text-xs">Telephone</label>
                             <p class="font-semibold">
                               {{ selectedEmployee?.telephone || "---" }}
                             </p>
                           </div>
 
                           <div>
-                            <label class="text-gray-500 text-xs"
-                              >Department</label
-                            >
+                            <label class="text-gray-500 text-xs">Department</label>
                             <p class="font-semibold">
                               {{ selectedEmployee?.department || "---" }}
                             </p>
                           </div>
                           <div>
-                            <label class="text-gray-500 text-xs"
-                              >Designation</label
-                            >
+                            <label class="text-gray-500 text-xs">Designation</label>
                             <p class="font-semibold">
                               {{ selectedEmployee?.designation || "---" }}
                             </p>
                           </div>
                           <div>
-                            <label class="text-gray-500 text-xs"
-                              >Functional Area</label
-                            >
+                            <label class="text-gray-500 text-xs">Functional Area</label>
                             <p class="font-semibold">
                               {{ selectedEmployee?.functionalArea || "---" }}
                             </p>
@@ -597,472 +415,334 @@
                         </div>
                       </div>
 
-                      <div
-                        class="md:col-span-3 bg-green-50 p-4 rounded-lg border mt-4"
-                      >
-                        <h4
-                          class="text-[10px] font-black text-green-700 uppercase mb-3"
-                        >
+                      <div class="md:col-span-3 bg-green-50 p-4 rounded-lg border mt-4">
+                        <h4 class="text-[10px] font-black text-green-700 uppercase mb-3">
                           Job & Salary
                         </h4>
                         <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                           <div>
-                            <label class="text-gray-500 text-xs"
-                              >Joining Date</label
-                            >
+                            <label class="text-gray-500 text-xs">Joining Date</label>
                             <p class="font-semibold">
-                              {{ selectedEmployee?.joiningDate || "---" }}
+                              {{ selectedEmployee?.dateOfJoining || "---" }}
                             </p>
                           </div>
                           <div>
-                            <label class="text-gray-500 text-xs"
-                              >CTC (Monthly)</label
-                            >
+                            <label class="text-gray-500 text-xs">CTC (Monthly)</label>
                             <p class="font-semibold text-green-700">
-                              {{ selectedEmployee?.monthlySalary || "---" }}
+                              {{ selectedEmployee?.ctC_Monthly || "---" }}
                             </p>
                           </div>
                         </div>
                       </div>
 
                       <!-- EXPERIENCE -->
-                      <div
-                        class="md:col-span-3 bg-white p-4 rounded-lg border shadow-sm"
-                      >
-                        <h4
-                          class="text-[11px] font-black text-[#4a3f3f] uppercase mb-4 tracking-wider"
-                        >
+                      <div class="md:col-span-3 bg-white p-4 rounded-lg border shadow-sm">
+                        <h4 class="text-[11px] font-black text-[#4a3f3f] uppercase mb-4 tracking-wider">
                           Experience Details
                         </h4>
 
-                        <div
-                          class="grid grid-cols-2 md:grid-cols-4 gap-y-5 gap-x-6"
-                        >
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-y-5 gap-x-6">
                           <div class="space-y-1">
                             <label
-                              class="block text-gray-500 text-[10px] font-bold uppercase tracking-tight"
-                              >Organization</label
-                            >
+                              class="block text-gray-500 text-[10px] font-bold uppercase tracking-tight">Organization</label>
                             <p class="font-semibold text-[13px] text-gray-800">
                               {{
-                                selectedEmployee?.experiences?.[0]
-                                  ?.organizationName || "---"
+                              selectedEmployee?.experiences?.[0]
+                              ?.organizationName || "---"
                               }}
                             </p>
                           </div>
 
                           <div class="space-y-1">
                             <label
-                              class="block text-gray-500 text-[10px] font-bold uppercase tracking-tight"
-                              >Designation</label
-                            >
+                              class="block text-gray-500 text-[10px] font-bold uppercase tracking-tight">Designation</label>
                             <p class="font-semibold text-[13px] text-gray-800">
                               {{
-                                selectedEmployee?.experiences?.[0]
-                                  ?.designation || "---"
+                              selectedEmployee?.experiences?.[0]
+                              ?.designation || "---"
                               }}
                             </p>
                           </div>
 
                           <div class="space-y-1">
-                            <label
-                              class="block text-gray-500 text-[10px] font-bold uppercase tracking-tight"
-                              >Years of Experience</label
-                            >
+                            <label class="block text-gray-500 text-[10px] font-bold uppercase tracking-tight">Years of
+                              Experience</label>
                             <p class="font-semibold text-[13px] text-gray-800">
                               {{
-                                selectedEmployee?.experiences?.[0]
-                                  ?.totalYears || "---"
+                              selectedEmployee?.experiences?.[0]
+                              ?.totalYears || "---"
                               }}
                             </p>
                           </div>
 
                           <div class="space-y-1">
-                            <label
-                              class="block text-gray-500 text-[10px] font-bold uppercase tracking-tight"
-                              >Annual Salary (CTC)</label
-                            >
+                            <label class="block text-gray-500 text-[10px] font-bold uppercase tracking-tight">Annual
+                              Salary (CTC)</label>
                             <p class="font-semibold text-[13px] text-gray-800">
                               {{
-                                selectedEmployee?.experiences?.[0]
-                                  ?.annualSalary || "---"
+                              selectedEmployee?.experiences?.[0]
+                              ?.annualSalary || "---"
                               }}
                             </p>
                           </div>
 
                           <div class="space-y-1">
-                            <label
-                              class="block text-gray-500 text-[10px] font-bold uppercase tracking-tight"
-                              >Date of Exit</label
-                            >
+                            <label class="block text-gray-500 text-[10px] font-bold uppercase tracking-tight">Date of
+                              Exit</label>
                             <p class="font-semibold text-[13px] text-gray-800">
                               {{
-                                (selectedEmployee?.experiences?.[0]?.dateOfExit
-                                  | date: "dd-MM-yyyy") || "---"
+                              (selectedEmployee?.experiences?.[0]?.dateOfExit
+                              | date: "dd-MM-yyyy") || "---"
                               }}
                             </p>
                           </div>
 
-                          <div
-                            class="col-span-2 md:col-span-4 flex items-center gap-2 mt-2 border-t pt-3"
-                          >
-                            <input
-                              type="checkbox"
-                              [checked]="
+                          <div class="col-span-2 md:col-span-4 flex items-center gap-2 mt-2 border-t pt-3">
+                            <input type="checkbox" [checked]="
                                 selectedEmployee?.experiences?.[0]?.isVerified
-                              "
-                              disabled
-                              class="w-4 h-4 rounded border-gray-300 accent-blue-600"
-                            />
-                            <label
-                              class="text-[10px] font-bold text-gray-600 uppercase"
-                              >Verification Complete</label
-                            >
+                              " disabled class="w-4 h-4 rounded border-gray-300 accent-blue-600" />
+                            <label class="text-[10px] font-bold text-gray-600 uppercase">Verification Complete</label>
                           </div>
                         </div>
                       </div>
                       <!-- BANK DETAILS -->
-                      <div
-                        class="md:col-span-3 bg-white p-4 rounded-lg border shadow-sm"
-                      >
-                        <h4
-                          class="text-[11px] font-black text-[#4a3f3f] uppercase mb-4 tracking-wider"
-                        >
+                      <div class="md:col-span-3 bg-white p-4 rounded-lg border shadow-sm">
+                        <h4 class="text-[11px] font-black text-[#4a3f3f] uppercase mb-4 tracking-wider">
                           Bank Details
                         </h4>
 
-                        <div
-                          class="grid grid-cols-1 md:grid-cols-3 gap-y-5 gap-x-6"
-                        >
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-y-5 gap-x-6">
                           <div class="space-y-1">
-                            <label
-                              class="block text-gray-500 text-[10px] font-bold uppercase tracking-tight"
-                              >Account Holder Name</label
-                            >
+                            <label class="block text-gray-500 text-[10px] font-bold uppercase tracking-tight">Account
+                              Holder Name</label>
                             <p class="font-semibold text-[13px] text-gray-800">
                               {{
-                                selectedEmployee?.bankDetails
-                                  ?.accountHolderName || "---"
+                              selectedEmployee?.bankDetails
+                              ?.accountHolderName || "---"
                               }}
                             </p>
                           </div>
 
                           <div class="space-y-1">
-                            <label
-                              class="block text-gray-500 text-[10px] font-bold uppercase tracking-tight"
-                              >Bank Name</label
-                            >
+                            <label class="block text-gray-500 text-[10px] font-bold uppercase tracking-tight">Bank
+                              Name</label>
                             <p class="font-semibold text-[13px] text-gray-800">
                               {{
-                                selectedEmployee?.bankDetails?.bankName || "---"
+                              selectedEmployee?.bankDetails?.bankName || "---"
                               }}
                             </p>
                           </div>
 
                           <div class="space-y-1">
-                            <label
-                              class="block text-gray-500 text-[10px] font-bold uppercase tracking-tight"
-                              >Branch Name</label
-                            >
+                            <label class="block text-gray-500 text-[10px] font-bold uppercase tracking-tight">Branch
+                              Name</label>
                             <p class="font-semibold text-[13px] text-gray-800">
                               {{
-                                selectedEmployee?.bankDetails?.branchName ||
-                                  "---"
+                              selectedEmployee?.bankDetails?.branchNameBank ||
+                              "---"
                               }}
                             </p>
                           </div>
 
                           <div class="space-y-1">
-                            <label
-                              class="block text-gray-500 text-[10px] font-bold uppercase tracking-tight"
-                              >IFSC Code</label
-                            >
-                            <p
-                              class="font-mono font-semibold text-[13px] text-gray-800 uppercase"
-                            >
+                            <label class="block text-gray-500 text-[10px] font-bold uppercase tracking-tight">IFSC
+                              Code</label>
+                            <p class="font-mono font-semibold text-[13px] text-gray-800 uppercase">
                               {{
-                                selectedEmployee?.bankDetails?.ifscCode || "---"
+                              selectedEmployee?.bankDetails?.ifscCode || "---"
                               }}
                             </p>
                           </div>
 
                           <div class="space-y-1">
-                            <label
-                              class="block text-gray-500 text-[10px] font-bold uppercase tracking-tight"
-                              >Account Type</label
-                            >
+                            <label class="block text-gray-500 text-[10px] font-bold uppercase tracking-tight">Account
+                              Type</label>
                             <p class="font-semibold text-[13px] text-gray-800">
                               {{
-                                selectedEmployee?.bankDetails?.accountType ||
-                                  "---"
+                              selectedEmployee?.bankDetails?.accountType ||
+                              "---"
                               }}
                             </p>
                           </div>
 
                           <div class="space-y-1">
-                            <label
-                              class="block text-gray-500 text-[10px] font-bold uppercase tracking-tight"
-                              >Account Number</label
-                            >
-                            <p
-                              class="font-mono font-semibold text-[13px] text-gray-800"
-                            >
+                            <label class="block text-gray-500 text-[10px] font-bold uppercase tracking-tight">Account
+                              Number</label>
+                            <p class="font-mono font-semibold text-[13px] text-gray-800">
                               {{
-                                selectedEmployee?.bankDetails?.accountNumber ||
-                                  "---"
+                              selectedEmployee?.bankDetails?.accountNumber ||
+                              "---"
                               }}
                             </p>
                           </div>
                         </div>
                       </div>
 
-                      <div
-                        class="md:col-span-3 bg-white p-4 rounded-lg border shadow-sm space-y-6"
-                      >
+                      <div class="md:col-span-3 bg-white p-4 rounded-lg border shadow-sm space-y-6">
                         <div>
-                          <h4
-                            class="text-[10px] font-black text-purple-700 uppercase mb-3 border-b pb-1"
-                          >
+                          <h4 class="text-[10px] font-black text-purple-700 uppercase mb-3 border-b pb-1">
                             Corresponding Address
                           </h4>
                           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <div>
-                              <label
-                                class="text-gray-500 block text-[9px] uppercase"
-                                >House/Flat No</label
-                              >
+                              <label class="text-gray-500 block text-[9px] uppercase">House/Flat No</label>
                               <p class="font-semibold">
-                                {{ selectedEmployee?.c_HouseNo || "---" }}
+                                {{ selectedEmployee?.presHouseNo || "---" }}
                               </p>
                             </div>
                             <div>
-                              <label
-                                class="text-gray-500 block text-[9px] uppercase"
-                                >Building/Society</label
-                              >
+                              <label class="text-gray-500 block text-[9px] uppercase">Building/Society</label>
                               <p class="font-semibold">
-                                {{ selectedEmployee?.c_BuildingName || "---" }}
+                                {{ selectedEmployee?.presBuilding || "---" }}
                               </p>
                             </div>
                             <div>
-                              <label
-                                class="text-gray-500 block text-[9px] uppercase"
-                                >Floor No</label
-                              >
+                              <label class="text-gray-500 block text-[9px] uppercase">Floor No</label>
                               <p class="font-semibold">
-                                {{ selectedEmployee?.c_FloorNo || "---" }}
+                                {{ selectedEmployee?.presFloor || "---" }}
                               </p>
                             </div>
                             <div>
-                              <label
-                                class="text-gray-500 block text-[9px] uppercase"
-                                >Block/Wing</label
-                              >
+                              <label class="text-gray-500 block text-[9px] uppercase">Block/Wing</label>
                               <p class="font-semibold">
-                                {{ selectedEmployee?.c_Block || "---" }}
+                                {{ selectedEmployee?.presBlock || "---" }}
                               </p>
                             </div>
 
                             <div>
-                              <label
-                                class="text-gray-500 block text-[9px] uppercase"
-                                >Street/Lane</label
-                              >
+                              <label class="text-gray-500 block text-[9px] uppercase">Street/Lane</label>
                               <p class="font-semibold">
-                                {{ selectedEmployee?.c_Street || "---" }}
+                                {{ selectedEmployee?.presStreet || "---" }}
                               </p>
                             </div>
                             <div>
-                              <label
-                                class="text-gray-500 block text-[9px] uppercase"
-                                >Landmark</label
-                              >
+                              <label class="text-gray-500 block text-[9px] uppercase">Landmark</label>
                               <p class="font-semibold">
-                                {{ selectedEmployee?.c_Landmark || "---" }}
+                                {{ selectedEmployee?.presLandmark || "---" }}
                               </p>
                             </div>
                             <div>
-                              <label
-                                class="text-gray-500 block text-[9px] uppercase"
-                                >Area/Sector</label
-                              >
+                              <label class="text-gray-500 block text-[9px] uppercase">Area/Sector</label>
                               <p class="font-semibold">
-                                {{ selectedEmployee?.c_Area || "---" }}
+                                {{ selectedEmployee?.presArea || "---" }}
                               </p>
                             </div>
                             <div>
-                              <label
-                                class="text-gray-500 block text-[9px] uppercase"
-                                >City</label
-                              >
+                              <label class="text-gray-500 block text-[9px] uppercase">City</label>
                               <p class="font-semibold">
-                                {{ selectedEmployee?.c_City || "---" }}
+                                {{ selectedEmployee?.presCity || "---" }}
                               </p>
                             </div>
 
                             <div>
-                              <label
-                                class="text-gray-500 block text-[9px] uppercase"
-                                >District</label
-                              >
+                              <label class="text-gray-500 block text-[9px] uppercase">District</label>
                               <p class="font-semibold">
-                                {{ selectedEmployee?.c_District || "---" }}
+                                {{ selectedEmployee?.presDistrict || "---" }}
                               </p>
                             </div>
                             <div>
-                              <label
-                                class="text-gray-500 block text-[9px] uppercase"
-                                >State</label
-                              >
+                              <label class="text-gray-500 block text-[9px] uppercase">State</label>
                               <p class="font-semibold">
-                                {{ selectedEmployee?.c_State || "---" }}
+                                {{ selectedEmployee?.presState || "---" }}
                               </p>
                             </div>
                             <div>
-                              <label
-                                class="text-gray-500 block text-[9px] uppercase"
-                                >Pincode</label
-                              >
+                              <label class="text-gray-500 block text-[9px] uppercase">Pincode</label>
                               <p class="font-semibold">
-                                {{ selectedEmployee?.c_Pincode || "---" }}
+                                {{ selectedEmployee?.presPincode || "---" }}
                               </p>
                             </div>
                             <div>
-                              <label
-                                class="text-gray-500 block text-[9px] uppercase"
-                                >Country</label
-                              >
-                              <p class="font-semibold text-blue-600">India</p>
+                              <label class="text-gray-500 block text-[9px] uppercase">Country</label>
+                              <p class="font-semibold text-blue-600">{{ selectedEmployee?.presCountry || "---" }}</p>
                             </div>
                           </div>
                         </div>
 
                         <div class="pt-4 border-t border-dashed">
-                          <h4
-                            class="text-[10px] font-black text-purple-700 uppercase mb-3 border-b pb-1"
-                          >
+                          <h4 class="text-[10px] font-black text-purple-700 uppercase mb-3 border-b pb-1">
                             Permanent Address
                           </h4>
                           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <div>
-                              <label
-                                class="text-gray-500 block text-[9px] uppercase"
-                                >House/Flat No</label
-                              >
+                              <label class="text-gray-500 block text-[9px] uppercase">House/Flat No</label>
                               <p class="font-semibold">
-                                {{ selectedEmployee?.p_HouseNo || "---" }}
+                                {{ selectedEmployee?.permHouseNo || "---" }}
                               </p>
                             </div>
                             <div>
-                              <label
-                                class="text-gray-500 block text-[9px] uppercase"
-                                >Building/Society</label
-                              >
+                              <label class="text-gray-500 block text-[9px] uppercase">Building/Society</label>
                               <p class="font-semibold">
-                                {{ selectedEmployee?.p_BuildingName || "---" }}
+                                {{ selectedEmployee?.permBuilding || "---" }}
                               </p>
                             </div>
                             <div>
-                              <label
-                                class="text-gray-500 block text-[9px] uppercase"
-                                >Floor No</label
-                              >
+                              <label class="text-gray-500 block text-[9px] uppercase">Floor No</label>
                               <p class="font-semibold">
-                                {{ selectedEmployee?.p_FloorNo || "---" }}
+                                {{ selectedEmployee?.permFloor || "---" }}
                               </p>
                             </div>
                             <div>
-                              <label
-                                class="text-gray-500 block text-[9px] uppercase"
-                                >Block/Wing</label
-                              >
+                              <label class="text-gray-500 block text-[9px] uppercase">Block/Wing</label>
                               <p class="font-semibold">
-                                {{ selectedEmployee?.p_Block || "---" }}
+                                {{ selectedEmployee?.permBlock || "---" }}
                               </p>
                             </div>
 
                             <div>
-                              <label
-                                class="text-gray-500 block text-[9px] uppercase"
-                                >Street/Lane</label
-                              >
+                              <label class="text-gray-500 block text-[9px] uppercase">Street/Lane</label>
                               <p class="font-semibold">
-                                {{ selectedEmployee?.p_Street || "---" }}
+                                {{ selectedEmployee?.permStreet || "---" }}
                               </p>
                             </div>
                             <div>
-                              <label
-                                class="text-gray-500 block text-[9px] uppercase"
-                                >Landmark</label
-                              >
+                              <label class="text-gray-500 block text-[9px] uppercase">Landmark</label>
                               <p class="font-semibold">
-                                {{ selectedEmployee?.p_Landmark || "---" }}
+                                {{ selectedEmployee?.permLandmark || "---" }}
                               </p>
                             </div>
                             <div>
-                              <label
-                                class="text-gray-500 block text-[9px] uppercase"
-                                >Area/Sector</label
-                              >
+                              <label class="text-gray-500 block text-[9px] uppercase">Area/Sector</label>
                               <p class="font-semibold">
-                                {{ selectedEmployee?.p_Area || "---" }}
+                                {{ selectedEmployee?.permArea || "---" }}
                               </p>
                             </div>
                             <div>
-                              <label
-                                class="text-gray-500 block text-[9px] uppercase"
-                                >City</label
-                              >
+                              <label class="text-gray-500 block text-[9px] uppercase">City</label>
                               <p class="font-semibold">
-                                {{ selectedEmployee?.p_City || "---" }}
+                                {{ selectedEmployee?.permCity || "---" }}
                               </p>
                             </div>
 
                             <div>
-                              <label
-                                class="text-gray-500 block text-[9px] uppercase"
-                                >District</label
-                              >
+                              <label class="text-gray-500 block text-[9px] uppercase">District</label>
                               <p class="font-semibold">
-                                {{ selectedEmployee?.p_District || "---" }}
+                                {{ selectedEmployee?.permDistrict || "---" }}
                               </p>
                             </div>
                             <div>
-                              <label
-                                class="text-gray-500 block text-[9px] uppercase"
-                                >State</label
-                              >
+                              <label class="text-gray-500 block text-[9px] uppercase">State</label>
                               <p class="font-semibold">
-                                {{ selectedEmployee?.p_State || "---" }}
+                                {{ selectedEmployee?.permState || "---" }}
                               </p>
                             </div>
                             <div>
-                              <label
-                                class="text-gray-500 block text-[9px] uppercase"
-                                >Pincode</label
-                              >
-                              <p class="font-semibold">
-                                {{ selectedEmployee?.p_Pincode || "---" }}
-                              </p>
+                              <label class="text-gray-500 block text-[9px] uppercase">Pincode</label>
+                           <p class="font-semibold text-slate-800">
+    {{ selectedEmployee?.permPincode || "---" }}
+  </p>
                             </div>
                             <div>
-                              <label
-                                class="text-gray-500 block text-[9px] uppercase"
-                                >Country</label
-                              >
-                              <p class="font-semibold text-blue-600">India</p>
+                              <label class="text-gray-500 block text-[9px] uppercase">Country</label>
+                              <p class="font-semibold text-blue-600"> {{ selectedEmployee?.permCountry || "---" }}</p>
                             </div>
                           </div>
                         </div>
                       </div>
 
                       <!-- EDUCATION -->
-                      <div
-                        class="md:col-span-3 bg-white p-4 rounded-lg border shadow-sm mb-4"
-                      >
-                        <h4
-                          class="text-[10px] font-black text-indigo-700 uppercase mb-3"
-                        >
+                      <div class="md:col-span-3 bg-white p-4 rounded-lg border shadow-sm mb-4">
+                        <h4 class="text-[10px] font-black text-indigo-700 uppercase mb-3">
                           Education Details
                         </h4>
                         <div class="overflow-x-auto">
@@ -1083,19 +763,14 @@
                                 </td>
                                 <td>
                                   {{
-                                    selectedEmployee?.tenthPercentage
-                                      ? selectedEmployee?.tenthPercentage + "%"
-                                      : "---"
+                                  selectedEmployee?.tenthPercentage
+                                  ? selectedEmployee?.tenthPercentage + "%"
+                                  : "---"
                                   }}
                                 </td>
                                 <td>
-                                  <a
-                                    *ngIf="selectedEmployee?.tenthDoc"
-                                    [href]="selectedEmployee?.tenthDoc"
-                                    target="_blank"
-                                    class="text-blue-600 hover:underline text-xs"
-                                    >View File</a
-                                  >
+                                  <a *ngIf="selectedEmployee?.tenthDoc" [href]="selectedEmployee?.tenthDoc"
+                                    target="_blank" class="text-blue-600 hover:underline text-xs">View File</a>
                                 </td>
                               </tr>
                               <tr class="border-b last:border-0">
@@ -1105,51 +780,38 @@
                                 </td>
                                 <td>
                                   {{
-                                    selectedEmployee?.twelfthPercentage
-                                      ? selectedEmployee?.twelfthPercentage +
-                                        "%"
-                                      : "---"
+                                  selectedEmployee?.twelfthPercentage
+                                  ? selectedEmployee?.twelfthPercentage +
+                                  "%"
+                                  : "---"
                                   }}
                                 </td>
                                 <td>
-                                  <a
-                                    *ngIf="selectedEmployee?.twelfthDoc"
-                                    [href]="selectedEmployee?.twelfthDoc"
-                                    target="_blank"
-                                    class="text-blue-600 hover:underline text-xs"
-                                    >View File</a
-                                  >
+                                  <a *ngIf="selectedEmployee?.twelfthDoc" [href]="selectedEmployee?.twelfthDoc"
+                                    target="_blank" class="text-blue-600 hover:underline text-xs">View File</a>
                                 </td>
                               </tr>
                               <tr class="border-b last:border-0">
                                 <td class="py-2 font-medium">Graduation</td>
                                 <td>
                                   {{
-                                    selectedEmployee?.graduationYear || "---"
+                                  selectedEmployee?.graduationYear || "---"
                                   }}
                                 </td>
                                 <td>
                                   {{
-                                    selectedEmployee?.graduationPercentage
-                                      ? selectedEmployee?.graduationPercentage +
-                                        "%"
-                                      : "---"
+                                  selectedEmployee?.graduationPercentage
+                                  ? selectedEmployee?.graduationPercentage +
+                                  "%"
+                                  : "---"
                                   }}
                                 </td>
                                 <td>
-                                  <a
-                                    *ngIf="selectedEmployee?.graduationDoc"
-                                    [href]="selectedEmployee?.graduationDoc"
-                                    target="_blank"
-                                    class="text-blue-600 hover:underline text-xs"
-                                    >View File</a
-                                  >
+                                  <a *ngIf="selectedEmployee?.graduationDoc" [href]="selectedEmployee?.graduationDoc"
+                                    target="_blank" class="text-blue-600 hover:underline text-xs">View File</a>
                                 </td>
                               </tr>
-                              <tr
-                                *ngIf="selectedEmployee?.pgPercentage"
-                                class="border-b last:border-0"
-                              >
+                              <tr *ngIf="selectedEmployee?.pgPercentage" class="border-b last:border-0">
                                 <td class="py-2 font-medium">
                                   Post Graduation
                                 </td>
@@ -1158,13 +820,8 @@
                                   {{ selectedEmployee?.pgPercentage + "%" }}
                                 </td>
                                 <td>
-                                  <a
-                                    *ngIf="selectedEmployee?.pgDoc"
-                                    [href]="selectedEmployee?.pgDoc"
-                                    target="_blank"
-                                    class="text-blue-600 hover:underline text-xs"
-                                    >View File</a
-                                  >
+                                  <a *ngIf="selectedEmployee?.pgDoc" [href]="selectedEmployee?.pgDoc" target="_blank"
+                                    class="text-blue-600 hover:underline text-xs">View File</a>
                                 </td>
                               </tr>
                             </tbody>
@@ -1172,155 +829,115 @@
                         </div>
                       </div>
 
-                      <div
-                        class="md:col-span-3 bg-white p-4 rounded-lg border shadow-sm mb-4"
-                      >
-                        <h4
-                          class="text-[10px] font-black text-slate-700 uppercase mb-3"
-                        >
+                      <div class="md:col-span-3 bg-white p-4 rounded-lg border shadow-sm mb-4">
+                        <h4 class="text-[10px] font-black text-slate-700 uppercase mb-3">
                           Uploaded Marksheets
                         </h4>
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                          <div
-                            *ngFor="
+                          <div *ngFor="
                               let doc of [
                                 'tenthDoc',
                                 'twelfthDoc',
                                 'graduationDoc',
                                 'pgDoc',
                               ]
-                            "
-                            class="relative group"
-                          >
-                            <div
-                              *ngIf="selectedEmployee?.[doc]"
-                              class="h-32 w-full bg-gray-100 rounded border overflow-hidden"
-                            >
-                              <img
-                                [src]="selectedEmployee?.[doc]"
-                                class="h-full w-full object-cover group-hover:scale-110 transition-transform duration-300"
-                              />
+                            " class="relative group">
+                            <div *ngIf="selectedEmployee?.[doc]"
+                              class="h-32 w-full bg-gray-100 rounded border overflow-hidden">
+                              <img [src]="selectedEmployee?.[doc]"
+                                class="h-full w-full object-cover group-hover:scale-110 transition-transform duration-300" />
                               <div
-                                class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
-                              >
-                                <button
-                                  (click)="openPreview(selectedEmployee?.[doc])"
-                                  class="bg-white text-xs px-2 py-1 rounded shadow"
-                                >
+                                class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                <button (click)="openPreview(selectedEmployee?.[doc])"
+                                  class="bg-white text-xs px-2 py-1 rounded shadow">
                                   View Large
                                 </button>
                               </div>
                             </div>
-                            <p
-                              class="text-[9px] text-center mt-1 text-gray-500 uppercase"
-                            >
+                            <p class="text-[9px] text-center mt-1 text-gray-500 uppercase">
                               {{ doc.replace("Doc", "") }} Certificate
                             </p>
                           </div>
                         </div>
                       </div>
 
-                      <div
-                        class="md:col-span-3 bg-red-50 p-4 rounded-lg border border-red-100"
-                      >
-                        <h4
-                          class="text-[10px] font-black text-red-700 uppercase mb-3"
-                        >
+                      <div class="md:col-span-3 bg-red-50 p-4 rounded-lg border border-red-100">
+                        <h4 class="text-[10px] font-black text-red-700 uppercase mb-3">
                           Emergency Contact
                         </h4>
-                        <div
-                          class="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm"
-                        >
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                           <div>
                             <label class="text-gray-500 block">Name</label>
                             <p class="font-semibold">
                               {{
-                                selectedEmployee?.emergencyContactName || "---"
+                              selectedEmployee?.emergencyContactName || "---"
                               }}
                             </p>
                           </div>
                           <div>
                             <label class="text-gray-500 block">Relation</label>
                             <p class="font-semibold">
-                              {{ selectedEmployee?.relation || "---" }}
+                              {{ selectedEmployee?.emergencyRelation || "---" }}
                             </p>
                           </div>
                           <div>
                             <label class="text-gray-500 block">Mobile</label>
                             <p class="font-semibold text-red-600">
-                              {{ selectedEmployee?.emergencyMobile || "---" }}
+                              {{ selectedEmployee?.emergencyContactNo || "---" }}
                             </p>
                           </div>
                         </div>
                       </div>
 
                       <!-- DOCUMENTS WITH IMAGES -->
-                      <div
-                        class="md:col-span-3 bg-red-50 p-4 rounded-lg border"
-                      >
-                        <h4
-                          class="text-[10px] font-black text-red-700 uppercase mb-3"
-                        >
+                      <div class="md:col-span-3 bg-red-50 p-4 rounded-lg border">
+                        <h4 class="text-[10px] font-black text-red-700 uppercase mb-3">
                           Documents Uploaded
                         </h4>
 
-                        <div
-                          class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center"
-                        >
-                          <div *ngIf="selectedEmployee?.offerLetter">
-                            <img
-                              [src]="selectedEmployee?.offerLetter"
-                              class="h-24 w-full object-cover rounded border shadow mb-1"
-                            />
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                          <div *ngIf="selectedEmployee?.offerLetterPath">
+                            <img [src]="selectedEmployee?.offerLetterPath"
+                              class="h-24 w-full object-cover rounded border shadow mb-1" />
                             <p class="text-[10px] font-semibold">
-                              Offer Letter
+                            Offer Letter
                             </p>
                           </div>
 
-                          <div *ngIf="selectedEmployee?.appointmentLetter">
-                            <img
-                              [src]="selectedEmployee?.appointmentLetter"
-                              class="h-24 w-full object-cover rounded border shadow mb-1"
-                            />
+                          <div *ngIf="selectedEmployee?.appointmentLetterPath">
+                            <img [src]="selectedEmployee?.appointmentLetterPath"
+                              class="h-24 w-full object-cover rounded border shadow mb-1" />
                             <p class="text-[10px] font-semibold">
-                              Appointment Letter
+                            Appointment Letter
                             </p>
                           </div>
 
-                          <div *ngIf="selectedEmployee?.invitationLetter">
-                            <img
-                              [src]="selectedEmployee?.invitationLetter"
-                              class="h-24 w-full object-cover rounded border shadow mb-1"
-                            />
+                          <div *ngIf="selectedEmployee?.invitationLetterPath">
+                            <img [src]="selectedEmployee?.invitationLetterPath"
+                              class="h-24 w-full object-cover rounded border shadow mb-1" />
                             <p class="text-[10px] font-semibold">
-                              Invitation Letter
+                           Invitation Letter
                             </p>
                           </div>
 
-                          <div *ngIf="selectedEmployee?.relievingLetter">
-                            <img
-                              [src]="selectedEmployee?.relievingLetter"
-                              class="h-24 w-full object-cover rounded border shadow mb-1"
-                            />
+                          <div *ngIf="selectedEmployee?.relievingLetterPath">
+                            <img [src]="selectedEmployee?.relievingLetterPath"
+                              class="h-24 w-full object-cover rounded border shadow mb-1" />
                             <p class="text-[10px] font-semibold">
-                              Relieving Letter
+                             Relieving Letter
                             </p>
                           </div>
 
-                          <div *ngIf="selectedEmployee?.fAndFLetter">
+                          <div *ngIf="selectedEmployee?.fullAndFinalLetterPath">
                             >
-                            <img
-                              [src]="selectedEmployee?.fAndFLetter"
-                              class="h-24 w-full object-cover rounded border shadow mb-1"
-                            />
-                            <p class="text-[10px] font-semibold">F&F Letter</p>
+                            <img [src]="selectedEmployee?.fullAndFinalLetterPath"
+                              class="h-24 w-full object-cover rounded border shadow mb-1" />
+                            <p class="text-[10px] font-semibold">Full & Final Letter</p>
                           </div>
 
                           <div *ngIf="selectedEmployee?.educationMarksheets">
-                            <img
-                              [src]="selectedEmployee?.educationMarksheets"
-                              class="h-24 w-full object-cover rounded border shadow mb-1"
-                            />
+                            <img [src]="selectedEmployee?.educationMarksheets"
+                              class="h-24 w-full object-cover rounded border shadow mb-1" />
                             <p class="text-[10px] font-semibold">
                               Education Marksheets
                             </p>
@@ -1330,21 +947,14 @@
                     </div>
                   </div>
 
-                  <div
-                    class="bg-white p-3 border-t flex justify-end gap-2 shrink-0 shadow-md"
-                  >
-                    <button
-                      (click)="isViewModalOpen = false"
-                      class="bg-slate-200 text-slate-700 px-5 py-2 rounded-lg font-bold text-[9px] uppercase hover:bg-slate-300 transition-all"
-                    >
+                  <div class="bg-white p-3 border-t flex justify-end gap-2 shrink-0 shadow-md">
+                    <button (click)="isViewModalOpen = false"
+                      class="bg-slate-200 text-slate-700 px-5 py-2 rounded-lg font-bold text-[9px] uppercase hover:bg-slate-300 transition-all">
                       Close
                     </button>
 
-                    <button
-                      [disabled]="!selectedEmployee"
-                      (click)="downloadProfile()"
-                      class="bg-[#4a3f3f] disabled:opacity-50 text-white px-5 py-2 rounded-lg font-bold text-[9px] uppercase shadow-sm hover:opacity-90 transition-all"
-                    >
+                    <button [disabled]="!selectedEmployee" (click)="downloadProfile()"
+                      class="bg-[#4a3f3f] disabled:opacity-50 text-white px-5 py-2 rounded-lg font-bold text-[9px] uppercase shadow-sm hover:opacity-90 transition-all">
                       Download Profile
                     </button>
                   </div>
@@ -1356,13 +966,9 @@
       </table>
     </div>
 
-    <div
-      class="bg-gray-100 p-2 border-t border-gray-300 text-[11px] text-gray-500 flex justify-between px-4 font-bold"
-    >
+    <div class="bg-gray-100 p-2 border-t border-gray-300 text-[11px] text-gray-500 flex justify-between px-4 font-bold">
       <span>TOTAL EMPLOYEES: {{ filteredEmployees.length }}</span>
-      <span class="text-green-600 uppercase italic"
-        >Enterprise Dashboard v1.0</span
-      >
+      <span class="text-green-600 uppercase italic">Enterprise Dashboard v1.0</span>
     </div>
   </div>
 </div>

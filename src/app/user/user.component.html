@@ -54,6 +54,7 @@
         <thead>
           <tr class="bg-slate-100 border-b border-gray-300 text-[11px] uppercase tracking-wider text-slate-600">
             <th class="p-4 font-bold">Employee Type</th>
+             <th class="p-4 font-bold">Employee Code</th>
             <th class="p-4 font-bold">Profile Details</th>
             <th class="p-4 font-bold">Work & Designation</th>
             <th class="p-4 font-bold">Contact & Location</th>
@@ -77,12 +78,18 @@
 
               </p>
             </td>
+             <td class="p-4 border-r">
+              <p class="font-black text-indigo-700 text-xs">
+                {{ u.empCode }}
+
+              </p>
+            </td>
             <td class="p-4 border-r">
               <div class="flex items-center gap-3">
                 <img class="w-12 h-12 rounded-full ring-2 ring-slate-100 object-cover shadow-sm"
                   [src]="u.photoPath ? 'http://localhost:5000' + u.photoPath : 'assets/default-avatar.png'">
                 <div class="flex flex-col">
-                  <span class="font-bold text-slate-900">{{ u.firstName }} {{ u.lastName }}</span>
+                  <span class="font-bold text-slate-900">{{ u.firstName }} {{ u.lastName }}  </span>
                   <span class="text-xs text-blue-600 font-medium lowercase italic">{{ u.email }}</span>
                   <span class="text-[9px] text-slate-400 mt-1 uppercase font-bold">Blood: {{ u.bloodGroup }} | {{
                     u.maritalStatus }}</span>
@@ -91,7 +98,7 @@
             </td>
 
             <td class="p-4 border-r">
-              <p class="font-black text-indigo-700 text-xs">{{ u.empCode }}</p>
+              <!-- <p class="font-black text-indigo-700 text-xs">{{ u.empCode }}</p> -->
               <p class="font-bold text-slate-800 text-sm mt-0.5">{{ u.designation }}</p>
               <p class="text-[10px] text-slate-500 uppercase tracking-tighter">{{ u.functionalArea }}</p>
             </td>

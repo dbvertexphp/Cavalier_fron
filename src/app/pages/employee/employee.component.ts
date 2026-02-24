@@ -42,18 +42,18 @@ password?: string;
   aadhaarNo?: string;
 
   // ✅ Profile
-  profileImage?: string;
+  photoPath?: string;
 
   // ✅ Job & Salary
-  joiningDate?: string;
-  ctc?: number;
+  dateOfJoining?: string;
+  ctC_Monthly?: number;
   monthlySalary?: number;
 
   // ✅ Bank Details
 bankDetails?: {
     accountHolderName?: string;
     bankName?: string;
-    branchName?: string;
+    branchNameBank?: string;
     ifscCode?: string;
     accountType?: string;
     accountNumber?: string;
@@ -64,7 +64,7 @@ bankDetails?: {
 
   // ✅ Emergency
   emergencyName?: string;
-  emergencyRelationship?: string;
+  emergencyRelation?: string;
   emergencyContactNo?: string;
 
   // ✅ Education
@@ -91,36 +91,38 @@ bankDetails?: {
   [key: string]: any;
 
   // ✅ Documents
-  offerLetter?: string;
-  appointmentLetter?: string;
-  invitationLetter?: string;
-  relievingLetter?: string;
-  fAndFLetter?: string;
-// Nayi Correspondence Address fields
-  c_HouseNo?: string;
-  c_BuildingName?: string;
-  c_FloorNo?: string;
-  c_Block?: string;
-  c_Street?: string;
-  c_Landmark?: string;
-  c_Area?: string;
-  c_City?: string;
-  c_District?: string;
-  c_State?: string;
-  c_Pincode?: string;
+  offerLetterPath?: string;
+  appointmentLetterPath?: string;
+  invitationLetterPath?: string;
+  relievingLetterPath?: string;
+  fullAndFinalLetterPath?: string;
+// --- ADDRESS: CORRESPONDENCE / PRESENT (API Names) ---
+  presHouseNo?: string;
+  presBuilding?: string;
+  presFloor?: string;
+  presBlock?: string;
+  presStreet?: string;
+  presLandmark?: string;
+  presArea?: string;
+  presCity?: string;
+  presDistrict?: string;
+  presState?: string;
+  presPincode?: string;
+  presCountry?: string;
 
-  // Nayi Permanent Address fields
-  p_HouseNo?: string;
-  p_BuildingName?: string;
-  p_FloorNo?: string;
-  p_Block?: string;
-  p_Street?: string;
-  p_Landmark?: string;
-  p_Area?: string;
-  p_City?: string;
-  p_District?: string;
-  p_State?: string;
-  p_Pincode?: string;
+  // --- ADDRESS: PERMANENT (API Names) ---
+  permHouseNo?: string;
+  permBuilding?: string;
+  permFloor?: string;
+  permBlock?: string;
+  permStreet?: string;
+  permLandmark?: string;
+  permArea?: string;
+  permCity?: string;
+  permDistrict?: string;
+  permState?: string;
+  permPincode?: string;
+  permCountry?: string;
   // 🔥 ADD THIS (Missing tha)
   educationMarksheets?: string;
 userBranches?: {
@@ -205,7 +207,7 @@ isPasswordVisible: boolean = false;
         this.rolesList = data; 
       },
       error: (err) => {
-        console.error("API fail ho gayi:", err);
+        console.error("API fails", err);
       }
     });
   }

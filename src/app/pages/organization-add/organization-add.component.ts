@@ -2,18 +2,19 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http'; 
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-organization-add',
   standalone: true,
-  imports: [CommonModule, FormsModule,ReactiveFormsModule, HttpClientModule], 
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, HttpClientModule], 
   templateUrl: './organization-add.component.html',
   styleUrl: './organization-add.component.css',
 })
 export class OrganizationAddComponent implements OnInit {
   activeTab: string = 'general';
   selectedRoles: string[] = [];
-  orgList: any[] = []; // List store karne ke liye
+  organizations: any[] = [];
 
   // Form Variables
   orgName: string = '';
@@ -52,21 +53,24 @@ export class OrganizationAddComponent implements OnInit {
 
   // GET API Call
   getOrgList() {
-    this.http.get('http://localhost:5000/api/Organization/list').subscribe({
-      next: (data: any) => { this.orgList = data; },
-      error: (err) => console.error('List fetch error:', err)
+    const url = `${environment.apiUrl}/Organization/list`;
+    
+    this.http.get(url).subscribe({
+      next: (data: any) => { 
+        this.organizations = data; 
+        console.log('Data fetched successfully');
+      },
+      error: (err) => {
+        console.error('List fetch error:', err);
+        alert('Could not load organizations. Please check your connection.');
+      }
     });
   }
 
   // --- Contact Row Functions ---
   addContactRow() {
     this.contactList.push({
-      name: '',
-      designation: '',
-      department: '',
-      mobile: '',
-      whatsapp: '',
-      email: ''
+      name: '', designation: '', department: '', mobile: '', whatsapp: '', email: ''
     });
   }
 
@@ -92,234 +96,104 @@ export class OrganizationAddComponent implements OnInit {
   }
 
   saveOrg() {
+    const url = `${environment.apiUrl}/Organization/save`;
+
+    // .NET Model properties matching (OrgName, Alias, etc.)
     const payload = {
-      orgName: this.orgName,
-      alias: this.alias,
-      branchName: this.selectedBranch?.name || '',
-      address: this.address,
-      country: this.country,
-      city: this.city,
-      telephone: this.telephone,
-      email: this.email,
-      stateProvince: this.stateProvince,
-      website: this.website,
-      phoneNumber: this.phoneNumber,
-      postalCode: this.postalCode,
-      altPhoneNumber: this.altPhoneNumber,
-      fax: this.fax,
-      whatsAppNumber: this.whatsAppNumber,
-      salesPerson: this.salesPerson,
-      collectionExec: this.collectionExec,
-      contacts: this.contactList // Sending dynamic contact list to API
+      OrgName: this.orgName,
+      Alias: this.alias,
+      BranchName: this.selectedBranch?.name || '',
+      Address: this.address,
+      Country: this.country,
+      City: this.city,
+      Telephone: this.telephone,
+      Email: this.email,
+      StateProvince: this.stateProvince,
+      Website: this.website,
+      PostalCode: this.postalCode,
+      WhatsAppNumber: this.whatsAppNumber,
+      SalesPerson: this.salesPerson,
+      CollectionExec: this.collectionExec,
+      SelectedRoles: this.selectedRoles.join(','),
+      // Backend ko Contacts key chahiye jaisa model mein hai
+      Contacts: this.contacts.map(c => ({
+        ContactName: c.contactName,
+        Mobile: c.mobile,
+        Whatsapp: c.whatsapp,
+        Email: c.email
+      }))
     };
 
-    this.http.post('http://localhost:5000/api/Organization/save', payload).subscribe({
+    this.http.post(url, payload).subscribe({
       next: () => {
         alert('Saved Successfully!');
-        this.getOrgList(); // List refresh karo
+        this.getOrgList(); 
+        this.isFormOpen = false; 
       },
-      error: (err) => alert('Error saving data')
+      error: (err) => {
+        console.error('Save Error:', err);
+        alert('Error saving data.');
+      }
     });
   }
 
   changeTab(tab: string) { this.activeTab = tab; }
   selectBranch(branch: any) { this.selectedBranch = branch; }
- cancel() {
-  // Agar form khula hai, toh sirf form band karo (table apne aap dikh jayegi)
-  if (this.isFormOpen) {
-    this.isFormOpen = false;
-    this.organizations = []; // Data clear karne ke liye
-  } else {
-    // Agar pehle se table par ho aur tab cancel dabaya, tab back jaye
-    this.location.back();
+  
+  cancel() {
+    if (this.isFormOpen) {
+      this.isFormOpen = false;
+      this.getOrgList(); // Reset karne ke bajaye list reload karo
+    } else {
+      this.location.back();
+    }
   }
-}
-  // --- ISKE NEECHE NAYA CODE ADD KAREIN (Existing code ko bina chede) ---
 
-  // Nayi Row ke liye array
+  // --- NAYA CODE ADDED BELOW AS REQUESTED ---
   contacts: any[] = [
     { contactName: '', designation: '', department: '', mobile: '', whatsapp: '', email: '' }
   ];
 
-  // Nayi row add karne ka function
   addContact() {
     this.contacts.push({
-      contactName: '',
-      designation: '',
-      department: '',
-      mobile: '',
-      whatsapp: '',
-      email: ''
+      contactName: '', designation: '', department: '', mobile: '', whatsapp: '', email: ''
     });
   }
 
-  // Row delete karne ka function (Optional but helpful)
   removeContact(index: number) {
     if (this.contacts.length > 1) {
       this.contacts.splice(index, 1);
     }
   }
-  organizations: any[] = [
-    // {
-    //   name: 'ABC SHIPPING LINE',
-    //   alias: 'ASL',
-    //   roles: ['Shipper', 'Agent'],
-    //   location: 'New Delhi',
-    //   taxId: '07AAACR1234H1Z5'
-    // },
-    // {
-    //   name: 'GLOBAL LOGISTICS',
-    //   alias: 'GL',
-    //   roles: ['Carrier'],
-    //   location: 'Mumbai',
-    //   taxId: '27BBBCR5678J1Z2'
-    // }
-  ];
+
   editOrg(org: any) {
     console.log('Editing:', org);
-    this.isFormOpen = true; // Edit click karne par form khul jaye
-    // Yahan aap purana data form mein fill karne ka logic likh sakte hain
+    this.isFormOpen = true;
   }
-  // .ts file mein variables ke sath ye likhein
-isFormOpen: boolean = false; // By default list dikhegi
 
-// Naya form kholne ke liye function
-openForm() {
-  this.isFormOpen = true;
-}
+  isFormOpen: boolean = false; 
 
-// Form band karke list par jane ke liye
-closeForm() {
-  this.isFormOpen = false;
-}
+  openForm() {
+    this.isFormOpen = true;
+  }
+
+  closeForm() {
+    this.isFormOpen = false;
+  }
+
   toggleForm() {
     this.isFormOpen = !this.isFormOpen;
-    if(!this.isFormOpen) this.organizations = []; // Form band ho toh data saaf kar do
   }
-deleteOrg(id: any) {
-    if (confirm('')) {
-      this.organizations = this.organizations.filter(o => o.id !== id);
+
+  deleteOrg(id: any) {
+    if (confirm('Are you sure?')) {
+      this.http.delete(`${environment.apiUrl}/Organization/delete/${id}`).subscribe({
+        next: () => {
+          alert('Deleted!');
+          this.getOrgList();
+        },
+        error: (err) => console.error(err)
+      });
     }
   }
-
 }
-
-
-// import { Component } from '@angular/core';
-// import { CommonModule, Location } from '@angular/common';
-// import { FormsModule } from '@angular/forms';
-
-// @Component({
-//   selector: 'app-organization-add',
-//   standalone: true,
-//   imports: [CommonModule, FormsModule],
-//   templateUrl: './organization-add.component.html',
-//   styleUrl: './organization-add.component.css',
-// })
-// export class OrganizationAddComponent {
-//   // Logic for toggling View
-//   isFormOpen: boolean = false;
-  
-//   // List Data
-//   organizations: any[] = [
-//     { id: 1, name: 'Sample Organization', alias: 'SO', country: 'India', roles: ['shipper'] }
-//   ];
-
-//   // Form Data (to be bound via ngModel in HTML)
-//   newOrg: any = {
-//     name: '',
-//     alias: '',
-//     country: '',
-//     city: '',
-//     email: ''
-//   };
-
-//   activeTab: string = 'general';
-//   selectedRoles: string[] = []; 
-  
-//   // Dynamic Branch List
-//   branches = [
-//     { id: 1, name: 'Branch 01', isDefault: true },
-//     { id: 2, name: 'Branch 02', isDefault: false }
-//   ];
-//   selectedBranch: any = this.branches[0];
-
-//   constructor(private location: Location) {}
-
-//   // --- YOUR ORIGINAL LOGIC (UNTOUCHED) ---
-
-//   toggleRole(role: string) {
-//     const index = this.selectedRoles.indexOf(role);
-//     if (index > -1) {
-//       this.selectedRoles.splice(index, 1);
-//       if (this.selectedRoles.length === 0 && !['account', 'billing', 'reg', 'IATA', 'integrations', 'general'].includes(this.activeTab)) {
-//         this.activeTab = 'general';
-//       }
-//     } else {
-//       this.selectedRoles.push(role);
-//       this.activeTab = role;
-//     }
-//   }
-
-//   isRoleSelected(role: string): boolean {
-//     return this.selectedRoles.includes(role);
-//   }
-
-//   changeTab(tabName: string) {
-//     this.activeTab = tabName;
-//   }
-
-//   selectBranch(branch: any) {
-//     this.selectedBranch = branch;
-//   }
-
-//   // --- NEW METHODS FOR LIST MANAGEMENT ---
-
-//   toggleForm() {
-//     this.isFormOpen = !this.isFormOpen;
-//     if (!this.isFormOpen) {
-//       this.resetForm();
-//     }
-//   }
-
-//   saveOrg() {
-//     // Adding the content from the form to the table
-//     const entry = {
-//       id: this.organizations.length + 1,
-//       name: this.newOrg.name || 'N/A',
-//       alias: this.newOrg.alias || 'N/A',
-//       country: this.newOrg.country || 'N/A',
-//       roles: [...this.selectedRoles]
-//     };
-    
-//     this.organizations.push(entry);
-//     alert('Organization Saved Successfully!');
-//     this.isFormOpen = false; // Close form and show list
-//     this.resetForm();
-//   }
-
-//   resetForm() {
-//     this.newOrg = { name: '', alias: '', country: '', city: '', email: '' };
-//     this.selectedRoles = [];
-//     this.activeTab = 'general';
-//   }
-
-//   editOrg(org: any) {
-//     // Logic for editing can be added here
-//     this.newOrg = { ...org };
-//     this.selectedRoles = [...org.roles];
-//     this.isFormOpen = true;
-//   }
-
-//   deleteOrg(id: number) {
-//     this.organizations = this.organizations.filter(o => o.id !== id);
-//   }
-
-//   cancel() { 
-//     if (this.isFormOpen) {
-//       this.isFormOpen = false;
-//     } else {
-//       this.location.back(); 
-//     }
-//   }
-// }

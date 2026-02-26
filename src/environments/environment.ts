@@ -1,3 +1,5 @@
+// environment.ts
 export const environment = {
-  apiUrl: 'https://api.cavalierlogistic.graphicsvolume.com/api'
+  production: false,
+  apiUrl: 'http://localhost:5000/api' // Isko change karein
 };

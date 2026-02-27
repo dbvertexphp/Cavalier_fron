@@ -299,7 +299,7 @@ if (userRole === 'Master') {
   // 🔥 BOTH ROLES (Master ke liye)
   this.roles = [
     'System Administrator',
-    'Branch Administrator'
+    'Branch Administrator'  
   ];
 
   this.branches = user.branches || [];

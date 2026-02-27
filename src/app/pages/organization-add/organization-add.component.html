@@ -5,16 +5,32 @@
         Status: <span class="text-green-600 font-bold">Active</span> | <span class="text-red-600 font-bold">Inactive</span>
       </div>
     </div>
-    <div class="p-4 bg-white border-b border-gray-200">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-3">
-        <div class="space-y-2">
-          <div class="flex items-center">
-            <label class="w-28 font-bold text-red-700">Org Name</label>
-            <div class="flex-1 flex border border-red-200">
-              <input type="text" placeholder="Search Company..." class="w-full p-1 outline-none text-[12px]">
-              <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400">🔍</span>
-            </div>
+<div class="p-4 bg-white border-b border-gray-200">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-3">
+    <div class="space-y-2">
+      <div class="flex items-center">
+        <label class="w-28 font-bold text-red-700">Org Name</label>
+        <div class="flex-1 flex flex-col relative">
+          <div class="flex border border-red-200">
+            <input type="text" [(ngModel)]="searchQuery" (input)="searchOrganization()" placeholder="Search Company..." class="w-full p-1 outline-none text-[12px]">
+            <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400">🔍</span>
           </div>
+          
+          <ul *ngIf="searchQuery && organizations && organizations.length > 0" 
+              class="absolute top-full left-0 w-full bg-white border border-gray-300 shadow-lg z-[1000] max-h-48 overflow-y-auto">
+            <li *ngFor="let org of organizations" (click)="onOrgSelect(org)" 
+                class="p-2 text-[12px] hover:bg-blue-100 cursor-pointer border-b border-gray-100 last:border-none">
+              {{org.orgName}}
+            </li>
+          </ul>
+
+          <div *ngIf="searchQuery && organizations && organizations.length === 0" 
+               class="absolute top-full left-0 w-full bg-red-50 border border-red-200 shadow-lg z-[1000] p-2 text-[12px] text-red-600">
+            ⚠️ No organization found matching "{{searchQuery}}"
+          </div>
+        </div>
+      </div>
+    
           <div class="flex items-center">
             <label class="w-28 font-bold text-gray-600">Org Code</label>
             <input type="text" placeholder="CODE001" class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm">
@@ -75,11 +91,11 @@
             </div>
             <div class="flex gap-4">
               <span class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline">Advance Filter</span>
-              <span class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline">Clear</span>
+              <span (click)="searchQuery=''; getOrgList()" class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline">Clear</span>
             </div>
           </div>
           <div class="flex justify-end mt-4">
-            <button class="bg-[#4a3f3f] text-white px-8 py-1.5 font-bold shadow-md uppercase text-[11px] hover:bg-black transition-all">
+            <button (click)="searchOrganization()" class="bg-[#4a3f3f] text-white px-8 py-1.5 font-bold shadow-md uppercase text-[11px] hover:bg-black transition-all">
               Search Organization
             </button>
           </div>

@@ -58,28 +58,6 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
   accessType: string | null = null;
 branchId:number | null = null;
 
-//   ngOnInit() {
-//     this.loadNavItemsFromApi();
-//     this.cdr.detectChanges();
-// //  this.accessType = localStorage.getItem('accessType');
-//     this.subscription.add(
-//       this.router.events.subscribe(event => {
-//         if (event instanceof NavigationEnd) {
-//           this.setActiveMenuFromRoute(this.router.url);
-//         }
-//       })
-//     );
-
-//     this.subscription.add(
-//       combineLatest([this.isExpanded$, this.isMobileOpen$, this.isHovered$]).subscribe(() => {
-//           this.cdr.detectChanges();
-//       })
-//     );
-
-//     this.setActiveMenuFromRoute(this.router.url);
-//       this.loadBranches();
-//   }
-
   ngOnInit() {
     this.loadNavItemsFromApi();
     this.cdr.detectChanges();
@@ -121,6 +99,7 @@ loadBranches() {
           this.cdr.detectChanges();
         },
         error: (err) => {
+          // Hum admin@cavalierlogistic.in user context ke liye error handle kar sakte hain agar required ho
           console.error('Branch API Error:', err);
         }
       });
@@ -130,51 +109,7 @@ loadBranches() {
     this.showBranchPopup = !this.showBranchPopup;
   }
 
-//   selectBranch(branch: any) {
 
-//   // ✅ Console me id + name
-//   console.log('Selected Branch ID:', branch.id);
-//   console.log('Selected Branch Name:', branch.name);
-
-//   const token = localStorage.getItem('cavalier_token') || '';
-
-//   const headers = new HttpHeaders({
-//     'Authorization': `Bearer ${token}`,
-//     'Content-Type': 'application/json'
-//   });
-
-//   this.http.post<any>(
-//     `${environment.apiUrl}/Auth/set-access-type`,
-//     { accessType: 'branch' },   // 🔥 Sirf "branch" bhejna hai
-//     { headers }
-//   ).subscribe({
-
-//     next: (res) => {
-
-//       // token update
-//       localStorage.setItem('cavalier_token', res.token);
-//       localStorage.setItem('accessType', 'branch');
-
-//       // optional: branch ko localStorage me save kar sakte ho
-//       localStorage.setItem('selectedBranchId', branch.id);
-//       localStorage.setItem('selectedBranchName', branch.name);
-
-//       this.showBranchPopup = false;
-
-//       // sidebar reload
-//       this.loadings = true;
-//       this.cdr.detectChanges();
-//       this.loadNavItemsFromApi();
-
-//     },
-
-//     error: (err) => {
-//       console.error('Branch switch failed', err);
-//       alert('Something went wrong!');
-//     }
-
-//   });
-// }
 selectBranch(branch: any) {
   // ✅ Console me id + name
   console.log('Selected Branch ID:', branch.id);
@@ -247,34 +182,6 @@ selectBranch(branch: any) {
       }
     );
   }
-
-  // goToAccessController() {
-  //   const accessType = 'system';
-  //   const token = localStorage.getItem('cavalier_token') || '';
-  //   const headers = new HttpHeaders({
-  //     'Authorization': `Bearer ${token}`,
-  //     'Content-Type': 'application/json'
-  //   });
-
-  //   this.http.post<any>(
-  //     `${environment.apiUrl}/Auth/set-access-type`,
-  //     { accessType },
-  //     { headers }
-  //   ).subscribe({
-  //     next: (res) => {
-  //       localStorage.setItem('cavalier_token', res.token);
-  //       localStorage.setItem('accessType', res.accessType);
-  //       this.currentAccessType = res.accessType;
-  //       this.loadings = true;
-  //       this.cdr.detectChanges();
-  //       this.loadNavItemsFromApi();
-  //     },
-  //     error: (err) => {
-  //       console.error('Access switch failed', err);
-  //       alert('Something went wrong!');
-  //     }
-  //   });
-  // }
   goToAccessController() {
   const accessType = 'system';
   const token = localStorage.getItem('cavalier_token') || '';
@@ -362,7 +269,25 @@ selectBranch(branch: any) {
       });
     }
 
-    const finalNav = Object.values(navMap);
+    let finalNav = Object.values(navMap);
+
+    // --- REORDER LOGIC: ORGANIZATION UNDER DASHBOARD ---
+    const orgIndex = finalNav.findIndex(item => item.name === 'Organization');
+    const dashIndex = finalNav.findIndex(item => item.name === 'Dashboard');
+
+    if (orgIndex !== -1) {
+      const orgItem = finalNav.splice(orgIndex, 1)[0];
+      
+      // Dashboard ko dhoond kar uske theek baad insert karein
+      const newDashIndex = finalNav.findIndex(item => item.name === 'Dashboard');
+      if (newDashIndex !== -1) {
+        finalNav.splice(newDashIndex + 1, 0, orgItem);
+      } else {
+        // Agar dashboard nahi mila to top par daal dein
+        finalNav.unshift(orgItem);
+      }
+    }
+
     const accessType = localStorage.getItem('accessType'); 
 
     if (accessType === 'system') {

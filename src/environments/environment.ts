@@ -1,5 +1,5 @@
 // environment.ts
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:5000/api' // Isko change karein
+  apiUrl: 'https://localhost:7215/api' // Isko change karein
 };

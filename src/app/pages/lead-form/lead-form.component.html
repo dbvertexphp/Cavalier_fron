@@ -224,13 +224,20 @@
       <option>Select Team</option>
     </select>
   </div>
-  <div class="flex flex-col gap-3">
-    <label class="font-bold text-gray-600">HOD</label>
-    <select formControlName="team"
-      class="border border-gray-300 p-2 w-full">
-      <option>Select HOD</option>
-    </select>
-  </div>
+  <div class="flex flex-col gap-3" [formGroup]="form">
+  <label class="font-bold text-gray-600">HOD</label>
+
+  <select formControlName="team"
+    class="border border-gray-300 p-2 w-full">
+
+    <option value="">Select HOD</option>
+
+    <option *ngFor="let hod of hodList" [value]="hod.id">
+      {{ hod.name }}
+    </option>
+
+  </select>
+</div>
  <div class="flex flex-col gap-3">
     <label class="font-bold text-gray-600">Location</label>
     <select formControlName="location"

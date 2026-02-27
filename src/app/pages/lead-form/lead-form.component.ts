@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router'; // Router import kiya
+import { environment } from '../../../environments/environment.prod';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-lead-form',
@@ -11,8 +13,10 @@ import { Router } from '@angular/router'; // Router import kiya
   styleUrl: './lead-form.component.css',
 })
 export class LeadFormComponent implements OnInit {
+  form!: FormGroup;
   leadForm!: FormGroup;
   isFormOpen = false; 
+   hodList: any[] = [];
   
   
   leads: any[] = [
@@ -20,9 +24,14 @@ export class LeadFormComponent implements OnInit {
     { date: '12-Feb-2026', organization: 'XYZ LOGISTICS', type: 'New Business', leadOwner: 'BHARAT JUYAL', status: 'Won', branch: 'DELHI' }
   ];
 
-  constructor(private fb: FormBuilder, private router: Router) {} // router yahan inject kiya
+  constructor(private fb: FormBuilder, private router: Router,private http: HttpClient,private cds:ChangeDetectorRef) {} // router yahan inject kiya
 
   ngOnInit(): void {
+    this.http.get(`${environment.apiUrl}/Hod`)
+      .subscribe((res: any) => {
+        this.hodList = res;
+        
+      });
     this.initForm();
   }
 

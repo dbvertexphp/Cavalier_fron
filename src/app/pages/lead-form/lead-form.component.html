@@ -100,18 +100,29 @@
             <th class="p-3 text-left">Lead Owner</th>
             <th class="p-3 text-left">Stage</th>
             <th class="p-3 text-left">Branch</th>
+            <th class="p-3 text-left">Actions</th>
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
           <tr *ngFor="let lead of leads" class="divide-x divide-gray-200 hover:bg-gray-50 cursor-pointer">
-            <td class="p-3">{{ lead.date }}</td>
-            <td class="p-3 uppercase">{{ lead.organization }}</td>
+            <td class="p-3">{{ lead.date | date:'dd-MMM-yyyy' }}</td>
+         <td class="p-3 uppercase">{{ lead.orgName || lead.organizationId }}</td>
             <td class="p-3">{{ lead.type }}</td>
             <td class="p-3">{{ lead.leadOwner }}</td>
             <td class="p-3">
-              <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-[11px]">{{ lead.status }}</span>
+              <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-[11px]">{{ lead.salesStage }}</span>
             </td>
-            <td class="p-3">{{ lead.branch || 'DELHI' }}</td>
+           <td class="p-3">{{ lead.branch || 'DELHI' }}</td>
+<td class="p-3 flex gap-2">
+<button (click)="editLead(lead.id)" 
+        class="text-green-600 hover:underline text-[11px] font-bold">
+  Edit
+</button>
+  <button (click)="deleteLead(lead.id)" 
+          class="text-red-600 hover:underline text-[11px] font-bold">
+    Delete
+  </button>
+</td>
           </tr>
         </tbody>
       </table>
@@ -119,168 +130,191 @@
   </div>
 
   <form *ngIf="isFormOpen" [formGroup]="leadForm" (ngSubmit)="onSave()">
-    <div class="max-w-7xl mx-auto bg-white border border-gray-300 shadow-lg overflow-hidden">
-      
-      <div class="bg-[#4a3f3f] p-2 flex justify-between items-center text-white">
-        <div class="flex gap-2 px-2">
-          <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold text-[12px] px-4 py-1.5 uppercase shadow-sm">SAVE</button>
+  <div class="max-w-7xl mx-auto bg-white border border-gray-300 shadow-lg overflow-hidden">
+    
+    <div class="bg-[#4a3f3f] p-2 flex justify-between items-center text-white">
+      <div class="flex gap-2 px-2">
+        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold text-[12px] px-4 py-1.5 uppercase shadow-sm">SAVE</button>
+      </div>
+      <div class="font-bold uppercase text-[12px] tracking-widest truncate px-2">
+        Lead Entry - {{ leadForm.get('organization')?.value || 'New Record' }}
+      </div>
+      <button type="button" (click)="toggleForm()" class="bg-red-500 hover:bg-red-600 px-4 py-1.5 text-[12px] font-bold uppercase">CLOSE</button>
+    </div>
+
+    <div class="p-6 bg-white">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4">
+
+        <div class="flex flex-col gap-3">
+          <label class="font-bold text-gray-600">Lead No.</label>
+        <input type="text" formControlName="leadNo" readonly
+  class="border border-gray-300 p-2 bg-gray-100 outline-none w-full" />
+
+          <label class="font-bold text-gray-600">Type</label>
+          <select formControlName="type" class="border border-gray-300 p-2 w-full">
+            <option value="New Business">New Business</option>
+            <option value="Existing Business">Existing Business</option>
+          </select>
+
+          <label class="font-bold text-gray-600">Sales Process</label>
+          <select formControlName="salesProcess" class="border border-gray-300 p-2 w-full">
+            <option value="">Select Process</option>
+            <option value="Standard">Standard Process</option>
+            <option value="Quick">Quick Process</option>
+          </select>
         </div>
-        <div class="font-bold uppercase text-[12px] tracking-widest truncate px-2">
-          Lead Entry - {{ leadForm.get('organization')?.value || 'New Record' }}
+
+        <div class="flex flex-col gap-3">
+          <label class="font-bold text-gray-600">Date</label>
+          <input type="text" formControlName="date" class="border border-gray-300 p-2 w-full">
+
+          <label class="text-red-700 font-bold">Lead Owner</label>
+          <select formControlName="leadOwner" class="border border-red-200 p-2 w-full">
+            <option value="BHARAT JUYAL">BHARAT JUYAL</option>
+          </select>
+
+          <label class="font-bold text-gray-600">Sales Coordinator</label>
+          <select formControlName="salesCoordinator" class="border border-gray-300 p-2 w-full">
+            <option value="">Select Co-ordinator</option>
+            <option value="CO_ORDINATOR_1">Coordinator 1</option>
+          </select>
         </div>
-        <button type="button" (click)="toggleForm()" class="bg-red-500 hover:bg-red-600 px-4 py-1.5 text-[12px] font-bold uppercase">CLOSE</button>
+
+        <div class="flex flex-col gap-3">
+          <label class="font-bold text-gray-600">Expected Validity</label>
+          <input type="text" formControlName="expectedValidity" class="border border-gray-300 p-2 w-full bg-gray-50" readonly>
+
+          <label class="font-bold text-gray-600">Lead Source</label>
+          <select formControlName="source" class="border border-gray-300 p-2 w-full">
+            <option value="">Select Source</option>
+            <option value="Email">Email</option>
+            <option value="Call">Phone Call</option>
+            <option value="Reference">Reference</option>
+          </select>
+
+          <label class="font-bold text-gray-600">Sales Stage</label>
+          <select formControlName="salesStage" class="border border-gray-300 p-2 w-full">
+            <option value="Inquiry Received">Inquiry Received</option>
+            <option value="Sales Closed">Sales Closed</option>
+          </select>
+        </div>
+
       </div>
 
-      <!--<div class="flex bg-[#f3f4f6] border-b border-gray-300">
-        <div class="px-6 py-2 bg-white border-t-2 border-t-[#4a3f3f] border-x border-x-gray-300 font-bold text-[#4a3f3f] uppercase text-[12px]">Main</div>
-      </div>-->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4 mt-6">
+        <div class="flex flex-col gap-3">
+          <label class="font-bold text-gray-600">Branch</label>
+          <select formControlName="branch" class="border border-gray-300 p-2 w-full">
+            <option value="DELHI">DELHI</option>
+          </select>
+        </div>
 
-      <div class="p-6 bg-white">
-      <!-- ===== FIRST 9 FIELDS ===== -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4">
+        <div class="flex flex-col gap-3">
+          <label class="font-bold text-gray-600">Reporting Manager</label>
+          <select formControlName="reportingManager" class="border border-gray-300 p-2 w-full">
+            <option value="">Select Manager</option>
+          </select>
+        </div>
 
-  <!-- Column 1 -->
-  <div class="flex flex-col gap-3">
-    <label class="font-bold text-gray-600">Lead No.</label>
-    <input type="text" value="LD-14321" readonly
-      class="border border-gray-300 p-2 bg-gray-100 outline-none w-full" />
-
-    <label class="font-bold text-gray-600">Type</label>
-    <select formControlName="type" class="border border-gray-300 p-2 w-full">
-      <option>New Business</option>
-      <option>Existing Business</option>
-    </select>
-
-    <label class="font-bold text-gray-600">Sales Process</label>
-    <select formControlName="salesProcess" class="border border-gray-300 p-2 w-full">
-      <option>Select Process</option>
-    </select>
-  </div>
-
-  <!-- Column 2 -->
-  <div class="flex flex-col gap-3">
-    <label class="font-bold text-gray-600">Date</label>
-    <input type="text" formControlName="date"
-      class="border border-gray-300 p-2 w-full">
-
-    <label class="text-red-700 font-bold">Lead Owner</label>
-    <select formControlName="leadOwner" class="border border-red-200 p-2 w-full">
-      <option>BHARAT JUYAL</option>
-    </select>
-
-    <label class="font-bold text-gray-600">Sales Coordinator</label>
-    <select formControlName="salesCoordinator"
-      class="border border-gray-300 p-2 w-full">
-      <option>Select Co-ordinator</option>
-    </select>
-  </div>
-
-  <!-- Column 3 -->
-  <div class="flex flex-col gap-3">
-    <label class="font-bold text-gray-600">Expected Validity</label>
-    <input type="text" formControlName="expectedValidity"
-      class="border border-gray-300 p-2 w-full">
-
-    <label class="font-bold text-gray-600">Lead Source</label>
-    <select formControlName="source"
-      class="border border-gray-300 p-2 w-full">
-      <option>Select Source</option>
-    </select>
-
-    <label class="font-bold text-gray-600">Sales Stage</label>
-    <select formControlName="salesStage"
-      class="border border-gray-300 p-2 w-full">
-      <option>Inquiry Received</option>
-      <option>Sales Closed</option>
-    </select>
-  </div>
-
+    <div class="flex flex-col gap-3" [formGroup]="form">
+  <label class="font-bold text-gray-600">Team</label>
+  
+  <select formControlName="team"
+    class="border border-gray-600 p-2 w-full">
+    
+    <option value="">Select Team</option>
+    
+    <option *ngFor="let team of teamsList" [value]="team.id">
+      {{ team.name }}
+    </option>
+  </select>
 </div>
 
-
-<!-- ===== HOD / BRANCH / TEAM (SAME STYLE ROW) ===== -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4 mt-6">
- <div class="flex flex-col gap-3">
-    <label class="font-bold text-gray-600">Branch</label>
-    <select formControlName="branch"
-      class="border border-gray-300 p-2 w-full">
-      <option>DELHI</option>
-    </select>
-  </div>
-  
-
-   <div class="flex flex-col gap-3">
-    <label class="font-bold text-gray-600">Reporting Manager</label>
-    <select formControlName="hod"
-      class="border border-gray-300 p-2 w-full">
-      <option>Select HOD</option>
-    </select>
-  </div>
-
-  <div class="flex flex-col gap-3">
-    <label class="font-bold text-gray-600">Team</label>
-    <select formControlName="team"
-      class="border border-gray-300 p-2 w-full">
-      <option>Select Team</option>
-    </select>
-  </div>
-  <div class="flex flex-col gap-3" [formGroup]="form">
+        <div class="flex flex-col gap-3" [formGroup]="form">
   <label class="font-bold text-gray-600">HOD</label>
-
+ 
   <select formControlName="team"
     class="border border-gray-300 p-2 w-full">
-
+ 
     <option value="">Select HOD</option>
-
+ 
     <option *ngFor="let hod of hodList" [value]="hod.id">
       {{ hod.name }}
     </option>
-
+ 
   </select>
 </div>
- <div class="flex flex-col gap-3">
-    <label class="font-bold text-gray-600">Location</label>
-    <select formControlName="location"
-      class="border border-gray-300 p-2 w-full">
-      <option>Select</option>
-    </select>
-  </div>
-   <div class="flex flex-col gap-3">
-    <label class="font-bold text-gray-600">Area</label>
-    <select formControlName="team"
-      class="border border-gray-300 p-2 w-full">
-      <option>Select</option>
-    </select>
-  </div>
-</div>
-<!-- Baaki fields waise hi niche continue ho -->
-        <hr class="my-6 border-gray-200">
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
-          <div class="grid grid-cols-1 sm:grid-cols-3 items-center gap-3">
-            <label class="text-red-700 font-bold">Organization</label>
-            <div class="sm:col-span-2 flex gap-1">
-              <div class="flex border border-red-300 w-full bg-white shadow-sm">
-                <input type="text" class="w-full p-2 border-none outline-none">
-                <span class="p-2 bg-gray-100 border-l border-gray-300 cursor-pointer flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                </span>
-              </div>
-              <button type="button" (click)="navigateToNewOrg()" class="bg-green-800 text-white px-2 rounded-sm font-bold text-[10px] hover:bg-black transition-colors">NEW</button>
-            </div>
-
-            
-          </div>
+        <div class="flex flex-col gap-3">
+          <label class="font-bold text-gray-600">Location</label>
+          <select formControlName="location" class="border border-gray-300 p-2 w-full">
+            <option value="">Select</option>
+          </select>
         </div>
 
-        <div class="bg-[#f9fafb] mt-8 p-4 flex flex-wrap justify-center sm:justify-end gap-3 border-t border-gray-300">
-          <button type="submit" class="bg-[#4a3f3f] text-white px-8 py-2 font-bold shadow-md hover:bg-black uppercase flex-grow sm:flex-grow-0">Save</button>
-          <button type="button" class="bg-white border border-gray-300 px-6 py-2 font-bold text-gray-700 hover:bg-gray-50 uppercase shadow-sm flex-grow sm:flex-grow-0">Save & Close</button>
-          <button type="button" class="bg-white border border-gray-300 px-6 py-2 font-bold text-gray-700 hover:bg-gray-50 uppercase shadow-sm flex-grow sm:flex-grow-0">Save & New</button>
-          <button type="button" (click)="toggleForm()" class="bg-gray-200 border border-gray-400 px-8 py-2 font-bold text-gray-700 hover:bg-gray-300 uppercase shadow-sm flex-grow sm:flex-grow-0">Close</button>
-          <button type="button" class="bg-blue-600 text-white px-8 py-2 font-bold shadow-sm hover:bg-blue-700 uppercase flex-grow sm:flex-grow-0">Copy</button>
+        <div class="flex flex-col gap-3">
+          <label class="font-bold text-gray-600">Area</label>
+          <select formControlName="area" class="border border-gray-300 p-2 w-full">
+            <option value="">Select</option>
+          </select>
+        </div>
+      </div>
+
+      <hr class="my-6 border-gray-200">
+     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
+  <div class="grid grid-cols-1 sm:grid-cols-3 items-center gap-3">
+  <label class="text-red-700 font-bold">Organization</label>
+  
+  <div class="sm:col-span-2 flex gap-1 relative">
+    <div class="flex border border-red-300 w-full bg-white shadow-sm relative">
+      
+      <input type="text" 
+             formControlName="organization"
+             class="w-full p-2 border-none outline-none"
+             placeholder="Search organization..."
+             (input)="searchOrganization($event)">
+             
+      <span class="p-2 bg-gray-100 border-l border-gray-300 cursor-pointer flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-600" fill="none" viewBox="0 0 24 24"
+          stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      </span>
+
+      <div *ngIf="filteredOrganizations.length > 0" 
+           class="absolute z-50 w-full bg-white border border-gray-300 top-full left-0 mt-1 max-h-40 overflow-y-auto shadow-md rounded-sm">
+        <div *ngFor="let org of filteredOrganizations" 
+             (click)="selectOrganization(org)"
+             class="p-2 hover:bg-red-100 cursor-pointer text-sm border-b border-gray-100">
+          {{ org.orgName }}
         </div>
       </div>
     </div>
-  </form>
+    
+    <button type="button" (click)="navigateToNewOrg()"
+      class="bg-green-800 text-white px-2 rounded-sm font-bold text-[10px] hover:bg-black transition-colors">
+      NEW
+    </button>
+  </div>
 </div>
+</div>
+
+      <div class="bg-[#f9fafb] mt-8 p-4 flex flex-wrap justify-center sm:justify-end gap-3 border-t border-gray-300">
+        <button type="submit"
+          class="bg-[#4a3f3f] text-white px-8 py-2 font-bold shadow-md hover:bg-black uppercase flex-grow sm:flex-grow-0">Save</button>
+        <button type="button"
+          class="bg-white border border-gray-300 px-6 py-2 font-bold text-gray-700 hover:bg-gray-50 uppercase shadow-sm flex-grow sm:flex-grow-0">Save
+          & Close</button>
+        <button type="button"
+          class="bg-white border border-gray-300 px-6 py-2 font-bold text-gray-700 hover:bg-gray-50 uppercase shadow-sm flex-grow sm:flex-grow-0">Save
+          & New</button>
+        <button type="button" (click)="toggleForm()"
+          class="bg-gray-200 border border-gray-400 px-8 py-2 font-bold text-gray-700 hover:bg-gray-300 uppercase shadow-sm flex-grow sm:flex-grow-0">Close</button>
+        <button type="button"
+          class="bg-blue-600 text-white px-8 py-2 font-bold shadow-sm hover:bg-blue-700 uppercase flex-grow sm:flex-grow-0">Copy</button>
+      </div>
+    </div>
+  </div>
+</form>
+</div>  

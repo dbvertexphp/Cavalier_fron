@@ -5,7 +5,7 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app/app.routes';
-import { authInterceptor } from './app/interceptors/auth.interceptor';
+// import { authInterceptor } from './app/interceptors/auth.interceptor';
 
 import { register as registerSwiperElements } from 'swiper/element/bundle';
 import { environment } from './environments/environment';
@@ -17,7 +17,7 @@ bootstrapApplication(AppComponent, {
   providers: [
     provideRouter(routes), // 🔥 THIS WAS MISSING
     provideHttpClient(
-      withInterceptors([authInterceptor])
+      // withInterceptors([authInterceptor])
     )
   ]
 }).catch(err => console.error(err));

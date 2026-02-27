@@ -1,4 +1,4 @@
-<div class="p-3 bg-gray-100 min-h-screen font-sans text-[13px]">
+<!--<div class="p-3 bg-gray-100 min-h-screen font-sans text-[13px]">
   <div *ngIf="!isFormOpen" class="bg-white border border-gray-300 shadow-sm rounded-sm overflow-hidden">
     <div class="bg-gray-100 p-1.5 border-b border-gray-300 flex gap-4 items-center">
        <div class="text-[11px] italic text-gray-500">
@@ -162,7 +162,7 @@
                 <input [(ngModel)]="quotation.qtnId" placeholder="Search Lead..."
                   class="border border-gray-300 p-2 pr-10 bg-white outline-none w-full text-gray-600 rounded" />
 
-                <!-- Search Icon -->
+                
                 <span class="absolute inset-y-0 right-3 flex items-center text-gray-400 cursor-pointer">
                   🔍
                 </span>
@@ -171,7 +171,7 @@
             </div>
   <div class="grid grid-cols-2 items-center">
               <label class="font-bold text-gray-700">Branch</label>
-              <select [(ngModel)]="quotation.branch" class="border p-1.5 outline-none">
+              <select [(ngModel)]="quotation.branchName" class="border p-1.5 outline-none">
                 <option value="">--Select--</option>
                 <option value="MUMBAI">CAVALIER</option>
                 <option value="DELHI">DELHI</option>
@@ -200,15 +200,7 @@
     placeholder="INQ-2024-001"
     class="border p-1.5 outline-none bg-gray-100 cursor-not-allowed text-gray-600 rounded uppercase">
 </div>
-  <!-- <div class="grid grid-cols-2 items-center">
-              <label class="font-bold text-gray-700">Branch</label>
-              <select [(ngModel)]="quotation.branch" class="border p-1.5 outline-none">
-                <option value="">--Select--</option>
-                <option value="MUMBAI">MUMBAI</option>
-                <option value="DELHI">DELHI</option>
-              </select>
-            </div> -->
-            <div class="grid grid-cols-2 items-center">
+             <div class="grid grid-cols-2 items-center">
               <label class="font-bold text-[#802a2a]">Location</label>
               <select [(ngModel)]="quotation.location" class="border p-1.5 outline-none bg-white">
                 <option value="DELHI">DELHI</option>
@@ -335,7 +327,6 @@
                   <option value="Temperature Controlled">Temperature Controlled</option>
                 </select>
               </div>
-
               <div *ngIf="quotation.commodity === 'Hazard'"
                 class="flex items-center animate-in fade-in slide-in-from-top-2 duration-300">
                 <label class="w-40 font-bold text-gray-700">Upload Document</label>
@@ -454,16 +445,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                       </svg>
                     </div>
-
-                    <!-- <button type="button"
-                      class="bg-green-600 hover:bg-green-700 text-white px-3 h-full flex items-center justify-center transition-colors shadow-inner"
-                      title="Add more dimensions">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
-                      </svg>
-                    </button> -->
-                    <button type="button" (click)="openDimModal()"
+                   <button type="button" (click)="openDimModal()"
   class="bg-green-600 hover:bg-green-700 text-white px-3 h-full flex items-center justify-center transition-colors shadow-inner"
   title="Add more dimensions">
   <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -660,7 +642,6 @@
         </div>
       </div>
     </div>
-
     <div class="p-4 bg-gray-50 border-t flex justify-end gap-3">
       <button (click)="toggleForm()"
         class="bg-white border border-gray-400 px-8 py-2 font-bold text-gray-700 hover:bg-gray-200 uppercase">Cancel</button>
@@ -670,4 +651,662 @@
       </button>
     </div>
   </div>
+</div>-->
+
+
+
+
+<div class="p-3 bg-gray-100 min-h-screen font-sans text-[13px]">
+  <div *ngIf="!isFormOpen" class="bg-white border border-gray-300 shadow-sm rounded-sm overflow-hidden">
+    <div class="bg-gray-100 p-1.5 border-b border-gray-300 flex gap-4 items-center">
+       <div class="text-[11px] italic text-gray-500">
+         Items in <span class="text-green-600 font-bold">green</span> = Sucess | <span class="text-red-600 font-bold">Red</span> = Faild
+      </div>
+    </div>
+
+    <div class="p-4 bg-white border-b border-gray-200">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-3">
+        
+        <div class="space-y-2">
+          <div class="flex items-center">
+            <label class="w-28 font-bold text-gray-600">Services</label>
+            <select class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
+              <option>Any</option>
+            </select>
+          </div>
+          <div class="flex items-center">
+            <label class="w-28 font-bold text-gray-600">Inquiry No.</label>
+            <input type="text" class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm">
+          </div>
+          <div class="flex items-center">
+            <label class="w-28 font-bold text-red-700">Inquiry to</label>
+            <div class="flex-1 flex border border-red-200">
+               <input type="text" class="w-full p-1 outline-none text-[12px]">
+               <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400">🔍</span>
+            </div>
+          </div>
+          <div class="flex items-center">
+            <label class="w-28 font-bold text-gray-600">Show</label>
+            <select class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
+              <option>Valid Inquiry Only</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <div class="space-y-2">
+  <div class="flex items-center">
+    <label class="w-24 font-bold text-gray-600">Date</label>
+    
+    <div 
+      class="flex-1 flex border border-gray-300 items-center pr-2 cursor-pointer"
+      (click)="datePicker.showPicker()">
+      
+      <input 
+        #datePicker
+        type="date" 
+        class="w-full p-1 outline-none text-[12px] cursor-pointer"
+        (focus)="datePicker.showPicker()">
+        
+      <span>📅</span>
+    </div>
+  </div>
 </div>
+          <div class="flex items-center">
+            <label class="w-24 font-bold text-gray-600">Inquiry By</label>
+            <div class="flex-1 flex border border-gray-300">
+               <input type="text" class="w-full p-1 outline-none text-[12px]">
+               <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400">🔍</span>
+            </div>
+          </div>
+          <div class="flex items-center">
+            <label class="w-24 font-bold text-gray-600">Status</label>
+            <select class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
+              <option>(Any)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex flex-col justify-between pt-1">
+          <div class="space-y-2 pl-4">
+            <div class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline flex items-center gap-1">
+              Advance Filter <span class="text-[10px]">▼</span>
+            </div>
+            <div class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline">
+              Clear
+            </div>
+            <div class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline">
+              Legend
+            </div>
+          </div>
+          
+          <div class="flex justify-end mt-4">
+            <button class="bg-[#4a3f3f] text-white px-8 py-1.5 font-bold shadow-md uppercase text-[11px] hover:bg-black transition-all">
+              Search
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="bg-[#4a3f3f] p-3 flex justify-between items-center text-white">
+      <div class="font-bold uppercase tracking-widest px-2 text-[12px]">Inquiry Records</div>
+      <button (click)="toggleForm()"
+        class="bg-green-600 hover:bg-green-700 px-5 py-1.5 text-[12px] font-bold shadow-sm flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
+        </svg>
+        ADD NEW INQUIRY
+      </button>
+    </div>
+
+    <div class="p-0 overflow-x-auto">
+      <table class="w-full border-collapse border border-gray-200 whitespace-nowrap">
+        <thead>
+          <tr class="bg-gray-50 text-gray-600 uppercase text-[11px] border-b">
+            <th class="p-4 text-left font-bold">INQ ID</th>
+            <th class="p-4 text-left font-bold">Customer Name</th>
+            <th class="p-4 text-left font-bold">POL / POD</th>
+            <th class="p-4 text-left font-bold">Status</th>
+            <th class="p-4 text-center font-bold sticky right-0 bg-gray-50 border-l shadow-sm">Action</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white">
+          <tr *ngFor="let q of quotations" class="hover:bg-gray-50 border-b text-gray-700">
+            <td class="p-4 font-bold">{{q.inquiryNo}}</td>
+            <td class="p-4 uppercase font-medium">{{q.customerName}}</td>
+            <td class="p-4">{{q.portOfLoading}} -> {{q.portOfDestination}}</td>
+            <td class="p-4">
+              <span
+                [ngClass]="{'bg-yellow-100 text-yellow-800': q.id > 0,'bg-green-100 text-green-800': q.id === 0}"
+                class="px-3 py-1 rounded text-[11px] font-bold">
+                {{q.id > 0 ? 'Active' : 'Draft'}}
+              </span>
+            </td>
+            <td class="p-4 sticky right-0 bg-white border-l text-center">
+              <button (click)="editQuotation(q)"
+                class="text-blue-600 mr-3 font-bold uppercase hover:underline">Edit</button>
+              <button (click)="deleteQuotation(q.id)"
+                class="text-red-600 font-bold uppercase hover:underline">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div *ngIf="isFormOpen" class="bg-white border border-gray-300 shadow-lg">
+    <div class="bg-[#4a3f3f] p-2 flex justify-between items-center text-white">
+      <div class="flex gap-2 px-2">
+        <button (click)="saveQuotation()"
+          class="bg-green-600 hover:bg-green-700 text-white font-bold text-[12px] px-4 py-1.5 uppercase shadow-sm">SAVE</button>
+      </div>
+      <div class="font-bold uppercase text-[12px] tracking-widest">
+        {{ quotation.id ? 'Edit Inquiry Entry' : 'New Inquiry Entry' }}
+      </div>
+      <button (click)="toggleForm()"
+        class="bg-red-500 hover:bg-red-600 px-4 py-1.5 text-[12px] font-bold">CLOSE</button>
+    </div>
+
+    <div class="p-5 space-y-6">
+      <div class="bg-gray-50 p-4 border border-gray-200 rounded">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-x-8 gap-y-3">
+          <div class="space-y-2">
+            <div class="grid grid-cols-2 items-center gap-3">
+
+              <label class="font-bold text-gray-700">Reference by lead.</label>
+
+              <div class="relative">
+                <input [(ngModel)]="quotation.id" name="id" placeholder="Search Lead..."
+                  class="border border-gray-300 p-2 pr-10 bg-white outline-none w-full text-gray-600 rounded" />
+
+                
+                <span class="absolute inset-y-0 right-3 flex items-center text-gray-400 cursor-pointer">
+                  🔍
+                </span>
+              </div>
+
+            </div>
+  <div class="grid grid-cols-2 items-center">
+              <label class="font-bold text-gray-700">Branch</label>
+              <select [(ngModel)]="quotation.branchName" name="branchName" class="border p-1.5 outline-none">
+                <option value="">--Select--</option>
+                <option value="MUMBAI">CAVALIER</option>
+                <option value="DELHI">DELHI</option>
+              </select>
+            </div>
+            <div class="grid grid-cols-2 items-center">
+              <label class="font-bold text-gray-700">Inq. Received</label>
+              <input type="date" [(ngModel)]="quotation.receivedDate" name="receivedDate"
+                class="border p-1 text-[11px] outline-none">
+            </div>
+            <div class="grid grid-cols-2 items-center">
+              <label class="font-bold text-gray-700">Inq. Replied</label>
+              <input type="date" [(ngModel)]="quotation.repliedDate" name="repliedDate"
+                class="border p-1 text-[11px] outline-none">
+            </div>
+          </div>
+          <div class="space-y-2">
+            
+          
+            <div class="grid grid-cols-2 items-center">
+  <label class="font-bold text-gray-700">Inquiry No:</label>
+  <input 
+    type="text" 
+    [(ngModel)]="quotation.inquiryNo" 
+    name="inquiryNo"
+    readonly 
+    placeholder="INQ-2024-001"
+    class="border p-1.5 outline-none bg-gray-100 cursor-not-allowed text-gray-600 rounded uppercase">
+</div>
+             <div class="grid grid-cols-2 items-center">
+              <label class="font-bold text-[#802a2a]">Location</label>
+              <select [(ngModel)]="quotation.location" name="location" class="border p-1.5 outline-none bg-white">
+                <option value="DELHI">DELHI</option>
+                <option value="MUMBAI">MUMBAI</option>
+              </select>
+            </div>
+            <div class="grid grid-cols-2 items-center">
+              <label class="font-bold text-gray-700">Sales Coor.</label>
+              <select [(ngModel)]="quotation.salesCoordinator" name="salesCoordinator" class="border p-1.5 outline-none">
+                <option value="">--Select--</option>
+                <option value="Sales 1">Sales User 1</option>
+              </select>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <div class="grid grid-cols-2 items-center">
+              <label class="font-bold text-[#802a2a]">Party Role</label>
+              <select [(ngModel)]="quotation.partyRole" name="partyRole" class="border p-1.5 outline-none">
+                <option value="">--Select--</option>
+                <option value="Shipper">Shipper</option>
+                <option value="Consignee">Consignee</option>
+                <option value="Dest.Agent">Dest.Agent</option>
+                <option value="Origin Agent">Origin Agent</option>
+                <option value="Customer">Customer</option>
+                <option value="Global">Global</option>
+              </select>
+            </div>
+            <div class="grid grid-cols-2 items-center">
+              <label class="font-bold text-[#802a2a]">Pricing By</label>
+              <div class="relative flex items-center">
+                <input [(ngModel)]="quotation.pricingDoneBy" name="pricingDoneBy" class="w-full border p-1.5 outline-none pr-6">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 absolute right-2 text-gray-400" fill="none"
+                  viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 items-center">
+              <label class="font-bold text-gray-700">Line Of Business</label>
+              <select [(ngModel)]="quotation.description" name="description" class="border p-1.5 bg-white outline-none">
+                <option value="" disabled selected>Select Business Line</option>
+                <option value="Air Import">Air Import</option>
+                <option value="Air Export">Air Export</option>
+                <option value="Sea Import">Sea Import</option>
+                <option value="Sea Export">Sea Export</option>
+                <option value="Courier Import">Courier Import</option>
+                <option value="Courier Export">Courier Export</option>
+                <option value="Clearance Import">Clearance Import</option>
+                <option value="Clearance Export">Clearance Export</option>
+              </select>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <div class="grid grid-cols-2 items-center">
+              <label class="font-bold text-red-700">Organization</label>
+              <div class="flex gap-1">
+                <div class="relative flex-1 flex items-center">
+                  <input [(ngModel)]="quotation.customerName" name="customerName"
+                    class="w-full border p-1.5 border-red-300 outline-none pr-6">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 absolute right-2 text-gray-400" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <button (click)="neworg()"
+                  class="bg-green-800 text-white text-[9px] px-2 font-bold hover:bg-black uppercase">New</button>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 items-center">
+              <label class="font-bold text-[#802a2a]">Quoted By</label>
+              <div class="relative flex items-center">
+                <input [(ngModel)]="quotation.qtnDoneBy" name="qtnDoneBy" class="w-full border p-1.5 outline-none pr-6">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 absolute right-2 text-gray-400" fill="none"
+                  viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 items-center">
+              <label class="font-bold text-gray-700">Cargo Status</label>
+              <div class="flex gap-1 items-center overflow-hidden">
+                <input type="date" [(ngModel)]="quotation.receivedDate" name="cargoStatusDate"
+                  class="border p-1 text-[11px] outline-none w-[110px]">
+                <select [(ngModel)]="quotation.shipmentType" name="cargoStatus" class="border p-1 text-[11px] outline-none flex-1 min-w-0">
+                  <option value="Ready By">Ready By</option>
+                  <option value="Pending">Pending</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="border border-gray-300 bg-white shadow-sm">
+        <div class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px]">- Cargo Details</div>
+        <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-12">
+          <div class="space-y-3">
+            <div class="flex items-center">
+              <label class="w-40 font-bold text-gray-700">Transport Mode</label>
+              <select [(ngModel)]="quotation.transportMode" name="transportMode" class="flex-1 border p-2 outline-none">
+                <option value="Air">Air</option>
+                <option value="Sea">Sea</option>
+              </select>
+            </div>
+            <div class="flex items-center">
+              <label class="w-40 font-bold text-gray-700">Shipment Type</label>
+              <select [(ngModel)]="quotation.shipmentType" name="shipmentType" class="flex-1 border p-2 outline-none">
+                <option value="International">International</option>
+              </select>
+            </div>
+            <div class="flex flex-col gap-4">
+              <div class="flex items-center">
+                <label class="w-40 font-bold text-gray-700">Commodity</label>
+                <select [(ngModel)]="quotation.commodity" name="commodity" class="flex-1 border p-2 outline-none">
+                  <option value="" disabled selected>Select Commodity</option>
+                  <option value="Hazard">Hazard</option>
+                  <option value="Non-Hazard">Non-Hazard</option>
+                  <option value="Perishable">Perishable</option>
+                  <option value="General">General</option>
+                  <option value="Temperature Controlled">Temperature Controlled</option>
+       </select>
+              </div>
+              <div *ngIf="quotation.commodity === 'Hazard'"
+                class="flex items-center animate-in fade-in slide-in-from-top-2 duration-300">
+                <label class="w-40 font-bold text-gray-700">Upload Document</label>
+                <div class="flex-1 flex items-center gap-2">
+                  <input type="file" (change)="onFileSelected($event)"
+                    class="flex-1 border p-1 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100">
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="w-40 font-bold text-gray-700">Gross Weight</label>
+              <div class="flex flex-1">
+                <input type="number" [(ngModel)]="quotation.grossWeightKg" name="grossWeightKg" class="w-full border p-2 outline-none">
+                <div class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <select class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
+                    <option>KGS</option>
+                    <option>LBS</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="w-40 font-bold text-gray-700">Net Weight</label>
+              <div class="flex flex-1">
+                <input type="number" [(ngModel)]="quotation.netWeight" name="netWeight" class="w-full border p-2 outline-none">
+                <div class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <select class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
+                    <option>KGS</option>
+                    <option>LBS</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="w-40 font-bold text-gray-700">Chrg. Weight</label>
+              <div class="flex flex-1">
+                <input type="number" [(ngModel)]="quotation.chargeableWeight" name="chargeableWeight" class="w-full border p-2 outline-none">
+                <div class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <select class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
+                    <option>KGS</option>
+                    <option>LBS</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <div class="flex items-center"><label class="w-40 font-bold text-gray-700">Transport Type</label><select
+                class="flex-1 border p-2 outline-none">
+                <option>Export</option>
+                <option>Import</option>
+              </select></div>
+
+            <div class="flex items-center gap-2">
+              <label class="w-40 font-bold text-gray-700">Num of Packages</label>
+              <div class="flex flex-1">
+                <input type="number" [(ngModel)]="quotation.noOfPkgs" name="noOfPkgs" class="w-full border p-2 outline-none">
+                <div class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <select class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
+                    <option>PKGS</option>
+                    <option>BOXES</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="w-40 font-bold text-gray-700">Dimensions</label>
+
+                <div class="flex flex-1 items-center">
+                  <div class="flex flex-1 items-center gap-1">
+                     <input type="number" placeholder="BOX"
+                      class="w-full border p-2 outline-none text-center rounded-l-sm focus:border-blue-400">
+                    <span class="text-gray-400 font-bold"></span>
+                    <input type="number" placeholder="L"
+                      class="w-full border p-2 outline-none text-center rounded-l-sm focus:border-blue-400">
+                    <span class="text-gray-400 font-bold">x</span>
+                    <input type="number" placeholder="W"
+                      class="w-full border p-2 outline-none text-center focus:border-blue-400">
+                    <span class="text-gray-400 font-bold">x</span>
+                    <input type="number" placeholder="H"
+                      class="w-full border p-2 outline-none text-center focus:border-blue-400">
+                  </div>
+
+                  <div class="flex items-center border border-l-0 bg-gray-50 h-[38px] divide-x divide-gray-300">
+                    <div class="flex items-center px-2 gap-1 cursor-pointer">
+                      <select
+                        class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer appearance-none">
+                        <option>CMS</option>
+                        <option>INCH</option>
+                      </select>
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-gray-400" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                   <button type="button" (click)="openDimModal()"
+  class="bg-green-600 hover:bg-green-700 text-white px-3 h-full flex items-center justify-center transition-colors shadow-inner"
+  title="Add more dimensions">
+  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
+  </svg>
+</button>
+
+<div *ngIf="isDimModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+  <div class="bg-white w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+    
+    <div class="bg-gray-800 text-white px-6 py-4 flex justify-between items-center">
+      <h3 class="font-bold text-lg uppercase tracking-wider">Add Multiple Dimensions</h3>
+      <button (click)="closeDimModal()" class="text-white hover:text-red-400 text-2xl">&times;</button>
+    </div>
+
+    <div class="p-6 max-h-[60vh] overflow-y-auto">
+      <div *ngFor="let dim of dimRows; let i = index" class="flex items-center gap-2 mb-4 group">
+        
+        <label class="w-24 font-bold text-gray-700 text-xs uppercase">Dim {{i + 1}}</label>
+
+        <div class="flex flex-1 items-center gap-1">
+          <input type="number" [(ngModel)]="dim.box" [name]="'box' + i" placeholder="BOX"
+            class="w-full border p-2 outline-none text-center rounded-sm focus:border-blue-400 text-sm">
+          
+          <span class="text-gray-400 font-bold"></span>
+          
+          <input type="number" [(ngModel)]="dim.l" [name]="'l' + i" placeholder="L"
+            class="w-full border p-2 outline-none text-center rounded-sm focus:border-blue-400 text-sm">
+          
+          <span class="text-gray-400 font-bold text-xs">x</span>
+          
+          <input type="number" [(ngModel)]="dim.w" [name]="'w' + i" placeholder="W"
+            class="w-full border p-2 outline-none text-center focus:border-blue-400 text-sm">
+          
+          <span class="text-gray-400 font-bold text-xs">x</span>
+          
+          <input type="number" [(ngModel)]="dim.h" [name]="'h' + i" placeholder="H"
+            class="w-full border p-2 outline-none text-center focus:border-blue-400 text-sm">
+
+          <div class="flex items-center border bg-gray-50 h-[38px] px-2 rounded-sm">
+            <select [(ngModel)]="dim.unit" [name]="'unit' + i"
+              class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer appearance-none">
+              <option value="CMS">CMS</option>
+              <option value="INCH">INCH</option>
+            </select>
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-gray-400 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+
+          <button *ngIf="dimRows.length > 1" (click)="removeDimRow(i)" class="text-red-400 hover:text-red-600 p-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <button (click)="addNewDimRow()" class="mt-2 text-blue-600 font-bold text-xs flex items-center gap-1 hover:underline">
+        <span class="text-lg">+</span> Add Another Dimension
+      </button>
+    </div>
+
+    <div class="p-4 bg-gray-50 border-t flex justify-end gap-3">
+      <button (click)="closeDimModal()" class="px-6 py-2 text-gray-600 font-bold text-sm">Cancel</button>
+      <button (click)="saveDimensions()" class="px-8 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 shadow-lg text-sm transition-all">
+        Apply Dimensions
+      </button>
+    </div>
+
+  </div>
+</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <label class="w-40 font-bold text-gray-700">Volume Weight</label>
+              <div class="flex flex-1">
+                <input type="number" [(ngModel)]="quotation.chargeableWeightKg" name="chargeableWeightKg" class="w-full border p-2 outline-none">
+                <div class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <select class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
+                    <option>KGS</option>
+                    <option>CBM</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-start"><label class="w-40 font-bold text-gray-700 mt-2">Description</label><textarea
+                [(ngModel)]="quotation.description" name="description" class="flex-1 border p-2 h-16 outline-none"
+                placeholder="Details..."></textarea></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="border border-gray-300 bg-white shadow-sm">
+        <div class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px] flex justify-between">
+          <span>+ Forwarding & Movement</span>
+          <label class="text-[11px] font-normal flex items-center gap-2 cursor-pointer"><input type="checkbox" checked
+              class="w-4 h-4"> Service Required</label>
+        </div>
+        <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-12">
+          <div class="space-y-3">
+            <div class="flex items-center"><label class="w-40 font-bold text-gray-700">Movement Type</label><select
+                class="flex-1 border p-2 outline-none">
+                <option>Door-to-Door</option>
+                <option>Port-to-Port</option>
+              </select></div>
+            <div class="flex flex-col gap-4">
+              <div class="flex items-center">
+                <label class="w-40 font-bold text-gray-700">Package/Invoice List</label>
+                <select [(ngModel)]="quotation.invoiceList" name="invoiceList" class="flex-1 border p-2 outline-none">
+                  <option value="" disabled>-- Select Status --</option>
+                  <option value="Available">Available</option>
+                  <option value="Not Available">Not Available</option>
+                </select>
+              </div>
+
+              <div *ngIf="quotation.invoiceList === 'Available'" class="flex items-center animate-fade-in">
+                <label class="w-40 font-bold text-gray-700">Upload Document</label>
+                <input type="file" (change)="onFileSelected($event)"
+                  class="flex-1 border p-1.5 bg-white outline-none file:mr-4 file:py-1 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200">
+              </div>
+            </div>
+            <div class="flex items-center text-red-700 font-bold">
+              <label class="w-40">Origin</label>
+              <div class="relative flex-1 flex items-center">
+                <input [(ngModel)]="quotation.origin" name="origin" placeholder="Search Origin..."
+                  class="w-full border p-2 border-red-300 outline-none pr-8">
+                <button class="absolute right-2 text-gray-500 hover:text-black">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div class="flex items-center text-red-700 font-bold">
+              <label class="w-40">Port of Loading</label>
+              <div class="relative flex-1 flex items-center">
+                <input [(ngModel)]="quotation.portOfLoading" name="portOfLoading" class="w-full border p-2 border-red-300 outline-none pr-8">
+                <button class="absolute right-2 text-gray-500 hover:text-black">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div class="flex items-start">
+              <label class="w-40 font-bold text-gray-700 mt-2">Pickup Address</label>
+              <textarea [(ngModel)]="quotation.pickupAddress" name="pickupAddress" class="flex-1 border p-2 h-14 outline-none"
+                placeholder="Full pickup location..."></textarea>
+            </div>
+          </div>
+          <div class="space-y-3">
+            <div class="flex items-center"><label class="w-40 font-bold text-gray-700">IncoTerms</label><select
+                [(ngModel)]="quotation.incoterm" name="incoterm" class="flex-1 border p-2 outline-none">
+                <option>EXW</option>
+                <option>FOB</option>
+                <option>CIF</option>
+              </select></div>
+            <div class="flex items-center text-red-700 font-bold">
+              <label class="w-40">Port of Discharge</label>
+              <div class="relative flex-1 flex items-center">
+                <input [(ngModel)]="quotation.portOfDestination" name="portOfDestination"
+                  class="w-full border p-2 border-red-300 outline-none pr-8">
+                <button class="absolute right-2 text-gray-500 hover:text-black">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div class="flex items-center text-red-700 font-bold">
+              <label class="w-40">Final Destination</label>
+              <input [(ngModel)]="quotation.finalDestination" name="finalDestination" class="flex-1 border p-2 border-red-300 outline-none">
+            </div>
+            <div class="flex items-center">
+              <label class="w-40 font-bold text-gray-700">Place of Delivery</label>
+              <input [(ngModel)]="quotation.placeOfDelivery" name="placeOfDelivery" class="flex-1 border p-2 outline-none">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="p-4 bg-gray-50 border-t flex justify-end gap-3">
+      <button (click)="toggleForm()"
+        class="bg-white border border-gray-400 px-8 py-2 font-bold text-gray-700 hover:bg-gray-200 uppercase">Cancel</button>
+      <button (click)="saveQuotation()"
+        class="bg-[#4a3f3f] text-white px-10 py-2 font-bold shadow-md hover:bg-black uppercase">
+        {{ quotation.id ? 'Update' : 'Save' }} Inquiry
+      </button>
+    </div>
+  </div>
+</div>           

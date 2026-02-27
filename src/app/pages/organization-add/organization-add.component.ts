@@ -17,6 +17,7 @@ export class OrganizationAddComponent implements OnInit {
   organizations: any[] = [];
 
   // Form Variables
+  searchQuery: string = ''; // Search box ke liye variable
   orgName: string = '';
   alias: string = '';
   address: string = '';
@@ -183,8 +184,36 @@ export class OrganizationAddComponent implements OnInit {
 
   toggleForm() {
     this.isFormOpen = !this.isFormOpen;
+  }   
+
+  // Naya Search Function
+searchOrganization() {
+  const query = this.searchQuery ? this.searchQuery.trim() : '';
+
+  if (!query) {
+    this.organizations = [];
+    return;
   }
 
+  const url = `${environment.apiUrl}/Organization/search?orgName=${query}`;
+  
+  this.http.get(url).subscribe({
+    next: (data: any) => {
+      // Agar data milta hai toh array update hoga aur "Not Found" apne aap hat jayega
+      this.organizations = data || [];
+    },
+    error: (err) => {
+      console.error('Search error:', err);
+      this.organizations = []; 
+    }
+  });
+}
+
+// 4. List click handler (Optional but recommended)
+onOrgSelect(org: any) {
+  this.searchQuery = org.orgName;
+  this.organizations = [org]; // Sirf selected wala dikhao ya clear kar do
+}
   deleteOrg(id: any) {
     if (confirm('Are you sure?')) {
       this.http.delete(`${environment.apiUrl}/Organization/delete/${id}`).subscribe({

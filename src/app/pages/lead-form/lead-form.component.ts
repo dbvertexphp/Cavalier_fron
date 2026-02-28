@@ -1,10 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router'; 
-import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../environments/environment'; 
-import { Observable } from 'rxjs';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-lead-form',
@@ -16,80 +13,52 @@ import { Observable } from 'rxjs';
 export class LeadFormComponent implements OnInit {
 
   leadForm!: FormGroup;
-  isFormOpen = false; 
-  form!: FormGroup;
-  
-  leads: any[] = [];
-  leadList: any[] = []; 
+  isFormOpen = false;
+
+  // Static Data
+  leads: any[] = [
+    { id: 1, leadNo: '0001', organizationName: 'Static Corp Inc.', salesStage: 'Inquiry Received' },
+    { id: 2, leadNo: '0002', organizationName: 'Demo Solutions Ltd.', salesStage: 'Proposal Sent' }
+  ];
 
   editingLeadId: number | null = null;
-
-  organizations: any[] = [];
+  organizations: any[] = [
+    { id: 101, orgName: 'Static Corp Inc.' },
+    { id: 102, orgName: 'Demo Solutions Ltd.' }
+  ];
   filteredOrganizations: any[] = [];
   selectedOrganizationId: number | null = null;
 
-  hodList: any[] = [];
-  teamsList: any[] = [];
+  hodList: any[] = ['John Doe', 'Jane Smith'];
+  teamsList: any[] = ['Sales Team A', 'Support Team B'];
 
-  constructor(private fb: FormBuilder, private router: Router, private http: HttpClient) {}
+  constructor(private fb: FormBuilder, private router: Router) {}
 
   ngOnInit() {
     this.initForm();
-
-    this.getLeads().subscribe(data => {
-      this.leads = data;
-
-      if (this.leads && this.leads.length > 0 && !this.editingLeadId) {
-        const lastLead = this.leads[this.leads.length - 1];
-
-        if (lastLead.leadNo && !isNaN(parseInt(lastLead.leadNo))) {
-          const nextNumber = parseInt(lastLead.leadNo) + 1;
-          const formattedNextNo = nextNumber.toString().padStart(4, '0');
-
-          this.leadForm.patchValue({
-            leadNo: formattedNextNo
-          });
-        }
-      } else if (!this.editingLeadId) {
-        this.leadForm.patchValue({ leadNo: '0001' });
-      }
-    });
-
-    this.getOrganizations();
-
-    this.http.get(`${environment.apiUrl}/Hod`)
-      .subscribe((res: any) => {
-        this.hodList = res;
-      });
-
-    this.getTeams();
+    // API Call replaced with static data
+    this.generateNextLeadNo();
   }
 
-  getOrganizations() {
-    this.http.get<any[]>(`${environment.apiUrl}/Organization/list`)
-      .subscribe(data => {
-        this.organizations = data;
-        this.filteredOrganizations = [];
-      });
-  }
-
-  getTeams() {
-    this.http.get(`${environment.apiUrl}/Teams`)
-      .subscribe((res: any) => {
-        this.teamsList = res;
-      });
+  generateNextLeadNo() {
+    if (this.leads && this.leads.length > 0) {
+      const lastLead = this.leads[this.leads.length - 1];
+      const nextNumber = parseInt(lastLead.leadNo) + 1;
+      const formattedNextNo = nextNumber.toString().padStart(4, '0');
+      this.leadForm.patchValue({ leadNo: formattedNextNo });
+    } else {
+      this.leadForm.patchValue({ leadNo: '0001' });
+    }
   }
 
   searchOrganization(event: any) {
     const searchTerm = event.target.value.toLowerCase();
-
     if (searchTerm.length === 0) {
       this.filteredOrganizations = [];
       return;
     }
-
     this.filteredOrganizations = this.organizations.filter(org =>
-      org && org.orgName && org.orgName.toLowerCase().includes(searchTerm)
+      org.orgName.toLowerCase().includes(searchTerm)
     );
   }
 
@@ -97,172 +66,96 @@ export class LeadFormComponent implements OnInit {
     this.leadForm.patchValue({
       organization: org.orgName
     });
-
     this.selectedOrganizationId = org.id;
     this.filteredOrganizations = [];
   }
 
-  // 🔥 FIXED EDIT METHOD (PURA DATA PATCH)
   editLead(leadId: number): void {
-
-    if (!leadId) {
-      console.error('Lead ID is undefined');
-      return;
-    }
-
     this.editingLeadId = leadId;
     this.isFormOpen = true;
 
-    this.http.get<any>(`${environment.apiUrl}/leads/${leadId}`)
-      .subscribe({
-        next: (data) => {
-
-          console.log('Lead Data:', data);
-
-          // 🔥 Organization ID store karo
-          this.selectedOrganizationId = data.organizationId;
-
-          // 🔥 Pura form patch karo
-          this.leadForm.patchValue({
-            leadNo: data.leadNo,
-            type: data.type,
-            salesProcess: data.salesProcess,
-            date: data.date,
-            expectedValidity: data.expectedValidity,
-            leadOwner: data.leadOwner,
-            salesCoordinator: data.salesCoordinator,
-            salesStage: data.salesStage,
-            branch: data.branch,
-            reportingManager: data.reportingManager,
-            hod: data.hod,
-            team: data.team,
-            location: data.location,
-            area: data.area,
-            source: data.leadSource,
-            organization: data.organizationName
-          });
-        },
-        error: (error) => {
-          alert('Failed to fetch lead data.');
-        }
-      });
-  }
-
-  deleteLead(id: number) {
-    if (confirm('Are you sure you want to delete this lead?')) {
-      this.http.delete(`${environment.apiUrl}/leads/${id}`).subscribe({
-        next: () => {
-          alert('Success: Lead Deleted!');
-          this.getLeads().subscribe(data => this.leads = data);
-        },
-        error: () => {
-          alert('Delete Failed.');
-        }
+    // Static data fetch instead of API call
+    const data = this.leads.find(l => l.id === leadId);
+    
+    if (data) {
+      this.selectedOrganizationId = 101; // Mock ID
+      this.leadForm.patchValue({
+        leadNo: data.leadNo,
+        type: 'New Business',
+        salesProcess: 'Direct',
+        date: '2026-02-28',
+        expectedValidity: '2026-03-30',
+        leadOwner: 'BHARAT JUYAL',
+        salesCoordinator: 'Admin',
+        salesStage: data.salesStage,
+        branch: 'DELHI',
+        reportingManager: 'Manager',
+        hod: 'John Doe',
+        team: 'Sales Team A',
+        location: 'Connaught Place',
+        area: 'Central',
+        source: 'Website',
+        organization: data.organizationName
       });
     }
   }
 
-  getLeads(): Observable<any[]> {
-    return this.http.get<any[]>(`${environment.apiUrl}/leads`);
+  deleteLead(id: number) {
+    if (confirm('Static Mode: Are you sure you want to "delete" this lead? (No actual delete)')) {
+      this.leads = this.leads.filter(l => l.id !== id);
+      alert('Success: Lead Removed from List (Static)!');
+    }
   }
 
   navigateToNewOrg() {
-    this.router.navigate(['/dashboard/organization-add']);
+    alert('Navigation to Add Organization (Static Mode)');
   }
 
   toggleForm() {
     this.isFormOpen = !this.isFormOpen;
-
     if (!this.isFormOpen) {
       this.editingLeadId = null;
       this.selectedOrganizationId = null;
       this.leadForm.reset();
+      this.initForm(); // Re-initialize with default values
+      this.generateNextLeadNo();
     }
   }
 
   initForm() {
-    const today = new Date();
-
     this.leadForm = this.fb.group({
-      leadNo: [{ value: 'Auto-Generated', disabled: true }],
-      type: ['New Business', Validators.required],
-      salesProcess: ['', Validators.required],
-      date: [this.formatDate(today), Validators.required],
-      leadOwner: ['BHARAT JUYAL', Validators.required],
-      salesCoordinator: ['', Validators.required],
-      expectedValidity: ['', Validators.required],
-      source: ['', Validators.required],
-      salesStage: ['Inquiry Received', Validators.required],
-      branch: ['DELHI', Validators.required],
+      leadNo: [{ value: '', disabled: true }],
+      type: ['New Business'],
+      salesProcess: [''],
+      date: [''],
+      leadOwner: ['BHARAT JUYAL'],
+      salesCoordinator: [''],
+      expectedValidity: [''],
+      source: [''],
+      salesStage: ['Inquiry Received'],
+      branch: ['DELHI'],
       reportingManager: [''],
-      hod: ['', Validators.required],
-      team: ['', Validators.required],
+      hod: [''],
+      team: [''],
       location: [''],
       area: [''],
-      organization: ['', Validators.required],
+      organization: [''],
     });
   }
 
-  formatDate(date: Date): string {
-    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = months[date.getMonth()];
-    const year = date.getFullYear();
-    return `${day}-${month}-${year}`;
-  }
-
-  // 🔥 FINAL WORKING SAVE (NEW + UPDATE)
   onSave() {
-
-    if (!this.leadForm.valid) {
-      alert('Error: Mandatory fields missing.');
-      return;
-    }
-
-    const formValue = this.leadForm.getRawValue();
-
-    const data = {
-      id: this.editingLeadId ?? 0,
-      leadNo: formValue.leadNo,
-      type: formValue.type,
-      salesProcess: formValue.salesProcess,
-      date: new Date(formValue.date).toISOString(),
-      expectedValidity: new Date(formValue.expectedValidity).toISOString(),
-      leadOwner: formValue.leadOwner,
-      leadSource: formValue.source,
-      salesCoordinator: formValue.salesCoordinator,
-      salesStage: formValue.salesStage,
-      branch: formValue.branch,
-      reportingManager: formValue.reportingManager,
-      team: formValue.team,
-      hod: formValue.hod,
-      location: formValue.location,
-      area: formValue.area,
-      organizationId: this.selectedOrganizationId // 🔥 FIXED
-    };
-
-    const backendData = { leadDto: data };
-
-    let request: Observable<any>;
-
-    if (this.editingLeadId) {
-      request = this.http.put(`${environment.apiUrl}/leads/${this.editingLeadId}`, backendData);
+    if (this.leadForm.valid) {
+      const formValue = this.leadForm.getRawValue();
+      console.log('Static Data Saved (No API call):', formValue);
+      alert('Success: Lead Information Saved (Static Mode)!');
+      
+      this.leadForm.reset();
+      this.initForm();
+      this.generateNextLeadNo();
+      this.selectedOrganizationId = null;
+      this.isFormOpen = false;
     } else {
-      request = this.http.post(`${environment.apiUrl}/leads`, backendData);
+      alert('Error: Please fill required fields.');
     }
-
-    request.subscribe({
-      next: () => {
-        alert(this.editingLeadId ? 'Success: Lead Updated!' : 'Success: Lead Information Saved!');
-        this.getLeads().subscribe(data => this.leads = data);
-        this.leadForm.reset();
-        this.selectedOrganizationId = null;
-        this.editingLeadId = null;
-        this.isFormOpen = false;
-      },
-      error: (error) => {
-        alert('Bad Request: ' + JSON.stringify(error.error));
-      }
-    });
   }
 }

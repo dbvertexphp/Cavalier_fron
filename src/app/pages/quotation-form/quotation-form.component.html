@@ -1,16 +1,6 @@
-
-
 <div class="p-3 bg-gray-100 min-h-screen font-sans text-[13px]">
-  
-
   <div *ngIf="!isFormOpen" class="bg-white border border-gray-300 shadow-sm rounded-sm overflow-hidden">
     <div class="bg-gray-100 p-1.5 border-b border-gray-300 flex gap-4 items-center">
-      <!-- <div class="flex gap-2 border-r border-gray-300 pr-3">
-        <button title="Refresh" class="hover:bg-gray-200 p-1 rounded">🔄</button>
-        <button title="Delete" class="hover:bg-gray-200 p-1 rounded">🗑️</button>
-        <button title="Print" class="hover:bg-gray-200 p-1 rounded">🖨️</button>
-        <button title="Export" class="hover:bg-gray-200 p-1 rounded text-green-700 font-bold text-[10px]">XLSX</button>
-      </div> -->
       <div class="text-[11px] italic text-gray-500">
         Items in <span class="text-green-600 font-bold">green</span> = Sucess | <span class="text-red-600 font-bold">Red</span> = Faild
       </div>
@@ -18,73 +8,75 @@
 
     <div class="p-4 bg-white border-b border-gray-200">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-3">
-        
         <div class="space-y-2">
           <div class="flex items-center">
             <label class="w-28 font-bold text-gray-600">Services</label>
-            <select class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
-              <option>Any</option>
+            <select [(ngModel)]="filters.services" class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
+              <option value="Any">Any</option>
+              <option value="Air">Air</option>
+              <option value="Sea">Sea</option>
             </select>
           </div>
           <div class="flex items-center">
             <label class="w-28 font-bold text-gray-600">Quotation No.</label>
-            <input type="text" class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm">
+            <input type="text" [(ngModel)]="filters.quotationNo" class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm">
           </div>
           <div class="flex items-center">
             <label class="w-28 font-bold text-red-700">Quoted to</label>
             <div class="flex-1 flex border border-red-200">
-               <input type="text" class="w-full p-1 outline-none text-[12px]">
+               <input type="text" [(ngModel)]="filters.quotedTo" class="w-full p-1 outline-none text-[12px]">
                <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400">🔍</span>
             </div>
           </div>
           <div class="flex items-center">
             <label class="w-28 font-bold text-gray-600">Show</label>
-            <select class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
-              <option>Valid Quotations Only</option>
+            <select [(ngModel)]="filters.showType" class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
+              <option value="Valid">Valid Quotations Only</option>
+              <option value="All">All</option>
             </select>
           </div>
         </div>
 
         <div class="space-y-2">
-        <div class="space-y-2">
-  <div class="flex items-center">
-    <label class="w-24 font-bold text-gray-600">Date</label>
-    
-    <div 
-      class="flex-1 flex border border-gray-300 items-center pr-2 cursor-pointer"
-      (click)="datePicker.showPicker()">
-      
-      <input 
-        #datePicker
-        type="date" 
-        class="w-full p-1 outline-none text-[12px] cursor-pointer"
-        (focus)="datePicker.showPicker()">
-        
-      <span>📅</span>
-    </div>
-  </div>
-</div>
+          <div class="space-y-2">
+            <div class="flex items-center">
+              <label class="w-24 font-bold text-gray-600">Date</label>
+              <div 
+                class="flex-1 flex border border-gray-300 items-center pr-2 cursor-pointer"
+                (click)="datePicker.showPicker()">
+                <input 
+                  #datePicker
+                  type="date" 
+                  [(ngModel)]="filters.date"
+                  class="w-full p-1 outline-none text-[12px] cursor-pointer"
+                  (focus)="datePicker.showPicker()">
+                <span>📅</span>
+              </div>
+            </div>
+          </div>
           <div class="flex items-center">
             <label class="w-24 font-bold text-gray-600">Quoted By</label>
             <div class="flex-1 flex border border-gray-300">
-               <input type="text" class="w-full p-1 outline-none text-[12px]">
+               <input type="text" [(ngModel)]="filters.quotedBy" class="w-full p-1 outline-none text-[12px]">
                <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400">🔍</span>
             </div>
           </div>
           <div class="flex items-center">
             <label class="w-24 font-bold text-gray-600">Status</label>
-            <select class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
-              <option>(Any)</option>
+            <select [(ngModel)]="filters.status" class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
+              <option value="Any">(Any)</option>
+              <option value="Pending">Pending</option>
+              <option value="Won">Won</option>
             </select>
           </div>
         </div>
 
         <div class="flex flex-col justify-between pt-1">
           <div class="space-y-2 pl-4">
-            <div class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline flex items-center gap-1">
+            <div (click)="toggleAdvanceFilter()" class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline flex items-center gap-1">
               Advance Filter <span class="text-[10px]">▼</span>
             </div>
-            <div class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline">
+            <div (click)="clearFilters()" class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline">
               Clear
             </div>
             <div class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline">
@@ -93,12 +85,11 @@
           </div>
           
           <div class="flex justify-end mt-4">
-            <button class="bg-[#4a3f3f] text-white px-8 py-1.5 font-bold shadow-md uppercase text-[11px] hover:bg-black transition-all">
+            <button (click)="searchQuotations()" class="bg-[#4a3f3f] text-white px-8 py-1.5 font-bold shadow-md uppercase text-[11px] hover:bg-black transition-all">
               Search
             </button>
           </div>
         </div>
-
       </div>
     </div>
     <div class="bg-[#4a3f3f] p-3 flex justify-between items-center text-white">
@@ -160,11 +151,9 @@
     </div>
 
     <div class="p-5 space-y-5">
-      
       <div class="bg-gray-50 p-4 border border-gray-200 rounded">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-x-6 gap-y-4">
-          
-          <div class="md:col-span-1">
+           <div class="md:col-span-1">
             <div class="grid grid-cols-2 gap-2 mb-3">
               <div>
                 <label class="text-gray-700 font-bold block mb-1 uppercase text-[11px]">Refrence by inquiry</label>
@@ -188,7 +177,7 @@
                 NEW
               </button>
             </div>
-            <textarea class="w-full border mt-2 text-[12px] bg-white p-2 text-gray-500 italic" rows="2" placeholder="Organization Address..." readonly></textarea>
+            <textarea [(ngModel)]="quotation.organizationAddress" class="w-full border mt-2 text-[12px] bg-white p-2 text-gray-500 italic" rows="2" placeholder="Organization Address..." readonly></textarea>
           </div>
 
           <div>
@@ -237,12 +226,18 @@
              <label class="text-gray-700 font-bold block mb-1 uppercase">Sales Coor.</label>
              <select [(ngModel)]="quotation.salesCoordinator" class="w-full border p-2 outline-none">
                <option value="">--Select--</option>
+               <option value="Coordinator 1">Coordinator 1</option>
              </select>
           </div>
         </div>
       </div>
 
-       <div class="border border-gray-300 bg-white shadow-sm">
+
+<!--  first phase     -->
+
+
+
+<div class="border border-gray-300 bg-white shadow-sm">
   <div class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px]">- Cargo Details</div>
   
   <div class="p-5 space-y-4">
@@ -273,7 +268,6 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-12 pt-2">
-      
       <div class="space-y-3">
         <div class="flex items-center">
           <label class="w-40 font-bold text-gray-700">Shipment Type</label>
@@ -308,8 +302,8 @@
           <div class="flex flex-1">
             <input type="number" [(ngModel)]="quotation.grossWeightKg" class="w-full border p-2 outline-none">
             <div class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1">
-              <select class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
-                <option>KGS</option><option>LBS</option>
+              <select [(ngModel)]="quotation.grossWeightUnit" class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
+                <option value="KGS">KGS</option><option value="LBS">LBS</option>
               </select>
             </div>
           </div>
@@ -320,8 +314,8 @@
           <div class="flex flex-1">
             <input type="number" [(ngModel)]="quotation.netWeight" class="w-full border p-2 outline-none">
             <div class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1">
-              <select class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
-                <option>KGS</option><option>LBS</option>
+              <select [(ngModel)]="quotation.netWeightUnit" class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
+                <option value="KGS">KGS</option><option value="LBS">LBS</option>
               </select>
             </div>
           </div>
@@ -332,8 +326,8 @@
           <div class="flex flex-1">
             <input type="number" [(ngModel)]="quotation.chargeableWeight" class="w-full border p-2 outline-none">
             <div class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1">
-              <select class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
-                <option>KGS</option><option>LBS</option>
+              <select [(ngModel)]="quotation.chargeableWeightUnit" class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
+                <option value="KGS">KGS</option><option value="LBS">LBS</option>
               </select>
             </div>
           </div>
@@ -346,8 +340,8 @@
           <div class="flex flex-1">
             <input type="number" [(ngModel)]="quotation.noOfPkgs" class="w-full border p-2 outline-none">
             <div class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1">
-              <select class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
-                <option>PKGS</option><option>BOXES</option>
+              <select [(ngModel)]="quotation.pkgUnit" class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
+                <option value="PKGS">PKGS</option><option value="BOXES">BOXES</option>
               </select>
             </div>
           </div>
@@ -356,82 +350,81 @@
         <div class="flex items-center gap-2">
           <label class="w-40 font-bold text-gray-700">Dimensions</label>
           <div class="flex flex-1 items-center gap-1">
-            <input type="number" placeholder="L" class="w-full border p-2 outline-none text-center">
-            <input type="number" placeholder="W" class="w-full border p-2 outline-none text-center">
-            <input type="number" placeholder="H" class="w-full border p-2 outline-none text-center">
-                  <button type="button" (click)="openDimModal()"
-  class="bg-green-600 hover:bg-green-700 text-white p-[5px] h-[30px] flex items-center justify-center transition-colors shadow-inner rounded-sm"
-  title="Add more dimensions">
-  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
-  </svg>
-</button>
+            <input type="number" [(ngModel)]="quotation.dimL" placeholder="L" class="w-full border p-2 outline-none text-center">
+            <input type="number" [(ngModel)]="quotation.dimW" placeholder="W" class="w-full border p-2 outline-none text-center">
+            <input type="number" [(ngModel)]="quotation.dimH" placeholder="H" class="w-full border p-2 outline-none text-center">
+            <button type="button" (click)="openDimModal()"
+              class="bg-green-600 hover:bg-green-700 text-white p-[5px] h-[30px] flex items-center justify-center transition-colors shadow-inner rounded-sm"
+              title="Add more dimensions">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
+              </svg>
+            </button>
 
-<div *ngIf="isDimModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-  <div class="bg-white w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-    
-    <div class="bg-gray-800 text-white px-6 py-4 flex justify-between items-center">
-      <h3 class="font-bold text-lg uppercase tracking-wider">Add Multiple Dimensions</h3>
-      <button (click)="closeDimModal()" class="text-white hover:text-red-400 text-2xl">&times;</button>
-    </div>
+            <div *ngIf="isDimModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+              <div class="bg-white w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+                
+                <div class="bg-gray-800 text-white px-6 py-4 flex justify-between items-center">
+                  <h3 class="font-bold text-lg uppercase tracking-wider">Add Multiple Dimensions</h3>
+                  <button (click)="closeDimModal()" class="text-white hover:text-red-400 text-2xl">&times;</button>
+                </div>
 
-    <div class="p-6 max-h-[60vh] overflow-y-auto">
-      <div *ngFor="let dim of dimRows; let i = index" class="flex items-center gap-2 mb-4 group">
-        
-        <label class="w-24 font-bold text-gray-700 text-xs uppercase">Dim {{i + 1}}</label>
+                <div class="p-6 max-h-[60vh] overflow-y-auto">
+                  <div *ngFor="let dim of dimRows; let i = index" class="flex items-center gap-2 mb-4 group">
+                    
+                    <label class="w-24 font-bold text-gray-700 text-xs uppercase">Dim {{i + 1}}</label>
 
-        <div class="flex flex-1 items-center gap-1">
-          <input type="number" [(ngModel)]="dim.box" placeholder="BOX"
-            class="w-full border p-2 outline-none text-center rounded-sm focus:border-blue-400 text-sm">
-          
-          <span class="text-gray-400 font-bold"></span>
-          
-          <input type="number" [(ngModel)]="dim.l" placeholder="L"
-            class="w-full border p-2 outline-none text-center rounded-sm focus:border-blue-400 text-sm">
-          
-          <span class="text-gray-400 font-bold text-xs">x</span>
-          
-          <input type="number" [(ngModel)]="dim.w" placeholder="W"
-            class="w-full border p-2 outline-none text-center focus:border-blue-400 text-sm">
-          
-          <span class="text-gray-400 font-bold text-xs">x</span>
-          
-          <input type="number" [(ngModel)]="dim.h" placeholder="H"
-            class="w-full border p-2 outline-none text-center focus:border-blue-400 text-sm">
+                    <div class="flex flex-1 items-center gap-1">
+                      <input type="number" [(ngModel)]="dim.box" placeholder="BOX"
+                        class="w-full border p-2 outline-none text-center rounded-sm focus:border-blue-400 text-sm">
+                      
+                      <span class="text-gray-400 font-bold"></span>
+                      
+                      <input type="number" [(ngModel)]="dim.l" placeholder="L"
+                        class="w-full border p-2 outline-none text-center rounded-sm focus:border-blue-400 text-sm">
+                      
+                      <span class="text-gray-400 font-bold text-xs">x</span>
+                      
+                      <input type="number" [(ngModel)]="dim.w" placeholder="W"
+                        class="w-full border p-2 outline-none text-center focus:border-blue-400 text-sm">
+                      
+                      <span class="text-gray-400 font-bold text-xs">x</span>
+                      
+                      <input type="number" [(ngModel)]="dim.h" placeholder="H"
+                        class="w-full border p-2 outline-none text-center focus:border-blue-400 text-sm">
 
-          <div class="flex items-center border bg-gray-50 h-[38px] px-2 rounded-sm">
-            <select [(ngModel)]="dim.unit"
-              class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer appearance-none">
-              <option value="CMS">CMS</option>
-              <option value="INCH">INCH</option>
-            </select>
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-gray-400 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
+                      <div class="flex items-center border bg-gray-50 h-[38px] px-2 rounded-sm">
+                        <select [(ngModel)]="dim.unit"
+                          class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer appearance-none">
+                          <option value="CMS">CMS</option>
+                          <option value="INCH">INCH</option>
+                        </select>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-gray-400 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
 
-          <button *ngIf="dimRows.length > 1" (click)="removeDimRow(i)" class="text-red-400 hover:text-red-600 p-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </button>
-        </div>
-      </div>
+                      <button *ngIf="dimRows.length > 1" (click)="removeDimRow(i)" class="text-red-400 hover:text-red-600 p-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
 
-      <button (click)="addNewDimRow()" class="mt-2 text-blue-600 font-bold text-xs flex items-center gap-1 hover:underline">
-        <span class="text-lg">+</span> Add Another Dimension
-      </button>
-    </div>
+                  <button (click)="addNewDimRow()" class="mt-2 text-blue-600 font-bold text-xs flex items-center gap-1 hover:underline">
+                    <span class="text-lg">+</span> Add Another Dimension
+                  </button>
+                </div>
 
-    <div class="p-4 bg-gray-50 border-t flex justify-end gap-3">
-      <button (click)="closeDimModal()" class="px-6 py-2 text-gray-600 font-bold text-sm">Cancel</button>
-      <button (click)="saveDimensions()" class="px-8 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 shadow-lg text-sm transition-all">
-        Apply Dimensions
-      </button>
-    </div>
-
-  </div>
-</div>
+                <div class="p-4 bg-gray-50 border-t flex justify-end gap-3">
+                  <button (click)="closeDimModal()" class="px-6 py-2 text-gray-600 font-bold text-sm">Cancel</button>
+                  <button (click)="saveDimensions()" class="px-8 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 shadow-lg text-sm transition-all">
+                    Apply Dimensions
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -440,8 +433,8 @@
           <div class="flex flex-1">
             <input type="number" [(ngModel)]="quotation.chargeableWeightKg" class="w-full border p-2 outline-none">
             <div class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1">
-              <select class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
-                <option>KGS</option><option>CBM</option>
+              <select [(ngModel)]="quotation.volumeWeightUnit" class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
+                <option value="KGS">KGS</option><option value="CBM">CBM</option>
               </select>
             </div>
           </div>
@@ -457,10 +450,14 @@
           <input type="number" [(ngModel)]="quotation.humidity" class="flex-1 border p-2 outline-none" placeholder="0">
         </div>
       </div>
-
     </div>
   </div>
 </div>
+
+
+<!---   seocnd phase -->
+
+
 
       <div class="border border-gray-300">
         <div class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px] flex justify-between">
@@ -472,14 +469,14 @@
         <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-10 bg-white">
           <div class="space-y-3">
             <div class="flex items-center"><label class="w-40 font-bold text-red-700">Movement</label><select [(ngModel)]="quotation.movementType" class="flex-1 border p-2 border-red-300 outline-none"><option>Door-to-Door</option></select></div>
-            <div class="flex items-center"><label class="w-40 font-bold text-gray-700">AWB Issued By</label><input class="flex-1 border p-2 outline-none"></div>
+            <div class="flex items-center"><label class="w-40 font-bold text-gray-700">AWB Issued By</label><input [(ngModel)]="quotation.awbIssuedBy" class="flex-1 border p-2 outline-none"></div>
             <div class="flex items-center"><label class="w-40 font-bold text-gray-700">Transit Dest</label>
               <div class="flex flex-1 gap-1">
-                <input class="flex-1 border p-2 outline-none">
-                <input placeholder="Days" class="w-16 border p-2 outline-none">
+                <input [(ngModel)]="quotation.transitDest" class="flex-1 border p-2 outline-none">
+                <input [(ngModel)]="quotation.transitDays" placeholder="Days" class="w-16 border p-2 outline-none">
               </div>
             </div>
-            <div class="flex items-center text-red-700 font-bold"><label class="w-40">Place of Receipt</label><input class="flex-1 border p-2 border-red-300 outline-none"></div>
+            <div class="flex items-center text-red-700 font-bold"><label class="w-40">Place of Receipt</label><input [(ngModel)]="quotation.placeOfReceipt" class="flex-1 border p-2 border-red-300 outline-none"></div>
             <div class="flex items-center text-red-700 font-bold"><label class="w-40">Origin / POL</label>
               <div class="flex flex-1 gap-1">
                 <input [(ngModel)]="quotation.origin" class="flex-1 border p-2 border-red-300 outline-none">
@@ -490,9 +487,9 @@
 
           <div class="space-y-3">
             <div class="flex items-center"><label class="w-40 font-bold text-gray-700">IncoTerms</label><select [(ngModel)]="quotation.incoterm" class="flex-1 border p-2 outline-none"><option>EXW</option></select></div>
-            <div class="flex items-center"><label class="w-40 font-bold text-gray-700">Carrier / Agent</label><input class="flex-1 border p-2 outline-none"></div>
-            <div class="flex items-center"><label class="w-40 font-bold text-gray-700">Cargo Value</label><input class="flex-1 border p-2 outline-none" placeholder="Currency & Amount"></div>
-            <div class="flex items-center text-red-700 font-bold"><label class="w-40">Place of Delivery</label><input class="flex-1 border p-2 border-red-300 outline-none"></div>
+            <div class="flex items-center"><label class="w-40 font-bold text-gray-700">Carrier / Agent</label><input [(ngModel)]="quotation.carrierAgent" class="flex-1 border p-2 outline-none"></div>
+            <div class="flex items-center"><label class="w-40 font-bold text-gray-700">Cargo Value</label><input [(ngModel)]="quotation.cargoValue" class="flex-1 border p-2 outline-none" placeholder="Currency & Amount"></div>
+            <div class="flex items-center text-red-700 font-bold"><label class="w-40">Place of Delivery</label><input [(ngModel)]="quotation.placeOfDelivery" class="flex-1 border p-2 border-red-300 outline-none"></div>
             <div class="flex items-center text-red-700 font-bold"><label class="w-40">POD / Final Dest</label>
               <div class="flex flex-1 gap-1">
                 <input [(ngModel)]="quotation.portOfDischarge" class="flex-1 border p-2 border-red-300 outline-none">
@@ -518,7 +515,6 @@
       <div class="border border-gray-300 shadow-sm rounded-sm">
   <div class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px] flex justify-between items-center">
     <span>REVENUE</span>
-    <!-- <span class="text-[10px] font-normal italic">* Amount = Rate x Exchange Rate</span> -->
   </div>
 
   <div class="overflow-x-auto bg-white">
@@ -551,8 +547,8 @@
           <td class="border p-1">
             <select [(ngModel)]="r.chargeType" class="w-full outline-none p-1 bg-transparent">
               <option value="">--Select--</option>
-              <option value="Prepaid"></option>
-              <option value="Collect"></option>
+              <option value="Prepaid">Prepaid</option>
+              <option value="Collect">Collect</option>
             </select>
           </td>
           <td class="border p-1">
@@ -568,7 +564,7 @@
             <input type="number" [(ngModel)]="r.exchangeRate" (input)="calculateRevenue()" class="w-full outline-none p-1 text-right">
           </td>
           <td class="border p-1 bg-blue-50 font-bold text-right px-2 text-blue-800">
-            <!-- {{ r.amount | number:'1.2-2' }} --> <input type="text">
+            <input type="number" [(ngModel)]="r.amount" readonly class="w-full outline-none p-1 bg-transparent text-right">
           </td>
           <td class="border p-1 text-center">
             <button *ngIf="revenueRows.length > 1" (click)="removeRow(i)" class="text-red-400 hover:text-red-600 transition-colors">
@@ -583,7 +579,6 @@
 <div class="border border-gray-300 shadow-sm rounded-sm mt-6">
    <div class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px] flex justify-between items-center">
     <span>COST</span>
-    <!-- <span class="text-[10px] font-normal italic uppercase tracking-wider">Buying Rates / Expense</span> -->
   </div>
 
   <div class="overflow-x-auto bg-white">
@@ -616,8 +611,8 @@
           <td class="border p-1">
             <select [(ngModel)]="c.chargeType" class="w-full outline-none p-1 bg-transparent">
               <option value="">--Select--</option>
-              <option value="Prepaid"></option>
-              <option value="Collect"></option>
+              <option value="Prepaid">Prepaid</option>
+              <option value="Collect">Collect</option>
             </select>
           </td>
           <td class="border p-1">
@@ -633,7 +628,7 @@
             <input type="number" [(ngModel)]="c.exchangeRate" (input)="calculateCost()" class="w-full outline-none p-1 text-right">
           </td>
           <td class="border p-1 bg-red-50 font-bold text-right px-2 text-red-800">
-           <input [(ngModel)]="c.amount" placeholder="Amount" class="w-full outline-none p-1 bg-transparent">
+           <input type="number" [(ngModel)]="c.amount" readonly placeholder="Amount" class="w-full outline-none p-1 bg-transparent text-right">
           </td>
           <td class="border p-1 text-center">
             <button *ngIf="costRows.length > 1" (click)="removeCostRow(i)" class="text-red-400 hover:text-red-600">
@@ -648,7 +643,6 @@
 <div class="border border-gray-300 shadow-md mt-8 rounded-sm overflow-hidden">
   <div class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px] flex justify-between items-center">
     <span>Profit & Loss Summary</span>
-    <!-- <span class="text-[10px] font-normal italic">Financial Analysis</span> -->
   </div>
 
   <div class="overflow-x-auto bg-white">
@@ -669,7 +663,6 @@
             No data available. Please add charges in Revenue and Cost sections.
           </td>
         </tr>
-
         <tr *ngFor="let p of pnLRows" class="hover:bg-green-50/50 transition-colors">
           <td class="border p-2 font-semibold text-gray-400 uppercase">{{ p.lob }}</td>
           <td class="border p-2 font-bold text-gray-800">{{ p.chargeName }}</td>
@@ -691,7 +684,6 @@
           </td>
         </tr>
       </tbody>
-      
       <tfoot *ngIf="pnLRows.length > 0" class="bg-gray-800 text-white font-bold border-t-2 border-gray-600">
         <tr>
           <td colspan="2" class="p-2 text-right uppercase tracking-widest text-gray-400">Total Calculation:</td>
@@ -712,8 +704,6 @@
   </div>
 </div>
     </div>
-    
-
     <div class="p-4 bg-gray-100 border-t flex justify-end gap-3">
       <button (click)="toggleForm()" class="bg-white border border-gray-400 px-6 py-2 font-bold text-gray-700 hover:bg-gray-200">CANCEL</button>
       <button (click)="saveQuotation()" class="bg-[#4a3f3f] text-white px-8 py-2 font-bold shadow-md hover:bg-black uppercase">

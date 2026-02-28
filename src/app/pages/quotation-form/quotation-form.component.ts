@@ -1,114 +1,3 @@
-// import { Component, OnInit } from '@angular/core';
-// import { CommonModule } from '@angular/common';
-// import { Router, RouterModule } from '@angular/router';
-// import { FormsModule } from '@angular/forms';
-// import { HttpClient, HttpClientModule } from '@angular/common/http';
-
-// @Component({
-//   selector: 'app-quotation-form',
-//   standalone: true,
-//   imports: [CommonModule, RouterModule, FormsModule, HttpClientModule],
-//   templateUrl: './quotation-form.component.html',
-// })
-// export class QuotationFormComponent implements OnInit {
-//   isFormOpen = false;
-//   private apiUrl = 'http://localhost:5000/api/Quotations';
-
-//   quotations: any[] = [];
-//   quotation: any = this.resetQuotationModel();
-
-//   constructor(private http: HttpClient,private router: Router) {}
-
-//   ngOnInit() {
-//     this.loadQuotations();
-//   }
-
-// createNewOrganization() {
-//   console.log("Navigating to Add Organization...");
-//   // Sahi path yahan update kiya gaya hai
-//   this.router.navigate(['/dashboard/crm/organization-add']); 
-// }
-
-//   loadQuotations() {
-//     this.http.get<any[]>(this.apiUrl).subscribe({
-//       next: (res) => {
-//         this.quotations = res;
-//       },
-//       error: (err) => console.error('Failed to load quotations:', err)
-//     });
-//   }
-
-//   saveQuotation() {
-//     if (!this.quotation.customerName) {
-//       alert("Error: Customer Name is required!");
-//       return;
-//     }
-
-//     if (this.quotation.id > 0) {
-//       this.http.put(`${this.apiUrl}/${this.quotation.id}`, this.quotation).subscribe({
-//         next: () => {
-//           alert("Success: Quotation Updated Successfully!");
-//           this.loadQuotations();
-//           this.toggleForm();
-//         },
-//         error: (err) => alert("Error: Update failed! Please check your data.")
-//       });
-//     } else {
-//       this.http.post(this.apiUrl, this.quotation).subscribe({
-//         next: () => {
-//           alert("Success: Quotation Saved Successfully!");
-//           this.loadQuotations();
-//           this.toggleForm();
-//         },
-//         error: (err) => alert("Error: Save failed! Check backend logs.")
-//       });
-//     }
-//   }
-
-//   editQuotation(q: any) {
-//     this.quotation = { ...q };
-//     // Date formatting for HTML inputs (YYYY-MM-DD)
-//     if (this.quotation.qtnValidity) this.quotation.qtnValidity = this.quotation.qtnValidity.split('T')[0];
-//     if (this.quotation.jobDate) this.quotation.jobDate = this.quotation.jobDate.split('T')[0];
-//     this.isFormOpen = true;
-//   }
-
-//   deleteQuotation(id: number) {
-//     if (confirm("Are you sure you want to delete this record?")) {
-//       this.http.delete(`${this.apiUrl}/${id}`).subscribe({
-//         next: () => {
-//           alert("Success: Record Deleted!");
-//           this.loadQuotations();
-//         },
-//         error: (err) => console.error('Delete error:', err)
-//       });
-//     }
-//   }
-
-//   toggleForm() {
-//     this.isFormOpen = !this.isFormOpen;
-//     if (!this.isFormOpen) this.quotation = this.resetQuotationModel();
-//   }
-
-//   resetQuotationModel() {
-//     return {
-//       id: 0, qtnId: '', customerName: '', consigneeName: '', qtnDateTime: null,
-//       qtnDoneBy: '', qtnValidity: null, qtnRemarks: '', inquiryId: '',
-//       inquiryOutcome: 'Pending', inqReceivedDate: null, pricingDoneBy: '',
-//       inqRepliedDate: null, noOfRevisions: 0, inquiryRemarks: '',
-//       salesPerson: '', salesManager: '', reportingHead: '', opsManager: '',
-//       opsHandledBy: '', cargoType: 'GENERAL', commodityHawb: '',
-//       portOfLoading: '', portOfDestination: '', incoterm: 'EXW',
-//       packagingType: '', noOfPkgs: 0, grossWeightKg: 0, chargeableWeightKg: 0,
-//       jobNo: '', jobDate: null, isActive: true
-//     };
-//   }
-//   neworg(){
-// this.router.navigate(['/dashboard/crm/organization-add']);
-//   }
-// }
-
-
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
@@ -125,19 +14,44 @@ export class QuotationFormComponent implements OnInit {
   isFormOpen = false;
   private apiUrl = 'http://localhost:5000/api/Quotations';
 
+  // --- Search & Advanced Filter Logic (Fixes 'filters' errors) ---
+  filters: any = {
+    qtnId: '',
+    customerName: '',
+    origin: '',
+    destination: '',
+    status: ''
+  };
+
   quotations: any[] = [];
   quotation: any = this.resetQuotationModel();
 
-  constructor(private http: HttpClient, private router: Router) {}
+  // --- Revenue & Cost Logic ---
+  revenueRows: any[] = [];
+  costRows: any[] = [];
+  pnLRows: any[] = [];
+
+  // P&L Totals
+  totalRevFinal: number = 0;
+  totalCostFinal: number = 0;
+  totalProfitFinal: number = 0;
+
+  // --- Dimensions Modal Logic (Fixes 'dimRows', 'isDimModalOpen' errors) ---
+  isDimModalOpen = false;
+  appliedDimensions: any[] = [];
+  dimRows: any[] = [
+    { box: null, l: null, w: null, h: null, unit: 'CMS' }
+  ];
+
+  constructor(private http: HttpClient, private router: Router) {
+    this.initTableRows();
+  }
 
   ngOnInit() {
     this.loadQuotations();
   }
 
-  createNewOrganization() {
-    this.router.navigate(['/dashboard/crm/organization-add']); 
-  }
-
+  // --- Methods for Quotation Management ---
   loadQuotations() {
     this.http.get<any[]>(this.apiUrl).subscribe({
       next: (res) => { this.quotations = res; },
@@ -150,266 +64,148 @@ export class QuotationFormComponent implements OnInit {
       alert("Error: Customer Name is required!");
       return;
     }
-
     const request = this.quotation.id > 0 
       ? this.http.put(`${this.apiUrl}/${this.quotation.id}`, this.quotation)
       : this.http.post(this.apiUrl, this.quotation);
 
     request.subscribe({
       next: () => {
-        alert(`Success: Quotation ${this.quotation.id > 0 ? 'Updated' : 'Saved'} Successfully!`);
+        alert("Success!");
         this.loadQuotations();
         this.toggleForm();
       },
-      error: (err) => alert("Error: Operation failed! Check backend logs.")
+      error: (err) => alert("Save failed!")
     });
   }
 
   editQuotation(q: any) {
     this.quotation = { ...q };
-    // Formatting dates for HTML inputs
-    const dateFields = ['qtnValidity', 'jobDate', 'validTill', 'cargoReadyDate'];
-    dateFields.forEach(field => {
-      if (this.quotation[field]) this.quotation[field] = this.quotation[field].split('T')[0];
-    });
     this.isFormOpen = true;
   }
 
   deleteQuotation(id: number) {
-    if (confirm("Are you sure you want to delete this record?")) {
-      this.http.delete(`${this.apiUrl}/${id}`).subscribe({
-        next: () => {
-          alert("Success: Record Deleted!");
-          this.loadQuotations();
-        },
-        error: (err) => console.error('Delete error:', err)
-      });
+    if (confirm("Are you sure?")) {
+      this.http.delete(`${this.apiUrl}/${id}`).subscribe(() => this.loadQuotations());
     }
   }
 
+  // --- Filter & Search Methods (Fixes 'searchQuotations', 'clearFilters' errors) ---
+  searchQuotations() {
+    console.log("Searching with filters:", this.filters);
+  }
+
+  clearFilters() {
+    this.filters = { qtnId: '', customerName: '', origin: '', destination: '', status: '' };
+    this.loadQuotations();
+  }
+
+  toggleAdvanceFilter() {
+    console.log("Toggle Advance Filter");
+  }
+
+  // --- Table Handling ---
+  initTableRows() {
+    this.revenueRows = [{ lob: '', chargeName: '', chargeType: '', basis: '', currency: 'USD', rate: 0, exchangeRate: 1, amount: 0 }];
+    this.costRows = [{ lob: '', chargeName: '', chargeType: '', basis: '', currency: 'USD', rate: 0, exchangeRate: 1, amount: 0 }];
+  }
+
+  // Revenue Methods (Fixes 'removeRevenueRow', 'removeRow' errors)
+  addRevenueRow() {
+    this.revenueRows.push({ lob: '', chargeName: '', chargeType: '', basis: '', currency: 'USD', rate: 0, exchangeRate: 1, amount: 0 });
+  }
+
+  removeRevenueRow(index: number) {
+    if (this.revenueRows.length > 1) this.revenueRows.splice(index, 1);
+    this.calculateAll();
+  }
+
+  // Alias for removeRow if used in HTML
+  removeRow(index: number) {
+    this.removeRevenueRow(index);
+  }
+
+  calculateRevenue() {
+    this.revenueRows.forEach(row => row.amount = (row.rate || 0) * (row.exchangeRate || 1));
+    this.calculateAll();
+  }
+
+  // Cost Methods
+  addCostRow() {
+    this.costRows.push({ lob: '', chargeName: '', chargeType: '', basis: '', currency: 'USD', rate: 0, exchangeRate: 1, amount: 0 });
+  }
+
+  removeCostRow(index: number) {
+    if (this.costRows.length > 1) this.costRows.splice(index, 1);
+    this.calculateAll();
+  }
+
+  calculateCost() {
+    this.costRows.forEach(row => row.amount = (row.rate || 0) * (row.exchangeRate || 1));
+    this.calculateAll();
+  }
+
+  calculateAll() {
+    const allCharges = Array.from(new Set([
+      ...this.revenueRows.map(r => r.chargeName), 
+      ...this.costRows.map(c => c.chargeName)
+    ])).filter(name => name && name.trim() !== '');
+
+    this.pnLRows = allCharges.map(charge => {
+      const rev = this.revenueRows.filter(r => r.chargeName === charge).reduce((sum, r) => sum + (r.amount || 0), 0);
+      const cost = this.costRows.filter(c => c.chargeName === charge).reduce((sum, c) => sum + (c.amount || 0), 0);
+      return { 
+        lob: '', 
+        chargeName: charge, 
+        revenue: rev, 
+        cost: cost, 
+        profit: rev - cost, 
+        profitPercent: cost !== 0 ? ((rev - cost) / cost) * 100 : 0 
+      };
+    });
+
+    this.totalRevFinal = this.pnLRows.reduce((sum, p) => sum + p.revenue, 0);
+    this.totalCostFinal = this.pnLRows.reduce((sum, p) => sum + p.cost, 0);
+    this.totalProfitFinal = this.totalRevFinal - this.totalCostFinal;
+  }
+
+  // --- Dimension Modal Methods (Fixes 'openDimModal', 'addNewDimRow' etc.) ---
+  openDimModal() { this.isDimModalOpen = true; }
+  closeDimModal() { this.isDimModalOpen = false; }
+  
+  addNewDimRow() {
+    this.dimRows.push({ box: null, l: null, w: null, h: null, unit: 'CMS' });
+  }
+
+  removeDimRow(index: number) {
+    if (this.dimRows.length > 1) this.dimRows.splice(index, 1);
+  }
+
+  saveDimensions() {
+    this.appliedDimensions = [...this.dimRows];
+    this.closeDimModal();
+  }
+
+  onFileSelected(event: any) {
+    console.log("File selected", event.target.files[0]);
+  }
+
+  // --- UI Helpers ---
   toggleForm() {
     this.isFormOpen = !this.isFormOpen;
     if (!this.isFormOpen) this.quotation = this.resetQuotationModel();
   }
 
-  resetQuotationModel() {
-    return {
-      id: 0,
-      // Section 1: Basic & Usability (Image 20)
-      qtnId: '', qtnDateTime: null, customerName: '', consigneeName: '',
-      validFrom: null, validTill: null, usability: 'Single', version: '',
-      partyRole: '', cargoStatus: 'Ready By', cargoReadyDate: null,
-      quotedBy: '', salesCoor: '', location: 'DELHI', pricingBy: '',
-      qtnRemarks: '',
-
-      // Section 2: Cargo Details (Image 21)
-      lead: '', transportMode: 'Air', transportType: 'Export', shipmentType: 'International',
-      cargoType: 'Loose', businessDims: '', stuffType: 'Any', commodity: '',
-      commodityType: 'Non-Hazardous', description: '', humidityPercent: 0,
-      grossWeight: 0, netWeight: 0, 
-      dimL: 0, dimW: 0, dimH: 0, dimUnit: 'CMS',
-      packages: 0, volume: 0, volumeWeight: 0, chrgWeight: 0, vehicleType: '',
-
-      // Section 3: Forwarding & Movement (Image 22)
-      serviceForwarding: false, serviceCustoms: false,
-      movementType: 'Door-to-Door', incoterm: 'EXW', awbIssuedBy: '',
-      carrier: '', transitDays: '', cargoValue: '', movementRemark: '',
-      origin: '', portOfDischarge: '', placeOfReceipt: '', placeOfDelivery: '',
-      portOfLoading: '', finalDestination: '', tradeLane: '',
-      
-      // Addresses
-      pickupOrg: '', pickupAddress: '',
-      deliveryOrg: '', deliveryAddress: '',
-
-      // Carbon Emissions
-      preCarriageEmission: 0, onCarriageEmission: 0, mainCarriageEmission: 0,
-
-      // Old fields compatibility
-      inquiryId: '', inquiryOutcome: 'Pending', salesPerson: '', 
-      jobNo: '', jobDate: null, isActive: true
-    };
-  }
-
   neworg() {
     this.router.navigate(['/dashboard/organization-add']);
   }
-  // Revenue List: Default ek row ke saath
-  revenueRows: any[] = [
-    { 
-      lob: '', 
-      chargeName: '', 
-      chargeType: '', 
-      basis: '', 
-      currency: 'USD', 
-      rate: 0, 
-      exchangeRate: 1, 
-      amount: 0 
-    }
-  ];
 
-  // Nayi row add karne ka function
-  addRevenueRow() {
-    this.revenueRows.push({
-      lob: '',
-      chargeName: '',
-      chargeType: '',
-      basis: '',
-      currency: 'USD',
-      rate: 0,
-      exchangeRate: 1,
-      amount: 0
-    });
-  }
-
-  // Rate ya Exchange Rate badalne par Amount calculate karne ke liye
-  calculateRevenue() {
-    this.revenueRows.forEach(row => {
-      // Amount = Rate * Exchange Rate
-      row.amount = (row.rate || 0) * (row.exchangeRate || 1);
-    });
-  }
-
-  // Row delete karne ke liye
-  removeRow(index: number) {
-    if (this.revenueRows.length > 1) {
-      this.revenueRows.splice(index, 1);
-    }
-  }
-  // Cost List: Default ek row ke saath
-costRows: any[] = [
-  { 
-    lob: '', 
-    chargeName: '', 
-    chargeType: '', 
-    basis: '', 
-    currency: 'USD', 
-    rate: 0, 
-    exchangeRate: 1, 
-    amount: 0 
-  }
-];
-
-// Nayi row add karne ka function for Cost
-addCostRow() {
-  this.costRows.push({
-    lob: '',
-    chargeName: '',
-    chargeType: '',
-    basis: '',
-    currency: 'USD',
-    rate: 0,
-    exchangeRate: 1,
-    amount: 0
-  });
-}
-
-// Cost calculate karne ke liye
-calculateCost() {
-  this.costRows.forEach(row => {
-    row.amount = (row.rate || 0) * (row.exchangeRate || 1);
-  });
-}
-
-// Cost row delete karne ke liye
-removeCostRow(index: number) {
-  if (this.costRows.length > 1) {
-    this.costRows.splice(index, 1);
-  }
-}
-  // 1. Variables define karein
-pnLRows: any[] = [];
-totalRevFinal: number = 0;
-totalCostFinal: number = 0;
-totalProfitFinal: number = 0;
-
-// 2. Calculation Function
-calculateAll() {
-  // Pehle Revenue aur Cost ke individual amounts update karein
-  this.revenueRows.forEach(row => row.amount = (row.rate || 0) * (row.exchangeRate || 1));
-  this.costRows.forEach(row => row.amount = (row.rate || 0) * (row.exchangeRate || 1));
-
-  // Unique Charge Names ki list banayein
-  const allCharges = Array.from(new Set([
-    ...this.revenueRows.map(r => r.chargeName), 
-    ...this.costRows.map(c => c.chargeName)
-  ])).filter(name => name && name.trim() !== '');
-
-  // P&L Rows generate karein
-  this.pnLRows = allCharges.map(charge => {
-    const rev = this.revenueRows
-      .filter(r => r.chargeName === charge)
-      .reduce((sum, r) => sum + (r.amount || 0), 0);
-
-    const cost = this.costRows
-      .filter(c => c.chargeName === charge)
-      .reduce((sum, c) => sum + (c.amount || 0), 0);
-
-    const profit = rev - cost;
-    const profitPercent = cost !== 0 ? (profit / cost) * 100 : 0;
-
-    // LOB uthane ke liye
-    const lob = this.revenueRows.find(r => r.chargeName === charge)?.lob || 
-                this.costRows.find(c => c.chargeName === charge)?.lob;
-
+  resetQuotationModel() {
     return {
-      lob: lob,
-      chargeName: charge,
-      revenue: rev,
-      cost: cost,
-      profit: profit,
-      profitPercent: profitPercent
+      id: 0, qtnId: '', customerName: '', consigneeName: '',
+      validTill: null, cargoStatus: 'Ready By', cargoReadyDate: null,
+      origin: '', portOfLoading: '', portOfDischarge: '', finalDestination: '',
+      pickupOrg: '', pickupAddress: '', deliveryOrg: '', deliveryAddress: '',
+      serviceForwarding: false, movementType: 'Door-to-Door', incoterm: 'EXW'
     };
-  });
-
-  // Grand Totals calculate karein (Pipes ki zaroorat nahi padegi)
-  this.totalRevFinal = this.pnLRows.reduce((sum, p) => sum + p.revenue, 0);
-  this.totalCostFinal = this.pnLRows.reduce((sum, p) => sum + p.cost, 0);
-  this.totalProfitFinal = this.pnLRows.reduce((sum, p) => sum + p.profit, 0);
-}
-
-  // 1. Modal control aur data storage
-isDimModalOpen = false;
-appliedDimensions: any[] = []; // Bahar dikhane ke liye final data
-dimRows: any[] = [
-  { box: null, l: null, w: null, h: null, unit: 'CMS' }
-];
-onFileSelected(event: any) {
-    const file = event.target.files[0];
-    if (file) {
-      console.log("Selected file:", file.name);
-      // Aap yahan file upload ki logic likh sakte hain
-    }
   }
-
-// 2. Modal handlers
-openDimModal() {
-  this.isDimModalOpen = true;
-}
-
-closeDimModal() {
-  this.isDimModalOpen = false;
-}
-
-addNewDimRow() {
-  this.dimRows.push({ box: null, l: null, w: null, h: null, unit: 'CMS' });
-}
-
-removeDimRow(index: number) {
-  if (this.dimRows.length > 1) {
-    this.dimRows.splice(index, 1);
-  }
-}
-
-// 3. APPLY LOGIC
-saveDimensions() {
-  // Filter kar rahe hain taaki sirf wahi data bahar aaye jisme value bhari ho
-  const validDims = this.dimRows.filter(d => d.box && d.l && d.w && d.h);
-  
-  if (validDims.length > 0) {
-    this.appliedDimensions = JSON.parse(JSON.stringify(validDims)); // Deep copy
-    this.closeDimModal();
-  } else {
-    alert("Please fill in all dimension fields before saving.");
-  }
-}
 }

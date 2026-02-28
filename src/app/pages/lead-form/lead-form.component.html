@@ -1,6 +1,6 @@
 <div class="p-2 md:p-3 bg-gray-100 min-h-screen font-sans text-[13px]">
 
-  <div *ngIf="!isFormOpen" class="max-w-7xl mx-auto bg-white border border-gray-300 shadow-lg overflow-hidden">
+  <div class="max-w-7xl mx-auto bg-white border border-gray-300 shadow-lg overflow-hidden">
     <div class="bg-gray-100 p-1.5 border-b border-gray-300 flex gap-4 items-center">
       <!-- <div class="flex gap-2 border-r border-gray-300 pr-3">
         <button class="hover:bg-gray-200 p-1 rounded">📄</button>
@@ -85,7 +85,7 @@
     
     <div class="bg-[#4a3f3f] p-3 flex justify-between items-center text-white">
       <div class="font-bold uppercase text-[12px] tracking-widest px-2">Lead Records</div>
-      <button (click)="toggleForm()" class="bg-green-600 hover:bg-green-700 text-white font-bold text-[12px] px-5 py-1.5 uppercase shadow-sm">
+      <button  class="bg-green-600 hover:bg-green-700 text-white font-bold text-[12px] px-5 py-1.5 uppercase shadow-sm">
         + Add New Lead
       </button>
     </div>
@@ -104,7 +104,7 @@
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          <tr *ngFor="let lead of leads" class="divide-x divide-gray-200 hover:bg-gray-50 cursor-pointer">
+          <tr  class="divide-x divide-gray-200 hover:bg-gray-50 cursor-pointer">
             <td class="p-3">{{ lead.date | date:'dd-MMM-yyyy' }}</td>
          <td class="p-3 uppercase">{{ lead.orgName || lead.organizationId }}</td>
             <td class="p-3">{{ lead.type }}</td>
@@ -216,7 +216,7 @@
           </select>
         </div>
 
-    <div class="flex flex-col gap-3" [formGroup]="form">
+    <div class="flex flex-col gap-3">
   <label class="font-bold text-gray-600">Team</label>
   
   <select formControlName="team"
@@ -230,7 +230,7 @@
   </select>
 </div>
 
-        <div class="flex flex-col gap-3" [formGroup]="form">
+        <div class="flex flex-col gap-3" >
   <label class="font-bold text-gray-600">HOD</label>
  
   <select formControlName="team"
@@ -292,7 +292,7 @@
       </div>
     </div>
     
-    <button type="button" (click)="navigateToNewOrg()"
+    <button type="button"
       class="bg-green-800 text-white px-2 rounded-sm font-bold text-[10px] hover:bg-black transition-colors">
       NEW
     </button>

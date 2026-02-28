@@ -177,6 +177,7 @@
 //   }
 // }
 
+
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http'; 
@@ -216,7 +217,6 @@ export class InquiryComponent implements OnInit {
     });
   }
 
-  // --- Helpers for HTML Template ---
   onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) this.selectedFile = file;
@@ -229,13 +229,12 @@ export class InquiryComponent implements OnInit {
   deleteQuotation(id: number) {
     if (confirm("Are you sure?")) {
       this.http.delete(`${this.apiUrl}/${id}`).subscribe(() => {
-        alert("Deleted!");
+        alert("Deleted Successfully!");
         this.loadQuotations();
       });
     }
   }
 
-  // --- SAVE LOGIC (Database NULL Error Fix) ---
   saveQuotation() {
     if (!this.quotation.customerName) {
       alert("Customer Name is required!");
@@ -246,27 +245,30 @@ export class InquiryComponent implements OnInit {
       headers: new HttpHeaders({ 'Content-Type': 'application/json' })
     };
 
-    // Yahan hum wo fields fill kar rahe hain jo aapki image mein NULL error de rahe the
+    // --- FIXING DATA TYPES FOR DATABASE SYNC ---
+    // Hum ensures kar rahe hain ki saari IDs 'number' format mein jayein
     const payload = {
       ...this.quotation,
-      // Default values taaki SQL INSERT fail na ho
+      id: Number(this.quotation.id) || 0,
+      
+      // Foreign Key IDs (Must be Numbers)
+      lineOfBusinessId: Number(this.quotation.lineOfBusinessId) || 1,
+      commodityId: Number(this.quotation.commodityId) || 1,
+      
+      // Port and Origin IDs (As per DB constraint 'int')
+      originId: isNaN(Number(this.quotation.originId)) ? 2 : Number(this.quotation.originId),
+      portOfLoadingId: isNaN(Number(this.quotation.portOfLoadingId)) ? 1 : Number(this.quotation.portOfLoadingId),
+      portOfDischargeId: isNaN(Number(this.quotation.portOfDischargeId)) ? 1 : Number(this.quotation.portOfDischargeId),
+      
+      // Default Audit Fields
       cargoStatus: this.quotation.cargoStatus || 'Pending',
-      chargeableWeightUnit: this.quotation.chargeableWeightUnit || 'KGS',
-      grossWeightUnit: this.quotation.grossWeightUnit || 'KGS',
-      netWeightUnit: this.quotation.netWeightUnit || 'KGS',
-      volumeWeightUnit: this.quotation.volumeWeightUnit || 'KGS',
-      noOfPkgsUnit: this.quotation.noOfPkgsUnit || 'PKGS',
-      hazardDocPath: this.quotation.hazardDocPath || 'N/A',
-      invoiceDocPath: this.quotation.invoiceDocPath || 'N/A',
-      invoiceList: this.quotation.invoiceList || 'Not Available',
-      movementType: this.quotation.movementType || 'Port-to-Port',
-      pickupAddress: this.quotation.pickupAddress || 'N/A',
-      createdBy: 'admin@cavalierlogistic.in', // Aapka saved email
-      qtnId: this.quotation.qtnId || ('QTN-' + Math.floor(Math.random() * 10000)),
+      createdBy: 'admin@cavalierlogistic.in', // Admin email requirement [cite: 2026-02-02]
+      qtnId: this.quotation.qtnId || ('QTN-' + Math.floor(1000 + Math.random() * 9000)),
+      createdDate: new Date().toISOString(),
       dimensions: this.appliedDimensions
     };
 
-    console.log("Saving Inquiry Data:", payload);
+    console.log("Final Payload for Backend:", payload);
 
     const action = this.quotation.id > 0 
       ? this.http.put(`${this.apiUrl}/${this.quotation.id}`, payload, httpOptions)
@@ -274,15 +276,19 @@ export class InquiryComponent implements OnInit {
 
     action.subscribe({
       next: () => {
-        alert("Success: Saved in Database!");
+        alert("Success: Saved in CavalierDB!");
         this.loadQuotations();
         this.toggleForm();
       },
       error: (err) => {
-        console.error("Full Error Object:", err);
-        // Displaying inner message for better debugging
-        const errMsg = err.error?.message || "Server Error: Database constraint failed.";
-        alert("Failed to save: " + errMsg);
+        console.error("Post Error Details:", err);
+        if (err.status === 0) {
+          alert("Connection Refused: Make sure Visual Studio Backend is running.");
+        } else {
+          // Check for Foreign Key conflict or Type mismatch
+          const errMsg = err.error?.message || "Verify if Master IDs exist in DB.";
+          alert("Failed to save: " + errMsg);
+        }
       }
     });
   }
@@ -292,15 +298,23 @@ export class InquiryComponent implements OnInit {
     if (!this.isFormOpen) {
       this.quotation = this.resetQuotationModel();
       this.appliedDimensions = [];
+      this.dimRows = [{ box: 1, l: 0, w: 0, h: 0, unit: 'CMS' }];
     }
   }
 
   openDimModal() { this.isDimModalOpen = true; }
   closeDimModal() { this.isDimModalOpen = false; }
-  addNewDimRow() { this.dimRows.push({ box: 1, l: 0, w: 0, h: 0, unit: 'CMS' }); }
-  removeDimRow(i: number) { if (this.dimRows.length > 1) this.dimRows.splice(i, 1); }
+  
+  addNewDimRow() { 
+    this.dimRows.push({ box: 1, l: 0, w: 0, h: 0, unit: 'CMS' }); 
+  }
+  
+  removeDimRow(i: number) { 
+    if (this.dimRows.length > 1) this.dimRows.splice(i, 1); 
+  }
 
   saveDimensions() {
+    // Only capture rows where length is specified
     this.appliedDimensions = this.dimRows.filter(d => d.l > 0);
     this.closeDimModal();
   }
@@ -308,16 +322,30 @@ export class InquiryComponent implements OnInit {
   editQuotation(q: any) {
     this.quotation = { ...q };
     this.appliedDimensions = q.dimensions || [];
+    this.dimRows = this.appliedDimensions.length > 0 
+      ? [...this.appliedDimensions] 
+      : [{ box: 1, l: 0, w: 0, h: 0, unit: 'CMS' }];
     this.isFormOpen = true;
   }
 
   resetQuotationModel() {
     return {
-      id: 0, customerName: '', branchName: '', 
+      id: 0, 
+      customerName: '', 
+      branchName: 'MAIN', 
       receivedDate: new Date().toISOString().split('T')[0], 
-      location: 'DELHI', transportMode: 'Air', shipmentType: 'International',
-      noOfPkgs: 0, grossWeightKg: 0, chargeableWeight: 0,
-      origin: '', portOfLoading: '', portOfDischarge: '', dimensions: []
+      location: 'DELHI', 
+      transportMode: 'Air', 
+      shipmentType: 'International',
+      lineOfBusinessId: 1,
+      commodityId: 1,
+      originId: 2, // Matches originid2 request
+      portOfLoadingId: 1, // Matches pol1 request
+      portOfDischargeId: 1, // Matches pod1 request
+      noOfPkgs: 1, 
+      grossWeightKg: 0, 
+      chargeableWeight: 0,
+      dimensions: []
     };
   }
 }

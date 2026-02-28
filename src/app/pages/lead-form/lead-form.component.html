@@ -114,7 +114,7 @@
             </td>
            <td class="p-3">{{ lead.branch || 'DELHI' }}</td>
 <td class="p-3 flex gap-2">
-<button (click)="editLead(lead.id)" 
+<button  
         class="text-green-600 hover:underline text-[11px] font-bold">
   Edit
 </button>
@@ -225,7 +225,7 @@
     <option value="">Select Team</option>
     
     <option *ngFor="let team of teamsList" [value]="team.id">
-      {{ team.name }}
+      {{ team.teamName }}
     </option>
   </select>
 </div>

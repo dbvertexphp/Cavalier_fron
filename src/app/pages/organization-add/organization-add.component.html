@@ -5,32 +5,32 @@
         Status: <span class="text-green-600 font-bold">Active</span> | <span class="text-red-600 font-bold">Inactive</span>
       </div>
     </div>
-<div class="p-4 bg-white border-b border-gray-200">
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-3">
-    <div class="space-y-2">
-      <div class="flex items-center">
-        <label class="w-28 font-bold text-red-700">Org Name</label>
-        <div class="flex-1 flex flex-col relative">
-          <div class="flex border border-red-200">
-            <input type="text" [(ngModel)]="searchQuery" (input)="searchOrganization()" placeholder="Search Company..." class="w-full p-1 outline-none text-[12px]">
-            <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400">🔍</span>
-          </div>
-          
-          <ul *ngIf="searchQuery && organizations && organizations.length > 0" 
-              class="absolute top-full left-0 w-full bg-white border border-gray-300 shadow-lg z-[1000] max-h-48 overflow-y-auto">
-            <li *ngFor="let org of organizations" (click)="onOrgSelect(org)" 
-                class="p-2 text-[12px] hover:bg-blue-100 cursor-pointer border-b border-gray-100 last:border-none">
-              {{org.orgName}}
-            </li>
-          </ul>
+    <div class="p-4 bg-white border-b border-gray-200">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-3">
+        <div class="space-y-2">
+          <div class="flex items-center">
+            <label class="w-28 font-bold text-red-700">Org Name</label>
+            <div class="flex-1 flex flex-col relative">
+              <div class="flex border border-red-200">
+                <input type="text" [(ngModel)]="searchQuery" (input)="searchOrganization()" placeholder="Search Company..." class="w-full p-1 outline-none text-[12px]">
+                <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400">🔍</span>
+              </div>
+              
+              <ul *ngIf="searchQuery && organizations && organizations.length > 0" 
+                  class="absolute top-full left-0 w-full bg-white border border-gray-300 shadow-lg z-[1000] max-h-48 overflow-y-auto">
+                <li *ngFor="let org of organizations" (click)="onOrgSelect(org)" 
+                    class="p-2 text-[12px] hover:bg-blue-100 cursor-pointer border-b border-gray-100 last:border-none">
+                  {{org.orgName}}
+                </li>
+              </ul>
 
-          <div *ngIf="searchQuery && organizations && organizations.length === 0" 
-               class="absolute top-full left-0 w-full bg-red-50 border border-red-200 shadow-lg z-[1000] p-2 text-[12px] text-red-600">
-            ⚠️ No organization found matching "{{searchQuery}}"
+              <div *ngIf="searchQuery && organizations && organizations.length === 0" 
+                   class="absolute top-full left-0 w-full bg-red-50 border border-red-200 shadow-lg z-[1000] p-2 text-[12px] text-red-600">
+                ⚠️ No organization found matching "{{searchQuery}}"
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-    
+        
           <div class="flex items-center">
             <label class="w-28 font-bold text-gray-600">Org Code</label>
             <input type="text" placeholder="CODE001" class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm">
@@ -115,6 +115,7 @@
       <table class="w-full border-collapse">
         <thead>
           <tr class="bg-gray-200 text-gray-700 uppercase text-[13px] border-b-2 border-gray-300">
+              <th class="p-5 text-left font-bold">Org ID</th>
             <th class="p-5 text-left font-bold">Org Name</th>
             <th class="p-5 text-left font-bold">Alias</th>
             <th class="p-5 text-left font-bold">Type</th>
@@ -124,6 +125,7 @@
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
           <tr *ngFor="let org of organizations" class="hover:bg-blue-50 transition-colors text-gray-800">
+              <td class="p-5 font-bold text-blue-700 uppercase">{{org.id}}</td>
             <td class="p-5 font-bold text-blue-700 uppercase">{{org.orgName}}</td>
             <td class="p-5 font-medium">{{org.alias}}</td>
             <td class="p-5">
@@ -158,13 +160,23 @@
           <div class="space-y-3">
             <div class="flex items-center gap-2">
               <label class="w-24 text-red-700 font-bold">Name</label>
-              <input type="text" [(ngModel)]="orgName" name="orgName" placeholder="Full Organization Name"
-                class="flex-1 border border-gray-300 p-1.5 focus:border-[#4a3f3f] outline-none shadow-sm">
+              <div class="flex-1">
+                <input type="text" [(ngModel)]="orgName" name="orgName" placeholder="Full Organization Name"
+                       class="w-full border border-gray-300 p-1.5 focus:border-[#4a3f3f] outline-none shadow-sm" required #orgNameRef="ngModel">
+                <div *ngIf="orgNameRef.invalid && (orgNameRef.dirty || orgNameRef.touched)" class="text-red-600 text-[11px] mt-1">
+                  Organization Name is required.
+                </div>
+              </div>
             </div>
             <div class="flex items-center gap-2">
               <label class="w-24 text-red-700 font-bold">Alias</label>
-              <input type="text" [(ngModel)]="alias" name="alias" placeholder="Short Name"
-                class="w-48 border border-gray-300 p-1.5 focus:border-[#4a3f3f] outline-none">
+              <div class="w-48">
+                <input type="text" [(ngModel)]="alias" name="alias" placeholder="Short Name"
+                       class="w-full border border-gray-300 p-1.5 focus:border-[#4a3f3f] outline-none" required #aliasRef="ngModel">
+                <div *ngIf="aliasRef.invalid && (aliasRef.dirty || aliasRef.touched)" class="text-red-600 text-[11px] mt-1">
+                  Alias is required.
+                </div>
+              </div>
             </div>
           </div>
 
@@ -247,16 +259,21 @@
                 <div class="grid grid-cols-2 gap-6">
                   <div class="flex items-center gap-3">
                     <label class="w-40 text-red-700 font-bold">Country</label>
-                    <div class="flex-1 flex border border-gray-300 rounded overflow-hidden">
-                      <input type="text" [(ngModel)]="country" name="country" placeholder="Search Country..."
-                        class="flex-1 p-1.5 outline-none">
-                      <button class="bg-gray-100 px-3 border-l border-gray-300 hover:bg-gray-200">🔍</button>
+                    <div class="flex-1 flex flex-col">
+                        <div class="flex border border-gray-300 rounded overflow-hidden">
+                          <input type="text" [(ngModel)]="country" name="country" placeholder="Search Country..."
+                            class="flex-1 p-1.5 outline-none" required #countryRef="ngModel">
+                          <button class="bg-gray-100 px-3 border-l border-gray-300 hover:bg-gray-200">🔍</button>
+                        </div>
+                        <div *ngIf="countryRef.invalid && (countryRef.dirty || countryRef.touched)" class="text-red-600 text-[11px] mt-1">
+                          Country is required.
+                        </div>
                     </div>
                   </div>
                   <div class="flex items-center gap-3">
                     <label class="w-40">State/Province</label>
                     <div class="flex-1 flex border border-gray-300 rounded overflow-hidden">
-                      <input type="text" placeholder="Search State..." class="flex-1 p-1.5 outline-none">
+                      <input type="text" [(ngModel)]="stateProvince" name="stateProvince" placeholder="Search State..." class="flex-1 p-1.5 outline-none">
                       <button class="bg-gray-100 px-3 border-l border-gray-300 hover:bg-gray-200">🔍</button>
                     </div>
                   </div>
@@ -265,27 +282,43 @@
                 <div class="grid grid-cols-2 gap-6">
                   <div class="flex items-center gap-3">
                     <label class="w-40 text-red-700 font-bold">City</label>
-                    <div class="flex-1 flex border border-gray-300 overflow-hidden">
-                      <input type="text" [(ngModel)]="city" name="city" placeholder="Search City..."
-                        class="flex-1 p-1.5 outline-none">
-                      <button class="bg-gray-100 px-3 border-l border-gray-300 hover:bg-gray-200">🔍</button>
+                    <div class="flex-1 flex flex-col">
+                        <div class="flex border border-gray-300 overflow-hidden">
+                          <input type="text" [(ngModel)]="city" name="city" placeholder="Search City..."
+                            class="flex-1 p-1.5 outline-none" required #cityRef="ngModel">
+                          <button class="bg-gray-100 px-3 border-l border-gray-300 hover:bg-gray-200">🔍</button>
+                        </div>
+                        <div *ngIf="cityRef.invalid && (cityRef.dirty || cityRef.touched)" class="text-red-600 text-[11px] mt-1">
+                          City is required.
+                        </div>
                     </div>
                   </div>
-                  <div class="flex items-center gap-3"><label class="w-40">Postal Code</label><input type="text"
-                      class="flex-1 border border-gray-300 p-1.5 outline-none"></div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-6">
-                  <div class="flex items-center gap-3"><label class="w-40">Telephone</label><input type="text"
-                      [(ngModel)]="telephone" name="telephone" class="flex-1 border border-gray-300 p-1.5 outline-none">
+                  <div class="flex items-center gap-3">
+                    <label class="w-40">Postal Code</label>
+                    <input type="text" [(ngModel)]="postalCode" name="postalCode"
+                      class="flex-1 border border-gray-300 p-1.5 outline-none">
                   </div>
-                  <div class="flex items-center gap-3"><label class="w-40">Fax</label><input type="text"
-                      class="flex-1 border border-gray-300 p-1.5 outline-none"></div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-6">
-                  <div class="flex items-center gap-3"><label class="w-40">Web Site</label><input type="text"
-                      class="flex-1 border border-gray-300 p-1.5 outline-none"></div>
+                  <div class="flex items-center gap-3">
+                    <label class="w-40">Telephone</label>
+                    <input type="text" [(ngModel)]="telephone" name="telephone"
+                      class="flex-1 border border-gray-300 p-1.5 outline-none">
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <label class="w-40">Fax</label>
+                    <input type="text" [(ngModel)]="fax" name="fax"
+                      class="flex-1 border border-gray-300 p-1.5 outline-none">
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-6">
+                  <div class="flex items-center gap-3">
+                    <label class="w-40">Web Site</label>
+                    <input type="text" [(ngModel)]="website" name="website"
+                      class="flex-1 border border-gray-300 p-1.5 outline-none">
+                  </div>
                   <div class="flex items-center gap-3">
                     <label class="w-40">Email Address</label>
                     <input type="email" [(ngModel)]="email" name="email" list="emailSuggestions"
@@ -299,8 +332,11 @@
                 <div class="grid grid-cols-2 gap-6">
                   <div class="flex items-center gap-3">
                     <label class="w-40">Sales Person</label>
-                    <select class="flex-1 border border-gray-300 p-1.5 outline-none">
-                      <option>Select</option>
+                    <select [(ngModel)]="salesPerson" name="salesPerson"
+                      class="flex-1 border border-gray-300 p-1.5 outline-none">
+                      <option value="">Select</option>
+                        <option value="one">one</option>
+                        <option value="two">two</option>
                     </select>
                   </div>
                   <div class="flex items-center gap-3">
@@ -314,8 +350,11 @@
                 <div class="grid grid-cols-2 gap-6">
                   <div class="flex items-center gap-3">
                     <label class="w-40">Collection Exec</label>
-                    <select class="flex-1 border border-gray-300 p-1.5 outline-none">
-                      <option>Select</option>
+                    <select [(ngModel)]="collectionExec" name="collectionExec"
+                      class="flex-1 border border-gray-300 p-1.5 outline-none">
+                      <option value="">Select</option>
+                      <option value="one">one</option>
+                      <option value="two">two</option>
                     </select>
                   </div>
                 </div>
@@ -393,13 +432,13 @@
               </div>
             </div>
           </div>
+        </div>
 
-          <div class="mt-6 flex justify-end gap-3 border-t pt-4">
-            <button (click)="closeForm()"
-              class="px-6 py-2 border border-gray-400 font-bold text-gray-600 hover:bg-gray-100 uppercase text-[11px]">Cancel</button>
-            <button (click)="saveOrg()"
-              class="bg-[#4a3f3f] text-white px-10 py-2 font-bold shadow-md hover:bg-black uppercase text-[11px] tracking-wider">Save Organization</button>
-          </div>
+        <div class="mt-6 flex justify-end gap-3 border-t pt-4">
+          <button (click)="closeForm()"
+            class="px-6 py-2 border border-gray-400 font-bold text-gray-600 hover:bg-gray-100 uppercase text-[11px]">Cancel</button>
+          <button (click)="saveOrg()"
+            class="bg-[#4a3f3f] text-white px-10 py-2 font-bold shadow-md hover:bg-black uppercase text-[11px] tracking-wider">Save Organization</button>
         </div>
       </div>
     </div>

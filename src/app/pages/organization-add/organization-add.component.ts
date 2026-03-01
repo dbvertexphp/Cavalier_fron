@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http'; 
@@ -17,7 +17,7 @@ export class OrganizationAddComponent implements OnInit {
   organizations: any[] = [];
 
   // Form Variables
-  searchQuery: string = ''; // Search box ke liye variable
+  searchQuery: string = ''; 
   orgName: string = '';
   alias: string = '';
   address: string = '';
@@ -46,29 +46,25 @@ export class OrganizationAddComponent implements OnInit {
   ];
   selectedBranch: any = this.branches[0];
 
-  constructor(private location: Location, private http: HttpClient) {}
+  constructor(private location: Location, private http: HttpClient,private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
-    this.getOrgList(); // Load hote hi list mangao
+    this.getOrgList();
   }
 
-  // GET API Call
   getOrgList() {
     const url = `${environment.apiUrl}/Organization/list`;
     
     this.http.get(url).subscribe({
       next: (data: any) => { 
         this.organizations = data; 
-        console.log('Data fetched successfully');
       },
       error: (err) => {
         console.error('List fetch error:', err);
-        alert('Could not load organizations. Please check your connection.');
       }
     });
   }
 
-  // --- Contact Row Functions ---
   addContactRow() {
     this.contactList.push({
       name: '', designation: '', department: '', mobile: '', whatsapp: '', email: ''
@@ -81,7 +77,6 @@ export class OrganizationAddComponent implements OnInit {
     }
   }
 
-  // --- Helper Functions ---
   isRoleSelected(role: string): boolean {
     return this.selectedRoles.includes(role);
   }
@@ -97,46 +92,54 @@ export class OrganizationAddComponent implements OnInit {
   }
 
   saveOrg() {
-    const url = `${environment.apiUrl}/Organization/save`;
-
-    // .NET Model properties matching (OrgName, Alias, etc.)
-    const payload = {
-      OrgName: this.orgName,
-      Alias: this.alias,
-      BranchName: this.selectedBranch?.name || '',
-      Address: this.address,
-      Country: this.country,
-      City: this.city,
-      Telephone: this.telephone,
-      Email: this.email,
-      StateProvince: this.stateProvince,
-      Website: this.website,
-      PostalCode: this.postalCode,
-      WhatsAppNumber: this.whatsAppNumber,
-      SalesPerson: this.salesPerson,
-      CollectionExec: this.collectionExec,
-      SelectedRoles: this.selectedRoles.join(','),
-      // Backend ko Contacts key chahiye jaisa model mein hai
-      Contacts: this.contacts.map(c => ({
-        ContactName: c.contactName,
-        Mobile: c.mobile,
-        Whatsapp: c.whatsapp,
-        Email: c.email
-      }))
-    };
-
-    this.http.post(url, payload).subscribe({
-      next: () => {
-        alert('Saved Successfully!');
-        this.getOrgList(); 
-        this.isFormOpen = false; 
-      },
-      error: (err) => {
-        console.error('Save Error:', err);
-        alert('Error saving data.');
-      }
-    });
+  // --- VALIDATION CHECK ---
+  if (!this.orgName || !this.alias || !this.country || !this.city) {
+    alert('Please fill mandatory fields: Name, Alias, Country, and City');
+    return;
   }
+  // -------------------------
+
+  const url = `${environment.apiUrl}/Organization/save`;
+
+  const payload = {
+    OrgName: this.orgName,
+    Alias: this.alias,
+    BranchName: this.selectedBranch?.name || '',
+    Address: this.address,
+    Country: this.country,
+    City: this.city,
+    Telephone: this.telephone,
+    Email: this.email,
+    StateProvince: this.stateProvince,
+    Website: this.website,
+    PostalCode: this.postalCode,
+    WhatsAppNumber: this.whatsAppNumber,
+    SalesPerson: this.salesPerson,
+    CollectionExec: this.collectionExec,
+    SelectedRoles: this.selectedRoles.join(','),
+    Contacts: this.contacts.map(c => ({
+      ContactName: c.contactName,
+      Mobile: c.mobile,
+      Whatsapp: c.whatsapp,
+      Email: c.email
+    }))
+  };
+
+  this.http.post(url, payload).subscribe({
+    next: () => {
+      alert('Saved Successfully!');
+      this.getOrgList(); 
+      this.isFormOpen = false;
+      
+      // 3. CHANGE DETECTOR LAGAYA HAI
+      this.cdr.detectChanges(); 
+    },
+    error: (err) => {
+      console.error('Save Error:', err);
+      alert('Error saving data.');
+    }
+  });
+}
 
   changeTab(tab: string) { this.activeTab = tab; }
   selectBranch(branch: any) { this.selectedBranch = branch; }
@@ -144,13 +147,12 @@ export class OrganizationAddComponent implements OnInit {
   cancel() {
     if (this.isFormOpen) {
       this.isFormOpen = false;
-      this.getOrgList(); // Reset karne ke bajaye list reload karo
+      this.getOrgList();
     } else {
       this.location.back();
     }
   }
 
-  // --- NAYA CODE ADDED BELOW AS REQUESTED ---
   contacts: any[] = [
     { contactName: '', designation: '', department: '', mobile: '', whatsapp: '', email: '' }
   ];
@@ -186,42 +188,32 @@ export class OrganizationAddComponent implements OnInit {
     this.isFormOpen = !this.isFormOpen;
   }   
 
-  // Naya Search Function
-searchOrganization() {
-  const query = this.searchQuery ? this.searchQuery.trim() : '';
-
-  if (!query) {
-    this.organizations = [];
-    return;
+  searchOrganization() {
+    const query = this.searchQuery ? this.searchQuery.trim() : '';
+    if (!query) {
+      this.getOrgList();
+      return;
+    }
+    const url = `${environment.apiUrl}/Organization/search?orgName=${query}`;
+    this.http.get(url).subscribe({
+      next: (data: any) => {
+        this.organizations = data || [];
+      }
+    });
   }
 
-  const url = `${environment.apiUrl}/Organization/search?orgName=${query}`;
-  
-  this.http.get(url).subscribe({
-    next: (data: any) => {
-      // Agar data milta hai toh array update hoga aur "Not Found" apne aap hat jayega
-      this.organizations = data || [];
-    },
-    error: (err) => {
-      console.error('Search error:', err);
-      this.organizations = []; 
-    }
-  });
-}
+  onOrgSelect(org: any) {
+    this.searchQuery = org.orgName;
+    this.organizations = [org];
+  }
 
-// 4. List click handler (Optional but recommended)
-onOrgSelect(org: any) {
-  this.searchQuery = org.orgName;
-  this.organizations = [org]; // Sirf selected wala dikhao ya clear kar do
-}
   deleteOrg(id: any) {
     if (confirm('Are you sure?')) {
       this.http.delete(`${environment.apiUrl}/Organization/delete/${id}`).subscribe({
         next: () => {
           alert('Deleted!');
           this.getOrgList();
-        },
-        error: (err) => console.error(err)
+        }
       });
     }
   }

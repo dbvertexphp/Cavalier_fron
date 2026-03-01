@@ -1,5 +1,6 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+// --- ADDED: Validators import ---
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
@@ -154,23 +155,25 @@ export class LeadFormComponent implements OnInit {
 
     this.leadForm = this.fb.group({
       // --- CHANGED: Bind to nextLeadNo ---
-      leadNo: [this.nextLeadNo], 
-      type: ['New Business'],
-      source: [''],
-      salesProcess: [''],
-      salesCoordinator: [''],
-      branch: ['DELHI'],
-      date: [this.toISODate(today)],
+      // --- CHANGED: Added Validators.required to critical fields ---
+      leadId:[""],
+      leadNo: [{value: this.nextLeadNo, disabled: true}], // Disable for editing
+      type: ['New Business', Validators.required],
+      source: ['', Validators.required],
+      salesProcess: ['', Validators.required],
+      salesCoordinator: ['', Validators.required],
+      branch: ['DELHI', Validators.required],
+      date: [this.toISODate(today), Validators.required],
       leadOwner: ['BHARAT JUYAL', Validators.required],
       expectedValidity: [this.toISODate(validityDate)],
-      salesStage: ['Inquiry Received'],
-      reportingManager: [''],
-      hod: [''],
-      team: [''],
+      salesStage: ['Inquiry Received', Validators.required],
+      reportingManager: ['', Validators.required],
+      hod: ['', Validators.required],
+      team: ['', Validators.required],
       organization: ['', Validators.required],
-      organizationId: [''],
-      location: [''],
-      area: [''],
+      organizationId: ['', Validators.required],
+      location: ['', Validators.required],
+      area: ['', Validators.required],
     });
   }
 
@@ -230,7 +233,7 @@ selectLead(lead: any): void {
 // --- ADDED: Variables for filtering Sales Stages ---
 filteredSalesStages: any[] = [];
 // Assuming your API gives a list of strings for sales stages
-salesStages: string[] = []; 
+salesStages: string[] = ['Inquiry Received', 'Qualified', 'Proposal Sent', 'Sales Closed']; 
 
 // --- ADDED: Search logic for Sales Stage ---
 onSalesStageSearch(event: Event): void {
@@ -294,6 +297,7 @@ selectDate(date: string): void {
 }
   onSave() {
     if (this.leadForm.valid) {
+      // --- CHANGED: Use getRawValue() to get disabled fields (like leadNo) ---
       const rawValue = this.leadForm.getRawValue();
 
       // Backend ke format mein data prepare karna

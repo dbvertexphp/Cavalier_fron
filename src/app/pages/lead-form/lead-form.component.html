@@ -2,14 +2,6 @@
  
   <div *ngIf="!isFormOpen" class="max-w-7xl mx-auto bg-white border border-gray-300 shadow-lg overflow-hidden">
     <div class="bg-gray-100 p-1.5 border-b border-gray-300 flex gap-4 items-center">
-      <!-- <div class="flex gap-2 border-r border-gray-300 pr-3">
-        <button class="hover:bg-gray-200 p-1 rounded">📄</button>
-        <button class="hover:bg-gray-200 p-1 rounded">📝</button>
-        <button class="hover:bg-gray-200 p-1 rounded">🔄</button>
-        <button class="hover:bg-gray-200 p-1 rounded">🗑️</button>
-        <button class="hover:bg-gray-200 p-1 rounded">🖨️</button>
-        <button class="hover:bg-gray-200 p-1 rounded">📊</button>
-      </div> -->
       <div class="text-[11px] italic text-gray-500">
         Items in <span class="text-green-600 font-bold">green</span> = Succeeded | <span class="text-red-600 font-bold">red</span> = Failed
       </div>
@@ -17,7 +9,7 @@
  
     <div class="p-4 bg-white border-b border-gray-200">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-3">
-       
+        
         <div class="space-y-2">
           <div class="space-y-2">
  <div class="flex items-center" [formGroup]="leadForm" >
@@ -80,7 +72,7 @@
             <label class="w-28 font-bold text-gray-600">Sales Process</label>
             <select class="flex-1 border border-gray-300 p-1 outline-none"><option>(Any)</option></select>
           </div>
-      <div class="flex items-center">
+      <div class="flex items-center" [formGroup]="leadForm">
   <label class="w-28 font-bold text-gray-600">Sales Stage</label>
   
   <div class="flex-1 relative">
@@ -142,7 +134,7 @@
         </div>
       </div>
     </div>
-   
+    
     <div class="bg-[#4a3f3f] p-3 flex justify-between items-center text-white">
       <div class="font-bold uppercase text-[12px] tracking-widest px-2">Lead Records</div>
       <button (click)="toggleForm()" class="bg-green-600 hover:bg-green-700 text-white font-bold text-[12px] px-5 py-1.5 uppercase shadow-sm">
@@ -154,6 +146,8 @@
       <table class="w-full border-collapse text-[13px]">
         <thead class="bg-gray-100 text-gray-600 uppercase border-b border-gray-300 font-bold">
           <tr class="divide-x divide-gray-300">
+             <th class="p-3 text-left">Lead ID.</th>
+              <th class="p-3 text-left">Lead No.</th>
             <th class="p-3 text-left">Date</th>
             <th class="p-3 text-left">Organization</th>
             <th class="p-3 text-left">Type</th>
@@ -165,6 +159,12 @@
         </thead>
        <tbody class="bg-white divide-y divide-gray-200">
   <tr *ngFor="let lead of leads" class="divide-x divide-gray-200 hover:bg-gray-50 cursor-pointer">
+   <td class="p-3">
+  {{ lead.id }}
+</td>
+    <td class="p-3">
+      {{lead.leadNo}}
+    </td>
     <td class="p-3">{{ lead.date | date:'dd-MMM-yyyy' }}</td>
     
     <td class="p-3 uppercase">{{ lead.organizationName || lead.organization }}</td>
@@ -199,7 +199,7 @@
  
   <form *ngIf="isFormOpen" [formGroup]="leadForm" (ngSubmit)="onSave()">
     <div class="max-w-7xl mx-auto bg-white border border-gray-300 shadow-lg overflow-hidden">
-     
+      
       <div class="bg-[#4a3f3f] p-2 flex justify-between items-center text-white">
         <div class="flex gap-2 px-2">
           <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold text-[12px] px-4 py-1.5 uppercase shadow-sm">SAVE</button>
@@ -210,23 +210,20 @@
         <button type="button" (click)="toggleForm()" class="bg-red-500 hover:bg-red-600 px-4 py-1.5 text-[12px] font-bold uppercase">CLOSE</button>
       </div>
  
-      <!--<div class="flex bg-[#f3f4f6] border-b border-gray-300">
-        <div class="px-6 py-2 bg-white border-t-2 border-t-[#4a3f3f] border-x border-x-gray-300 font-bold text-[#4a3f3f] uppercase text-[12px]">Main</div>
-      </div>-->
- 
       
       <div class="p-6 bg-white">
   <div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4">
 
     <div class="flex flex-col gap-3">
       <label class="font-bold text-gray-600">Lead No.</label>
-<input type="text" [value]="nextLeadNo" readonly
-       class="border border-gray-300 p-2 bg-gray-100 outline-none w-full" />
+      <input type="text" [value]="nextLeadNo" readonly class="border border-gray-300 p-2 bg-gray-100 outline-none w-full" />
+      
       <label class="font-bold text-gray-600">Type</label>
       <select formControlName="type" class="border border-gray-300 p-2 w-full">
         <option value="New Business">New Business</option>
         <option value="Existing Business">Existing Business</option>
       </select>
+      <div *ngIf="leadForm.get('type')?.invalid && leadForm.get('type')?.touched" class="text-red-600 text-xs mt-[-10px]">Type is required.</div>
 
       <label class="font-bold text-gray-600">Sales Process</label>
       <select formControlName="salesProcess" class="border border-gray-300 p-2 w-full">
@@ -238,64 +235,77 @@
 
     <div class="flex flex-col gap-3">
       <label class="font-bold text-gray-600">Date</label>
-      <input type="date" formControlName="date"
-        class="border border-gray-300 p-2 w-full">
+
+<input 
+  type="date" 
+  formControlName="date" 
+  class="border border-gray-300 p-2 w-full"
+  (focus)="dateInput.showPicker()"
+  #dateInput
+>
+
+<div *ngIf="leadForm.get('date')?.invalid && leadForm.get('date')?.touched" 
+     class="text-red-600 text-xs mt-[-10px]">
+  Date is required.
+</div>
 
       <label class="text-red-700 font-bold">Lead Owner</label>
       <select formControlName="leadOwner" class="border border-red-200 p-2 w-full">
         <option value="BHARAT JUYAL">BHARAT JUYAL</option>
         <option value="SALES ADMIN">SALES ADMIN</option>
       </select>
+      <div *ngIf="leadForm.get('leadOwner')?.invalid && leadForm.get('leadOwner')?.touched" class="text-red-600 text-xs mt-[-10px]">Lead Owner is required.</div>
 
       <label class="font-bold text-gray-600">Sales Coordinator</label>
-      <select formControlName="salesCoordinator"
-        class="border border-gray-300 p-2 w-full">
+      <select formControlName="salesCoordinator" class="border border-gray-300 p-2 w-full">
         <option value="">Select Co-ordinator</option>
         <option value="Coordinator 1">Coordinator 1</option>
       </select>
     </div>
 
     <div class="flex flex-col gap-3">
-      <label class="font-bold text-gray-600">Expected Validity</label>
-      <input type="date" formControlName="expectedValidity"
-        class="border border-gray-300 p-2 w-full">
+    <label class="font-bold text-gray-600">Expected Validity</label>
+
+<input
+  type="date"
+  formControlName="expectedValidity"
+  class="border border-gray-300 p-2 w-full"
+  #validityInput
+  (click)="validityInput.showPicker()"
+  (focus)="validityInput.showPicker()"
+/>
 
       <label class="font-bold text-gray-600">Lead Source</label>
-      <select formControlName="source"
-        class="border border-gray-300 p-2 w-full">
+      <select formControlName="source" class="border border-gray-300 p-2 w-full">
         <option value="">Select Source</option>
         <option value="Website">Website</option>
         <option value="Referral">Referral</option>
       </select>
 
       <label class="font-bold text-gray-600">Sales Stage</label>
-      <select formControlName="salesStage"
-        class="border border-gray-300 p-2 w-full">
+      <select formControlName="salesStage" class="border border-gray-300 p-2 w-full">
         <option value="Inquiry Received">Inquiry Received</option>
         <option value="Qualified">Qualified</option>
         <option value="Proposal Sent">Proposal Sent</option>
         <option value="Sales Closed">Sales Closed</option>
       </select>
+      <div *ngIf="leadForm.get('salesStage')?.invalid && leadForm.get('salesStage')?.touched" class="text-red-600 text-xs mt-[-10px]">Sales Stage is required.</div>
     </div>
-
   </div>
-
 
   <div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4 mt-6">
     <div class="flex flex-col gap-3">
       <label class="font-bold text-gray-600">Branch</label>
-      <select formControlName="branch"
-        class="border border-gray-300 p-2 w-full">
+      <select formControlName="branch" class="border border-gray-300 p-2 w-full">
         <option value="DELHI">DELHI</option>
         <option value="MUMBAI">MUMBAI</option>
       </select>
+      <div *ngIf="leadForm.get('branch')?.invalid && leadForm.get('branch')?.touched" class="text-red-600 text-xs mt-[-10px]">Branch is required.</div>
     </div>
-
 
     <div class="flex flex-col gap-3">
       <label class="font-bold text-gray-600">Reporting Manager</label>
-      <select formControlName="reportingManager"
-        class="border border-gray-300 p-2 w-full">
+      <select formControlName="reportingManager" class="border border-gray-300 p-2 w-full">
         <option value="">Select Manager</option>
         <option value="Manager A">Manager A</option>
       </select>
@@ -303,46 +313,39 @@
 
     <div class="flex flex-col gap-3">
       <label class="font-bold text-gray-600">Teams</label>
-      <select formControlName="team"
-        class="border border-gray-300 p-2 w-full">
+      <select formControlName="team" class="border border-gray-300 p-2 w-full">
         <option value="">Select Team</option>
-        <option *ngFor="let team of teamList" [value]="team.teamName">
-          {{ team.teamName }}
-        </option>
+        <option *ngFor="let team of teamList" [value]="team.teamName">{{ team.teamName }}</option>
       </select>
     </div>
 
     <div class="flex flex-col gap-3">
       <label class="font-bold text-gray-600">HOD</label>
-      <select formControlName="hod"
-        class="border border-gray-300 p-2 w-full">
+      <select formControlName="hod" class="border border-gray-300 p-2 w-full">
         <option value="">Select HOD</option>
-        <option *ngFor="let hod of hodList" [value]="hod.name">
-          {{ hod.name }}
-        </option>
+        <option *ngFor="let hod of hodList" [value]="hod.name">{{ hod.name }}</option>
       </select>
     </div>
 
-
     <div class="flex flex-col gap-3">
       <label class="font-bold text-gray-600">Location</label>
-      <select formControlName="location"
-        class="border border-gray-300 p-2 w-full">
+      <select formControlName="location" class="border border-gray-300 p-2 w-full">
         <option value="">Select Location</option>
         <option value="North">North</option>
         <option value="South">South</option>
       </select>
     </div>
+    
     <div class="flex flex-col gap-3">
       <label class="font-bold text-gray-600">Area</label>
-      <select formControlName="area"
-        class="border border-gray-300 p-2 w-full">
+      <select formControlName="area" class="border border-gray-300 p-2 w-full">
         <option value="">Select Area</option>
         <option value="Industrial">Industrial</option>
         <option value="Commercial">Commercial</option>
       </select>
     </div>
   </div>
+  
   <hr class="my-6 border-gray-200">
 
   <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
@@ -350,40 +353,16 @@
       <label class="text-red-700 font-bold">Organization</label>
 
       <div class="sm:col-span-2 flex gap-1 relative">
-
         <div class="flex border border-red-300 w-full bg-white shadow-sm relative">
-
-          <input type="text"
-                 formControlName="organization"
-                 class="w-full p-2 border-none outline-none"
-                 placeholder="Search organization..."
-                 (input)="onOrganizationSearch($event)">
-
-          <span class="p-2 bg-gray-100 border-l border-gray-300 flex items-center justify-center">
-            🔍
-          </span>
-
-          <div *ngIf="filteredOrganizations.length > 0"
-               class="absolute z-50 w-full bg-white border border-gray-300 top-full left-0 mt-1 max-h-48 overflow-y-auto shadow-md">
-
-            <div *ngFor="let org of filteredOrganizations"
-                 (click)="selectOrganization(org)"
-                 class="p-2 hover:bg-red-100 cursor-pointer text-sm border-b">
-
-              {{ org.orgName }}
-
-            </div>
+          <input type="text" formControlName="organization" class="w-full p-2 border-none outline-none" placeholder="Search organization..." (input)="onOrganizationSearch($event)">
+          <span class="p-2 bg-gray-100 border-l border-gray-300 flex items-center justify-center">🔍</span>
+          <div *ngIf="filteredOrganizations.length > 0" class="absolute z-50 w-full bg-white border border-gray-300 top-full left-0 mt-1 max-h-48 overflow-y-auto shadow-md">
+            <div *ngFor="let org of filteredOrganizations" (click)="selectOrganization(org)" class="p-2 hover:bg-red-100 cursor-pointer text-sm border-b">{{ org.orgName }}</div>
           </div>
-
         </div>
-
-        <button type="button"
-                (click)="navigateToNewOrg()"
-                class="bg-green-800 text-white px-2 rounded-sm font-bold text-[10px] hover:bg-black">
-          NEW
-        </button>
-
+        <button type="button" (click)="navigateToNewOrg()" class="bg-green-800 text-white px-2 rounded-sm font-bold text-[10px] hover:bg-black">NEW</button>
       </div>
+      <div *ngIf="leadForm.get('organization')?.invalid && leadForm.get('organization')?.touched" class="sm:col-start-2 sm:col-span-2 text-red-600 text-xs mt-[-10px]">Organization is required.</div>
     </div>
   </div>
 
@@ -398,4 +377,3 @@
     </div>
   </form>
 </div>
- 

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -13,7 +13,15 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 export class QuotationFormComponent implements OnInit {
   isFormOpen = false;
   private apiUrl = 'http://localhost:5000/api/Quotations';
-
+// -- Dropdown Control Variables --
+  showDropdown = false;
+  organizations: any[] = [];
+  filteredOrganizations: any[] = [];
+  searchTerm = ''; // Search input ke liye
+  showLeadDropdown = false;
+  leads: any[] = [];
+  filteredLeads: any[] = [];
+  leadSearchTerm = '';
   // --- Search & Advanced Filter Logic (Fixes 'filters' errors) ---
   filters: any = {
     qtnId: '',
@@ -42,15 +50,80 @@ export class QuotationFormComponent implements OnInit {
   dimRows: any[] = [
     { box: null, l: null, w: null, h: null, unit: 'CMS' }
   ];
-
-  constructor(private http: HttpClient, private router: Router) {
+quotationss: any = this.resetQuotationModel();
+  constructor(private http: HttpClient, private router: Router, private cdr: ChangeDetectorRef) {
     this.initTableRows();
   }
 
   ngOnInit() {
     this.loadQuotations();
+    this.fetchOrganizations();
+    this.fetchLeads();
+  }
+  // --- Lead API Call ---
+ // --- Lead API Call ---
+ 
+fetchLeads() {
+  this.http.get<any[]>('http://localhost:5000/api/Leads').subscribe(data => {
+    this.leads = data;
+  });
+}
+
+// --- Lead Search Logic (FIXED) ---
+onLeadSearchInput() {
+  // 'leadSearchTerm' ki jagah ab 'quotation.lead' use kar rahe hain
+  if (this.quotation.lead && this.quotation.lead.length > 0) {
+    this.showLeadDropdown = true;
+    this.filteredLeads = this.leads.filter(lead =>
+      lead.leadNo.toLowerCase().includes(this.quotation.lead.toLowerCase())
+    );
+  } else {
+    this.showLeadDropdown = false;
+  }
+}
+
+// --- Lead Selection Logic (FIXED) ---
+selectLead(lead: any) {
+  // Sahi variable 'quotation.lead' mein data daal rahe hain
+  this.quotation.lead = lead.leadNo; 
+  
+  // Dropdown band karo
+  this.showLeadDropdown = false;
+}
+fetchOrganizations() {
+    this.http.get<any[]>('http://localhost:5000/api/Organization/list').subscribe(data => {
+      this.organizations = data;
+    });
   }
 
+  // --- Search Logic ---
+ onSearchInput() {
+  // 'searchTerm' ki jagah ab 'quotation.organization' use kar rahe hain
+  if (this.quotation.organization && this.quotation.organization.length > 0) {
+    this.showDropdown = true;
+    this.filteredOrganizations = this.organizations.filter(org =>
+      org.orgName.toLowerCase().includes(this.quotation.organization.toLowerCase())
+    );
+  } else {
+    this.showDropdown = false;
+  }
+}
+
+// --- SELECTION LOGIC WITH TIMEOUT (FIXED) ---
+selectOrganization(org: any) {
+  // 1. Sahi variable 'quotation.organization' mein data daalo
+  this.quotation.organization = org.orgName; 
+  
+  // 2. Organization ka address (textarea)
+  setTimeout(() => {
+    // Sahi variable 'quotation.organizationAddress' mein data daalo
+    this.quotation.organizationAddress = org.address; 
+  }, 0);
+  
+  // Dropdown band karo
+  this.showDropdown = false;
+}
+ 
   // --- Methods for Quotation Management ---
   loadQuotations() {
     this.http.get<any[]>(this.apiUrl).subscribe({
@@ -58,26 +131,71 @@ export class QuotationFormComponent implements OnInit {
       error: (err) => console.error('Failed to load quotations:', err)
     });
   }
+getNextQuotationNumber() {
+  // API URL ko call karein
+  this.http.get('http://localhost:5000/api/Quotations/NextQuotationNo', { responseType: 'text' })
+    .subscribe({
+      next: (nextNo) => {
+        // Response string ("0001") ko model mein set karein
+        this.quotation.quotationNo = nextNo;
+        console.log("Next Quotation No set to:", nextNo);
+      },
+      error: (err) => {
+        console.error("API Error:", err);
+      }
+    });
+}
 
-  saveQuotation() {
-    if (!this.quotation.customerName) {
-      alert("Error: Customer Name is required!");
-      return;
-    }
+  // saveQuotation() {
+  //   if (!this.quotation.customerName) {
+  //     alert("Error: Customer Name is required!");
+  //     return;
+  //   }
+  //   const request = this.quotation.id > 0 
+  //     ? this.http.put(`${this.apiUrl}/${this.quotation.id}`, this.quotation)
+  //     : this.http.post(this.apiUrl, this.quotation);
+
+  //   request.subscribe({
+  //     next: () => {
+  //       alert("Success!");
+  //       this.loadQuotations();
+  //       this.toggleForm();
+  //     },
+  //     error: (err) => alert("Save failed!")
+  //   });
+  // }
+saveQuotation() {
+    // ... (Data preparation logic)
+    this.quotation.revenueData = JSON.stringify(this.revenueRows);
+    this.quotation.costData = JSON.stringify(this.costRows);
+    this.quotation.dimensionsData = JSON.stringify(this.appliedDimensions);
+    
+    this.quotation.totalRevenue = this.totalRevFinal;
+    this.quotation.totalCost = this.totalCostFinal;
+    this.quotation.totalProfit = this.totalProfitFinal;
+
     const request = this.quotation.id > 0 
       ? this.http.put(`${this.apiUrl}/${this.quotation.id}`, this.quotation)
       : this.http.post(this.apiUrl, this.quotation);
 
     request.subscribe({
       next: () => {
-        alert("Success!");
+        alert("Quotation Saved Successfully!");
+        
         this.loadQuotations();
+        
+        // 3. Form band karein
         this.toggleForm();
+        
+        // 4. Change detection force karein taaki UI turant update ho
+        this.cdr.detectChanges();                
       },
-      error: (err) => alert("Save failed!")
+      error: (err) => {
+        console.error("Error details:", err);
+        alert("Save failed! Check console for errors.");
+      }
     });
   }
-
   editQuotation(q: any) {
     this.quotation = { ...q };
     this.isFormOpen = true;
@@ -192,20 +310,71 @@ export class QuotationFormComponent implements OnInit {
   // --- UI Helpers ---
   toggleForm() {
     this.isFormOpen = !this.isFormOpen;
-    if (!this.isFormOpen) this.quotation = this.resetQuotationModel();
+    if (this.isFormOpen) {
+    this.getNextQuotationNumber(); // Naya number layein
+  } else {
+    this.quotation = this.resetQuotationModel();
+  }
+    
   }
 
   neworg() {
     this.router.navigate(['/dashboard/organization-add']);
   }
-
-  resetQuotationModel() {
-    return {
-      id: 0, qtnId: '', customerName: '', consigneeName: '',
-      validTill: null, cargoStatus: 'Ready By', cargoReadyDate: null,
-      origin: '', portOfLoading: '', portOfDischarge: '', finalDestination: '',
-      pickupOrg: '', pickupAddress: '', deliveryOrg: '', deliveryAddress: '',
-      serviceForwarding: false, movementType: 'Door-to-Door', incoterm: 'EXW'
-    };
-  }
+resetQuotationModel() {
+  return {
+    id: 0,
+    referenceByInquiry: '',
+    quotationNo: '',
+    organization: '',
+    validFrom: new Date().toISOString(),
+    validTill: new Date().toISOString(),
+    usability: '',
+    version: '',
+    lineOfBusiness: '',
+    cargoStatus: '',
+    location: '',
+    pricingBy: '',
+    salesCoor: '',
+    lead: '',
+    businessDimensions: '',
+    transportMode: '',
+    transportType: '',
+    shipmentType: '',
+    commodity: '',
+    description: '',
+    humidity: 0,
+    grossWeight: 0,
+    grossWeightUnit: 'KG',
+    netWeight: 0,
+    netWeightUnit: 'KG',
+    chrgWeight: 0,
+    chrgWeightUnit: 'KG',
+    numOfPackages: 0,
+    packageUnit: 'PCS',
+    volumeWeight: 0,
+    volumeWeightUnit: 'CBM',
+    isServiceRequired: true,
+    movement: '',
+    awbIssuedBy: '',
+    transitDest: '',
+    placeOfReceipt: '',
+    originPOL: '',
+    incoTerms: '',
+    carrierAgent: '',
+    cargoValue: '',
+    placeOfDelivery: '',
+    podFinalDest: '',
+    pickupAddress: '',
+    deliveryAddress: '',
+    revenueData: '', // JSON stringify karke bhej sakte ho
+    costData: '',    // JSON stringify karke bhej sakte ho
+    dimensionsData: '',
+    totalRevenue: 0,
+    totalCost: 0,
+    totalProfit: 0,
+    profitPercentage: 0,
+    createdBy: 'Admin'
+  };
+}
 }

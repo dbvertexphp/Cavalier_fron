@@ -162,15 +162,30 @@
   <div class="grid grid-cols-1 md:grid-cols-4 gap-x-6 gap-y-4">
     <div class="md:col-span-1">
       <div class="grid grid-cols-2 gap-2 mb-3">
-        <div>
-          <label class="text-gray-700 font-bold block mb-1 uppercase text-[11px]">Refrence by inquiry</label>
-          <div class="relative">
-            <input name="qtnId" [(ngModel)]="quotation.
-referenceByInquiry
-" placeholder="Search Inquiry..." class="w-full border p-2 bg-white outline-none pr-7">
-            <span class="absolute right-1 top-2.5 text-gray-400">🔍</span>
-          </div>
-        </div>
+    <div>
+  <label class="text-gray-700 font-bold block mb-1 uppercase text-[11px]">Reference by inquiry</label>
+  <div class="relative">
+    <input 
+      name="referenceByInquiry" 
+      [(ngModel)]="quotation.referenceByInquiry" 
+      (input)="onInquirySearchInput()"
+      placeholder="Search Inquiry No..." 
+      class="w-full border p-2 bg-white outline-none pr-7 text-[12px]"
+      autocomplete="off">
+    
+    <span class="absolute right-1 top-2.5 text-gray-400">🔍</span>
+
+    <ul *ngIf="showInquiryDropdown && filteredInquiries.length > 0" 
+        class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-48 overflow-y-auto">
+      <li *ngFor="let inq of filteredInquiries" 
+          (click)="selectInquiry(inq)"
+          class="p-2 hover:bg-blue-50 cursor-pointer text-[12px] border-b border-gray-100">
+        <div class="font-bold text-blue-700">{{ inq.inquiryNo }}</div>
+        <div class="text-gray-500 text-[10px]">{{ inq.customerName }}</div>
+      </li>
+    </ul>
+  </div>
+</div>
 
      <div>
   <label class="text-gray-700 font-bold block mb-1 uppercase text-[11px]">Quotation No</label>

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-quotation-form',
@@ -12,7 +13,7 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 })
 export class QuotationFormComponent implements OnInit {
   isFormOpen = false;
-  private apiUrl = 'http://localhost:5000/api/Quotations';
+ private apiEndpoint = `${environment.apiUrl}/Quotations`;
 // -- Dropdown Control Variables --
   showDropdown = false;
   organizations: any[] = [];
@@ -22,6 +23,9 @@ export class QuotationFormComponent implements OnInit {
   leads: any[] = [];
   filteredLeads: any[] = [];
   leadSearchTerm = '';
+  allInquiries: any[] = [];
+filteredInquiries: any[] = [];
+showInquiryDropdown: boolean = false;
   // --- Search & Advanced Filter Logic (Fixes 'filters' errors) ---
   filters: any = {
     qtnId: '',
@@ -59,15 +63,53 @@ quotationss: any = this.resetQuotationModel();
     this.loadQuotations();
     this.fetchOrganizations();
     this.fetchLeads();
+    this.getNextQuotationNumber();
+    this.fetchInquiries();
   }
+  fetchInquiries() {
+  const url = `${environment.apiUrl}/Inquiry`;
+  this.http.get<any[]>(url).subscribe(data => {
+    this.allInquiries = data;
+  });
+}
+  // 2. Search Logic
+onInquirySearchInput() {
+  if (this.quotation.referenceByInquiry && this.quotation.referenceByInquiry.length > 0) {
+    this.showInquiryDropdown = true;
+    const searchTerm = this.quotation.referenceByInquiry.toLowerCase();
+    
+    this.filteredInquiries = this.allInquiries.filter(inq =>
+      // InquiryNo ya CustomerName dono se search kar sakte hain
+      (inq.inquiryNo && inq.inquiryNo.toLowerCase().includes(searchTerm)) ||
+      (inq.customerName && inq.customerName.toLowerCase().includes(searchTerm))
+    );
+  } else {
+    this.showInquiryDropdown = false;
+  }
+}
+
+// 3. Selection Logic
+selectInquiry(inq: any) {
+  this.quotation.referenceByInquiry = inq.inquiryNo; // Ref number set kiya
+  
+  // OPTIONAL: Agar aap chahte ho ki Inquiry select karte hi 
+  // Customer Name bhi auto-fill ho jaye:
+  this.quotation.customerName = inq.customerName;
+  
+  this.showInquiryDropdown = false;
+}
   // --- Lead API Call ---
  // --- Lead API Call ---
  
 fetchLeads() {
-  this.http.get<any[]>('http://localhost:5000/api/Leads').subscribe(data => {
-    this.leads = data;
-  });
-}
+    // 2. URL ko environment se access karein
+    const url = `${environment.apiUrl}/Leads`;
+    
+    this.http.get<any[]>(url).subscribe(data => {
+      this.leads = data;
+      console.log(data)
+    });
+  }
 
 // --- Lead Search Logic (FIXED) ---
 onLeadSearchInput() {
@@ -91,8 +133,12 @@ selectLead(lead: any) {
   this.showLeadDropdown = false;
 }
 fetchOrganizations() {
-    this.http.get<any[]>('http://localhost:5000/api/Organization/list').subscribe(data => {
+    // 2. URL ko environment variable se combine karein
+   const url = `${environment.apiUrl}/Organization/list`;
+    
+    this.http.get<any[]>(url).subscribe(data => {
       this.organizations = data;
+      console.log(data)
     });
   }
 
@@ -126,25 +172,28 @@ selectOrganization(org: any) {
  
   // --- Methods for Quotation Management ---
   loadQuotations() {
-    this.http.get<any[]>(this.apiUrl).subscribe({
+    this.http.get<any[]>(this.apiEndpoint).subscribe({
       next: (res) => { this.quotations = res; },
       error: (err) => console.error('Failed to load quotations:', err)
     });
   }
 getNextQuotationNumber() {
-  // API URL ko call karein
-  this.http.get('http://localhost:5000/api/Quotations/NextQuotationNo', { responseType: 'text' })
-    .subscribe({
-      next: (nextNo) => {
-        // Response string ("0001") ko model mein set karein
-        this.quotation.quotationNo = nextNo;
-        console.log("Next Quotation No set to:", nextNo);
-      },
-      error: (err) => {
-        console.error("API Error:", err);
-      }
-    });
-}
+    // 2. URL ko environment variable se combine karein
+ const url = `${environment.apiUrl}/Quotations/NextQuotationNo`;
+    
+    // 3. API Call (responseType 'text' sahi hai agar string aati hai)
+    this.http.get(url, { responseType: 'text' })
+      .subscribe({
+        next: (nextNo) => {
+          this.quotation.quotationNo = nextNo;
+          console.log("Next Quotation No set to:", nextNo);
+        },
+        error: (err) => {
+          console.error("API Error:", err);
+          // Yahan aap user ko error message dikha sakte hain
+        }
+      });
+  }
 
   // saveQuotation() {
   //   if (!this.quotation.customerName) {
@@ -173,10 +222,9 @@ saveQuotation() {
     this.quotation.totalRevenue = this.totalRevFinal;
     this.quotation.totalCost = this.totalCostFinal;
     this.quotation.totalProfit = this.totalProfitFinal;
-
-    const request = this.quotation.id > 0 
-      ? this.http.put(`${this.apiUrl}/${this.quotation.id}`, this.quotation)
-      : this.http.post(this.apiUrl, this.quotation);
+const request = this.quotation.id > 0 
+      ? this.http.put(`${this.apiEndpoint}/${this.quotation.id}`, this.quotation)
+      : this.http.post(this.apiEndpoint, this.quotation);
 
     request.subscribe({
       next: () => {
@@ -203,7 +251,7 @@ saveQuotation() {
 
   deleteQuotation(id: number) {
     if (confirm("Are you sure?")) {
-      this.http.delete(`${this.apiUrl}/${id}`).subscribe(() => this.loadQuotations());
+      this.http.delete(`${this.apiEndpoint}/${id}`).subscribe(() => this.loadQuotations());
     }
   }
 

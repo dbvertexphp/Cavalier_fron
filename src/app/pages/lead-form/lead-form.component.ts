@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 
 @Component({
   selector: 'app-lead-form',
@@ -15,9 +15,11 @@ import { HttpClient } from '@angular/common/http';
 })
 
 export class LeadFormComponent implements OnInit {
-
+// Aapka data array
   leadForm!: FormGroup;
+  searchForm!: FormGroup;
   isFormOpen = false;
+allLeads: any[] = [];       // original backup
 
   // --- CHANGED: Initialized as empty array ---
   leads: any[] = []; 
@@ -51,10 +53,43 @@ export class LeadFormComponent implements OnInit {
       });
 
     this.loadOrganizations();
-    this.loadLeads(); // Important: Leads load first to calculate number
+    this.loadLeads();
+    this.initSearchForm();
+     // Important: Leads load first to calculate number
+  }
+initSearchForm() {
+    this.searchForm = this.fb.group({
+      organizationName: [''],
+      salesProcess: [''],
+      leadNo: [''],
+      salesStage: ['']
+    });
+  }
+searchLeads() {
+    const filters = this.searchForm.value;
+    
+    // HTTP Params banayein (GET request ke liye)
+    let params = new HttpParams();
+    if (filters.organizationName) params = params.set('organizationName', filters.organizationName);
+    if (filters.salesProcess) params = params.set('salesProcess', filters.salesProcess);
+    if (filters.leadNo) params = params.set('leadNo', filters.leadNo);
+    if (filters.salesStage) params = params.set('salesStage', filters.salesStage);
+
+    // Backend GET API call
+    this.http.get<any[]>(`${environment.apiUrl}/Leads/search-leads`, { params })
+      .subscribe({
+        next: (res) => {
+          this.leads = res; // Search results se table update karein
+          console.log('Search Results:', res);
+        },
+        error: (err) => {
+          console.error('Search Error:', err);
+        }
+      });
   }
 
-
+  // --- UPDATED: Clear Filters ---
+ 
   loadLeads(): void {
     this.http.get<any[]>(`${environment.apiUrl}/Leads`) 
       .subscribe({
@@ -154,6 +189,7 @@ export class LeadFormComponent implements OnInit {
     validityDate.setDate(today.getDate() + 90);
 
     this.leadForm = this.fb.group({
+      organizationName: [''],
       // --- CHANGED: Bind to nextLeadNo ---
       // --- CHANGED: Added Validators.required to critical fields ---
       leadId:[""],
@@ -349,4 +385,184 @@ selectDate(date: string): void {
       alert('Please fill all required fields.');
     }
   }
+
+clearFilters() {
+  this.leadForm.reset();
+;// normal GET API call
+}
+  // 1. Apne HTML mein (click) event ko isse update kar do:
+// (click)="selectAndSearchOrganization(org)"
+
+// --- ADDED: Method with unique name ---
+// ... existing imports and code
+
+// --- ADDED: Method for input event in search form ---
+// --- UPDATED: Method for input event in search bar (Performance Fixed) ---
+onOrgSearchForFilters(event: Event): void {
+  const value = (event.target as HTMLInputElement).value.toLowerCase();
+
+  // 1. Agar input khali hai, toh dropdown aur table reset karein
+  if (!value) {
+    this.filteredOrganizations = [];
+    this.loadLeads(); // Table wapas load karein
+    return;
+  }
+
+  // 2. Sirf dropdown suggestions filter karein, API call na karein yahan
+  this.filteredOrganizations = this.organizations.filter(org =>
+    org.orgName.toLowerCase().includes(value)
+  );
+}
+
+// --- ADDED: Method for selection in search form ---
+selectOrgForFilters(org: any): void {
+  // 1. --- CHANGED: Direct control access for faster update ---
+  this.searchForm.controls['organizationName'].setValue(org.orgName);
+
+  // 2. Dropdown suggestions ko khali karein
+  this.filteredOrganizations = [];
+
+  // --- ADDED: Force Angular to update UI immediately ---
+  this.cdr.detectChanges();
+
+  // 3. API Call to filter table immediately
+  this.filterTableByOrganization(org.orgName);
+}
+
+// --- ADDED: Method to call search API for filtering table ---
+filterTableByOrganization(orgName: string) {
+  this.http.get<any[]>(`${environment.apiUrl}/Leads/search-leads`, {
+    params: { organizationName: orgName }
+  })
+  .subscribe(res => {
+    this.leads = res; // Main table update ho jayegi
+  });
+}
+// ... rest of the code
+// --- ADDED: Method for input event in Lead No search bar ---
+onLeadNoSearchForFilters(event: Event): void {
+  const value = (event.target as HTMLInputElement).value.toLowerCase();
+
+  if (!value) {
+    this.filteredLeads = [];
+    this.loadLeads(); // Reset table
+    return;
+  }
+
+  // Filter dropdown suggestions
+  this.filteredLeads = this.leads.filter(lead =>
+    lead.leadNo.toLowerCase().includes(value)
+  );
+}
+
+// --- ADDED: Method for selection in Lead No search bar ---
+selectLeadForFilters(lead: any): void {
+  // 1. Update search form control
+  this.searchForm.controls['leadNo'].setValue(lead.leadNo);
+
+  // 2. Hide dropdown
+  this.filteredLeads = [];
+
+  // 3. --- Force UI update ---
+  this.cdr.detectChanges();
+
+  // 4. API Call to filter table immediately
+  this.filterTableByLeadNo(lead.leadNo);
+}
+
+// --- ADDED: Method to call search API for Table ---
+filterTableByLeadNo(leadNo: string) {
+  this.http.get<any[]>(`${environment.apiUrl}/Leads/search-leads`, {
+    params: { leadNo: leadNo }
+  })
+  .subscribe(res => {
+    this.leads = res; // Update table
+  });
+}
+// --- ADDED: Method for input event in Sales Stage search bar ---
+onSalesStageSearchForFilters(event: Event): void {
+  const value = (event.target as HTMLInputElement).value.toLowerCase();
+
+  if (!value) {
+    this.filteredSalesStages = [];
+    this.loadLeads(); // Reset table
+    return;
+  }
+
+  // Filter dropdown suggestions from the predefined salesStages array
+  this.filteredSalesStages = this.salesStages.filter(stage =>
+    stage.toLowerCase().includes(value)
+  );
+}
+
+// --- ADDED: Method for selection in Sales Stage search bar ---
+selectSalesStageForFilters(stage: string): void {
+  // 1. Update search form control
+  this.searchForm.controls['salesStage'].setValue(stage);
+
+  // 2. Hide dropdown
+  this.filteredSalesStages = [];
+
+  // 3. --- Force UI update ---
+  this.cdr.detectChanges();
+
+  // 4. API Call to filter table immediately
+  this.filterTableBySalesStage(stage);
+}
+
+// --- ADDED: Method to call search API for Table ---
+filterTableBySalesStage(stage: string) {
+  this.http.get<any[]>(`${environment.apiUrl}/Leads/search-leads`, {
+    params: { salesStage: stage }
+  })
+  .subscribe(res => {
+    this.leads = res; // Update table
+  });
+}
+// --- ADDED: Array to store filtered processes ---
+filteredSalesProcesses: string[] = [];
+
+// --- ADDED: Array to store all available processes (load this on init) ---
+allSalesProcesses: string[] = ['Process A', 'Process B', 'Process C']; // Replace with actual API data
+
+// --- ADDED: Method for input event in Sales Process search bar ---
+onSalesProcessSearchForFilters(event: Event): void {
+  const value = (event.target as HTMLInputElement).value.toLowerCase();
+
+  if (!value) {
+    this.filteredSalesProcesses = [];
+    this.loadLeads(); // Reset table
+    return;
+  }
+
+  // Filter dropdown suggestions from allSalesProcesses array
+  this.filteredSalesProcesses = this.allSalesProcesses.filter(process =>
+    process.toLowerCase().includes(value)
+  );
+}
+
+// --- ADDED: Method for selection in Sales Process search bar ---
+selectSalesProcessForFilters(process: string): void {
+  // 1. Update search form control
+  this.searchForm.controls['salesProcess'].setValue(process);
+
+  // 2. Hide dropdown
+  this.filteredSalesProcesses = [];
+
+  // 3. --- Force UI update ---
+  this.cdr.detectChanges();
+
+  // 4. API Call to filter table immediately
+  this.filterTableBySalesProcess(process);
+}
+
+// --- ADDED: Method to call search API for Table ---
+filterTableBySalesProcess(process: string) {
+  this.http.get<any[]>(`${environment.apiUrl}/Leads/search-leads`, {
+    params: { salesProcess: process }
+  })
+  .subscribe(res => {
+    this.leads = res; // Update table
+  });
+}
 }

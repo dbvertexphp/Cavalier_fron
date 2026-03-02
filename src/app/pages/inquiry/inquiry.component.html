@@ -764,23 +764,27 @@
       <table class="w-full border-collapse border border-gray-200 whitespace-nowrap">
         <thead>
           <tr class="bg-gray-50 text-gray-600 uppercase text-[11px] border-b">
-            <th class="p-4 text-left font-bold">INQ ID</th>
+            <th class="p-4 text-left font-bold">Inquiry Id.</th>
+            <th class="p-4 text-left font-bold">Inquiry No.</th>
+            <th class="p-4 text-left font-bold">Date</th>
             <th class="p-4 text-left font-bold">Customer Name</th>
-            <th class="p-4 text-left font-bold">POL / POD</th>
+           <th class="p-4 text-left font-bold">Transport Mode</th>
             <th class="p-4 text-left font-bold">Status</th>
             <th class="p-4 text-center font-bold sticky right-0 bg-gray-50 border-l shadow-sm">Action</th>
           </tr>
         </thead>
         <tbody class="bg-white">
           <tr *ngFor="let q of quotations" class="hover:bg-gray-50 border-b text-gray-700">
+              <td class="p-4 font-bold">{{q.id}}</td>
             <td class="p-4 font-bold">{{q.inquiryNo}}</td>
+            <td class="p-4 font-bold">{{ q.receivedDate | date:'dd-MMM-yyyy' }}</td>
             <td class="p-4 uppercase font-medium">{{q.customerName}}</td>
-            <td class="p-4">{{q.portOfLoading}} -> {{q.portOfDestination}}</td>
+        <td class="p-4 uppercase font-medium">{{q.transportMode}}</td>
             <td class="p-4">
               <span
                 [ngClass]="{'bg-yellow-100 text-yellow-800': q.id > 0,'bg-green-100 text-green-800': q.id === 0}"
                 class="px-3 py-1 rounded text-[11px] font-bold">
-                {{q.id > 0 ? 'Active' : 'Draft'}}
+                {{q.cargoStatus}}
               </span>
             </td>
             <td class="p-4 sticky right-0 bg-white border-l text-center">
@@ -814,17 +818,29 @@
           <div class="space-y-2">
             <div class="grid grid-cols-2 items-center gap-3">
 
-              <label class="font-bold text-gray-700">Reference by lead.</label>
+          <label class="font-bold text-gray-700">Reference by lead.</label>
 
-              <div class="relative">
-                <input [(ngModel)]="quotation.id" name="id" placeholder="Search Lead..."
-                  class="border border-gray-300 p-2 pr-10 bg-white outline-none w-full text-gray-600 rounded" />
+<div class="relative">
+  <input 
+    [(ngModel)]="inquiry.leadNo" 
+    name="leadNo" 
+    placeholder="Search Lead..."
+    (input)="onLeadSearchInput()"
+    class="border border-gray-300 p-2 pr-10 bg-white outline-none w-full text-gray-600 rounded text-[12px]" />
 
-                
-                <span class="absolute inset-y-0 right-3 flex items-center text-gray-400 cursor-pointer">
-                  🔍
-                </span>
-              </div>
+  <span class="absolute inset-y-0 right-3 flex items-center text-gray-400 cursor-pointer">
+    🔍
+  </span>
+
+  <ul *ngIf="showLeadDropdown && filteredLeads.length > 0" 
+      class="absolute z-10 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto">
+    <li *ngFor="let lead of filteredLeads" 
+        (click)="selectLead(lead)"
+        class="p-2 hover:bg-gray-100 cursor-pointer text-[12px]">
+      {{ lead.leadNo }}
+    </li>
+  </ul>
+</div>
 
             </div>
   <div class="grid grid-cols-2 items-center">
@@ -849,15 +865,14 @@
           <div class="space-y-2">
             
           
-            <div class="grid grid-cols-2 items-center">
-  <label class="font-bold text-gray-700">Inquiry No:</label>
+        <div class="flex items-center">
+  <label class="w-28 font-bold text-gray-600">Inquiry No.</label>
   <input 
     type="text" 
-    [(ngModel)]="quotation.inquiryNo" 
     name="inquiryNo"
-    readonly 
-    placeholder="INQ-2024-001"
-    class="border p-1.5 outline-none bg-gray-100 cursor-not-allowed text-gray-600 rounded uppercase">
+    [(ngModel)]="inquiry.inquiryNo"
+    readonly
+    class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-gray-100 text-gray-600 cursor-not-allowed font-semibold">
 </div>
              <div class="grid grid-cols-2 items-center">
               <label class="font-bold text-[#802a2a]">Location</label>
@@ -914,22 +929,35 @@
             </div>
           </div>
           <div class="space-y-2">
-            <div class="grid grid-cols-2 items-center">
-              <label class="font-bold text-red-700">Organization</label>
-              <div class="flex gap-1">
-                <div class="relative flex-1 flex items-center">
-                  <input [(ngModel)]="quotation.customerName" name="customerName"
-                    class="w-full border p-1.5 border-red-300 outline-none pr-6">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 absolute right-2 text-gray-400" fill="none"
-                    viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-                <button (click)="neworg()"
-                  class="bg-green-800 text-white text-[9px] px-2 font-bold hover:bg-black uppercase">New</button>
-              </div>
-            </div>
+          <div class="grid grid-cols-2 items-center">
+  <label class="font-bold text-red-700">Organization</label>
+  <div class="flex gap-1">
+    <div class="relative flex-1 flex items-center">
+      <input 
+        [(ngModel)]="inquiry.organization"
+        name="organization"
+        (input)="onSearchInput()"
+        class="w-full border p-1.5 border-red-300 outline-none pr-6 text-[12px]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 absolute right-2 text-gray-400" fill="none"
+        viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+      
+      <ul *ngIf="showDropdown && filteredOrganizations.length > 0" 
+          class="absolute top-full left-0 z-10 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto">
+        <li *ngFor="let org of filteredOrganizations" 
+            (click)="selectOrganization(org)"
+            class="p-2 hover:bg-gray-100 cursor-pointer text-[12px]">
+          {{ org.orgName }}
+        </li>
+      </ul>
+    </div>
+    
+    <button (click)="neworg()"
+      class="bg-green-800 text-white text-[9px] px-2 font-bold hover:bg-black uppercase">New</button>
+  </div>
+</div>
             <div class="grid grid-cols-2 items-center">
               <label class="font-bold text-[#802a2a]">Quoted By</label>
               <div class="relative flex items-center">
@@ -1235,19 +1263,32 @@
               </div>
             </div>
             <div class="flex items-center text-red-700 font-bold">
-              <label class="w-40">Origin</label>
-              <div class="relative flex-1 flex items-center">
-                <input [(ngModel)]="quotation.origin" name="origin" placeholder="Search Origin..."
-                  class="w-full border p-2 border-red-300 outline-none pr-8">
-                <button class="absolute right-2 text-gray-500 hover:text-black">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </button>
-              </div>
-            </div>
+  <label class="w-40">Origin</label>
+  <div class="relative flex-1 flex items-center">
+    <input 
+      [(ngModel)]="inquiry.origin" 
+      name="origin" 
+      placeholder="Search Origin..."
+      (input)="onOriginSearchInput()"
+      class="w-full border p-2 border-red-300 outline-none pr-8 text-[12px] text-gray-700 font-normal">
+    
+    <button class="absolute right-2 text-gray-500 hover:text-black">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24"
+        stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+    </button>
+
+    <ul *ngIf="showOriginDropdown && filteredOrigins.length > 0" 
+        class="absolute top-full left-0 z-10 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto text-gray-700 font-normal">
+      <li *ngFor="let origin of filteredOrigins" 
+    (click)="selectOrigin(origin)"
+    class="p-2 hover:bg-gray-100 cursor-pointer text-[12px]">
+  {{ origin.name }} </li>
+    </ul>
+  </div>
+</div>
             <div class="flex items-center text-red-700 font-bold">
               <label class="w-40">Port of Loading</label>
               <div class="relative flex-1 flex items-center">

@@ -12,6 +12,7 @@ import { environment } from '../../../environments/environment';
   templateUrl: './quotation-form.component.html',
 })
 export class QuotationFormComponent implements OnInit {
+  searchDone: boolean = false;
   isFormOpen = false;
  private apiEndpoint = `${environment.apiUrl}/Quotations`;
 // -- Dropdown Control Variables --
@@ -54,6 +55,12 @@ showInquiryDropdown: boolean = false;
   dimRows: any[] = [
     { box: null, l: null, w: null, h: null, unit: 'CMS' }
   ];
+
+
+  showAdvanceFilter: boolean = false;
+quotedByList: string[] = []; // Suggestions ke liye
+organizationList: string[] = [];
+  quotationNoList: string[] = [];
 quotationss: any = this.resetQuotationModel();
   constructor(private http: HttpClient, private router: Router, private cdr: ChangeDetectorRef) {
     this.initTableRows();
@@ -65,6 +72,7 @@ quotationss: any = this.resetQuotationModel();
     this.fetchLeads();
     this.getNextQuotationNumber();
     this.fetchInquiries();
+    this.loadSearchSuggestions();
   }
   fetchInquiries() {
   const url = `${environment.apiUrl}/Inquiry`;
@@ -260,14 +268,9 @@ const request = this.quotation.id > 0
     console.log("Searching with filters:", this.filters);
   }
 
-  clearFilters() {
-    this.filters = { qtnId: '', customerName: '', origin: '', destination: '', status: '' };
-    this.loadQuotations();
-  }
 
-  toggleAdvanceFilter() {
-    console.log("Toggle Advance Filter");
-  }
+
+
 
   // --- Table Handling ---
   initTableRows() {
@@ -424,5 +427,200 @@ resetQuotationModel() {
     profitPercentage: 0,
     createdBy: 'Admin'
   };
+}
+searchFilters = {
+  lineOfBusiness: 'Any',
+  quotationNo: '',
+  organization: '',
+  quotedBy: '',    // HTML mein isse bind karein
+  salesCoor: '',   // Backend mapping ke liye
+  cargoStatus: 'Any',
+  validFrom: null,
+  showMode: 'all',
+  status: 'Any'
+};
+
+// Table ka data
+loadSearchSuggestions() {
+  this.http.get<any[]>(`${environment.apiUrl}/Quotations`)
+    .subscribe({
+      next: (data) => {
+        if (Array.isArray(data)) {
+          console.log("Raw Data from Backend:", data); // Check karne ke liye ki salesCoor me kya aa raha hai
+
+          // 1. Quotation Numbers
+          this.quotationNoList = [...new Set(data
+            .map(q => q.quotationNo)
+            .filter(val => val))];
+
+          // 2. Quoted By (salesCoor) - Safe Mapping
+          this.quotedByList = [...new Set(data
+            .map(q => q.salesCoor) 
+            .filter(val => val && val.trim() !== '') 
+          )];
+
+          // 3. Organizations
+          this.organizationList = [...new Set(data
+            .map(q => q.organization)
+            .filter(val => val))];
+
+          console.log("Quoted By List:", this.quotedByList);
+          
+          // Sabse Important: UI ko force update karo
+          this.cdr.detectChanges(); 
+        }
+      },
+      error: (err) => console.error("Fetch Error:", err)
+    });
+}
+onSearch() {
+  let filtersToSend: any = { ...this.searchFilters };
+
+  // 🔥 MAGIC LOGIC: Agar Quotation No likha hai, toh baaki filters ko saaf kar do
+  const searchInput = this.searchFilters.quotationNo?.toString().trim();
+
+  if (searchInput && searchInput !== "") {
+    // Sirf Quotation No bhejo, baaki sab empty taaki backend sirf isse search kare
+    filtersToSend = {
+      quotationNo: searchInput,
+      lineOfBusiness: '',
+      organization: '',
+      salesCoor: '',
+      cargoStatus: '',
+      validFrom: null,
+      showMode: '',
+      status: ''
+    };
+    console.log("🎯 Hard Searching for Quotation No only:", searchInput);
+  } else {
+    // Agar Quo No khali hai, tab normal filters chalne do
+    filtersToSend.salesCoor = this.searchFilters.quotedBy || "";
+    if (filtersToSend.lineOfBusiness === 'Any') filtersToSend.lineOfBusiness = '';
+    if (filtersToSend.cargoStatus === 'Any') filtersToSend.cargoStatus = '';
+    if (filtersToSend.status === 'Any') filtersToSend.status = '';
+    if (filtersToSend.showMode === 'all') filtersToSend.showMode = '';
+    if (!filtersToSend.validFrom) filtersToSend.validFrom = null;
+  }
+
+  this.http.post<any[]>(`${this.apiEndpoint}/Search`, filtersToSend)
+    .subscribe({
+      next: (response) => {
+        // Agar data aaya, toh wahi dikhao
+        this.quotations = response || [];
+        
+        // Sorting (Just in case multiple results aayein)
+        if (searchInput && this.quotations.length > 0) {
+          const lowerInput = searchInput.toLowerCase();
+          this.quotations.sort((a, b) => {
+            const valA = (a.quotationNo || a.QuotationNo || "").toString().toLowerCase();
+            return valA === lowerInput ? -1 : 1;
+          });
+        }
+
+        this.cdr.detectChanges();
+        console.log("✅ Data on table:", this.quotations);
+      },
+      error: (err) => {
+        console.error("❌ API Error:", err);
+        alert("Search failed!");
+      }
+    });
+}
+
+  // Table reset karne ke liye
+  // resetFilters() {
+  //   this.searchFilters = {
+  //    lineOfBusiness: 'Any',
+  // quotationNo: '',
+  // organization: '',
+  // quotedBy: '',    // HTML mein isse bind karein
+  // salesCoor: '',   // Backend mapping ke liye
+  // cargoStatus: 'Any',
+  // validFrom: null,
+  // showMode: 'all',
+  // status: 'Any'
+  //   };
+  //   // Wapas saara data load karne ke liye basic GET call kar sakte ho
+  // }
+  toggleAdvanceFilter() {
+    this.showAdvanceFilter = !this.showAdvanceFilter;
+  }
+clearFilters() {
+  // 1. Saare filters ko default par reset karo
+  this.searchFilters = {
+    lineOfBusiness: 'Any',
+    quotationNo: '',
+    organization: '',
+    quotedBy: '',
+    salesCoor: '',
+    cargoStatus: 'Any',
+    validFrom: null,
+    showMode: 'all',
+    status: 'Any'
+  };
+  this.searchDone = false;      // "No Data Found" hat jayega
+  this.quotations = [];
+  console.log("Filters cleared!");
+
+  // 2. Suggestions wapas load karein (Dropdowns ke liye)
+  this.loadSearchSuggestions(); 
+  
+  // 3. Table ka data reset karne ke liye Initial Call
+  this.fetchInitialQuotations(); 
+}
+
+// Ek simple function jo bina filter ke saara data laye
+fetchInitialQuotations() {
+  this.http.get<any[]>(`${this.apiEndpoint}/GetAll`) // Ya jo bhi aapka main GET route ho
+    .subscribe({
+      next: (res) => {
+        this.quotations = res || [];
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error("Could not reset table:", err)
+    });
+}
+resetFilters() {
+  // 1. Saare variables ko default (initial) values par set karein
+  this.searchFilters = {
+    lineOfBusiness: 'Any',
+    quotationNo: '',
+    organization: '',
+    quotedBy: '',
+    salesCoor: '',
+    cargoStatus: 'Any',
+    validFrom: null,
+    showMode: 'all',
+    status: 'Any'
+  };
+
+  console.log("Filters Resetting...");
+
+  // 2. Backend ko 'Empty' filters bhejein taaki wo "ALL" data return kare
+  const resetPayload = {
+    lineOfBusiness: '',
+    quotationNo: '',
+    organization: '',
+    salesCoor: '',
+    cargoStatus: '',
+    validFrom: null,
+    showMode: '',
+    status: ''
+  };
+
+  // 3. Search API ko call karein saara data wapas laane ke liye
+  this.http.post<any[]>(`${this.apiEndpoint}/Search`, resetPayload)
+    .subscribe({
+      next: (response) => {
+        this.quotations = response || []; // Pura data table mein wapas aa gaya
+        console.log("✅ Table Data Restored:", this.quotations.length, "rows");
+        this.cdr.detectChanges(); // UI Update
+      },
+      error: (err) => {
+        console.error("❌ Reset Error:", err);
+        // Agar Search API fail ho, toh loadSearchSuggestions wala data use kar lo
+        this.loadSearchSuggestions(); 
+      }
+    });
 }
 }

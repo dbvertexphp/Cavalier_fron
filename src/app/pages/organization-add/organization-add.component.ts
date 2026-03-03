@@ -213,62 +213,62 @@ cities: any[] = [];
   }
   
 
-searchFilters: any = {
-    orgName: '',
-    orgCode: '',
-    orgType: '',
-    city: '', // Ye city search ke liye zaroori hai
-    orgGroup: '',
-    status: 'Active',
-    branch: 'DELHI',
-    createdDate: ''
-  };
+// searchFilters: any = {
+//     orgName: '',
+//     orgCode: '',
+//     orgType: '',
+//     city: '', // Ye city search ke liye zaroori hai
+//     orgGroup: '',
+//     status: 'Active',
+//     branch: 'DELHI',
+//     createdDate: ''
+//   };
 
-  ///city search
-// 1. City (address) list store karne ke liye variable
+//   ///city search
+// // 1. City (address) list store karne ke liye variable
 
 
-// 2. City search function (Address field ke basis par)
-searchCity() {
-  const query = this.searchFilters.city ? this.searchFilters.city.trim() : '';
+// // 2. City search function (Address field ke basis par)
+// searchCity() {
+//   const query = this.searchFilters.city ? this.searchFilters.city.trim() : '';
   
-  // Agar query khali hai toh dropdown clear karein
-  if (!query) {
-    this.cities = [];
-    return;
-  }
+//   // Agar query khali hai toh dropdown clear karein
+//   if (!query) {
+//     this.cities = [];
+//     return;
+//   }
 
-  // API call to search for city based on 'address'
-const url =  `${environment.apiUrl}/Organization/search?address=${query}`;;
+//   // API call to search for city based on 'address'
+// const url =  `${environment.apiUrl}/Organization/search?address=${query}`;;
   
-  this.http.get(url).subscribe({
-    next: (data: any) => {
-      // API se aaya data cities ar
-      // ray mein daalein
-      console.log('API se data mila:', data); // <--- YAHAN CHECK KAREIN
-      this.cities = data || [];
-    },
-    error: (err) => {
-      console.error('Error searching address', err);
-      this.cities = [];
-       this.cdr.detectChanges();
-    }
-  });
-}
+//   this.http.get(url).subscribe({
+//     next: (data: any) => {
+//       // API se aaya data cities ar
+//       // ray mein daalein
+//       console.log('API se data mila:', data); // <--- YAHAN CHECK KAREIN
+//       this.cities = data || [];
+//     },
+//     error: (err) => {
+//       console.error('Error searching address', err);
+//       this.cities = [];
+//        this.cdr.detectChanges();
+//     }
+//   });
+// }
 
-// 3. City Selection Logic
-onCitySelect(city: any) {
-  // 1. Input field ko select kiye gaye city se update karein
-  this.searchFilters.city = city.address; 
+// // 3. City Selection Logic
+// onCitySelect(city: any) {
+//   // 1. Input field ko select kiye gaye city se update karein
+//   this.searchFilters.city = city.address; 
   
-  // 2. Cities array ko khali karein taaki dropdown band ho jaye
-  this.cities = []; // <--- SEHI: Dropdown band karne ke liye array empty karein
+//   // 2. Cities array ko khali karein taaki dropdown band ho jaye
+//   this.cities = []; // <--- SEHI: Dropdown band karne ke liye array empty karein
   
-  // 3. TABLE REFRESH KAREIN: Select hone ke baad data reload karein
-  this.searchOrganization(); // <--- ADDED: Table update karein
+//   // 3. TABLE REFRESH KAREIN: Select hone ke baad data reload karein
+//   this.searchOrganization(); // <--- ADDED: Table update karein
   
-  console.log('City selected and table refresh called:', this.searchFilters.city);
-}
+//   console.log('City selected and table refresh called:', this.searchFilters.city);
+// }
 
 
   deleteOrg(id: any) {

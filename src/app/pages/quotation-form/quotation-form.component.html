@@ -9,86 +9,171 @@
     <div class="p-4 bg-white border-b border-gray-200">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-3">
         <div class="space-y-2">
-          <div class="flex items-center">
-            <label class="w-28 font-bold text-gray-600">Services</label>
-            <select [(ngModel)]="filters.services" class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
-              <option value="Any">Any</option>
-              <option value="Air">Air</option>
-              <option value="Sea">Sea</option>
-            </select>
-          </div>
-          <div class="flex items-center">
-            <label class="w-28 font-bold text-gray-600">Quotation No.</label>
-            <input type="text" [(ngModel)]="filters.quotationNo" class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm">
-          </div>
-          <div class="flex items-center">
-            <label class="w-28 font-bold text-red-700">Quoted to</label>
-            <div class="flex-1 flex border border-red-200">
-               <input type="text" [(ngModel)]="filters.quotedTo" class="w-full p-1 outline-none text-[12px]">
-               <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400">🔍</span>
-            </div>
-          </div>
-          <div class="flex items-center">
-            <label class="w-28 font-bold text-gray-600">Show</label>
-            <select [(ngModel)]="filters.showType" class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
-              <option value="Valid">Valid Quotations Only</option>
-              <option value="All">All</option>
-            </select>
-          </div>
+         <div class="flex items-center">
+  <label class="w-28 font-bold text-gray-600">Services</label>
+  <select [(ngModel)]="searchFilters.lineOfBusiness" class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
+     <option value="Air Import">Air Import</option>
+        <option value="Air Export">Air Export</option>
+        <option value="Sea Import">Sea Import</option>
+        <option value="Sea Export">Sea Export</option>
+        <option value="Courier Import">Courier Import</option>
+        <option value="Courier Export">Courier Export</option>
+        <option value="Clearance Import">Clearance Import</option>
+        <option value="Clearance Export">Clearance Export</option> </select>
+</div>
+    <div class="flex items-center">
+  <label class="w-28 font-bold text-gray-600">Quotation No.</label>
+  <input 
+    type="text" 
+    [(ngModel)]="searchFilters.quotationNo" 
+    list="quotationSuggestions"
+    class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm"
+    placeholder="Type to search...">
+     <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400">🔍</span>
+  <datalist id="quotationSuggestions">
+    <option *ngFor="let qNo of quotationNoList" [value]="qNo"></option>
+  </datalist>
+</div>
+         <div class="flex items-center">
+  <label class="w-28 font-bold text-gray-600">Quoted To</label>
+  <input 
+    type="text" 
+    [(ngModel)]="searchFilters.organization" 
+    list="orgSuggestions"
+    class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm">
+     <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400">🔍</span>
+  <datalist id="orgSuggestions">
+    <option *ngFor="let org of organizationList" [value]="org"></option>
+  </datalist>
+</div>
+         <div class="flex items-center">
+  <label class="w-28 font-bold text-gray-600">Show</label>
+  <div class="relative flex-1">
+    <select [(ngModel)]="searchFilters.showMode" class="w-full border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white cursor-pointer">
+      <option value="Valid">Valid Quotations Only</option>
+      <option value="All">All</option>
+    </select>
+    <i class="fa fa-filter absolute right-6 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] pointer-events-none"></i>
+  </div>
+</div>
         </div>
 
         <div class="space-y-2">
           <div class="space-y-2">
-            <div class="flex items-center">
-              <label class="w-24 font-bold text-gray-600">Date</label>
-              <div 
-                class="flex-1 flex border border-gray-300 items-center pr-2 cursor-pointer"
-                (click)="datePicker.showPicker()">
-                <input 
-                  #datePicker
-                  type="date" 
-                  [(ngModel)]="filters.date"
-                  class="w-full p-1 outline-none text-[12px] cursor-pointer"
-                  (focus)="datePicker.showPicker()">
-                <span>📅</span>
-              </div>
-            </div>
-          </div>
           <div class="flex items-center">
-            <label class="w-24 font-bold text-gray-600">Quoted By</label>
-            <div class="flex-1 flex border border-gray-300">
-               <input type="text" [(ngModel)]="filters.quotedBy" class="w-full p-1 outline-none text-[12px]">
-               <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400">🔍</span>
-            </div>
+  <label class="w-24 font-bold text-gray-600">Date</label>
+  <div 
+    class="flex-1 flex border border-gray-300 items-center pr-2 cursor-pointer bg-white"
+    (click)="datePicker.showPicker()">
+    <input 
+      #datePicker
+      type="date" 
+      [(ngModel)]="searchFilters.validFrom"
+      class="w-full p-1 outline-none text-[12px] cursor-pointer"
+      (focus)="datePicker.showPicker()">
+    <span class="text-gray-400 text-[12px]">📅</span>
+  </div>
+</div>
           </div>
+<div class="flex items-center">
+  <label class="w-24 font-bold text-gray-600">Quoted By</label>
+  <div class="flex-1 flex border border-gray-300 relative">
+    <input 
+      type="text" 
+      [(ngModel)]="searchFilters.quotedBy" 
+      list="quotedBySuggestions"
+      class="w-full p-1 outline-none text-[12px]"
+      placeholder="Type name...">
+    <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400">🔍</span>
+  </div>
+
+  <datalist id="quotedBySuggestions">
+    <option *ngFor="let item of quotedByList" [value]="item"></option>
+  </datalist>
+</div>
           <div class="flex items-center">
-            <label class="w-24 font-bold text-gray-600">Status</label>
-            <select [(ngModel)]="filters.status" class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
-              <option value="Any">(Any)</option>
-              <option value="Pending">Pending</option>
-              <option value="Won">Won</option>
-            </select>
-          </div>
+  <label class="w-24 font-bold text-gray-600">Status</label>
+  <div class="relative flex-1">
+    <select 
+      [(ngModel)]="searchFilters.status" 
+      class="w-full border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white cursor-pointer appearance-none">
+     
+      <option value="Pending">Pending</option>
+      <option value="Won">Read By</option>
+      </select>
+    <i class="fa fa-chevron-down absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] pointer-events-none"></i>
+  </div>
+</div>
         </div>
 
         <div class="flex flex-col justify-between pt-1">
           <div class="space-y-2 pl-4">
-            <div (click)="toggleAdvanceFilter()" class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline flex items-center gap-1">
-              Advance Filter <span class="text-[10px]">▼</span>
-            </div>
+           <div (click)="toggleAdvanceFilter()" 
+     class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline flex items-center gap-1 my-2">
+  Advance Filter 
+  <span [class.rotate-180]="showAdvanceFilter" class="transition-transform duration-200">
+    {{ showAdvanceFilter ? '▲' : '▼' }}
+  </span>
+</div>
+
+<div *ngIf="showAdvanceFilter" class="grid grid-cols-4 gap-4 p-3 bg-gray-50 border border-gray-200 rounded-md shadow-sm">
+  
+  <div class="flex items-center">
+    <label class="w-24 font-bold text-gray-600">Date</label>
+    </div>
+
+  <div class="flex items-center">
+    <label class="w-24 font-bold text-gray-600">Status</label>
+    </div>
+
+  <div class="flex items-center">
+    <label class="w-24 font-bold text-gray-600">Quoted By</label>
+    </div>
+
+  </div>
             <div (click)="clearFilters()" class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline">
               Clear
             </div>
-            <div class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline">
-              Legend
-            </div>
+           <div class="relative group inline-block">
+  <div class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline flex items-center gap-1">
+    <i class="fa fa-info-circle"></i> Legend
+  </div>
+
+  <div class="absolute left-0 bottom-full mb-2 hidden group-hover:block w-48 bg-white border border-gray-200 shadow-lg rounded-md p-2 z-50 text-[10px]">
+    <h4 class="font-bold border-b pb-1 mb-1 text-gray-700">Status Meanings</h4>
+    
+    <div class="flex flex-col gap-1">
+      <div class="flex items-center gap-2">
+        <span class="w-3 h-3 bg-yellow-400 rounded-full"></span> <span>Pending Quotation</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="w-3 h-3 bg-green-500 rounded-full"></span> <span>Read By/ Confirmed</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="w-3 h-3 bg-red-500 rounded-full"></span> <span> pending/ Cancelled</span>
+      </div>
+      <hr class="my-1">
+      <div class="flex items-center gap-2 text-gray-600">
+        <i class="fa fa-eye text-blue-500"></i> <span>Viewed by Customer</span>
+      </div>
+    </div>
+  </div>
+</div>
           </div>
           
-          <div class="flex justify-end mt-4">
-            <button (click)="searchQuotations()" class="bg-[#4a3f3f] text-white px-8 py-1.5 font-bold shadow-md uppercase text-[11px] hover:bg-black transition-all">
-              Search
-            </button>
-          </div>
+        <div class="flex justify-end mt-4 gap-2">
+  <button 
+    (click)="resetFilters()" 
+    class="bg-gray-200 text-gray-700 px-6 py-1.5 font-bold shadow-sm uppercase text-[11px] hover:bg-gray-300 transition-all">
+    Reset
+  </button>
+
+  <button 
+    (click)="onSearch()" 
+    class="bg-[#4a3f3f] text-white px-8 py-1.5 font-bold shadow-md uppercase text-[11px] hover:bg-black transition-all">
+    Search
+  </button>
+</div>
         </div>
       </div>
     </div>
@@ -141,6 +226,18 @@
           <button (click)="deleteQuotation(q.id)" class="text-red-600 font-bold uppercase hover:underline">Delete</button>
         </td>
       </tr>
+      <tr *ngIf="quotations.length === 0">
+      <td colspan="10" class="p-10 text-center">
+        <div class="flex flex-col items-center justify-center text-gray-400">
+          <i class="fa fa-search-minus text-4xl mb-2"></i>
+          <p class="font-bold text-[14px]">No Data Found</p>
+          <p class="text-[11px]">Based on your filters no data found ! Sorry Please try again.</p>
+          <button (click)="resetFilters()" class="mt-3 text-blue-600 underline text-[11px]">
+            Reset Filters
+          </button>
+        </div>
+      </td>
+    </tr>
     </tbody>
   </table>
 </div>

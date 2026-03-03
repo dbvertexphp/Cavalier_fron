@@ -12,7 +12,7 @@
             <label class="w-28 font-bold text-red-700">Org Name</label>
             <div class="flex-1 flex flex-col relative">
               <div class="flex border border-red-200">
-                <input type="text" [(ngModel)]="searchQuery" (input)="searchOrganization()" placeholder="Search Company..." class="w-full p-1 outline-none text-[12px]">
+                <input type="text" placeholder="Search Company..." class="w-full p-1 outline-none text-[12px]">
                 <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400">🔍</span>
               </div>
               
@@ -53,27 +53,20 @@
       
       <div class="flex border border-gray-300">
         <input type="text" 
-               [(ngModel)]="searchFilters.city" 
-               (input)="searchCity()" 
+               
                placeholder="Search City..." 
                class="w-full p-1 outline-none text-[12px]">
         <span class="p-1 bg-gray-50 border-l border-gray-200">📍</span>
       </div>
 
-      <ul *ngIf="searchFilters.city && cities && cities.length > 0" 
-          class="absolute top-full left-0 w-full bg-white border border-gray-300 shadow-lg z-[1000] max-h-48 overflow-y-auto">
-        <li *ngFor="let city of cities" (click)="onCitySelect(city)" 
-            class="p-2 text-[12px] hover:bg-blue-100 cursor-pointer border-b border-gray-100 last:border-none">
-          {{city.address}} </li>
-      </ul>
-
+  
       
     </div>
   </div>
 
   <div class="flex items-center">
     <label class="w-24 font-bold text-gray-600">Org Group</label>
-    <select [(ngModel)]="searchFilters.orgGroup" class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
+    <select  class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
       <option value="">(Any Group)</option>
       <option value="Local">Local</option>
       <option value="International">International</option>
@@ -81,7 +74,7 @@
   </div>
   <div class="flex items-center">
     <label class="w-24 font-bold text-gray-600">Status</label>
-    <select [(ngModel)]="searchFilters.status" class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
+    <select class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
       <option value="Active">Active</option>
       <option value="Inactive">Inactive</option>
     </select>

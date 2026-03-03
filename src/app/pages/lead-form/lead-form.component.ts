@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 // --- ADDED: Validators import ---
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
@@ -9,7 +9,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 @Component({
   selector: 'app-lead-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule,FormsModule],
   templateUrl: './lead-form.component.html',
   styleUrl: './lead-form.component.css',
 })
@@ -65,28 +65,28 @@ initSearchForm() {
       salesStage: ['']
     });
   }
-searchLeads() {
-    const filters = this.searchForm.value;
+// searchLeads() {
+//     const filters = this.searchForm.value;
     
-    // HTTP Params banayein (GET request ke liye)
-    let params = new HttpParams();
-    if (filters.organizationName) params = params.set('organizationName', filters.organizationName);
-    if (filters.salesProcess) params = params.set('salesProcess', filters.salesProcess);
-    if (filters.leadNo) params = params.set('leadNo', filters.leadNo);
-    if (filters.salesStage) params = params.set('salesStage', filters.salesStage);
+//     // HTTP Params banayein (GET request ke liye)
+//     let params = new HttpParams();
+//     if (filters.organizationName) params = params.set('organizationName', filters.organizationName);
+//     if (filters.salesProcess) params = params.set('salesProcess', filters.salesProcess);
+//     if (filters.leadNo) params = params.set('leadNo', filters.leadNo);
+//     if (filters.salesStage) params = params.set('salesStage', filters.salesStage);
 
-    // Backend GET API call
-    this.http.get<any[]>(`${environment.apiUrl}/Leads/search-leads`, { params })
-      .subscribe({
-        next: (res) => {
-          this.leads = res; // Search results se table update karein
-          console.log('Search Results:', res);
-        },
-        error: (err) => {
-          console.error('Search Error:', err);
-        }
-      });
-  }
+//     // Backend GET API call
+//     this.http.get<any[]>(`${environment.apiUrl}/Leads/search-leads`, { params })
+//       .subscribe({
+//         next: (res) => {
+//           this.leads = res; // Search results se table update karein
+//           console.log('Search Results:', res);
+//         },
+//         error: (err) => {
+//           console.error('Search Error:', err);
+//         }
+//       });
+//   }
 
   // --- UPDATED: Clear Filters ---
  
@@ -127,7 +127,7 @@ searchLeads() {
   }
 
   onDeleteLead(id: any) {
-    if (confirm('Kya aap sach mein is lead ko delete karna chahte hain?')) {
+    if (confirm('Do you want to delete this lead')) {
       this.http.delete(`${environment.apiUrl}/Leads/${id}`, { responseType: 'text' })
         .subscribe({
           next: (res) => {
@@ -142,7 +142,7 @@ searchLeads() {
               alert('Lead Deleted Successfully!');
               this.loadLeads();
             } else {
-              alert('Delete fail ho gaya!');
+              alert('Delete fail !');
             }
           }
         });
@@ -307,19 +307,19 @@ loadLeadDates(): void {
 }
 
 // --- ADDED: Search logic for Date ---
-onDateSearch(event: Event): void {
-  const value = (event.target as HTMLInputElement).value; // Date string format mein aayegi
+// onDateSearch(event: Event): void {
+//   const value = (event.target as HTMLInputElement).value; // Date string format mein aayegi
 
-  if (!value) {
-    this.filteredDates = [];
-    return;
-  }
+//   if (!value) {
+//     this.filteredDates = [];
+//     return;
+//   }
 
-  // allDates array mein se search karo
-  this.filteredDates = this.allDates.filter(date =>
-    date.includes(value)
-  );
-}
+//   // allDates array mein se search karo
+//   this.filteredDates = this.allDates.filter(date =>
+//     date.includes(value)
+//   );
+// }
 
 // --- ADDED: Selection logic for Date ---
 selectDate(date: string): void {
@@ -439,7 +439,7 @@ filterTableByOrganization(orgName: string) {
   });
 }
 // ... rest of the code
-// --- ADDED: Method for input event in Lead No search bar ---
+// // --- ADDED: Method for input event in Lead No search bar ---
 onLeadNoSearchForFilters(event: Event): void {
   const value = (event.target as HTMLInputElement).value.toLowerCase();
 
@@ -455,30 +455,33 @@ onLeadNoSearchForFilters(event: Event): void {
   );
 }
 
-// --- ADDED: Method for selection in Lead No search bar ---
-selectLeadForFilters(lead: any): void {
-  // 1. Update search form control
-  this.searchForm.controls['leadNo'].setValue(lead.leadNo);
+// // --- ADDED: Method for selection in Lead No search bar ---
+// selectLeadForFilters(lead: any): void {
+//   // 1. Update search form control
+//   this.searchForm.controls['leadNo'].setValue(lead.leadNo);
 
-  // 2. Hide dropdown
-  this.filteredLeads = [];
+//   // 2. Hide dropdown
+//   this.filteredLeads = [];
 
-  // 3. --- Force UI update ---
-  this.cdr.detectChanges();
+//   // 3. --- Force UI update ---
+//   this.cdr.detectChanges();
 
-  // 4. API Call to filter table immediately
-  this.filterTableByLeadNo(lead.leadNo);
-}
+//   // 4. API Call to filter table immediately
+//   this.filterTableByLeadNo(lead.leadNo);
+// }
 
-// --- ADDED: Method to call search API for Table ---
-filterTableByLeadNo(leadNo: string) {
-  this.http.get<any[]>(`${environment.apiUrl}/Leads/search-leads`, {
-    params: { leadNo: leadNo }
-  })
-  .subscribe(res => {
-    this.leads = res; // Update table
-  });
-}
+// // --- ADDED: Method to call search API for Table ---
+// filterTableByLeadNo(leadNo: string) {
+//   // GET ki jagah POST use karein aur body bhein
+//   this.http.post<any[]>(`${environment.apiUrl}/Leads/Search`, { leadNo: leadNo })
+//     .subscribe({
+//       next: (res) => {
+//         this.leads = res || [];
+//         this.cdr.detectChanges();
+//       },
+//       error: (err) => console.error("❌ Search failed:", err)
+//     });
+// }
 // --- ADDED: Method for input event in Sales Stage search bar ---
 onSalesStageSearchForFilters(event: Event): void {
   const value = (event.target as HTMLInputElement).value.toLowerCase();
@@ -564,5 +567,240 @@ filterTableBySalesProcess(process: string) {
   .subscribe(res => {
     this.leads = res; // Update table
   });
+}
+// Component ke upar define karein
+// Search Filters ka main object
+leadSearchFilters = {
+  date: null,
+  organizationName: '',
+  type: 'Any',
+  leadNo: '',
+  salesProcess: '',
+  salesStage: '',
+  leadOwner: 'Any'
+};
+// Dropdown lists for suggestions
+leadNoList: string[] = [];
+leadOrgList: string[] = [];
+leadOwnerList: string[] = [];
+
+// Date select karne par filter trigger ho
+// Date select karne ke liye unique function
+selectLeadDate(date: any): void {
+  this.leadSearchFilters.date = date; // Object update (string value set ho jayegi)
+  this.filteredDates = [];           // Dropdown suggestions band
+  this.onLeadSearch();               // Turant search trigger (Jaise Inq/Quo mein hota hai)
+}
+
+// Date search logic (Saari leads ki unique dates mein se filter)
+onDateSearch(event: Event): void {
+  const value = (event.target as HTMLInputElement).value;
+  if (!value) {
+    this.filteredDates = [];
+    return;
+  }
+  // allDates hum loadLeads() ke waqt fill kar lenge
+  this.filteredDates = this.allDates.filter(d => d.includes(value));
+}
+
+// 1. Dropdown filter karne ke liye (Same rahega)
+onLeadOrgSearch(event: Event): void {
+  const value = (event.target as HTMLInputElement).value.toLowerCase();
+  
+  if (!value) {
+    this.filteredOrganizations = [];
+    return;
+  }
+
+  this.filteredOrganizations = this.organizations.filter(org =>
+    org.orgName.toLowerCase().includes(value)
+  );
+}
+
+// 2. Dropdown se select karne par (Ab SEARCH CALL NAHI HOGA)
+selectLeadOrg(org: any): void {
+  this.leadSearchFilters.organizationName = org.orgName; // Bas value update hogi
+  this.filteredOrganizations = [];                      // Dropdown band hoga
+  // Yahan se this.onLeadSearch() hata diya gaya hai taaki auto-search na ho
+}
+
+loadLeadSuggestions() {
+  this.http.get<any[]>(`${environment.apiUrl}/Leads`)
+    .subscribe({
+      next: (data) => {
+        if (Array.isArray(data)) {
+          // 1. Lead Numbers
+          this.leadNoList = [...new Set(data.map(l => l.leadNo).filter(val => val))];
+
+          // 2. Organization Names
+          this.leadOrgList = [...new Set(data.map(l => l.organizationName).filter(val => val))];
+
+          // 3. Lead Owners (Assigned To)
+          this.leadOwnerList = [...new Set(data.map(l => l.leadOwner).filter(val => val))];
+          // 4. Sales Processes (Suggestions ke liye)
+         this.allSalesProcesses = [...new Set(data.map(l => l.salesProcess).filter(val => val))];
+
+          this.cdr.detectChanges(); 
+        }
+      },
+      error: (err) => console.error("Leads Suggestions Fetch Error:", err)
+    }); 
+}
+// 1. Dropdown se select karte waqt sirf value set karo, search mat chalao
+selectLeadForFilters(lead: any): void {
+this.leadSearchFilters.leadNo = lead.leadNo; // Check: kya ye sahi set ho raha hai?
+  this.filteredLeads = [];
+  this.cdr.detectChanges();// Dropdown band
+  
+}
+
+// 2. Main Search Button Function
+onLeadSearch() {
+  const searchInput = this.leadSearchFilters.leadNo?.toString().trim();
+  let filtersToSend: any = {};
+
+  // 🔥 MAGIC LOGIC: Agar Lead No likha hai, toh baaki filters ko saaf kar do
+  if (searchInput && searchInput !== "") {
+    // Sirf Lead No bhejo (PascalCase mein taaki Backend accept kare)
+    filtersToSend = {
+      LeadNo: searchInput,
+      OrganizationName: '',
+      Type: '',
+      LeadOwner: '',
+      SalesStage: '',
+      SalesProcess: ''
+    };
+    console.log("🎯 Hard Searching for Lead No only:", searchInput);
+  } else {
+    // Agar Lead No khali hai, tab normal filters chalne do
+    filtersToSend = {
+      LeadNo: '',
+      OrganizationName: this.leadSearchFilters.organizationName || "",
+      Type: this.leadSearchFilters.type === 'Any' ? "" : this.leadSearchFilters.type,
+      LeadOwner: this.leadSearchFilters.leadOwner === 'Any' ? "" : this.leadSearchFilters.leadOwner,
+      SalesStage: this.leadSearchFilters.salesStage || "",
+      SalesProcess: this.leadSearchFilters.salesProcess || ""
+    };
+    console.log("🔍 Normal Filter Search Triggered");
+  }
+
+  // API Call (Make sure environment.apiUrl correct ho)
+  this.http.post<any[]>(`${environment.apiUrl}/Leads/Search`, filtersToSend)
+    .subscribe({
+      next: (response) => {
+        let results = response || [];
+
+        // 🎯 Sorting: Match milte hi Index 0 (Top) par!
+        if (searchInput && results.length > 0) {
+          results.sort((a, b) => {
+            // Backend se LeadNo ya leadNo jo bhi aaye handle karein
+            const valA = (a.leadNo || a.LeadNo || "").toString().trim();
+            const valB = (b.leadNo || b.LeadNo || "").toString().trim();
+
+            if (valA === searchInput) return -1; // Exact match top par
+            if (valB === searchInput) return 1;
+            return 0;
+          });
+        }
+
+        this.leads = [...results];
+        this.cdr.detectChanges();
+        
+        console.log("✅ Data on table:", this.leads);
+
+        if (this.leads.length === 0) {
+          alert("No data found In db.");
+        }
+      },
+      error: (err) => {
+        console.error("❌ API Error:", err);
+        alert("Search failed! Check if API is running.");
+      }
+    });
+}
+// Global Search Function (Filters + Sorting)
+private executeGlobalSearch(targetNo: string | null) {
+  let filters: any = {};
+  
+  // Baaki saare filters load karo
+  if (this.leadSearchFilters.organizationName) filters.organizationName = this.leadSearchFilters.organizationName;
+  if (this.leadSearchFilters.type && this.leadSearchFilters.type !== 'Any') filters.type = this.leadSearchFilters.type;
+  if (this.leadSearchFilters.leadOwner && this.leadSearchFilters.leadOwner !== 'Any') filters.leadOwner = this.leadSearchFilters.leadOwner;
+  if (this.leadSearchFilters.salesProcess) filters.salesProcess = this.leadSearchFilters.salesProcess;
+  if (this.leadSearchFilters.salesStage) filters.salesStage = this.leadSearchFilters.salesStage;
+  if (this.leadSearchFilters.date) filters.date = new Date(this.leadSearchFilters.date).toISOString();
+
+  this.http.post<any[]>(`${environment.apiUrl}/Leads/Search`, filters)
+    .subscribe({
+      next: (response) => {
+        let results = response || [];
+
+        // Sorting Logic: Agar targetNo match kare toh TOP par
+        if (targetNo && results.length > 0) {
+          const lowerTarget = targetNo.toLowerCase();
+          results.sort((a, b) => {
+            const aNo = a.leadNo?.toString().toLowerCase() || '';
+            const bNo = b.leadNo?.toString().toLowerCase() || '';
+            if (aNo === lowerTarget) return -1;
+            if (bNo === lowerTarget) return 1;
+            return 0;
+          });
+        }
+
+        this.leads = results;
+        this.cdr.detectChanges();
+        console.log("🌐 Global Search complete. Leads sorted by priority.");
+      }
+    });
+}
+// 1. Input filter logic
+onLeadSalesStageSearch(event: Event): void {
+  const value = (event.target as HTMLInputElement).value.toLowerCase();
+  
+  if (!value) {
+    this.filteredSalesStages = [];
+    return;
+  }
+
+  // salesStages list (jo loadLeadSuggestions mein bhari gayi thi) se filter karein
+  this.filteredSalesStages = this.salesStages.filter(stage =>
+    stage.toLowerCase().includes(value)
+  );
+}
+
+// 2. Selection logic (Sirf value bharega, search tabhi hoga jab 🔍 click hoga)
+selectLeadSalesStage(stage: string): void {
+  this.leadSearchFilters.salesStage = stage; // UI update
+  this.filteredSalesStages = [];             // Dropdown band
+}
+resetLeadFilters() {
+  this.leadSearchFilters = {
+    leadNo: '',
+    date: null,
+    organizationName: '',
+    type: 'Any',
+    leadOwner: 'Any',
+    salesProcess: '',
+    salesStage: ''
+  };
+
+  const resetPayload = {
+    leadNo: '',
+    date: null,
+    organizationName: '',
+    type: '',
+    leadOwner: '',
+    salesProcess: '',
+    salesStage: ''
+  };
+
+  this.http.post<any[]>(`${environment.apiUrl}/Leads/Search`, resetPayload)
+    .subscribe({
+      next: (response) => {
+        this.leads = response || [];
+        this.cdr.detectChanges();
+        console.log("✅ Leads Table Restored");
+      }
+    });
 }
 }

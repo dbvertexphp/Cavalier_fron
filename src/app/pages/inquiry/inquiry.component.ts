@@ -16,11 +16,11 @@
   export class InquiryComponent implements OnInit {
     isFormOpen = false;
     private apiUrl = `${environment.apiUrl}/Inquiry`;
-
+inquiries:any[]=[]
     quotations: any[] = [];
     quotation: any = this.resetQuotationModel();
     selectedFile: File | null = null;
-
+servicesList: any[] = [];
     isDimModalOpen = false;
     appliedDimensions: any[] = []; 
     dimRows: any[] = [{ box: 1, l: 0, w: 0, h: 0, unit: 'CMS' }];
@@ -43,6 +43,11 @@ organizations: any[] = [];
   origins: any[] = [];
   filteredOrigins: any[] = [];
   showOriginDropdown: boolean = false;
+
+  allInquiryNumbers: string[] = [];
+  coordinators: any[] = [];
+  branchesList: any[] = [];
+  searchDone: boolean = false; // Shuru mein false rahega
     constructor(private http: HttpClient, private router: Router,private cdr: ChangeDetectorRef ) {}
 
     ngOnInit() {
@@ -51,6 +56,11 @@ organizations: any[] = [];
       this.fetchOrganizations();
       this.fetchLeads();
       this.fetchOrigins();
+      this.loadDropdownData();
+    this.onSearch();
+    this.loadInquiryNumbers();
+    this.loadCoordinators();
+    this.loadBranches();
     }
     // --- Fetch Origins List ---
   fetchOrigins() {
@@ -323,4 +333,146 @@ const payload = {
         dimensions: []
       };
     }
+    searchFilters = {
+    transportMode: 'Any',
+    inquiryNo: '',
+    branchName: '',
+    salesCoordinator: '',
+    cargoStatus: '(Any)',
+    receivedDate: null,
+    showMode: 'valid'
+  };
+  loadDropdownData() {
+    this.http.get<string[]>(`${environment.apiUrl}/Inquiry`)
+      .subscribe(data => {
+        this.servicesList = data;
+      });
   }
+  // onSearch() {
+  //   console.log("Searching with:", this.searchFilters);
+
+  //   this.http.post<any[]>(`${environment.apiUrl}/Inquiry/Search`, this.searchFilters)
+  //     .subscribe({
+  //       next: (res) => {
+  //         this.inquiries = res; // Data table mein update ho jayega
+  //         console.log("Results found:", res.length);
+  //       },
+  //       error: (err) => {
+  //         console.error("Search API Error:", err);
+  //       }
+  //     });
+  // }
+  loadInquiryNumbers() {
+  // Aapki existing GET API se saare numbers utha rahe hain
+  this.http.get<any[]>(`${environment.apiUrl}/Inquiry`).subscribe(data => {
+    // Sirf inquiryNo nikal kar array mein daal rahe hain
+    this.allInquiryNumbers = data.map(item => item.inquiryNo);
+  });
+}
+loadCoordinators() {
+  // Option A: Backend se unique names mangao
+  this.http.get<string[]>(`${environment.apiUrl}/Inquiry`).subscribe(data => {
+    this.coordinators = data;
+  });
+
+  // Option B: Agar API nahi hai toh abhi test ke liye static daal do
+  // this.coordinators = ['Admin', 'John Doe', 'Prince'];
+}
+loadBranches() {
+  this.http.get<string[]>(`${environment.apiUrl}/Inquiry`).subscribe({
+    next: (res) => {
+      this.branchesList = res;
+    },
+    error: (err) => console.error("Branch load karne mein error:", err)
+  });
+}
+isAdvanceFilterVisible: boolean = false; // Default mein band rahega
+
+toggleAdvanceFilter() {
+  this.isAdvanceFilterVisible = !this.isAdvanceFilterVisible;
+}
+onClear() {
+  // 1. Saari fields ko default values par set karein
+  this.searchFilters = {
+    transportMode: 'Any',
+    inquiryNo: '',
+    branchName: '',
+    salesCoordinator: '',
+    cargoStatus: '(Any)',
+    receivedDate: null,
+    showMode: 'valid'
+  };
+  this.searchDone = false;      // "No Data Found" hat jayega
+  this.inquiries = [];
+
+  // 2. Clear karne ke baad wapas sara data load karein (bina filter ke)
+  this.onSearch(); 
+  
+  console.log("Filters Cleared!");
+}
+// Pehle constructor me inject kar lena: constructor(private cd: ChangeDetectorRef, ...) {}
+
+onSearch() {
+  console.log("Search button clicked!");
+  this.searchDone = true;
+  
+  const filtersToSend = { ...this.searchFilters };
+
+  // 1. Cleaning logic
+  if (filtersToSend.transportMode === 'Any') filtersToSend.transportMode = '';
+  if (filtersToSend.cargoStatus === '(Any)') filtersToSend.cargoStatus = '';
+  
+  if (filtersToSend.salesCoordinator === 'null' || !filtersToSend.salesCoordinator) {
+    filtersToSend.salesCoordinator = ""; 
+  }
+  if (filtersToSend.branchName === 'null' || !filtersToSend.branchName) {
+    filtersToSend.branchName = "";
+  }
+
+  // 2. First API Call (Strict Search)
+  this.http.post<any[]>(`${environment.apiUrl}/Inquiry/Search`, filtersToSend)
+    .subscribe({
+      next: (response) => {
+        if (response && response.length > 0) {
+          // Case 1: Exact data mil gaya
+          this.quotations = response;
+          console.log("Strict Search Result:", response);
+          this.cdr.detectChanges(); // UI Update
+        } 
+        else if (filtersToSend.inquiryNo) {
+          // Case 2: Exact match nahi mila, sirf Inquiry No se fallback try karein
+          console.log("No exact match, trying with Inquiry No only...");
+          
+          const fallbackFilters = { inquiryNo: filtersToSend.inquiryNo };
+
+          this.http.post<any[]>(`${environment.apiUrl}/Inquiry/Search`, fallbackFilters)
+            .subscribe({
+              next: (fallbackRes) => {
+                this.quotations = fallbackRes;
+                if(fallbackRes.length > 0) {
+                   console.log("Match found with Inquiry No fallback!");
+                }
+                this.cdr.detectChanges(); // UI Update for fallback
+              },
+              error: () => {
+                this.quotations = [];
+                this.cdr.detectChanges();
+              }
+            });
+        } else {
+          // Case 3: Kuch nahi mila
+          this.quotations = [];
+          this.cdr.detectChanges(); // UI Update for empty state
+        }
+      },
+      error: (err) => {
+        console.error("Search failed:", err);
+        alert("Server error while searching!");
+        this.cdr.detectChanges();
+      }
+    });
+}
+
+}
+  
+  

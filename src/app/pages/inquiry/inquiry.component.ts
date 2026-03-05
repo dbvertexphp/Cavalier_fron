@@ -277,6 +277,7 @@ const payload = {
         }
       });
     }
+    
 
     toggleForm() {
       this.isFormOpen = !this.isFormOpen;
@@ -333,35 +334,24 @@ const payload = {
         dimensions: []
       };
     }
-    searchFilters = {
+    // --- COMMAND: IS SECTION KO REPLACE KAREIN ---
+  searchFilters: any = { 
     transportMode: 'Any',
     inquiryNo: '',
     branchName: '',
     salesCoordinator: '',
     cargoStatus: '(Any)',
-    receivedDate: null,
+    receivedDate: null, 
     showMode: 'valid'
   };
+// --- END COMMAND ---
   loadDropdownData() {
     this.http.get<string[]>(`${environment.apiUrl}/Inquiry`)
       .subscribe(data => {
         this.servicesList = data;
       });
   }
-  // onSearch() {
-  //   console.log("Searching with:", this.searchFilters);
-
-  //   this.http.post<any[]>(`${environment.apiUrl}/Inquiry/Search`, this.searchFilters)
-  //     .subscribe({
-  //       next: (res) => {
-  //         this.inquiries = res; // Data table mein update ho jayega
-  //         console.log("Results found:", res.length);
-  //       },
-  //       error: (err) => {
-  //         console.error("Search API Error:", err);
-  //       }
-  //     });
-  // }
+ 
   loadInquiryNumbers() {
   // Aapki existing GET API se saare numbers utha rahe hain
   this.http.get<any[]>(`${environment.apiUrl}/Inquiry`).subscribe(data => {
@@ -411,7 +401,67 @@ onClear() {
   console.log("Filters Cleared!");
 }
 // Pehle constructor me inject kar lena: constructor(private cd: ChangeDetectorRef, ...) {}
+// --- Quick Date Filter Logic ---
+// --- COMMAND: Pehle ye variable class me sabse upar add karein ---
+// --- COMMAND: Pehle searchFilters ko aise update karein ---
+// --- COMMAND: Phir ye methods add karein ---
 
+
+
+
+// 1. Variable add karein
+// --- 1. Variable define karein ---
+// TS file mein ye ensure karein
+// 1. Variable define karein
+showCustomPicker: boolean = false;
+
+// 2. Logic for all shortcuts
+setQuickDate(type: string) {
+  const today = new Date();
+  let targetDate = new Date();
+
+  switch (type) {
+    case 'tomorrow':
+      targetDate.setDate(today.getDate() + 1);
+      break;
+    case 'yesterday':
+      targetDate.setDate(today.getDate() - 1);
+      break;
+    case 'nextWeek':
+      targetDate.setDate(today.getDate() + 7);
+      break;
+    case 'lastWeek':
+      targetDate.setDate(today.getDate() - 7);
+      break;
+    case 'nextMonth':
+      targetDate.setMonth(today.getMonth() + 1);
+      break;
+    case 'lastMonth':
+      targetDate.setMonth(today.getMonth() - 1);
+      break;
+    default:
+      // Default 'today' rahega
+      targetDate = today;
+  }
+
+  // Proper YYYY-MM-DD format build karein
+  const year = targetDate.getFullYear();
+  const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+  const day = String(targetDate.getDate()).padStart(2, '0');
+  
+  this.searchFilters.receivedDate = `${year}-${month}-${day}`;
+  
+  // Panel band karein aur search trigger karein
+  this.showCustomPicker = false;
+  this.onSearch();
+}
+
+
+
+
+
+
+//-----/////
 onSearch() {
   console.log("Search button clicked!");
   this.searchDone = true;
@@ -472,7 +522,6 @@ onSearch() {
       }
     });
 }
-
 }
   
   

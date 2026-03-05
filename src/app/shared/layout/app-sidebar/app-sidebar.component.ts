@@ -257,7 +257,11 @@ selectBranch(branch: any) {
         });
       }
     });
+    // Loop yahan khatam ho raha hai
+      let finalNav = Object.values(navMap);
 
+    // CRM Sequence Fix (Manual Override)
+   
     // HR Management specific check to add Salary and Leave
     if (navMap['HR Management']) {
       navMap['HR Management'].subItems!.push({
@@ -272,7 +276,32 @@ selectBranch(branch: any) {
       });
     }
 
-    let finalNav = Object.values(navMap);
+    //let finalNav = Object.values(navMap);
+
+    // --- VARIABLE DECLARATION (Sirf ek baar) ---
+  //const finalNav = Object.values(navMap);
+
+  // CRM Sequence Fix (Manual Override)
+  finalNav.forEach(item => {
+    if (item.name === 'CRM' && item.subItems) {
+      const lead = item.subItems.find(s => s.name.includes('Lead'));
+      const inquiry = item.subItems.find(s => s.name.includes('Inquiry'));
+      const quotation = item.subItems.find(s => s.name.includes('Quotation'));
+
+      const sortedSubItems: any[] = [];
+      if (lead) sortedSubItems.push(lead);
+      if (inquiry) sortedSubItems.push(inquiry);
+      if (quotation) sortedSubItems.push(quotation);
+
+      item.subItems.forEach(s => {
+        if (!sortedSubItems.includes(s)) {
+          sortedSubItems.push(s);
+        }
+      });
+      item.subItems = sortedSubItems;
+    }
+  });
+
 
     // --- REORDER LOGIC: ORGANIZATION UNDER DASHBOARD ---
     const orgIndex = finalNav.findIndex(item => item.name === 'Organization');
@@ -294,6 +323,29 @@ selectBranch(branch: any) {
     const accessType = localStorage.getItem('accessType'); 
 
     if (accessType === 'system') {
+
+
+        const userMgmt = finalNav.find(item => item.name === 'Users and Management');
+      if (userMgmt && userMgmt.subItems) {
+    const userExists = userMgmt.subItems.find(s => s.name === 'User');
+    
+    if (!userExists) {
+      userMgmt.subItems.unshift({
+        name: 'User',
+        // Routing file ke 'hr/employee-master' se match karne ke liye path badal diya
+        path: '/dashboard/hr/employee-master', 
+        new: false
+      });
+    }
+  }
+
+
+
+
+
+
+
+
       finalNav.push({
         name: 'Cargo Type',
         icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>`,

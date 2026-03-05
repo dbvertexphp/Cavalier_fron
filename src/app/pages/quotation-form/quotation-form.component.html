@@ -9,72 +9,97 @@
     <div class="p-4 bg-white border-b border-gray-200">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-3">
         <div class="space-y-2">
-         <div class="flex items-center">
-  <label class="w-28 font-bold text-gray-600">Services</label>
-  <select [(ngModel)]="searchFilters.lineOfBusiness" class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
-     <option value="Air Import">Air Import</option>
-        <option value="Air Export">Air Export</option>
-        <option value="Sea Import">Sea Import</option>
-        <option value="Sea Export">Sea Export</option>
-        <option value="Courier Import">Courier Import</option>
-        <option value="Courier Export">Courier Export</option>
-        <option value="Clearance Import">Clearance Import</option>
-        <option value="Clearance Export">Clearance Export</option> </select>
-</div>
-    <div class="flex items-center">
-  <label class="w-28 font-bold text-gray-600">Quotation No.</label>
-  <input 
-    type="text" 
-    [(ngModel)]="searchFilters.quotationNo" 
-    list="quotationSuggestions"
-    class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm"
-    placeholder="Type to search...">
-     <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400">🔍</span>
-  <datalist id="quotationSuggestions">
-    <option *ngFor="let qNo of quotationNoList" [value]="qNo"></option>
-  </datalist>
-</div>
-         <div class="flex items-center">
-  <label class="w-28 font-bold text-gray-600">Quoted To</label>
-  <input 
-    type="text" 
-    [(ngModel)]="searchFilters.organization" 
-    list="orgSuggestions"
-    class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm">
-     <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400">🔍</span>
-  <datalist id="orgSuggestions">
-    <option *ngFor="let org of organizationList" [value]="org"></option>
-  </datalist>
-</div>
-         <div class="flex items-center">
-  <label class="w-28 font-bold text-gray-600">Show</label>
-  <div class="relative flex-1">
-    <select [(ngModel)]="searchFilters.showMode" class="w-full border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white cursor-pointer">
-      <option value="Valid">Valid Quotations Only</option>
-      <option value="All">All</option>
-    </select>
-    <i class="fa fa-filter absolute right-6 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] pointer-events-none"></i>
-  </div>
-</div>
+          <div class="flex items-center">
+            <label class="w-28 font-bold text-gray-600">Services</label>
+            <select [(ngModel)]="searchFilters.lineOfBusiness" class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
+              <option value="Air Import">Air Import</option>
+              <option value="Air Export">Air Export</option>
+              <option value="Sea Import">Sea Import</option>
+              <option value="Sea Export">Sea Export</option>
+              <option value="Courier Import">Courier Import</option>
+              <option value="Courier Export">Courier Export</option>
+              <option value="Clearance Import">Clearance Import</option>
+              <option value="Clearance Export">Clearance Export</option> 
+            </select>
+          </div>
+          <div class="flex items-center">
+            <label class="w-28 font-bold text-gray-600">Quotation No.</label>
+            <input 
+              type="text" 
+              [(ngModel)]="searchFilters.quotationNo" 
+              list="quotationSuggestions"
+              class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm"
+              placeholder="Type to search...">
+            <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400">🔍</span>
+            <datalist id="quotationSuggestions">
+              <option *ngFor="let qNo of quotationNoList" [value]="qNo"></option>
+            </datalist>
+          </div>
+          <div class="flex items-center">
+            <label class="w-28 font-bold text-gray-600">Quoted To</label>
+            <input 
+              type="text" 
+              [(ngModel)]="searchFilters.organization" 
+              list="orgSuggestions"
+              class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm">
+            <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400">🔍</span>
+            <datalist id="orgSuggestions">
+              <option *ngFor="let org of organizationList" [value]="org"></option>
+            </datalist>
+          </div>
+          <div class="flex items-center">
+            <label class="w-28 font-bold text-gray-600">Show</label>
+            <div class="relative flex-1">
+              <select [(ngModel)]="searchFilters.showMode" class="w-full border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white cursor-pointer">
+                <option value="Valid">Valid Quotations Only</option>
+                <option value="All">All</option>
+              </select>
+              <i class="fa fa-filter absolute right-6 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] pointer-events-none"></i>
+            </div>
+          </div>
         </div>
 
         <div class="space-y-2">
           <div class="space-y-2">
-          <div class="flex items-center">
-  <label class="w-24 font-bold text-gray-600">Date</label>
-  <div 
-    class="flex-1 flex border border-gray-300 items-center pr-2 cursor-pointer bg-white"
-    (click)="datePicker.showPicker()">
-    <input 
-      #datePicker
-      type="date" 
-      [(ngModel)]="searchFilters.validFrom"
-      class="w-full p-1 outline-none text-[12px] cursor-pointer"
-      (focus)="datePicker.showPicker()">
-    <span class="text-gray-400 text-[12px]">📅</span>
-  </div>
-</div>
+            <div class="flex items-center relative"> <label class="w-24 font-bold text-gray-600">Date</label>
+              <div 
+                class="flex-1 flex border border-gray-300 items-center pr-2 cursor-pointer bg-white relative"
+                (click)="datePicker.showPicker(); showQuoPicker = !showQuoPicker">
+                
+                <input 
+                  #datePicker
+                  type="date" 
+                  [(ngModel)]="searchFilters.validFrom"
+                  class="w-full p-1 outline-none text-[12px] cursor-pointer"
+                  (focus)="datePicker.showPicker()"
+                  (change)="onSearch(); showQuoPicker = false">
+
+                <div *ngIf="showQuoPicker" 
+                     (mouseleave)="showQuoPicker = false"
+                     class="absolute top-0 right-full z-[1001] bg-white shadow-xl border border-gray-300 flex flex-col w-[115px] rounded-sm overflow-hidden mr-[-1px]">
+                  <div (click)="setQuoQuickDate('today'); $event.stopPropagation()" class="p-2 text-[11px] hover:bg-blue-600 hover:text-white border-b border-gray-50">Today</div>
+                  <div (click)="setQuoQuickDate('yesterday'); $event.stopPropagation()" class="p-2 text-[11px] hover:bg-blue-600 hover:text-white border-b border-gray-50">Yesterday</div>
+                  <div (click)="setQuoQuickDate('tomorrow'); $event.stopPropagation()" class="p-2 text-[11px] hover:bg-blue-600 hover:text-white border-b border-gray-50 text-blue-700 font-semibold">Tomorrow</div>
+                  <div (click)="setQuoQuickDate('lastWeek'); $event.stopPropagation()" class="p-2 text-[11px] hover:bg-blue-600 hover:text-white border-b border-gray-50">Last Week</div>
+                  <div (click)="setQuoQuickDate('nextWeek'); $event.stopPropagation()" class="p-2 text-[11px] hover:bg-blue-600 hover:text-white border-b border-gray-50">Next Week</div>
+                  <div (click)="setQuoQuickDate('lastMonth'); $event.stopPropagation()" class="p-2 text-[11px] hover:bg-blue-600 hover:text-white border-b border-gray-50">Last Month</div>
+                  <div (click)="setQuoQuickDate('nextMonth'); $event.stopPropagation()" class="p-2 text-[11px] hover:bg-blue-600 hover:text-white">Next Month</div>
+                </div>
+
+                <span class="text-gray-400 text-[12px]">📅</span>
+              </div>
+            </div>
           </div>
+      
+
+
+
+
+
+
+
+
+
 <div class="flex items-center">
   <label class="w-24 font-bold text-gray-600">Quoted By</label>
   <div class="flex-1 flex border border-gray-300 relative">
@@ -180,9 +205,6 @@
     <div class="bg-[#4a3f3f] p-3 flex justify-between items-center text-white">
       <div class="font-bold uppercase text-[12px] tracking-widest px-2">Inquiry Records</div>
       <div class="flex gap-2">
-        <button class="bg-[#5a4f4f] hover:bg-[#3d3434] border border-gray-500 px-4 py-1.5 text-[11px] font-bold" (click)="neworg()">
-          <i class="fas fa-building mr-1"></i> NEW ORGANIZATION
-        </button>
         <button (click)="toggleForm()" class="bg-green-600 hover:bg-green-700 px-5 py-1.5 text-[11px] font-bold">
           <i class="fas fa-plus mr-1"></i> ADD NEW QUOTATION
         </button>
@@ -519,7 +541,7 @@
 
       <div class="space-y-3">
         <div class="flex items-center gap-2">
-          <label class="w-40 font-bold text-gray-700">Num of Packages</label>
+          <label class="w-40 font-bold text-gray-700">Num of Boxes</label>
           <div class="flex flex-1">
             <input type="number" name="noOfPkgs" [(ngModel)]="quotation.noOfPkgs" class="w-full border p-2 outline-none">
             <div class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1">

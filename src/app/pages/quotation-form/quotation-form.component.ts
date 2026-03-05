@@ -203,24 +203,6 @@ getNextQuotationNumber() {
       });
   }
 
-  // saveQuotation() {
-  //   if (!this.quotation.customerName) {
-  //     alert("Error: Customer Name is required!");
-  //     return;
-  //   }
-  //   const request = this.quotation.id > 0 
-  //     ? this.http.put(`${this.apiUrl}/${this.quotation.id}`, this.quotation)
-  //     : this.http.post(this.apiUrl, this.quotation);
-
-  //   request.subscribe({
-  //     next: () => {
-  //       alert("Success!");
-  //       this.loadQuotations();
-  //       this.toggleForm();
-  //     },
-  //     error: (err) => alert("Save failed!")
-  //   });
-  // }
 saveQuotation() {
     // ... (Data preparation logic)
     this.quotation.revenueData = JSON.stringify(this.revenueRows);
@@ -441,37 +423,96 @@ searchFilters = {
 };
 
 // Table ka data
+// 1. Naya array variable define karein (class level par)
+lineOfBusinessList: string[] = [];
+filteredLOBs: string[] = []; // Ye UI mein dikhega
+
 loadSearchSuggestions() {
   this.http.get<any[]>(`${environment.apiUrl}/Quotations`)
     .subscribe({
       next: (data) => {
         if (Array.isArray(data)) {
-          console.log("Raw Data from Backend:", data); // Check karne ke liye ki salesCoor me kya aa raha hai
+          // --- Aapka purana logic START ---
+          this.quotationNoList = [...new Set(data.map(q => q.quotationNo).filter(val => val))];
+          this.quotedByList = [...new Set(data.map(q => q.salesCoor).filter(val => val && val.trim() !== ''))];
+          this.organizationList = [...new Set(data.map(q => q.organization).filter(val => val))];
+          // --- Aapka purana logic END ---
 
-          // 1. Quotation Numbers
-          this.quotationNoList = [...new Set(data
-            .map(q => q.quotationNo)
-            .filter(val => val))];
-
-          // 2. Quoted By (salesCoor) - Safe Mapping
-          this.quotedByList = [...new Set(data
-            .map(q => q.salesCoor) 
-            .filter(val => val && val.trim() !== '') 
+          // 🔥 Naya Logic: Line of Business (Services) ko unique filter karo
+          this.lineOfBusinessList = [...new Set(data
+            .map(q => q.lineOfBusiness)
+            .filter(val => val && val.trim() !== '')
           )];
 
-          // 3. Organizations
-          this.organizationList = [...new Set(data
-            .map(q => q.organization)
-            .filter(val => val))];
-
-          console.log("Quoted By List:", this.quotedByList);
-          
-          // Sabse Important: UI ko force update karo
           this.cdr.detectChanges(); 
         }
       },
       error: (err) => console.error("Fetch Error:", err)
     });
+}
+
+// 🔥 Typing Filter: Jo 3 characters ke baad suggestions dikhayega
+onLOBType() {
+  const query = this.searchFilters.lineOfBusiness ? this.searchFilters.lineOfBusiness.trim().toLowerCase() : '';
+  
+  if (query.length >= 3) {
+    this.filteredLOBs = this.lineOfBusinessList.filter(lob => 
+      lob.toLowerCase().includes(query)
+    );
+  } else {
+    this.filteredLOBs = []; // 3 se kam par list khali
+  }
+}
+// Variables list mein add karein
+filteredQuotationNos: string[] = []; 
+
+// 🔥 Typing logic: 3 characters ke baad suggestions filter honge
+onQuotationNoType() {
+  const query = this.searchFilters.quotationNo ? this.searchFilters.quotationNo.trim().toLowerCase() : '';
+  
+  if (query.length >= 3) {
+    // quotationNoList (Master list) se filter karke suggestions banayein
+    this.filteredQuotationNos = this.quotationNoList.filter(qNo => 
+      qNo.toLowerCase().includes(query)
+    );
+  } else {
+    // 3 se kam characters par dropdown khali rahega
+    this.filteredQuotationNos = [];
+  }
+}
+// Variables list mein add karein
+filteredOrgSuggestions: string[] = []; 
+
+// 🔥 Typing logic: 3 characters ke baad hi filter chalega
+onOrgType() {
+  const query = this.searchFilters.organization ? this.searchFilters.organization.trim().toLowerCase() : '';
+  
+  if (query.length >= 3) {
+    // organizationList (Unique master list) se filter karein
+    this.filteredOrgSuggestions = this.organizationList.filter(org => 
+      org.toLowerCase().includes(query)
+    );
+  } else {
+    // 3 characters se kam par suggestions band
+    this.filteredOrgSuggestions = [];
+  }
+}
+// Variables list mein add karein
+filteredQuotedBySuggestions: string[] = []; 
+
+// 🔥 Typing logic: 3 characters ke baad suggestions filter honge
+onQuotedByType() {
+  const query = this.searchFilters.quotedBy ? this.searchFilters.quotedBy.trim().toLowerCase() : '';
+  
+  if (query.length >= 3) {
+    // quotedByList (Master list) se matching names filter karein
+    this.filteredQuotedBySuggestions = this.quotedByList.filter(item => 
+      item.toLowerCase().includes(query)
+    );
+  } else {
+    // 3 characters se kam par dropdown khali
+    this.filteredQuotedBySuggestions = [];
+  } 
 }
 onSearch() {
   let filtersToSend: any = { ...this.searchFilters };
@@ -527,21 +568,7 @@ onSearch() {
     });
 }
 
-  // Table reset karne ke liye
-  // resetFilters() {
-  //   this.searchFilters = {
-  //    lineOfBusiness: 'Any',
-  // quotationNo: '',
-  // organization: '',
-  // quotedBy: '',    // HTML mein isse bind karein
-  // salesCoor: '',   // Backend mapping ke liye
-  // cargoStatus: 'Any',
-  // validFrom: null,
-  // showMode: 'all',
-  // status: 'Any'
-  //   };
-  //   // Wapas saara data load karne ke liye basic GET call kar sakte ho
-  // }
+  
   toggleAdvanceFilter() {
     this.showAdvanceFilter = !this.showAdvanceFilter;
   }

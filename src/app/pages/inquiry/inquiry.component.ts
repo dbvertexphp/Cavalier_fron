@@ -14,6 +14,7 @@
     styleUrl: './inquiry.component.css',
   })
   export class InquiryComponent implements OnInit {
+
     isFormOpen = false;
     private apiUrl = `${environment.apiUrl}/Inquiry`;
 inquiries:any[]=[]
@@ -105,7 +106,7 @@ onOriginSearchInput() {
 
   // --- Search Logic ---
   onLeadSearchInput() {
-    if (this.inquiry.leadNo && this.inquiry.leadNo.length > 0) {
+    if (this.inquiry.leadNo && this.inquiry.leadNo.length > 3) {
       this.showLeadDropdown = true;
       this.filteredLeads = this.leads.filter(lead =>
         lead.leadNo.toLowerCase().includes(this.inquiry.leadNo.toLowerCase())
@@ -130,7 +131,7 @@ onOriginSearchInput() {
 
   // --- Search Logic ---
   onSearchInput() {
-    if (this.inquiry.organization && this.inquiry.organization.length > 0) {
+    if (this.inquiry.organization && this.inquiry.organization.length > 3) {
       this.showDropdown = true;
       this.filteredOrganizations = this.organizations.filter(org =>
         org.orgName.toLowerCase().includes(this.inquiry.organization.toLowerCase())
@@ -342,12 +343,12 @@ const payload = {
     receivedDate: null,
     showMode: 'valid'
   };
-  loadDropdownData() {
-    this.http.get<string[]>(`${environment.apiUrl}/Inquiry`)
-      .subscribe(data => {
-        this.servicesList = data;
-      });
-  }
+  // loadDropdownData() {
+  //   this.http.get<string[]>(`${environment.apiUrl}/Inquiry`)
+  //     .subscribe(data => {
+  //       this.servicesList = data;
+  //     });
+  // }
   // onSearch() {
   //   console.log("Searching with:", this.searchFilters);
 
@@ -362,29 +363,126 @@ const payload = {
   //       }
   //     });
   // }
-  loadInquiryNumbers() {
-  // Aapki existing GET API se saare numbers utha rahe hain
-  this.http.get<any[]>(`${environment.apiUrl}/Inquiry`).subscribe(data => {
-    // Sirf inquiryNo nikal kar array mein daal rahe hain
-    this.allInquiryNumbers = data.map(item => item.inquiryNo);
-  });
-}
-loadCoordinators() {
-  // Option A: Backend se unique names mangao
-  this.http.get<string[]>(`${environment.apiUrl}/Inquiry`).subscribe(data => {
-    this.coordinators = data;
-  });
+ // Variables define karein
+allUniqueServices: string[] = []; 
+filteredServices: string[] = [];
 
-  // Option B: Agar API nahi hai toh abhi test ke liye static daal do
-  // this.coordinators = ['Admin', 'John Doe', 'Prince'];
+loadDropdownData() {
+  this.http.get<any[]>(`${environment.apiUrl}/Inquiry`)
+    .subscribe(data => {
+      // 1. Data se transportMode nikalo aur null values hatao
+      const allModes = data.map(item => item.transportMode).filter(m => m);
+
+      // 2. 🔥 Set se duplicates hata kar master list banao
+      this.allUniqueServices = [...new Set(allModes)];
+      
+      console.log("Master Unique List ready:", this.allUniqueServices);
+    });
 }
-loadBranches() {
-  this.http.get<string[]>(`${environment.apiUrl}/Inquiry`).subscribe({
-    next: (res) => {
-      this.branchesList = res;
-    },
-    error: (err) => console.error("Branch load karne mein error:", err)
+
+// 🔥 Naya function: Jo typing ke waqt filter karega
+onServiceType() {
+  const query = this.searchFilters.transportMode ? this.searchFilters.transportMode.trim().toLowerCase() : '';
+
+  // 3. Logic: 3 letter ke baad hi filter karke suggestions dikhao
+  if (query.length >= 3) {
+    this.filteredServices = this.allUniqueServices.filter(mode => 
+      mode.toLowerCase().includes(query)
+    );
+  } else {
+    // 3 se kam characters par list ko khali rakho
+    this.filteredServices = [];
+  }
+}
+// Variables declare karein
+allUniqueInquiryNos: string[] = []; // Master list (Unique)
+filteredInquiryNos: string[] = [];  // Suggestions for UI
+
+loadInquiryNumbers() {
+  this.http.get<any[]>(`${environment.apiUrl}/Inquiry`).subscribe(data => {
+    // 1. Saare inquiryNo nikaal kar null/undefined hatao
+    const rawNumbers = data.map(item => item.inquiryNo).filter(n => n);
+
+    // 2. 🔥 Set ka use karke duplicates hatao
+    this.allUniqueInquiryNos = [...new Set(rawNumbers)];
+    console.log("Unique Inquiry Numbers Loaded");
   });
+}
+
+// 🔥 Typing ke waqt trigger hone wala function
+onInquiryType() {
+  const query = this.searchFilters.inquiryNo ? this.searchFilters.inquiryNo.trim().toLowerCase() : '';
+
+  // 3. Logic: 3 letter ke baad suggestions dikhao
+  if (query.length >= 3) {
+    this.filteredInquiryNos = this.allUniqueInquiryNos.filter(num => 
+      num.toLowerCase().includes(query)
+    );
+  } else {
+    // 3 se kam par list khali
+    this.filteredInquiryNos = [];
+  }
+}
+// Variables declare karein
+allUniqueCoordinators: string[] = []; // Master list (Unique Names)
+filteredCoordinators: string[] = [];  // Suggestions for UI
+
+loadCoordinators() {
+  this.http.get<any[]>(`${environment.apiUrl}/Inquiry`).subscribe({
+    next: (data) => {
+      // 1. Saare salesCoordinator nikalo aur duplicates hatane ke liye Set use karo
+      const rawCoords = data.map(item => item.salesCoordinator).filter(c => c);
+      this.allUniqueCoordinators = [...new Set(rawCoords)];
+      console.log("Unique Coordinators Loaded");
+    },
+    error: (err) => console.error("Coordinator load error:", err)
+  });
+}
+
+// 🔥 Typing ke waqt filter karne wala function
+onCoordinatorType() {
+  const query = this.searchFilters.salesCoordinator ? this.searchFilters.salesCoordinator.trim().toLowerCase() : '';
+
+  // 2. Logic: Sirf 3 characters ke baad hi suggestions dikhao
+  if (query.length >= 3) {
+    this.filteredCoordinators = this.allUniqueCoordinators.filter(name => 
+      name.toLowerCase().includes(query)
+    );
+  } else {
+    // 3 se kam par list khali rakho
+    this.filteredCoordinators = [];
+  }
+}
+// Variables declare karein
+allUniqueBranches: string[] = []; // Master list (Unique Names)
+filteredBranches: string[] = [];  // Suggestions for UI
+
+loadBranches() {
+  this.http.get<any[]>(`${environment.apiUrl}/Inquiry`).subscribe({
+    next: (res) => {
+      // 1. Saare branchName nikalo aur duplicates hatane ke liye Set use karo
+      // Agar API se array of strings aa raha hai to seedha res use karo
+      const rawBranches = res.map(item => item.branchName || item).filter(b => b);
+      this.allUniqueBranches = [...new Set(rawBranches)];
+      console.log("Unique Branches Loaded");
+    },
+    error: (err) => console.error("Branch load error:", err)
+  });
+}
+
+// 🔥 Typing ke waqt trigger hone wala function
+onBranchType() {
+  const query = this.searchFilters.branchName ? this.searchFilters.branchName.trim().toLowerCase() : '';
+
+  // 2. Logic: 3 letter ke baad suggestions dikhao
+  if (query.length >= 3) {
+    this.filteredBranches = this.allUniqueBranches.filter(branch => 
+      branch.toLowerCase().includes(query)
+    );
+  } else {
+    // 3 se kam par list khali
+    this.filteredBranches = [];
+  }
 }
 isAdvanceFilterVisible: boolean = false; // Default mein band rahega
 

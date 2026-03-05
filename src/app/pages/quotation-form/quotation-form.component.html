@@ -9,41 +9,56 @@
     <div class="p-4 bg-white border-b border-gray-200">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-3">
         <div class="space-y-2">
-         <div class="flex items-center">
-  <label class="w-28 font-bold text-gray-600">Services</label>
-  <select [(ngModel)]="searchFilters.lineOfBusiness" class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
-     <option value="Air Import">Air Import</option>
-        <option value="Air Export">Air Export</option>
-        <option value="Sea Import">Sea Import</option>
-        <option value="Sea Export">Sea Export</option>
-        <option value="Courier Import">Courier Import</option>
-        <option value="Courier Export">Courier Export</option>
-        <option value="Clearance Import">Clearance Import</option>
-        <option value="Clearance Export">Clearance Export</option> </select>
-</div>
     <div class="flex items-center">
+  <label class="w-28 font-bold text-gray-600 text-[12px]">Services</label>
+  <div class="flex-1">
+    <input 
+      type="text" 
+      [(ngModel)]="searchFilters.lineOfBusiness" 
+      (input)="onLOBType()"
+      list="lobDataList" 
+      placeholder="Type min 3 chars..."
+      class="w-full border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
+    
+    <datalist id="lobDataList">
+      <option *ngFor="let lob of filteredLOBs" [value]="lob"></option>
+    </datalist>
+  </div>
+</div>
+<div class="flex items-center">
   <label class="w-28 font-bold text-gray-600">Quotation No.</label>
-  <input 
-    type="text" 
-    [(ngModel)]="searchFilters.quotationNo" 
-    list="quotationSuggestions"
-    class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm"
-    placeholder="Type to search...">
-     <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400">🔍</span>
+  <div class="flex-1 flex border border-gray-300">
+    <input 
+      type="text" 
+      [(ngModel)]="searchFilters.quotationNo" 
+      (input)="onQuotationNoType()"
+      list="quotationSuggestions"
+      class="w-full p-1 outline-none text-[12px] rounded-sm"
+      placeholder="Type min 3 chars...">
+    
+    <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400">🔍</span>
+  </div>
+
   <datalist id="quotationSuggestions">
-    <option *ngFor="let qNo of quotationNoList" [value]="qNo"></option>
+    <option *ngFor="let qNo of filteredQuotationNos" [value]="qNo"></option>
   </datalist>
 </div>
-         <div class="flex items-center">
+        <div class="flex items-center">
   <label class="w-28 font-bold text-gray-600">Quoted To</label>
-  <input 
-    type="text" 
-    [(ngModel)]="searchFilters.organization" 
-    list="orgSuggestions"
-    class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm">
-     <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400">🔍</span>
+  <div class="flex-1 flex border border-gray-300">
+    <input 
+      type="text" 
+      [(ngModel)]="searchFilters.organization" 
+      (input)="onOrgType()"
+      list="orgSuggestions"
+      placeholder="Type min 3 chars..."
+      class="w-full p-1 outline-none text-[12px] rounded-sm">
+      
+    <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400">🔍</span>
+  </div>
+
   <datalist id="orgSuggestions">
-    <option *ngFor="let org of organizationList" [value]="org"></option>
+    <option *ngFor="let org of filteredOrgSuggestions" [value]="org"></option>
   </datalist>
 </div>
          <div class="flex items-center">
@@ -81,14 +96,16 @@
     <input 
       type="text" 
       [(ngModel)]="searchFilters.quotedBy" 
+      (input)="onQuotedByType()"
       list="quotedBySuggestions"
       class="w-full p-1 outline-none text-[12px]"
-      placeholder="Type name...">
+      placeholder="Type min 3 chars...">
+    
     <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400">🔍</span>
   </div>
 
   <datalist id="quotedBySuggestions">
-    <option *ngFor="let item of quotedByList" [value]="item"></option>
+    <option *ngFor="let item of filteredQuotedBySuggestions" [value]="item"></option>
   </datalist>
 </div>
           <div class="flex items-center">
@@ -533,8 +550,12 @@
         <div class="flex items-center gap-2">
           <label class="w-40 font-bold text-gray-700">Dimensions</label>
           <div class="flex flex-1 items-center gap-1">
+            <input type="number" name="dimL" [(ngModel)]="quotation.dimL" placeholder="BOX" class="w-full border p-2 outline-none text-center">
+            
             <input type="number" name="dimL" [(ngModel)]="quotation.dimL" placeholder="L" class="w-full border p-2 outline-none text-center">
+             <span class="text-gray-400 font-bold">x</span>
             <input type="number" name="dimW" [(ngModel)]="quotation.dimW" placeholder="W" class="w-full border p-2 outline-none text-center">
+             <span class="text-gray-400 font-bold">x</span>
             <input type="number" name="dimH" [(ngModel)]="quotation.dimH" placeholder="H" class="w-full border p-2 outline-none text-center">
             <button type="button" (click)="openDimModal()"
               class="bg-green-600 hover:bg-green-700 text-white p-[5px] h-[30px] flex items-center justify-center transition-colors shadow-inner rounded-sm"

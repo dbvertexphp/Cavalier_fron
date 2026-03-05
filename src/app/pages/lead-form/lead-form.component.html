@@ -43,7 +43,7 @@
            [(ngModel)]="leadSearchFilters.organizationName" 
            [ngModelOptions]="{standalone: true}" 
            class="w-full p-1 outline-none text-[12px]"
-           placeholder="Search organization..."
+           placeholder="Type min 3 chars to search..."
            (input)="onLeadOrgSearch($event)"> 
     
     <span class="p-1 bg-gray-50 border-l border-gray-200 flex items-center justify-center cursor-pointer" 
@@ -76,33 +76,50 @@
         </div>
  
         <div class="space-y-2">
-        <div class="flex items-center">
-  <label class="w-28 font-bold text-gray-600">Sales Process</label>
-  
- <div class="flex-1 relative">
-  <select 
-          class="w-full border border-gray-300 p-1 outline-none text-[12px] bg-white cursor-pointer">
+<div class="flex items-center">
+  <label class="w-28 font-bold text-gray-600 text-[12px]">HOD</label>
+  <div class="flex-1 flex border border-gray-300 relative">                
+    <input type="text" 
+           [(ngModel)]="leadSearchFilters.hod" 
+           [ngModelOptions]="{standalone: true}" 
+           class="w-full p-1 outline-none text-[12px]"
+           placeholder="Search HOD (min 3 chars)..."
+           (input)="onHODSearchType($event)"> 
     
-    <option value="Cold Calling">Cold Calling</option>
-    <option value="Email Campaign">Email Campaign</option>
-    
-  </select>
-</div>
+    <div *ngIf="filteredHODSuggestions.length > 0"
+         class="absolute z-50 w-full bg-white border border-gray-300 top-full left-0 mt-1 max-h-48 overflow-y-auto shadow-md">
+      <div *ngFor="let hodName of filteredHODSuggestions"
+           (click)="selectHOD(hodName)" 
+           class="p-2 hover:bg-red-50 cursor-pointer text-sm border-b">
+        {{ hodName }}
+      </div>
+    </div>
+  </div>
 </div>
 <div class="flex items-center">
-  <label class="w-28 font-bold text-gray-600 text-[12px]">Sales Stage</label>
+  <label class="w-28 font-bold text-gray-600 text-[12px]">Lead Owner</label>
   
-  <div class="flex-1 relative">                
-    <select [(ngModel)]="leadSearchFilters.salesStage" 
-            [ngModelOptions]="{standalone: true}"
-            class="w-full border border-gray-300 p-1 outline-none text-[12px] bg-white h-[26px] cursor-pointer focus:border-blue-400">
-      
-      <option value="">Select Stage</option>
-      
-      <option value="Inquiry Received">Inquiry Received</option>
-      <option value="Qualified">Qualified</option>
-      
-    </select>
+  <div class="flex-1 flex border border-gray-300 relative">                
+    <input type="text" 
+           [(ngModel)]="leadSearchFilters.leadOwner" 
+           [ngModelOptions]="{standalone: true}" 
+           class="w-full p-1 outline-none text-[12px] h-[26px]"
+           placeholder="Search Owner..."
+           (input)="onLeadOwnerSearch($event)"> 
+    
+    <span class="p-1 bg-gray-50 border-l border-gray-200 flex items-center justify-center cursor-pointer" 
+          (click)="onLeadSearch()">
+      🔍
+    </span>
+
+    <div *ngIf="filteredLeadOwners.length > 0"
+         class="absolute z-50 w-full bg-white border border-gray-300 top-full left-0 mt-1 max-h-48 overflow-y-auto shadow-md">
+      <div *ngFor="let owner of filteredLeadOwners"
+           (click)="selectLeadOwner(owner)" 
+           class="p-2 hover:bg-red-50 cursor-pointer text-sm border-b">
+        {{ owner }}
+      </div>
+    </div>
   </div>
 </div>
 <div class="flex items-center">
@@ -130,19 +147,87 @@
         </div>
  
         <div class="space-y-2">
-     <div class="flex items-center">
-  <label class="w-24 font-bold text-gray-600">Assigned To</label>
-  <select [(ngModel)]="leadSearchFilters.leadOwner" 
-          [ngModelOptions]="{standalone: true}"
-          class="flex-1 border border-gray-300 p-1 outline-none text-[12px]">
-    <option value="Any">(Any)</option>
-    <option value="BHARAT JUYAL">BHARAT JUYAL</option>
-  </select>
+   <div class="flex items-center">
+  <label class="w-28 font-bold text-gray-600 text-[12px]">Team</label>
+  
+  <div class="flex-1 flex border border-gray-300 relative">                
+    <input type="text" 
+           [(ngModel)]="leadSearchFilters.team" 
+           [ngModelOptions]="{standalone: true}" 
+           class="w-full p-1 outline-none text-[12px] h-[26px]"
+           placeholder="Search Team (min 3 chars)..."
+           (input)="onTeamSearch($event)"
+           autocomplete="off"> 
+    
+    <span class="p-1 bg-gray-50 border-l border-gray-200 flex items-center justify-center cursor-pointer" 
+          (click)="onLeadSearch()">
+      🔍
+    </span>
+
+    <div *ngIf="filteredTeams.length > 0"
+         class="absolute z-50 w-full bg-white border border-gray-300 top-full left-0 mt-1 max-h-48 overflow-y-auto shadow-md">
+      <div *ngFor="let team of filteredTeams"
+           (click)="selectTeam(team)" 
+           class="p-2 hover:bg-red-50 cursor-pointer text-sm border-b text-gray-700">
+        {{ team.teamName || team.name || team }}
+      </div>
+    </div>
+  </div>
 </div>
-          <div class="flex items-center">
-            <label class="w-24 font-bold text-gray-600">Rating</label>
-            <select class="flex-1 border border-gray-300 p-1 outline-none"><option>(Any)</option></select>
-          </div>
+        <div class="flex items-center">
+  <label class="w-28 font-bold text-gray-600 text-[12px]">Reporting Manager</label>
+  
+  <div class="flex-1 flex border border-gray-300 relative">                
+    <input type="text" 
+           [(ngModel)]="leadSearchFilters.reportingManager" 
+           [ngModelOptions]="{standalone: true}" 
+           class="w-full p-1 outline-none text-[12px] h-[26px]"
+           placeholder="Search Manager..."
+           (input)="onManagerSearch($event)"
+           autocomplete="off"> 
+    
+    <span class="p-1 bg-gray-50 border-l border-gray-200 flex items-center justify-center cursor-pointer" 
+          (click)="onLeadSearch()">
+      🔍
+    </span>
+
+    <div *ngIf="filteredManagers.length > 0"
+         class="absolute z-50 w-full bg-white border border-gray-300 top-full left-0 mt-1 max-h-48 overflow-y-auto shadow-md">
+      <div *ngFor="let manager of filteredManagers"
+           (click)="selectManager(manager)" 
+           class="p-2 hover:bg-red-50 cursor-pointer text-sm border-b text-gray-700">
+        {{ manager }}
+      </div>
+    </div>
+  </div>
+</div>
+         <div class="flex items-center">
+  <label class="w-28 font-bold text-gray-600 text-[12px]">Lead Status</label>
+  
+  <div class="flex-1 flex border border-gray-300 relative">                
+    <input type="text" 
+           [(ngModel)]="leadSearchFilters.salesStage" 
+           [ngModelOptions]="{standalone: true}" 
+           class="w-full p-1 outline-none text-[12px] h-[26px]"
+           placeholder="Search Status..."
+           (input)="onStatusSearch($event)"
+           autocomplete="off"> 
+    
+    <span class="p-1 bg-gray-50 border-l border-gray-200 flex items-center justify-center cursor-pointer" 
+          (click)="onLeadSearch()">
+      🔍
+    </span>
+
+    <div *ngIf="filteredStatusSuggestions.length > 0"
+         class="absolute z-50 w-full bg-white border border-gray-300 top-full left-0 mt-1 max-h-48 overflow-y-auto shadow-md">
+      <div *ngFor="let status of filteredStatusSuggestions"
+           (click)="selectStatus(status)" 
+           class="p-2 hover:bg-red-50 cursor-pointer text-sm border-b text-gray-700">
+        {{ status }}
+      </div>
+    </div>
+  </div>
+</div>
          <div class="flex justify-end gap-3 pt-1">
   <button type="button" class="text-blue-600 underline text-[11px] font-bold">
     Advance Filter

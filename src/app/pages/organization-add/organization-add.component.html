@@ -8,89 +8,148 @@
     <div class="p-4 bg-white border-b border-gray-200">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-3">
         <div class="space-y-2">
-          <div class="flex items-center">
-            <label class="w-28 font-bold text-red-700">Org Name</label>
-            <div class="flex-1 flex flex-col relative">
-              <div class="flex border border-red-200">
-                <input type="text" placeholder="Search Company..." class="w-full p-1 outline-none text-[12px]">
-                <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400">🔍</span>
-              </div>
-              
-              <ul *ngIf="searchQuery && organizations && organizations.length > 0" 
-                  class="absolute top-full left-0 w-full bg-white border border-gray-300 shadow-lg z-[1000] max-h-48 overflow-y-auto">
-                <li *ngFor="let org of organizations" (click)="onOrgSelect(org)" 
-                    class="p-2 text-[12px] hover:bg-blue-100 cursor-pointer border-b border-gray-100 last:border-none">
-                  {{org.orgName}}
-                </li>
-              </ul>
+ <div class="flex items-center">
+  <label class="w-28 font-bold text-red-700">Org Name</label>
+  
+  <div class="flex-1 flex flex-col relative">
+    
+    <div class="flex border border-red-200">
+      <input type="text" 
+             placeholder="Search Company..." 
+             class="w-full p-1 outline-none text-[12px]"
+             [(ngModel)]="searchFilters.orgName"
+             (input)="getApiSuggestions('orgname', searchFilters.orgName)"
+             autocomplete="off">
+      <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400">🔍</span>
+    </div>
 
-              <div *ngIf="searchQuery && organizations && organizations.length === 0" 
-                   class="absolute top-full left-0 w-full bg-red-50 border border-red-200 shadow-lg z-[1000] p-2 text-[12px] text-red-600">
-                ⚠️ No organization found matching "{{searchQuery}}"
-              </div>
-            </div>
-          </div>
+    <div *ngIf="filteredOrgNames.length > 0" 
+         class="absolute top-full left-0 z-[999] w-full bg-white border border-gray-300 max-h-48 overflow-y-auto shadow-lg shadow-gray-400">
+      
+      <div *ngFor="let item of filteredOrgNames"
+           (click)="selectOrgSuggestion(item)" 
+           class="p-2 hover:bg-red-50 cursor-pointer text-[12px] border-b border-gray-100 last:border-none text-black">
+        {{ $any(item).orgName || item }}
+      </div>
+      
+    </div>
+  </div>
+</div>
         
-          <div class="flex items-center">
-            <label class="w-28 font-bold text-gray-600">Org Code</label>
-            <input type="text" placeholder="CODE001" class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm">
-          </div>
-          <div class="flex items-center">
-            <label class="w-28 font-bold text-gray-600">Org Type</label>
-            <select class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
-              <option value="">(Any Type)</option>
-              <option value="Customer">Customer</option>
-              <option value="Vendor">Vendor</option>
-              <option value="Agent">Agent</option>
-            </select>
-          </div>
+<div class="flex items-center">
+  <label class="w-28 font-bold text-gray-600">Org ID</label>
+  <div class="flex-1 flex flex-col relative">
+    
+    <div class="flex border border-gray-300">
+      <input type="text" 
+             [(ngModel)]="searchFilters.orgCode"
+             (input)="getApiSuggestions('orgcode', searchFilters.orgCode)"
+             placeholder="Search by ID..." 
+             class="w-full p-1 outline-none text-[12px] rounded-sm"
+             autocomplete="off">
+    </div>
+
+    <div *ngIf="filteredOrgCodes.length > 0" 
+         class="absolute top-full left-0 z-[1000] w-full bg-white border border-gray-300 max-h-48 overflow-y-auto shadow-lg text-black">
+      
+      <div *ngFor="let item of filteredOrgCodes"
+           (click)="selectOrgCodeSuggestion(item)" 
+           class="p-2 hover:bg-gray-100 cursor-pointer text-[12px] border-b flex justify-between">
+        
+        <span class="font-bold text-blue-800">ID: {{ item.id }}</span>
+        
+        <!-- <span class="text-gray-500 text-[11px]">{{ item.orgName }}</span> -->
+        
+      </div>
+    </div>
+    
+  </div>
+</div>
+        <div class="flex items-center mb-1">
+  <label class="w-28 font-bold text-gray-600">Org Type</label>
+  <select [(ngModel)]="searchFilters.orgType" 
+          class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
+    <option value="">(Any Type)</option>
+    <option value="Customer">Customer</option>
+    <option value="Vendor">Vendor</option>
+    <option value="Agent">Agent</option>
+  </select>
+</div>
         </div>
 
       <div class="space-y-2">
   <div class="flex items-center">
-    <label class="w-24 font-bold text-gray-600">City</label>
-    <div class="flex-1 flex flex-col relative"> 
-      
-      <div class="flex border border-gray-300">
-        <input type="text" 
-               
-               placeholder="Search City..." 
-               class="w-full p-1 outline-none text-[12px]">
-        <span class="p-1 bg-gray-50 border-l border-gray-200">📍</span>
-      </div>
-
-  
-      
+  <label class="w-24 font-bold text-gray-600">City</label>
+  <div class="flex-1 flex flex-col relative"> 
+    
+    <div class="flex border border-gray-300">
+      <input type="text" 
+             [(ngModel)]="searchFilters.city"
+             (input)="getApiSuggestions('city', searchFilters.city)"
+             placeholder="Search City..." 
+             class="w-full p-1 outline-none text-[12px]"
+             autocomplete="off">
+      <span class="p-1 bg-gray-50 border-l border-gray-200">📍</span>
     </div>
-  </div>
 
-  <div class="flex items-center">
-    <label class="w-24 font-bold text-gray-600">Org Group</label>
-    <select  class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
-      <option value="">(Any Group)</option>
-      <option value="Local">Local</option>
-      <option value="International">International</option>
-    </select>
+    <div *ngIf="filteredCities.length > 0" 
+         class="absolute top-full left-0 z-[999] w-full bg-white border border-gray-300 max-h-48 overflow-y-auto shadow-lg text-black">
+      <div *ngFor="let item of filteredCities"
+           (click)="selectCitySuggestion(item)" 
+           class="p-2 hover:bg-blue-50 cursor-pointer text-[12px] border-b border-gray-100 last:border-none">
+        {{ $any(item).city || item }}
+      </div>
+    </div>
+    
   </div>
-  <div class="flex items-center">
-    <label class="w-24 font-bold text-gray-600">Status</label>
-    <select class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
-      <option value="Active">Active</option>
-      <option value="Inactive">Inactive</option>
-    </select>
-  </div>
+</div>
+<div class="flex items-center mb-1">
+  <label class="w-24 font-bold text-gray-600">Org Group</label>
+  <select [(ngModel)]="searchFilters.orgGroup" 
+          class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
+    <option value="">(Any Group)</option>
+    <option value="Local">Local</option>
+    <option value="International">International</option>
+  </select>
+</div>
+ <div class="flex items-center mb-1">
+  <label class="w-24 font-bold text-gray-600">Status</label>
+  <select [(ngModel)]="searchFilters.status" 
+          class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
+    <option value="Active">Active</option>
+    <option value="Inactive">Inactive</option>
+  </select>
+</div>
 </div>
 
         <div class="flex flex-col justify-between pt-1">
           <div class="space-y-2 pl-4">
-            <div class="flex items-center mb-1">
-              <label class="w-20 font-bold text-gray-600">Branch</label>
-              <select class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
-                <option>DELHI</option>
-                <option>MUMBAI</option>
-              </select>
-            </div>
-            <div class="space-y-2">
+      <div class="flex items-center mb-1">
+  <label class="w-20 font-bold text-gray-600">Branch</label>
+  <div class="flex-1 flex flex-col relative"> 
+    
+    <div class="flex border border-gray-300">
+      <input type="text" 
+             [(ngModel)]="searchFilters.branchName"
+             (input)="getApiSuggestions('branchname', searchFilters.branchName)"
+             placeholder="Search Branch..." 
+             class="w-full p-1 outline-none text-[12px]"
+             autocomplete="off">
+      <span class="p-1 bg-gray-50 border-l border-gray-200">🏢</span>
+    </div>
+
+    <div *ngIf="filteredBranches.length > 0" 
+         class="absolute top-full left-0 z-[1000] w-full bg-white border border-gray-300 max-h-48 overflow-y-auto shadow-lg text-black">
+      <div *ngFor="let item of filteredBranches"
+           (click)="selectBranchSuggestion(item)" 
+           class="p-2 hover:bg-red-50 cursor-pointer text-[12px] border-b border-gray-100 last:border-none">
+        {{ item }}
+      </div>
+    </div>
+    
+  </div>
+</div>
+     <div class="space-y-2">
               <div class="flex items-center">
                 <label class="w-24 font-bold text-gray-600">Date</label>
                 <div class="flex-1 flex border border-gray-300 items-center pr-2 cursor-pointer" (click)="datePicker.showPicker()">
@@ -101,11 +160,11 @@
             </div>
             <div class="flex gap-4">
               <span class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline">Advance Filter</span>
-              <span (click)="searchQuery=''; getOrgList()" class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline">Clear</span>
+              <span (click)="searchQuery=''; getOrgList()" (click)="resetFilters()" class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline">Clear</span>
             </div>
           </div>
           <div class="flex justify-end mt-4">
-            <button (click)="searchOrganization()" class="bg-[#4a3f3f] text-white px-8 py-1.5 font-bold shadow-md uppercase text-[11px] hover:bg-black transition-all">
+            <button (click)="onSearch()"  class="bg-[#4a3f3f] text-white px-8 py-1.5 font-bold shadow-md uppercase text-[11px] hover:bg-black transition-all">
               Search Organization
             </button>
           </div>
@@ -149,6 +208,18 @@
               <button (click)="deleteOrg(org.id)" class="text-red-600 font-bold hover:underline">DELETE</button>
             </td>
           </tr>
+          <tr *ngIf="organizations.length === 0">
+    <td colspan="7" class="p-10 text-center">
+      <div class="flex flex-col items-center justify-center text-gray-400">
+        <span class="text-4xl mb-2">📂</span>
+        <p class="text-[14px] font-bold">No Organization Records Found</p>
+        <p class="text-[12px]">Try adjusting your filters or check the ID to find the organization.</p>
+        <button (click)="getOrgList()" class="mt-3 text-blue-500 underline text-[11px]">
+          Reset All Filters
+        </button>
+      </div>
+    </td>
+  </tr>
         </tbody>
       </table>
     </div>
@@ -311,32 +382,86 @@
                 </div>
 
                 <div class="grid grid-cols-2 gap-6">
-                  <div class="flex items-center gap-3">
-                    <label class="w-40">Telephone</label>
-                    <input type="text" [(ngModel)]="telephone" name="telephone"
-                      class="flex-1 border border-gray-300 p-1.5 outline-none">
-                  </div>
-                  <div class="flex items-center gap-3">
-                    <label class="w-40">Fax</label>
-                    <input type="text" [(ngModel)]="fax" name="fax"
-                      class="flex-1 border border-gray-300 p-1.5 outline-none">
-                  </div>
+                 <div class="flex items-center gap-3">
+  <label class="w-40">Telephone</label>
+  <div class="flex flex-col flex-1">
+    <input 
+      type="text" 
+      [(ngModel)]="telephone"   
+      name="telephone"
+      maxlength="15"
+      (keypress)="onlyNumbers($event)"
+      placeholder="Telephone (5-15 digits)"
+      class="w-full border p-1.5 outline-none focus:border-blue-400"
+      [class.border-red-500]="telephone && telephone.length > 0 && telephone.length < 5"
+    >
+    <span *ngIf="telephone && telephone.length > 0 && telephone.length < 5" 
+          class="text-[10px] text-red-500 mt-1 font-semibold italic">
+      ⚠️ Telephone must be between 5 to 15 digits
+    </span>
+  </div>
+</div>
+                 <div class="flex items-center gap-3">
+  <label class="w-40">Fax</label>
+  <div class="flex flex-col flex-1">
+    <input 
+      type="text" 
+      [(ngModel)]="fax" 
+      name="fax"
+      maxlength="13"
+      (keypress)="onlyNumbers($event)"
+      class="w-full border p-1.5 outline-none focus:border-blue-400"
+      [class.border-red-500]="fax && fax.length > 0 && (fax.length < 6)"
+    >
+    <span *ngIf="fax && fax.length > 0 && fax.length < 6" 
+          class="text-[10px] text-red-500 mt-1 font-semibold italic">
+      ⚠️ Fax must be between 6 to 13 digits
+    </span>
+  </div>
+</div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-6">
-                  <div class="flex items-center gap-3">
-                    <label class="w-40">Web Site</label>
-                    <input type="text" [(ngModel)]="website" name="website"
-                      class="flex-1 border border-gray-300 p-1.5 outline-none">
-                  </div>
-                  <div class="flex items-center gap-3">
-                    <label class="w-40">Email Address</label>
-                    <input type="email" [(ngModel)]="email" name="email" list="emailSuggestions"
-                      class="flex-1 border border-gray-300 p-1.5 outline-none">
-                    <datalist id="emailSuggestions">
-                      <option value="admin@cavalierlogistic.in">
-                    </datalist>
-                  </div>
+                <div class="flex items-center gap-3">
+  <label class="w-40">Web Site</label>
+  <div class="flex flex-col flex-1">
+    <input 
+      type="text" 
+      [(ngModel)]="website" 
+      name="website"
+      (input)="validateWebsite()"
+      placeholder="e.g. www.google.com"
+      class="w-full border p-1.5 outline-none focus:border-blue-400"
+      [class.border-red-500]="website && website.length > 0 && isWebsiteInvalid"
+    >
+    <span *ngIf="website && website.length > 0 && isWebsiteInvalid" 
+          class="text-[10px] text-red-500 mt-1 font-semibold italic">
+      ⚠️ Please enter a valid website (e.g. www.example.com)
+    </span>
+  </div>
+</div>
+                 <div class="flex items-center gap-3">
+  <label class="w-40">Email Address</label>
+  <div class="flex-1 flex flex-col">
+    <input 
+      type="email" 
+      [(ngModel)]="email" 
+      name="email" 
+      list="emailSuggestions"
+      (input)="checkMainEmail()"
+      class="w-full border p-1.5 outline-none"
+      [ngClass]="email && email.length > 0 && isMainEmailInvalid ? 'border-red-500' : 'border-gray-300'"
+    >
+    <datalist id="emailSuggestions">
+      <option value="admin@cavalierlogistic.in">
+    </datalist>
+
+    <span *ngIf="email && email.length > 0 && isMainEmailInvalid" 
+          class="text-[10px] text-red-500 font-bold">
+      ⚠️ Invalid Email Format
+    </span>
+  </div>
+</div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-6">
@@ -405,15 +530,58 @@
                           <option value="Marketing">Marketing</option>
                         </select>
 
-                        <input [(ngModel)]="contact.mobile" [name]="'mob'+i" placeholder="Mobile No"
-                          class="w-full border p-2 rounded text-sm outline-none focus:border-blue-400">
-
-                        <input [(ngModel)]="contact.whatsapp" [name]="'wa'+i" placeholder="Whatsapp No"
-                          class="w-full border p-2 rounded text-sm outline-none focus:border-blue-400">
+                      <div class="flex flex-col w-full">
+  <input 
+    [(ngModel)]="contact.mobile" 
+    [name]="'mob'+i" 
+    type="text"
+    maxlength="10"
+    (keypress)="onlyNumbers($event)"
+    placeholder="Mobile No"
+    class="w-full border p-2 rounded text-sm outline-none focus:border-blue-400"
+    [class.border-red-500]="contact.mobile && contact.mobile.length > 0 && contact.mobile.length < 10"
+  >
+  
+  <span *ngIf="contact.mobile && contact.mobile.length > 0 && contact.mobile.length < 10" 
+        class="text-[10px] text-red-500 mt-1 font-semibold">
+    Mobile number must be exactly 10 digits
+  </span>
+</div>
+<div class="flex flex-col w-full">
+  <input 
+    [(ngModel)]="contact.whatsapp" 
+    [name]="'wa'+i" 
+    type="text"
+    maxlength="10"
+    (keypress)="onlyNumbers($event)"
+    placeholder="Whatsapp No"
+    class="w-full border p-2 rounded text-sm outline-none focus:border-blue-400"
+    [class.border-red-500]="contact.whatsapp && contact.whatsapp.length > 0 && contact.whatsapp.length < 10"
+  >
+  
+  <span *ngIf="contact.whatsapp && contact.whatsapp.length > 0 && contact.whatsapp.length < 10" 
+        class="text-[10px] text-red-500 mt-1">
+    Number must be exactly 10 digits
+  </span>
+</div>
 
                         <div class="flex items-center gap-3">
-                          <input [(ngModel)]="contact.email" [name]="'email'+i" placeholder="Email Address"
-                            class="w-full border p-2 rounded text-sm flex-1 outline-none focus:border-blue-400">
+                         <div class="flex flex-col w-full">
+  <input 
+    [(ngModel)]="contact.email" 
+    [name]="'email'+i" 
+    type="email"
+    (input)="checkEmail(contact)"
+    placeholder="Email Address"
+    class="w-full border p-2 rounded text-sm outline-none focus:border-blue-400"
+    [class.border-red-500]="contact.email && contact.email.length > 0 && contact.isEmailInvalid"
+  >
+  
+  <span *ngIf="contact.email && contact.email.length > 0 && contact.isEmailInvalid" 
+        class="text-[10px] text-red-500 mt-1 font-bold animate-pulse">
+    ⚠️ Invalid Email! Please enter a complete address (e.g., name@domain.com)
+  </span>
+</div>
 
                           <button *ngIf="i === 0" type="button" (click)="addContact()"
                             class="text-green-600 hover:text-green-700 transition-colors font-bold text-2xl">

@@ -5,17 +5,24 @@ import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } 
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
+import {
+CdkDragDrop,
+moveItemInArray,
+transferArrayItem
+} from '@angular/cdk/drag-drop';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'app-lead-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule,FormsModule],
+  imports: [CommonModule, ReactiveFormsModule,FormsModule,DragDropModule],
   templateUrl: './lead-form.component.html',
   styleUrl: './lead-form.component.css',
 })
 
 export class LeadFormComponent implements OnInit {
 // Aapka data array
+
   leadForm!: FormGroup;
   searchForm!: FormGroup;
   isFormOpen = false;
@@ -57,6 +64,42 @@ allLeads: any[] = [];       // original backup
     this.initSearchForm();
      // Important: Leads load first to calculate number
   }
+ availableColumns = [
+'Name',
+'Email',
+'Mobile',
+'City',
+'Status'
+];
+
+selectedColumns = ['Name'];
+
+sortOrders:any = {};
+
+drop(event: CdkDragDrop<string[]>) {
+
+if (event.previousContainer === event.container) {
+
+moveItemInArray(
+event.container.data,
+event.previousIndex,
+event.currentIndex
+);
+
+} else {
+
+transferArrayItem(
+event.previousContainer.data,
+event.container.data,
+event.previousIndex,
+event.currentIndex
+);
+
+}
+
+}
+
+
 initSearchForm() {
     this.searchForm = this.fb.group({
       organizationName: [''],

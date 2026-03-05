@@ -1,4 +1,4 @@
-import { Component, ElementRef, QueryList, ViewChildren, ChangeDetectorRef, OnInit, OnDestroy, Output } from '@angular/core';
+import { Component, ElementRef, QueryList, ViewChildren, ChangeDetectorRef, OnInit, OnDestroy, Output, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { SidebarService } from '../../services/sidebar.service';
@@ -7,6 +7,7 @@ import { SidebarWidgetComponent } from './app-sidebar-widget.component';
 import { combineLatest, Subscription } from 'rxjs';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
+import { FormsModule } from '@angular/forms';
 
 
 type NavItem = {
@@ -23,7 +24,8 @@ type NavItem = {
   imports: [
     CommonModule,
     RouterModule,
-    SafeHtmlPipe
+    SafeHtmlPipe,
+    FormsModule
     
   ],
   templateUrl: './app-sidebar.component.html',
@@ -49,7 +51,8 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
     public sidebarService: SidebarService,
     private router: Router,
     private cdr: ChangeDetectorRef,
-    private http: HttpClient
+    private http: HttpClient,
+    private eRef: ElementRef,
   ) {
     this.isExpanded$ = this.sidebarService.isExpanded$;
     this.isMobileOpen$ = this.sidebarService.isMobileOpen$;
@@ -424,5 +427,77 @@ selectBranch(branch: any) {
       })
     );
   }   
+  // Component class ke andar
+// --- Variables ---
+showAccessPopup: boolean = false;
+selectedBranchId: any = null;
+
+
+// --- Methods ---
+
+// Popup kholne/band karne ke liye
+toggleAccessPopup() {
+  this.showAccessPopup = !this.showAccessPopup;
+}
+
+// Jab "System Administrator" par click ho
+handleSystemSwitch() {
+  const payload = { accessType: 'system' };
+  this.executeSwitch(payload, 'system', 'dashboard/branch');
+}
+
+// Jab kisi "Branch" par click ho
+handleBranchSwitch(branch: any) {
+  this.selectedBranchId = branch.id;
+  const payload = { 
+    accessType: 'branch', 
+    branchId: branch.id 
+  };
   
+  localStorage.setItem('selectedBranchId', branch.id);
+  localStorage.setItem('selectedBranchName', branch.name);
+  
+  this.executeSwitch(payload, 'branch', '/dashboard');
+}
+
+/**
+ * Common Function: Jo actual API call karega
+ */
+private executeSwitch(payload: any, type: string, destination: string) {
+  const token = localStorage.getItem('cavalier_token') || '';
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  });
+
+  this.http.post<any>(`${environment.apiUrl}/Auth/set-access-type`, payload, { headers })
+    .subscribe({
+      next: (res) => {
+        // 1. Storage update
+        localStorage.setItem('cavalier_token', res.token);
+        localStorage.setItem('accessType', type);
+
+        // 2. UI update
+        this.accessType = type; 
+        this.showAccessPopup = false;
+        this.loadings = true;
+
+        // 3. Refresh & Navigate
+        this.cdr.detectChanges();
+        this.loadNavItemsFromApi();
+        this.router.navigate([destination]); 
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Switch Error:', err);
+        alert('Switch failed!');
+      }
+    });
+}
+@HostListener('document:click', ['$event'])
+clickout(event: any) {
+  if (!this.eRef.nativeElement.contains(event.target)) {
+    this.showAccessPopup = false;
+  }
+}
 }

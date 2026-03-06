@@ -701,6 +701,7 @@ export class QuotationFormComponent implements OnInit {
   isFormOpen = false;
  private apiEndpoint = `${environment.apiUrl}/Quotations`;
 // -- Dropdown Control Variables --
+companyServices:any[]=[]
   showDropdown = false;
   organizations: any[] = [];
   filteredOrganizations: any[] = [];
@@ -758,7 +759,20 @@ quotationss: any = this.resetQuotationModel();
     this.getNextQuotationNumber();
     this.fetchInquiries();
     this.loadSearchSuggestions();
+    this.fetchCompanyServices()
   }
+  
+fetchCompanyServices() {
+        const url = `${environment.apiUrl}/CompanyService`;
+        this.http.get<any[]>(url).subscribe({
+            next: (data) => {
+                this.companyServices = data;
+                console.log("Line of Business loaded:", data);
+                this.cdr.detectChanges();
+            },
+            error: (err) => console.error("Error loading LOB:", err)
+        });
+    }
   fetchInquiries() {
   const url = `${environment.apiUrl}/Inquiry`;
   this.http.get<any[]>(url).subscribe(data => {

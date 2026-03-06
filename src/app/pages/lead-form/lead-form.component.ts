@@ -5,30 +5,62 @@ import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } 
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import {
-CdkDragDrop,
-moveItemInArray,
-transferArrayItem
-} from '@angular/cdk/drag-drop';
 import { DragDropModule } from '@angular/cdk/drag-drop';
-
+import { CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 @Component({
   selector: 'app-lead-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule,FormsModule,DragDropModule],
+  imports: [CommonModule, ReactiveFormsModule,FormsModule, DragDropModule ],
   templateUrl: './lead-form.component.html',
   styleUrl: './lead-form.component.css',
+   
 })
 
 export class LeadFormComponent implements OnInit {
+<<<<<<< HEAD
 // Aapka data array
 showModal: boolean = false;
+=======
+  availableColumns: string[] = [
+  'Lead No',
+  'Organization',
+  'Lead Owner',
+  'Sales Stage',
+  'Sales Process'
+];
+  selectedColumns: string[] = [
+    'Lead No'
+  ];
+  drop(event: CdkDragDrop<string[]>) {
+
+  if (event.previousContainer === event.container) {
+
+    moveItemInArray(
+      event.container.data,
+      event.previousIndex,
+      event.currentIndex
+    );
+
+  } else {
+
+    transferArrayItem(
+      event.previousContainer.data,
+      event.container.data,
+      event.previousIndex,
+      event.currentIndex
+    );
+
+  }
+
+}
+// Aapka data array
+>>>>>>> db469b62314aee9244e510cef689d31ef13afada
   leadForm!: FormGroup;
   searchForm!: FormGroup;
   showCustomPicker: boolean = false; // Shortcuts menu dikhane ke liye
   isFormOpen = false;
 allLeads: any[] = [];       // original backup
-
+sortOrders: { [key: string]: string } = {};
   // --- CHANGED: Initialized as empty array ---
   leads: any[] = []; 
 
@@ -39,7 +71,9 @@ allLeads: any[] = [];       // original backup
   teamList: any[] = [];
   organizations: any[] = [];
   filteredOrganizations: any[] = [];
-
+  filteredHODSuggestions:any[]=[]
+  hodUniqueList:any[]=[]
+showModal=false
   constructor(
     private fb: FormBuilder,
     private router: Router,
@@ -63,8 +97,10 @@ this.loadColumnSettings();
     this.loadOrganizations();
     this.loadLeads();
     this.initSearchForm();
+    this.loadLeadSuggestions(); // Isse call karna mat bhulna!
      // Important: Leads load first to calculate number
   }
+<<<<<<< HEAD
 availableColumns:string[] = [];
 
 selectedColumns:string[] = [];
@@ -199,6 +235,8 @@ loadColumnSettings() {
   });
 
 }
+=======
+>>>>>>> db469b62314aee9244e510cef689d31ef13afada
 initSearchForm() {
     this.searchForm = this.fb.group({
       organizationName: [''],
@@ -207,7 +245,6 @@ initSearchForm() {
       salesStage: ['']
     });
   }
-
   // --- UPDATED: Clear Filters ---
  
   loadLeads(): void {
@@ -426,21 +463,6 @@ loadLeadDates(): void {
   this.allDates = [...new Set(this.leads.map(lead => this.toISODate(new Date(lead.date))))];
 }
 
-// --- ADDED: Search logic for Date ---
-// onDateSearch(event: Event): void {
-//   const value = (event.target as HTMLInputElement).value; // Date string format mein aayegi
-
-//   if (!value) {
-//     this.filteredDates = [];
-//     return;
-//   }
-
-//   // allDates array mein se search karo
-//   this.filteredDates = this.allDates.filter(date =>
-//     date.includes(value)
-//   );
-// }
-
 // --- ADDED: Selection logic for Date ---
 selectDate(date: string): void {
   // Form ko select ki gayi date se update karo
@@ -510,14 +532,7 @@ clearFilters() {
   this.leadForm.reset();
 ;// normal GET API call
 }
-  // 1. Apne HTML mein (click) event ko isse update kar do:
-// (click)="selectAndSearchOrganization(org)"
 
-// --- ADDED: Method with unique name ---
-// ... existing imports and code
-
-// --- ADDED: Method for input event in search form ---
-// --- UPDATED: Method for input event in search bar (Performance Fixed) ---
 onOrgSearchForFilters(event: Event): void {
   const value = (event.target as HTMLInputElement).value.toLowerCase();
 
@@ -561,20 +576,64 @@ filterTableByOrganization(orgName: string) {
 // ... rest of the code
 // // --- ADDED: Method for input event in Lead No search bar ---
 onLeadNoSearchForFilters(event: Event): void {
-  const value = (event.target as HTMLInputElement).value.toLowerCase();
+  const value = (event.target as HTMLInputElement).value.toLowerCase().trim();
 
+  // 1. Agar input ekdum khali hai, toh table reset karo aur dropdown band
   if (!value) {
     this.filteredLeads = [];
-    this.loadLeads(); // Reset table
+    this.loadLeads(); // Poora table wapas dikhayega
     return;
   }
 
-  // Filter dropdown suggestions
+  // 🔥 2. Logic: Agar 3 characters se kam hain, toh suggestions mat dikhao
+  if (value.length < 4) {
+    this.filteredLeads = []; // Dropdown band rakhega
+    return;
+  }
+
+  // 3. Filter dropdown suggestions (Sirf tab chalega jab length >= 3 ho)
   this.filteredLeads = this.leads.filter(lead =>
-    lead.leadNo.toLowerCase().includes(value)
+    (lead.leadNo || '').toString().toLowerCase().includes(value)
   );
+  
+  console.log("Suggestions found for:", value, this.filteredLeads);
 }
 
+// --- Variables ---
+filteredTeams: any[] = []; // Search results ke liye
+
+// 1. Team Search Logic (3 characters threshold)
+onTeamSearch(event: Event): void {
+  const value = (event.target as HTMLInputElement).value.toLowerCase().trim();
+
+  // 🔥 3 characters condition
+  if (!value || value.length < 3) {
+    this.filteredTeams = [];
+    return;
+  }
+
+  // teamList se filter karein (Jo backend se aayi hai)
+  // Note: Agar teamList strings ki array hai toh 't.teamName' hata kar sirf 't' likhein
+  this.filteredTeams = this.teamList.filter(t => {
+    const teamName = (t.teamName || t.name || t || '').toString().toLowerCase();
+    return teamName.includes(value);
+  });
+}
+
+// 2. Selection Logic
+selectTeam(team: any): void {
+  // Agar team object hai toh team.teamName, agar string hai toh direct team
+  const selectedName = team.teamName || team.name || team;
+  
+  this.leadSearchFilters.team = selectedName; // Object property update
+  this.filteredTeams = [];                    // Dropdown band
+  this.cdr.detectChanges();
+}
+
+
+// selectLeadForFilters(lead: any): void {
+//   // 1. Update search form control
+//   this.searchForm.controls['leadNo'].setValue(lead.leadNo);
 
 // --- ADDED: Method for input event in Sales Stage search bar ---
 onSalesStageSearchForFilters(event: Event): void {
@@ -671,7 +730,11 @@ leadSearchFilters = {
   leadNo: '',
   salesProcess: '',
   salesStage: '',
-  leadOwner: 'Any'
+  leadOwner: 'Any',
+  hod:'',
+  team:'',
+  reportingManager: '',
+
 };
 // Dropdown lists for suggestions
 leadNoList: string[] = [];
@@ -701,11 +764,13 @@ onDateSearch(event: Event): void {
 onLeadOrgSearch(event: Event): void {
   const value = (event.target as HTMLInputElement).value.toLowerCase();
   
-  if (!value) {
+  // 🔥 Logic: 3 letter se kam hone par list khali kar do aur function rok do
+  if (!value || value.length < 4) {
     this.filteredOrganizations = [];
     return;
   }
 
+  // 3 letters pure hone par hi filter chalega
   this.filteredOrganizations = this.organizations.filter(org =>
     org.orgName.toLowerCase().includes(value)
   );
@@ -758,7 +823,64 @@ selectLeadOrg(org: any): void {
   this.filteredOrganizations = [];                      // Dropdown band hoga
   // Yahan se this.onLeadSearch() hata diya gaya hai taaki auto-search na ho
 }
+// 1. Dropdown filter logic (Custom Div style)
 
+
+// Selection logic
+onHODSearchType(event: Event): void {
+  const value = (event.target as HTMLInputElement).value.toLowerCase().trim();
+  
+  // 3 letters condition
+  if (!value || value.length < 3) {
+    this.filteredHODSuggestions = [];
+    return;
+  }
+
+  // Filter directly from the strings array
+  this.filteredHODSuggestions = this.hodUniqueList.filter(hod =>
+    hod.toLowerCase().includes(value)
+  );
+
+  console.log("🎯 HOD Matches Found:", this.filteredHODSuggestions);
+}
+// --- Is function ko class ke andar kahin bhi paste kar dein ---
+selectHOD(hodName: string): void {
+  // 1. Filtered value ko search filter object mein set karein
+  this.leadSearchFilters.hod = hodName; 
+
+  // 2. Dropdown list ko band karne ke liye array khali kar dein
+  this.filteredHODSuggestions = []; 
+
+  // 3. Angular ko batayein ki UI update karni hai
+  this.cdr.detectChanges();
+
+  console.log("HOD Selected:", hodName);
+}
+// --- Variables (Aapke paas pehle se honge, bas check kar lein) ---
+filteredLeadOwners: string[] = []; 
+
+// 1. Search Logic for Lead Owner
+onLeadOwnerSearch(event: Event): void {
+  const value = (event.target as HTMLInputElement).value.toLowerCase().trim();
+
+  // 3 letters condition
+  if (!value || value.length < 3) {
+    this.filteredLeadOwners = [];
+    return;
+  }
+
+  // leadOwnerList se filter karein (Jo loadLeadSuggestions mein bhari gayi thi)
+  this.filteredLeadOwners = this.leadOwnerList.filter(owner =>
+    owner.toLowerCase().includes(value)
+  );
+}
+
+// 2. Selection Logic
+selectLeadOwner(ownerName: string): void {
+  this.leadSearchFilters.leadOwner = ownerName; // Object property update
+  this.filteredLeadOwners = [];                 // Dropdown band
+  this.cdr.detectChanges();
+}
 loadLeadSuggestions() {
   this.http.get<any[]>(`${environment.apiUrl}/Leads`)
     .subscribe({
@@ -766,20 +888,56 @@ loadLeadSuggestions() {
         if (Array.isArray(data)) {
           // 1. Lead Numbers
           this.leadNoList = [...new Set(data.map(l => l.leadNo).filter(val => val))];
-
-          // 2. Organization Names
+          // 2. Organizations
           this.leadOrgList = [...new Set(data.map(l => l.organizationName).filter(val => val))];
-
-          // 3. Lead Owners (Assigned To)
+          // 3. Owners
           this.leadOwnerList = [...new Set(data.map(l => l.leadOwner).filter(val => val))];
-          // 4. Sales Processes (Suggestions ke liye)
-         this.allSalesProcesses = [...new Set(data.map(l => l.salesProcess).filter(val => val))];
+          // 4. Sales Processes
+          this.allSalesProcesses = [...new Set(data.map(l => l.salesProcess).filter(val => val))];
 
+          // 🔥 FIXED: HOD unique list load karna zaroori hai suggestions ke liye
+          this.hodUniqueList = [...new Set(data
+            .map(l => l.hod)
+            .filter(val => val && val.toString().trim() !== '')
+          )];
+          // loadLeadSuggestions function ke andar ye add karein:
+this.managerUniqueList = [...new Set(data
+  .map(l => l.reportingManager || l.ReportingManager)
+  .filter(val => val && val.toString().trim() !== '')
+)];
+
+          console.log("✅ HOD Unique List Loaded:", this.hodUniqueList);
           this.cdr.detectChanges(); 
         }
       },
       error: (err) => console.error("Leads Suggestions Fetch Error:", err)
     }); 
+}
+// 2. Variables for suggestions
+filteredManagers: string[] = [];
+// Aapki leads se nikali hui master list (loadLeadSuggestions mein bhari jayegi)
+managerUniqueList: string[] = []; 
+
+// 3. Reporting Manager Search Logic
+onManagerSearch(event: Event): void {
+  const value = (event.target as HTMLInputElement).value.toLowerCase().trim();
+
+  if (!value || value.length < 3) {
+    this.filteredManagers = [];
+    return;
+  }
+
+  // Filter from master list
+  this.filteredManagers = this.managerUniqueList.filter(m =>
+    m.toLowerCase().includes(value)
+  );
+}
+
+// 4. Selection Logic
+selectManager(managerName: string): void {
+  this.leadSearchFilters.reportingManager = managerName;
+  this.filteredManagers = [];
+  this.cdr.detectChanges();
 }
 // 1. Dropdown se select karte waqt sirf value set karo, search mat chalao
 selectLeadForFilters(lead: any): void {
@@ -788,7 +946,30 @@ this.leadSearchFilters.leadNo = lead.leadNo; // Check: kya ye sahi set ho raha h
   this.cdr.detectChanges();// Dropdown band
   
 }
+filteredStatusSuggestions: string[] = [];
+// Predefined list (Kyunki status aksar fixed hote hain)
+statusList: string[] = ['Inquiry Received', 'Qualified', 'Proposal Sent', 'Sales Closed', 'Lost'];
 
+// 3. Search Logic (3 characters ke baad)
+onStatusSearch(event: Event): void {
+  const value = (event.target as HTMLInputElement).value.toLowerCase().trim();
+
+  if (!value || value.length < 3) {
+    this.filteredStatusSuggestions = [];
+    return;
+  }
+
+  this.filteredStatusSuggestions = this.statusList.filter(s =>
+    s.toLowerCase().includes(value)
+  );
+}
+
+// 4. Selection Logic
+selectStatus(status: string): void {
+  this.leadSearchFilters.salesStage = status;
+  this.filteredStatusSuggestions = [];
+  this.cdr.detectChanges();
+}
 // 2. Main Search Button Function
 onLeadSearch() {
   const searchInput = this.leadSearchFilters.leadNo?.toString().trim();
@@ -916,7 +1097,10 @@ resetLeadFilters() {
     type: 'Any',
     leadOwner: 'Any',
     salesProcess: '',
-    salesStage: ''
+    salesStage: '',
+    hod:'',
+    team:'',
+    reportingManager:''
   };
 
   const resetPayload = {
@@ -926,7 +1110,8 @@ resetLeadFilters() {
     type: '',
     leadOwner: '',
     salesProcess: '',
-    salesStage: ''
+    salesStage: '',
+    team:''
   };
 
   this.http.post<any[]>(`${environment.apiUrl}/Leads/Search`, resetPayload)

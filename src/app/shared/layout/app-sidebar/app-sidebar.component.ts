@@ -333,7 +333,7 @@ selectBranch(branch: any) {
       userMgmt.subItems.unshift({
         name: 'User',
         // Routing file ke 'hr/employee-master' se match karne ke liye path badal diya
-        path: '/dashboard/hr/employee-master', 
+        path: '/dashboard/Employee', 
         new: false
       });
     }

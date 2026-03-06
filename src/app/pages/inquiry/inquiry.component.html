@@ -11,48 +11,55 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-3">
         
         <div class="space-y-2">
-   <div class="flex items-center">
-  <label class="w-28 font-bold text-gray-600">Services</label>
-  <select 
-    [(ngModel)]="searchFilters.transportMode"
-    class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
-    
-    <option value="Any">Any</option>
-    
-    <option *ngFor="let s of servicesList" [value]="s.transportMode">
-      {{ s.transportMode }} 
-    </option>
-    
-  </select>
+  <div class="flex items-center">
+  <label class="w-28 font-bold text-gray-600 text-sm">Services</label>
+  <div class="flex-1 flex flex-col relative">
+    <input 
+      type="text" 
+      [(ngModel)]="searchFilters.transportMode"
+      (input)="onServiceType()"
+      list="servicesSuggestions"
+      placeholder="Type service (min 3 chars)..."
+      class="w-full border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white"
+    >
+    <datalist id="servicesSuggestions">
+      <option *ngFor="let s of filteredServices" [value]="s"></option>
+    </datalist>
+  </div>
 </div>
        <div class="flex items-center">
-  <label class="w-28 font-bold text-gray-600">Inquiry No.</label>
-  <input 
-    type="text" 
-    [(ngModel)]="searchFilters.inquiryNo" 
-    list="inqNoList" 
-    placeholder="Type to search..."
-    class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm">
-  
-  <datalist id="inqNoList">
-    <option *ngFor="let num of allInquiryNumbers" [value]="num"></option>
-  </datalist>
-</div>
-      <div class="flex items-center">
+  <label class="w-28 font-bold text-gray-600 text-[12px]">Inquiry No.</label>
+  <div class="flex-1 flex flex-col">
+    <input 
+      type="text" 
+      [(ngModel)]="searchFilters.inquiryNo" 
+      (input)="onInquiryType()"
+      list="inqNoList" 
+      placeholder="Type min 3 chars..."
+      class="w-full border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white"
+    >
+    
+    <datalist id="inqNoList">
+      <option *ngFor="let num of filteredInquiryNos" [value]="num"></option>
+    </datalist>
+  </div>
+</div>  
+     <div class="flex items-center">
   <label class="w-28 font-bold text-red-700">Inquiry to</label>
   <div class="flex-1 flex border border-red-200">
     <input 
       type="text" 
       [(ngModel)]="searchFilters.branchName"
+      (input)="onBranchType()"
       list="branchList"
-      placeholder="Select Branch"
+      placeholder="Type min 3 chars..."
       class="w-full p-1 outline-none text-[12px]">
     
     <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400">🔍</span>
   </div>
 
   <datalist id="branchList">
-    <option *ngFor="let branch of branchesList" [value]="branch.branchName"></option>
+    <option *ngFor="let branch of filteredBranches" [value]="branch"></option>
   </datalist>
 </div>
          <div class="flex items-center">
@@ -111,15 +118,16 @@
     <input 
       type="text" 
       [(ngModel)]="searchFilters.salesCoordinator"
+      (input)="onCoordinatorType()"
       list="coordinatorList"
-      placeholder="Search Coordinator..."
+      placeholder="Type min 3 chars..."
       class="w-full p-1 outline-none text-[12px]">
     
     <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400">🔍</span>
   </div>
 
   <datalist id="coordinatorList">
-    <option *ngFor="let sc of coordinators" [value]="sc.salesCoordinator"></option>
+    <option *ngFor="let name of filteredCoordinators" [value]="name"></option>
   </datalist>
 </div>
         <div class="flex items-center">
@@ -360,20 +368,17 @@
                 </svg>
               </div>
             </div>
-            <div class="grid grid-cols-2 items-center">
-              <label class="font-bold text-gray-700">Line Of Business</label>
-              <select [(ngModel)]="quotation.description" name="description" class="border p-1.5 bg-white outline-none">
-                <option value="" disabled selected>Select Business Line</option>
-                <option value="Air Import">Air Import</option>
-                <option value="Air Export">Air Export</option>
-                <option value="Sea Import">Sea Import</option>
-                <option value="Sea Export">Sea Export</option>
-                <option value="Courier Import">Courier Import</option>
-                <option value="Courier Export">Courier Export</option>
-                <option value="Clearance Import">Clearance Import</option>
-                <option value="Clearance Export">Clearance Export</option>
+        <div class="grid grid-cols-2 items-center">
+            <label class="font-bold text-gray-700">Line Of Business</label>
+           
+            <select [(ngModel)]="quotation.description" name="description" class="border p-1.5 bg-white outline-none">
+              <option value="" disabled selected>Select Business Line</option>
+             
+              <option *ngFor="let service of companyServices" [value]="service.serviceName">
+                {{ service.serviceName }}
+              </option>
               </select>
-            </div>
+          </div>
           </div>
           <div class="space-y-2">
           <div class="grid grid-cols-2 items-center">
@@ -796,5 +801,4 @@
         {{ quotation.id ? 'Update' : 'Save' }} Inquiry
       </button>
     </div>
-  </div>
-</div>           
+  </div>           

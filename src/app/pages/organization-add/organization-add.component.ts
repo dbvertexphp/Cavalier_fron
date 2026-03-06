@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http'; 
 import { environment } from '../../../environments/environment';
 import { any } from '@amcharts/amcharts5/.internal/core/util/Array';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-organization-add',
@@ -60,7 +61,7 @@ cities: any[] = [];
   branches :any [] =[];
   selectedBranch: any = null
 
-  constructor(private location: Location, private http: HttpClient,private cdr: ChangeDetectorRef) {}
+  constructor(private location: Location, private http: HttpClient,private cdr: ChangeDetectorRef,private router:Router) {}
 fetchNextBranch() {
   const url = `${environment.apiUrl}/Organization/next-branch-name`;
   this.http.get<{nextName: string}>(url).subscribe({
@@ -116,16 +117,36 @@ fetchNextBranch() {
     return this.selectedRoles.includes(role);
   }
 
-  toggleRole(role: string) {
-    const index = this.selectedRoles.indexOf(role);
-    if (index > -1) {
-      this.selectedRoles.splice(index, 1);
-    } else {
-      this.selectedRoles.push(role);
-      this.activeTab = role;
+  // toggleRole(role: string) {
+  //   const index = this.selectedRoles.indexOf(role);
+  //   if (index > -1) {
+  //     this.selectedRoles.splice(index, 1);
+  //   } else {
+  //     this.selectedRoles.push(role);
+  //     this.activeTab = role;
+  //   }
+  // }
+// selectedRoles array ko track karne ke liye logic
+toggleRole(role: string) {
+  const index = this.selectedRoles.indexOf(role);
+  if (index > -1) {
+    this.selectedRoles.splice(index, 1);
+  } else {
+    this.selectedRoles.push(role);
+    this.activeTab = role;
+    
+    // Agar 'shipper' select hua hai, toh hum toggle kar sakte hain ya redirect
+    if (role === 'shipper') {
+      console.log("Shipper selected! Showing Shipper Form...");
+      this.router.navigate(['/dashboard/shipper']);
     }
   }
+}
 
+// HTML mein condition check karne ke liye helper
+isShipperSelected(): boolean {
+  return this.selectedRoles.includes('shipper');
+}
 saveOrg() {
   // Website Validation Check
   if (this.website && this.website.length > 0 && this.isWebsiteInvalid) {

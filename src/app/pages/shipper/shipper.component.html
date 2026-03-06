@@ -1,0 +1,119 @@
+<div class="p-3 md:p-6 bg-gray-50 min-h-screen font-sans">
+
+  <div *ngIf="!isFormOpen" class="animate-in fade-in duration-500">
+    <div class="flex flex-row justify-between items-center mb-6 gap-2 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+      <div class="flex items-center gap-3">
+        <div class="bg-gray-100 p-2.5 rounded-xl hidden sm:flex items-center justify-center text-[#654E51]">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+        </div>
+        <div>
+          <h2 class="text-xl md:text-2xl font-bold text-gray-800 leading-none">Shipper Management</h2>
+          <p class="hidden md:block text-xs text-gray-500 mt-1 uppercase tracking-wider font-semibold">Active Shipping Partners</p>
+        </div>
+      </div>
+      <button (click)="openForm()" class="bg-[#654E51] text-white px-3 py-2 md:px-5 md:py-2.5 rounded-lg hover:bg-[#4A3739] transition flex items-center gap-1.5 shadow-md active:scale-95">
+        <span class="text-lg md:text-xl font-bold">+</span> <span class="text-xs md:text-base font-semibold uppercase">Add Shipper</span>
+      </button>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left">
+          <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Shipper Details</th>
+              <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest text-center">Location</th>
+              <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest text-center">Mode</th>
+              <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <tr *ngFor="let s of shippersList" class="hover:bg-gray-50/50 transition-colors">
+              <td class="px-6 py-4">
+                <div class="font-bold text-gray-900 uppercase text-sm">{{s.name}}</div>
+                <div class="text-[10px] text-gray-400 font-bold tracking-tight">{{s.email}} | {{s.contactPerson}}</div>
+              </td>
+              <td class="px-6 py-4 text-center">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-[#654E51] uppercase">{{s.country}}</span>
+                <div class="text-[9px] text-gray-400 mt-1 uppercase font-bold">{{s.city}}</div>
+              </td>
+              <td class="px-6 py-4 text-center">
+                <span class="text-[10px] font-black uppercase text-blue-600 tracking-tighter">{{s.mode}}</span>
+              </td>
+              <td class="px-6 py-4">
+                <div class="flex justify-center gap-2">
+                  <button (click)="editShipper(s)" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all text-sm">✎</button>
+                  <button (click)="deleteShipper(s.id)" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all text-sm">🗑</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="isFormOpen" class="animate-in fade-in slide-in-from-bottom-4 duration-300">
+    <div class="flex flex-row justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+      <div class="flex items-center gap-3">
+        <div class="bg-gray-100 p-2.5 rounded-xl text-[#654E51]"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg></div>
+        <div><h2 class="text-xl font-bold text-gray-800 leading-none uppercase">Shipper Details</h2><p class="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-widest">Registering New Entity</p></div>
+      </div>
+      <div class="flex gap-2">
+        <button (click)="closeForm()" class="px-4 py-2 border-2 border-gray-100 rounded-lg text-gray-500 font-bold hover:bg-gray-100 transition-all text-xs uppercase">Cancel</button>
+        <button (click)="saveShipper()" class="bg-[#654E51] text-white px-6 py-2 rounded-lg hover:bg-[#4A3739] transition shadow-md font-bold uppercase text-xs">Save Shipper</button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+        <h3 class="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+          <span class="w-1.5 h-4 bg-[#654E51] rounded-full"></span> Basic Info
+        </h3>
+        <div class="space-y-4">
+          <div class="flex flex-col md:flex-row md:items-center gap-2"><label class="md:w-32 text-[11px] font-bold text-gray-500 uppercase">Shipper Name</label>
+            <input type="text" [(ngModel)]="shipper.name" placeholder="ENTER COMPANY NAME..." class="flex-1 px-4 py-2 border-2 border-gray-50 rounded-xl focus:border-[#654E51] outline-none font-bold text-sm bg-gray-50/50 uppercase">
+          </div>
+          <div class="flex flex-col md:flex-row md:items-center gap-2"><label class="md:w-32 text-[11px] font-bold text-gray-500 uppercase">Contact Person</label>
+            <input type="text" [(ngModel)]="shipper.contactPerson" placeholder="FULL NAME..." class="flex-1 px-4 py-2 border-2 border-gray-50 rounded-xl focus:border-[#654E51] outline-none font-bold text-sm bg-gray-50/50 uppercase">
+          </div>
+          <div class="flex flex-col md:flex-row md:items-center gap-2"><label class="md:w-32 text-[11px] font-bold text-gray-500 uppercase">Email Address</label>
+            <input type="email" [(ngModel)]="shipper.email" placeholder="EMAIL@DOMAIN.COM" class="flex-1 px-4 py-2 border-2 border-gray-50 rounded-xl focus:border-[#654E51] outline-none font-bold text-sm bg-gray-50/50 uppercase">
+          </div>
+          <div class="flex flex-col md:flex-row md:items-center gap-2"><label class="md:w-32 text-[11px] font-bold text-gray-500 uppercase">Service Mode</label>
+            <select [(ngModel)]="shipper.mode" class="flex-1 px-4 py-2 border-2 border-gray-50 rounded-xl focus:border-[#654E51] outline-none font-bold text-sm bg-gray-50/50 cursor-pointer uppercase">
+              <option>AIR FREIGHT</option><option>SEA FREIGHT</option><option>ROAD TRANSPORT</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+        <h3 class="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+          <span class="w-1.5 h-4 bg-red-400 rounded-full"></span> Logistics Location
+        </h3>
+        <div class="space-y-4">
+          <div class="flex flex-col md:flex-row md:items-center gap-2 relative"><label class="md:w-32 text-[11px] font-bold text-red-500 uppercase tracking-tighter">Origin Country</label>
+            <div class="flex-1 relative">
+              <input type="text" [(ngModel)]="shipper.country" (input)="filterCountries()" (focus)="showCountryDropdown = true" (blur)="showCountryDropdown = false" placeholder="SEARCH COUNTRY..." class="w-full px-4 py-2 border-2 border-gray-50 rounded-xl focus:border-[#654E51] outline-none font-bold text-sm bg-gray-50/50 uppercase">
+              <ul *ngIf="showCountryDropdown && filteredCountries.length > 0" class="absolute top-full left-0 w-full bg-white border border-gray-100 mt-2 max-h-40 overflow-y-auto z-50 shadow-2xl rounded-xl">
+                <li *ngFor="let c of filteredCountries" (mousedown)="selectCountry(c)" class="px-4 py-2 hover:bg-gray-50 cursor-pointer text-xs font-bold text-gray-600 border-b border-gray-50 uppercase">{{c.name}}</li>
+              </ul>
+            </div>
+          </div>
+          <div class="flex flex-col md:flex-row md:items-center gap-2 relative"><label class="md:w-32 text-[11px] font-bold text-gray-500 uppercase">State/Province</label>
+            <div class="flex-1 relative">
+              <input type="text" [(ngModel)]="shipper.state" (input)="filterStates()" (focus)="showStateDropdown = true" (blur)="showStateDropdown = false" [disabled]="!shipper.country" placeholder="SELECT STATE..." class="w-full px-4 py-2 border-2 border-gray-50 rounded-xl focus:border-[#654E51] outline-none font-bold text-sm bg-gray-50/50 uppercase disabled:opacity-50">
+              <ul *ngIf="showStateDropdown && filteredStates.length > 0" class="absolute top-full left-0 w-full bg-white border border-gray-100 mt-2 max-h-40 overflow-y-auto z-50 shadow-2xl rounded-xl">
+                <li *ngFor="let s of filteredStates" (mousedown)="shipper.state = s.toUpperCase(); showStateDropdown = false" class="px-4 py-2 hover:bg-gray-50 cursor-pointer text-xs font-bold text-gray-600 border-b border-gray-50 uppercase">{{s}}</li>
+              </ul>
+            </div>
+          </div>
+          <div class="flex flex-col md:flex-row md:items-center gap-2"><label class="md:w-32 text-[11px] font-bold text-gray-500 uppercase tracking-tighter">City & Zip</label>
+            <div class="flex-1 flex gap-2"><input type="text" [(ngModel)]="shipper.city" placeholder="CITY" class="w-2/3 px-4 py-2 border-2 border-gray-50 rounded-xl focus:border-[#654E51] outline-none font-bold text-sm bg-gray-50/50 uppercase"><input type="text" [(ngModel)]="shipper.zip" placeholder="ZIP" class="w-1/3 px-4 py-2 border-2 border-gray-50 rounded-xl focus:border-[#654E51] outline-none font-bold text-sm bg-gray-50/50 uppercase"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -64,6 +64,7 @@ import { TeamsComponent } from './pages/teams/teams.component';
 import { SalaryTableComponent } from './salary-table/salary-table.component';
 import { LeaveApplicationComponent } from './leave-application/leave-application.component';
 import { EmployeeComponent } from './pages/employee/employee.component';
+import { ShipperComponent } from './pages/shipper/shipper.component';
 
 export const routes: Routes = [
 
@@ -128,6 +129,8 @@ export const routes: Routes = [
         component: ListOfUnitComponent   }, 
             { path: 'Employee',                          //list of unit
         component: EmployeeComponent   }, 
+          { path: 'shipper',                          //list of unit
+        component:ShipperComponent   }, 
     
       {
         path: 'port-of-loading',

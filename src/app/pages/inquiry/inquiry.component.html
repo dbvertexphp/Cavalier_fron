@@ -321,21 +321,33 @@
     readonly
     class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-gray-100 text-gray-600 cursor-not-allowed font-semibold">
 </div>
-             <div class="grid grid-cols-2 items-center">
-              <label class="font-bold text-[#802a2a]">Location</label>
-              <select [(ngModel)]="quotation.location" name="location" class="border p-1.5 outline-none bg-white">
-                <option value="DELHI">DELHI</option>
-                <option value="MUMBAI">MUMBAI</option>
-              </select>
-            </div>
-            <div class="grid grid-cols-2 items-center">
-              <label class="font-bold text-gray-700">Sales Coor.</label>
-              <select [(ngModel)]="quotation.salesCoordinator" name="salesCoordinator" class="border p-1.5 outline-none">
-                <option value="">--Select--</option>
-                <option value="Sales 1">Sales User 1</option>
-              </select>
-            </div>
-          </div>
+
+
+
+             
+
+
+
+
+   <div class="flex items-center gap-2">
+  <label class="w-26 font-bold text-[#802a2a]">Location</label>
+  <select [(ngModel)]="quotation.location" name="location" class="flex-1 border p-1.5 outline-none bg-white text-[12px]">
+    <option value="DELHI">DELHI</option>
+    <option value="MUMBAI">MUMBAI</option>
+  </select>
+</div>
+
+<div class="flex items-center gap-2 mt-2">
+  <label class="w-26 font-bold text-gray-700">Sales Coor.</label>
+  <select [(ngModel)]="quotation.salesCoordinator" name="salesCoordinator" class="flex-1 border p-1.5 outline-none text-[12px]">
+    <option value="">--Select--</option>
+    <option value="Sales 1">Sales User 1</option>
+  </select>
+</div>
+        </div>
+
+
+          
           <div class="space-y-2">
             <div class="grid grid-cols-2 items-center">
               <label class="font-bold text-[#802a2a]">Party Role</label>
@@ -360,21 +372,25 @@
                 </svg>
               </div>
             </div>
+
+
+
+            
+
             <div class="grid grid-cols-2 items-center">
-              <label class="font-bold text-gray-700">Line Of Business</label>
-              <select [(ngModel)]="quotation.description" name="description" class="border p-1.5 bg-white outline-none">
-                <option value="" disabled selected>Select Business Line</option>
-                <option value="Air Import">Air Import</option>
-                <option value="Air Export">Air Export</option>
-                <option value="Sea Import">Sea Import</option>
-                <option value="Sea Export">Sea Export</option>
-                <option value="Courier Import">Courier Import</option>
-                <option value="Courier Export">Courier Export</option>
-                <option value="Clearance Import">Clearance Import</option>
-                <option value="Clearance Export">Clearance Export</option>
+            <label class="font-bold text-gray-700">Line Of Business</label>
+            
+            <select [(ngModel)]="quotation.description" name="description" class="border p-1.5 bg-white outline-none">
+              <option value="" disabled selected>Select Business Line</option>
+              
+              <option *ngFor="let service of companyServices" [value]="service.serviceName">
+                {{ service.serviceName }}
+              </option>
               </select>
-            </div>
           </div>
+          </div>
+
+          
           <div class="space-y-2">
           <div class="grid grid-cols-2 items-center">
   <label class="font-bold text-red-700">Organization</label>

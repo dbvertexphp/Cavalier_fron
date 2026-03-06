@@ -28,6 +28,7 @@ export class QuotationFormComponent implements OnInit {
   leadSearchTerm = '';
   allInquiries: any[] = [];
 filteredInquiries: any[] = [];
+companyServices: any[] = []
 showInquiryDropdown: boolean = false;
   // --- Search & Advanced Filter Logic (Fixes 'filters' errors) ---
   filters: any = {
@@ -75,6 +76,7 @@ quotationss: any = this.resetQuotationModel();
     this.getNextQuotationNumber();
     this.fetchInquiries();
     this.loadSearchSuggestions();
+    this.fetchCompanyServices();
   }
   fetchInquiries() {
   const url = `${environment.apiUrl}/Inquiry`;
@@ -120,6 +122,22 @@ fetchLeads() {
       console.log(data)
     });
   }
+//------------
+// 1. Check karein ye array class ke upar hai na
+
+// 2. Function jo pehle likha tha wahi rahega
+fetchCompanyServices() {
+  const url = `${environment.apiUrl}/CompanyService `;
+  this.http.get<any[]>(url).subscribe({
+    next: (data) => {
+      this.companyServices = data;
+      this.cdr.detectChanges(); 
+    },
+    error: (err) => console.error("Error loading services", err)
+  });
+}
+
+
 
 // --- Lead Search Logic (FIXED) ---
 onLeadSearchInput() {

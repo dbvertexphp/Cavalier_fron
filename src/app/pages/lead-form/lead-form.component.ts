@@ -17,50 +17,14 @@ import { CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/dr
 })
 
 export class LeadFormComponent implements OnInit {
-<<<<<<< HEAD
 // Aapka data array
 showModal: boolean = false;
-=======
-  availableColumns: string[] = [
-  'Lead No',
-  'Organization',
-  'Lead Owner',
-  'Sales Stage',
-  'Sales Process'
-];
-  selectedColumns: string[] = [
-    'Lead No'
-  ];
-  drop(event: CdkDragDrop<string[]>) {
-
-  if (event.previousContainer === event.container) {
-
-    moveItemInArray(
-      event.container.data,
-      event.previousIndex,
-      event.currentIndex
-    );
-
-  } else {
-
-    transferArrayItem(
-      event.previousContainer.data,
-      event.container.data,
-      event.previousIndex,
-      event.currentIndex
-    );
-
-  }
-
-}
-// Aapka data array
->>>>>>> db469b62314aee9244e510cef689d31ef13afada
   leadForm!: FormGroup;
   searchForm!: FormGroup;
   showCustomPicker: boolean = false; // Shortcuts menu dikhane ke liye
   isFormOpen = false;
 allLeads: any[] = [];       // original backup
-sortOrders: { [key: string]: string } = {};
+// sortOrders: { [key: string]: string } = {};
   // --- CHANGED: Initialized as empty array ---
   leads: any[] = []; 
 
@@ -73,7 +37,7 @@ sortOrders: { [key: string]: string } = {};
   filteredOrganizations: any[] = [];
   filteredHODSuggestions:any[]=[]
   hodUniqueList:any[]=[]
-showModal=false
+
   constructor(
     private fb: FormBuilder,
     private router: Router,
@@ -100,7 +64,6 @@ this.loadColumnSettings();
     this.loadLeadSuggestions(); // Isse call karna mat bhulna!
      // Important: Leads load first to calculate number
   }
-<<<<<<< HEAD
 availableColumns:string[] = [];
 
 selectedColumns:string[] = [];
@@ -235,8 +198,6 @@ loadColumnSettings() {
   });
 
 }
-=======
->>>>>>> db469b62314aee9244e510cef689d31ef13afada
 initSearchForm() {
     this.searchForm = this.fb.group({
       organizationName: [''],

@@ -140,6 +140,10 @@ toggleRole(role: string) {
       console.log("Shipper selected! Showing Shipper Form...");
       this.router.navigate(['/dashboard/shipper']);
     }
+       if (role === 'consignee') {
+      console.log("Consignee selected! Showing Shipper Form...");
+      this.router.navigate(['/dashboard/Consignee']);
+    }
   }
 }
 

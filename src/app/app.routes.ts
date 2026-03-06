@@ -65,6 +65,7 @@ import { SalaryTableComponent } from './salary-table/salary-table.component';
 import { LeaveApplicationComponent } from './leave-application/leave-application.component';
 import { EmployeeComponent } from './pages/employee/employee.component';
 import { ShipperComponent } from './pages/shipper/shipper.component';
+import { ConsigneeComponent } from './pages/consignee/consignee.component';
 
 export const routes: Routes = [
 
@@ -131,6 +132,8 @@ export const routes: Routes = [
         component: EmployeeComponent   }, 
           { path: 'shipper',                          //list of unit
         component:ShipperComponent   }, 
+          { path: 'Consignee',                          //list of unit
+        component:ConsigneeComponent   }, 
     
       {
         path: 'port-of-loading',

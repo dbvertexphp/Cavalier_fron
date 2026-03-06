@@ -113,7 +113,7 @@
     </div>
   </div>
   <div class="flex items-center">
-  <label class="w-24 font-bold text-gray-600 text-[12px]">Inquiry By</label>
+  <label class="w-24 font-bold text-gray-600">Inquiry By</label>
   <div class="flex-1 flex border border-gray-300">
     <input 
       type="text" 
@@ -368,20 +368,17 @@
                 </svg>
               </div>
             </div>
-            <div class="grid grid-cols-2 items-center">
-              <label class="font-bold text-gray-700">Line Of Business</label>
-              <select [(ngModel)]="quotation.description" name="description" class="border p-1.5 bg-white outline-none">
-                <option value="" disabled selected>Select Business Line</option>
-                <option value="Air Import">Air Import</option>
-                <option value="Air Export">Air Export</option>
-                <option value="Sea Import">Sea Import</option>
-                <option value="Sea Export">Sea Export</option>
-                <option value="Courier Import">Courier Import</option>
-                <option value="Courier Export">Courier Export</option>
-                <option value="Clearance Import">Clearance Import</option>
-                <option value="Clearance Export">Clearance Export</option>
+        <div class="grid grid-cols-2 items-center">
+            <label class="font-bold text-gray-700">Line Of Business</label>
+           
+            <select [(ngModel)]="quotation.description" name="description" class="border p-1.5 bg-white outline-none">
+              <option value="" disabled selected>Select Business Line</option>
+             
+              <option *ngFor="let service of companyServices" [value]="service.serviceName">
+                {{ service.serviceName }}
+              </option>
               </select>
-            </div>
+          </div>
           </div>
           <div class="space-y-2">
           <div class="grid grid-cols-2 items-center">
@@ -804,5 +801,4 @@
         {{ quotation.id ? 'Update' : 'Save' }} Inquiry
       </button>
     </div>
-  </div>
-</div>           
+  </div>           

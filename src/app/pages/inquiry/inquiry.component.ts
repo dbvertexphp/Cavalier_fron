@@ -18,6 +18,7 @@
     isFormOpen = false;
     private apiUrl = `${environment.apiUrl}/Inquiry`;
 inquiries:any[]=[]
+filteredOrganizations: any[] = [];
     quotations: any[] = [];
     quotation: any = this.resetQuotationModel();
     selectedFile: File | null = null;
@@ -34,8 +35,9 @@ servicesList: any[] = [];
     origin: '',
     // ... baki fields ...
   };
+  companyServices:any[]=[]
 organizations: any[] = [];
-  filteredOrganizations: any[] = [];
+  //filteredOrganizations: any[] = [];
   showDropdown: boolean = false;
   leads: any[] = [];
   filteredLeads: any[] = [];
@@ -62,6 +64,7 @@ organizations: any[] = [];
     this.loadInquiryNumbers();
     this.loadCoordinators();
     this.loadBranches();
+     this.fetchCompanyServices();
     }
     // --- Fetch Origins List ---
   fetchOrigins() {
@@ -72,6 +75,20 @@ organizations: any[] = [];
       console.log(data)
     });
   }
+
+
+fetchCompanyServices() {
+        const url = `${environment.apiUrl}/CompanyService`;
+        this.http.get<any[]>(url).subscribe({
+            next: (data) => {
+                this.companyServices = data;
+                console.log("Line of Business loaded:", data);
+                this.cdr.detectChanges();
+            },
+            error: (err) => console.error("Error loading LOB:", err)
+        });
+    }
+ 
 
   // --- Search Logic ---
 onOriginSearchInput() {

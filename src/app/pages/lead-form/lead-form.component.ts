@@ -5,29 +5,56 @@ import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } 
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import {
-CdkDragDrop,
-moveItemInArray,
-transferArrayItem
-} from '@angular/cdk/drag-drop';
 import { DragDropModule } from '@angular/cdk/drag-drop';
-
+import { CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 @Component({
   selector: 'app-lead-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule,FormsModule,DragDropModule],
+  imports: [CommonModule, ReactiveFormsModule,FormsModule, DragDropModule ],
   templateUrl: './lead-form.component.html',
   styleUrl: './lead-form.component.css',
+   
 })
 
 export class LeadFormComponent implements OnInit {
-// Aapka data array
+  availableColumns: string[] = [
+  'Lead No',
+  'Organization',
+  'Lead Owner',
+  'Sales Stage',
+  'Sales Process'
+];
+  selectedColumns: string[] = [
+    'Lead No'
+  ];
+  drop(event: CdkDragDrop<string[]>) {
 
+  if (event.previousContainer === event.container) {
+
+    moveItemInArray(
+      event.container.data,
+      event.previousIndex,
+      event.currentIndex
+    );
+
+  } else {
+
+    transferArrayItem(
+      event.previousContainer.data,
+      event.container.data,
+      event.previousIndex,
+      event.currentIndex
+    );
+
+  }
+
+}
+// Aapka data array
   leadForm!: FormGroup;
   searchForm!: FormGroup;
   isFormOpen = false;
 allLeads: any[] = [];       // original backup
-
+sortOrders: { [key: string]: string } = {};
   // --- CHANGED: Initialized as empty array ---
   leads: any[] = []; 
 
@@ -40,7 +67,7 @@ allLeads: any[] = [];       // original backup
   filteredOrganizations: any[] = [];
   filteredHODSuggestions:any[]=[]
   hodUniqueList:any[]=[]
-
+showModal=false
   constructor(
     private fb: FormBuilder,
     private router: Router,
@@ -67,42 +94,6 @@ allLeads: any[] = [];       // original backup
     this.loadLeadSuggestions(); // Isse call karna mat bhulna!
      // Important: Leads load first to calculate number
   }
- availableColumns = [
-'Name',
-'Email',
-'Mobile',
-'City',
-'Status'
-];
-
-selectedColumns = ['Name'];
-
-sortOrders:any = {};
-
-drop(event: CdkDragDrop<string[]>) {
-
-if (event.previousContainer === event.container) {
-
-moveItemInArray(
-event.container.data,
-event.previousIndex,
-event.currentIndex
-);
-
-} else {
-
-transferArrayItem(
-event.previousContainer.data,
-event.container.data,
-event.previousIndex,
-event.currentIndex
-);
-
-}
-
-}
-
-
 initSearchForm() {
     this.searchForm = this.fb.group({
       organizationName: [''],
@@ -111,29 +102,7 @@ initSearchForm() {
       salesStage: ['']
     });
   }
-// searchLeads() {
-//     const filters = this.searchForm.value;
-    
-//     // HTTP Params banayein (GET request ke liye)
-//     let params = new HttpParams();
-//     if (filters.organizationName) params = params.set('organizationName', filters.organizationName);
-//     if (filters.salesProcess) params = params.set('salesProcess', filters.salesProcess);
-//     if (filters.leadNo) params = params.set('leadNo', filters.leadNo);
-//     if (filters.salesStage) params = params.set('salesStage', filters.salesStage);
-
-//     // Backend GET API call
-//     this.http.get<any[]>(`${environment.apiUrl}/Leads/search-leads`, { params })
-//       .subscribe({
-//         next: (res) => {
-//           this.leads = res; // Search results se table update karein
-//           console.log('Search Results:', res);
-//         },
-//         error: (err) => {
-//           console.error('Search Error:', err);
-//         }
-//       });
-//   }
-
+// 
   // --- UPDATED: Clear Filters ---
  
   loadLeads(): void {
@@ -352,21 +321,6 @@ loadLeadDates(): void {
   this.allDates = [...new Set(this.leads.map(lead => this.toISODate(new Date(lead.date))))];
 }
 
-// --- ADDED: Search logic for Date ---
-// onDateSearch(event: Event): void {
-//   const value = (event.target as HTMLInputElement).value; // Date string format mein aayegi
-
-//   if (!value) {
-//     this.filteredDates = [];
-//     return;
-//   }
-
-//   // allDates array mein se search karo
-//   this.filteredDates = this.allDates.filter(date =>
-//     date.includes(value)
-//   );
-// }
-
 // --- ADDED: Selection logic for Date ---
 selectDate(date: string): void {
   // Form ko select ki gayi date se update karo
@@ -436,14 +390,7 @@ clearFilters() {
   this.leadForm.reset();
 ;// normal GET API call
 }
-  // 1. Apne HTML mein (click) event ko isse update kar do:
-// (click)="selectAndSearchOrganization(org)"
 
-// --- ADDED: Method with unique name ---
-// ... existing imports and code
-
-// --- ADDED: Method for input event in search form ---
-// --- UPDATED: Method for input event in search bar (Performance Fixed) ---
 onOrgSearchForFilters(event: Event): void {
   const value = (event.target as HTMLInputElement).value.toLowerCase();
 
@@ -541,7 +488,7 @@ selectTeam(team: any): void {
   this.cdr.detectChanges();
 }
 
-// // --- ADDED: Method for selection in Lead No search bar ---
+
 // selectLeadForFilters(lead: any): void {
 //   // 1. Update search form control
 //   this.searchForm.controls['leadNo'].setValue(lead.leadNo);

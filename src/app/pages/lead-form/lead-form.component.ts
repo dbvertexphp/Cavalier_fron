@@ -17,45 +17,14 @@ import { CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/dr
 })
 
 export class LeadFormComponent implements OnInit {
-  availableColumns: string[] = [
-  'Lead No',
-  'Organization',
-  'Lead Owner',
-  'Sales Stage',
-  'Sales Process'
-];
-  selectedColumns: string[] = [
-    'Lead No'
-  ];
-  drop(event: CdkDragDrop<string[]>) {
-
-  if (event.previousContainer === event.container) {
-
-    moveItemInArray(
-      event.container.data,
-      event.previousIndex,
-      event.currentIndex
-    );
-
-  } else {
-
-    transferArrayItem(
-      event.previousContainer.data,
-      event.container.data,
-      event.previousIndex,
-      event.currentIndex
-    );
-
-  }
-
-}
 // Aapka data array
+showModal: boolean = false;
   leadForm!: FormGroup;
   searchForm!: FormGroup;
   showCustomPicker: boolean = false; // Shortcuts menu dikhane ke liye
   isFormOpen = false;
 allLeads: any[] = [];       // original backup
-sortOrders: { [key: string]: string } = {};
+// sortOrders: { [key: string]: string } = {};
   // --- CHANGED: Initialized as empty array ---
   leads: any[] = []; 
 
@@ -68,7 +37,7 @@ sortOrders: { [key: string]: string } = {};
   filteredOrganizations: any[] = [];
   filteredHODSuggestions:any[]=[]
   hodUniqueList:any[]=[]
-showModal=false
+
   constructor(
     private fb: FormBuilder,
     private router: Router,
@@ -78,7 +47,7 @@ showModal=false
 
   ngOnInit(): void {
     this.initForm();
-
+this.loadColumnSettings();
     this.http.get(`${environment.apiUrl}/Hod`)
       .subscribe((res: any) => {
         this.hodList = res;
@@ -95,6 +64,140 @@ showModal=false
     this.loadLeadSuggestions(); // Isse call karna mat bhulna!
      // Important: Leads load first to calculate number
   }
+availableColumns:string[] = [];
+
+selectedColumns:string[] = [];
+
+sortOrders:any = {};
+
+drop(event: CdkDragDrop<string[]>) {
+
+if (event.previousContainer === event.container) {
+
+moveItemInArray(
+event.container.data,
+event.previousIndex,
+event.currentIndex
+);
+
+} else {
+
+transferArrayItem(
+event.previousContainer.data,
+event.container.data,
+event.previousIndex,
+event.currentIndex
+);
+
+}
+console.log("Available Columns:", this.availableColumns);
+console.log("Selected Columns:", this.selectedColumns);
+
+// 🔥 table turant refresh
+this.cdr.detectChanges();
+ const payload = {
+    availableColumns: JSON.stringify(this.availableColumns),
+    selectedColumns: JSON.stringify(this.selectedColumns)
+  };
+
+  console.log("Available Columns:", this.availableColumns);
+  console.log("Selected Columns:", this.selectedColumns);
+
+  this.http.post(`${environment.apiUrl}/LeadColumnSettings/save`, payload)
+  .subscribe({
+    next:(res)=>{
+      console.log("Column Settings Saved:", res);
+    },
+    error:(err)=>{
+      console.error("Save error",err);
+    }
+  });
+
+}
+columnFieldMap:any = {
+  'Lead No': 'leadNo',
+  'Organization': 'organizationName',
+  'Source': 'leadSource',
+  'Sales Process': 'salesProcess',
+  'Sales Stage': 'salesStage',
+  'Owner': 'leadOwner',
+  'Location': 'location',
+  'Branch': 'branch',
+  'Area': 'area',
+  'Team': 'team',
+  'Type': 'type',
+  'Date': 'date',
+  'Expected Validity': 'expectedValidity',
+  'Reporting Manager': 'reportingManager',
+  'Sales Coordinator': 'salesCoordinator',
+  'HOD': 'hod',
+  'Created At': 'createdAt',
+  'Updated At': 'updatedAt'
+};
+sortColumn(column:string){
+
+  const field = this.columnFieldMap[column];
+
+  if(!this.sortOrders[column]){
+    this.sortOrders[column] = 'asc';
+  }else{
+    this.sortOrders[column] = this.sortOrders[column] === 'asc' ? 'desc' : 'asc';
+  }
+
+  const order = this.sortOrders[column];
+
+  this.leads.sort((a:any,b:any)=>{
+
+    let valA = a[field];
+    let valB = b[field];
+
+    if(valA == null) return 1;
+    if(valB == null) return -1;
+
+    if(typeof valA === 'string'){
+      valA = valA.toLowerCase();
+      valB = valB.toLowerCase();
+    }
+
+    if(order === 'asc'){
+      return valA > valB ? 1 : -1;
+    }else{
+      return valA < valB ? 1 : -1;
+    }
+
+  });
+
+  this.cdr.detectChanges();
+}
+loadColumnSettings() {
+
+  this.http.get<any>(`${environment.apiUrl}/LeadColumnSettings`)
+  .subscribe({
+
+    next: (res) => {
+
+      if(res){
+
+        // API se string aa rahi hai → JSON.parse
+        this.availableColumns = JSON.parse(res.availableColumns || '[]');
+        this.selectedColumns = JSON.parse(res.selectedColumns || '[]');
+
+      }
+
+      this.cdr.detectChanges();
+
+      console.log("Available Columns:", this.availableColumns);
+      console.log("Selected Columns:", this.selectedColumns);
+
+    },
+
+    error:(err)=>{
+      console.error("Column setting load error",err);
+    }
+
+  });
+
+}
 initSearchForm() {
     this.searchForm = this.fb.group({
       organizationName: [''],

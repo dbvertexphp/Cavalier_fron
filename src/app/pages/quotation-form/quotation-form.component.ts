@@ -689,11 +689,17 @@ import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import {
+CdkDragDrop,
+moveItemInArray,
+transferArrayItem
+} from '@angular/cdk/drag-drop';
 
+import { DragDropModule } from '@angular/cdk/drag-drop';
 @Component({
   selector: 'app-quotation-form',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, HttpClientModule],
+  imports: [CommonModule, RouterModule, FormsModule, HttpClientModule, DragDropModule],
   templateUrl: './quotation-form.component.html',
 })
 export class QuotationFormComponent implements OnInit {
@@ -751,8 +757,27 @@ quotationss: any = this.resetQuotationModel();
   constructor(private http: HttpClient, private router: Router, private cdr: ChangeDetectorRef) {
     this.initTableRows();
   }
+  showColumnModal = false;
+availableColumns:string[] = [];
 
+selectedColumns: string[] = [
+'id',
+'quotationNo',
+'organization',
+'lineOfBusiness',
+'transportMode',
+'transportType',
+'cargoStatus'
+];
+openColumnModal(){
+  this.showColumnModal = true;
+}
+closeColumnModal(){
+  this.showColumnModal = false;
+}
+sortOrders:any = {};
   ngOnInit() {
+    this.loadColumnSettings();
     this.loadQuotations();
     this.fetchOrganizations();
     this.fetchLeads();
@@ -779,6 +804,236 @@ fetchCompanyServices() {
     this.allInquiries = data;
   });
 }
+drop(event:CdkDragDrop<string[]>){
+
+if(event.previousContainer === event.container){
+
+moveItemInArray(
+event.container.data,
+event.previousIndex,
+event.currentIndex
+);
+
+}else{
+
+transferArrayItem(
+event.previousContainer.data,
+event.container.data,
+event.previousIndex,
+event.currentIndex
+);
+
+}
+
+console.log("Available Columns:",this.availableColumns);
+console.log("Selected Columns:",this.selectedColumns);
+
+this.cdr.detectChanges();
+
+const payload = {
+
+availableColumns: JSON.stringify(this.availableColumns),
+selectedColumns: JSON.stringify(this.selectedColumns)
+
+};
+
+this.http.post(`${environment.apiUrl}/QuotationColumnSetting/save`,payload)
+
+.subscribe({
+
+next:(res)=>{
+
+console.log("Column Settings Saved:",res);
+
+},
+
+error:(err)=>{
+
+console.error("Save error",err);
+
+}
+
+});
+
+}
+
+loadColumnSettings(){
+
+this.http.get<any>(`${environment.apiUrl}/QuotationColumnSetting`)
+
+.subscribe({
+
+next:(res)=>{
+
+if(res){
+
+this.availableColumns = JSON.parse(res.availableColumns || '[]');
+
+this.selectedColumns = JSON.parse(res.selectedColumns || '[]');
+
+}
+
+this.cdr.detectChanges();
+
+console.log("Available:",this.availableColumns);
+console.log("Selected:",this.selectedColumns);
+
+},
+
+error:(err)=>{
+
+console.error("Load error",err);
+
+}
+
+});
+
+}
+
+columnFieldMap:any = {
+
+'ID':'id',
+
+'Quotation No':'quotationNo',
+
+'Organization':'organization',
+
+'Lead':'lead',
+
+'LOB':'lineOfBusiness',
+
+'Transport Mode':'transportMode',
+
+'Transport Type':'transportType',
+
+'Status':'cargoStatus',
+
+'AWB Issued By':'awbIssuedBy',
+
+'Business Dimensions':'businessDimensions',
+
+'Cargo Value':'cargoValue',
+
+'Carrier Agent':'carrierAgent',
+
+'Chargeable Weight':'chrgWeight',
+
+'Chargeable Weight Unit':'chrgWeightUnit',
+
+'Commodity':'commodity',
+
+'Cost Data':'costData',
+
+'Created By':'createdBy',
+
+'Delivery Address':'deliveryAddress',
+
+'Description':'description',
+
+'Dimensions Data':'dimensionsData',
+
+'Gross Weight':'grossWeight',
+
+'Gross Weight Unit':'grossWeightUnit',
+
+'Humidity':'humidity',
+
+'Inco Terms':'incoTerms',
+
+'Service Required':'isServiceRequired',
+
+'Location':'location',
+
+'Movement':'movement',
+
+'Net Weight':'netWeight',
+
+'Net Weight Unit':'netWeightUnit',
+
+'Number Of Packages':'numOfPackages',
+
+'Origin POL':'originPOL',
+
+'Package Unit':'packageUnit',
+
+'Pickup Address':'pickupAddress',
+
+'Place Of Delivery':'placeOfDelivery',
+
+'Place Of Receipt':'placeOfReceipt',
+
+'POD Final Destination':'podFinalDest',
+
+'Pricing By':'pricingBy',
+
+'Profit Percentage':'profitPercentage',
+
+'Reference By Inquiry':'referenceByInquiry',
+
+'Revenue Data':'revenueData',
+
+'Sales Coordinator':'salesCoor',
+
+'Shipment Type':'shipmentType',
+
+'Total Cost':'totalCost',
+
+'Total Profit':'totalProfit',
+
+'Total Revenue':'totalRevenue',
+
+'Transit Destination':'transitDest',
+
+'Usability':'usability',
+
+'Valid From':'validFrom',
+
+'Valid Till':'validTill',
+
+'Version':'version',
+
+'Volume Weight':'volumeWeight',
+
+'Volume Weight Unit':'volumeWeightUnit'
+
+};
+
+sortColumn(column:string){
+
+  const field = this.columnFieldMap[column];
+
+  if(!this.sortOrders[column]){
+    this.sortOrders[column] = 'asc';
+  }else{
+    this.sortOrders[column] = this.sortOrders[column] === 'asc' ? 'desc' : 'asc';
+  }
+
+  const order = this.sortOrders[column];
+
+  this.quotations.sort((a:any,b:any)=>{
+
+    let valA = a[field];
+    let valB = b[field];
+
+    if(valA == null) return 1;
+    if(valB == null) return -1;
+
+    if(typeof valA === 'string'){
+      valA = valA.toLowerCase();
+      valB = valB.toLowerCase();
+    }
+
+    if(order === 'asc'){
+      return valA > valB ? 1 : -1;
+    }else{
+      return valA < valB ? 1 : -1;
+    }
+
+  });
+
+  this.cdr.detectChanges();
+}
+
   // 2. Search Logic
 onInquirySearchInput() {
   if (this.quotation.referenceByInquiry && this.quotation.referenceByInquiry.length > 0) {
@@ -880,7 +1135,9 @@ selectOrganization(org: any) {
   // --- Methods for Quotation Management ---
   loadQuotations() {
     this.http.get<any[]>(this.apiEndpoint).subscribe({
-      next: (res) => { this.quotations = res; },
+      next: (res) => { this.quotations = res; 
+        console.log("Quotations Data:", this.quotations);
+      },
       error: (err) => console.error('Failed to load quotations:', err)
     });
   }

@@ -176,6 +176,102 @@
     </div>
   </div>
 </div>
+<div 
+class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline"
+(click)="openColumnModal()"
+>
+Customized Columns
+</div>
+<!-- COLUMN CUSTOMIZATION MODAL -->
+
+<div *ngIf="showColumnModal"
+class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+
+<div class="bg-white w-[800px] p-6 rounded shadow-lg">
+
+<div class="flex justify-between mb-4">
+<h2 class="font-bold text-lg">Customize Columns</h2>
+
+<button (click)="closeColumnModal()" class="text-red-500 font-bold">
+X
+</button>
+</div>
+
+<div class="flex gap-6 mt-4">
+
+<!-- AVAILABLE COLUMNS -->
+
+<div class="w-1/2">
+
+<h3 class="font-bold text-sm mb-2">Available Columns</h3>
+
+<div
+cdkDropList
+#availableList="cdkDropList"
+[cdkDropListData]="availableColumns"
+[cdkDropListConnectedTo]="[selectedList]"
+class="border p-3 max-h-[250px] overflow-y-auto"
+(cdkDropListDropped)="drop($event)"
+>
+
+<div
+*ngFor="let col of availableColumns"
+cdkDrag
+class="p-2 border mb-1 bg-gray-100 cursor-move text-xs"
+>
+{{col}}
+</div>
+
+</div>
+
+</div>
+
+
+<!-- SELECTED COLUMNS -->
+
+<div class="w-1/2">
+
+<h3 class="font-bold text-sm mb-2">Selected Columns</h3>
+
+<div
+cdkDropList
+#selectedList="cdkDropList"
+[cdkDropListData]="selectedColumns"
+[cdkDropListConnectedTo]="[availableList]"
+class="border p-3 max-h-[250px] overflow-y-auto"
+(cdkDropListDropped)="drop($event)"
+>
+
+<div
+*ngFor="let col of selectedColumns"
+cdkDrag
+class="p-2 border mb-1 bg-green-100 cursor-move text-xs"
+>
+{{col}}
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="flex justify-end gap-3 mt-5">
+
+<button
+(click)="closeColumnModal()"
+class="px-4 py-2 border text-sm"
+>
+Cancel
+</button>
+
+
+
+</div>
+
+</div>
+
+</div>
           </div>
           
         <div class="flex justify-end mt-4 gap-2">
@@ -206,57 +302,47 @@
       </div>
     </div>
  <div class="p-0 overflow-x-auto">
-  <table class="w-full border-collapse border border-gray-200 whitespace-nowrap">
-    <thead>
-      <tr class="bg-gray-50 text-gray-500 uppercase text-[11px] border-b">
-        <th class="p-4 text-left font-bold">ID</th>
-         <th class="p-4 text-left font-bold">Quotation No.</th>
-        <th class="p-4 text-left font-bold">Organization</th>
-        <th class="p-4 text-left font-bold">LOB</th>
-        
-        <th class="p-4 text-left font-bold">Transport (Type)</th>
-        <th class="p-4 text-left font-bold">Status</th>
-        <th class="p-4 text-center font-bold sticky right-0 bg-gray-50 border-l">Action</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let q of quotations" class="hover:bg-gray-50 border-b text-gray-700">
-        <td class="p-4 font-bold">{{q.id}}</td>
-         <td class="p-4 font-bold">{{q.quotationNo}}</td>
-        
-        <td class="p-4 uppercase font-medium">{{q.organization}}</td>
-        
-        <td class="p-4">{{q.lineOfBusiness}}</td>
-        
-    
-        
-        <td class="p-4">{{q.transportMode}} ({{q.transportType}})</td>
-        
-        <td class="p-4">
-          <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded text-[11px] font-bold">
-            {{q.cargoStatus}}
-          </span>
-        </td>
-        
-        <td class="p-4 sticky right-0 bg-white border-l text-center">
-          <button (click)="editQuotation(q)" class="text-blue-600 mr-3 font-bold uppercase hover:underline">Edit</button>
-          <button (click)="deleteQuotation(q.id)" class="text-red-600 font-bold uppercase hover:underline">Delete</button>
-        </td>
-      </tr>
-      <tr *ngIf="quotations.length === 0">
-      <td colspan="10" class="p-10 text-center">
-        <div class="flex flex-col items-center justify-center text-gray-400">
-          <i class="fa fa-search-minus text-4xl mb-2"></i>
-          <p class="font-bold text-[14px]">No Data Found</p>
-          <p class="text-[11px]">Based on your filters no data found ! Sorry Please try again.</p>
-          <button (click)="resetFilters()" class="mt-3 text-blue-600 underline text-[11px]">
-            Reset Filters
-          </button>
-        </div>
-      </td>
-    </tr>
-    </tbody>
-  </table>
+<table class="w-full border-collapse text-[13px]">
+
+<thead>
+<tr class="bg-gray-50 text-gray-500 uppercase text-[11px] border-b">
+
+<th *ngFor="let col of selectedColumns" class="p-4 text-left font-bold">
+  {{ col }}
+</th>
+
+<th class="p-4 text-center font-bold sticky right-0 bg-gray-50 border-l">
+  Action
+</th>
+
+</tr>
+</thead>
+
+<tbody>
+
+<tr *ngFor="let q of quotations" class="hover:bg-gray-50 border-b text-gray-700">
+
+<td *ngFor="let col of selectedColumns" class="p-4">
+
+  {{ q[col] }}
+
+</td>
+
+<td class="p-4 sticky right-0 bg-white border-l text-center">
+  <button (click)="editQuotation(q)" class="text-blue-600 mr-3 font-bold uppercase hover:underline">
+    Edit
+  </button>
+
+  <button (click)="deleteQuotation(q.id)" class="text-red-600 font-bold uppercase hover:underline">
+    Delete
+  </button>
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
 </div>
   </div>
 

@@ -22,9 +22,10 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
 
 export class LeadFormComponent implements OnInit {
 // Aapka data array
-
+showModal: boolean = false;
   leadForm!: FormGroup;
   searchForm!: FormGroup;
+  showCustomPicker: boolean = false; // Shortcuts menu dikhane ke liye
   isFormOpen = false;
 allLeads: any[] = [];       // original backup
 
@@ -48,7 +49,7 @@ allLeads: any[] = [];       // original backup
 
   ngOnInit(): void {
     this.initForm();
-
+this.loadColumnSettings();
     this.http.get(`${environment.apiUrl}/Hod`)
       .subscribe((res: any) => {
         this.hodList = res;
@@ -64,15 +65,9 @@ allLeads: any[] = [];       // original backup
     this.initSearchForm();
      // Important: Leads load first to calculate number
   }
- availableColumns = [
-'Name',
-'Email',
-'Mobile',
-'City',
-'Status'
-];
+availableColumns:string[] = [];
 
-selectedColumns = ['Name'];
+selectedColumns:string[] = [];
 
 sortOrders:any = {};
 
@@ -96,10 +91,114 @@ event.currentIndex
 );
 
 }
+console.log("Available Columns:", this.availableColumns);
+console.log("Selected Columns:", this.selectedColumns);
+
+// 🔥 table turant refresh
+this.cdr.detectChanges();
+ const payload = {
+    availableColumns: JSON.stringify(this.availableColumns),
+    selectedColumns: JSON.stringify(this.selectedColumns)
+  };
+
+  console.log("Available Columns:", this.availableColumns);
+  console.log("Selected Columns:", this.selectedColumns);
+
+  this.http.post(`${environment.apiUrl}/LeadColumnSettings/save`, payload)
+  .subscribe({
+    next:(res)=>{
+      console.log("Column Settings Saved:", res);
+    },
+    error:(err)=>{
+      console.error("Save error",err);
+    }
+  });
 
 }
+columnFieldMap:any = {
+  'Lead No': 'leadNo',
+  'Organization': 'organizationName',
+  'Source': 'leadSource',
+  'Sales Process': 'salesProcess',
+  'Sales Stage': 'salesStage',
+  'Owner': 'leadOwner',
+  'Location': 'location',
+  'Branch': 'branch',
+  'Area': 'area',
+  'Team': 'team',
+  'Type': 'type',
+  'Date': 'date',
+  'Expected Validity': 'expectedValidity',
+  'Reporting Manager': 'reportingManager',
+  'Sales Coordinator': 'salesCoordinator',
+  'HOD': 'hod',
+  'Created At': 'createdAt',
+  'Updated At': 'updatedAt'
+};
+sortColumn(column:string){
 
+  const field = this.columnFieldMap[column];
 
+  if(!this.sortOrders[column]){
+    this.sortOrders[column] = 'asc';
+  }else{
+    this.sortOrders[column] = this.sortOrders[column] === 'asc' ? 'desc' : 'asc';
+  }
+
+  const order = this.sortOrders[column];
+
+  this.leads.sort((a:any,b:any)=>{
+
+    let valA = a[field];
+    let valB = b[field];
+
+    if(valA == null) return 1;
+    if(valB == null) return -1;
+
+    if(typeof valA === 'string'){
+      valA = valA.toLowerCase();
+      valB = valB.toLowerCase();
+    }
+
+    if(order === 'asc'){
+      return valA > valB ? 1 : -1;
+    }else{
+      return valA < valB ? 1 : -1;
+    }
+
+  });
+
+  this.cdr.detectChanges();
+}
+loadColumnSettings() {
+
+  this.http.get<any>(`${environment.apiUrl}/LeadColumnSettings`)
+  .subscribe({
+
+    next: (res) => {
+
+      if(res){
+
+        // API se string aa rahi hai → JSON.parse
+        this.availableColumns = JSON.parse(res.availableColumns || '[]');
+        this.selectedColumns = JSON.parse(res.selectedColumns || '[]');
+
+      }
+
+      this.cdr.detectChanges();
+
+      console.log("Available Columns:", this.availableColumns);
+      console.log("Selected Columns:", this.selectedColumns);
+
+    },
+
+    error:(err)=>{
+      console.error("Column setting load error",err);
+    }
+
+  });
+
+}
 initSearchForm() {
     this.searchForm = this.fb.group({
       organizationName: [''],
@@ -108,28 +207,6 @@ initSearchForm() {
       salesStage: ['']
     });
   }
-// searchLeads() {
-//     const filters = this.searchForm.value;
-    
-//     // HTTP Params banayein (GET request ke liye)
-//     let params = new HttpParams();
-//     if (filters.organizationName) params = params.set('organizationName', filters.organizationName);
-//     if (filters.salesProcess) params = params.set('salesProcess', filters.salesProcess);
-//     if (filters.leadNo) params = params.set('leadNo', filters.leadNo);
-//     if (filters.salesStage) params = params.set('salesStage', filters.salesStage);
-
-//     // Backend GET API call
-//     this.http.get<any[]>(`${environment.apiUrl}/Leads/search-leads`, { params })
-//       .subscribe({
-//         next: (res) => {
-//           this.leads = res; // Search results se table update karein
-//           console.log('Search Results:', res);
-//         },
-//         error: (err) => {
-//           console.error('Search Error:', err);
-//         }
-//       });
-//   }
 
   // --- UPDATED: Clear Filters ---
  
@@ -408,7 +485,7 @@ selectDate(date: string): void {
         .subscribe({
           next: (res) => {
             console.log('API Success! Closing form...');                
-            
+            // --- ADDED: For Date Shortcuts Panel ---
             this.isFormOpen = false;
             this.initForm();
             this.loadLeads(); // Reload leads to calculate new number for next form
@@ -498,33 +575,7 @@ onLeadNoSearchForFilters(event: Event): void {
   );
 }
 
-// // --- ADDED: Method for selection in Lead No search bar ---
-// selectLeadForFilters(lead: any): void {
-//   // 1. Update search form control
-//   this.searchForm.controls['leadNo'].setValue(lead.leadNo);
 
-//   // 2. Hide dropdown
-//   this.filteredLeads = [];
-
-//   // 3. --- Force UI update ---
-//   this.cdr.detectChanges();
-
-//   // 4. API Call to filter table immediately
-//   this.filterTableByLeadNo(lead.leadNo);
-// }
-
-// // --- ADDED: Method to call search API for Table ---
-// filterTableByLeadNo(leadNo: string) {
-//   // GET ki jagah POST use karein aur body bhein
-//   this.http.post<any[]>(`${environment.apiUrl}/Leads/Search`, { leadNo: leadNo })
-//     .subscribe({
-//       next: (res) => {
-//         this.leads = res || [];
-//         this.cdr.detectChanges();
-//       },
-//       error: (err) => console.error("❌ Search failed:", err)
-//     });
-// }
 // --- ADDED: Method for input event in Sales Stage search bar ---
 onSalesStageSearchForFilters(event: Event): void {
   const value = (event.target as HTMLInputElement).value.toLowerCase();
@@ -659,6 +710,47 @@ onLeadOrgSearch(event: Event): void {
     org.orgName.toLowerCase().includes(value)
   );
 }
+
+
+
+
+
+// --- ADDED: Date Shortcut Logic for Lead Form ---
+setLeadQuickDate(type: string) {
+  const today = new Date();
+  let targetDate = new Date();
+
+  switch (type) {
+    case 'tomorrow': targetDate.setDate(today.getDate() + 1); break;
+    case 'yesterday': targetDate.setDate(today.getDate() - 1); break;
+    case 'nextWeek': targetDate.setDate(today.getDate() + 7); break;
+    case 'lastWeek': targetDate.setDate(today.getDate() - 7); break;
+    case 'nextMonth': targetDate.setMonth(today.getMonth() + 1); break;
+    case 'lastMonth': targetDate.setMonth(today.getMonth() - 1); break;
+    default: targetDate = today; // Today
+  }
+
+  // Formatting to YYYY-MM-DD
+  const year = targetDate.getFullYear();
+  const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+  const day = String(targetDate.getDate()).padStart(2, '0');
+  const formattedDate = `${year}-${month}-${day}`;
+
+  // Aapke leadForm mein value patch karega
+  this.leadForm.patchValue({
+    date: formattedDate
+  });
+
+  this.showCustomPicker = false; // Menu band
+  this.cdr.detectChanges();      // UI refresh
+}
+
+
+
+
+
+
+
 
 // 2. Dropdown se select karne par (Ab SEARCH CALL NAHI HOGA)
 selectLeadOrg(org: any): void {

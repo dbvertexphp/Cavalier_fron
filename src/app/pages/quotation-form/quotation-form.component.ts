@@ -12,6 +12,8 @@ import { environment } from '../../../environments/environment';
   templateUrl: './quotation-form.component.html',
 })
 export class QuotationFormComponent implements OnInit {
+  // --- ADDED: For Date Shortcuts Panel ---
+  showQuoPicker: boolean = false;
   searchDone: boolean = false;
   isFormOpen = false;
  private apiEndpoint = `${environment.apiUrl}/Quotations`;
@@ -417,7 +419,8 @@ searchFilters = {
   quotedBy: '',    // HTML mein isse bind karein
   salesCoor: '',   // Backend mapping ke liye
   cargoStatus: 'Any',
-  validFrom: null,
+  //validFrom: null,
+  validFrom: null as any,
   showMode: 'all',
   status: 'Any'
 };
@@ -568,7 +571,33 @@ onSearch() {
     });
 }
 
+  // --- ADDED: Date Shortcut Logic for Quotation Filter ---
+setQuoQuickDate(type: string) {
+  const today = new Date();
+  let targetDate = new Date();
+
+  switch (type) {
+    case 'tomorrow': targetDate.setDate(today.getDate() + 1); break;
+    case 'yesterday': targetDate.setDate(today.getDate() - 1); break;
+    case 'nextWeek': targetDate.setDate(today.getDate() + 7); break;
+    case 'lastWeek': targetDate.setDate(today.getDate() - 7); break;
+    case 'nextMonth': targetDate.setMonth(today.getMonth() + 1); break;
+    case 'lastMonth': targetDate.setMonth(today.getMonth() - 1); break;
+    default: targetDate = today; // Today
+  }
+
+  // Format YYYY-MM-DD
+  const year = targetDate.getFullYear();
+  const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+  const day = String(targetDate.getDate()).padStart(2, '0');
   
+  // Update Quotation search filters
+  this.searchFilters.validFrom = `${year}-${month}-${day}`;
+
+  this.showQuoPicker = false; // Panel band karein
+  this.onSearch();            // Turant search trigger karein
+  this.cdr.detectChanges();   // UI refresh
+}
   toggleAdvanceFilter() {
     this.showAdvanceFilter = !this.showAdvanceFilter;
   }

@@ -52,6 +52,7 @@ export class LeadFormComponent implements OnInit {
 // Aapka data array
   leadForm!: FormGroup;
   searchForm!: FormGroup;
+  showCustomPicker: boolean = false; // Shortcuts menu dikhane ke liye
   isFormOpen = false;
 allLeads: any[] = [];       // original backup
 sortOrders: { [key: string]: string } = {};
@@ -102,7 +103,6 @@ initSearchForm() {
       salesStage: ['']
     });
   }
-// 
   // --- UPDATED: Clear Filters ---
  
   loadLeads(): void {
@@ -365,7 +365,7 @@ selectDate(date: string): void {
         .subscribe({
           next: (res) => {
             console.log('API Success! Closing form...');                
-            
+            // --- ADDED: For Date Shortcuts Panel ---
             this.isFormOpen = false;
             this.initForm();
             this.loadLeads(); // Reload leads to calculate new number for next form
@@ -493,28 +493,6 @@ selectTeam(team: any): void {
 //   // 1. Update search form control
 //   this.searchForm.controls['leadNo'].setValue(lead.leadNo);
 
-//   // 2. Hide dropdown
-//   this.filteredLeads = [];
-
-//   // 3. --- Force UI update ---
-//   this.cdr.detectChanges();
-
-//   // 4. API Call to filter table immediately
-//   this.filterTableByLeadNo(lead.leadNo);
-// }
-
-// // --- ADDED: Method to call search API for Table ---
-// filterTableByLeadNo(leadNo: string) {
-//   // GET ki jagah POST use karein aur body bhein
-//   this.http.post<any[]>(`${environment.apiUrl}/Leads/Search`, { leadNo: leadNo })
-//     .subscribe({
-//       next: (res) => {
-//         this.leads = res || [];
-//         this.cdr.detectChanges();
-//       },
-//       error: (err) => console.error("❌ Search failed:", err)
-//     });
-// }
 // --- ADDED: Method for input event in Sales Stage search bar ---
 onSalesStageSearchForFilters(event: Event): void {
   const value = (event.target as HTMLInputElement).value.toLowerCase();
@@ -655,6 +633,47 @@ onLeadOrgSearch(event: Event): void {
     org.orgName.toLowerCase().includes(value)
   );
 }
+
+
+
+
+
+// --- ADDED: Date Shortcut Logic for Lead Form ---
+setLeadQuickDate(type: string) {
+  const today = new Date();
+  let targetDate = new Date();
+
+  switch (type) {
+    case 'tomorrow': targetDate.setDate(today.getDate() + 1); break;
+    case 'yesterday': targetDate.setDate(today.getDate() - 1); break;
+    case 'nextWeek': targetDate.setDate(today.getDate() + 7); break;
+    case 'lastWeek': targetDate.setDate(today.getDate() - 7); break;
+    case 'nextMonth': targetDate.setMonth(today.getMonth() + 1); break;
+    case 'lastMonth': targetDate.setMonth(today.getMonth() - 1); break;
+    default: targetDate = today; // Today
+  }
+
+  // Formatting to YYYY-MM-DD
+  const year = targetDate.getFullYear();
+  const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+  const day = String(targetDate.getDate()).padStart(2, '0');
+  const formattedDate = `${year}-${month}-${day}`;
+
+  // Aapke leadForm mein value patch karega
+  this.leadForm.patchValue({
+    date: formattedDate
+  });
+
+  this.showCustomPicker = false; // Menu band
+  this.cdr.detectChanges();      // UI refresh
+}
+
+
+
+
+
+
+
 
 // 2. Dropdown se select karne par (Ab SEARCH CALL NAHI HOGA)
 selectLeadOrg(org: any): void {

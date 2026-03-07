@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 
 interface Shift {
   id: number;
@@ -9,9 +11,6 @@ interface Shift {
   startTime: string;
   endTime: string;
   breakDuration: string;
-  isOvertimeAllowed: boolean;
-  gracePeriod: number; // minutes
-  geoLock: boolean;
 }
 
 @Component({
@@ -21,37 +20,47 @@ interface Shift {
   templateUrl: './shift-management.component.html'
 })
 export class ShiftManagementComponent implements OnInit {
-  // Views
-  activeTab: 'list' | 'ai-insights' | 'rotation' = 'list';
+  // API URL using environment pattern
+  private apiUrl = `${environment.apiUrl}/Shifts`;
+
+  activeTab: 'list' | 'ai-insights' = 'list';
   showModal = false;
   isEdit = false;
+  loading = false;
 
-  // Master List with 10+ Demo Entries
-  shiftList: Shift[] = [
-    { id: 1, code: 'MOR-01', name: 'General Morning', startTime: '09:00', endTime: '18:00', breakDuration: '60', isOvertimeAllowed: true, gracePeriod: 15, geoLock: true },
-    { id: 2, code: 'EVE-02', name: 'Evening Support', startTime: '14:00', endTime: '22:00', breakDuration: '45', isOvertimeAllowed: true, gracePeriod: 10, geoLock: true },
-    { id: 3, code: 'NIT-03', name: 'Night Logistics', startTime: '22:00', endTime: '06:00', breakDuration: '30', isOvertimeAllowed: false, gracePeriod: 5, geoLock: true },
-    { id: 4, code: 'FLX-04', name: 'Flexible Admin', startTime: '10:00', endTime: '19:00', breakDuration: '60', isOvertimeAllowed: true, gracePeriod: 30, geoLock: false },
-    { id: 5, code: 'WKD-05', name: 'Weekend Special', startTime: '09:00', endTime: '21:00', breakDuration: '90', isOvertimeAllowed: true, gracePeriod: 10, geoLock: true }
-  ];
-
-  // AI Insights Data
+  shiftList: Shift[] = [];
+  
   aiInsights = {
     shortageRisk: 'High (Night Shift)',
     burnoutAlert: '3 Employees (Finance)',
-    fatiguePattern: 'Increasing in Night Shift',
-    recommendedStaff: 5
+    fatiguePattern: 'Increasing in Night Shift'
   };
 
   currentShift: Shift = this.initShift();
 
+  constructor(private http: HttpClient) {}
+
   ngOnInit() {
-    // Current User Context
-    console.log('Shift Management Initialized for admin@cavalierlogistic.in');
+    this.loadShifts();
   }
 
   initShift(): Shift {
-    return { id: 0, code: '', name: '', startTime: '', endTime: '', breakDuration: '', isOvertimeAllowed: false, gracePeriod: 10, geoLock: true };
+    return { id: 0, code: '', name: '', startTime: '', endTime: '', breakDuration: '' };
+  }
+
+  // GET: Fetch all shifts from Database
+  loadShifts() {
+    this.loading = true;
+    this.http.get<Shift[]>(this.apiUrl).subscribe({
+      next: (data) => {
+        this.shiftList = data;
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error("Error fetching shifts:", err);
+        this.loading = false;
+      }
+    });
   }
 
   addShift() {
@@ -62,24 +71,46 @@ export class ShiftManagementComponent implements OnInit {
 
   editShift(shift: Shift) {
     this.isEdit = true;
-    this.currentShift = { ...shift };
+    // Object copy taaki direct table update na ho jab tak save na karein
+    this.currentShift = { ...shift }; 
     this.showModal = true;
   }
 
+  // POST & PUT: Save or Update Shift
   saveShift() {
-    if (this.isEdit) {
-      const index = this.shiftList.findIndex(s => s.id === this.currentShift.id);
-      if (index > -1) this.shiftList[index] = this.currentShift;
-    } else {
-      this.currentShift.id = Date.now();
-      this.shiftList.push(this.currentShift);
-    }
-    this.showModal = false;
-  }
+  // Data ko clean karke ek temporary object banayein
+  const payload = {
+    id: this.isEdit ? this.currentShift.id : 0, // New shift ke liye hamesha 0 bhejein
+    code: this.currentShift.code.toString(),
+    name: this.currentShift.name.toString(),
+    startTime: this.currentShift.startTime,
+    endTime: this.currentShift.endTime,
+    breakDuration: this.currentShift.breakDuration.toString() // String mein convert karke dekhein
+  };
 
+  if (this.isEdit) {
+    this.http.put(`${this.apiUrl}/${payload.id}`, payload).subscribe({
+      next: () => { this.loadShifts(); this.closeModal(); },
+      error: (err) => console.log("PUT Error:", err)
+    });
+  } else {
+    this.http.post(this.apiUrl, payload).subscribe({
+      next: () => { this.loadShifts(); this.closeModal(); },
+      error: (err) => {
+        console.error("Full Error Details:", err); // Isse console mein exact reason dikhega
+        alert("Save failed! Check Console (F12) for details.");
+      }
+    });
+  }
+}
+
+  // DELETE: Remove shift from DB
   deleteShift(id: number) {
-    if (confirm('AI Warning: Deleting this shift may affect 15+ schedules. Proceed?')) {
-      this.shiftList = this.shiftList.filter(s => s.id !== id);
+    if (confirm('Proceed with deleting this shift?')) {
+      this.http.delete(`${this.apiUrl}/${id}`).subscribe({
+        next: () => this.loadShifts(),
+        error: (err) => alert("Delete failed: " + err.message)
+      });
     }
   }
 

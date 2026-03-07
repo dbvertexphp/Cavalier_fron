@@ -1,13 +1,11 @@
 <div class="min-h-screen bg-gray-50 p-6 font-sans">
-  
   <div class="flex justify-between items-center mb-8 bg-white p-6 rounded-2xl shadow-sm border-l-8 border-[#654E51]">
     <div>
       <h2 class="text-2xl font-black text-gray-800 tracking-tight uppercase">Shift Master Configuration</h2>
-      <p class="text-[10px] font-bold text-gray-400 tracking-[3px] uppercase">AI-Driven Workforce Scheduling</p>
+      <p class="text-[10px] font-bold text-gray-400 tracking-[3px] uppercase">Workforce Scheduling</p>
     </div>
     <div class="flex gap-3">
       <button (click)="activeTab = 'list'" [class.bg-[#654E51]]="activeTab === 'list'" class="px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all bg-gray-100 text-gray-500" [class.text-white]="activeTab === 'list'">Shift List</button>
-      <button (click)="activeTab = 'ai-insights'" [class.bg-[#654E51]]="activeTab === 'ai-insights'" class="px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all bg-gray-100 text-gray-500" [class.text-white]="activeTab === 'ai-insights'">AI Intelligence</button>
       <button (click)="addShift()" class="flex items-center gap-2 px-6 py-2 bg-[#654E51] text-white font-black rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all uppercase text-[11px] tracking-widest">
         <span>+</span> New Shift
       </button>
@@ -20,17 +18,18 @@
         <thead class="bg-gray-50 border-b">
           <tr>
             <th class="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Code & Name</th>
-            <th class="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Timing</th>
-            <th class="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Policy</th>
-            <th class="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Geo Lock</th>
+            <th class="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Timing & Break</th>
             <th class="px-6 py-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Actions</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-50">
+          <tr *ngIf="loading"><td colspan="3" class="text-center p-4">Loading shifts...</td></tr>
           <tr *ngFor="let shift of shiftList" class="hover:bg-gray-50 transition-all group">
             <td class="px-6 py-4">
-              <p class="text-xs font-black text-[#654E51]">{{ shift.code }}</p>
+              
+              <p class="text-xs font-black text-[#654E51] uppercase">{{ shift.code }}</p>
               <p class="text-sm font-bold text-gray-700 uppercase">{{ shift.name }}</p>
+              
             </td>
             <td class="px-6 py-4">
               <div class="flex items-center gap-2 text-xs font-black text-gray-600">
@@ -39,18 +38,6 @@
                 <span class="bg-orange-50 px-2 py-1 rounded">{{ shift.endTime }}</span>
               </div>
               <p class="text-[9px] font-bold text-gray-400 mt-1 uppercase">Break: {{shift.breakDuration}} mins</p>
-            </td>
-            <td class="px-6 py-4">
-              <span [class]="shift.isOvertimeAllowed ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'" class="px-3 py-1 rounded-full text-[9px] font-black uppercase">
-                OT: {{ shift.isOvertimeAllowed ? 'Allowed' : 'Blocked' }}
-              </span>
-              <p class="text-[9px] font-bold text-gray-400 mt-1 uppercase">Grace: {{shift.gracePeriod}}m</p>
-            </td>
-            <td class="px-6 py-4">
-              <div class="flex items-center gap-2">
-                <div [class]="shift.geoLock ? 'bg-green-500' : 'bg-gray-300'" class="w-2 h-2 rounded-full shadow-sm"></div>
-                <span class="text-[10px] font-bold uppercase text-gray-600">{{ shift.geoLock ? 'Restricted' : 'Open' }}</span>
-              </div>
             </td>
             <td class="px-6 py-4">
               <div class="flex gap-2 justify-center">
@@ -72,32 +59,8 @@
     </div>
   </div>
 
-  <div *ngIf="activeTab === 'ai-insights'" class="animate-in slide-in-from-right duration-500">
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div class="bg-white p-6 rounded-[30px] border-t-4 border-red-500 shadow-xl">
-        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Shortage Risk</p>
-        <p class="text-lg font-black text-red-600 mt-2">{{aiInsights.shortageRisk}}</p>
-        <p class="text-[9px] text-gray-400 mt-4 uppercase">AI Recommendation: Reassign 2 staff</p>
-      </div>
-      <div class="bg-white p-6 rounded-[30px] border-t-4 border-orange-500 shadow-xl">
-        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Burnout Risk</p>
-        <p class="text-lg font-black text-orange-600 mt-2">{{aiInsights.burnoutAlert}}</p>
-      </div>
-      <div class="bg-[#654E51] p-6 rounded-[30px] text-white shadow-xl relative overflow-hidden">
-        <p class="text-[10px] font-black opacity-60 uppercase tracking-widest">Workload Balance</p>
-        <p class="text-2xl font-black mt-2">Optimal</p>
-        <div class="absolute -right-2 -bottom-2 text-6xl opacity-10">🤖</div>
-      </div>
-      <div class="bg-white p-6 rounded-[30px] border-t-4 border-blue-500 shadow-xl">
-        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Fatigue Pattern</p>
-        <p class="text-lg font-black text-blue-600 mt-2">{{aiInsights.fatiguePattern}}</p>
-      </div>
-    </div>
-  </div>
-
   <div *ngIf="showModal" class="fixed inset-0 bg-black/60 flex justify-center items-center z-50 backdrop-blur-md p-4">
-    <div class="bg-white rounded-[40px] shadow-2xl w-full max-w-xl overflow-hidden border-t-[12px] border-[#654E51] animate-in zoom-in duration-300">
-      
+    <div class="bg-white rounded-[40px] shadow-2xl w-full max-w-lg overflow-hidden border-t-[12px] border-[#654E51] animate-in zoom-in duration-300">
       <div class="p-10">
         <div class="flex justify-between items-center mb-8">
           <h3 class="text-3xl font-black text-gray-800 tracking-tighter uppercase">{{ isEdit ? 'Update' : 'Create' }} Shift</h3>
@@ -128,16 +91,6 @@
           <div>
             <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">End Time</label>
             <input [(ngModel)]="currentShift.endTime" type="time" class="w-full bg-gray-50 border-2 border-gray-100 p-4 rounded-2xl outline-none focus:border-[#654E51] font-bold text-sm">
-          </div>
-
-          <div class="flex items-center gap-4 bg-gray-50 p-4 rounded-2xl">
-            <input type="checkbox" [(ngModel)]="currentShift.isOvertimeAllowed" class="w-5 h-5 accent-[#654E51]">
-            <label class="text-[10px] font-black text-gray-600 uppercase">Allow Overtime</label>
-          </div>
-
-          <div class="flex items-center gap-4 bg-gray-50 p-4 rounded-2xl">
-            <input type="checkbox" [(ngModel)]="currentShift.geoLock" class="w-5 h-5 accent-[#654E51]">
-            <label class="text-[10px] font-black text-gray-600 uppercase">Geo-Shift Lock</label>
           </div>
         </div>
 

@@ -1,25 +1,22 @@
 <div class="max-w-4xl mx-auto mt-10 bg-white shadow-lg rounded-lg p-6">
-
   <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">
     Edit Attendance
   </h2>
 
-  <!-- ================= EMPLOYEE DETAILS ================= -->
   <div class="grid grid-cols-2 gap-4 mb-6">
-
     <div>
       <label class="block mb-1 font-semibold text-gray-700">Emp ID</label>
       <input
         type="text"
-        [value]="attendance.empId"
-        readonly
-        class="w-full px-4 py-2 border rounded bg-gray-100"
+        name="empId"
+        [(ngModel)]="attendance.empId"
+        class="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-yellow-400 outline-none"
       />
     </div>
 
     <div class="flex justify-center items-center">
       <img
-        [src]="attendance.profile"
+        [src]="attendance.profile || 'assets/default-profile.png'"
         class="w-20 h-20 rounded-full border shadow"
         alt="Profile"
       />
@@ -29,9 +26,9 @@
       <label class="block mb-1 font-semibold text-gray-700">Name</label>
       <input
         type="text"
-        [value]="attendance.name"
-        readonly
-        class="w-full px-4 py-2 border rounded bg-gray-100"
+        name="name"
+        [(ngModel)]="attendance.name"
+        class="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-yellow-400 outline-none"
       />
     </div>
 
@@ -39,9 +36,9 @@
       <label class="block mb-1 font-semibold text-gray-700">Department</label>
       <input
         type="text"
-        [value]="attendance.department"
-        readonly
-        class="w-full px-4 py-2 border rounded bg-gray-100"
+        name="department"
+        [(ngModel)]="attendance.department"
+        class="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-yellow-400 outline-none"
       />
     </div>
 
@@ -49,37 +46,32 @@
       <label class="block mb-1 font-semibold text-gray-700">Designation</label>
       <input
         type="text"
-        [value]="attendance.designation"
-        readonly
-        class="w-full px-4 py-2 border rounded bg-gray-100"
+        name="designation"
+        [(ngModel)]="attendance.designation"
+        class="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-yellow-400 outline-none"
       />
     </div>
-
   </div>
 
-  <!-- ================= ATTENDANCE FORM ================= -->
   <form #attendanceForm="ngForm" (ngSubmit)="updateAttendance()" class="space-y-4">
-
-    <!-- Date -->
     <div>
       <label class="block mb-1 font-semibold text-gray-700">Date</label>
       <input
         type="date"
-        name="date"
-        [(ngModel)]="attendance.date"
+        name="attendanceDate"
+        [(ngModel)]="attendance.attendanceDate"
         required
         class="w-full px-4 py-2 border rounded focus:outline-none focus:ring focus:border-yellow-400"
       />
     </div>
 
-    <!-- Check In / Check Out -->
     <div class="grid grid-cols-2 gap-4">
       <div>
         <label class="block mb-1 font-semibold text-gray-700">Check In</label>
         <input
           type="time"
-          name="checkIn"
-          [(ngModel)]="attendance.checkIn"
+          name="checkInTime"
+          [(ngModel)]="attendance.checkInTime"
           required
           class="w-full px-4 py-2 border rounded"
         />
@@ -89,15 +81,13 @@
         <label class="block mb-1 font-semibold text-gray-700">Check Out</label>
         <input
           type="time"
-          name="checkOut"
-          [(ngModel)]="attendance.checkOut"
-          required
+          name="checkOutTime"
+          [(ngModel)]="attendance.checkOutTime"
           class="w-full px-4 py-2 border rounded"
         />
       </div>
     </div>
 
-    <!-- Working Hours -->
     <div>
       <label class="block mb-1 font-semibold text-gray-700">Working Hours</label>
       <input
@@ -109,14 +99,12 @@
       />
     </div>
 
-    <!-- Status / Late / Half Day / Overtime / Mode -->
     <div class="grid grid-cols-3 gap-4">
-
       <div>
         <label class="block mb-1 font-semibold text-gray-700">Status</label>
         <select
-          name="status"
-          [(ngModel)]="attendance.status"
+          name="attendanceStatus"
+          [(ngModel)]="attendance.attendanceStatus"
           required
           class="w-full px-4 py-2 border rounded"
         >
@@ -129,9 +117,8 @@
       <div>
         <label class="block mb-1 font-semibold text-gray-700">Late</label>
         <select
-          name="late"
-          [(ngModel)]="attendance.late"
-          required
+          name="lateStatus"
+          [(ngModel)]="attendance.lateStatus"
           class="w-full px-4 py-2 border rounded"
         >
           <option value="Yes">Yes</option>
@@ -142,22 +129,23 @@
       <div>
         <label class="block mb-1 font-semibold text-gray-700">Half Day</label>
         <select
-          name="halfDay"
-          [(ngModel)]="attendance.halfDay"
-          required
+          name="halfDayStatus"
+          [(ngModel)]="attendance.halfDayStatus"
           class="w-full px-4 py-2 border rounded"
         >
           <option value="Yes">Yes</option>
           <option value="No">No</option>
         </select>
       </div>
+    </div>
 
+    <div class="grid grid-cols-2 gap-4">
       <div>
         <label class="block mb-1 font-semibold text-gray-700">Overtime (hrs)</label>
         <input
           type="number"
-          name="overtime"
-          [(ngModel)]="attendance.overtime"
+          name="overtimeHours"
+          [(ngModel)]="attendance.overtimeHours"
           step="0.1"
           class="w-full px-4 py-2 border rounded"
         />
@@ -166,9 +154,8 @@
       <div>
         <label class="block mb-1 font-semibold text-gray-700">Mode</label>
         <select
-          name="mode"
-          [(ngModel)]="attendance.mode"
-          required
+          name="attendanceMode"
+          [(ngModel)]="attendance.attendanceMode"
           class="w-full px-4 py-2 border rounded"
         >
           <option value="manual">Manual</option>
@@ -177,7 +164,6 @@
       </div>
     </div>
 
-    <!-- Remark -->
     <div>
       <label class="block mb-1 font-semibold text-gray-700">Remark</label>
       <textarea
@@ -187,8 +173,14 @@
       ></textarea>
     </div>
 
-    <!-- Submit -->
-    <div class="text-center mt-6">
+    <div class="text-center mt-6 flex justify-center gap-4">
+      <button
+        type="button"
+        (click)="cancel()"
+        class="px-6 py-2 bg-gray-400 text-white font-semibold rounded-lg shadow hover:bg-gray-500 transition"
+      >
+        Cancel
+      </button>
       <button
         type="submit"
         [disabled]="!attendanceForm.valid"
@@ -197,7 +189,5 @@
         Update Attendance
       </button>
     </div>
-
   </form>
-
 </div>

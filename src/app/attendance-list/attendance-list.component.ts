@@ -1,73 +1,71 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-attendance-list',
   standalone: true,
-  imports: [CommonModule,FormsModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './attendance-list.component.html',
   styleUrls: ['./attendance-list.component.css'],
 })
-export class AttendanceListComponent {
-  constructor(private router:Router){}
-  filterText: string = ''; // <-- filter ke liye
+export class AttendanceListComponent implements OnInit {
+  private apiUrl = `${environment.apiUrl}/Attendance`;
+  attendance: any[] = [];
+  filterText: string = '';
+  fromDate: string = '';
+  toDate: string = '';
 
-  attendance = [
-    {
-      empId: 'EMP001',
-      name: 'Rahul Sharma',
-      profile: 'https://i.pravatar.cc/40?img=12',
-      department: 'HR',
-      designation: 'Manager',
-      attendanceDate: '2026-01-31',
-      checkInTime: '09:05',
-      checkOutTime: '18:15',
-      workingHours: 9.2,
-      attendanceStatus: 'Present',
-      shift: 'Morning',
-      lateStatus: 'Yes',
-      halfDayStatus: 'No',
-      overtimeHours: 1.5,
-      attendanceMode: 'manual',
-      remark: 'On time',
-    },
-    {
-      empId: 'EMP002',
-      name: 'Anita Verma',
-      profile: 'https://i.pravatar.cc/40?img=13',
-      department: 'Finance',
-      designation: 'Executive',
-      attendanceDate: '2026-01-31',
-      checkInTime: '10:00',
-      checkOutTime: '16:00',
-      workingHours: 6.0,
-      attendanceStatus: 'Half Day',
-        shift: 'Evening',
-      lateStatus: 'Yes',
-      halfDayStatus: 'Yes',
-      overtimeHours: 0,
-      attendanceMode: 'gps',
-      remark: 'Left early for personal work',
-    },
-  ];
+  constructor(private router: Router, private http: HttpClient) {}
+
+  ngOnInit() {
+    this.fetchAttendance();
+  }
+
+  fetchAttendance() {
+    this.http.get<any[]>(this.apiUrl).subscribe({
+      next: (data) => this.attendance = data,
+      error: (err) => console.error('Failed to load attendance', err)
+    });
+  }
 
   addAttendance() {
     this.router.navigate(['/dashboard/attendance/add']);
   }
-  editAttendance() {
-    this.router.navigate(['/dashboard/attendance/edit']);
+
+  editAttendance(id: number) {
+    this.router.navigate(['/dashboard/attendance/edit', id]);
   }
 
-  // Filter logic
   get filteredAttendance() {
-    if (!this.filterText) return this.attendance;
-    return this.attendance.filter(att =>
-      att.empId.toLowerCase().includes(this.filterText.toLowerCase()) ||
-      att.name.toLowerCase().includes(this.filterText.toLowerCase()) ||
-      att.department.toLowerCase().includes(this.filterText.toLowerCase()) ||
-      att.attendanceDate.includes(this.filterText)
-    );
+    let filtered = this.attendance;
+
+    if (this.filterText) {
+      const q = this.filterText.toLowerCase();
+      filtered = filtered.filter(att =>
+        att.empId?.toLowerCase().includes(q) ||
+        att.name?.toLowerCase().includes(q) ||
+        att.department?.toLowerCase().includes(q)
+      );
+    }
+
+    if (this.fromDate || this.toDate) {
+      filtered = filtered.filter(att => {
+        if (!att.attendanceDate) return false;
+        const recordDate = new Date(att.attendanceDate).setHours(0,0,0,0);
+        const start = this.fromDate ? new Date(this.fromDate).setHours(0,0,0,0) : null;
+        const end = this.toDate ? new Date(this.toDate).setHours(0,0,0,0) : null;
+
+        if (start && end) return recordDate >= start && recordDate <= end;
+        if (start) return recordDate >= start;
+        if (end) return recordDate <= end;
+        return true;
+      });
+    }
+
+    return filtered;
   }
 }

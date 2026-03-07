@@ -1,79 +1,70 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
- 
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
+import { Router } from '@angular/router';
+
 @Component({
   selector: 'app-attendance-add',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './attendance-add.component.html',
 })
-export class AttendanceAddComponent {
- 
+export class AttendanceAddComponent implements OnInit {
+  private apiUrl = `${environment.apiUrl}/Attendance`;
+  private empApiUrl = `${environment.apiUrl}/Employee`; // Employee API path
+
   employeeSearch: string = '';
   filteredEmployees: any[] = [];
   selectedEmployee: any = null;
- 
   showCheckInTime: boolean = false;
- 
+  employees: any[] = []; 
+
   attendance: any = {
     attendanceDate: this.today(),
     attendanceMode: '',
     checkInTime: '',
-    checkInRemark: ''
+    checkInRemark: '',
+    shift: ''
   };
- 
-  employees = [
-    {
-      empId: 'EMP001',
-      name: 'John Doe',
-      department: 'HR',
-      designation: 'Manager',
-      profile: 'https://i.pravatar.cc/100?img=1'
-    },
-    {
-      empId: 'EMP002',
-      name: 'Jane Smith',
-      department: 'IT',
-      designation: 'Developer',
-      profile: 'https://i.pravatar.cc/100?img=2'
-    },
-    {
-      empId: 'EMP003',
-      name: 'Alice Johnson',
-      department: 'Finance',
-      designation: 'Analyst',
-      profile: 'https://i.pravatar.cc/100?img=3'
-    },
-    {
-      empId: 'EMP004',
-      name: 'Bob Brown',
-      department: 'Sales',
-      designation: 'Executive',
-      profile: 'https://i.pravatar.cc/100?img=4'
-    }
-  ];
- 
+
+  constructor(private http: HttpClient, private router: Router) {}
+
+  ngOnInit() {
+    // Sabse pehle Employees load karein taaki search kaam kare
+    this.loadEmployees();
+  }
+
+  loadEmployees() {
+    this.http.get<any[]>(this.empApiUrl).subscribe({
+      next: (res) => {
+        this.employees = res;
+        console.log('Employees Loaded:', this.employees);
+      },
+      error: (err) => console.error('Error loading employees', err)
+    });
+  }
+
   searchEmployee() {
     const q = this.employeeSearch.toLowerCase().trim();
- 
-    if (!q) {
-      this.filteredEmployees = [];
-      return;
+    if (!q) { 
+      this.filteredEmployees = []; 
+      return; 
     }
- 
+    // Employee name ya empId se search karein
     this.filteredEmployees = this.employees.filter(emp =>
-      emp.name.toLowerCase().includes(q) ||
-      emp.empId.toLowerCase().includes(q)
+      (emp.name && emp.name.toLowerCase().includes(q)) || 
+      (emp.empId && emp.empId.toString().toLowerCase().includes(q))
     );
   }
- 
+
   selectEmployee(emp: any) {
     this.selectedEmployee = emp;
     this.employeeSearch = emp.name;
     this.filteredEmployees = [];
   }
- 
+
   onModeChange() {
     if (this.attendance.attendanceMode === 'Manual') {
       this.showCheckInTime = true;
@@ -83,44 +74,46 @@ export class AttendanceAddComponent {
       this.attendance.checkInTime = '';
     }
   }
- 
+
   submitAttendance() {
-    if (!this.selectedEmployee) {
-      alert('Please select employee');
-      return;
+    if (!this.selectedEmployee) { 
+      alert('Please select an employee first!'); 
+      return; 
     }
- 
+
+    // Backend DTO ke hisab se payload tyyar karein
     const payload = {
       empId: this.selectedEmployee.empId,
       name: this.selectedEmployee.name,
       department: this.selectedEmployee.department,
       designation: this.selectedEmployee.designation,
-      ...this.attendance
+      profile: this.selectedEmployee.profile,
+      attendanceDate: this.attendance.attendanceDate,
+      attendanceMode: this.attendance.attendanceMode,
+      checkInTime: this.attendance.checkInTime,
+      remark: this.attendance.checkInRemark,
+      shift: this.attendance.shift,
+      attendanceStatus: 'Present' // Default status
     };
- 
-    console.log('Attendance Saved:', payload);
-    alert('Attendance saved successfully!');
- 
-    // RESET
-    this.employeeSearch = '';
-    this.selectedEmployee = null;
-    this.filteredEmployees = [];
-    this.showCheckInTime = false;
- 
-    this.attendance = {
-      attendanceDate: this.today(),
-      attendanceMode: '',
-      checkInTime: '',
-      checkInRemark: ''
-    };
+
+    this.http.post(this.apiUrl, payload).subscribe({
+      next: () => {
+        alert('Attendance saved successfully!');
+        // ✅ Corrected navigation path
+        this.router.navigate(['/dashboard/attendance/list']);
+      },
+      error: (err) => {
+        console.error('Save Error:', err);
+        alert('Error saving attendance: ' + (err.error?.message || err.message));
+      }
+    });
   }
- 
-  currentTime(): string {
-    return new Date().toTimeString().slice(0, 5);
+
+  // ✅ Cancel button function
+  cancel() {
+    this.router.navigate(['/dashboard/attendance/list']);
   }
- 
-  today(): string {
-    return new Date().toISOString().split('T')[0];
-  }
+
+  currentTime(): string { return new Date().toTimeString().slice(0, 5); }
+  today(): string { return new Date().toISOString().split('T')[0]; }
 }
- 

@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-
+ 
 @Component({
   selector: 'app-attendance-add',
   standalone: true,
@@ -9,20 +9,20 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './attendance-add.component.html',
 })
 export class AttendanceAddComponent {
-
+ 
   employeeSearch: string = '';
   filteredEmployees: any[] = [];
   selectedEmployee: any = null;
-
+ 
   showCheckInTime: boolean = false;
-
+ 
   attendance: any = {
     attendanceDate: this.today(),
     attendanceMode: '',
     checkInTime: '',
     checkInRemark: ''
   };
-
+ 
   employees = [
     {
       empId: 'EMP001',
@@ -53,27 +53,27 @@ export class AttendanceAddComponent {
       profile: 'https://i.pravatar.cc/100?img=4'
     }
   ];
-
+ 
   searchEmployee() {
     const q = this.employeeSearch.toLowerCase().trim();
-
+ 
     if (!q) {
       this.filteredEmployees = [];
       return;
     }
-
+ 
     this.filteredEmployees = this.employees.filter(emp =>
       emp.name.toLowerCase().includes(q) ||
       emp.empId.toLowerCase().includes(q)
     );
   }
-
+ 
   selectEmployee(emp: any) {
     this.selectedEmployee = emp;
     this.employeeSearch = emp.name;
     this.filteredEmployees = [];
   }
-
+ 
   onModeChange() {
     if (this.attendance.attendanceMode === 'Manual') {
       this.showCheckInTime = true;
@@ -83,13 +83,13 @@ export class AttendanceAddComponent {
       this.attendance.checkInTime = '';
     }
   }
-
+ 
   submitAttendance() {
     if (!this.selectedEmployee) {
       alert('Please select employee');
       return;
     }
-
+ 
     const payload = {
       empId: this.selectedEmployee.empId,
       name: this.selectedEmployee.name,
@@ -97,16 +97,16 @@ export class AttendanceAddComponent {
       designation: this.selectedEmployee.designation,
       ...this.attendance
     };
-
+ 
     console.log('Attendance Saved:', payload);
     alert('Attendance saved successfully!');
-
+ 
     // RESET
     this.employeeSearch = '';
     this.selectedEmployee = null;
     this.filteredEmployees = [];
     this.showCheckInTime = false;
-
+ 
     this.attendance = {
       attendanceDate: this.today(),
       attendanceMode: '',
@@ -114,12 +114,13 @@ export class AttendanceAddComponent {
       checkInRemark: ''
     };
   }
-
+ 
   currentTime(): string {
     return new Date().toTimeString().slice(0, 5);
   }
-
+ 
   today(): string {
     return new Date().toISOString().split('T')[0];
   }
 }
+ 

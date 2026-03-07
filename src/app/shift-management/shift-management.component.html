@@ -1,104 +1,153 @@
-<div class="mb-4 flex justify-end">
-  <button (click)="addShift()" 
-    class="flex items-center gap-2 px-5 py-2 bg-[#654E51] text-white font-bold rounded-lg shadow-md hover:opacity-90 transition active:scale-95 uppercase text-[12px] tracking-wider">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
-    </svg>
-    Add Shift
-  </button>
-</div>
+<div class="min-h-screen bg-gray-50 p-6 font-sans">
+  
+  <div class="flex justify-between items-center mb-8 bg-white p-6 rounded-2xl shadow-sm border-l-8 border-[#654E51]">
+    <div>
+      <h2 class="text-2xl font-black text-gray-800 tracking-tight uppercase">Shift Master Configuration</h2>
+      <p class="text-[10px] font-bold text-gray-400 tracking-[3px] uppercase">AI-Driven Workforce Scheduling</p>
+    </div>
+    <div class="flex gap-3">
+      <button (click)="activeTab = 'list'" [class.bg-[#654E51]]="activeTab === 'list'" class="px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all bg-gray-100 text-gray-500" [class.text-white]="activeTab === 'list'">Shift List</button>
+      <button (click)="activeTab = 'ai-insights'" [class.bg-[#654E51]]="activeTab === 'ai-insights'" class="px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all bg-gray-100 text-gray-500" [class.text-white]="activeTab === 'ai-insights'">AI Intelligence</button>
+      <button (click)="addShift()" class="flex items-center gap-2 px-6 py-2 bg-[#654E51] text-white font-black rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all uppercase text-[11px] tracking-widest">
+        <span>+</span> New Shift
+      </button>
+    </div>
+  </div>
 
-<div class="overflow-hidden rounded-lg border border-gray-200 shadow-sm">
-  <table class="min-w-full bg-white">
-    <thead class="bg-gray-50">
-      <tr>
-        <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider border-b">Name</th>
-        <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider border-b">Start Time</th>
-        <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider border-b">End Time</th>
-        <th class="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider border-b">Break Duration</th>
-        <th class="px-4 py-3 text-center text-xs font-bold text-gray-600 uppercase tracking-wider border-b">Actions</th>
-      </tr>
-    </thead>
-    <tbody class="divide-y divide-gray-200">
-      <tr *ngFor="let shift of shiftList" class="hover:bg-gray-50 transition-colors">
-        <td class="px-4 py-3 text-sm text-gray-700 font-medium">{{ shift.name }}</td>
-        <td class="px-4 py-3 text-sm text-gray-600">{{ shift.startTime }}</td>
-        <td class="px-4 py-3 text-sm text-gray-600">{{ shift.endTime }}</td>
-        <td class="px-4 py-3 text-sm text-gray-600">{{ shift.breakDuration || '-' }}</td>
-        <td class="px-4 py-3 whitespace-nowrap">
-          <div class="flex gap-2 justify-center">
-            
-            <button (click)="editShift(shift)" 
-              class="flex items-center gap-1.5 px-3 py-1.5 bg-[#654E51] text-white text-[10px] font-bold rounded shadow-sm hover:opacity-90 transition active:scale-95 uppercase">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-              Edit
-            </button>
+  <div *ngIf="activeTab === 'list'" class="animate-in fade-in zoom-in duration-300">
+    <div class="overflow-hidden rounded-3xl border border-gray-100 shadow-xl bg-white">
+      <table class="min-w-full">
+        <thead class="bg-gray-50 border-b">
+          <tr>
+            <th class="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Code & Name</th>
+            <th class="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Timing</th>
+            <th class="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Policy</th>
+            <th class="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Geo Lock</th>
+            <th class="px-6 py-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+          <tr *ngFor="let shift of shiftList" class="hover:bg-gray-50 transition-all group">
+            <td class="px-6 py-4">
+              <p class="text-xs font-black text-[#654E51]">{{ shift.code }}</p>
+              <p class="text-sm font-bold text-gray-700 uppercase">{{ shift.name }}</p>
+            </td>
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-2 text-xs font-black text-gray-600">
+                <span class="bg-blue-50 px-2 py-1 rounded">{{ shift.startTime }}</span>
+                <span>➞</span>
+                <span class="bg-orange-50 px-2 py-1 rounded">{{ shift.endTime }}</span>
+              </div>
+              <p class="text-[9px] font-bold text-gray-400 mt-1 uppercase">Break: {{shift.breakDuration}} mins</p>
+            </td>
+            <td class="px-6 py-4">
+              <span [class]="shift.isOvertimeAllowed ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'" class="px-3 py-1 rounded-full text-[9px] font-black uppercase">
+                OT: {{ shift.isOvertimeAllowed ? 'Allowed' : 'Blocked' }}
+              </span>
+              <p class="text-[9px] font-bold text-gray-400 mt-1 uppercase">Grace: {{shift.gracePeriod}}m</p>
+            </td>
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-2">
+                <div [class]="shift.geoLock ? 'bg-green-500' : 'bg-gray-300'" class="w-2 h-2 rounded-full shadow-sm"></div>
+                <span class="text-[10px] font-bold uppercase text-gray-600">{{ shift.geoLock ? 'Restricted' : 'Open' }}</span>
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              <div class="flex gap-2 justify-center">
+                <button (click)="editShift(shift)" class="p-2 bg-gray-100 text-[#654E51] rounded-lg hover:bg-[#654E51] hover:text-white transition-all">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                </button>
+                <button (click)="deleteShift(shift.id)" class="p-2 border border-red-200 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 
-            <button (click)="deleteShift(shift.id)" 
-              class="flex items-center gap-1.5 px-3 py-1.5 border border-[#654E51] text-[#654E51] text-[10px] font-bold rounded shadow-sm hover:bg-[#654E51] hover:text-white transition active:scale-95 uppercase">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-              Delete
-            </button>
-
-          </div>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-
-<div *ngIf="showModal" class="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 backdrop-blur-sm">
-  <div class="bg-white rounded-xl shadow-2xl p-6 w-96 relative border-t-4 border-[#654E51]">
-    <h3 class="text-xl font-bold mb-5 text-gray-800 tracking-tight">
-      {{ isEdit ? 'Update Shift' : 'Create New Shift' }}
-    </h3>
-    
-    <button class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition" (click)="closeModal()">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-      </svg>
-    </button>
-
-    <div class="space-y-4">
-      <div>
-        <label class="block text-xs font-bold text-gray-700 uppercase mb-1 text-tracking-wider">Shift Name</label>
-        <input [(ngModel)]="currentShift.name" 
-          class="w-full border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-[#654E51] focus:border-[#654E51]">
+  <div *ngIf="activeTab === 'ai-insights'" class="animate-in slide-in-from-right duration-500">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div class="bg-white p-6 rounded-[30px] border-t-4 border-red-500 shadow-xl">
+        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Shortage Risk</p>
+        <p class="text-lg font-black text-red-600 mt-2">{{aiInsights.shortageRisk}}</p>
+        <p class="text-[9px] text-gray-400 mt-4 uppercase">AI Recommendation: Reassign 2 staff</p>
       </div>
-      
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Start Time</label>
-          <input [(ngModel)]="currentShift.startTime" type="time" 
-            class="w-full border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-[#654E51] focus:border-[#654E51]">
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-gray-700 uppercase mb-1">End Time</label>
-          <input [(ngModel)]="currentShift.endTime" type="time" 
-            class="w-full border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-[#654E51] focus:border-[#654E51]">
-        </div>
+      <div class="bg-white p-6 rounded-[30px] border-t-4 border-orange-500 shadow-xl">
+        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Burnout Risk</p>
+        <p class="text-lg font-black text-orange-600 mt-2">{{aiInsights.burnoutAlert}}</p>
       </div>
-
-      <div>
-        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Break Duration (mins)</label>
-        <input [(ngModel)]="currentShift.breakDuration" 
-          class="w-full border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-[#654E51] focus:border-[#654E51]">
+      <div class="bg-[#654E51] p-6 rounded-[30px] text-white shadow-xl relative overflow-hidden">
+        <p class="text-[10px] font-black opacity-60 uppercase tracking-widest">Workload Balance</p>
+        <p class="text-2xl font-black mt-2">Optimal</p>
+        <div class="absolute -right-2 -bottom-2 text-6xl opacity-10">🤖</div>
+      </div>
+      <div class="bg-white p-6 rounded-[30px] border-t-4 border-blue-500 shadow-xl">
+        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Fatigue Pattern</p>
+        <p class="text-lg font-black text-blue-600 mt-2">{{aiInsights.fatiguePattern}}</p>
       </div>
     </div>
+  </div>
 
-    <div class="flex justify-end gap-3 mt-8">
-      <button (click)="closeModal()" 
-        class="px-5 py-2 text-xs font-bold text-gray-400 uppercase hover:text-gray-600 transition">
-        Cancel
-      </button>
-      <button (click)="saveShift()" 
-        class="px-6 py-2 bg-[#654E51] text-white text-xs font-bold rounded-lg shadow hover:opacity-90 transition active:scale-95 uppercase tracking-widest">
-        {{ isEdit ? 'Update' : 'Save' }}
-      </button>
+  <div *ngIf="showModal" class="fixed inset-0 bg-black/60 flex justify-center items-center z-50 backdrop-blur-md p-4">
+    <div class="bg-white rounded-[40px] shadow-2xl w-full max-w-xl overflow-hidden border-t-[12px] border-[#654E51] animate-in zoom-in duration-300">
+      
+      <div class="p-10">
+        <div class="flex justify-between items-center mb-8">
+          <h3 class="text-3xl font-black text-gray-800 tracking-tighter uppercase">{{ isEdit ? 'Update' : 'Create' }} Shift</h3>
+          <button (click)="closeModal()" class="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 transition-all">✕</button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6">
+          <div class="col-span-2">
+            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Shift Name</label>
+            <input [(ngModel)]="currentShift.name" class="w-full bg-gray-50 border-2 border-gray-100 p-4 rounded-2xl outline-none focus:border-[#654E51] font-bold text-sm uppercase">
+          </div>
+          
+          <div>
+            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Shift Code</label>
+            <input [(ngModel)]="currentShift.code" placeholder="e.g. MOR-01" class="w-full bg-gray-50 border-2 border-gray-100 p-4 rounded-2xl outline-none focus:border-[#654E51] font-bold text-sm uppercase">
+          </div>
+
+          <div>
+            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Break (Mins)</label>
+            <input [(ngModel)]="currentShift.breakDuration" type="number" class="w-full bg-gray-50 border-2 border-gray-100 p-4 rounded-2xl outline-none focus:border-[#654E51] font-bold text-sm">
+          </div>
+
+          <div>
+            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Start Time</label>
+            <input [(ngModel)]="currentShift.startTime" type="time" class="w-full bg-gray-50 border-2 border-gray-100 p-4 rounded-2xl outline-none focus:border-[#654E51] font-bold text-sm">
+          </div>
+
+          <div>
+            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">End Time</label>
+            <input [(ngModel)]="currentShift.endTime" type="time" class="w-full bg-gray-50 border-2 border-gray-100 p-4 rounded-2xl outline-none focus:border-[#654E51] font-bold text-sm">
+          </div>
+
+          <div class="flex items-center gap-4 bg-gray-50 p-4 rounded-2xl">
+            <input type="checkbox" [(ngModel)]="currentShift.isOvertimeAllowed" class="w-5 h-5 accent-[#654E51]">
+            <label class="text-[10px] font-black text-gray-600 uppercase">Allow Overtime</label>
+          </div>
+
+          <div class="flex items-center gap-4 bg-gray-50 p-4 rounded-2xl">
+            <input type="checkbox" [(ngModel)]="currentShift.geoLock" class="w-5 h-5 accent-[#654E51]">
+            <label class="text-[10px] font-black text-gray-600 uppercase">Geo-Shift Lock</label>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-4 mt-10">
+          <button (click)="closeModal()" class="px-8 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-gray-600 transition-all">Discard</button>
+          <button (click)="saveShift()" class="px-10 py-4 bg-[#654E51] text-white text-[11px] font-black rounded-2xl shadow-2xl hover:brightness-110 active:scale-95 transition-all uppercase tracking-[3px]">
+            {{ isEdit ? 'Sync Update' : 'Initialize Shift' }}
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </div>

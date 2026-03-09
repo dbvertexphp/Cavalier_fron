@@ -33,6 +33,7 @@
     "flatpickr": "^4.6.13",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.0",
+    "jspdf-autotable": "^5.0.7",
     "lightningcss": "^1.30.2",
     "ng-apexcharts": "^2.0.4",
     "ng-otp-input": "^2.0.9",
@@ -41,6 +42,7 @@
     "rxjs": "~7.8.0",
     "swiper": "^11.2.10",
     "tslib": "^2.3.0",
+    "xlsx": "^0.18.5",
     "zone.js": "~0.15.0"
   },
   "devDependencies": {

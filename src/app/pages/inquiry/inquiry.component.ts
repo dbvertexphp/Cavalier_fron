@@ -7,7 +7,7 @@
   import { environment } from '../../../environments/environment';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-
+import * as XLSX from 'xlsx';
   @Component({
     selector: 'app-inquiry',
     standalone: true,
@@ -74,19 +74,6 @@ organizations: any[] = [];
       console.log(data)
     });
   }
-//  fetchCompanyServices() {
-//         const url = `${environment.apiUrl}/CompanyService`;
-//         this.http.get<any[]>(url).subscribe({
-//             next: (data) => {
-//                 this.companyServices = data;
-//                 console.log("Line of Business loaded:", data);
-//                 this.cdr.detectChanges(); 
-//             },
-//             error: (err) => console.error("Error loading LOB:", err)
-//         });
-//     }
-//     // <<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>
-
 
 fetchCompanyServices() {
         const url = `${environment.apiUrl}/CompanyService`;
@@ -94,6 +81,7 @@ fetchCompanyServices() {
             next: (data) => {
                 this.companyServices = data;
                 console.log("Line of Business loaded:", data);
+                console.log(data,"line of business")
                 this.cdr.detectChanges();
             },
             error: (err) => console.error("Error loading LOB:", err)
@@ -822,6 +810,82 @@ private generatePrintLayout(mode: string) {
     `);
     printWindow.document.close();
   }
+}
+downloadLeadsExcel() {
+  this.isExportOpen = false;
+
+  // Check karein ki data hai ya nahi
+  if (!this.quotations || this.quotations.length === 0) {
+    alert("Excel ke liye koi data nahi mila!");
+    return;
+  }
+
+  // 1. Data prepare karein (Jo columns aapke table mein hain)
+  const excelData = this.quotations.map(q => {
+    return {
+      'ID': q.id || '-',
+      'Inquiry No': q.inquiryNo || '-',
+      'Received Date': q.receivedDate ? new Date(q.receivedDate).toLocaleDateString('en-GB') : '-',
+      'Customer Name': q.customerName || '-',
+      'Transport Mode': q.transportMode || '-',
+      'Status': q.cargoStatus || 'PENDING',
+      'Branch': q.branchName || '-',
+      'Coordinator': q.salesCoordinator || '-',
+      'Shipment Type': q.shipmentType || '-'
+    };
+  });
+
+  // 2. Worksheet create karein
+  const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(excelData);
+
+  // 3. Columns ki width set karein taaki Excel saaf dikhe
+  const colWidths = [
+    { wch: 8 },  // ID
+    { wch: 15 }, // Inquiry No
+    { wch: 15 }, // Date
+    { wch: 30 }, // Customer Name
+    { wch: 15 }, // Mode
+    { wch: 12 }, // Status
+    { wch: 15 }, // Branch
+    { wch: 20 }, // Coordinator
+    { wch: 15 }  // Shipment Type
+  ];
+  ws['!cols'] = colWidths;
+
+  // 4. Workbook banayein aur save karein
+  const wb: XLSX.WorkBook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Inquiry Records');
+
+  // File download trigger karein
+  XLSX.writeFile(wb, `Inquiry_Report_${new Date().getTime()}.xlsx`);
+}
+// --- Pagination Variables ---
+currentPage: number = 1;
+pageSize: number = 10; // Ek page par kitne records dikhane hain
+protected readonly Math = Math; // Template mein Math functions use karne ke liye
+
+// Computed property: Ye table mein sirf current page ka data filter karke bhejega
+get paginatedInquiries(): any[] {
+  const startIndex = (this.currentPage - 1) * this.pageSize;
+  return this.quotations.slice(startIndex, startIndex + this.pageSize);
+}
+
+// Total pages calculate karne ke liye
+get totalPages(): number {
+  return Math.ceil(this.quotations.length / this.pageSize) || 1;
+}
+
+// Page badalne ka function
+setPage(page: number) {
+  if (page < 1 || page > this.totalPages) return;
+  this.currentPage = page;
+  this.cdr.detectChanges();
+}
+
+// Page size badalne par page 1 par reset karein
+onPageSizeChange() {
+  this.currentPage = 1;
+  this.cdr.detectChanges();
 }
 }
   

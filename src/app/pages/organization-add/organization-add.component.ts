@@ -7,7 +7,7 @@ import { any } from '@amcharts/amcharts5/.internal/core/util/Array';
 import { Router } from '@angular/router';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-
+import * as XLSX from 'xlsx';
 @Component({
   selector: 'app-organization-add',
   standalone: true,
@@ -773,6 +773,69 @@ checkMainEmail() {
   }
 }
 
+downloadExcel() {
+  this.isExportOpen = false;
 
+  if (!this.organizations || this.organizations.length === 0) {
+    alert("Excel ke liye data nahi hai!");
+    return;
+  }
 
+  // 1. Data prepare karein (Keys wahi rakhi hain jo aapke getOrgList me aati hain)
+  const excelData = this.organizations.map(org => {
+    return {
+      'ID': org.id || '-',
+      'Organization Name': org.orgName || '-',
+      'Alias': org.alias || '-',
+      'Branch': org.branchName || '-',
+      'Roles/Type': org.selectedRoles || '-',
+      'City/Location': org.city || '-', // city field check karein
+      'Email': org.email || '-',
+      'Telephone': org.telephone || '-', // telephone field check karein
+      'Sales Person': org.salesPerson || '-'
+    };
+  });
+
+  // 2. Worksheet banayein
+  const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(excelData);
+
+  // 3. Worksheet ki styling (Optional: Column width set karna)
+  const colWidths = [
+    { wch: 10 }, // ID
+    { wch: 30 }, // Name
+    { wch: 15 }, // Alias
+    { wch: 15 }, // Branch
+    { wch: 20 }, // Roles
+    { wch: 15 }, // City
+    { wch: 25 }, // Email
+    { wch: 15 }, // Telephone
+    { wch: 20 }  // Sales Person
+  ];
+  ws['!cols'] = colWidths;
+
+  // 4. Workbook banayein aur file save karein
+  const wb: XLSX.WorkBook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Organization Records');
+
+  XLSX.writeFile(wb, `Organization_Records_${new Date().getTime()}.xlsx`);
+}
+// --- Pagination Variables ---
+currentPage: number = 1;
+pageSize: number = 10; // Ek page par 10 records dikhenge
+protected readonly Math = Math; // Template mein Math use karne ke liye
+
+// Ye computed property table ko slice karke data degi
+get paginatedOrganizations(): any[] {
+  const startIndex = (this.currentPage - 1) * this.pageSize;
+  return this.organizations.slice(startIndex, startIndex + this.pageSize);
+}
+
+get totalPages(): number {
+  return Math.ceil(this.organizations.length / this.pageSize) || 1;
+}
+
+setPage(page: number) {
+  if (page < 1 || page > this.totalPages) return;
+  this.currentPage = page;
+}
 }

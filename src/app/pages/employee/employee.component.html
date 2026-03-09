@@ -47,12 +47,41 @@
       <div class="font-bold uppercase text-[12px] tracking-widest px-2">
         Employee Records
       </div>
-      <button (click)="toggleForm()"
-        class="bg-green-600 hover:bg-green-700 text-white font-bold text-[12px] px-5 py-1.5 uppercase shadow-sm">
-        + Add New Employee
-      </button>
-    </div>
 
+      <div class="flex gap-2">
+        <div class="relative group">
+          <button
+            class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-[12px] px-5 py-1.5 uppercase shadow-sm flex items-center gap-2">
+            Export
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          <div
+            class="absolute right-0 mt-1 w-44 bg-white text-gray-800 border border-gray-200 shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+            <button (click)="exportToExcel()"
+              class="w-full text-left px-4 py-2 text-[11px] font-bold uppercase hover:bg-gray-100 border-b">
+              📊 Excel
+            </button>
+            <button (click)="downloadFullPDF()"
+              class="w-full text-left px-4 py-2 text-[11px] font-bold uppercase hover:bg-gray-100 border-b">
+              📕 PDF
+            </button>
+            <button (click)="printTable()"
+              class="w-full text-left px-4 py-2 text-[11px] font-bold uppercase hover:bg-gray-100">
+              🖨️ Print
+            </button>
+          </div>
+        </div>
+
+        <button (click)="toggleForm()"
+          class="bg-green-600 hover:bg-green-700 text-white font-bold text-[12px] px-5 py-1.5 uppercase shadow-sm">
+          + Add New Employee
+        </button>
+      </div>
+    </div>
     <div class="overflow-x-auto">
       <table class="w-full border-collapse text-[12px]">
         <thead class="bg-gray-100 text-gray-600 uppercase border-b border-gray-300 font-bold whitespace-nowrap">
@@ -76,7 +105,7 @@
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200 whitespace-nowrap">
-          <tr *ngFor="let emp of filteredEmployees" class="divide-x divide-gray-200 hover:bg-gray-50 transition-colors">
+          <tr *ngFor="let emp of paginatedEmployees" class="divide-x divide-gray-200 hover:bg-gray-50 transition-colors">
             <td class="p-3 font-semibold text-blue-700">{{ emp.empCode }}</td>
             <td class="p-3 uppercase font-medium">
               {{ emp.firstName }} {{ emp.lastName }}
@@ -306,7 +335,8 @@
 
                         <div class="flex gap-4 mb-4">
                           <div class="h-20 w-20 rounded-xl overflow-hidden border shadow">
-                            <img *ngIf="selectedEmployee?.photoPath" [src]="'http://localhost:5000' + selectedEmployee?.photoPath"
+                            <img *ngIf="selectedEmployee?.photoPath"
+                              [src]="'http://localhost:5000' + selectedEmployee?.photoPath"
                               class="h-full w-full object-cover" />
                             <div *ngIf="!selectedEmployee?.photoPath"
                               class="h-full w-full flex items-center justify-center bg-slate-200 text-lg font-bold">
@@ -390,13 +420,13 @@
                           <div>
                             <label class="text-gray-500 text-xs">HOD</label>
                             <p class="font-semibold">
-                                {{ emp?.hod?.name || "N/A" }}
+                              {{ emp?.hod?.name || "N/A" }}
                             </p>
                           </div>
                           <div>
                             <label class="text-gray-500 text-xs">Team</label>
                             <p class="font-semibold">
-                               {{ emp?.team?.teamName || "N/A" }}
+                              {{ emp?.team?.teamName || "N/A" }}
                             </p>
                           </div>
 
@@ -726,9 +756,9 @@
                             </div>
                             <div>
                               <label class="text-gray-500 block text-[9px] uppercase">Pincode</label>
-                           <p class="font-semibold text-slate-800">
-    {{ selectedEmployee?.permPincode || "---" }}
-  </p>
+                              <p class="font-semibold text-slate-800">
+                                {{ selectedEmployee?.permPincode || "---" }}
+                              </p>
                             </div>
                             <div>
                               <label class="text-gray-500 block text-[9px] uppercase">Country</label>
@@ -898,7 +928,7 @@
                             <img [src]="selectedEmployee?.offerLetterPath"
                               class="h-24 w-full object-cover rounded border shadow mb-1" />
                             <p class="text-[10px] font-semibold">
-                            Offer Letter
+                              Offer Letter
                             </p>
                           </div>
 
@@ -906,7 +936,7 @@
                             <img [src]="selectedEmployee?.appointmentLetterPath"
                               class="h-24 w-full object-cover rounded border shadow mb-1" />
                             <p class="text-[10px] font-semibold">
-                            Appointment Letter
+                              Appointment Letter
                             </p>
                           </div>
 
@@ -914,7 +944,7 @@
                             <img [src]="selectedEmployee?.invitationLetterPath"
                               class="h-24 w-full object-cover rounded border shadow mb-1" />
                             <p class="text-[10px] font-semibold">
-                           Invitation Letter
+                              Invitation Letter
                             </p>
                           </div>
 
@@ -922,7 +952,7 @@
                             <img [src]="selectedEmployee?.relievingLetterPath"
                               class="h-24 w-full object-cover rounded border shadow mb-1" />
                             <p class="text-[10px] font-semibold">
-                             Relieving Letter
+                              Relieving Letter
                             </p>
                           </div>
 
@@ -962,6 +992,50 @@
           </tr>
         </tbody>
       </table>
+      <div class="flex justify-between items-center bg-white p-4 border-t border-gray-200 shadow-sm rounded-b-lg mt-2" *ngIf="filteredEmployees.length > 0">
+  
+  <div class="flex items-center gap-4 text-sm text-gray-500 font-medium">
+    <div>
+      Showing <span class="text-gray-900 font-bold">{{ (currentPage - 1) * pageSize + 1 }}</span> 
+      to <span class="text-gray-900 font-bold">{{ Math.min(currentPage * pageSize, filteredEmployees.length) }}</span> 
+      of <span class="text-gray-900 font-bold">{{ filteredEmployees.length }}</span> entries
+    </div>
+    
+    <select [(ngModel)]="pageSize" (change)="onPageSizeChange()" 
+      class="border border-gray-300 rounded-md px-2 py-1 bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+      <option [ngValue]="10">10 / Page</option>
+      <option [ngValue]="25">25 / Page</option>
+      <option [ngValue]="50">50 / Page</option>
+    </select>
+  </div>
+
+  <div class="flex items-center gap-2">
+    <button (click)="setPage(1)" [disabled]="currentPage === 1"
+      class="p-2 text-gray-400 hover:text-blue-600 disabled:opacity-30 transition-colors">
+      « First
+    </button>
+
+    <button (click)="setPage(currentPage - 1)" [disabled]="currentPage === 1"
+      class="px-4 py-1.5 text-sm font-semibold border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-30 shadow-sm transition-all">
+      Prev
+    </button>
+
+    <div class="flex items-center mx-2 shadow-sm rounded-md overflow-hidden border border-gray-200">
+      <span class="px-4 py-1.5 bg-blue-600 text-white text-sm font-bold">{{currentPage}}</span>
+      <span class="px-4 py-1.5 bg-gray-50 text-gray-600 text-sm border-l border-gray-200">of {{totalPages}}</span>
+    </div>
+
+    <button (click)="setPage(currentPage + 1)" [disabled]="currentPage === totalPages"
+      class="px-4 py-1.5 text-sm font-semibold border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-30 shadow-sm transition-all">
+      Next
+    </button>
+
+    <button (click)="setPage(totalPages)" [disabled]="currentPage === totalPages"
+      class="p-2 text-gray-400 hover:text-blue-600 disabled:opacity-30 transition-colors">
+      Last »
+    </button>
+  </div>
+</div>
     </div>
 
     <div class="bg-gray-100 p-2 border-t border-gray-300 text-[11px] text-gray-500 flex justify-between px-4 font-bold">

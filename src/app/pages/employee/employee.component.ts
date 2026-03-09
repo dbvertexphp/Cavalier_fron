@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormGroup, FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -8,6 +8,8 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import{environment} from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 export interface Employee {
   id: string;
   empCode: string;
@@ -174,7 +176,7 @@ isPasswordVisible: boolean = false;
   rolesList: any[] = [];
   branchesList: any[] = []; 
 
-  constructor( private http: HttpClient ,private router:Router, private userService: UserService, private branchServices: BranchService) {
+  constructor( private http: HttpClient ,private router:Router, private userService: UserService, private branchServices: BranchService,private cdr :ChangeDetectorRef) {
     this.leadForm = new FormGroup({
       empCode: new FormControl(''),
       firstName: new FormControl(''),
@@ -452,5 +454,190 @@ toggleRemoteStatus(emp: any) {
   } catch (error) {
     console.error("PDF Error:", error);
   }
+}
+// --- EXPORT & PRINT LOGIC START ---
+
+  // 1. EXCEL DOWNLOAD (Pura Data interface ke hisaab se)
+  exportToExcel() {
+    if (!this.filteredEmployees || this.filteredEmployees.length === 0) {
+      alert("Niche table mein koi data nahi hai export karne ke liye!");
+      return;
+    }
+
+    const dataToExport = this.filteredEmployees.map(u => ({
+      'Emp Code': u.empCode || '-',
+      'Full Name': `${u.firstName || ''} ${u.middleName || ''} ${u.lastName || ''}`.trim(),
+      'Email': u.email || '-',
+      'Phone': u.mobile || u.telephone || '-',
+      'Designation': u.designation || '-',
+      'Department': u.department || '-',
+      'Functional Area': u.functionalArea || '-',
+      'Branch/Location': u.branch || '-',
+      'DOB': u.dob || '-',
+      'Joining Date': u.dateOfJoining || '-',
+      'Blood Group': u.bloodGroup || '-',
+      'PAN No': u.paN_No || '-',
+      'Aadhaar No': u.aadhaarNo || '-',
+      'Monthly CTC': u.ctC_Monthly || 0,
+      'Bank Name': u.bankName || '-',
+      'A/C Number': u.accountNumber || '-',
+      'IFSC Code': u.ifscCode || '-',
+      'Present Address': `${u.presHouseNo || ''} ${u.presStreet || ''} ${u.presCity || ''} ${u.presState || ''} ${u.presPincode || ''}`.trim() || '-',
+      'Emergency Contact': `${u.emergencyName || ''} (${u.emergencyContactNo || ''})`,
+      'Education (10th/12th %)': `${u.tenthPercentage || 0}% / ${u.twelfthPercentage || 0}%`
+    }));
+
+    const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(dataToExport);
+    const wb: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Employee_Master_Data');
+    
+    XLSX.writeFile(wb, `Cavalier_Employee_Data_${new Date().getTime()}.xlsx`);
+  }
+
+  // 2. PDF DOWNLOAD (A3 Landscape for Professional Look)
+  downloadFullPDF() {
+    if (!this.filteredEmployees || this.filteredEmployees.length === 0) {
+      alert("Download ke liye data nahi hai!");
+      return;
+    }
+
+    const doc = new jsPDF('l', 'mm', 'a3'); 
+    doc.setFontSize(22);
+    doc.setTextColor(74, 63, 63); 
+    doc.text('CAVALIER EMPLOYEE MASTER DATABASE', 14, 15);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Report Generated: ${new Date().toLocaleString()}`, 14, 22);
+
+    // PDF Table Headers
+    const head = [[
+      'Code', 'Name', 'Designation/Dept', 'Contact/Email', 'Location', 'KYC (PAN/UID)', 'CTC', 'Bank Details', 'Address'
+    ]];
+
+    // PDF Table Body (Interface ke base par mapping)
+    const data = this.filteredEmployees.map(u => [
+      u.empCode || '-',
+      `${u.firstName} ${u.lastName}`,
+      `${u.designation}\n${u.department}`,
+      `${u.mobile}\n${u.email}`,
+      u.branch || '-',
+      `PAN: ${u.paN_No || '-'}\nUID: ${u.aadhaarNo || '-'}`,
+      u.ctC_Monthly || '0',
+      `${u.bankName || '-'}\n${u.accountNumber || '-'}`,
+      `${u.presCity || ''}, ${u.presState || ''}`
+    ]);
+
+    autoTable(doc, {
+      head: head,
+      body: data,
+      startY: 30,
+      theme: 'grid',
+      styles: { fontSize: 8, cellPadding: 3, overflow: 'linebreak' },
+      headStyles: { fillColor: [74, 63, 63], textColor: [255, 255, 255], fontStyle: 'bold' },
+      columnStyles: {
+        2: { cellWidth: 40 },
+        3: { cellWidth: 50 },
+        7: { cellWidth: 40 },
+        8: { cellWidth: 60 }
+      },
+      margin: { top: 30, left: 10, right: 10 }
+    });
+
+    doc.save(`Cavalier_Master_Report_${new Date().getTime()}.pdf`);
+  }
+
+  // 3. PRINT TABLE (Jo table screen par dikh rahi hai wahi print hogi)
+  printTable() {
+    if (!this.filteredEmployees || this.filteredEmployees.length === 0) {
+      alert("Print karne ke liye data nahi hai!");
+      return;
+    }
+
+    const printWindow = window.open('', '_blank', 'width=1200,height=800');
+    let tableHtml = `
+      <html>
+        <head>
+          <title>Employee Directory Print</title>
+          <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #333; }
+            h2 { text-align: center; color: #4a3f3f; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: auto; }
+            th, td { border: 1px solid #ccc; padding: 10px; text-align: left; font-size: 11px; }
+            th { background-color: #4a3f3f; color: white; font-weight: bold; }
+            tr:nth-child(even) { background-color: #f9f9f9; }
+            .footer { margin-top: 20px; text-align: right; font-size: 10px; color: #888; }
+            @page { size: landscape; margin: 1cm; }
+          </style>
+        </head>
+        <body>
+          <h2>Employee Records Master Report</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Emp Code</th>
+                <th>Full Name</th>
+                <th>Designation</th>
+                <th>Department</th>
+                <th>Contact</th>
+                <th>Email</th>
+                <th>Branch</th>
+                <th>Aadhaar No</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${this.filteredEmployees.map(u => `
+                <tr>
+                  <td>${u.empCode}</td>
+                  <td>${u.firstName} ${u.lastName}</td>
+                  <td>${u.designation}</td>
+                  <td>${u.department}</td>
+                  <td>${u.mobile || '-'}</td>
+                  <td>${u.email}</td>
+                  <td>${u.branch || '-'}</td>
+                  <td>${u.aadhaarNo || '-'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          <div class="footer">Generated on: ${new Date().toLocaleString()}</div>
+        </body>
+      </html>
+    `;
+
+    printWindow?.document.write(tableHtml);
+    printWindow?.document.close();
+    
+    setTimeout(() => {
+      printWindow?.print();
+      printWindow?.close();
+    }, 700);
+  }
+
+// --- EXPORT & PRINT LOGIC END ---
+// --- PAGINATION SETTINGS ---
+currentPage: number = 1;
+pageSize: number = 10;
+protected readonly Math = Math;
+
+// Table mein "filteredEmployees" ki jagah isko loop karna
+get paginatedEmployees(): Employee[] {
+  const startIndex = (this.currentPage - 1) * this.pageSize;
+  return this.filteredEmployees.slice(startIndex, startIndex + this.pageSize);
+}
+
+get totalPages(): number {
+  return Math.ceil(this.filteredEmployees.length / this.pageSize) || 1;
+}
+
+setPage(page: number) {
+  if (page < 1 || page > this.totalPages) return;
+  this.currentPage = page;
+  this.cdr.detectChanges(); // UI refresh ke liye
+}
+
+onPageSizeChange() {
+  this.currentPage = 1;
+  this.cdr.detectChanges();
 }
 }

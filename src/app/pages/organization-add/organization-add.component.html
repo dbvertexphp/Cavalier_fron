@@ -171,16 +171,44 @@
         </div>
       </div>
     </div>
-
-    <div class="bg-[#4a3f3f] p-4 flex justify-between items-center text-white">
-      <div class="font-bold uppercase tracking-widest text-[16px]">Organization Records</div>
-      <button (click)="openForm()"
-        class="bg-green-600 hover:bg-green-700 px-6 py-2 text-[14px] font-bold shadow-md flex items-center gap-2 rounded transition-all">
-        <span class="text-xl">+</span> ADD NEW ORGANIZATION
+<div class="bg-[#4a3f3f] p-4 flex justify-between items-center text-white">
+  <div class="font-bold uppercase tracking-widest text-[16px]">Organization Records</div>
+  
+  <div class="flex items-center gap-3">
+    
+    <div class="relative inline-block">
+      <button type="button" (click)="toggleExportMenu(); $event.stopPropagation()"
+        class="bg-blue-600 hover:bg-blue-700 px-4 py-2 text-[14px] font-bold shadow-md flex items-center gap-2 rounded transition-all">
+        <span>💾</span> EXPORT
+        <span [class.rotate-180]="isExportOpen" class="transition-transform text-[10px] ml-1">▼</span>
       </button>
+
+      <div *ngIf="isExportOpen"
+        class="absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded shadow-2xl z-[100] border border-gray-200 overflow-hidden">
+        <button type="button" (click)="printData()"
+          class="w-full text-left px-4 py-3 hover:bg-gray-100 flex items-center gap-2 border-b border-gray-100">
+          <span>🖨️</span> Print Records
+        </button>
+        <button type="button" (click)="downloadPDF()"
+          class="w-full text-left px-4 py-3 hover:bg-gray-100 flex items-center gap-2">
+          <span>📄</span> Download as PDF
+        </button>
+        <button type="button" (click)="downloadExcel()"
+          class="w-full text-left px-4 py-3 hover:bg-gray-100 flex items-center gap-2">
+          <span class="text-green-600">📊</span> Download as Excel
+        </button>
+      </div>
     </div>
 
-    <div class="overflow-x-auto">
+    <button (click)="openForm()"
+      class="bg-green-600 hover:bg-green-700 px-6 py-2 text-[14px] font-bold shadow-md flex items-center gap-2 rounded transition-all">
+      <span class="text-xl">+</span> ADD NEW ORGANIZATION
+    </button>
+    
+  </div>
+</div>
+
+    <div class="overflow-x-auto" #tableToExport id="printable-table">
       <table class="w-full border-collapse">
         <thead>
           <tr class="bg-gray-200 text-gray-700 uppercase text-[13px] border-b-2 border-gray-300">
@@ -189,11 +217,11 @@
             <th class="p-5 text-left font-bold">Alias</th>
             <th class="p-5 text-left font-bold">Type</th>
             <th class="p-5 text-left font-bold">Location</th>
-            <th class="p-5 text-center font-bold sticky right-0 bg-gray-200 border-l shadow-sm">Action</th>
+            <th class="p-5 text-center font-bold sticky right-0 bg-gray-200 border-l shadow-sm no-export">Action</th>
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          <tr *ngFor="let org of organizations" class="hover:bg-blue-50 transition-colors text-gray-800">
+          <tr *ngFor="let org of paginatedOrganizations"  class="hover:bg-blue-50 transition-colors text-gray-800">
               <td class="p-5 font-bold text-blue-700 uppercase">{{org.id}}</td>
             <td class="p-5 font-bold text-blue-700 uppercase">{{org.orgName}}</td>
             <td class="p-5 font-medium">{{org.alias}}</td>
@@ -204,8 +232,8 @@
             </td>
             <td class="p-5">{{org.city}}</td>
             <td class="p-5 sticky right-0 bg-white border-l text-center">
-              <button (click)="editOrg(org)" class="text-blue-600 mr-4 font-bold hover:underline">EDIT</button>
-              <button (click)="deleteOrg(org.id)" class="text-red-600 font-bold hover:underline">DELETE</button>
+              <button (click)="editOrg(org)" class="text-blue-600 mr-4 font-bold hover:underline no-export">EDIT</button>
+              <button (click)="deleteOrg(org.id)" class="text-red-600 font-bold hover:underline no-export">DELETE</button>
             </td>
           </tr>
           <tr *ngIf="organizations.length === 0">
@@ -222,6 +250,48 @@
   </tr>
         </tbody>
       </table>
+      <div class="flex justify-between items-center bg-white p-4 border-t border-gray-200 mt-2 shadow-sm rounded-b-lg no-export" *ngIf="organizations.length > 0">
+    <div class="text-[12px] text-gray-600 font-medium">
+      Showing 
+      <span class="font-bold text-gray-800">{{ (currentPage - 1) * pageSize + 1 }}</span> 
+      to 
+      <span class="font-bold text-gray-800">{{ Math.min(currentPage * pageSize, organizations.length) }}</span> 
+      of 
+      <span class="font-bold text-gray-800">{{ organizations.length }}</span> 
+      Organizations
+    </div>
+
+    <div class="flex items-center gap-2">
+      <button (click)="setPage(1)" [disabled]="currentPage === 1"
+        class="p-2 text-gray-500 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed">
+        ««
+      </button>
+
+      <button (click)="setPage(currentPage - 1)" [disabled]="currentPage === 1"
+        class="px-4 py-1 text-[11px] font-bold uppercase border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+        Prev
+      </button>
+
+      <div class="flex items-center mx-2 shadow-sm border border-gray-200 rounded">
+        <span class="px-3 py-1 text-[12px] font-black bg-[#4a3f3f] text-white rounded-l">
+          {{currentPage}}
+        </span>
+        <span class="px-3 py-1 text-[12px] font-bold bg-gray-50 text-gray-600 rounded-r">
+          of {{totalPages}}
+        </span>
+      </div>
+
+      <button (click)="setPage(currentPage + 1)" [disabled]="currentPage === totalPages"
+        class="px-4 py-1 text-[11px] font-bold uppercase border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+        Next
+      </button>
+
+      <button (click)="setPage(totalPages)" [disabled]="currentPage === totalPages"
+        class="p-2 text-gray-500 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed">
+        »»
+      </button>
+    </div>
+  </div>
     </div>
   </div>
 

@@ -1,10 +1,12 @@
 
-  import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+  import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
   import { CommonModule } from '@angular/common';
   import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http'; 
   import { FormsModule } from '@angular/forms';
   import { Router, RouterModule } from '@angular/router';
   import { environment } from '../../../environments/environment';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
   @Component({
     selector: 'app-inquiry',
@@ -657,6 +659,169 @@ onSearch() {
         this.cdr.detectChanges();
       }
     });
+}
+// --- Variables ---
+isExportOpen = false;
+
+toggleExportMenu() {
+  this.isExportOpen = !this.isExportOpen;
+}
+
+// Click bahar ho toh dropdown band ho jaye
+@HostListener('document:click', ['$event'])
+onDocumentClick(event: MouseEvent) {
+  this.isExportOpen = false;
+}
+
+printInquiries() {
+  this.generatePrintLayout('print');
+}
+
+downloadInquiriesPDF() {
+  this.isExportOpen = false;
+  const printData = this.quotations.slice(0, 20);
+
+  const element = document.createElement('div');
+  element.style.padding = '40px';
+  element.style.width = '1000px'; // Fixed width for better resolution
+  element.style.position = 'absolute';
+  element.style.left = '-9999px';
+  element.style.backgroundColor = '#ffffff';
+
+  let rowsHtml = '';
+  printData.forEach((q, index) => {
+    // Zebra crossing effect (alternate row color)
+    const bgColor = index % 2 === 0 ? '#ffffff' : '#f9fafb';
+    rowsHtml += `
+      <tr style="background-color: ${bgColor}; border-bottom: 1px solid #e5e7eb;">
+        <td style="padding: 12px; color: #111827; font-weight: 600;">${q.id}</td>
+        <td style="padding: 12px; color: #4b5563;">${q.inquiryNo}</td>
+        <td style="padding: 12px; color: #4b5563;">${q.receivedDate ? new Date(q.receivedDate).toLocaleDateString('en-GB') : ''}</td>
+        <td style="padding: 12px; color: #111827; text-transform: uppercase; font-size: 11px;">${q.customerName || ''}</td>
+        <td style="padding: 12px; color: #4b5563;">${q.transportMode || ''}</td>
+        <td style="padding: 12px;">
+          <span style="background-color: #d1fae5; color: #065f46; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold;">
+            ${q.cargoStatus || 'PENDING'}
+          </span>
+        </td>
+      </tr>`;
+  });
+
+  element.innerHTML = `
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #4a3f3f; padding-bottom: 10px; margin-bottom: 20px;">
+        <div>
+          <h1 style="margin: 0; color: #4a3f3f; font-size: 24px; text-transform: uppercase; letter-spacing: 2px;">Inquiry Report</h1>
+          <p style="margin: 5px 0 0 0; color: #6b7280; font-size: 12px;">Generated on: ${new Date().toLocaleString()}</p>
+        </div>
+        <div style="text-align: right;">
+          <h3 style="margin: 0; color: #111827;">Cavalier Logistics</h3>
+          <p style="margin: 0; color: #6b7280; font-size: 10px;">Confidential Document</p>
+        </div>
+      </div>
+
+      <table style="width: 100%; border-collapse: collapse; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <thead>
+          <tr style="background-color: #4a3f3f; color: #ffffff; text-align: left;">
+            <th style="padding: 15px 12px; font-size: 12px; text-transform: uppercase; border-top-left-radius: 4px;">ID</th>
+            <th style="padding: 15px 12px; font-size: 12px; text-transform: uppercase;">Inquiry No</th>
+            <th style="padding: 15px 12px; font-size: 12px; text-transform: uppercase;">Date</th>
+            <th style="padding: 15px 12px; font-size: 12px; text-transform: uppercase;">Customer Name</th>
+            <th style="padding: 15px 12px; font-size: 12px; text-transform: uppercase;">Mode</th>
+            <th style="padding: 15px 12px; font-size: 12px; text-transform: uppercase; border-top-right-radius: 4px;">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rowsHtml}
+        </tbody>
+      </table>
+
+      <div style="margin-top: 30px; text-align: center; border-top: 1px solid #e5e7eb; padding-top: 10px;">
+        <p style="color: #9ca3af; font-size: 10px;">This is a system generated report and does not require a physical signature.</p>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(element);
+
+  html2canvas(element, { 
+    scale: 3, // Higher scale for crystal clear text
+    useCORS: true,
+    backgroundColor: '#ffffff'
+  }).then(canvas => {
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('l', 'mm', 'a4');
+    
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+    // Center the image if it's smaller than the page
+    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+    pdf.save(`Inquiry_Summary_${new Date().getTime()}.pdf`);
+    
+    document.body.removeChild(element);
+  });
+}
+
+private generatePrintLayout(mode: string) {
+  this.isExportOpen = false;
+  const printData = this.quotations.slice(0, 20);
+  
+  let rows = '';
+  printData.forEach(q => {
+    rows += `
+      <tr>
+        <td>${q.id}</td>
+        <td><b>${q.inquiryNo}</b></td>
+        <td>${q.receivedDate ? new Date(q.receivedDate).toLocaleDateString('en-GB') : ''}</td>
+        <td style="text-transform: uppercase;">${q.customerName || ''}</td>
+        <td>${q.transportMode || ''}</td>
+        <td>${q.cargoStatus || ''}</td>
+      </tr>`;
+  });
+
+  const printWindow = window.open('', '_blank');
+  if (printWindow) {
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Inquiry_Records_${new Date().getTime()}</title>
+          <style>
+            @page { size: A4 landscape; margin: 10mm; }
+            body { font-family: 'Segoe UI', sans-serif; margin: 20px; color: #333; }
+            h2 { text-align: center; text-transform: uppercase; color: #4a3f3f; border-bottom: 2px solid #4a3f3f; padding-bottom: 10px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid #ccc; padding: 12px 8px; text-align: left; font-size: 12px; }
+            th { background-color: #f4f4f4; font-weight: bold; }
+            tr:nth-child(even) { background-color: #fafafa; }
+          </style>
+        </head>
+        <body>
+          <h2>Inquiry Records Summary</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Inquiry No</th>
+                <th>Date</th>
+                <th>Customer Name</th>
+                <th>Mode</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+          <script>
+            window.onload = function() { 
+              window.print(); 
+              setTimeout(function() { window.close(); }, 100); 
+            };
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  }
 }
 }
   

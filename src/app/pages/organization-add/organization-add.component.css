@@ -1,0 +1,21 @@
+@media print {
+  /* Poori screen hide karo */
+  body * {
+    visibility: hidden;
+  }
+  /* Sirf table container aur uske bacchon ko dikhao */
+  #printable-data, #printable-data * {
+    visibility: visible;
+  }
+  /* Table ko page ke top-left mein set karo */
+  #printable-data {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  /* Agar table mein 'Action' column (Edit/Delete) nahi chahiye print mein */
+  .no-print {
+    display: none !important;
+  }
+}

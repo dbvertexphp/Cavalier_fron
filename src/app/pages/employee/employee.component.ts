@@ -325,6 +325,18 @@ this.selectedRole = emp.roleId ?? null;    this.isAccountActive = emp.isActive !
   openViewModal(emp: Employee): void {
     this.selectedEmployee = emp;
     this.isViewModalOpen = true;
+    this.selectedEmployee = emp;
+  this.isViewModalOpen = true;
+
+  // Purana data clear karo taaki naya dikhe
+  this.userEducationList = [];
+  this.userExperienceList = [];
+
+  if (emp.id) {
+    const id = Number(emp.id);
+    this.getEmployeeEducation(id);
+    this.getEmployeeExperience(id); // Dono call kar diye
+  }
   }
 
   closeViewModal(): void {
@@ -639,5 +651,29 @@ setPage(page: number) {
 onPageSizeChange() {
   this.currentPage = 1;
   this.cdr.detectChanges();
+}
+// ✅ Sahi declaration class ke andar
+userEducationList: any[] = []; 
+userExperienceList: any[] = [];
+// 🎓 Education fetch karne ke liye
+getEmployeeEducation(userId: number): void {
+  this.http.get<any[]>(`${environment.apiUrl}/UserEducation/user/${userId}`).subscribe({
+    next: (res) => {
+      this.userEducationList = res || [];
+      this.cdr.detectChanges();
+    },
+    error: (err) => console.error("❌ Education Error:", err)
+  });
+}
+
+// 💼 Experience fetch karne ke liye
+getEmployeeExperience(userId: number): void {
+  this.http.get<any[]>(`${environment.apiUrl}/UserExperience/user/${userId}`).subscribe({
+    next: (res) => {
+      this.userExperienceList = res || [];
+      this.cdr.detectChanges();
+    },
+    error: (err) => console.error("❌ Experience Error:", err)
+  });
 }
 }

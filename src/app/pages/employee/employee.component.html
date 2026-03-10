@@ -784,74 +784,11 @@
                               </tr>
                             </thead>
                             <tbody class="text-slate-700">
-                              <tr class="border-b last:border-0">
-                                <td class="py-2 font-medium">10th</td>
-                                <td>
-                                  {{ selectedEmployee?.tenthYear || "---" }}
-                                </td>
-                                <td>
-                                  {{
-                                  selectedEmployee?.tenthPercentage
-                                  ? selectedEmployee?.tenthPercentage + "%"
-                                  : "---"
-                                  }}
-                                </td>
-                                <td>
-                                  <a *ngIf="selectedEmployee?.tenthDoc" [href]="selectedEmployee?.tenthDoc"
-                                    target="_blank" class="text-blue-600 hover:underline text-xs">View File</a>
-                                </td>
-                              </tr>
-                              <tr class="border-b last:border-0">
-                                <td class="py-2 font-medium">12th</td>
-                                <td>
-                                  {{ selectedEmployee?.twelfthYear || "---" }}
-                                </td>
-                                <td>
-                                  {{
-                                  selectedEmployee?.twelfthPercentage
-                                  ? selectedEmployee?.twelfthPercentage +
-                                  "%"
-                                  : "---"
-                                  }}
-                                </td>
-                                <td>
-                                  <a *ngIf="selectedEmployee?.twelfthDoc" [href]="selectedEmployee?.twelfthDoc"
-                                    target="_blank" class="text-blue-600 hover:underline text-xs">View File</a>
-                                </td>
-                              </tr>
-                              <tr class="border-b last:border-0">
-                                <td class="py-2 font-medium">Graduation</td>
-                                <td>
-                                  {{
-                                  selectedEmployee?.graduationYear || "---"
-                                  }}
-                                </td>
-                                <td>
-                                  {{
-                                  selectedEmployee?.graduationPercentage
-                                  ? selectedEmployee?.graduationPercentage +
-                                  "%"
-                                  : "---"
-                                  }}
-                                </td>
-                                <td>
-                                  <a *ngIf="selectedEmployee?.graduationDoc" [href]="selectedEmployee?.graduationDoc"
-                                    target="_blank" class="text-blue-600 hover:underline text-xs">View File</a>
-                                </td>
-                              </tr>
-                              <tr *ngIf="selectedEmployee?.pgPercentage" class="border-b last:border-0">
-                                <td class="py-2 font-medium">
-                                  Post Graduation
-                                </td>
-                                <td>{{ selectedEmployee?.pgYear || "---" }}</td>
-                                <td>
-                                  {{ selectedEmployee?.pgPercentage + "%" }}
-                                </td>
-                                <td>
-                                  <a *ngIf="selectedEmployee?.pgDoc" [href]="selectedEmployee?.pgDoc" target="_blank"
-                                    class="text-blue-600 hover:underline text-xs">View File</a>
-                                </td>
-                              </tr>
+                             <tr *ngFor="let edu of userEducationList">
+  <td>{{ edu.qualification }}</td>
+  <td>{{ edu.passingYear }}</td>
+  <td>{{ edu.percentage }}%</td>
+</tr>
                             </tbody>
                           </table>
                         </div>

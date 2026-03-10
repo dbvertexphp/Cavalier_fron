@@ -337,6 +337,7 @@ selectBranch(branch: any) {
         new: false
       });
     }
+    
   }
 
 

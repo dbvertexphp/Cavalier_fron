@@ -389,7 +389,6 @@ onSubmit() {
     if (value !== null && value !== undefined && value !== '') {
       formData.append(key, value);
     }
-    // ❌ YAHAN SE 'this.saveEducation()' HATA DIYA HAI
   });
 
   // ... (Baki saara Permission, Education Handling, Experience logic jo aapne likha hai waisa hi rahega)
@@ -404,16 +403,77 @@ onSubmit() {
       error: err => console.error(err)
     });
   } else {
-    // Pehle main user register hoga
+    // 1. Pehle main user register hoga
     this.userService.registerUser(this.userForm.value).subscribe({
-      next: () => {
-        // ✅ USER SAVE HONE KE BAAD EDUCATION SAVE KARO
-        this.saveEducation(); 
-        alert('User & Education Saved Successfully');
+      next: (res: any) => {
+        console.log('User Saved Successfully', res);
+
+        // 2. Response se UserId nikalna (Check karein aapka backend 'id' bhej raha hai ya 'userId')
+        const newUserId = res.id || res.userId || (res.data && res.data.id);
+
+        if (newUserId) {
+          // ✅ Ab is ID ko lekar education save karo
+          this.saveEducation(newUserId); 
+          alert('User & Education Saved Successfully');
+        } else {
+          // Agar ID nahi mili toh purane tarike se try karega (lekin UserId required error aa sakta hai)
+          this.saveEducation(newUserId);
+          alert('User Saved, but ID issue for Education');
+        }
+
         this.router.navigate(['/dashboard/hr/employee-master']);
       },
-      error: err => console.error(err)
+      error: err => console.error('Register API Error:', err)
     });
+  }
+}
+
+// 3. saveEducation ko UserId receive karne ke liye update kijiye
+async saveEducation(userId: any) {
+  const raw = this.userForm.getRawValue();
+
+  // 1. Saare records ko ek array mein prepare karein backend DTO ke names ke hisaab se
+  const records = [
+    { name: raw.tenthName, year: raw.tenthYear, pct: raw.tenthPercentage, file: raw.tenthMarksheet },
+    { name: raw.twelfthName, year: raw.twelfthYear, pct: raw.twelfthPercentage, file: raw.twelfthMarksheet },
+    { name: raw.graduationName, year: raw.graduationYear, pct: raw.graduationPercentage, file: raw.graduationMarksheet },
+    { name: raw.postGraduationName, year: raw.postGraduationYear, pct: raw.postGraduationPercentage, file: raw.postGraduationMarksheet }
+  ];
+
+  // Dynamic fields (FormArray) ko bhi add karein
+  raw.educations?.forEach((edu: any) => {
+    records.push({
+      name: edu.educationName,
+      year: edu.year,
+      pct: edu.percentage,
+      file: edu.marksheet
+    });
+  });
+
+  // 2. Loop chala kar har ek record ke liye API hit karein
+  for (const item of records) {
+    // Sirf tab bhejenge jab data bhara ho (Qualification mandatory hai)
+    if (item.name && (item.year || item.pct || item.file)) {
+      const formData = new FormData();
+      
+      // ✅ EXACT MATCH WITH YOUR EducationUploadDto
+      formData.append('UserId', userId.toString());
+      formData.append('EducationName', item.name); // DTO: EducationName
+      formData.append('PassingYear', item.year || ''); // DTO: PassingYear
+      formData.append('Percentage', item.pct || '');  // DTO: Percentage
+      
+      if (item.file instanceof File) {
+        formData.append('MarksheetFile', item.file); // DTO: MarksheetFile
+      }
+
+     try {
+  // ✅ Hardcoded URL ko environment variable se replace kiya
+  await this.http.post(`${environment.apiUrl}/UserEducation/add`, formData).toPromise();
+  console.log(`✅ ${item.name} saved successfully`);
+} catch (err) {
+  console.error(`❌ Error saving ${item.name}:`, err);
+}
+    }
   }
 }
 
@@ -431,46 +491,46 @@ onSubmit() {
       this.isBranchForm ? '/dashboard/branch' : '/dashboard/hr/employee-master'
     ]);
   }
-  saveEducation() {
-  const formData = new FormData();
-  const raw = this.userForm.getRawValue();
+//   saveEducation() {
+//   const formData = new FormData();
+//   const raw = this.userForm.getRawValue();
 
-  // 1. Static Education Data (Jo aapne payload mein bheja hai)
-  const staticEdu = [
-    { prefix: 'tenth', name: raw.tenthName, year: raw.tenthYear, pct: raw.tenthPercentage, file: raw.tenthMarksheet },
-    { prefix: 'twelfth', name: raw.twelfthName, year: raw.twelfthYear, pct: raw.twelfthPercentage, file: raw.twelfthMarksheet },
-    { prefix: 'graduation', name: raw.graduationName, year: raw.graduationYear, pct: raw.graduationPercentage, file: raw.graduationMarksheet },
-    { prefix: 'postGraduation', name: raw.postGraduationName, year: raw.postGraduationYear, pct: raw.postGraduationPercentage, file: raw.postGraduationMarksheet }
-  ];
+//   // 1. Static Education Data (Jo aapne payload mein bheja hai)
+//   const staticEdu = [
+//     { prefix: 'tenth', name: raw.tenthName, year: raw.tenthYear, pct: raw.tenthPercentage, file: raw.tenthMarksheet },
+//     { prefix: 'twelfth', name: raw.twelfthName, year: raw.twelfthYear, pct: raw.twelfthPercentage, file: raw.twelfthMarksheet },
+//     { prefix: 'graduation', name: raw.graduationName, year: raw.graduationYear, pct: raw.graduationPercentage, file: raw.graduationMarksheet },
+//     { prefix: 'postGraduation', name: raw.postGraduationName, year: raw.postGraduationYear, pct: raw.postGraduationPercentage, file: raw.postGraduationMarksheet }
+//   ];
 
-  staticEdu.forEach(edu => {
-    if (edu.year || edu.pct || edu.file) {
-      // Backend naming convention ke hisaab se append karein
-      formData.append(`${edu.prefix}Name`, edu.name || '');
-      formData.append(`${edu.prefix}Year`, edu.year || '');
-      formData.append(`${edu.prefix}Percentage`, edu.pct || '');
-      if (edu.file instanceof File) {
-        formData.append(`${edu.prefix}Marksheet`, edu.file);
-      }
-    }
-  });
+//   staticEdu.forEach(edu => {
+//     if (edu.year || edu.pct || edu.file) {
+//       // Backend naming convention ke hisaab se append karein
+//       formData.append(`${edu.prefix}Name`, edu.name || '');
+//       formData.append(`${edu.prefix}Year`, edu.year || '');
+//       formData.append(`${edu.prefix}Percentage`, edu.pct || '');
+//       if (edu.file instanceof File) {
+//         formData.append(`${edu.prefix}Marksheet`, edu.file);
+//       }
+//     }
+//   });
 
-  // 2. Dynamic Educations (Agar user ne 'Add More' kiya ho)
-  raw.educations?.forEach((edu: any, i: number) => {
-    formData.append(`otherEducations[${i}].educationName`, edu.educationName);
-    formData.append(`otherEducations[${i}].year`, edu.year);
-    formData.append(`otherEducations[${i}].percentage`, edu.percentage);
-    if (edu.marksheet instanceof File) {
-      formData.append(`otherEducations[${i}].marksheet`, edu.marksheet);
-    }
-  });
+//   // 2. Dynamic Educations (Agar user ne 'Add More' kiya ho)
+//   raw.educations?.forEach((edu: any, i: number) => {
+//     formData.append(`otherEducations[${i}].educationName`, edu.educationName);
+//     formData.append(`otherEducations[${i}].year`, edu.year);
+//     formData.append(`otherEducations[${i}].percentage`, edu.percentage);
+//     if (edu.marksheet instanceof File) {
+//       formData.append(`otherEducations[${i}].marksheet`, edu.marksheet);
+//     }
+//   });
 
-  // Sabse important: Kya aapko UserId bhejna hai? 
-  // Agar user naya hai, toh pehle registerUser se ID lani hogi.
+//   // Sabse important: Kya aapko UserId bhejna hai? 
+//   // Agar user naya hai, toh pehle registerUser se ID lani hogi.
   
-  this.http.post('http://localhost:5000/api/UserEducation/add', formData).subscribe({
-    next: (res) => console.log('Education Saved!', res),
-    error: (err) => console.error('Education API Error:', err)
-  });
-}
+//   this.http.post('http://localhost:5000/api/UserEducation/add', formData).subscribe({
+//     next: (res) => console.log('Education Saved!', res),
+//     error: (err) => console.error('Education API Error:', err)
+//   });
+// }
 }

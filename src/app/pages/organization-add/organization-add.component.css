@@ -19,3 +19,13 @@
     display: none !important;
   }
 }
+/* Dragging ke waqt row ki styling */
+.cdk-drag-preview {
+  display: table;
+  background: white;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.cdk-drag-placeholder {
+  opacity: 0; /* Jahan se row uthayi wahan khali jagah dikhegi */
+}

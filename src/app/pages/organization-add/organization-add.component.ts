@@ -8,10 +8,13 @@ import { Router } from '@angular/router';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import * as XLSX from 'xlsx';
+import { moveItemInArray, transferArrayItem, CdkDragDrop } from '@angular/cdk/drag-drop';
+import { DragDropModule } from '@angular/cdk/drag-drop'; // 👈 Ye zaroori hai // Ye import ensure kar lena
+
 @Component({
   selector: 'app-organization-add',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, HttpClientModule], 
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, HttpClientModule,DragDropModule], 
   templateUrl: './organization-add.component.html',
   styleUrl: './organization-add.component.css',
 })
@@ -26,7 +29,27 @@ searchFilters: any = {
   status: 'Active' // 👈 Default 'Active' rakha hai
 };
 
- 
+ // ... baki variables ke niche
+showColumnModal = false;
+availableColumns: string[] = []; // Ye wo columns jo table mein nahi hain
+
+
+// Label to Property Mapping (Taki table auto-render ho sake)
+columnFieldMap: any = {
+  'Org ID': 'id',
+  'Org Name': 'orgName',
+  'Alias': 'alias',
+  'Type': 'selectedRoles',
+  'Location': 'city',
+  'Branch': 'branchName',
+  'Email': 'email',
+  'Telephone': 'telephone',
+  'Sales Person': 'salesPerson',
+  'Website': 'website'
+};
+
+// Default columns jo shuru mein dikhenge
+selectedColumns: string[] = ['Org ID', 'Org Name', 'Alias', 'Type', 'Location'];
   // Suggestions store karne ke liye arrays
   filteredOrgCodes: any[] = [];
   filteredBranches: any[] = [];
@@ -86,6 +109,7 @@ fetchNextBranch() {
   });
 }
   ngOnInit() {
+  this.loadColumnSettings();
     this.getOrgList();
     this.fetchNextBranch();
   }
@@ -838,4 +862,69 @@ setPage(page: number) {
   if (page < 1 || page > this.totalPages) return;
   this.currentPage = page;
 }
+// Modal Control
+// Modal Control
+openColumnModal() { 
+  console.log("Modal opening..."); // Debugging ke liye
+  this.showColumnModal = true; 
+  this.cdr.detectChanges(); // Force UI update
 }
+
+closeColumnModal() { 
+  this.showColumnModal = false; 
+  this.cdr.detectChanges();
+}
+
+// Settings Load karna (OnInit mein call karna)
+loadColumnSettings() {
+  this.http.get<any>(`${environment.apiUrl}/OrganizationColumnSettings`).subscribe({
+    next: (res) => {
+      if (res && res.selectedColumns) {
+        this.selectedColumns = JSON.parse(res.selectedColumns);
+        this.availableColumns = JSON.parse(res.availableColumns);
+      } else {
+        // Default Columns agar DB mein kuch na ho
+        this.selectedColumns = ['Org ID', 'Org Name', 'Type', 'Location'];
+        // availableColumns mein wo saare columns daal do jo selectedColumns mein nahi hain
+        const allPossibleColumns = Object.keys(this.columnFieldMap);
+        this.availableColumns = allPossibleColumns.filter(c => !this.selectedColumns.includes(c));
+      }
+      this.cdr.detectChanges();
+    }
+  });
+}
+/// Modal Control functions
+  toggleColumnModal() {
+    this.showColumnModal = !this.showColumnModal;
+  }
+
+  // Column Drag & Drop Logic
+  drop(event: CdkDragDrop<string[]>) {
+    if (event.previousContainer === event.container) {
+      moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
+    } else {
+      transferArrayItem(
+        event.previousContainer.data,
+        event.container.data,
+        event.previousIndex,
+        event.currentIndex
+      );
+    }
+
+    const payload = {
+      availableColumns: JSON.stringify(this.availableColumns),
+      selectedColumns: JSON.stringify(this.selectedColumns)
+    };
+    this.http.post(`${environment.apiUrl}/OrganizationColumnSettings/save`, payload).subscribe();
+  }
+
+  // Row Drag & Drop Logic (Yahi error de raha tha)
+  dropRow(event: CdkDragDrop<any[]>) {
+    const prevIndex = (this.currentPage - 1) * this.pageSize + event.previousIndex;
+    const currIndex = (this.currentPage - 1) * this.pageSize + event.currentIndex;
+
+    moveItemInArray(this.organizations, prevIndex, currIndex);
+    this.cdr.detectChanges();
+  }
+
+} // 👈 Ensure class ends here

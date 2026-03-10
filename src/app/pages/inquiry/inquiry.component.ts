@@ -1,21 +1,38 @@
-
-  import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
-  import { CommonModule } from '@angular/common';
-  import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http'; 
-  import { FormsModule } from '@angular/forms';
-  import { Router, RouterModule } from '@angular/router';
-  import { environment } from '../../../environments/environment';
+import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http'; 
+import { FormsModule } from '@angular/forms';
+import { Router, RouterModule } from '@angular/router';
+import { environment } from '../../../environments/environment';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import * as XLSX from 'xlsx';
-  @Component({
-    selector: 'app-inquiry',
-    standalone: true,
-    imports: [CommonModule, RouterModule, FormsModule, HttpClientModule],
-    templateUrl: './inquiry.component.html',
-    styleUrl: './inquiry.component.css',
-  })
+import { moveItemInArray, transferArrayItem, CdkDragDrop } from '@angular/cdk/drag-drop';
+import { DragDropModule } from '@angular/cdk/drag-drop'; // Ye import ensure karein
+
+@Component({
+  selector: 'app-inquiry',
+  standalone: true,
+  imports: [CommonModule, RouterModule, FormsModule, HttpClientModule, DragDropModule],
+  templateUrl: './inquiry.component.html',
+  styleUrl: './inquiry.component.css',
+})
   export class InquiryComponent implements OnInit {
+    // Labels ko backend properties se map karo (Apne model ke hisaab se check kar lena)
+columnFieldMap: any = {
+  'ID': 'id',
+  'Inquiry No': 'inquiryNo',
+  'Date': 'receivedDate',
+  'Customer': 'customerName',
+  'Mode': 'transportMode',
+  'Origin': 'originPort',
+  'Destination': 'destinationPort',
+  'Status': 'cargoStatus',
+  'Sales Person': 'salesPerson'
+};
+
+selectedColumns: string[] = ['ID', 'Inquiry No', 'Date', 'Customer', 'Status'];
+availableColumns: string[] = ['Mode', 'Origin', 'Destination', 'Sales Person'];
     isFormOpen = false;
     private apiUrl = `${environment.apiUrl}/Inquiry`;
 inquiries:any[]=[]
@@ -64,6 +81,7 @@ organizations: any[] = [];
     this.loadInquiryNumbers();
     this.loadCoordinators();
     this.loadBranches();
+    this.loadInquirySettings();
     }
     // --- Fetch Origins List ---
   fetchOrigins() {
@@ -887,6 +905,37 @@ onPageSizeChange() {
   this.currentPage = 1;
   this.cdr.detectChanges();
 }
+loadInquirySettings() {
+  this.http.get<any>(`${environment.apiUrl}/InquiryColumnSettings`).subscribe(res => {
+    if (res && res.selectedColumns) {
+      this.selectedColumns = JSON.parse(res.selectedColumns);
+      this.availableColumns = JSON.parse(res.availableColumns);
+    }
+  });
+}
+
+dropColumn(event: CdkDragDrop<string[]>) {
+  if (event.previousContainer === event.container) {
+    moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
+  } else {
+    transferArrayItem(
+      event.previousContainer.data,
+      event.container.data,
+      event.previousIndex,
+      event.currentIndex
+    );
+  }
+
+  // Auto-save to Database
+  const payload = {
+    id: 1,
+    selectedColumns: JSON.stringify(this.selectedColumns),
+    availableColumns: JSON.stringify(this.availableColumns)
+  };
+  this.http.post(`${environment.apiUrl}/InquiryColumnSettings/save`, payload).subscribe();
+}
+// inquiry.component.ts ke andar
+showColumnModal: boolean = false; // Isko class properties mein add karein
 }
   
   

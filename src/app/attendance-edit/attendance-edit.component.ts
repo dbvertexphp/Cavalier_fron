@@ -11,21 +11,25 @@ import { ActivatedRoute, Router } from '@angular/router';
   styleUrl: './attendance-edit.component.css',
 })
 export class AttendanceEditComponent implements OnInit {
-  // Initial structure for attendance to prevent undefined errors
+  
+  // Saare 10 points yahan professional structure mein hain
   attendance: any = {
     empId: '',
     name: '',
-    profile: 'assets/default-profile.png', // Default image placeholder
+    profile: 'assets/default-profile.png',
     department: '',
     designation: '',
+    branch: '',
+    shift: 'Morning',
     date: '',
     checkIn: '',
     checkOut: '',
-    status: 'Present',
-    late: 'No',
-    halfDay: 'No',
     workingHours: 0,
+    status: 'Present',
+    lateMinutes: 0,
+    earlyExitMinutes: 0,
     overtime: 0,
+    overtimeBy: '',
     mode: 'manual',
     remark: ''
   };
@@ -36,24 +40,27 @@ export class AttendanceEditComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // URL se ID nikalne ka sahi tarika
     const id = this.route.snapshot.paramMap.get('id');
-    console.log('Editing Attendance ID:', id);
-
-    // 🔥 API call yaha lagegi data fetch karne ke liye
-    // Example: this.attendanceService.getAttendanceById(id).subscribe(data => this.attendance = data);
+    
+    if (id) {
+      this.attendance.empId = id;
+      console.log('Fetching Attendance for:', id);
+      // Yahan API call aayegi: 
+      // this.service.getById(id).subscribe(data => this.attendance = data);
+    } else {
+      console.error('No ID found in URL!');
+    }
   }
 
   updateAttendance() {
-    console.log('Updated Attendance Data:', this.attendance);
-
-    // 🔥 API call yaha lagegi update karne ke liye
-    // this.attendanceService.updateAttendance(this.attendance).subscribe(...)
-
-    alert('Attendance Updated Successfully');
-    this.router.navigate(['/dashboard/attendance']);
+    console.log('Saving Data:', this.attendance);
+    // API Call logic yahan aayegi
+    alert('Attendance Record Updated Successfully!');
+    this.router.navigate(['/dashboard/attendance/list']);
   }
 
   cancel() {
-    this.router.navigate(['/dashboard/attendance']);
+    this.router.navigate(['/dashboard/attendance/list']);
   }
 }

@@ -247,10 +247,10 @@ export const routes: Routes = [
         component: AttendanceAddComponent,
         title: 'Add Attendance'
       },
-      {
-        path: 'attendance/edit',
-        component: AttendanceEditComponent,
-        title: 'Edit Attendance'
+      { 
+        path: 'attendance/edit/:id', 
+        component: AttendanceEditComponent, 
+        title: 'Edit Attendance' 
       },
       {
         path: 'shift/list',

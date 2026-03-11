@@ -407,12 +407,8 @@ loadPermissions(): void {
   });
 }
 toggleRemoteStatus(emp: any) {
-  // ngModel already changed the value of emp.isActive
-  // You just need to handle the API call or logic here
-  console.log('Employee:', emp.name, 'is now:', emp.isActive);
   
-  // Example: if you have a service, call it here
-  // this.employeeService.updateStatus(emp.id, emp.isActive).subscribe();
+  console.log('Employee:', emp.name, 'is now:', emp.isActive);
 }
   
   // downoad pdf code.............................................................idhar se hai  
@@ -657,23 +653,52 @@ userEducationList: any[] = [];
 userExperienceList: any[] = [];
 // 🎓 Education fetch karne ke liye
 getEmployeeEducation(userId: number): void {
-  this.http.get<any[]>(`${environment.apiUrl}/UserEducation/user/${userId}`).subscribe({
+  console.log("Fetching Education for UserID:", userId);
+  const url = `${environment.apiUrl}/UserEducation/user/${userId}`;
+
+  this.http.get<any[]>(url).subscribe({
     next: (res) => {
+      console.log("🎓 Education API Response:", res);
+      // Data assign karein
       this.userEducationList = res || [];
+      
+      // UI refresh force karein
       this.cdr.detectChanges();
     },
-    error: (err) => console.error("❌ Education Error:", err)
+    error: (err) => {
+      console.error("❌ Education Fetch Error:", err);
+      this.userEducationList = [];
+    }
   });
 }
 
 // 💼 Experience fetch karne ke liye
 getEmployeeExperience(userId: number): void {
-  this.http.get<any[]>(`${environment.apiUrl}/UserExperience/user/${userId}`).subscribe({
+  // Console log check karein ki correct UserId pass ho raha hai ya nahi
+  console.log("Fetching experience for UserID:", userId);
+
+  // URL verify karein: Kya apka controller 'UserExperience' hai ya 'User'?
+  const url = `${environment.apiUrl}/UserExperience/user/${userId}`;
+
+  this.http.get<any[]>(url).subscribe({
     next: (res) => {
+      console.log("🔥 Experience API Response:", res);
+      
+      // Data ko directly userExperienceList mein dalein
       this.userExperienceList = res || [];
+      
+      // Agar aap selectedEmployee.experiences ko use kar rahe hain HTML mein, 
+      // toh usko bhi update kar dein sync rakhne ke liye
+      if (this.selectedEmployee) {
+        this.selectedEmployee.experiences = [...this.userExperienceList];
+      }
+
       this.cdr.detectChanges();
     },
-    error: (err) => console.error("❌ Experience Error:", err)
+    error: (err) => {
+      console.error("❌ Experience Fetch Error:", err);
+      this.userExperienceList = [];
+    }
   });
 }
 }

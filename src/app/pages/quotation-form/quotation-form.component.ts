@@ -5,6 +5,7 @@ import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+
 import {
 CdkDragDrop,
 moveItemInArray,
@@ -38,6 +39,8 @@ companyServices:any[]=[]
   leadSearchTerm = '';
   allInquiries: any[] = [];
 filteredInquiries: any[] = [];
+services: any[] = [];
+private serviceApiUrl = environment.apiUrl + '/CompanyService';
 showInquiryDropdown: boolean = false;
   // --- Search & Advanced Filter Logic (Fixes 'filters' errors) ---
   filters: any = {
@@ -52,10 +55,150 @@ showInquiryDropdown: boolean = false;
   quotation: any = this.resetQuotationModel();
 
   // --- Revenue & Cost Logic ---
-  revenueRows: any[] = [];
-  costRows: any[] = [];
-  pnLRows: any[] = [];
-
+revenueRows: any[] = [{ lob: '', chargeName: '', chargeType: 'Prepaid', basis: '', currency: 'USD', rate: 0, exchangeRate: 1, amount: 0 }];
+costRows: any[] = [{ lob: '', chargeName: '', chargeType: 'Prepaid', basis: '', currency: 'USD', rate: 0, exchangeRate: 1, amount: 0 }];
+pnLRows: any[] = [];
+currencies = [
+ { value: 'USD', label: 'US dollar' },
+    { value: 'EUR', label: 'Euro' },
+    { value: 'INR', label: 'Indian rupee' },
+    { value: 'AED', label: 'United Arab Emirates dirham' },
+    { value: 'GBP', label: 'Pound sterling' },
+    { value: 'JPY', label: 'Japanese yen' },
+    { value: 'AFN', label: 'Afghan afghani' },
+    { value: 'ALL', label: 'Albanian lek' },
+    { value: 'AMD', label: 'Armenian dram' },
+    { value: 'ANG', label: 'Netherlands Antillean guilder' },
+    { value: 'AOA', label: 'Angolan kwanza' },
+    { value: 'ARS', label: 'Argentine peso' },
+    { value: 'AUD', label: 'Australian dollar' },
+    { value: 'AWG', label: 'Aruban florin' },
+    { value: 'AZN', label: 'Azerbaijani manat' },
+    { value: 'BAM', label: 'Bosnia and Herzegovina convertible mark' },
+    { value: 'BBD', label: 'Barbadian dollar' },
+    { value: 'BDT', label: 'Bangladeshi taka' },
+    { value: 'BGN', label: 'Bulgarian lev' },
+    { value: 'BHD', label: 'Bahraini dinar' },
+    { value: 'BIF', label: 'Burundian franc' },
+    { value: 'BMD', label: 'Bermudian dollar' },
+    { value: 'BND', label: 'Brunei dollar' },
+    { value: 'BOB', label: 'Bolivian boliviano' },
+    { value: 'BRL', label: 'Brazilian real' },
+    { value: 'BSD', label: 'Bahamian dollar' },
+    { value: 'BTN', label: 'Bhutanese ngultrum' },
+    { value: 'BWP', label: 'Botswana pula' },
+    { value: 'BYN', label: 'Belarusian ruble' },
+    { value: 'BZD', label: 'Belize dollar' },
+    { value: 'CAD', label: 'Canadian dollar' },
+    { value: 'CDF', label: 'Congolese franc' },
+    { value: 'CHF', label: 'Swiss franc' },
+    { value: 'CLP', label: 'Chilean peso' },
+    { value: 'CNY', label: 'Chinese yuan' },
+    { value: 'COP', label: 'Colombian peso' },
+    { value: 'CRC', label: 'Costa Rican colón' },
+    { value: 'CUC', label: 'Cuban convertible peso' },
+    { value: 'CUP', label: 'Cuban peso' },
+    { value: 'CVE', label: 'Cape Verdean escudo' },
+    { value: 'CZK', label: 'Czech koruna' },
+    { value: 'DJF', label: 'Djiboutian franc' },
+    { value: 'DKK', label: 'Danish krone' },
+    { value: 'DOP', label: 'Dominican peso' },
+    { value: 'DZD', label: 'Algerian dinar' },
+    { value: 'EGP', label: 'Egyptian pound' },
+    { value: 'ERN', label: 'Eritrean nakfa' },
+    { value: 'ETB', label: 'Ethiopian birr' },
+    { value: 'FJD', label: 'Fijian dollar' },
+    { value: 'FKP', label: 'Falkland Islands pound' },
+    { value: 'GEL', label: 'Georgian lari' },
+    { value: 'GGP', label: 'Guernsey pound' },
+    { value: 'GHS', label: 'Ghanaian cedi' },
+    { value: 'GIP', label: 'Gibraltar pound' },
+    { value: 'GMD', label: 'Gambian dalasi' },
+    { value: 'GNF', label: 'Guinean franc' },
+    { value: 'GTQ', label: 'Guatemalan quetzal' },
+    { value: 'GYD', label: 'Guyanese dollar' },
+    { value: 'HKD', label: 'Hong Kong dollar' },
+    { value: 'HNL', label: 'Honduran lempira' },
+    { value: 'HRK', label: 'Croatian kuna' },
+    { value: 'HTG', label: 'Haitian gourde' },
+    { value: 'HUF', label: 'Hungarian forint' },
+    { value: 'IDR', label: 'Indonesian rupiah' },
+    { value: 'ILS', label: 'Israeli new shekel' },
+    { value: 'IMP', label: 'Manx pound' },
+    { value: 'IQD', label: 'Iraqi dinar' },
+    { value: 'IRR', label: 'Iranian rial' },
+    { value: 'ISK', label: 'Icelandic króna' },
+    { value: 'JEP', label: 'Jersey pound' },
+    { value: 'JMD', label: 'Jamaican dollar' },
+    { value: 'JOD', label: 'Jordanian dinar' },
+    { value: 'KES', label: 'Kenyan shilling' },
+    { value: 'KGS', label: 'Kyrgyzstani som' },
+    { value: 'KHR', label: 'Cambodian riel' },
+    { value: 'KID', label: 'Kiribati dollar' },
+    { value: 'KMF', label: 'Comorian franc' },
+    { value: 'KPW', label: 'North Korean won' },
+    { value: 'KRW', label: 'South Korean won' },
+    { value: 'KWD', label: 'Kuwaiti dinar' },
+    { value: 'KYD', label: 'Cayman Islands dollar' },
+    { value: 'KZT', label: 'Kazakhstani tenge' },
+    { value: 'LAK', label: 'Lao kip' },
+    { value: 'LBP', label: 'Lebanese pound' },
+    { value: 'LKR', label: 'Sri Lankan rupee' },
+    { value: 'LRD', label: 'Liberian dollar' },
+    { value: 'LSL', label: 'Lesotho loti' },
+    { value: 'LYD', label: 'Libyan dinar' },
+    { value: 'MAD', label: 'Moroccan dirham' },
+    { value: 'MDL', label: 'Moldovan leu' },
+    { value: 'MGA', label: 'Malagasy ariary' },
+    { value: 'MKD', label: 'Macedonian denar' },
+    { value: 'MMK', label: 'Burmese kyat' },
+    { value: 'MNT', label: 'Mongolian tögrög' },
+    { value: 'MOP', label: 'Macanese pataca' },
+    { value: 'MRU', label: 'Mauritanian ouguiya' },
+    { value: 'MUR', label: 'Mauritian rupee' },
+    { value: 'MVR', label: 'Maldivian rufiyaa' },
+    { value: 'MWK', label: 'Malawian kwacha' },
+    { value: 'MXN', label: 'Mexican peso' },
+    { value: 'MYR', label: 'Malaysian ringgit' },
+    { value: 'MZN', label: 'Mozambican metical' },
+    { value: 'NAD', label: 'Namibian dollar' },
+    { value: 'NGN', label: 'Nigerian naira' },
+    { value: 'NIO', label: 'Nicaraguan córdoba' },
+    { value: 'NOK', label: 'Norwegian krone' },
+    { value: 'NPR', label: 'Nepalese rupee' },
+    { value: 'NZD', label: 'New Zealand dollar' },
+    { value: 'OMR', label: 'Omani rial' },
+    { value: 'PAB', label: 'Panamanian balboa' },
+    { value: 'PEN', label: 'Peruvian sol' },
+    { value: 'PGK', label: 'Papua New Guinean kina' },
+    { value: 'PHP', label: 'Philippine peso' },
+    { value: 'PKR', label: 'Pakistani rupee' },
+    { value: 'PLN', label: 'Polish złoty' },
+    { value: 'PYG', label: 'Paraguayan guaraní' },
+    { value: 'QAR', label: 'Qatari riyal' },
+    { value: 'RON', label: 'Romanian leu' },
+    { value: 'RSD', label: 'Serbian dinar' },
+    { value: 'RUB', label: 'Russian ruble' },
+    { value: 'RWF', label: 'Rwandan franc' },
+    { value: 'SAR', label: 'Saudi riyal' },
+    { value: 'SEK', label: 'Swedish krona' },
+    { value: 'SGD', label: 'Singapore dollar' },
+    { value: 'SOS', label: 'Somali shilling' },
+    { value: 'SRD', label: 'Surinamese dollar' },
+    { value: 'SSP', label: 'South Sudanese pound' },
+    { value: 'THB', label: 'Thai baht' },
+    { value: 'TRY', label: 'Turkish lira' },
+    { value: 'TWD', label: 'New Taiwan dollar' },
+    { value: 'TZS', label: 'Tanzanian shilling' },
+    { value: 'UAH', label: 'Ukrainian hryvnia' },
+    { value: 'UGX', label: 'Ugandan shilling' },
+    { value: 'UYU', label: 'Uruguayan peso' },
+    { value: 'UZS', label: 'Uzbekistani soʻm' },
+    { value: 'VES', label: 'Venezuelan bolívar soberano' },
+    { value: 'VND', label: 'Vietnamese đồng' },
+    { value: 'ZAR', label: 'South African rand' },
+    { value: 'ZMW', label: 'Zambian kwacha' }
+];
   // P&L Totals
   totalRevFinal: number = 0;
   totalCostFinal: number = 0;
@@ -105,8 +248,19 @@ sortOrders:any = {};
     this.fetchInquiries();
     this.loadSearchSuggestions();
     this.fetchCompanyServices()
+    this.fetchLOBs();
   }
   
+fetchLOBs() {
+    this.http.get<any[]>(this.serviceApiUrl).subscribe({
+      next: (res) => {
+        this.services = res; 
+        console.log('LOBs loaded:', this.services); // Testing ke liye
+      },
+      error: (err) => console.error('Error fetching LOBs', err)
+    });
+  }
+
 fetchCompanyServices() {
         const url = `${environment.apiUrl}/CompanyService`;
         this.http.get<any[]>(url).subscribe({
@@ -536,64 +690,100 @@ const request = this.quotation.id > 0
     this.costRows = [{ lob: '', chargeName: '', chargeType: '', basis: '', currency: 'USD', rate: 0, exchangeRate: 1, amount: 0 }];
   }
 
-  // Revenue Methods (Fixes 'removeRevenueRow', 'removeRow' errors)
   addRevenueRow() {
-    this.revenueRows.push({ lob: '', chargeName: '', chargeType: '', basis: '', currency: 'USD', rate: 0, exchangeRate: 1, amount: 0 });
-  }
+  this.revenueRows.push({ lob: '', chargeName: '', chargeType: 'Prepaid', basis: '', currency: 'USD', rate: 0, exchangeRate: 1, amount: 0 });
+}
 
-  removeRevenueRow(index: number) {
-    if (this.revenueRows.length > 1) this.revenueRows.splice(index, 1);
-    this.calculateAll();
-  }
+removeRow(index: number) {
+  this.revenueRows.splice(index, 1);
+  this.calculateAll();
+}
 
-  // Alias for removeRow if used in HTML
-  removeRow(index: number) {
-    this.removeRevenueRow(index);
-  }
+calculateRevenue() {
+  this.revenueRows.forEach(row => {
+    row.amount = (row.rate || 0) * (row.exchangeRate || 1);
+  });
+  this.calculateAll();
+}
 
-  calculateRevenue() {
-    this.revenueRows.forEach(row => row.amount = (row.rate || 0) * (row.exchangeRate || 1));
-    this.calculateAll();
-  }
+// 3. Cost Functions
+addCostRow() {
+  this.costRows.push({ lob: '', chargeName: '', chargeType: 'Prepaid', basis: '', currency: 'USD', rate: 0, exchangeRate: 1, amount: 0 });
+}
 
-  // Cost Methods
-  addCostRow() {
-    this.costRows.push({ lob: '', chargeName: '', chargeType: '', basis: '', currency: 'USD', rate: 0, exchangeRate: 1, amount: 0 });
-  }
+removeCostRow(index: number) {
+  this.costRows.splice(index, 1);
+  this.calculateAll();
+}
 
-  removeCostRow(index: number) {
-    if (this.costRows.length > 1) this.costRows.splice(index, 1);
-    this.calculateAll();
-  }
+calculateCost() {
+  this.costRows.forEach(row => {
+    row.amount = (row.rate || 0) * (row.exchangeRate || 1);
+  });
+  this.calculateAll();
+}
 
-  calculateCost() {
-    this.costRows.forEach(row => row.amount = (row.rate || 0) * (row.exchangeRate || 1));
-    this.calculateAll();
-  }
+// 4. Profit & Loss Summary Logic (Real-time merge)
+calculateAll() {
+  this.pnLRows = [];
+  this.totalRevFinal = 0;
+  this.totalCostFinal = 0;
+ 
+  // Sare unique Charge Names nikalna dono tables se
+  const allCharges = new Set([
+    ...this.revenueRows.map(r => r.chargeName),
+    ...this.costRows.map(c => c.chargeName)
+  ]);
 
-  calculateAll() {
-    const allCharges = Array.from(new Set([
-      ...this.revenueRows.map(r => r.chargeName), 
-      ...this.costRows.map(c => c.chargeName)
-    ])).filter(name => name && name.trim() !== '');
+  allCharges.forEach(charge => {
+    if (!charge) return;
 
-    this.pnLRows = allCharges.map(charge => {
-      const rev = this.revenueRows.filter(r => r.chargeName === charge).reduce((sum, r) => sum + (r.amount || 0), 0);
-      const cost = this.costRows.filter(c => c.chargeName === charge).reduce((sum, c) => sum + (c.amount || 0), 0);
-      return { 
-        lob: '', 
-        chargeName: charge, 
-        revenue: rev, 
-        cost: cost, 
-        profit: rev - cost, 
-        profitPercent: cost !== 0 ? ((rev - cost) / cost) * 100 : 0 
-      };
+    const revForCharge = this.revenueRows
+      .filter(r => r.chargeName === charge)
+      .reduce((sum, curr) => sum + curr.amount, 0);
+
+    const costForCharge = this.costRows
+      .filter(c => c.chargeName === charge)
+      .reduce((sum, curr) => sum + curr.amount, 0);
+
+    const profit = revForCharge - costForCharge;
+    const profitPercent = revForCharge !== 0 ? (profit / revForCharge) * 100 : 0;
+    const revRow = this.revenueRows.find(r => r.chargeName === charge);
+const costRow = this.costRows.find(c => c.chargeName === charge);
+
+const finalLOB = revRow?.lob || costRow?.lob || 'N/A';
+    this.pnLRows.push({
+      lob: this.revenueRows.find(r => r.chargeName === charge)?.lob || 'N/A',
+      chargeName: charge,
+      revenue: revForCharge,
+      cost: costForCharge,
+      profit: profit,
+      profitPercent: profitPercent
     });
 
-    this.totalRevFinal = this.pnLRows.reduce((sum, p) => sum + p.revenue, 0);
-    this.totalCostFinal = this.pnLRows.reduce((sum, p) => sum + p.cost, 0);
-    this.totalProfitFinal = this.totalRevFinal - this.totalCostFinal;
-  }
+    this.totalRevFinal += revForCharge;
+    this.totalCostFinal += costForCharge;
+  });
+
+  this.totalProfitFinal = this.totalRevFinal - this.totalCostFinal;
+}
+
+// 5. Final Save Logic (JSON conversion for DTO)
+prepareQuotationPayload() {
+  const payload = {
+    // ... baki sari fields ...
+    revenueData: JSON.stringify(this.revenueRows),
+    costData: JSON.stringify(this.costRows),
+    totalRevenue: this.totalRevFinal,
+    totalCost: this.totalCostFinal,
+    totalProfit: this.totalProfitFinal,
+    profitPercentage: this.totalRevFinal !== 0 ? (this.totalProfitFinal / this.totalRevFinal) * 100 : 0
+  };
+  return payload;
+}
+
+
+
 
   // --- Dimension Modal Methods (Fixes 'openDimModal', 'addNewDimRow' etc.) ---
   openDimModal() { this.isDimModalOpen = true; }
@@ -1145,8 +1335,39 @@ setPage(page: number) {
   this.cdr.detectChanges();
 }
 
+
+
 onPageSizeChange() {
   this.currentPage = 1; // Size badalne par pehle page par le jao
   this.cdr.detectChanges();
+}
+
+showQuotePicker: boolean = false;
+setQuoteQuickDate(type: string) {
+  const today = new Date();
+  let targetDate = new Date();
+
+  switch (type) {
+    case 'tomorrow': targetDate.setDate(today.getDate() + 1); break;
+    case 'yesterday': targetDate.setDate(today.getDate() - 1); break;
+    case 'nextWeek': targetDate.setDate(today.getDate() + 7); break;
+    case 'lastWeek': targetDate.setDate(today.getDate() - 7); break;
+    case 'nextMonth': targetDate.setMonth(today.getMonth() + 1); break;
+    case 'lastMonth': targetDate.setMonth(today.getMonth() - 1); break;
+    default: targetDate = today; 
+  }
+
+  // Formatting to YYYY-MM-DD (Input field isko hi samajhti hai)
+  const year = targetDate.getFullYear();
+  const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+  const day = String(targetDate.getDate()).padStart(2, '0');
+  const formattedDate = `${year}-${month}-${day}`;
+
+  // Aapke ngModel waale variable ko update karega
+  // Line 1365 ko replace karein:
+this.searchFilters.validFrom = formattedDate as any;
+
+  this.showQuotePicker = false; // Menu band
+  this.cdr.detectChanges();     // UI refresh
 }
 }

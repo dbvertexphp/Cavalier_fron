@@ -391,8 +391,6 @@ onSubmit() {
     }
   });
 
-  // ... (Baki saara Permission, Education Handling, Experience logic jo aapne likha hai waisa hi rahega)
-
   // ================= API CALL =================
   if (this.isBranchForm) {
     this.branchService.addBranch(formData).subscribe({
@@ -408,17 +406,21 @@ onSubmit() {
       next: (res: any) => {
         console.log('User Saved Successfully', res);
 
-        // 2. Response se UserId nikalna (Check karein aapka backend 'id' bhej raha hai ya 'userId')
+        // 2. Response se UserId nikalna
         const newUserId = res.id || res.userId || (res.data && res.data.id);
 
         if (newUserId) {
-          // ✅ Ab is ID ko lekar education save karo
+          // ✅ Education save karo
           this.saveEducation(newUserId); 
-          alert('User & Education Saved Successfully');
+          
+          // ✅ NAYA: Ab experience bhi save hoga
+          this.saveExperience(newUserId);
+
+          alert('User, Education & Experience Saved Successfully');
         } else {
-          // Agar ID nahi mili toh purane tarike se try karega (lekin UserId required error aa sakta hai)
           this.saveEducation(newUserId);
-          alert('User Saved, but ID issue for Education');
+          this.saveExperience(newUserId);
+          alert('User Saved, but ID issue for sub-records');
         }
 
         this.router.navigate(['/dashboard/hr/employee-master']);
@@ -533,4 +535,30 @@ async saveEducation(userId: any) {
 //     error: (err) => console.error('Education API Error:', err)
 //   });
 // }
+async saveExperience(userId: any) {
+  const raw = this.userForm.getRawValue();
+  const experienceArray = raw.experiences || [];
+
+  for (const exp of experienceArray) {
+    // Sirf tab bhejenge jab kam se kam Organization Name bhara ho
+    if (exp.organizationName) {
+      const payload = {
+        userId: parseInt(userId),
+        organizationName: exp.organizationName,
+        designation: exp.designation,
+        yearsOfExperience: exp.totalYears, // Form mein 'totalYears' hai, DTO mein 'YearsOfExperience'
+        annualSalary: parseFloat(exp.annualSalary) || 0,
+        dateOfExit: exp.exitDate ? new Date(exp.exitDate).toISOString() : null,
+        verificationComplete: exp.verification || false
+      };
+
+      try {
+        await this.http.post(`${environment.apiUrl}/Experience/add`, payload).toPromise();
+        console.log(`✅ Experience with ${exp.organizationName} saved`);
+      } catch (err) {
+        console.error(`❌ Error saving experience:`, err);
+      }
+    }
+  }
+}
 }

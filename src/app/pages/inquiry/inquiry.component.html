@@ -499,13 +499,6 @@
     class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-gray-100 text-gray-600 cursor-not-allowed font-semibold">
 </div>
 
-
-
-             
-
-
-
-
    <div class="flex items-center gap-2">
   <label class="w-26 font-bold text-[#802a2a]">Location</label>
   <select [(ngModel)]="quotation.location" name="location" class="flex-1 border p-1.5 outline-none bg-white text-[12px]">
@@ -550,24 +543,18 @@
               </div>
             </div>
 
-
-
-            
-
-            <div class="grid grid-cols-2 items-center">
-            <label class="font-bold text-gray-700">Line Of Business</label>
-            
-            <select [(ngModel)]="quotation.description" name="description" class="border p-1.5 bg-white outline-none">
-              <option value="" disabled selected>Select Business Line</option>
-              
-              <option *ngFor="let service of companyServices" [value]="service.serviceName">
-                {{ service.serviceName }}
-              </option>
-              </select>
-          </div>
-          </div>
-
-          
+<div class="grid grid-cols-2 items-center">
+  <label class="font-bold text-gray-700">Line Of Business</label>
+  
+  <select [(ngModel)]="quotation.lineOfBusinessId" name="lineOfBusinessId" class="border p-1.5 bg-white outline-none">
+    <option [value]="null" disabled selected>Select Business Line</option>
+    
+    <option *ngFor="let service of companyServices" [value]="service.id">
+      {{ service.serviceName }}
+    </option>
+  </select>
+</div> 
+</div>
           <div class="space-y-2">
           <div class="grid grid-cols-2 items-center">
   <label class="font-bold text-red-700">Organization</label>
@@ -609,10 +596,12 @@
                 </svg>
               </div>
             </div>
+
+
             <div class="grid grid-cols-2 items-center">
               <label class="font-bold text-gray-700">Cargo Status</label>
               <div class="flex gap-1 items-center overflow-hidden">
-                <input type="date" [(ngModel)]="quotation.receivedDate" name="cargoStatusDate"
+                <input type="date" [(ngModel)]="quotation.cargoStatusDate" name="cargoStatusDate"
                   class="border p-1 text-[11px] outline-none w-[110px]">
                 <select [(ngModel)]="quotation.shipmentType" name="cargoStatus" class="border p-1 text-[11px] outline-none flex-1 min-w-0">
                   <option value="Ready By">Ready By</option>
@@ -630,7 +619,7 @@
           <div class="space-y-3">
             <div class="flex items-center">
               <label class="w-40 font-bold text-gray-700">Transport Mode</label>
-              <select [(ngModel)]="quotation.transportMode" name="transportMode" class="flex-1 border p-2 outline-none">
+              <select [(ngModel)]="quotation.TransportMode" name="transportMode" class="flex-1 border p-2 outline-none">
                 <option value="Air">Air</option>
                 <option value="Sea">Sea</option>
               </select>
@@ -717,11 +706,12 @@
 
           <div class="space-y-3">
             <div class="flex items-center"><label class="w-40 font-bold text-gray-700">Transport Type</label><select
-                class="flex-1 border p-2 outline-none">
-                <option>Export</option>
-                <option>Import</option>
+               [(ngModel)]="quotation.TransportType"  class="flex-1 border p-2 outline-none">
+                    <option value="Export">Export</option>
+                    <option value="Import">Import</option>
               </select></div>
 
+             
             <div class="flex items-center gap-2">
               <label class="w-40 font-bold text-gray-700">Num of Packages</label>
               <div class="flex flex-1">

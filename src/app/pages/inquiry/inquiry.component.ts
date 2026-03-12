@@ -82,8 +82,10 @@ organizations: any[] = [];
     this.loadCoordinators();
     this.loadBranches();
     this.loadInquirySettings();
+    this.fetchCompanyServices();
     }
-    // --- Fetch Origins List ---
+
+       // --- Fetch Origins List --
   fetchOrigins() {
     // API Path: /api/Origin
     const url = `${environment.apiUrl}/Origin`;
@@ -94,17 +96,17 @@ organizations: any[] = [];
   }
 
 fetchCompanyServices() {
-        const url = `${environment.apiUrl}/CompanyService`;
-        this.http.get<any[]>(url).subscribe({
-            next: (data) => {
-                this.companyServices = data;
-                console.log("Line of Business loaded:", data);
-                console.log(data,"line of business")
-                this.cdr.detectChanges();
-            },
-            error: (err) => console.error("Error loading LOB:", err)
-        });
-    }
+    const url = `${environment.apiUrl}/CompanyService`;
+    this.http.get<any[]>(url).subscribe({
+        next: (data) => {
+            this.companyServices = data;
+            // Ye logs help karenge check karne mein ki 'serviceName' aa raha hai ya nahi
+            console.log("Line of Business loaded:", data); 
+            this.cdr.detectChanges();
+        },
+        error: (err) => console.error("Error loading LOB:", err)
+    });
+}
  
 
   // --- Search Logic ---
@@ -250,21 +252,23 @@ onOriginSearchInput() {
      // --- FIXING DATA TYPES FOR DATABASE SYNC ---
 // --- FIXING DATA TYPES FOR DATABASE SYNC ---
 const payload = {
-  ...this.quotation,
+  ...this.quotation, 
   inquiryNo: String(this.inquiry.inquiryNo),
     customerName: this.inquiry.organization,
     // Organization Name map karein
     organization: this.inquiry.organization,
-    
+    shipmentType: this.quotation.shipmentType,
     // Baki fields (example)
     leadNo: this.inquiry.leadNo,
     origin: this.inquiry.origin,
+    TransportMode: this.quotation.transportMode,
+    TransportType: this.quotation.transportMode,
     
    
   // id: Number(this.quotation.id) || 0,
   
   // Foreign Key IDs - Hardcoded to 3 or null
-  lineOfBusinessId: Number(this.quotation.lineOfBusinessId) > 0 ? Number(this.quotation.lineOfBusinessId) : null,
+  lineOfBusinessId: this.quotation.lineOfBusinessId ? Number(this.quotation.lineOfBusinessId) : null,
   
   // YAHAN HEE HARDCODE KIYA HAI:
   commodityId: 3, // <--- Hardcoded value 3
@@ -358,7 +362,7 @@ const payload = {
         location: 'DELHI', 
         transportMode: 'Air', 
         shipmentType: 'International',
-        lineOfBusinessId: 1,
+        lineOfBusinessId: null,
         commodityId: 1,
         originId: 2, // Matches originid2 request
         portOfLoadingId: 1, // Matches pol1 request
@@ -366,6 +370,7 @@ const payload = {
         noOfPkgs: 1, 
         grossWeightKg: 0, 
         chargeableWeight: 0,
+        cargoStatusDate: new Date().toISOString().split('T')[0],
         dimensions: []
       };
     }
@@ -544,19 +549,7 @@ onClear() {
   
   console.log("Filters Cleared!");
 }
-// Pehle constructor me inject kar lena: constructor(private cd: ChangeDetectorRef, ...) {}
-// --- Quick Date Filter Logic ---
-// --- COMMAND: Pehle ye variable class me sabse upar add karein ---
-// --- COMMAND: Pehle searchFilters ko aise update karein ---
-// --- COMMAND: Phir ye methods add karein ---
 
-
-
-
-// 1. Variable add karein
-// --- 1. Variable define karein ---
-// TS file mein ye ensure karein
-// 1. Variable define karein
 showCustomPicker: boolean = false;
 
 // 2. Logic for all shortcuts
@@ -599,11 +592,6 @@ setQuickDate(type: string) {
   this.showCustomPicker = false;
   this.onSearch();
 }
-
-
-
-
-
 
 //-----/////
 onSearch() {

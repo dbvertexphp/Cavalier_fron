@@ -926,5 +926,34 @@ loadColumnSettings() {
     moveItemInArray(this.organizations, prevIndex, currIndex);
     this.cdr.detectChanges();
   }
+  // organization-add.component.ts ke andar:
+// Variables ke section mein:
+showOrgDatePicker: boolean = false;
+
+setOrgQuickDate(type: string) {
+  const today = new Date();
+  let targetDate = new Date();
+
+  switch (type) {
+    case 'tomorrow': targetDate.setDate(today.getDate() + 1); break;
+    case 'yesterday': targetDate.setDate(today.getDate() - 1); break;
+    case 'nextWeek': targetDate.setDate(today.getDate() + 7); break;
+    case 'lastWeek': targetDate.setDate(today.getDate() - 7); break;
+    default: targetDate = today; // Today
+  }
+
+  const year = targetDate.getFullYear();
+  const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+  const day = String(targetDate.getDate()).padStart(2, '0');
+  const formattedDate = `${year}-${month}-${day}`;
+
+  // Yahan 'as any' lagane se 'string is not assignable to null' wala error khatam ho jayega
+  if (this.searchFilters) {
+    (this.searchFilters as any).createdDate = formattedDate; 
+  }
+
+  this.showOrgDatePicker = false;
+  this.cdr.detectChanges(); // UI refresh ke liye
+}
 
 } // 👈 Ensure class ends here

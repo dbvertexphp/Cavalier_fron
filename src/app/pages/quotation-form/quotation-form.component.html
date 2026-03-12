@@ -73,23 +73,36 @@
 </div>
         </div>
 
-        <div class="space-y-2">
-          <div class="space-y-2">
-          <div class="flex items-center">
-  <label class="w-24 font-bold text-gray-600">Date</label>
-  <div 
-    class="flex-1 flex border border-gray-300 items-center pr-2 cursor-pointer bg-white"
-    (click)="datePicker.showPicker()">
-    <input 
-      #datePicker
-      type="date" 
-      [(ngModel)]="searchFilters.validFrom"
-      class="w-full p-1 outline-none text-[12px] cursor-pointer"
-      (focus)="datePicker.showPicker()">
-    <span class="text-gray-400 text-[12px]">📅</span>
+<div class="space-y-2">
+  <div class="flex items-center">
+    <label class="w-24 font-bold text-gray-600">Date</label>
+    <div 
+      class="flex-1 flex border border-gray-300 items-center pr-2 cursor-pointer bg-white relative h-[30px]"
+      (click)="datePicker.showPicker(); showQuotePicker = !showQuotePicker">
+      <input 
+        #datePicker
+        type="date" 
+        [(ngModel)]="searchFilters.validFrom"
+        class="w-full p-1 outline-none text-[12px] cursor-pointer"
+        (focus)="datePicker.showPicker()"
+        (change)="showQuotePicker = false">
+      <div *ngIf="showQuotePicker" 
+           (mouseleave)="showQuotePicker = false"
+           class="absolute top-0 right-full z-[1001] bg-white shadow-xl border border-gray-300 flex flex-col w-[115px] rounded-sm overflow-hidden mr-[-1px]">
+        <div class="bg-gray-100 px-2 py-1 text-[9px] font-bold text-gray-500 uppercase border-b">Quick Select</div>
+        <div (click)="setQuoteQuickDate('today'); $event.stopPropagation()" class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 transition-colors">Today</div>
+        <div (click)="setQuoteQuickDate('tomorrow'); $event.stopPropagation()" class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 text-blue-700 font-semibold transition-colors">Tomorrow</div>
+        <div (click)="setQuoteQuickDate('yesterday'); $event.stopPropagation()" class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 transition-colors">Yesterday</div>
+        <div (click)="setQuoteQuickDate('nextWeek'); $event.stopPropagation()" class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 transition-colors">Next Week</div>
+        <div (click)="setQuoteQuickDate('lastWeek'); $event.stopPropagation()" class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 transition-colors">Last Week</div>
+        <div (click)="setQuoteQuickDate('nextMonth'); $event.stopPropagation()" class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 transition-colors">Next Month</div>
+        <div (click)="setQuoteQuickDate('lastMonth'); $event.stopPropagation()" class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer transition-colors">Last Month</div>
+      </div>
+      <span class="text-gray-400 text-[12px]">📅</span>
+    </div>
   </div>
-</div>
-          </div>
+
+
 <div class="flex items-center">
   <label class="w-24 font-bold text-gray-600">Quoted By</label>
   <div class="flex-1 flex border border-gray-300 relative">
@@ -523,19 +536,18 @@ Cancel
         <option value="Multiple">Multiple</option>
       </select>
       
-      <label class="text-gray-700 font-bold mt-3 block mb-1 uppercase">Line Of Business</label>
-      <select name="lineOfBusiness" [(ngModel)]="quotation.lineOfBusiness" class="w-full border p-2 outline-none">
-        <option value="" disabled selected>Select Business Line</option>
-        <option value="Air Import">Air Import</option>
-        <option value="Air Export">Air Export</option>
-        <option value="Sea Import">Sea Import</option>
-        <option value="Sea Export">Sea Export</option>
-        <option value="Courier Import">Courier Import</option>
-        <option value="Courier Export">Courier Export</option>
-        <option value="Clearance Import">Clearance Import</option>
-        <option value="Clearance Export">Clearance Export</option>
-      </select>
-    </div>
+     
+      <!--<select name="lineOfBusiness" [(ngModel)]="quotation.lineOfBusiness" class="w-full border p-2 outline-none">
+        <select name="lineOfBusiness" [(ngModel)]="quotation.lineOfBusiness" (change)="onHeaderLOBChange()" class="w-full border p-2 outline-none">
+         </div>-->
+    <label class="text-gray-700 font-bold mt-3 block mb-1 uppercase">Line Of Business</label>
+    <select name="lineOfBusiness" [(ngModel)]="quotation.lineOfBusiness" (change)="onHeaderLOBChange()" class="w-full border p-2 outline-none">
+    <option value="" disabled selected>Select Business Line</option>
+    <option *ngFor="let s of companyServices" [value]="s.serviceName">
+      {{ s.serviceName }}
+    </option>
+</select>
+</div>
 
     <div>
      <label class="text-red-700 font-bold block mb-1 uppercase">
@@ -582,7 +594,7 @@ Cancel
       <input name="pricingBy" [(ngModel)]="quotation.pricingBy" class="w-full border p-2 mb-2 outline-none">
       
       <label class="text-gray-700 font-bold block mb-1 uppercase">Sales Coor.</label>
-      <select name="salesCoordinator" [(ngModel)]="quotation.salesCoordinator" class="w-full border p-2 outline-none">
+      <select name="salesCoordinator" [(ngModel)]="quotation.salesCoor" class="w-full border p-2 outline-none">
         <option value="">--Select--</option>
         <option value="Coordinator 1">Coordinator 1</option>
       </select>
@@ -615,7 +627,7 @@ Cancel
 </div>
       <div class="flex items-center">
         <label class="w-40 font-bold text-gray-700">Business Dimensions</label>
-        <input type="text" name="businessDims" [(ngModel)]="quotation.businessDims" class="flex-1 border p-2 outline-none">
+        <input type="text" name="businessDims" [(ngModel)]="quotation.businessDimensions" class="flex-1 border p-2 outline-none">
       </div>
     </div>
 
@@ -819,7 +831,7 @@ Cancel
     <div class="space-y-3">
       <div class="flex items-center">
         <label class="w-40 font-bold text-red-700">Movement</label>
-        <select name="movementType" [(ngModel)]="quotation.movementType" class="flex-1 border p-2 border-red-300 outline-none">
+        <select name="movementType" [(ngModel)]="quotation.movement" class="flex-1 border p-2 border-red-300 outline-none">
           <option>Door-to-Door</option>
         </select>
       </div>
@@ -841,7 +853,7 @@ Cancel
       <div class="flex items-center text-red-700 font-bold">
         <label class="w-40">Origin / POL</label>
         <div class="flex flex-1 gap-1">
-          <input name="origin" [(ngModel)]="quotation.origin" class="flex-1 border p-2 border-red-300 outline-none">
+          <input name="origin" [(ngModel)]="quotation.originPOL" class="flex-1 border p-2 border-red-300 outline-none">
           <input name="portOfLoading" [(ngModel)]="quotation.portOfLoading" class="flex-1 border p-2 border-red-300 outline-none">
         </div>
       </div>
@@ -850,7 +862,7 @@ Cancel
     <div class="space-y-3">
       <div class="flex items-center">
         <label class="w-40 font-bold text-gray-700">IncoTerms</label>
-        <select name="incoterm" [(ngModel)]="quotation.incoterm" class="flex-1 border p-2 outline-none">
+        <select name="incoterm" [(ngModel)]="quotation.incoTerms" class="flex-1 border p-2 outline-none">
           <option>EXW</option>
         </select>
       </div>
@@ -870,7 +882,7 @@ Cancel
         <label class="w-40">POD / Final Dest</label>
         <div class="flex flex-1 gap-1">
           <input name="portOfDischarge" [(ngModel)]="quotation.portOfDischarge" class="flex-1 border p-2 border-red-300 outline-none">
-          <input name="finalDestination" [(ngModel)]="quotation.finalDestination" class="flex-1 border p-2 border-red-300 outline-none">
+          <input name="finalDestination" [(ngModel)]="quotation.podFinalDest" class="flex-1 border p-2 border-red-300 outline-none">
         </div>
       </div>
     </div>
@@ -889,6 +901,7 @@ Cancel
     </div>
   </div>
 </div>
+
 
 <div class="border border-gray-300 shadow-sm rounded-sm mt-4">
   <div class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px] flex justify-between items-center">
@@ -917,7 +930,10 @@ Cancel
       <tbody>
         <tr *ngFor="let r of revenueRows; let i = index" class="hover:bg-gray-50">
           <td class="border p-1">
-            <input [name]="'rlob' + i" [(ngModel)]="r.lob" placeholder="Select LOB" class="w-full outline-none p-1 bg-transparent">
+            <select [(ngModel)]="r.lob" [disabled]="true" ...>
+              <option *ngFor="let s of services" [value]="s.serviceName">{{ s.serviceName }}</option>
+            </select>
+
           </td>
           <td class="border p-1">
             <input [name]="'rcharge' + i" [(ngModel)]="r.chargeName" placeholder="Enter Charge" class="w-full outline-none p-1 bg-transparent">
@@ -933,7 +949,10 @@ Cancel
             <input [name]="'rbasis' + i" [(ngModel)]="r.basis" placeholder="e.g. Per KG" class="w-full outline-none p-1 bg-transparent text-center">
           </td>
           <td class="border p-1">
-            <input [name]="'rcur' + i" [(ngModel)]="r.currency" class="w-full outline-none p-1 text-center uppercase font-semibold text-blue-600">
+            <input [name]="'rcur' + i" [(ngModel)]="r.currency" [attr.list]="'revCurList' + i" class="w-full outline-none p-1 text-center uppercase font-semibold text-blue-600">
+            <datalist [id]="'revCurList' + i">
+              <option *ngFor="let c of currencies" [value]="c.value">{{c.label}}</option>
+            </datalist>
           </td>
           <td class="border p-1">
             <input type="number" [name]="'rrate' + i" [(ngModel)]="r.rate" (input)="calculateRevenue()" class="w-full outline-none p-1 text-right font-medium">
@@ -964,7 +983,7 @@ Cancel
     <table class="w-full border-collapse text-[11px]">
       <thead class="bg-gray-50 uppercase border-b border-gray-300">
         <tr class="text-gray-600">
-          <th class="border p-2 text-left min-w-[100px]">LOB (Combo)</th>
+          <th class="border p-2 text-left min-w-[100px]">LOB</th>
           <th class="border p-2 text-left min-w-[150px]">Charge Name</th>
           <th class="border p-2 text-left min-w-[100px]">Charge Type</th>
           <th class="border p-2 text-left min-w-[80px]">Basis</th>
@@ -982,7 +1001,10 @@ Cancel
       <tbody>
         <tr *ngFor="let c of costRows; let i = index" class="hover:bg-gray-50">
           <td class="border p-1">
-            <input [name]="'clob' + i" [(ngModel)]="c.lob" placeholder="LOB" class="w-full outline-none p-1 bg-transparent">
+            <select [(ngModel)]="c.lob" [disabled]="true" ...>
+            <option *ngFor="let s of services" [value]="s.serviceName">{{ s.serviceName }}</option>
+          </select>
+
           </td>
           <td class="border p-1">
             <input [name]="'ccharge' + i" [(ngModel)]="c.chargeName" placeholder="Charge Name" class="w-full outline-none p-1 bg-transparent">
@@ -998,7 +1020,10 @@ Cancel
             <input [name]="'cbasis' + i" [(ngModel)]="c.basis" placeholder="Basis" class="w-full outline-none p-1 bg-transparent text-center">
           </td>
           <td class="border p-1">
-            <input [name]="'ccur' + i" [(ngModel)]="c.currency" class="w-full outline-none p-1 text-center uppercase font-semibold text-red-600">
+            <input [name]="'ccur' + i" [(ngModel)]="c.currency" [attr.list]="'costCurList' + i" class="w-full outline-none p-1 text-center uppercase font-semibold text-red-600">
+            <datalist [id]="'costCurList' + i">
+              <option *ngFor="let curr of currencies" [value]="curr.value">{{curr.label}}</option>
+            </datalist>
           </td>
           <td class="border p-1">
             <input type="number" [name]="'crate' + i" [(ngModel)]="c.rate" (input)="calculateCost()" class="w-full outline-none p-1 text-right">

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { CheckPermissionService } from '../../services/check-permission.service';
 
 @Component({
   selector: 'app-cargo-type',
@@ -14,7 +15,7 @@ import { environment } from '../../../environments/environment';
 export class CargoTypeComponent implements OnInit {
   // Aapki API URL
   private apiUrl = environment.apiUrl + '/CargoType';
-
+PermissionID:any;
   isModalOpen = false;
   isEditMode = false;
   rolesList: any[] = [];
@@ -28,7 +29,7 @@ export class CargoTypeComponent implements OnInit {
   showPopup = false;
   roleIdToDelete: number | null = null;
 
-  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
+  constructor(private http: HttpClient, private cdr: ChangeDetectorRef,public CheckPermissionService:CheckPermissionService) {}
 
   // ngOnInit(): void {
   //   // Refresh hone par LocalStorage se data load karein
@@ -46,6 +47,7 @@ export class CargoTypeComponent implements OnInit {
   //   }
   // }
 ngOnInit(): void {
+   this.PermissionID = Number(localStorage.getItem('permissionID'));
   this.getCargoTypes();
 }
 

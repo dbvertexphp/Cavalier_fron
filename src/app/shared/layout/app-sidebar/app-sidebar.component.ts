@@ -8,14 +8,16 @@ import { combineLatest, Subscription } from 'rxjs';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { FormsModule } from '@angular/forms';
+import { CheckPermissionService } from '../../../services/check-permission.service';
 
 
 type NavItem = {
   name: string;
   icon?: string;
   path?: string;
+   permissionID?: number;
   new?: boolean;
-  subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
+  subItems?: { name: string; path: string; permissionID?: number; pro?: boolean; new?: boolean }[];
 };
 
 @Component({
@@ -53,6 +55,8 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private http: HttpClient,
     private eRef: ElementRef,
+    public CheckPermissionService:CheckPermissionService
+    
   ) {
     this.isExpanded$ = this.sidebarService.isExpanded$;
     this.isMobileOpen$ = this.sidebarService.isMobileOpen$;
@@ -62,6 +66,13 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
 branchId:number | null = null;
 
   ngOnInit() {
+    this.CheckPermissionService.loadPermissions().subscribe((perm:any)=>{
+
+    console.log("Permissions:",perm);
+    console.log('this is check',this.CheckPermissionService.permissions);
+
+    this.CheckPermissionService.setPermissions(perm);
+      });
     this.loadNavItemsFromApi();
     this.cdr.detectChanges();
  this.accessType = localStorage.getItem('accessType');
@@ -81,6 +92,8 @@ branchId:number | null = null;
 
     this.setActiveMenuFromRoute(this.router.url);
       this.loadBranches();
+      
+    
       
   }
   ngOnDestroy() {
@@ -233,13 +246,15 @@ selectBranch(branch: any) {
           navMap[p.menu] = {
             name: p.menu,
             icon: p.icon || undefined,
-            subItems: []
+            subItems: [],
+            permissionID: p.permissionID
           };
         } else {
           navMap[p.menu] = {
             name: p.menu,
             icon: p.icon || undefined,
-            path: p.route
+            path: p.route,
+            permissionID: p.permissionID
           };
         }
       } else {
@@ -247,12 +262,14 @@ selectBranch(branch: any) {
           navMap[p.menu] = {
             name: p.menu,
             icon: p.icon || undefined,
-            subItems: []
+            subItems: [],
+            permissionID: p.permissionID 
           };
         }  
         navMap[p.menu].subItems!.push({
           name: p.subMenu,
           path: p.route,
+          permissionID: p.permissionID,
           new: false
         });
       }
@@ -282,6 +299,7 @@ selectBranch(branch: any) {
   //const finalNav = Object.values(navMap);
 
   // CRM Sequence Fix (Manual Override)
+  
   finalNav.forEach(item => {
     if (item.name === 'CRM' && item.subItems) {
       const lead = item.subItems.find(s => s.name.includes('Lead'));
@@ -419,7 +437,20 @@ selectBranch(branch: any) {
     if (!nav.subItems) return false;
     return nav.subItems.some(sub => this.router.url === sub.path);
   }
+menuClick(nav:any){
 
+  console.log("Menu PermissionID:", nav.permissionID);
+
+  localStorage.setItem("permissionID", nav.permissionID);
+
+}
+submenuClick(subItem:any){
+
+  console.log("Clicked PermissionID:", subItem.permissionID);
+
+  localStorage.setItem("permissionID", subItem.permissionID);
+
+}
   toggleSubmenu(section: string, index: number) {
     const key = `${section}-${index}`;
     if (this.openSubmenu === key) {

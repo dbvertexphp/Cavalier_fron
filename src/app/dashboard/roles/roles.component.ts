@@ -1,3 +1,5 @@
+import { Permission } from './../../pages/employee/employee.component';
+import { CheckPermissionService } from '../../services/check-permission.service';
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -25,10 +27,13 @@ export class RolesComponent implements OnInit {
 
   showPopup = false;
   roleIdToDelete: number | null = null;
-
-  constructor(private userService: UserService) {}
+  PermissionID:any;
+  constructor(private userService: UserService,public CheckPermissionService:CheckPermissionService) {}
 
   ngOnInit(): void {
+    
+    this.PermissionID = Number(localStorage.getItem('permissionID'));
+    
     this.loadRoles();
   }
 
@@ -42,6 +47,7 @@ export class RolesComponent implements OnInit {
   //   });
   // }
 loadRoles() {
+  
   this.userService.getRoles().subscribe({
     next: (data: any) => {
       // Har role ko upper case mein convert kar raha hoon
@@ -83,6 +89,7 @@ loadRoles() {
 
   // --- 3. DELETE ROLE ---
   deleteRole(id: number) {
+    console.log('this is pemission',this.CheckPermissionService.permissions);
     this.roleIdToDelete = id;
     this.showPopup = true;
   }

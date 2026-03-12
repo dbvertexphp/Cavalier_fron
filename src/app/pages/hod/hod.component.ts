@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { CheckPermissionService } from '../../services/check-permission.service';
 
 @Component({
   selector: 'app-hod',
@@ -14,16 +15,17 @@ export class HodComponent implements OnInit {
   isModalOpen = false;
   isEditMode = false;
   selectedHodId: number | null = null;
-  
+   PermissionID:any;
   private apiUrl = environment.apiUrl + '/Hod'; // API URL from environment variable
 
   hods: any[] = [];
   newHod = { name: '' };
 
   // ChangeDetectorRef inject kiya gaya hai
-  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
+  constructor(private http: HttpClient, private cdr: ChangeDetectorRef,public CheckPermissionService:CheckPermissionService) {}
 
   ngOnInit(): void {
+    this.PermissionID = Number(localStorage.getItem('permissionID'));
     this.fetchHods();
   }
 

@@ -5,6 +5,7 @@
   import { FormsModule } from '@angular/forms';
   import { Router, RouterModule } from '@angular/router';
   import { environment } from '../../../environments/environment';
+import { CheckPermissionService } from '../../services/check-permission.service';
 
   @Component({
     selector: 'app-inquiry',
@@ -14,6 +15,7 @@
     styleUrl: './inquiry.component.css',
   })
   export class InquiryComponent implements OnInit {
+     PermissionID:any;
     isFormOpen = false;
     private apiUrl = `${environment.apiUrl}/Inquiry`;
 inquiries:any[]=[]
@@ -49,7 +51,39 @@ organizations: any[] = [];
   coordinators: any[] = [];
   branchesList: any[] = [];
   searchDone: boolean = false; // Shuru mein false rahega
-    constructor(private http: HttpClient, private router: Router,private cdr: ChangeDetectorRef ) {}
+    constructor(private http: HttpClient, private router: Router,private cdr: ChangeDetectorRef ,public CheckPermissionService:CheckPermissionService) {}
+currentPage: number = 1;
+itemsPerPage: number = 10;
+
+paginatedQuotations: any[] = [];
+
+get totalPages(): number {
+  return Math.ceil(this.quotations.length / this.itemsPerPage);
+}
+updatePagination() {
+  const start = (this.currentPage - 1) * this.itemsPerPage;
+  const end = start + this.itemsPerPage;
+  this.paginatedQuotations = this.quotations.slice(start, end);
+}
+
+nextPage() {
+  if (this.currentPage < this.totalPages) {
+    this.currentPage++;
+    this.updatePagination();
+  }
+}
+
+previousPage() {
+  if (this.currentPage > 1) {
+    this.currentPage--;
+    this.updatePagination();
+  }
+}
+
+goToPage(page: number) {
+  this.currentPage = page;
+  this.updatePagination();
+}
 
     ngOnInit() {
       this.loadQuotations();
@@ -62,6 +96,7 @@ organizations: any[] = [];
     this.loadInquiryNumbers();
     this.loadCoordinators();
     this.loadBranches();
+    this.PermissionID = Number(localStorage.getItem('permissionID'));
     }
     // --- Fetch Origins List ---
   fetchOrigins() {
@@ -200,7 +235,7 @@ onOriginSearchInput() {
 
     loadQuotations() {
       this.http.get<any[]>(this.apiUrl).subscribe({
-        next: (res) => (this.quotations = res),
+        next: (res) => (this.quotations = res, this.updatePagination()),
         error: (err) => console.error('Failed to load inquiries:', err)
       });
     }

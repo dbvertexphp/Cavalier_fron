@@ -142,14 +142,14 @@
                 <ul class="py-1 ml-10 border-l border-white/10">
                   @for (subItem of nav.subItems; track $index) {
                     <li>
-                      <a [routerLink]="subItem.path" (click)="onSubmenuClick()" routerLinkActive="text-white font-bold bg-white/5" class="block py-2.5 px-4 text-xs text-white/60 hover:text-white hover:bg-white/5 transition-all rounded-r-lg">{{ subItem.name }}</a>
+                      <a [routerLink]="subItem.path" (click)="submenuClick(subItem)" routerLinkActive="text-white font-bold bg-white/5" class="block py-2.5 px-4 text-xs text-white/60 hover:text-white hover:bg-white/5 transition-all rounded-r-lg">{{ subItem.name }}</a>
                     </li>
                   }
                 </ul>
               </div>
             }
             @else {
-              <a [routerLink]="nav.path" routerLinkActive="bg-black shadow-lg border border-white/5" [routerLinkActiveOptions]="{ exact: true }" class="group flex items-center w-full p-3 rounded-xl transition-all duration-200 hover:bg-black/20">
+              <a [routerLink]="nav.path" (click)="menuClick(nav)" routerLinkActive="bg-black shadow-lg border border-white/5" [routerLinkActiveOptions]="{ exact: true }" class="group flex items-center w-full p-3 rounded-xl transition-all duration-200 hover:bg-black/20">
                 <span class="flex-shrink-0 w-6 h-6 flex items-center justify-center text-white/80 group-hover:text-white" [innerHTML]="nav.icon || '' | safeHtml"></span>
                 @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
                   <span class="ml-4 text-[13px] font-semibold tracking-wide text-white/90 group-hover:text-white whitespace-nowrap">{{ nav.name }}</span>

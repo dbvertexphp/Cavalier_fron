@@ -2,6 +2,7 @@ import { Component, OnInit, NgZone, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UserService } from '../../services/user.service';
+import { CheckPermissionService } from '../../services/check-permission.service';
 
 @Component({
   selector: 'app-departments',
@@ -15,17 +16,19 @@ export class DepartmentsComponent implements OnInit {
   isEditMode = false; // Track if we are editing
   isLoading = false; 
   currentDeptId: number | null = null; // Store ID for update
-
+PermissionID:any;
   departments: any[] = []; 
   newDept = { name: '' };
 
   constructor(
     private userService: UserService,
     private ngZone: NgZone,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    public CheckPermissionService:CheckPermissionService
   ) {}
 
   ngOnInit(): void {
+    this.PermissionID = Number(localStorage.getItem('permissionID'));
     this.loadDepartments();
   }
 

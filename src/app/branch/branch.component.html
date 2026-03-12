@@ -1,7 +1,7 @@
 <section class="container mx-auto p-6 font-sans">
  <div class="flex justify-end mb-6 gap-3">
   
-  <button (click)="addBranch()" 
+  <button (click)="addBranch()" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Add')"
           class="flex items-center gap-2 bg-[#654E51] text-white px-5 py-2.5 rounded-lg hover:bg-[#96736F] transition-all shadow-md active:scale-95">
     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -9,7 +9,7 @@
     <span>Add Branch</span>
   </button>
 
-  <button (click)="deleteBranch()" 
+  <button (click)="deleteBranch()" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Delete')"
           [ngClass]="{'bg-[#4A383B] ring-2 ring-[#96736F]': selectionType === 'checkbox'}" 
           class="flex items-center gap-2 bg-[#654E51] text-white px-5 py-2.5 rounded-lg hover:bg-[#96736F] transition-all shadow-md active:scale-95">
     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -18,7 +18,7 @@
     <span>{{ selectionType === 'checkbox' ? 'Confirm Delete' : 'Delete Branch' }}</span>
   </button>
 
-  <button (click)="modifyBranch()" 
+  <button (click)="modifyBranch()" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Edit')"
           [ngClass]="{'bg-[#4A383B] ring-2 ring-[#96736F]': selectionType === 'radio'}" 
           class="flex items-center gap-2 bg-[#654E51] text-white px-5 py-2.5 rounded-lg hover:bg-[#96736F] transition-all shadow-md active:scale-95">
     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -48,7 +48,7 @@
             <th class="px-4 py-4 text-center">Status</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-gray-200">
+        <tbody *ngIf="CheckPermissionService.hasPermission(PermissionID,'View');" class="divide-y divide-gray-200">
           <tr *ngFor="let b of branches" class="hover:bg-blue-50/40 transition-colors group">
             <td *ngIf="showSelection" class="px-4 py-3 text-center sticky left-0 bg-white group-hover:bg-blue-50/40 z-10 border-r">
               <input 

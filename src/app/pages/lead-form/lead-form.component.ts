@@ -7,6 +7,7 @@ import { environment } from '../../../environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
+import { CheckPermissionService } from '../../services/check-permission.service';
 @Component({
   selector: 'app-lead-form',
   standalone: true,
@@ -18,6 +19,12 @@ import { CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/dr
 
 export class LeadFormComponent implements OnInit {
 // Aapka data array
+// PAGINATION VARIABLES
+currentPage: number = 1;
+itemsPerPage: number = 10;
+totalPages: number = 0;
+ PermissionID:any;
+paginatedLeads: any[] = [];
 showModal: boolean = false;
   leadForm!: FormGroup;
   searchForm!: FormGroup;
@@ -37,15 +44,20 @@ allLeads: any[] = [];       // original backup
   filteredOrganizations: any[] = [];
   filteredHODSuggestions:any[]=[]
   hodUniqueList:any[]=[]
-
+goToPage(page: number) {
+  this.currentPage = page;
+  this.updatePagination();
+}
   constructor(
     private fb: FormBuilder,
     private router: Router,
     private http: HttpClient,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    public CheckPermissionService:CheckPermissionService
   ) {}
 
   ngOnInit(): void {
+        this.PermissionID = Number(localStorage.getItem('permissionID'));
     this.initForm();
 this.loadColumnSettings();
     this.http.get(`${environment.apiUrl}/Hod`)
@@ -64,6 +76,39 @@ this.loadColumnSettings();
     this.loadLeadSuggestions(); // Isse call karna mat bhulna!
      // Important: Leads load first to calculate number
   }
+  updatePagination() {
+
+  this.totalPages = Math.ceil(this.leads.length / this.itemsPerPage);
+
+  const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+  const endIndex = startIndex + this.itemsPerPage;
+
+  this.paginatedLeads = this.leads.slice(startIndex, endIndex);
+
+}
+nextPage() {
+
+  if (this.currentPage < this.totalPages) {
+
+    this.currentPage++;
+
+    this.updatePagination();
+
+  }
+
+}
+
+previousPage() {
+
+  if (this.currentPage > 1) {
+
+    this.currentPage--;
+
+    this.updatePagination();
+
+  }
+
+}
 availableColumns:string[] = [];
 
 selectedColumns:string[] = [];
@@ -213,6 +258,9 @@ initSearchForm() {
       .subscribe({
         next: (res) => {
           this.leads = res; 
+           this.currentPage = 1;
+
+        this.updatePagination();
           console.log('Leads loaded:', res);
           // --- ADDED: Calculate next number after loading leads ---
           this.calculateNextLeadNo();

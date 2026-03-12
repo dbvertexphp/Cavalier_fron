@@ -204,7 +204,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-
+import { CheckPermissionService } from '../services/check-permission.service';
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -236,7 +236,8 @@ export class LoginComponent implements OnInit {
     private fb: FormBuilder,
     private router: Router,
     private http: HttpClient,
-    private c: ChangeDetectorRef
+    private c: ChangeDetectorRef,
+    private checkPermission: CheckPermissionService
   ) { }
 
   ngOnInit(): void {
@@ -408,7 +409,16 @@ const branchId = this.selectionForm.value.selectedCity;
         }
 
         // 🚀 REDIRECT
-        this.router.navigate(['/dashboard']);
+       this.checkPermission.loadPermissions().subscribe((perm:any)=>{
+
+    console.log("Permissions:",perm);
+
+    this.checkPermission.setPermissions(perm);
+
+    // 🚀 REDIRECT AFTER PERMISSION LOAD
+    this.router.navigate(['/dashboard']);
+
+  });
       },
       error: () => {
         alert('Failed to set access type');

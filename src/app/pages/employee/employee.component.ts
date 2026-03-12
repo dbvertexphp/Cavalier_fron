@@ -151,7 +151,7 @@ export interface Permission {
 })
 export class EmployeeComponent implements OnInit {
   permissionsList: Permission[] = [];
-selectedPermissionIds: number[] = [];
+
   searchText: string = '';
   isFormOpen: boolean = false;
   editingEmpId: string | null = null;
@@ -187,6 +187,13 @@ isPasswordVisible: boolean = false;
       team: new FormControl('')
     });
   }
+  selectedPermissionIds: number[] = [];
+activePermissionId: number | null = null;
+permissionActions: any = {};
+finalPermissions: any[] = [];
+
+
+
 
   ngOnInit(): void {
     this.loadRoles();
@@ -208,6 +215,7 @@ isPasswordVisible: boolean = false;
     });
   }
 togglePermission(id: number): void {
+
   if (this.selectedPermissionIds.includes(id)) {
     this.selectedPermissionIds =
       this.selectedPermissionIds.filter(pid => pid !== id);
@@ -215,8 +223,41 @@ togglePermission(id: number): void {
     this.selectedPermissionIds.push(id);
   }
 
-  console.log("Selected Permission IDs:", this.selectedPermissionIds);
+  this.activePermissionId = id;
+
 }
+
+actionChange(permissionId: number, action: string, event: any) {
+
+  const checked = event.target.checked;
+
+  if (!this.permissionActions[permissionId]) {
+    this.permissionActions[permissionId] = [];
+  }
+
+  if (checked) {
+
+    if (!this.permissionActions[permissionId].includes(action)) {
+      this.permissionActions[permissionId].push(action);
+    }
+
+  } else {
+
+    this.permissionActions[permissionId] =
+      this.permissionActions[permissionId].filter((a: string) => a !== action);
+
+  }
+
+  this.finalPermissions = Object.keys(this.permissionActions).map(id => ({
+    userId: this.selectedEmployee?.id,
+    permission_id: Number(id),
+    actions: this.permissionActions[id]
+  }));
+
+  console.log("Permission Structure:", this.finalPermissions);
+
+}
+
   loadBranches(): void {
     this.branchServices.getBranches().subscribe({
       next: (data) => {
@@ -300,11 +341,29 @@ this.selectedRole = emp.roleId ?? null;    this.isAccountActive = emp.isActive !
     password: this.selectedEmployeePassword?.trim() || null,
     isActive: this.isAccountActive,
        branchId: this.selectedBranchId,
-    permissionIds: this.selectedPermissionIds
+    permissionIds: this.selectedPermissionIds,
+     permissions: this.finalPermissions
   };
+ const actionPayload = {
+  userId: this.selectedEmployee.id,
+  permissions: this.finalPermissions.map((p:any) => ({
+    permissionId: p.permission_id,
+    actions: p.actions
+  }))
+};
 
-  console.log("Sending Payload:", payload);
 
+
+  console.log("Sending Payload for checking save:", actionPayload);
+ this.http.post(`${environment.apiUrl}/action-permission/save`, actionPayload)
+    .subscribe({
+      next: (res: any) => {
+        console.log("Action Permission Saved", res);
+      },
+      error: (err) => {
+        console.error("Action Permission Error", err);
+      }
+    });
   this.http.put(`${environment.apiUrl}/Permissions/assign-role`, payload)
     .subscribe({
       next: (res: any) => {
@@ -316,6 +375,7 @@ this.selectedRole = emp.roleId ?? null;    this.isAccountActive = emp.isActive !
         console.error("API Error:", err);
       }
     });
+   
 }
 
   isViewModalOpen: boolean = false;

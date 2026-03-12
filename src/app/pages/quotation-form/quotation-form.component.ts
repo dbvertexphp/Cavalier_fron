@@ -696,6 +696,7 @@ transferArrayItem
 } from '@angular/cdk/drag-drop';
 
 import { DragDropModule } from '@angular/cdk/drag-drop';
+import { CheckPermissionService } from '../../services/check-permission.service';
 @Component({
   selector: 'app-quotation-form',
   standalone: true,
@@ -703,6 +704,7 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
   templateUrl: './quotation-form.component.html',
 })
 export class QuotationFormComponent implements OnInit {
+  PermissionID:any;
   searchDone: boolean = false;
   isFormOpen = false;
  private apiEndpoint = `${environment.apiUrl}/Quotations`;
@@ -753,7 +755,7 @@ quotedByList: string[] = []; // Suggestions ke liye
 organizationList: string[] = [];
   quotationNoList: string[] = [];
 quotationss: any = this.resetQuotationModel();
-  constructor(private http: HttpClient, private router: Router, private cdr: ChangeDetectorRef) {
+  constructor(private http: HttpClient, private router: Router, private cdr: ChangeDetectorRef,public CheckPermissionService:CheckPermissionService) {
     this.initTableRows();
   }
   showColumnModal = false;
@@ -775,6 +777,47 @@ closeColumnModal(){
   this.showColumnModal = false;
 }
 sortOrders:any = {};
+currentPage: number = 1;
+itemsPerPage: number = 10;
+
+paginatedQuotations: any[] = [];
+
+get totalPages(): number {
+  return Math.ceil(this.quotations.length / this.itemsPerPage);
+}
+updatePagination() {
+
+  const start = (this.currentPage - 1) * this.itemsPerPage;
+  const end = start + this.itemsPerPage;
+
+  this.paginatedQuotations = this.quotations.slice(start, end);
+
+}
+
+nextPage() {
+
+  if (this.currentPage < this.totalPages) {
+    this.currentPage++;
+    this.updatePagination();
+  }
+
+}
+
+previousPage() {
+
+  if (this.currentPage > 1) {
+    this.currentPage--;
+    this.updatePagination();
+  }
+
+}
+
+goToPage(page: number) {
+
+  this.currentPage = page;
+  this.updatePagination();
+
+}
   ngOnInit() {
     this.loadColumnSettings();
     this.loadQuotations();
@@ -783,6 +826,8 @@ sortOrders:any = {};
     this.getNextQuotationNumber();
     this.fetchInquiries();
     this.loadSearchSuggestions();
+        this.PermissionID = Number(localStorage.getItem('permissionID'));
+
   }
   fetchInquiries() {
   const url = `${environment.apiUrl}/Inquiry`;
@@ -1119,14 +1164,27 @@ selectOrganization(org: any) {
 }
  
   // --- Methods for Quotation Management ---
-  loadQuotations() {
-    this.http.get<any[]>(this.apiEndpoint).subscribe({
-      next: (res) => { this.quotations = res; 
-        console.log("Quotations Data:", this.quotations);
-      },
-      error: (err) => console.error('Failed to load quotations:', err)
-    });
-  }
+ loadQuotations() {
+
+  this.http.get<any[]>(this.apiEndpoint).subscribe({
+
+    next: (res) => {
+
+      this.quotations = res || [];
+
+      this.currentPage = 1;
+
+      this.updatePagination();
+
+      console.log("Quotations Data:", this.quotations);
+
+    },
+
+    error: (err) => console.error('Failed to load quotations:', err)
+
+  });
+
+}
 getNextQuotationNumber() {
     // 2. URL ko environment variable se combine karein
  const url = `${environment.apiUrl}/Quotations/NextQuotationNo`;

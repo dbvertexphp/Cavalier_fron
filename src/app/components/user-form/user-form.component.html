@@ -45,319 +45,170 @@
 
     <div *ngIf="!isBranchForm" class="space-y-6">
       <div class="grid grid-cols-1 md:grid-cols-5 gap-4 bg-gray-50 p-4 rounded">
-     <div>
-  <label class="font-bold">User Type</label>
-  <select formControlName="userType"
-    class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f] bg-white">
-    <option value="" disabled selected>Select User Type</option>
-    <option value="training">Training</option>
-    <option value="payroll">Payroll</option>
-    <option value="freelancing">Freelancing</option>
-  </select>
-
-  <div *ngIf="userForm.get('userType')?.errors?.['zod']"
-       class="text-red-600 text-xs mt-1">
-    {{ userForm.get('userType')?.errors?.['zod'] }}
+        <div >
+    <label  class="font-bold" >User Type</label>
+    <select formControlName="userType"
+      class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f] bg-white">
+      <option value="" disabled selected>Select User Type</option>
+      <option value="training">Training</option>
+      <option value="payroll">Payroll</option>
+      <option value="freelancing">Freelancing</option>
+    </select>
   </div>
-</div>
         <div><label class="font-bold">First Name*</label> <input formControlName="firstName"
             class="w-full border p-2 rounded"></div>
-
-<div *ngIf="userForm.get('firstName')?.errors?.['zod']" class="text-red-600 text-xs">
-{{ userForm.get('firstName')?.errors?.['zod'] }}
-</div>
-
-
-<div><label>Middle Name</label> <input formControlName="middleName" class="w-full border p-2 rounded"></div>
-
-
-<div><label class="font-bold">Last Name*</label> <input formControlName="lastName"
+        <div><label>Middle Name</label> <input formControlName="middleName" class="w-full border p-2 rounded"></div>
+        <div><label class="font-bold">Last Name*</label> <input formControlName="lastName"
             class="w-full border p-2 rounded"></div>
-
-<div *ngIf="userForm.get('lastName')?.errors?.['zod']" class="text-red-600 text-xs">
-{{ userForm.get('lastName')?.errors?.['zod'] }}
-</div>
-
-
-<div><label class="font-bold">Email*</label> <input formControlName="email" class="w-full border p-2 rounded">
-</div>
-
-<div *ngIf="userForm.get('email')?.errors?.['zod']" class="text-red-600 text-xs">
-{{ userForm.get('email')?.errors?.['zod'] }}
-</div>
-<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-
-<div><label>DOB*</label> <input type="date" formControlName="dob" class="w-full border p-2 rounded"></div>
-
-<div *ngIf="userForm.get('dob')?.errors?.['zod']" class="text-red-600 text-xs">
-{{ userForm.get('dob')?.errors?.['zod'] }}
-</div>
-
-
-<div>
-<label>Gender</label>
-<select formControlName="gender" class="w-full border p-2 rounded">
-<option value="Male">Male</option>
-<option value="Female">Female</option>
-<option value="Other">Other</option>
-</select>
-</div>
-
-
-<div>
-<label>Marital Status</label>
-<select formControlName="maritalStatus" class="w-full border p-2 rounded">
-<option value="Single">Single</option>
-<option value="Married">Married</option>
-<option value="Divorced">Divorced</option>
-</select>
-</div>
-
-
-<div>
-<label class="font-semibold text-gray-600 block uppercase">Blood Group</label>
-<select formControlName="bloodGroup" class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f] bg-white">
-<option value="" disabled selected>Select Group</option>
-<option value="A+">A+</option>
-<option value="A-">A-</option>
-<option value="B+">B+</option>
-<option value="B-">B-</option>
-<option value="O+">O+</option>
-<option value="O-">O-</option>
-<option value="AB+">AB+</option>
-<option value="AB-">AB-</option>
-</select>
-</div>
-
-</div>
-
-
-<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-
-<div><label class="font-bold">Mobile*</label> <input formControlName="mobile" class="w-full border p-2 rounded"></div>
-
-<div *ngIf="userForm.get('mobile')?.errors?.['zod']" class="text-red-600 text-xs">
-{{ userForm.get('mobile')?.errors?.['zod'] }}
-</div>
-
-
-<div><label>Telephone</label> <input formControlName="telephone" class="w-full border p-2 rounded"></div>
-
-</div>
-     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-blue-50/10 p-4 rounded border border-blue-100">
-
-<div>
-<label class="block text-sm font-semibold text-gray-700 mb-1">Department</label>
-<select formControlName="department"
-class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-200 outline-none">
-<option [value]="''">-- Select Department --</option>
-<option *ngFor="let dept of departments" [value]="dept.id">{{ dept.name }}</option>
-</select>
-</div>
-
-<div *ngIf="userForm.get('department')?.errors?.['zod']" class="text-red-600 text-xs">
-{{ userForm.get('department')?.errors?.['zod'] }}
-</div>
-
-
-<div>
-<label class="block text-sm font-semibold text-gray-700 mb-1">Designation</label>
-<select formControlName="designation"
-class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-200 outline-none">
-<option [value]="''">-- Select Designation --</option>
-<option *ngFor="let des of designations" [value]="des.id">{{ des.name }}</option>
-</select>
-</div>
-
-<div *ngIf="userForm.get('designation')?.errors?.['zod']" class="text-red-600 text-xs">
-{{ userForm.get('designation')?.errors?.['zod'] }}
-</div>
-
-
-<div><label>Functional Area</label> 
-<input formControlName="functionalArea" class="w-full border p-2 rounded">
-</div>
-
-<div *ngIf="userForm.get('functionalArea')?.errors?.['zod']" class="text-red-600 text-xs">
-{{ userForm.get('functionalArea')?.errors?.['zod'] }}
-</div>
-
-
-<!--change start-->
-
-<div>
-<label class="font-semibold text-gray-600 block uppercase">HOD</label>
-<select formControlName="hodId"
-class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f] bg-white">
-<option [value]="null" disabled selected>Select HOD</option>
-<option *ngFor="let h of hods" [value]="h.id">{{ h.name }}</option>
-</select>
-</div>
-
-<div *ngIf="userForm.get('hodId')?.errors?.['zod']" class="text-red-600 text-xs">
-{{ userForm.get('hodId')?.errors?.['zod'] }}
-</div>
-
-
-<div>
-<label class="font-semibold text-gray-600 block uppercase">Team</label>
-<select formControlName="teamId"
-class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f] bg-white">
-<option [value]="null" disabled selected>Select Team</option>
-<option *ngFor="let t of teams" [value]="t.id">{{ t.teamName }}</option>
-</select>
-</div>
-
-<div *ngIf="userForm.get('teamId')?.errors?.['zod']" class="text-red-600 text-xs">
-{{ userForm.get('teamId')?.errors?.['zod'] }}
-</div>
-
-<!--change end-->
-
-</div>
-
-
-<div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-blue-50/30 p-4 rounded">
-
-<div>
-<label class="font-bold">PAN No*</label> 
-<input formControlName="paN_No" class="w-full border p-2 rounded uppercase">
-</div>
-
-<div *ngIf="userForm.get('paN_No')?.errors?.['zod']" class="text-red-600 text-xs">
-{{ userForm.get('paN_No')?.errors?.['zod'] }}
-</div>
-
-
-<div>
-<label class="font-bold">Aadhaar No*</label> 
-<input formControlName="aadhaarNo" class="w-full border p-2 rounded">
-</div>
-
-<div *ngIf="userForm.get('aadhaarNo')?.errors?.['zod']" class="text-red-600 text-xs">
-{{ userForm.get('aadhaarNo')?.errors?.['zod'] }}
-</div>
-
-</div>
-
-     <div class="border p-4 rounded-lg space-y-4">
-<h3 class="font-semibold text-lg">Job & Salary</h3>
-
-<div class="grid grid-cols-2 gap-4">
-
-<div>
-<label class="block font-medium">Joining Date</label>
-<input type="date" formControlName="dateOfJoining" class="w-full border rounded px-3 py-2" />
-
-<div *ngIf="userForm.get('dateOfJoining')?.errors?.['zod']" class="text-red-600 text-xs">
-{{ userForm.get('dateOfJoining')?.errors?.['zod'] }}
-</div>
-
-</div>
-
-<div>
-<label class="block font-medium">CTC (Monthly)</label>
-<input type="number" formControlName="ctc_Monthly" class="w-full border rounded px-3 py-2" />
-
-<div *ngIf="userForm.get('ctc_Monthly')?.errors?.['zod']" class="text-red-600 text-xs">
-{{ userForm.get('ctc_Monthly')?.errors?.['zod'] }}
-</div>
-
-</div>
-
-</div>
-</div>
-
-
-<div formArrayName="experiences" class="space-y-6">
-
-<div *ngFor="let exp of experiences.controls; let i = index" [formGroupName]="i"
-class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-blue-50/10 p-4 rounded border border-blue-100 relative">
-
-<button *ngIf="experiences.length > 1" type="button" (click)="removeExperience(i)"
-class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow hover:bg-red-600 transition">✕</button>
-
-<div class="md:col-span-3">
-<h3 class="text-lg font-bold text-gray-700 mb-2">Experience Details</h3>
-</div>
-
-
-<div class="space-y-1">
-<label class="font-semibold text-gray-600 block uppercase text-sm">Organization</label>
-
-<input type="text" formControlName="organizationName" placeholder="Company Name"
-class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f] bg-white">
-
-<div *ngIf="experiences.at(i).get('organizationName')?.errors?.['zod']" class="text-red-600 text-xs">
-{{ experiences.at(i).get('organizationName')?.errors?.['zod'] }}
-</div>
-
-</div>
-
-
-<div class="space-y-1">
-<label class="font-semibold text-gray-600 block uppercase text-sm">Designation</label>
-
-<input type="text" formControlName="designation" placeholder="e.g. Senior Manager"
-class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f] bg-white">
-
-<div *ngIf="experiences.at(i).get('designation')?.errors?.['zod']" class="text-red-600 text-xs">
-{{ experiences.at(i).get('designation')?.errors?.['zod'] }}
-</div>
-
-</div>
-
-
-<div class="space-y-1">
-<label class="font-semibold text-gray-600 block uppercase text-sm">Years of Experience</label>
-
-<input type="text" formControlName="totalYears" placeholder="e.g. 2.5 Years"
-class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f] bg-white">
-
-<div *ngIf="experiences.at(i).get('totalYears')?.errors?.['zod']" class="text-red-600 text-xs">
-{{ experiences.at(i).get('totalYears')?.errors?.['zod'] }}
-</div>
-
-</div>
-
-
-<div class="space-y-1">
-<label class="font-semibold text-gray-600 block uppercase text-sm">Annual Salary (CTC)</label>
-
-<input type="number" formControlName="annualSalary" placeholder="Enter Amount"
-class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f] bg-white">
-
-<div *ngIf="experiences.at(i).get('annualSalary')?.errors?.['zod']" class="text-red-600 text-xs">
-{{ experiences.at(i).get('annualSalary')?.errors?.['zod'] }}
-</div>
-
-</div>
-
-
-<div class="space-y-1">
-<label class="font-semibold text-gray-600 block uppercase text-sm">Date Of Exit</label>
-
-<input type="date" formControlName="exitDate"
-class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f] bg-white">
-
-<div *ngIf="experiences.at(i).get('exitDate')?.errors?.['zod']" class="text-red-600 text-xs">
-{{ experiences.at(i).get('exitDate')?.errors?.['zod'] }}
-</div>
-
-</div>
-
-
-<div class="md:col-span-3 flex items-center gap-2 pt-2 border-t mt-2">
-<input type="checkbox" formControlName="verification" id="verification-{{i}}"
-class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-
-<label for="verification-{{i}}" class="text-sm font-semibold text-gray-700 uppercase">
-Verification Complete
-</label>
-</div>
-
-</div>
-</div>
+        <div><label class="font-bold">Email*</label> <input formControlName="email" class="w-full border p-2 rounded">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div><label>DOB*</label> <input type="date" formControlName="dob" class="w-full border p-2 rounded"></div>
+        <div>
+          <label>Gender</label>
+          <select formControlName="gender" class="w-full border p-2 rounded">
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div>
+          <label>Marital Status</label>
+          <select formControlName="maritalStatus" class="w-full border p-2 rounded">
+            <option value="Single">Single</option>
+            <option value="Married">Married</option>
+            <option value="Divorced">Divorced</option>
+          </select>
+        </div>
+        <div>
+          <label class="font-semibold text-gray-600 block uppercase">Blood Group</label>
+          <select formControlName="bloodGroup" class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f] bg-white">
+            <option value="" disabled selected>Select Group</option>
+            <option value="A+">A+</option>
+            <option value="A-">A-</option>
+            <option value="B+">B+</option>
+            <option value="B-">B-</option>
+            <option value="O+">O+</option>
+            <option value="O-">O-</option>
+            <option value="AB+">AB+</option>
+            <option value="AB-">AB-</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div><label class="font-bold">Mobile*</label> <input formControlName="mobile" class="w-full border p-2 rounded">
+        </div>
+        <div><label>Telephone</label> <input formControlName="telephone" class="w-full border p-2 rounded"></div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-blue-50/10 p-4 rounded border border-blue-100">
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Department</label>
+          <select formControlName="department"
+            class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-200 outline-none">
+            <option [value]="''">-- Select Department --</option>
+            <option *ngFor="let dept of departments" [value]="dept.id">{{ dept.name }}</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Designation</label>
+          <select formControlName="designation"
+            class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-200 outline-none">
+            <option [value]="''">-- Select Designation --</option>
+            <option *ngFor="let des of designations" [value]="des.id">{{ des.name }}</option>
+          </select>
+        </div>
+        <div><label>Functional Area</label> <input formControlName="functionalArea" class="w-full border p-2 rounded">
+        </div>
+        <!--change start-->
+        <div>
+          <label class="font-semibold text-gray-600 block uppercase">HOD</label>
+          <select formControlName="hodId"
+            class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f] bg-white">
+            <option [value]="null" disabled selected>Select HOD</option>
+            <option *ngFor="let h of hods" [value]="h.id">{{ h.name }}</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="font-semibold text-gray-600 block uppercase">Team</label>
+          <select formControlName="teamId"
+            class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f] bg-white">
+            <option [value]="null" disabled selected>Select Team</option>
+            <option *ngFor="let t of teams" [value]="t.id">{{ t.teamName }}</option>
+          </select>
+        </div>
+        <!--change end-->
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-blue-50/30 p-4 rounded">
+        <div><label class="font-bold">PAN No*</label> <input formControlName="paN_No"
+            class="w-full border p-2 rounded uppercase"></div>
+        <div><label class="font-bold">Aadhaar No*</label> <input formControlName="aadhaarNo"
+            class="w-full border p-2 rounded"></div>
+      </div>
+
+      <div class="border p-4 rounded-lg space-y-4">
+        <h3 class="font-semibold text-lg">Job & Salary</h3>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block font-medium">Joining Date</label>
+            <input type="date" formControlName="dateOfJoining" class="w-full border rounded px-3 py-2" />
+          </div>
+          <div>
+            <label class="block font-medium">CTC (Monthly)</label>
+            <input type="number" formControlName="ctc_Monthly" class="w-full border rounded px-3 py-2" />
+          </div>
+          <!-- <div>
+            <label class="block font-medium">Salary Account No.</label>
+            <input formControlName="salaryAccountNo" class="w-full border rounded px-3 py-2" />
+          </div> -->
+        </div>
+      </div>
+
+      <div formArrayName="experiences" class="space-y-6">
+        <div *ngFor="let exp of experiences.controls; let i = index" [formGroupName]="i"
+          class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-blue-50/10 p-4 rounded border border-blue-100 relative">
+          <button *ngIf="experiences.length > 1" type="button" (click)="removeExperience(i)"
+            class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow hover:bg-red-600 transition">✕</button>
+          <div class="md:col-span-3">
+            <h3 class="text-lg font-bold text-gray-700 mb-2">Experience Details</h3>
+          </div>
+          <div class="space-y-1">
+            <label class="font-semibold text-gray-600 block uppercase text-sm">Organization</label>
+            <input type="text" formControlName="organizationName" placeholder="Company Name"
+              class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f] bg-white">
+          </div>
+          <div class="space-y-1">
+            <label class="font-semibold text-gray-600 block uppercase text-sm">Designation</label>
+            <input type="text" formControlName="designation" placeholder="e.g. Senior Manager"
+              class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f] bg-white">
+          </div>
+          <div class="space-y-1">
+            <label class="font-semibold text-gray-600 block uppercase text-sm">Years of Experience</label>
+            <input type="text" formControlName="totalYears" placeholder="e.g. 2.5 Years"
+              class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f] bg-white">
+          </div>
+          <div class="space-y-1">
+            <label class="font-semibold text-gray-600 block uppercase text-sm">Annual Salary (CTC)</label>
+            <input type="number" formControlName="annualSalary" placeholder="Enter Amount"
+              class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f] bg-white">
+          </div>
+               <div class="space-y-1">
+            <label class="font-semibold text-gray-600 block uppercase text-sm">Date Of Exit</label>
+            <input type="date" formControlName="exitDate" class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f] bg-white">
+          </div>
+          <div class="md:col-span-3 flex items-center gap-2 pt-2 border-t mt-2">
+            <input type="checkbox" formControlName="verification" id="verification-{{i}}"
+              class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+            <label for="verification-{{i}}" class="text-sm font-semibold text-gray-700 uppercase">Verification
+              Complete</label>
+          </div>
+        </div>
+      </div>
 
       <div class="mt-4">
         <button type="button" (click)="addExperience()"
@@ -370,391 +221,164 @@ Verification Complete
     <h3 class="text-lg font-bold text-gray-700 mb-2">Bank Details</h3>
   </div>
 
+  <!-- Row 1 -->
   <div class="space-y-1">
-<label class="font-semibold text-gray-600 block uppercase text-sm">Account Holder Name</label>
+    <label class="font-semibold text-gray-600 block uppercase text-sm">Account Holder Name</label>
+    <input type="text" formControlName="accountHolderName" placeholder="Enter Account Holder Name"
+      class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f]">
+  </div>
 
-<input type="text" formControlName="accountHolderName" placeholder="Enter Account Holder Name"
-class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f]">
+  <div class="space-y-1">
+    <label class="font-semibold text-gray-600 block uppercase text-sm">Bank Name</label>
+    <input type="text" formControlName="bankName" list="bankSuggestions" placeholder="Enter Bank Name"
+      class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f]">
+    <datalist id="bankSuggestions">
+      <option value="State Bank of India">
+      <option value="HDFC Bank">
+      <option value="ICICI Bank">
+      <option value="Axis Bank">
+    </datalist>
+  </div>
 
-<div *ngIf="userForm.get('accountHolderName')?.errors?.['zod']" class="text-red-600 text-xs">
-{{ userForm.get('accountHolderName')?.errors?.['zod'] }}
-</div>
-</div>
+  <div class="space-y-1">
+    <label class="font-semibold text-gray-600 block uppercase text-sm">Branch Name</label>
+    <input type="text" formControlName="bankBranchName" placeholder="Enter Branch Name"
+      class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f]">
+  </div>
 
- <div class="space-y-1">
-<label class="font-semibold text-gray-600 block uppercase text-sm">Bank Name</label>
-
-<input type="text" formControlName="bankName" list="bankSuggestions" placeholder="Enter Bank Name"
-class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f]">
-
-<div *ngIf="userForm.get('bankName')?.errors?.['zod']" class="text-red-600 text-xs">
-{{ userForm.get('bankName')?.errors?.['zod'] }}
-</div>
-</div>
- <div class="space-y-1">
-<label class="font-semibold text-gray-600 block uppercase text-sm">Branch Name</label>
-
-<input type="text" formControlName="bankBranchName" placeholder="Enter Branch Name"
-class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f]">
-
-<div *ngIf="userForm.get('bankBranchName')?.errors?.['zod']" class="text-red-600 text-xs">
-{{ userForm.get('bankBranchName')?.errors?.['zod'] }}
-</div>
-</div>
   <!-- Row 2 -->
   <div class="space-y-1">
-<label class="font-semibold text-gray-600 block uppercase text-sm">IFSC Code</label>
+    <label class="font-semibold text-gray-600 block uppercase text-sm">IFSC Code</label>
+    <input type="text" formControlName="ifscCode" placeholder="SBIN0001234"
+      class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f] uppercase">
+  </div>
 
-<input type="text" formControlName="ifscCode" placeholder="SBIN0001234"
-class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f] uppercase">
-
-<div *ngIf="userForm.get('ifscCode')?.errors?.['zod']" class="text-red-600 text-xs">
-{{ userForm.get('ifscCode')?.errors?.['zod'] }}
-</div>
-</div>
-
- <div class="space-y-1">
-<label class="font-semibold text-gray-600 block uppercase text-sm">Account Type</label>
-
-<select formControlName="accountType"
-class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f]">
-
-<option value="">Select Account Type</option>
-<option value="salary">Salary</option>
-<option value="personal account">Personal Account</option>
-
-</select>
-
-<div *ngIf="userForm.get('accountType')?.errors?.['zod']" class="text-red-600 text-xs">
-{{ userForm.get('accountType')?.errors?.['zod'] }}
-</div>
-</div>
+  <div class="space-y-1">
+    <label class="font-semibold text-gray-600 block uppercase text-sm">Account Type</label>
+    <select formControlName="accountType"
+      class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f]">
+      <option value="">Select Account Type</option>
+      <option value="salary">Salary</option>
+      <option value="personal account">Personal Account</option>
+    </select>
+  </div>
 <div class="space-y-1">
-<label class="font-semibold text-gray-600 block uppercase text-[12px]">Account Number</label>
-
-<input 
-type="text"
-formControlName="accountNumber"
-value="ACC-2026-001"
-placeholder="Enter Account Number"
-class="w-full border border-gray-300 p-2 rounded-sm outline-none focus:border-[#4a3f3f] text-[13px] shadow-sm bg-white">
-
-<div *ngIf="userForm.get('accountNumber')?.errors?.['zod']" class="text-red-600 text-xs">
-{{ userForm.get('accountNumber')?.errors?.['zod'] }}
-</div>
+  <label class="font-semibold text-gray-600 block uppercase text-[12px]">Account Number</label>
+  <input 
+    type="text" 
+  formControlName="accountNumber"
+    value="ACC-2026-001" 
+    placeholder="Enter Account Number"
+    class="w-full border border-gray-300 p-2 rounded-sm outline-none focus:border-[#4a3f3f] text-[13px] shadow-sm bg-white"
+  >
 </div>
 </div>
 
-     <div class="space-y-6 border-t pt-4">
-  <h3 class="font-bold text-green-600 underline">Corresponding Address</h3>
-  <div class="bg-gray-50 p-4 rounded border">
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+      <div class="space-y-6 border-t pt-4">
+        <h3 class="font-bold text-green-600 underline">Corresponding Address</h3>
+        <div class="bg-gray-50 p-4 rounded border">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div><label>House/Flat No</label> <input formControlName="presHouseNo" class="w-full border p-1 rounded">
+            </div>
+            <div><label>Building/Society Name</label> <input formControlName="presBuilding"
+                class="w-full border p-1 rounded"></div>
+            <div><label>Floor No</label> <input formControlName="presFloor" class="w-full border p-1 rounded"></div>
+            <div><label>Block/Wing</label> <input formControlName="presBlock" class="w-full border p-1 rounded"></div>
+            <div><label>Street/Lane</label> <input formControlName="presStreet" class="w-full border p-1 rounded"></div>
+            <div><label>Landmark</label> <input formControlName="presLandmark"
+                class="w-full border p-1 rounded text-blue-600 font-medium"></div>
+            <div><label>Area/Sector</label> <input formControlName="presArea" class="w-full border p-1 rounded"></div>
+            <div><label>City</label> <input formControlName="presCity" class="w-full border p-1 rounded"></div>
+            <div><label>District</label> <input formControlName="presDistrict" class="w-full border p-1 rounded"></div>
+            <div><label>State</label> <input formControlName="presState" class="w-full border p-1 rounded"></div>
+            <div><label>Pincode</label> <input formControlName="presPincode" class="w-full border p-1 rounded"></div>
+            <div><label>Country</label> <input formControlName="presCountry" class="w-full border p-1 rounded"></div>
+          </div>
+        </div>
 
-      <div><label>House/Flat No</label> 
-        <input formControlName="presHouseNo" class="w-full border p-1 rounded">
-        <div *ngIf="userForm.get('presHouseNo')?.errors?.['zod']" class="text-red-600 text-xs">
-          {{ userForm.get('presHouseNo')?.errors?.['zod'] }}
+        <h3 class="font-bold text-green-600 underline">Parmanent Address</h3>
+        <div class="bg-gray-50 p-4 rounded border">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div><label>House/Flat No</label> <input formControlName="permHouseNo" class="w-full border p-1 rounded">
+            </div>
+            <div><label>Building/Society Name</label> <input formControlName="permBuilding"
+                class="w-full border p-1 rounded"></div>
+            <div><label>Floor No</label> <input formControlName="permFloor" class="w-full border p-1 rounded"></div>
+            <div><label>Block/Wing</label> <input formControlName="permBlock" class="w-full border p-1 rounded"></div>
+            <div><label>Street/Lane</label> <input formControlName="permStreet" class="w-full border p-1 rounded"></div>
+            <div><label>Landmark</label> <input formControlName="permLandmark"
+                class="w-full border p-1 rounded text-blue-600 font-medium"></div>
+            <div><label>Area/Sector</label> <input formControlName="permArea" class="w-full border p-1 rounded"></div>
+            <div><label>City</label> <input formControlName="permCity" class="w-full border p-1 rounded"></div>
+            <div><label>District</label> <input formControlName="permDistrict" class="w-full border p-1 rounded"></div>
+            <div><label>State</label> <input formControlName="permState" class="w-full border p-1 rounded"></div>
+            <div><label>Pincode</label> <input formControlName="permPincode" class="w-full border p-1 rounded"></div>
+            <div><label>Country</label> <input formControlName="permCountry" class="w-full border p-1 rounded"></div>
+          </div>
         </div>
       </div>
 
-      <div><label>Building/Society Name</label> 
-        <input formControlName="presBuilding" class="w-full border p-1 rounded">
-        <div *ngIf="userForm.get('presBuilding')?.errors?.['zod']" class="text-red-600 text-xs">
-          {{ userForm.get('presBuilding')?.errors?.['zod'] }}
+      <div class="border-t pt-4">
+        <div class="flex justify-between items-center mb-2">
+          <h3 class="font-bold text-gray-600 mb-2 underline">Education</h3>
+          <button type="button" (click)="addEducation()"
+            class="bg-green-600 text-white px-3 py-1 rounded text-xs font-bold shadow-sm hover:bg-green-700 transition">+
+            ADD MORE EDUCATION</button>
         </div>
-      </div>
-
-      <div><label>Floor No</label> 
-        <input formControlName="presFloor" class="w-full border p-1 rounded">
-        <div *ngIf="userForm.get('presFloor')?.errors?.['zod']" class="text-red-600 text-xs">
-          {{ userForm.get('presFloor')?.errors?.['zod'] }}
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4 items-center">
+          <input formControlName="tenthName" placeholder="10th" class="border p-2 rounded bg-gray-50" readonly>
+          <input formControlName="tenthYear" placeholder="10th Year" class="border p-2 rounded">
+          <input formControlName="tenthPercentage" placeholder="10th %" class="border p-2 rounded">
+          <input type="file" (change)="onFileSelect($event,'tenthMarksheet')" class="border p-2 rounded">
         </div>
-      </div>
-
-      <div><label>Block/Wing</label> 
-        <input formControlName="presBlock" class="w-full border p-1 rounded">
-        <div *ngIf="userForm.get('presBlock')?.errors?.['zod']" class="text-red-600 text-xs">
-          {{ userForm.get('presBlock')?.errors?.['zod'] }}
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4 items-center">
+          <input formControlName="twelfthName" placeholder="12th" class="border p-2 rounded bg-gray-50" readonly>
+          <input formControlName="twelfthYear" placeholder="12th Year" class="border p-2 rounded">
+          <input formControlName="twelfthPercentage" placeholder="12th %" class="border p-2 rounded">
+          <input type="file" (change)="onFileSelect($event,'twelfthMarksheet')" class="border p-2 rounded">
         </div>
-      </div>
-
-      <div><label>Street/Lane</label> 
-        <input formControlName="presStreet" class="w-full border p-1 rounded">
-        <div *ngIf="userForm.get('presStreet')?.errors?.['zod']" class="text-red-600 text-xs">
-          {{ userForm.get('presStreet')?.errors?.['zod'] }}
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4 items-center">
+          <input formControlName="graduationName" placeholder="Graduation" class="border p-2 rounded bg-gray-50"
+            readonly>
+          <input formControlName="graduationYear" placeholder="Graduation Year" class="border p-2 rounded">
+          <input formControlName="graduationPercentage" placeholder="Graduation %" class="border p-2 rounded">
+          <input type="file" (change)="onFileSelect($event,'graduationMarksheet')" class="border p-2 rounded">
         </div>
-      </div>
-
-      <div><label>Landmark</label> 
-        <input formControlName="presLandmark" class="w-full border p-1 rounded text-blue-600 font-medium">
-        <div *ngIf="userForm.get('presLandmark')?.errors?.['zod']" class="text-red-600 text-xs">
-          {{ userForm.get('presLandmark')?.errors?.['zod'] }}
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6 items-center">
+          <input formControlName="postGraduationName" placeholder="Post Graduation"
+            class="border p-2 rounded bg-gray-50" readonly>
+          <input formControlName="postGraduationYear" placeholder="PG Year" class="border p-2 rounded">
+          <input formControlName="postGraduationPercentage" placeholder="PG %" class="border p-2 rounded">
+          <input type="file" (change)="onFileSelect($event,'postGraduationMarksheet')" class="border p-2 rounded">
         </div>
-      </div>
-
-      <div><label>Area/Sector</label> 
-        <input formControlName="presArea" class="w-full border p-1 rounded">
-        <div *ngIf="userForm.get('presArea')?.errors?.['zod']" class="text-red-600 text-xs">
-          {{ userForm.get('presArea')?.errors?.['zod'] }}
+        <div formArrayName="educations">
+          <div *ngFor="let edu of educations.controls; let i = index" [formGroupName]="i"
+            class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4 items-center">
+            <input formControlName="educationName" placeholder="Other Education Name" class="border p-2 rounded">
+            <input formControlName="year" placeholder="Passing Year" class="border p-2 rounded">
+            <input formControlName="percentage" placeholder="Percentage %" class="border p-2 rounded">
+            <input type="file" (change)="onFileSelect($event, 'marksheet', i)" class="border p-2 rounded">
+            <div class="flex justify-between items-center">
+              <button type="button" (click)="removeEducation(i)"
+                class="text-red-500 text-xs font-bold hover:underline">Remove</button>
+            </div>
+          </div>
         </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+          <div>
+            <label class="text-sm font-semibold">Profile Picture</label>
+            <input type="file" (change)="onFileSelect($event,'profilePicture')" class="w-full border p-2 rounded">
+          </div>
+          </div>
       </div>
-
-      <div><label>City</label> 
-        <input formControlName="presCity" class="w-full border p-1 rounded">
-        <div *ngIf="userForm.get('presCity')?.errors?.['zod']" class="text-red-600 text-xs">
-          {{ userForm.get('presCity')?.errors?.['zod'] }}
-        </div>
-      </div>
-
-      <div><label>District</label> 
-        <input formControlName="presDistrict" class="w-full border p-1 rounded">
-        <div *ngIf="userForm.get('presDistrict')?.errors?.['zod']" class="text-red-600 text-xs">
-          {{ userForm.get('presDistrict')?.errors?.['zod'] }}
-        </div>
-      </div>
-
-      <div><label>State</label> 
-        <input formControlName="presState" class="w-full border p-1 rounded">
-        <div *ngIf="userForm.get('presState')?.errors?.['zod']" class="text-red-600 text-xs">
-          {{ userForm.get('presState')?.errors?.['zod'] }}
-        </div>
-      </div>
-
-      <div><label>Pincode</label> 
-        <input formControlName="presPincode" class="w-full border p-1 rounded">
-        <div *ngIf="userForm.get('presPincode')?.errors?.['zod']" class="text-red-600 text-xs">
-          {{ userForm.get('presPincode')?.errors?.['zod'] }}
-        </div>
-      </div>
-
-      <div><label>Country</label> 
-        <input formControlName="presCountry" class="w-full border p-1 rounded">
-        <div *ngIf="userForm.get('presCountry')?.errors?.['zod']" class="text-red-600 text-xs">
-          {{ userForm.get('presCountry')?.errors?.['zod'] }}
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <h3 class="font-bold text-green-600 underline">Parmanent Address</h3>
-
-  <div class="bg-gray-50 p-4 rounded border">
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-
-      <div><label>House/Flat No</label> 
-        <input formControlName="permHouseNo" class="w-full border p-1 rounded">
-        <div *ngIf="userForm.get('permHouseNo')?.errors?.['zod']" class="text-red-600 text-xs">
-          {{ userForm.get('permHouseNo')?.errors?.['zod'] }}
-        </div>
-      </div>
-
-      <div><label>Building/Society Name</label> 
-        <input formControlName="permBuilding" class="w-full border p-1 rounded">
-        <div *ngIf="userForm.get('permBuilding')?.errors?.['zod']" class="text-red-600 text-xs">
-          {{ userForm.get('permBuilding')?.errors?.['zod'] }}
-        </div>
-      </div>
-
-      <div><label>Floor No</label> 
-        <input formControlName="permFloor" class="w-full border p-1 rounded">
-        <div *ngIf="userForm.get('permFloor')?.errors?.['zod']" class="text-red-600 text-xs">
-          {{ userForm.get('permFloor')?.errors?.['zod'] }}
-        </div>
-      </div>
-
-      <div><label>Block/Wing</label> 
-        <input formControlName="permBlock" class="w-full border p-1 rounded">
-        <div *ngIf="userForm.get('permBlock')?.errors?.['zod']" class="text-red-600 text-xs">
-          {{ userForm.get('permBlock')?.errors?.['zod'] }}
-        </div>
-      </div>
-
-      <div><label>Street/Lane</label> 
-        <input formControlName="permStreet" class="w-full border p-1 rounded">
-        <div *ngIf="userForm.get('permStreet')?.errors?.['zod']" class="text-red-600 text-xs">
-          {{ userForm.get('permStreet')?.errors?.['zod'] }}
-        </div>
-      </div>
-
-      <div><label>Landmark</label> 
-        <input formControlName="permLandmark" class="w-full border p-1 rounded text-blue-600 font-medium">
-        <div *ngIf="userForm.get('permLandmark')?.errors?.['zod']" class="text-red-600 text-xs">
-          {{ userForm.get('permLandmark')?.errors?.['zod'] }}
-        </div>
-      </div>
-
-      <div><label>Area/Sector</label> 
-        <input formControlName="permArea" class="w-full border p-1 rounded">
-        <div *ngIf="userForm.get('permArea')?.errors?.['zod']" class="text-red-600 text-xs">
-          {{ userForm.get('permArea')?.errors?.['zod'] }}
-        </div>
-      </div>
-
-      <div><label>City</label> 
-        <input formControlName="permCity" class="w-full border p-1 rounded">
-        <div *ngIf="userForm.get('permCity')?.errors?.['zod']" class="text-red-600 text-xs">
-          {{ userForm.get('permCity')?.errors?.['zod'] }}
-        </div>
-      </div>
-
-      <div><label>District</label> 
-        <input formControlName="permDistrict" class="w-full border p-1 rounded">
-        <div *ngIf="userForm.get('permDistrict')?.errors?.['zod']" class="text-red-600 text-xs">
-          {{ userForm.get('permDistrict')?.errors?.['zod'] }}
-        </div>
-      </div>
-
-      <div><label>State</label> 
-        <input formControlName="permState" class="w-full border p-1 rounded">
-        <div *ngIf="userForm.get('permState')?.errors?.['zod']" class="text-red-600 text-xs">
-          {{ userForm.get('permState')?.errors?.['zod'] }}
-        </div>
-      </div>
-
-      <div><label>Pincode</label> 
-        <input formControlName="permPincode" class="w-full border p-1 rounded">
-        <div *ngIf="userForm.get('permPincode')?.errors?.['zod']" class="text-red-600 text-xs">
-          {{ userForm.get('permPincode')?.errors?.['zod'] }}
-        </div>
-      </div>
-
-      <div><label>Country</label> 
-        <input formControlName="permCountry" class="w-full border p-1 rounded">
-        <div *ngIf="userForm.get('permCountry')?.errors?.['zod']" class="text-red-600 text-xs">
-          {{ userForm.get('permCountry')?.errors?.['zod'] }}
-        </div>
-      </div>
-
-    </div>
-  </div>
-</div>
-<div class="border-t pt-4">
-  <div class="flex justify-between items-center mb-2">
-    <h3 class="font-bold text-gray-600 mb-2 underline">Education</h3>
-    <button type="button" (click)="addEducation()"
-      class="bg-green-600 text-white px-3 py-1 rounded text-xs font-bold shadow-sm hover:bg-green-700 transition">+
-      ADD MORE EDUCATION</button>
-  </div>
-
-  <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4 items-center">
-    <input formControlName="tenthName" placeholder="10th" class="border p-2 rounded bg-gray-50" readonly>
-
-    <input formControlName="tenthYear" placeholder="10th Year" class="border p-2 rounded">
-    <div *ngIf="userForm.get('tenthYear')?.errors?.['zod']" class="text-red-600 text-xs">
-      {{ userForm.get('tenthYear')?.errors?.['zod'] }}
-    </div>
-
-    <input formControlName="tenthPercentage" placeholder="10th %" class="border p-2 rounded">
-    <div *ngIf="userForm.get('tenthPercentage')?.errors?.['zod']" class="text-red-600 text-xs">
-      {{ userForm.get('tenthPercentage')?.errors?.['zod'] }}
-    </div>
-
-    <input type="file" (change)="onFileSelect($event,'tenthMarksheet')" class="border p-2 rounded">
-  </div>
-
-
-  <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4 items-center">
-    <input formControlName="twelfthName" placeholder="12th" class="border p-2 rounded bg-gray-50" readonly>
-
-    <input formControlName="twelfthYear" placeholder="12th Year" class="border p-2 rounded">
-    <div *ngIf="userForm.get('twelfthYear')?.errors?.['zod']" class="text-red-600 text-xs">
-      {{ userForm.get('twelfthYear')?.errors?.['zod'] }}
-    </div>
-
-    <input formControlName="twelfthPercentage" placeholder="12th %" class="border p-2 rounded">
-    <div *ngIf="userForm.get('twelfthPercentage')?.errors?.['zod']" class="text-red-600 text-xs">
-      {{ userForm.get('twelfthPercentage')?.errors?.['zod'] }}
-    </div>
-
-    <input type="file" (change)="onFileSelect($event,'twelfthMarksheet')" class="border p-2 rounded">
-  </div>
-
-
-  <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4 items-center">
-    <input formControlName="graduationName" placeholder="Graduation" class="border p-2 rounded bg-gray-50"
-      readonly>
-
-    <input formControlName="graduationYear" placeholder="Graduation Year" class="border p-2 rounded">
-    <div *ngIf="userForm.get('graduationYear')?.errors?.['zod']" class="text-red-600 text-xs">
-      {{ userForm.get('graduationYear')?.errors?.['zod'] }}
-    </div>
-
-    <input formControlName="graduationPercentage" placeholder="Graduation %" class="border p-2 rounded">
-    <div *ngIf="userForm.get('graduationPercentage')?.errors?.['zod']" class="text-red-600 text-xs">
-      {{ userForm.get('graduationPercentage')?.errors?.['zod'] }}
-    </div>
-
-    <input type="file" (change)="onFileSelect($event,'graduationMarksheet')" class="border p-2 rounded">
-  </div>
-
-
-  <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6 items-center">
-    <input formControlName="postGraduationName" placeholder="Post Graduation"
-      class="border p-2 rounded bg-gray-50" readonly>
-
-    <input formControlName="postGraduationYear" placeholder="PG Year" class="border p-2 rounded">
-    <div *ngIf="userForm.get('postGraduationYear')?.errors?.['zod']" class="text-red-600 text-xs">
-      {{ userForm.get('postGraduationYear')?.errors?.['zod'] }}
-    </div>
-
-    <input formControlName="postGraduationPercentage" placeholder="PG %" class="border p-2 rounded">
-    <div *ngIf="userForm.get('postGraduationPercentage')?.errors?.['zod']" class="text-red-600 text-xs">
-      {{ userForm.get('postGraduationPercentage')?.errors?.['zod'] }}
-    </div>
-
-    <input type="file" (change)="onFileSelect($event,'postGraduationMarksheet')" class="border p-2 rounded">
-  </div>
-
-
-  <div formArrayName="educations">
-    <div *ngFor="let edu of educations.controls; let i = index" [formGroupName]="i"
-      class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4 items-center">
-
-      <input formControlName="educationName" placeholder="Other Education Name" class="border p-2 rounded">
-      <div *ngIf="educations.at(i).get('educationName')?.errors?.['zod']" class="text-red-600 text-xs">
-        {{ educations.at(i).get('educationName')?.errors?.['zod'] }}
-      </div>
-
-      <input formControlName="year" placeholder="Passing Year" class="border p-2 rounded">
-      <div *ngIf="educations.at(i).get('year')?.errors?.['zod']" class="text-red-600 text-xs">
-        {{ educations.at(i).get('year')?.errors?.['zod'] }}
-      </div>
-
-      <input formControlName="percentage" placeholder="Percentage %" class="border p-2 rounded">
-      <div *ngIf="educations.at(i).get('percentage')?.errors?.['zod']" class="text-red-600 text-xs">
-        {{ educations.at(i).get('percentage')?.errors?.['zod'] }}
-      </div>
-
-      <input type="file" (change)="onFileSelect($event, 'marksheet', i)" class="border p-2 rounded">
-
-      <div class="flex justify-between items-center">
-        <button type="button" (click)="removeEducation(i)"
-          class="text-red-500 text-xs font-bold hover:underline">Remove</button>
-      </div>
-
-    </div>
-  </div>
-
-
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-  <div>
-    <label class="text-sm font-semibold">Profile Picture</label>
-    <input type="file" (change)="onFileSelect($event,'profilePicture')" class="w-full border p-2 rounded">
-    <div *ngIf="userForm.get('profilePicture')?.errors?.['zod']" class="text-red-600 text-xs">
-      {{ userForm.get('profilePicture')?.errors?.['zod'] }}
-    </div>
-  </div>
-</div>
-
-<!-- </div> -->
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 border-t pt-4">
         <div><label>Emergency Contact Name</label> <input formControlName="emergencyName"
             class="w-full border p-2 rounded"></div>
         <div>
           <label class="text-sm font-semibold">Relation</label>
-          <input list="relationsList" formControlName="EmergencyRelation" placeholder="Select or Type Relation"
+          <input list="relationsList" formControlName="emergencyRelationship" placeholder="Select or Type Relation"
             class="w-full border p-2 rounded bg-white">
           <datalist id="relationsList">
             <option value="Father">
@@ -813,8 +437,5 @@ class="w-full border border-gray-300 p-2 rounded-sm outline-none focus:border-[#
         {{ isEditMode ? 'Update' : 'Save' }} Details
       </button>
     </div>
-  </div>
-
-  
-
+  </form>
 </div>

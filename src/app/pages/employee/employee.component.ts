@@ -385,7 +385,6 @@ getAllUsers(): void {
   this.http.get<Employee[]>(url).subscribe({
     next: (res: Employee[]) => {
       console.log("🔥 USER LIST API RESPONSE:", res);
-
       // ✅ Type casting (as Employee) use karke error solve hoga
       this.employees = res.map(emp => ({
         ...emp,

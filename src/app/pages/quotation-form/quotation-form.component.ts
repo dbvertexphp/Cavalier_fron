@@ -17,6 +17,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { HostListener } from '@angular/core'; 
 import * as XLSX from 'xlsx';
+import { quotationSchema } from './quotation.Schema';
 @Component({
   selector: 'app-quotation-form',
   standalone: true,
@@ -24,6 +25,7 @@ import * as XLSX from 'xlsx';
   templateUrl: './quotation-form.component.html',
 })
 export class QuotationFormComponent implements OnInit {
+  errors={}
   searchDone: boolean = false;
   isFormOpen = false;
  private apiEndpoint = `${environment.apiUrl}/Quotations`;
@@ -633,38 +635,61 @@ getNextQuotationNumber() {
         }
       });
   }
-
 saveQuotation() {
-    // ... (Data preparation logic)
-    this.quotation.revenueData = JSON.stringify(this.revenueRows);
-    this.quotation.costData = JSON.stringify(this.costRows);
-    this.quotation.dimensionsData = JSON.stringify(this.appliedDimensions);
-    
-    this.quotation.totalRevenue = this.totalRevFinal;
-    this.quotation.totalCost = this.totalCostFinal;
-    this.quotation.totalProfit = this.totalProfitFinal;
-const request = this.quotation.id > 0 
-      ? this.http.put(`${this.apiEndpoint}/${this.quotation.id}`, this.quotation)
-      : this.http.post(this.apiEndpoint, this.quotation);
+  // 1. Pehle data bundle karo validation ke liye
+  // Note: Validation hum asli arrays (this.revenueRows) par karenge, stringify bad mein karenge
+  const dataToValidate = {
+    ...this.quotation,
+    revenueData: this.revenueRows,
+    costData: this.costRows,
+    dimensionsData: this.appliedDimensions
+  };
 
-    request.subscribe({
-      next: () => {
-        alert("Quotation Saved Successfully!");
-        
-        this.loadQuotations();
-        
-        // 3. Form band karein
-        this.toggleForm();
-        
-        // 4. Change detection force karein taaki UI turant update ho
-        this.cdr.detectChanges();                
-      },
-      error: (err) => {
-        console.error("Error details:", err);
-        alert("Save failed! Check console for errors.");
-      }
-    });
+  // 2. Zod Validation Check
+  const result = quotationSchema.safeParse(dataToValidate);
+
+  if (!result.success) {
+    // Agar validation fail hui, toh errors bharo aur return kar jao
+    this.errors = result.error.flatten().fieldErrors;
+    
+    // Pehla error alert mein dikhana ho toh (Optional)
+    alert("Please fill all required fields correctly!");
+    
+    // Console mein dekho kaunsi field miss hui hai
+    console.log("Validation Errors:", this.errors);
+    return; 
   }
+
+  // 3. Agar Validation Pass ho gayi, toh purana logic continue karo
+  this.errors = {}; // Purane errors saaf karo
+
+  // Data preparation for Backend
+  this.quotation.revenueData = JSON.stringify(this.revenueRows);
+  this.quotation.costData = JSON.stringify(this.costRows);
+  this.quotation.dimensionsData = JSON.stringify(this.appliedDimensions);
+  
+  this.quotation.totalRevenue = this.totalRevFinal;
+  this.quotation.totalCost = this.totalCostFinal;
+  this.quotation.totalProfit = this.totalProfitFinal;
+
+  // 4. API Call
+  const request = this.quotation.id > 0 
+    ? this.http.put(`${this.apiEndpoint}/${this.quotation.id}`, this.quotation)
+    : this.http.post(this.apiEndpoint, this.quotation);
+
+  request.subscribe({
+    next: () => {
+      alert("Quotation Saved Successfully!");
+      this.loadQuotations();
+      this.toggleForm();
+      this.cdr.detectChanges();                
+    },
+    error: (err) => {
+      console.error("Error details:", err);
+      alert("Save failed! Check console for errors.");
+    }
+  });
+}
   editQuotation(q: any) {
     this.quotation = { ...q };
     this.isFormOpen = true;

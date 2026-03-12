@@ -9,6 +9,7 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
 import { CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 import jsPDF from 'jspdf';
 import * as XLSX from 'xlsx';
+import { leadSchema } from './lead.schema';
 @Component({
   selector: 'app-lead-form',
   standalone: true,
@@ -436,60 +437,63 @@ selectDate(date: string): void {
   // Dropdown list ko band karo
   this.filteredDates = [];
 }
-  onSave() {
-    if (this.leadForm.valid) {
-      // --- CHANGED: Use getRawValue() to get disabled fields (like leadNo) ---
-      const rawValue = this.leadForm.getRawValue();
+onSave() {
 
-      // Backend ke format mein data prepare karna
-      const payload = {
-        // --- CHANGED: Send calculated leadNo ---
-        leadNo: this.nextLeadNo, 
-        date: new Date(rawValue.date).toISOString(), 
-        expectedValidity: new Date(rawValue.expectedValidity).toISOString(),
-        type: rawValue.type,
-        leadOwner: rawValue.leadOwner,
-        leadSource: rawValue.source,
-        salesProcess: rawValue.salesProcess,
-        salesCoordinator: rawValue.salesCoordinator,
-        salesStage: rawValue.salesStage,
-        branch: rawValue.branch,
-        reportingManager: rawValue.reportingManager,
-        team: rawValue.team,
-        hod: rawValue.hod,
-        location: rawValue.location || "Default Location",
-        area: rawValue.area || "Default Area",
-        organizationName: rawValue.organization
-      };
+  const rawValue = this.leadForm.getRawValue();
+console.log(rawValue);
 
-      console.log('--- Payload for Backend ---');
-      console.log(JSON.stringify(payload, null, 2));
+const validation = leadSchema.safeParse(rawValue);
+console.log(validation);
 
-      // API Call
-      this.http.post(`${environment.apiUrl}/Leads`, payload)
-        .subscribe({
-          next: (res) => {
-            console.log('API Success! Closing form...');                
-            // --- ADDED: For Date Shortcuts Panel ---
-            this.isFormOpen = false;
-            this.initForm();
-            this.loadLeads(); // Reload leads to calculate new number for next form
-            
-            this.cdr.detectChanges();
-            
-            alert('Data successfully sent to backend!');
-          },
-          error: (err) => {
-            console.error('API Error:', err);
-            alert('Backend error: ' + err.message);
-          }
-        });
+  if (!validation.success) {
 
-    } else {
-      this.leadForm.markAllAsTouched();
-      alert('Please fill all required fields.');
-    }
+    const errors = validation.error.flatten().fieldErrors;
+
+    Object.keys(errors).forEach((field: string) => {
+
+  const control = this.leadForm.get(field);
+
+  if (control) {
+    control.setErrors({ zod: errors[field as keyof typeof errors]?.[0] });
   }
+
+});
+
+    alert("Please fix validation errors");
+    return;
+  }
+
+  // 👉 agar validation pass ho gaya to API call chalegi
+  console.log("Valid data", rawValue);
+
+  const payload = {
+    leadNo: this.nextLeadNo,
+    date: new Date(rawValue.date).toISOString(),
+    expectedValidity: new Date(rawValue.expectedValidity).toISOString(),
+    type: rawValue.type,
+    leadOwner: rawValue.leadOwner,
+    leadSource: rawValue.source,
+    salesProcess: rawValue.salesProcess,
+    salesCoordinator: rawValue.salesCoordinator,
+    salesStage: rawValue.salesStage,
+    branch: rawValue.branch,
+    reportingManager: rawValue.reportingManager,
+    team: rawValue.team,
+    hod: rawValue.hod,
+    location: rawValue.location,
+    area: rawValue.area,
+    organizationName: rawValue.organization
+  };
+
+  this.http.post(`${environment.apiUrl}/Leads`, payload).subscribe({
+    next: () => {
+      alert("Lead saved successfully");
+      this.initForm();
+      this.loadLeads();
+    }
+  });
+
+}
 
 clearFilters() {
   this.leadForm.reset();

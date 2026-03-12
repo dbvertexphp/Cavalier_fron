@@ -6,7 +6,7 @@ import { UserService } from '../../services/user.service';
 import { BranchService } from '../../services/branch.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-
+import { employeeSchema } from './employee.schema';
 @Component({
   selector: 'app-user-form',
   standalone: true,
@@ -202,7 +202,8 @@ bankBranchName: [''],
         signature: [''],
         reportTo: [''],
         emergencyName: [''],
-        emergencyRelationship:[''],
+       EmergencyRelation: [''], // 'emergencyRelationship' ko badal kar ye kar dein
+       
         emergencyContactNo: [''],
         mfaRegistration: [false],
         fieldVisit: [false],
@@ -371,6 +372,13 @@ createExperienceGroup(): FormGroup {
   //   }
   // }
 onSubmit() {
+
+if(!this.validateForm()){
+this.userForm.markAllAsTouched();
+return;
+}
+
+console.log('================ FINAL SUBMIT START ================');
   console.log('================ FINAL SUBMIT START ================');
   if (this.userForm.invalid) {
     this.userForm.markAllAsTouched();
@@ -378,7 +386,7 @@ onSubmit() {
     return;
   }
 
-  const raw = this.userForm.getRawValue();
+  const raw = this.userForm.getRawValue(); // Ye disabled fields ko bhi utha leta hai
   const formData = new FormData();
 
   Object.keys(raw).forEach(key => {
@@ -393,6 +401,7 @@ onSubmit() {
 
   // ================= API CALL =================
   if (this.isBranchForm) {
+    // Branch form logic (No changes)
     this.branchService.addBranch(formData).subscribe({
       next: () => {
         alert('Branch Saved Successfully');
@@ -402,20 +411,21 @@ onSubmit() {
     });
   } else {
     // 1. Pehle main user register hoga
-    this.userService.registerUser(this.userForm.value).subscribe({
+    // FIX: Yahan hum raw data se EmergencyRelation ko force kar rahe hain
+    const finalPayload = {
+      ...raw, // .value ki jagah raw use kiya taki miss na ho
+      EmergencyRelation: raw.emergencyRelationship // DB wali key
+    };
+
+    this.userService.registerUser(finalPayload).subscribe({
       next: (res: any) => {
         console.log('User Saved Successfully', res);
 
-        // 2. Response se UserId nikalna
         const newUserId = res.id || res.userId || (res.data && res.data.id);
 
         if (newUserId) {
-          // ✅ Education save karo
           this.saveEducation(newUserId); 
-          
-          // ✅ NAYA: Ab experience bhi save hoga
           this.saveExperience(newUserId);
-
           alert('User, Education & Experience Saved Successfully');
         } else {
           this.saveEducation(newUserId);
@@ -561,4 +571,30 @@ async saveExperience(userId: any) {
     }
   }
 }
+validateForm(): boolean {
+
+const validation = employeeSchema.safeParse(this.userForm.getRawValue());
+
+if (!validation.success) {
+
+const errors = validation.error.flatten().fieldErrors as Record<string, string[]>;
+
+Object.keys(errors).forEach((field: string) => {
+
+const control = this.userForm.get(field);
+
+if (control) {
+control.setErrors({ zod: errors[field]?.[0] });
+}
+
+});
+
+return false;
+
+}
+
+return true;
+
+}
+
 }

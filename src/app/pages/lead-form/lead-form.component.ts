@@ -7,7 +7,13 @@ import { environment } from '../../../environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
+<<<<<<< HEAD
 import { CheckPermissionService } from '../../services/check-permission.service';
+=======
+import jsPDF from 'jspdf';
+import * as XLSX from 'xlsx';
+import { leadSchema } from './lead.schema';
+>>>>>>> 4f9f4d893cf0c94a46ec2b3082c312d4d5d76379
 @Component({
   selector: 'app-lead-form',
   standalone: true,
@@ -482,60 +488,63 @@ selectDate(date: string): void {
   // Dropdown list ko band karo
   this.filteredDates = [];
 }
-  onSave() {
-    if (this.leadForm.valid) {
-      // --- CHANGED: Use getRawValue() to get disabled fields (like leadNo) ---
-      const rawValue = this.leadForm.getRawValue();
+onSave() {
 
-      // Backend ke format mein data prepare karna
-      const payload = {
-        // --- CHANGED: Send calculated leadNo ---
-        leadNo: this.nextLeadNo, 
-        date: new Date(rawValue.date).toISOString(), 
-        expectedValidity: new Date(rawValue.expectedValidity).toISOString(),
-        type: rawValue.type,
-        leadOwner: rawValue.leadOwner,
-        leadSource: rawValue.source,
-        salesProcess: rawValue.salesProcess,
-        salesCoordinator: rawValue.salesCoordinator,
-        salesStage: rawValue.salesStage,
-        branch: rawValue.branch,
-        reportingManager: rawValue.reportingManager,
-        team: rawValue.team,
-        hod: rawValue.hod,
-        location: rawValue.location || "Default Location",
-        area: rawValue.area || "Default Area",
-        organizationName: rawValue.organization
-      };
+  const rawValue = this.leadForm.getRawValue();
+console.log(rawValue);
 
-      console.log('--- Payload for Backend ---');
-      console.log(JSON.stringify(payload, null, 2));
+const validation = leadSchema.safeParse(rawValue);
+console.log(validation);
 
-      // API Call
-      this.http.post(`${environment.apiUrl}/Leads`, payload)
-        .subscribe({
-          next: (res) => {
-            console.log('API Success! Closing form...');                
-            // --- ADDED: For Date Shortcuts Panel ---
-            this.isFormOpen = false;
-            this.initForm();
-            this.loadLeads(); // Reload leads to calculate new number for next form
-            
-            this.cdr.detectChanges();
-            
-            alert('Data successfully sent to backend!');
-          },
-          error: (err) => {
-            console.error('API Error:', err);
-            alert('Backend error: ' + err.message);
-          }
-        });
+  if (!validation.success) {
 
-    } else {
-      this.leadForm.markAllAsTouched();
-      alert('Please fill all required fields.');
-    }
+    const errors = validation.error.flatten().fieldErrors;
+
+    Object.keys(errors).forEach((field: string) => {
+
+  const control = this.leadForm.get(field);
+
+  if (control) {
+    control.setErrors({ zod: errors[field as keyof typeof errors]?.[0] });
   }
+
+});
+
+    alert("Please fix validation errors");
+    return;
+  }
+
+  // 👉 agar validation pass ho gaya to API call chalegi
+  console.log("Valid data", rawValue);
+
+  const payload = {
+    leadNo: this.nextLeadNo,
+    date: new Date(rawValue.date).toISOString(),
+    expectedValidity: new Date(rawValue.expectedValidity).toISOString(),
+    type: rawValue.type,
+    leadOwner: rawValue.leadOwner,
+    leadSource: rawValue.source,
+    salesProcess: rawValue.salesProcess,
+    salesCoordinator: rawValue.salesCoordinator,
+    salesStage: rawValue.salesStage,
+    branch: rawValue.branch,
+    reportingManager: rawValue.reportingManager,
+    team: rawValue.team,
+    hod: rawValue.hod,
+    location: rawValue.location,
+    area: rawValue.area,
+    organizationName: rawValue.organization
+  };
+
+  this.http.post(`${environment.apiUrl}/Leads`, payload).subscribe({
+    next: () => {
+      alert("Lead saved successfully");
+      this.initForm();
+      this.loadLeads();
+    }
+  });
+
+}
 
 clearFilters() {
   this.leadForm.reset();
@@ -1131,5 +1140,212 @@ resetLeadFilters() {
         console.log("✅ Leads Table Restored");
       }
     });
+}
+// 1. PDF DOWNLOAD LOGIC FOR LEADS
+isExportOpen = false;
+
+
+downloadLeadsPDF() {
+  this.isExportOpen = false;
+
+  // Leads array check (Aapke component mein 'leads' naam ka array hai)
+  if (!this.leads || this.leads.length === 0) {
+    alert("Table mein data nahi hai!");
+    return;
+  }
+
+  const doc = new jsPDF('l', 'mm', 'a4');
+  const startX = 10;
+  let startY = 25;
+  const colCount = this.selectedColumns.length;
+  const colWidth = 277 / (colCount || 1);
+
+  // Title
+  doc.setFontSize(16);
+  doc.setTextColor(74, 63, 63);
+  doc.text("LEAD RECORDS SUMMARY", 110, 15);
+
+  // Header Background
+  doc.setFillColor(74, 63, 63);
+  doc.rect(startX, startY, 277, 10, 'F');
+
+  // Header Text
+  doc.setFontSize(7);
+  doc.setTextColor(255, 255, 255);
+
+  this.selectedColumns.forEach((col, i) => {
+    doc.text(col.toUpperCase(), startX + (i * colWidth) + 2, startY + 7);
+  });
+
+  // Table Body
+  doc.setTextColor(0, 0, 0);
+  startY += 10;
+
+  // Loop through 'leads' array
+  this.leads.forEach((l, rowIndex) => {
+    if (startY > 185) {
+      doc.addPage();
+      startY = 20;
+    }
+
+    if (rowIndex % 2 === 0) {
+      doc.setFillColor(245, 245, 245);
+      doc.rect(startX, startY, 277, 8, 'F');
+    }
+
+    this.selectedColumns.forEach((col, colIndex) => {
+      const fieldKey = this.columnFieldMap[col] || col; 
+      let val = l[fieldKey];
+
+      let displayVal = (val !== null && val !== undefined) ? val.toString() : '-';
+      
+      if (displayVal.length > 20) displayVal = displayVal.substring(0, 17) + "...";
+      
+      doc.text(displayVal, startX + (colIndex * colWidth) + 2, startY + 5);
+      
+      doc.setDrawColor(220, 220, 220);
+      doc.line(startX + (colIndex * colWidth), startY, startX + (colIndex * colWidth), startY + 8);
+    });
+
+    doc.line(startX, startY + 8, startX + 277, startY + 8);
+    startY += 8;
+  });
+
+  doc.save(`Leads_Report_${new Date().getTime()}.pdf`);
+}
+
+// 2. PRINT LOGIC FOR LEADS
+printLeads() {
+  this.isExportOpen = false;
+
+  if (!this.leads || this.leads.length === 0) {
+    alert("Print karne ke liye data nahi hai!");
+    return;
+  }
+
+  const activeCols = this.selectedColumns;
+  let tableHeader = `<tr style="background-color: #4a3f3f; color: white;">`;
+  activeCols.forEach(col => {
+    tableHeader += `<th style="padding: 10px; border: 1px solid #ddd; text-align: left; font-size: 12px;">${col}</th>`;
+  });
+  tableHeader += `</tr>`;
+
+  let tableRows = '';
+  this.leads.forEach((l) => {
+    tableRows += `<tr>`;
+    activeCols.forEach(col => {
+      const fieldKey = this.columnFieldMap[col] || col;
+      let val = l[fieldKey] !== null && l[fieldKey] !== undefined ? l[fieldKey] : '-';
+      
+      if (typeof val === 'string' && val.includes('T') && !isNaN(Date.parse(val))) {
+        val = new Date(val).toLocaleDateString('en-GB');
+      }
+      tableRows += `<td style="padding: 8px; border: 1px solid #eee; font-size: 11px;">${val}</td>`;
+    });
+    tableRows += `</tr>`;
+  });
+
+  const printWindow = window.open('', '_blank');
+  if (printWindow) {
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Lead Records Print</title>
+          <style>
+            body { font-family: sans-serif; padding: 20px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            h2 { text-align: center; color: #4a3f3f; }
+            .footer { margin-top: 20px; text-align: right; font-size: 10px; color: #666; }
+          </style>
+        </head>
+        <body>
+          <h2>LEAD RECORDS SUMMARY</h2>
+          <p style="text-align: center; font-size: 12px;">Generated on: ${new Date().toLocaleString()}</p>
+          <table>
+            <thead>${tableHeader}</thead>
+            <tbody>${tableRows}</tbody>
+          </table>
+          <div class="footer">Cavalier Logistics - Internal Document</div>
+        </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 500);
+  }
+}
+downloadLeadsExcel() {
+  // 1. Check karein ki data hai ya nahi
+  if (!this.leads || this.leads.length === 0) {
+    alert("Excel export ke liye table mein data hona zaroori hai!");
+    return;
+  }
+
+  // 2. Data Prepare karein (Sirf selected columns ke basis par)
+  const excelData = this.leads.map(lead => {
+    let row: any = {};
+    
+    // selectedColumns array par loop chalayein (e.g. ['Lead No', 'Organization'])
+    this.selectedColumns.forEach(col => {
+      // columnFieldMap se backend key nikalein (e.g. 'Lead No' -> 'leadNo')
+      const fieldKey = this.columnFieldMap[col] || col;
+      let val = lead[fieldKey];
+
+      // Date formatting check (agar ISO string hai toh readable banayein)
+      if (val && typeof val === 'string' && val.includes('T') && !isNaN(Date.parse(val))) {
+        val = new Date(val).toLocaleDateString('en-GB');
+      }
+
+      // Row mein data set karein
+      row[col] = (val !== null && val !== undefined) ? val : '-';
+    });
+    
+    return row;
+  });
+
+  // 3. Worksheet aur Workbook banayein
+  const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(excelData);
+  const wb: XLSX.WorkBook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Leads Data');
+
+  // 4. Column width auto-adjust (optional par achha lagta hai)
+  const colWidths = this.selectedColumns.map(() => ({ wch: 20 }));
+  ws['!cols'] = colWidths;
+
+  // 5. File Save karein
+  XLSX.writeFile(wb, `Lead_Report_${new Date().getTime()}.xlsx`);
+  
+  console.log("✅ Excel Downloaded Successfully");
+}
+// --- Pagination Variables ---
+currentPage: number = 1;
+pageSize: number = 10; // Default records per page
+protected readonly Math = Math;
+
+// Computed Property: Table mein isi ko loop karein
+get paginatedLeads(): any[] {
+  const startIndex = (this.currentPage - 1) * this.pageSize;
+  return this.leads.slice(startIndex, startIndex + this.pageSize);
+}
+
+// Total pages calculate karein
+get totalPages(): number {
+  return Math.ceil(this.leads.length / this.pageSize) || 1;
+}
+
+// Page change handler
+setPage(page: number) {
+  if (page < 1 || page > this.totalPages) return;
+  this.currentPage = page;
+  this.cdr.detectChanges();
+}
+
+// Page size change hone par page 1 par reset karein
+onPageSizeChange() {
+  this.currentPage = 1;
+  this.cdr.detectChanges();
 }
 }

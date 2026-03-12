@@ -1,0 +1,176 @@
+<div class="p-3 md:p-6 bg-gray-50 min-h-screen font-sans">
+
+  <div *ngIf="!isFormOpen" class="animate-in fade-in duration-500">
+    <div class="flex flex-row justify-between items-center mb-6 gap-2 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+      <div class="flex items-center gap-3">
+        <div class="bg-gray-100 p-2.5 rounded-xl hidden sm:flex items-center justify-center text-[#654E51]">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        </div>
+        <div>
+          <h2 class="text-xl md:text-2xl font-bold text-gray-800 leading-none">Consignee Management</h2>
+          <p class="hidden md:block text-xs text-gray-500 mt-1 uppercase tracking-wider font-semibold">Active Destination Partners (POD)</p>
+        </div>
+      </div>
+      <button (click)="openForm()" class="bg-[#654E51] text-white px-3 py-2 md:px-5 md:py-2.5 rounded-lg hover:bg-[#4A3739] transition flex items-center gap-1.5 shadow-md active:scale-95">
+        <span class="text-lg md:text-xl font-bold">+</span> <span class="text-xs md:text-base font-semibold uppercase">Add Consignee</span>
+      </button>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left">
+          <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Consignee Details</th>
+              <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest text-center">Location</th>
+              <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest text-center">Phone</th>
+              <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <tr *ngFor="let c of consigneesList" class="hover:bg-gray-50/50 transition-colors">
+              <td class="px-6 py-4">
+                <div class="font-bold text-gray-900 uppercase text-sm">{{c.name}}</div>
+                <div class="text-[10px] text-gray-400 font-bold tracking-tight">{{c.email}} | {{c.contactPerson}}</div>
+              </td>
+              <td class="px-6 py-4 text-center">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-[#654E51] uppercase">{{c.country}}</span>
+                <div class="text-[9px] text-gray-400 mt-1 uppercase font-bold">{{c.city}}</div>
+              </td>
+              <td class="px-6 py-4 text-center text-sm font-semibold text-gray-700">{{c.phone}}</td>
+              <td class="px-6 py-4 flex justify-center gap-2">
+                <button (click)="editConsignee(c)" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg text-sm">✎</button>
+                <button (click)="deleteConsignee(c.id)" class="p-2 text-red-600 hover:bg-red-50 rounded-lg text-sm">🗑</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="isFormOpen" class="animate-in fade-in slide-in-from-bottom-4 duration-300">
+    <div class="flex flex-row justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+      <div class="flex items-center gap-3">
+        <div class="bg-gray-100 p-2.5 rounded-xl text-[#654E51]"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg></div>
+        <div><h2 class="text-xl font-bold text-gray-800 leading-none uppercase">{{ isEditMode ? 'Update' : 'Create' }} Consignee</h2><p class="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-widest">Registering Destination Partner</p></div>
+      </div>
+      <div class="flex gap-2">
+        <button (click)="closeForm()" class="px-4 py-2 border-2 border-gray-100 rounded-lg text-gray-500 font-bold hover:bg-gray-100 transition-all text-xs uppercase">Cancel</button>
+        <button (click)="saveConsignee()" class="bg-[#654E51] text-white px-6 py-2 rounded-lg hover:bg-[#4A3739] transition shadow-md font-bold uppercase text-xs">Save Consignee</button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 hover:shadow-lg transition-shadow">
+        <h3 class="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+          <span class="w-1.5 h-4 bg-[#654E51] rounded-full"></span> Legal Identity
+        </h3>
+        <div class="space-y-4">
+          <div class="flex flex-col gap-1">
+            <label class="text-[11px] font-bold text-gray-500 uppercase">Consignee Name (Legal Entity)</label>
+            <input type="text" [(ngModel)]="consignee.name" placeholder="ENTER REGISTERED COMPANY NAME" class="w-full px-4 py-2.5 border-2 border-gray-50 rounded-xl focus:border-[#654E51] outline-none font-bold text-sm bg-gray-50/50 uppercase">
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1">
+              <label class="text-[11px] font-bold text-gray-500 uppercase">VAT/Tax ID</label>
+              <input type="text" [(ngModel)]="consignee.taxId" placeholder="TAX / EIN / GST NO." class="w-full px-4 py-2.5 border-2 border-gray-50 rounded-xl focus:border-[#654E51] outline-none font-bold text-sm bg-gray-50/50 uppercase">
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-[11px] font-bold text-gray-500 uppercase">Entity Type</label>
+              <select [(ngModel)]="consignee.consigneeType" class="w-full px-4 py-2.5 border-2 border-gray-50 rounded-xl focus:border-[#654E51] outline-none font-bold text-sm bg-gray-50/50">
+                <option value="COMMERCIAL">COMMERCIAL (B2B)</option>
+                <option value="PRIVATE">PRIVATE (B2C)</option>
+                <option value="GOVERNMENT">GOVERNMENT</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="flex-1 flex flex-col gap-1">
+              <label class="text-[11px] font-bold text-gray-500 uppercase">Primary Contact Person</label>
+              <input type="text" [(ngModel)]="consignee.contactPerson" placeholder="FULL NAME..." class="w-full px-4 py-2.5 border-2 border-gray-50 rounded-xl focus:border-[#654E51] outline-none font-bold text-sm bg-gray-50/50 uppercase">
+            </div>
+            <div class="flex-1 flex flex-col gap-1">
+              <label class="text-[11px] font-bold text-gray-500 uppercase">Phone / Mobile</label>
+              <input type="text" [(ngModel)]="consignee.phone" placeholder="PHONE NO." class="w-full px-4 py-2.5 border-2 border-gray-50 rounded-xl focus:border-[#654E51] outline-none font-bold text-sm bg-gray-50/50 uppercase">
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label class="text-[11px] font-bold text-gray-500 uppercase">Email Address</label>
+            <input type="email" [(ngModel)]="consignee.email" placeholder="EMAIL@DOMAIN.COM" class="w-full px-4 py-2.5 border-2 border-gray-50 rounded-xl focus:border-[#654E51] outline-none font-bold text-sm bg-gray-50/50 uppercase">
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 hover:shadow-lg transition-shadow">
+        <h3 class="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+          <span class="w-1.5 h-4 bg-red-400 rounded-full"></span> Delivery Address (POD)
+        </h3>
+        <div class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1 relative">
+              <label class="text-[11px] font-bold text-red-500 uppercase tracking-tighter">Destination Country</label>
+              <div class="flex-1 relative">
+                <input type="text" [(ngModel)]="consignee.country" (input)="filterCountries()" (focus)="showCountryDropdown = true" placeholder="SEARCH COUNTRY..." class="w-full px-4 py-2.5 border-2 border-gray-50 rounded-xl focus:border-[#654E51] outline-none font-bold text-sm bg-gray-50/50 uppercase" autocomplete="off">
+                <ul *ngIf="showCountryDropdown && filteredCountries.length > 0" class="absolute top-full left-0 w-full bg-white border border-gray-100 mt-2 max-h-40 overflow-y-auto z-50 shadow-2xl rounded-xl">
+                  <li *ngFor="let c of filteredCountries" (mousedown)="selectCountry(c)" class="px-4 py-2 hover:bg-gray-50 cursor-pointer text-xs font-bold text-gray-600 border-b border-gray-50 uppercase">{{c.name}}</li>
+                </ul>
+              </div>
+            </div>
+            <div class="flex flex-col gap-1 relative">
+              <label class="text-[11px] font-bold text-gray-500 uppercase tracking-tighter">State / Province</label>
+              <div class="flex-1 relative">
+                <input type="text" [(ngModel)]="consignee.state" (input)="filterStates()" (focus)="showStateDropdown = true" [disabled]="!consignee.country" placeholder="SELECT STATE..." class="w-full px-4 py-2.5 border-2 border-gray-50 rounded-xl focus:border-[#654E51] outline-none font-bold text-sm bg-gray-50/50 uppercase disabled:opacity-50">
+                <ul *ngIf="showStateDropdown && filteredStates.length > 0" class="absolute top-full left-0 w-full bg-white border border-gray-100 mt-2 max-h-40 overflow-y-auto z-50 shadow-2xl rounded-xl">
+                  <li *ngFor="let s of filteredStates" (mousedown)="consignee.state = s.toUpperCase(); showStateDropdown = false" class="px-4 py-2 hover:bg-gray-50 cursor-pointer text-xs font-bold text-gray-600 border-b border-gray-50 uppercase">{{s}}</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label class="text-[11px] font-bold text-gray-500 uppercase">Warehouse / CFS Detail (Optional)</label>
+            <input type="text" [(ngModel)]="consignee.warehouseName" placeholder="E.G. JEBEL ALI GATE 4" class="w-full px-4 py-2.5 border-2 border-gray-50 rounded-xl focus:border-[#654E51] outline-none font-bold text-sm bg-gray-50/50 uppercase">
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label class="text-[11px] font-bold text-gray-500 uppercase">Street Address / Suite</label>
+            <input type="text" [(ngModel)]="consignee.addressLine2" placeholder="BUILDING NO, STREET NAME" class="w-full px-4 py-2.5 border-2 border-gray-50 rounded-xl focus:border-[#654E51] outline-none font-bold text-sm bg-gray-50/50 uppercase">
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1">
+              <label class="text-[11px] font-bold text-gray-500 uppercase">City</label>
+              <input type="text" [(ngModel)]="consignee.city" placeholder="CITY NAME" class="w-full px-4 py-2.5 border-2 border-gray-50 rounded-xl focus:border-[#654E51] outline-none font-bold text-sm bg-gray-50/50 uppercase">
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-[11px] font-bold text-gray-500 uppercase">Zip Code</label>
+              <input type="text" [(ngModel)]="consignee.zip" placeholder="ZIP" class="w-full px-4 py-2.5 border-2 border-gray-50 rounded-xl focus:border-[#654E51] outline-none font-bold text-sm bg-gray-50/50 uppercase">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-200 mt-2 hover:shadow-lg transition-shadow">
+        <h3 class="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+          <span class="w-1.5 h-4 bg-blue-400 rounded-full"></span> Logistics Instructions
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="flex flex-col gap-1">
+            <label class="text-[11px] font-bold text-gray-500 uppercase">Notify Party (If different from Consignee)</label>
+            <input type="text" [(ngModel)]="consignee.notifyParty" placeholder="COMPANY NAME TO BE NOTIFIED" class="w-full px-4 py-2.5 border-2 border-gray-50 rounded-xl focus:border-[#654E51] outline-none font-bold text-sm bg-gray-50/50 uppercase">
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-[11px] font-bold text-gray-500 uppercase">Special Delivery Instructions</label>
+            <input type="text" [(ngModel)]="consignee.deliveryInstruction" placeholder="LIFT GATE REQUIRED, NO LOADING DOCK, ETC." class="w-full px-4 py-2.5 border-2 border-gray-50 rounded-xl focus:border-[#654E51] outline-none font-bold text-sm bg-gray-50/50 uppercase">
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

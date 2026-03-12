@@ -1,0 +1,31 @@
+@media print {
+  /* Poori screen hide karo */
+  body * {
+    visibility: hidden;
+  }
+  /* Sirf table container aur uske bacchon ko dikhao */
+  #printable-data, #printable-data * {
+    visibility: visible;
+  }
+  /* Table ko page ke top-left mein set karo */
+  #printable-data {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  /* Agar table mein 'Action' column (Edit/Delete) nahi chahiye print mein */
+  .no-print {
+    display: none !important;
+  }
+}
+/* Dragging ke waqt row ki styling */
+.cdk-drag-preview {
+  display: table;
+  background: white;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.cdk-drag-placeholder {
+  opacity: 0; /* Jahan se row uthayi wahan khali jagah dikhegi */
+}

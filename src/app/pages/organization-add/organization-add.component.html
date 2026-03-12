@@ -149,15 +149,45 @@
     
   </div>
 </div>
+
+
+
+
      <div class="space-y-2">
-              <div class="flex items-center">
-                <label class="w-24 font-bold text-gray-600">Date</label>
-                <div class="flex-1 flex border border-gray-300 items-center pr-2 cursor-pointer" (click)="datePicker.showPicker()">
-                  <input #datePicker type="date" class="w-full p-1 outline-none text-[12px] cursor-pointer" (focus)="datePicker.showPicker()">
-                  <span>📅</span>
-                </div>
-              </div>
-            </div>
+  <div class="flex items-center">
+    <label class="w-24 font-bold text-gray-600">Date</label>
+    
+    <div 
+      class="flex-1 flex border border-gray-300 items-center pr-2 cursor-pointer bg-white relative h-[28px]"
+      (click)="datePicker.showPicker(); showOrgDatePicker = !showOrgDatePicker">
+      
+      <input 
+        #datePicker 
+        type="date" 
+        [(ngModel)]="searchFilters.createdDate"
+        class="w-full p-1 outline-none text-[12px] cursor-pointer bg-transparent"
+        (focus)="datePicker.showPicker()"
+        (change)="showOrgDatePicker = false">
+
+      <div *ngIf="showOrgDatePicker" 
+           (mouseleave)="showOrgDatePicker = false"
+           class="absolute top-0 right-full z-[1001] bg-white shadow-xl border border-gray-300 flex flex-col w-[115px] rounded-sm overflow-hidden mr-[-1px]">
+        
+        <div class="bg-gray-100 px-2 py-1 text-[9px] font-bold text-gray-500 uppercase border-b">Quick Select</div>
+        
+        <div (click)="setOrgQuickDate('today'); $event.stopPropagation()" class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50">Today</div>
+        <div (click)="setOrgQuickDate('tomorrow'); $event.stopPropagation()" class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50">Tomorrow</div>
+        <div (click)="setOrgQuickDate('yesterday'); $event.stopPropagation()" class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50">Yesterday</div>
+        <div (click)="setOrgQuickDate('nextWeek'); $event.stopPropagation()" class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50">Next Week</div>
+        <div (click)="setOrgQuickDate('lastWeek'); $event.stopPropagation()" class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer">Last Week</div>
+      </div>
+
+      <span class="text-gray-400 text-[12px]">📅</span>
+    </div>
+  </div>
+</div>
+
+
             <div class="flex gap-4">
               <span class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline">Advance Filter</span>
               <span (click)="searchQuery=''; getOrgList()" (click)="resetFilters()" class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline">Clear</span>
@@ -171,60 +201,175 @@
         </div>
       </div>
     </div>
+<div class="bg-[#4a3f3f] p-4 flex justify-between items-center text-white">
+  <div class="font-bold uppercase tracking-widest text-[16px]">Organization Records</div>
+  
+  <div class="flex items-center gap-3">
 
-    <div class="bg-[#4a3f3f] p-4 flex justify-between items-center text-white">
-      <div class="font-bold uppercase tracking-widest text-[16px]">Organization Records</div>
-      <button (click)="openForm()"
-        class="bg-green-600 hover:bg-green-700 px-6 py-2 text-[14px] font-bold shadow-md flex items-center gap-2 rounded transition-all">
-        <span class="text-xl">+</span> ADD NEW ORGANIZATION
+  <button type="button" (click)="openColumnModal()" class="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700">
+    ⚙️ Customize Columns
+  </button>
+
+    <div class="relative inline-block">
+      <button type="button" (click)="toggleExportMenu(); $event.stopPropagation()"
+        class="bg-blue-600 hover:bg-blue-700 px-4 py-2 text-[14px] font-bold shadow-md flex items-center gap-2 rounded transition-all">
+        <span>💾</span> EXPORT
+        <span [class.rotate-180]="isExportOpen" class="transition-transform text-[10px] ml-1">▼</span>
       </button>
-    </div>
 
-    <div class="overflow-x-auto">
-      <table class="w-full border-collapse">
-        <thead>
-          <tr class="bg-gray-200 text-gray-700 uppercase text-[13px] border-b-2 border-gray-300">
-              <th class="p-5 text-left font-bold">Org ID</th>
-            <th class="p-5 text-left font-bold">Org Name</th>
-            <th class="p-5 text-left font-bold">Alias</th>
-            <th class="p-5 text-left font-bold">Type</th>
-            <th class="p-5 text-left font-bold">Location</th>
-            <th class="p-5 text-center font-bold sticky right-0 bg-gray-200 border-l shadow-sm">Action</th>
-          </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-          <tr *ngFor="let org of organizations" class="hover:bg-blue-50 transition-colors text-gray-800">
-              <td class="p-5 font-bold text-blue-700 uppercase">{{org.id}}</td>
-            <td class="p-5 font-bold text-blue-700 uppercase">{{org.orgName}}</td>
-            <td class="p-5 font-medium">{{org.alias}}</td>
-            <td class="p-5">
-              <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-[12px] font-bold uppercase">
-                {{org.selectedRoles}}
-              </span>
-            </td>
-            <td class="p-5">{{org.city}}</td>
-            <td class="p-5 sticky right-0 bg-white border-l text-center">
-              <button (click)="editOrg(org)" class="text-blue-600 mr-4 font-bold hover:underline">EDIT</button>
-              <button (click)="deleteOrg(org.id)" class="text-red-600 font-bold hover:underline">DELETE</button>
-            </td>
-          </tr>
-          <tr *ngIf="organizations.length === 0">
-    <td colspan="7" class="p-10 text-center">
-      <div class="flex flex-col items-center justify-center text-gray-400">
-        <span class="text-4xl mb-2">📂</span>
-        <p class="text-[14px] font-bold">No Organization Records Found</p>
-        <p class="text-[12px]">Try adjusting your filters or check the ID to find the organization.</p>
-        <button (click)="getOrgList()" class="mt-3 text-blue-500 underline text-[11px]">
-          Reset All Filters
+      <div *ngIf="isExportOpen"
+        class="absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded shadow-2xl z-[100] border border-gray-200 overflow-hidden">
+        <button type="button" (click)="printData()"
+          class="w-full text-left px-4 py-3 hover:bg-gray-100 flex items-center gap-2 border-b border-gray-100">
+          <span>🖨️</span> Print Records
+        </button>
+        <button type="button" (click)="downloadPDF()"
+          class="w-full text-left px-4 py-3 hover:bg-gray-100 flex items-center gap-2">
+          <span>📄</span> Download as PDF
+        </button>
+        <button type="button" (click)="downloadExcel()"
+          class="w-full text-left px-4 py-3 hover:bg-gray-100 flex items-center gap-2">
+          <span class="text-green-600">📊</span> Download as Excel
         </button>
       </div>
-    </td>
-  </tr>
-        </tbody>
-      </table>
+    </div>
+
+    <button (click)="openForm()"
+      class="bg-green-600 hover:bg-green-700 px-6 py-2 text-[14px] font-bold shadow-md flex items-center gap-2 rounded transition-all">
+      <span class="text-xl">+</span> ADD NEW ORGANIZATION
+    </button>
+    
+  </div>
+</div>
+
+      <div class="overflow-x-auto" #tableToExport id="printable-table">
+        <table class="w-full border-collapse">
+      <thead>
+        <tr class="bg-gray-200 text-gray-700 uppercase text-[13px] border-b-2 border-gray-300">
+          <th class="p-5 w-10 no-export"></th>
+
+          <th *ngFor="let col of selectedColumns" class="p-5 text-left font-bold whitespace-nowrap">
+            {{ col }}
+          </th>
+
+          <th class="p-5 text-center font-bold sticky right-0 bg-gray-200 border-l shadow-sm no-export">Action</th>
+        </tr>
+      </thead>
+
+      <tbody class="bg-white divide-y divide-gray-200">
+        <tr *ngFor="let org of paginatedOrganizations" class="hover:bg-blue-50 transition-colors text-gray-800">
+          
+          <td class="p-5 text-center text-gray-300 no-export">⠿</td>
+
+          <td *ngFor="let col of selectedColumns" class="p-5">
+            <ng-container [ngSwitch]="col">
+              <span *ngSwitchCase="'Org ID'" class="font-bold text-blue-700 uppercase">{{org.id}}</span>
+              <span *ngSwitchCase="'Org Name'" class="font-bold text-blue-700 uppercase">{{org.orgName}}</span>
+              
+              <span *ngSwitchCase="'Type'">
+                <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-[12px] font-bold uppercase">
+                  {{org.selectedRoles}}
+                </span>
+              </span>
+
+              <span *ngSwitchDefault class="font-medium text-gray-700">
+                {{ org[columnFieldMap[col]] || '-' }}
+              </span>
+            </ng-container>
+          </td>
+
+          <td class="p-5 sticky right-0 bg-white border-l text-center shadow-sm">
+            <button (click)="editOrg(org)" class="text-blue-600 mr-4 font-bold hover:underline no-export">EDIT</button>
+            <button (click)="deleteOrg(org.id)" class="text-red-600 font-bold hover:underline no-export">DELETE</button>
+          </td>
+        </tr>
+
+        <tr *ngIf="organizations.length === 0">
+          <td [attr.colspan]="selectedColumns.length + 2" class="p-10 text-center">
+            <div class="flex flex-col items-center justify-center text-gray-400">
+              <span class="text-4xl mb-2">📂</span>
+              <p class="text-[14px] font-bold">No Organization Records Found</p>
+              <button (click)="getOrgList()" class="mt-3 text-blue-500 underline text-[11px]">Reset Filters</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+        <div class="flex justify-between items-center bg-white p-4 border-t border-gray-200 mt-2 shadow-sm rounded-b-lg no-export" *ngIf="organizations.length > 0">
+      <div class="text-[12px] text-gray-600 font-medium">
+        Showing 
+        <span class="font-bold text-gray-800">{{ (currentPage - 1) * pageSize + 1 }}</span> 
+        to 
+        <span class="font-bold text-gray-800">{{ Math.min(currentPage * pageSize, organizations.length) }}</span> 
+        of 
+        <span class="font-bold text-gray-800">{{ organizations.length }}</span> 
+        Organizations
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button (click)="setPage(1)" [disabled]="currentPage === 1"
+          class="p-2 text-gray-500 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed">
+          ««
+        </button>
+
+        <button (click)="setPage(currentPage - 1)" [disabled]="currentPage === 1"
+          class="px-4 py-1 text-[11px] font-bold uppercase border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+          Prev
+        </button>
+
+        <div class="flex items-center mx-2 shadow-sm border border-gray-200 rounded">
+          <span class="px-3 py-1 text-[12px] font-black bg-[#4a3f3f] text-white rounded-l">
+            {{currentPage}}
+          </span>
+          <span class="px-3 py-1 text-[12px] font-bold bg-gray-50 text-gray-600 rounded-r">
+            of {{totalPages}}
+          </span>
+        </div>
+
+        <button (click)="setPage(currentPage + 1)" [disabled]="currentPage === totalPages"
+          class="px-4 py-1 text-[11px] font-bold uppercase border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+          Next
+        </button>
+
+        <button (click)="setPage(totalPages)" [disabled]="currentPage === totalPages"
+          class="p-2 text-gray-500 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed">
+          »»
+        </button>
+      </div>
+    </div>
+      </div>
+    </div>
+<div *ngIf="showColumnModal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-[600px] overflow-hidden animate-in fade-in zoom-in duration-200">
+    <div class="p-4 bg-gray-100 border-b flex justify-between items-center font-bold text-gray-700">
+      <span class="flex items-center gap-2">⚙️ Manage Table Columns</span>
+      <button (click)="closeColumnModal()" class="text-2xl hover:text-red-500">&times;</button>
+    </div>
+    
+    <div class="p-6 grid grid-cols-2 gap-6" cdkDropListGroup>
+      <div>
+        <p class="text-[10px] uppercase font-black text-gray-400 mb-2 tracking-widest">Available (Hidden)</p>
+        <div cdkDropList [cdkDropListData]="availableColumns" (cdkDropListDropped)="drop($event)" class="min-h-[300px] border-2 border-dashed border-gray-200 rounded-lg p-2 bg-gray-50">
+          <div *ngFor="let col of availableColumns" cdkDrag class="bg-white border p-3 mb-2 rounded shadow-sm cursor-move text-[12px] font-bold text-gray-600 hover:border-blue-400">
+            {{ col }}
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class="text-[10px] uppercase font-black text-blue-500 mb-2 tracking-widest">Visible In Table</p>
+        <div cdkDropList [cdkDropListData]="selectedColumns" (cdkDropListDropped)="drop($event)" class="min-h-[300px] border-2 border-blue-100 rounded-lg p-2 bg-blue-50">
+          <div *ngFor="let col of selectedColumns" cdkDrag class="bg-white border-blue-200 border p-3 mb-2 rounded shadow-sm cursor-move text-[12px] font-bold text-blue-700 hover:bg-blue-100">
+            {{ col }}
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="p-4 bg-gray-100 border-t flex justify-end gap-3">
+      <button (click)="closeColumnModal()" class="bg-blue-600 text-white px-8 py-2 rounded-lg font-bold shadow-lg hover:bg-blue-700 transition-all">Save Changes</button>
     </div>
   </div>
-
+</div>
   <div *ngIf="isFormOpen">
     <div class="p-4 bg-gray-100 min-h-screen font-sans text-[12px]">
       <div class="bg-[#4a3f3f] p-1.5 flex justify-between items-center text-white shadow-sm">

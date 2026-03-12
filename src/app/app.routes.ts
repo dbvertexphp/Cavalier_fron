@@ -65,6 +65,8 @@ import { SalaryTableComponent } from './salary-table/salary-table.component';
 import { LeaveApplicationComponent } from './leave-application/leave-application.component';
 import { EmployeeComponent } from './pages/employee/employee.component';
 import { ShipperComponent } from './pages/shipper/shipper.component';
+import { ConsigneeComponent } from './pages/consignee/consignee.component';
+import { RolePermisionsComponent } from './pages/role-permisions/role-permisions.component';
 
 export const routes: Routes = [
 
@@ -131,6 +133,8 @@ export const routes: Routes = [
         component: EmployeeComponent   }, 
           { path: 'shipper',                          //list of unit
         component:ShipperComponent   }, 
+          { path: 'Consignee',                          //list of unit
+        component:ConsigneeComponent   }, 
     
       {
         path: 'port-of-loading',
@@ -209,6 +213,11 @@ export const routes: Routes = [
         title: 'Employee Masters'
       },
       {
+          path: 'rolePermision',
+        component: RolePermisionsComponent,
+       
+      },
+      {
         path: 'register-user',
         component: UserFormComponent,
         title: 'Register New Employee'
@@ -244,10 +253,10 @@ export const routes: Routes = [
         component: AttendanceAddComponent,
         title: 'Add Attendance'
       },
-      {
-        path: 'attendance/edit',
-        component: AttendanceEditComponent,
-        title: 'Edit Attendance'
+      { 
+        path: 'attendance/edit/:id', 
+        component: AttendanceEditComponent, 
+        title: 'Edit Attendance' 
       },
       {
         path: 'shift/list',

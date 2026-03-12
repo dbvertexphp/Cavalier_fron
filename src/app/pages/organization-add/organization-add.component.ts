@@ -1,635 +1,959 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http'; 
 import { environment } from '../../../environments/environment';
 import { any } from '@amcharts/amcharts5/.internal/core/util/Array';
 import { Router } from '@angular/router';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import * as XLSX from 'xlsx';
+import { moveItemInArray, transferArrayItem, CdkDragDrop } from '@angular/cdk/drag-drop';
+import { DragDropModule } from '@angular/cdk/drag-drop'; // 👈 Ye zaroori hai // Ye import ensure kar lena
 
 @Component({
-  selector: 'app-organization-add',
-  standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, HttpClientModule], 
-  templateUrl: './organization-add.component.html',
-  styleUrl: './organization-add.component.css',
+  selector: 'app-organization-add',
+  standalone: true,
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, HttpClientModule,DragDropModule], 
+  templateUrl: './organization-add.component.html',
+  styleUrl: './organization-add.component.css',
 })
 export class OrganizationAddComponent implements OnInit {
 searchFilters: any = {
-  orgCode: '',
-  orgName: '',
-  city: '',
-  branchName: '',
-  orgGroup: '',
-  orgType: '',
-  status: 'Active' // 👈 Default 'Active' rakha hai
+  orgCode: '',
+  orgName: '',
+  city: '',
+  branchName: '',
+  orgGroup: '',
+  orgType: '',
+  status: 'Active' // 👈 Default 'Active' rakha hai
 };
 
- 
-  // Suggestions store karne ke liye arrays
-  filteredOrgCodes: any[] = [];
-  filteredBranches: any[] = [];
+ // ... baki variables ke niche
+showColumnModal = false;
+availableColumns: string[] = []; // Ye wo columns jo table mein nahi hain
+
+
+// Label to Property Mapping (Taki table auto-render ho sake)
+columnFieldMap: any = {
+  'Org ID': 'id',
+  'Org Name': 'orgName',
+  'Alias': 'alias',
+  'Type': 'selectedRoles',
+  'Location': 'city',
+  'Branch': 'branchName',
+  'Email': 'email',
+  'Telephone': 'telephone',
+  'Sales Person': 'salesPerson',
+  'Website': 'website'
+};
+
+// Default columns jo shuru mein dikhenge
+selectedColumns: string[] = ['Org ID', 'Org Name', 'Alias', 'Type', 'Location'];
+  // Suggestions store karne ke liye arrays
+  filteredOrgCodes: any[] = [];
+  filteredBranches: any[] = [];
 filteredOrgNames: any[] = [];
 filteredCities: string[] = [];
-  activeTab: string = 'general';
-  selectedRoles: string[] = [];
-  organizations: any[] = [];
+  activeTab: string = 'general';
+  selectedRoles: string[] = [];
+  organizations: any[] = [];
 cities: any[] = [];
-  // Form Variables
-  searchQuery: string = ''; 
-  orgName: string = '';
-  alias: string = '';
-  address: string = '';
-  country: string = '';
-  city: string = '';
-  telephone: string = '';
-  email: string = '';
-  stateProvince: string = '';
-  website: string = '';
-  phoneNumber: string = '';
-  postalCode: string = '';
-  altPhoneNumber: string = '';
-  fax: string = '';
-  whatsAppNumber: string = '';
-  salesPerson: string = '';
-  collectionExec: string = '';
+  // Form Variables
+  searchQuery: string = ''; 
+  orgName: string = '';
+  alias: string = '';
+  address: string = '';
+  country: string = '';
+  city: string = '';
+  telephone: string = '';
+  email: string = '';
+  stateProvince: string = '';
+  website: string = '';
+  phoneNumber: string = '';
+  postalCode: string = '';
+  altPhoneNumber: string = '';
+  fax: string = '';
+  whatsAppNumber: string = '';
+  salesPerson: string = '';
+  collectionExec: string = '';
 
-  // --- Dynamic Contact Detail Array ---
-  contactList: any[] = [
-    { name: '', designation: '', department: '', mobile: '', whatsapp: '', email: '' }
-  ];
+  // --- Dynamic Contact Detail Array ---
+  contactList: any[] = [
+    { name: '', designation: '', department: '', mobile: '', whatsapp: '', email: '' }
+  ];
 
-  branches :any [] =[];
-  selectedBranch: any = null
+  branches :any [] =[];
+  selectedBranch: any = null
 
-  constructor(private location: Location, private http: HttpClient,private cdr: ChangeDetectorRef,private router:Router) {}
+  constructor(private location: Location, private http: HttpClient,private cdr: ChangeDetectorRef,private router:Router) {}
 fetchNextBranch() {
-  const url = `${environment.apiUrl}/Organization/next-branch-name`;
-  this.http.get<{nextName: string}>(url).subscribe({
-    next: (res) => {
-      // 1. Pehle list ko khali karo taaki purane temporary numbers (like Branch 02) hat jaye in
-      this.branches = []; 
+  const url = `${environment.apiUrl}/Organization/next-branch-name`;
+  this.http.get<{nextName: string}>(url).subscribe({
+    next: (res) => {
+      // 1. Pehle list ko khali karo taaki purane temporary numbers (like Branch 02) hat jaye in
+      this.branches = []; 
 
-      // 2. Naya branch object banao
-      const newBranch = { id: 0, name: res.nextName, isDefault: true };
-      
-      // 3. List mein sirf naya number daalo
-      this.branches.push(newBranch);
-      
-      // 4. Isko auto-select karo taaki form mein dikhne lage
-      this.selectedBranch = newBranch;
-      
-      this.cdr.detectChanges();
-    },
-    error: (err) => console.error("Branch fetch error:", err)
-  });
+      // 2. Naya branch object banao
+      const newBranch = { id: 0, name: res.nextName, isDefault: true };
+      
+      // 3. List mein sirf naya number daalo
+      this.branches.push(newBranch);
+      
+      // 4. Isko auto-select karo taaki form mein dikhne lage
+      this.selectedBranch = newBranch;
+      
+      this.cdr.detectChanges();
+    },
+    error: (err) => console.error("Branch fetch error:", err)
+  });
 }
-  ngOnInit() {
-    this.getOrgList();
-    this.fetchNextBranch();
-  }
+  ngOnInit() {
+  this.loadColumnSettings();
+    this.getOrgList();
+    this.fetchNextBranch();
+  }
 
-  getOrgList() {
-    const url = `${environment.apiUrl}/Organization/list`;
-    
-    this.http.get(url).subscribe({
-      next: (data: any) => { 
-        this.organizations = data; 
-      },
-      error: (err) => {
-        console.error('List fetch error:', err);
-      }
-    });
-  }
+  getOrgList() {
+    const url = `${environment.apiUrl}/Organization/list`;
+    
+    this.http.get(url).subscribe({
+      next: (data: any) => { 
+        this.organizations = data; 
+      },
+      error: (err) => {
+        console.error('List fetch error:', err);
+      }
+    });
+  }
 
-  addContactRow() {
-    this.contactList.push({
-      name: '', designation: '', department: '', mobile: '', whatsapp: '', email: ''
-    });
-  }
+  addContactRow() {
+    this.contactList.push({
+      name: '', designation: '', department: '', mobile: '', whatsapp: '', email: ''
+    });
+  }
 
-  removeContactRow(index: number) {
-    if (this.contactList.length > 1) {
-      this.contactList.splice(index, 1);
-    }
-  }
+  removeContactRow(index: number) {
+    if (this.contactList.length > 1) {
+      this.contactList.splice(index, 1);
+    }
+  }
 
-  isRoleSelected(role: string): boolean {
-    return this.selectedRoles.includes(role);
-  }
+  isRoleSelected(role: string): boolean {
+    return this.selectedRoles.includes(role);
+  }
 
-  // toggleRole(role: string) {
-  //   const index = this.selectedRoles.indexOf(role);
-  //   if (index > -1) {
-  //     this.selectedRoles.splice(index, 1);
-  //   } else {
-  //     this.selectedRoles.push(role);
-  //     this.activeTab = role;
-  //   }
-  // }
+  // toggleRole(role: string) {
+  //   const index = this.selectedRoles.indexOf(role);
+  //   if (index > -1) {
+  //     this.selectedRoles.splice(index, 1);
+  //   } else {
+  //     this.selectedRoles.push(role);
+  //     this.activeTab = role;
+  //   }
+  // }
 // selectedRoles array ko track karne ke liye logic
 toggleRole(role: string) {
-  const index = this.selectedRoles.indexOf(role);
-  if (index > -1) {
-    this.selectedRoles.splice(index, 1);
-  } else {
-    this.selectedRoles.push(role);
-    this.activeTab = role;
-    
-    // Agar 'shipper' select hua hai, toh hum toggle kar sakte hain ya redirect
-    if (role === 'shipper') {
-      console.log("Shipper selected! Showing Shipper Form...");
-      this.router.navigate(['/dashboard/shipper']);
-    }
-  }
+  const index = this.selectedRoles.indexOf(role);
+  if (index > -1) {
+    this.selectedRoles.splice(index, 1);
+  } else {
+    this.selectedRoles.push(role);
+    this.activeTab = role;
+    
+    // Agar 'shipper' select hua hai, toh hum toggle kar sakte hain ya redirect
+    if (role === 'shipper') {
+      console.log("Shipper selected! Showing Shipper Form...");
+      this.router.navigate(['/dashboard/shipper']);
+    }
+       if (role === 'consignee') {
+      console.log("Consignee selected! Showing Shipper Form...");
+      this.router.navigate(['/dashboard/Consignee']);
+    }
+  }
 }
 
 // HTML mein condition check karne ke liye helper
 isShipperSelected(): boolean {
-  return this.selectedRoles.includes('shipper');
+  return this.selectedRoles.includes('shipper');
 }
 saveOrg() {
-  // Website Validation Check
-  if (this.website && this.website.length > 0 && this.isWebsiteInvalid) {
-    alert("please enter a valid webite address! (e.g. www.domain.com)");
-    return;
-  }
+  // Website Validation Check
+  if (this.website && this.website.length > 0 && this.isWebsiteInvalid) {
+    alert("please enter a valid webite address! (e.g. www.domain.com)");
+    return;
+  }
 
-  // Baki saare validation
-  console.log("🚀 Sab sahi hai! Data save ho raha hai.");
-  const telValue = this.telephone ? this.telephone.toString().trim() : '';
+  // Baki saare validation
+  console.log("🚀 Sab sahi hai! Data save ho raha hai.");
+  const telValue = this.telephone ? this.telephone.toString().trim() : '';
 
-  // Naya Logic: Min 5, Max 15
-  const isTelInvalid = telValue.length > 0 && telValue.length < 5;
-  if (isTelInvalid) {
-    alert("telephoe must be5 to 15 dig's");
-    return;
-  }
+  // Naya Logic: Min 5, Max 15
+  const isTelInvalid = telValue.length > 0 && telValue.length < 5;
+  if (isTelInvalid) {
+    alert("telephoe must be5 to 15 dig's");
+    return;
+  }
 
-  console.log("✅ Telephone validation passed!");
-  const faxValue = this.fax ? this.fax.toString().trim() : '';
-  const isFaxInvalid = faxValue.length > 0 && faxValue.length < 6;
-  if (isFaxInvalid) {
-    alert("fax dig min 6 or max 13");
-    return;
-  }
+  console.log("✅ Telephone validation passed!");
+  const faxValue = this.fax ? this.fax.toString().trim() : '';
+  const isFaxInvalid = faxValue.length > 0 && faxValue.length < 6;
+  if (isFaxInvalid) {
+    alert("fax dig min 6 or max 13");
+    return;
+  }
 
-  const isFormInvalid = this.contacts.some(c => 
-    (c.mobile && c.mobile.length > 0 && c.mobile.length < 10) || 
-    (c.whatsapp && c.whatsapp.length > 0 && c.whatsapp.length < 10) ||
-    (c.isEmailInvalid)
-  );
+  const isFormInvalid = this.contacts.some(c => 
+    (c.mobile && c.mobile.length > 0 && c.mobile.length < 10) || 
+    (c.whatsapp && c.whatsapp.length > 0 && c.whatsapp.length < 10) ||
+    (c.isEmailInvalid)
+  );
 
-  if (isFormInvalid) {
-    alert("please fill the valid email or a mobile number!");
-    return; 
-  }
+  if (isFormInvalid) {
+    alert("please fill the valid email or a mobile number!");
+    return; 
+  }
 
-  const isAnyNumberInvalid = this.contacts.some(c => 
-    c.whatsapp && c.whatsapp.length > 0 && c.whatsapp.length < 10
-  );
+  const isAnyNumberInvalid = this.contacts.some(c => 
+    c.whatsapp && c.whatsapp.length > 0 && c.whatsapp.length < 10
+  );
 
-  if (isAnyNumberInvalid) {
-    alert("please fill the valid email or a mobile number!");
-    return;
-  }
+  if (isAnyNumberInvalid) {
+    alert("please fill the valid email or a mobile number!");
+    return;
+  }
 
-  if (!this.orgName || !this.alias || !this.country || !this.city) {
-    alert('Please fill mandatory fields: Name, Alias, Country, and City');
-    return;
-  }
+  if (!this.orgName || !this.alias || !this.country || !this.city) {
+    alert('Please fill mandatory fields: Name, Alias, Country, and City');
+    return;
+  }
 
-  const url = `${environment.apiUrl}/Organization/save`;
+  const url = `${environment.apiUrl}/Organization/save`;
 
-  const payload = {
-    OrgName: this.orgName,
-    Alias: this.alias,
-    BranchName: this.selectedBranch?.name || '',
-    Address: this.address,
-    Country: this.country,
-    City: this.city,
-    Telephone: this.telephone,
-    Email: this.email,
-    StateProvince: this.stateProvince,
-    Website: this.website,
-    PostalCode: this.postalCode,
-    WhatsAppNumber: this.whatsAppNumber,
-    SalesPerson: this.salesPerson,
-    CollectionExec: this.collectionExec,
-    SelectedRoles: this.selectedRoles.join(','),
-    Contacts: this.contacts.map(c => ({
-      ContactName: c.contactName,
-      Mobile: c.mobile,
-      Whatsapp: c.whatsapp,
-      Email: c.email
-    }))
-  };
+  const payload = {
+    OrgName: this.orgName,
+    Alias: this.alias,
+    BranchName: this.selectedBranch?.name || '',
+    Address: this.address,
+    Country: this.country,
+    City: this.city,
+    Telephone: this.telephone,
+    Email: this.email,
+    StateProvince: this.stateProvince,
+    Website: this.website,
+    PostalCode: this.postalCode,
+    WhatsAppNumber: this.whatsAppNumber,
+    SalesPerson: this.salesPerson,
+    CollectionExec: this.collectionExec,
+    SelectedRoles: this.selectedRoles.join(','),
+    Contacts: this.contacts.map(c => ({
+      ContactName: c.contactName,
+      Mobile: c.mobile,
+      Whatsapp: c.whatsapp,
+      Email: c.email
+    }))
+  };
 
-  this.http.post(url, payload).subscribe({
-    next: () => {
-      alert('Saved Successfully!');
-      
-      // 1. List refresh karo
-      this.getOrgList(); 
-      
-      // 2. Form close karo
-      this.isFormOpen = false;
+  this.http.post(url, payload).subscribe({
+    next: () => {
+      alert('Saved Successfully!');
+      
+      // 1. List refresh karo
+      this.getOrgList(); 
+      
+      // 2. Form close karo
+      this.isFormOpen = false;
 
-      // 🔥 3. AGLE BRANCH KA NAAM FETCH KARO (Dynamic Increment)
-      this.fetchNextBranch(); 
+      // 🔥 3. AGLE BRANCH KA NAAM FETCH KARO (Dynamic Increment)
+      this.fetchNextBranch(); 
 
-      // 4. Form fields reset karo (taaki agla entry fresh ho)
-      this.resetFormFields();
+      // 4. Form fields reset karo (taaki agla entry fresh ho)
+      this.resetFormFields();
 
-      console.log(payload);
-      this.cdr.detectChanges(); 
-    },
-    error: (err) => {
-      console.error('Save Error:', err);
-      alert('Error saving data.');
-    }
-  });
+      console.log(payload);
+      this.cdr.detectChanges(); 
+    },
+    error: (err) => {
+      console.error('Save Error:', err);
+      alert('Error saving data.');
+    }
+  });
 }
 
 // Ek chota sa helper function saare fields khali karne ke liye
 resetFormFields() {
-  this.orgName = '';
-  this.alias = '';
-  this.address = '';
-  this.city = '';
-  this.telephone = '';
-  this.email = '';
-  this.website = '';
-  this.contacts = [{ contactName: '', designation: '', department: '', mobile: '', whatsapp: '', email: '' }];
-  this.selectedRoles = [];
+  this.orgName = '';
+  this.alias = '';
+  this.address = '';
+  this.city = '';
+  this.telephone = '';
+  this.email = '';
+  this.website = '';
+  this.contacts = [{ contactName: '', designation: '', department: '', mobile: '', whatsapp: '', email: '' }];
+  this.selectedRoles = [];
 }
 
-  changeTab(tab: string) { this.activeTab = tab; }
-  selectBranch(branch: any) { this.selectedBranch = branch; }
+  changeTab(tab: string) { this.activeTab = tab; }
+  selectBranch(branch: any) { this.selectedBranch = branch; }
+  
+  cancel() {
+    if (this.isFormOpen) {
+      this.isFormOpen = false;
+      this.getOrgList();
+    } else {
+      this.location.back();
+    }
+  }
+
+  contacts: any[] = [
+    { contactName: '', designation: '', department: '', mobile: '', whatsapp: '', email: '' }
+  ];
+
+  addContact() {
+    this.contacts.push({
+      contactName: '', designation: '', department: '', mobile: '', whatsapp: '', email: ''
+    });
+  }
+
+  removeContact(index: number) {
+    if (this.contacts.length > 1) {
+      this.contacts.splice(index, 1);
+    }
+  }
+
+  editOrg(org: any) {
+    console.log('Editing:', org);
+    this.isFormOpen = true;
+  }
+isExportOpen = false;
+
+  @ViewChild('tableToExport') tableToExport!: ElementRef;
+
+  toggleExportMenu() {
+    this.isExportOpen = !this.isExportOpen;
+  }
+
+  // Click outside menu to close
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    if (!(event.target as HTMLElement).closest('.relative')) {
+      this.isExportOpen = false;
+    }
+  }
+
+  // Pure data printing via Iframe (No sidebar/filters)
+printData() {
+  this.isExportOpen = false;
   
-  cancel() {
-    if (this.isFormOpen) {
-      this.isFormOpen = false;
-      this.getOrgList();
-    } else {
-      this.location.back();
-    }
+  // Hum organizations array se sirf pehli 20 entries ka content nikalenge
+  // Agar aapko saari entries chahiye toh slice hata dena
+  const printData = this.organizations.slice(0, 20);
+  
+  // Table rows build karna manually taaki formatting control mein rahe
+  let tableRows = '';
+  printData.forEach(org => {
+    tableRows += `
+      <tr>
+        <td>${org.id}</td>
+        <td class="text-blue-700">${org.orgName}</td>
+        <td>${org.alias || ''}</td>
+        <td><span class="badge">${org.selectedRoles || ''}</span></td>
+        <td>${org.city || ''}</td>
+      </tr>
+    `;
+  });
+
+  const windowPrt = window.open('', '', 'width=1000,height=900');
+  
+  if (windowPrt) {
+    windowPrt.document.write(`
+      <html>
+        <head>
+          <title>Organization Records</title>
+          <style>
+            @page { size: A4; margin: 10mm; }
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
+            
+            h2 { text-align: center; color: #4a3f3f; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; }
+            
+            /* Full Width Table Design */
+            table { 
+              width: 100%; 
+              border-collapse: collapse; 
+              table-layout: fixed; /* Isse columns barabar bante hain */
+            }
+            
+            th, td { 
+              border: 1px solid #ccc; 
+              padding: 12px 8px; 
+              text-align: left; 
+              font-size: 13px; 
+              word-wrap: break-word; 
+            }
+            
+            th { 
+              background-color: #f3f4f6; 
+              color: #374151; 
+              text-transform: uppercase; 
+              font-weight: bold; 
+            }
+            
+            /* 20 entries ko ek page par fit karne ke liye row height */
+            tr { height: 40px; } 
+
+            .text-blue-700 { color: #1d4ed8; font-weight: bold; }
+            
+            .badge { 
+              background-color: #dbeafe; 
+              color: #1e40af; 
+              padding: 2px 8px; 
+              border-radius: 9999px; 
+              font-size: 11px; 
+              font-weight: bold;
+              text-transform: uppercase;
+            }
+          </style>
+        </head>
+        <body onload="window.print(); window.close();">
+          <h2>Organization Records List</h2>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 10%;">ID</th>
+                <th style="width: 30%;">Org Name</th>
+                <th style="width: 20%;">Alias</th>
+                <th style="width: 25%;">Type</th>
+                <th style="width: 15%;">Location</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRows}
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `);
+    windowPrt.document.close();
   }
+}
 
-  contacts: any[] = [
-    { contactName: '', designation: '', department: '', mobile: '', whatsapp: '', email: '' }
-  ];
+async downloadPDF() {
+  this.isExportOpen = false;
+  const element = this.tableToExport.nativeElement;
 
-  addContact() {
-    this.contacts.push({
-      contactName: '', designation: '', department: '', mobile: '', whatsapp: '', email: ''
+  try {
+    const canvas = await html2canvas(element, {
+      scale: 2, // High quality ke liye
+      useCORS: true,
+      // 🔥 YE LINE PDF SE ACTION COLUMN HATAYEGI
+      ignoreElements: (el) => el.classList.contains('no-export')
     });
-  }
 
-  removeContact(index: number) {
-    if (this.contacts.length > 1) {
-      this.contacts.splice(index, 1);
-    }
-  }
-
-  editOrg(org: any) {
-    console.log('Editing:', org);
-    this.isFormOpen = true;
-  }
-
-  isFormOpen: boolean = false; 
-
-  openForm() {
-    this.isFormOpen = true;
-    this.fetchNextBranch();
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('p', 'mm', 'a4');
     
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+    // Margin dene ke liye thoda space chhoda hai (5, 5)
+    pdf.addImage(imgData, 'PNG', 5, 5, pdfWidth - 10, pdfHeight - 10);
+    pdf.save('Organization_Records.pdf');
+  } catch (error) {
+    console.error("PDF Generate karne mein error:", error);
+    alert("PDF download nahi ho paya!");
   }
+}
+  isFormOpen: boolean = false; 
 
-  closeForm() {
-    this.isFormOpen = false;
-  }
+  openForm() {
+    this.isFormOpen = true;
+    this.fetchNextBranch();
+    
+  }
 
-  toggleForm() {
-    this.isFormOpen = !this.isFormOpen;
-  }   
+  closeForm() {
+    this.isFormOpen = false;
+  }
 
-  // searchOrganization() {
-  //   const query = this.searchQuery ? this.searchQuery.trim() : '';
-  //   if (!query) {
-  //     this.getOrgList();
-  //     return;
-  //   }
-  //   const url = `${environment.apiUrl}/Organization/search?orgName=${query}`;
-  //   this.http.get(url).subscribe({
-  //     next: (data: any) => {
-  //       this.organizations = data || [];  
-  //       console.log('Data mila:', this.organizations);
+  toggleForm() {
+    this.isFormOpen = !this.isFormOpen;
+  }   
 
-  //       this.cdr.detectChanges();
-  //     }
-  //   });
-  // }
+  // searchOrganization() {
+  //   const query = this.searchQuery ? this.searchQuery.trim() : '';
+  //   if (!query) {
+  //     this.getOrgList();
+  //     return;
+  //   }
+  //   const url = `${environment.apiUrl}/Organization/search?orgName=${query}`;
+  //   this.http.get(url).subscribe({
+  //     next: (data: any) => {
+  //       this.organizations = data || [];  
+  //       console.log('Data mila:', this.organizations);
 
-  // onOrgSelect(org: any) {
-  //   this.searchQuery = org.orgName;
-  //   this.organizations = [org];
-   
-  // }
-  
+  //       this.cdr.detectChanges();
+  //     }
+  //   });
+  // }
+
+  // onOrgSelect(org: any) {
+  //   this.searchQuery = org.orgName;
+  //   this.organizations = [org];
+   
+  // }
+  
 
 // searchFilters: any = {
-//     orgName: '',
-//     orgCode: '',
-//     orgType: '',
-//     city: '', // Ye city search ke liye zaroori hai
-//     orgGroup: '',
-//     status: 'Active',
-//     branch: 'DELHI',
-//     createdDate: ''
-//   };
+//     orgName: '',
+//     orgCode: '',
+//     orgType: '',
+//     city: '', // Ye city search ke liye zaroori hai
+//     orgGroup: '',
+//     status: 'Active',
+//     branch: 'DELHI',
+//     createdDate: ''
+//   };
 
-//   ///city search
+//   ///city search
 // // 1. City (address) list store karne ke liye variable
 
 
 // // 2. City search function (Address field ke basis par)
 // searchCity() {
-//   const query = this.searchFilters.city ? this.searchFilters.city.trim() : '';
-  
-//   // Agar query khali hai toh dropdown clear karein
-//   if (!query) {
-//     this.cities = [];
-//     return;
-//   }
+//   const query = this.searchFilters.city ? this.searchFilters.city.trim() : '';
+  
+//   // Agar query khali hai toh dropdown clear karein
+//   if (!query) {
+//     this.cities = [];
+//     return;
+//   }
 
-//   // API call to search for city based on 'address'
-// const url =  `${environment.apiUrl}/Organization/search?address=${query}`;;
-  
-//   this.http.get(url).subscribe({
-//     next: (data: any) => {
-//       // API se aaya data cities ar
-//       // ray mein daalein
-//       console.log('API se data mila:', data); // <--- YAHAN CHECK KAREIN
-//       this.cities = data || [];
-//     },
-//     error: (err) => {
-//       console.error('Error searching address', err);
-//       this.cities = [];
-//        this.cdr.detectChanges();
-//     }
-//   });
+//   // API call to search for city based on 'address'
+// const url =  `${environment.apiUrl}/Organization/search?address=${query}`;;
+  
+//   this.http.get(url).subscribe({
+//     next: (data: any) => {
+//       // API se aaya data cities ar
+//       // ray mein daalein
+//       console.log('API se data mila:', data); // <--- YAHAN CHECK KAREIN
+//       this.cities = data || [];
+//     },
+//     error: (err) => {
+//       console.error('Error searching address', err);
+//       this.cities = [];
+//        this.cdr.detectChanges();
+//     }
+//   });
 // }
 
 // // 3. City Selection Logic
 // onCitySelect(city: any) {
-//   // 1. Input field ko select kiye gaye city se update karein
-//   this.searchFilters.city = city.address; 
-  
-//   // 2. Cities array ko khali karein taaki dropdown band ho jaye
-//   this.cities = []; // <--- SEHI: Dropdown band karne ke liye array empty karein
-  
-//   // 3. TABLE REFRESH KAREIN: Select hone ke baad data reload karein
-//   this.searchOrganization(); // <--- ADDED: Table update karein
-  
-//   console.log('City selected and table refresh called:', this.searchFilters.city);
+//   // 1. Input field ko select kiye gaye city se update karein
+//   this.searchFilters.city = city.address; 
+  
+//   // 2. Cities array ko khali karein taaki dropdown band ho jaye
+//   this.cities = []; // <--- SEHI: Dropdown band karne ke liye array empty karein
+  
+//   // 3. TABLE REFRESH KAREIN: Select hone ke baad data reload karein
+//   this.searchOrganization(); // <--- ADDED: Table update karein
+  
+//   console.log('City selected and table refresh called:', this.searchFilters.city);
 // }
 getApiSuggestions(field: string, query: string) {
-  // 1. Min length define karein
-  const minLength = (field === 'orgcode') ? 2 : 4;
+  // 1. Min length define karein
+  const minLength = (field === 'orgcode') ? 2 : 4;
 
-  // 2. Strict Check: Agar query chhoti hai toh sab clear karke wahi se laut jao (Return)
-  if (!query || query.trim().length < minLength) {
-    this.filteredOrgCodes = [];
-    this.filteredOrgNames = [];
-    this.filteredCities = [];
-    this.filteredBranches = [];
-    return; // 👈 Ye zaroori hai, taaki niche wali API call na chale
-  }
+  // 2. Strict Check: Agar query chhoti hai toh sab clear karke wahi se laut jao (Return)
+  if (!query || query.trim().length < minLength) {
+    this.filteredOrgCodes = [];
+    this.filteredOrgNames = [];
+    this.filteredCities = [];
+    this.filteredBranches = [];
+    return; // 👈 Ye zaroori hai, taaki niche wali API call na chale
+  }
 
-  let searchParams: any = {};
-  const cleanQuery = query.trim();
+  let searchParams: any = {};
+  const cleanQuery = query.trim();
 
-  // 3. Mapping: Backend parameter check karein
-  if (field === 'orgcode') {
-    // Agar backend 'id' dhoond raha hai toh id bhejo
-    searchParams.id = cleanQuery; 
-  } else if (field === 'orgname') {
-    searchParams.orgName = cleanQuery;
-  } else if (field === 'city') {
-    searchParams.city = cleanQuery;
-  } else if (field === 'branchname') {
-    searchParams.branchName = cleanQuery;
-  }
+  // 3. Mapping: Backend parameter check karein
+  if (field === 'orgcode') {
+    // Agar backend 'id' dhoond raha hai toh id bhejo
+    searchParams.id = cleanQuery; 
+  } else if (field === 'orgname') {
+    searchParams.orgName = cleanQuery;
+  } else if (field === 'city') {
+    searchParams.city = cleanQuery;
+  } else if (field === 'branchname') {
+    searchParams.branchName = cleanQuery;
+  }
 
-  // 4. API Call tabhi hogi jab upar wala filter pass hoga
-  this.http.get<any[]>(`${environment.apiUrl}/Organization/search`, {
-    params: searchParams
-  }).subscribe({
-    next: (res) => {
-      // Pehle list clear karein taaki purana data na dikhe
-      if (field === 'orgcode') {
-        // Sirf wahi dikhao jo search se match kare (Frontend safety filter)
-        this.filteredOrgCodes = res ? res.filter(x => x.id.toString().includes(cleanQuery)) : [];
-      } 
-      else if (field === 'orgname') {
-        this.filteredOrgNames = res || [];
-      } 
-      else if (field === 'city') {
-        const allCities = res.map(item => item.city ? item.city.trim() : item.trim());
-        this.filteredCities = [...new Set(allCities)];
-      }
-      else if (field === 'branchname') {
-        const allBranches = res.map(item => item.branchName ? item.branchName.trim() : item.trim());
-        this.filteredBranches = [...new Set(allBranches)];
-      }
-      this.cdr.detectChanges();
-    }
-  });
+  // 4. API Call tabhi hogi jab upar wala filter pass hoga
+  this.http.get<any[]>(`${environment.apiUrl}/Organization/search`, {
+    params: searchParams
+  }).subscribe({
+    next: (res) => {
+      // Pehle list clear karein taaki purana data na dikhe
+      if (field === 'orgcode') {
+        // Sirf wahi dikhao jo search se match kare (Frontend safety filter)
+        this.filteredOrgCodes = res ? res.filter(x => x.id.toString().includes(cleanQuery)) : [];
+      } 
+      else if (field === 'orgname') {
+        this.filteredOrgNames = res || [];
+      } 
+      else if (field === 'city') {
+        const allCities = res.map(item => item.city ? item.city.trim() : item.trim());
+        this.filteredCities = [...new Set(allCities)];
+      }
+      else if (field === 'branchname') {
+        const allBranches = res.map(item => item.branchName ? item.branchName.trim() : item.trim());
+        this.filteredBranches = [...new Set(allBranches)];
+      }
+      this.cdr.detectChanges();
+    }
+  });
 }
 // 👈 Ye selection function bhi add kar lena
 selectOrgCodeSuggestion(item: any) {
-  // Database ki ID ko hi model mein daal rahe hain
-  this.searchFilters.orgCode = item.id; 
-  this.filteredOrgCodes = []; // List turant band
-  this.cdr.detectChanges();
+  // Database ki ID ko hi model mein daal rahe hain
+  this.searchFilters.orgCode = item.id; 
+  this.filteredOrgCodes = []; // List turant band
+  this.cdr.detectChanges();
 }
 
 // 👈 Ye function bhi add kar lena selection ke liye
 selectBranchSuggestion(item: any) {
-  // Kyunki humne getApiSuggestions mein pehle hi .map karke 
-  // sirf naam nikale hain, isliye 'item' ab khud ek string hai.
-  this.searchFilters.branchName = (typeof item === 'object' && item !== null) 
-                                  ? item.branchName 
-                                  : item;
+  // Kyunki humne getApiSuggestions mein pehle hi .map karke 
+  // sirf naam nikale hain, isliye 'item' ab khud ek string hai.
+  this.searchFilters.branchName = (typeof item === 'object' && item !== null) 
+                                  ? item.branchName 
+                                  : item;
 
-  this.filteredBranches = []; // Dropdown band karein
-  this.cdr.detectChanges();
+  this.filteredBranches = []; // Dropdown band karein
+  this.cdr.detectChanges();
 }
 
 // Org Selection (Aapka existing method)
 selectOrgSuggestion(item: any) {
-  if (typeof item === 'object' && item !== null) {
-    this.searchFilters.orgName = item.orgName;
-  } else {
-    this.searchFilters.orgName = item;
-  }
-  this.filteredOrgNames = [];
-  this.cdr.detectChanges();
+  if (typeof item === 'object' && item !== null) {
+    this.searchFilters.orgName = item.orgName;
+  } else {
+    this.searchFilters.orgName = item;
+  }
+  this.filteredOrgNames = [];
+  this.cdr.detectChanges();
 }
 
 // 3. City Selection (Naya method bina kuch hataye)
 selectCitySuggestion(item: any) {
-  if (typeof item === 'object' && item !== null) {
-    this.searchFilters.city = item.city; // DB mein 'city' column hai
-  } else {
-    this.searchFilters.city = item;
-  }
-  this.filteredCities = []; // City dropdown band
-  this.cdr.detectChanges();
+  if (typeof item === 'object' && item !== null) {
+    this.searchFilters.city = item.city; // DB mein 'city' column hai
+  } else {
+    this.searchFilters.city = item;
+  }
+  this.filteredCities = []; // City dropdown band
+  this.cdr.detectChanges();
 }
 onSearch() {
-  let finalFilters: any = {};
+  let finalFilters: any = {};
 
-  // 1. Payload ready karo
-  Object.entries(this.searchFilters).forEach(([key, value]) => {
-    if (value !== '' && value !== null && value !== undefined && value !== 'Any') {
-      finalFilters[key] = value;
-    }
-  });
+  // 1. Payload ready karo
+  Object.entries(this.searchFilters).forEach(([key, value]) => {
+    if (value !== '' && value !== null && value !== undefined && value !== 'Any') {
+      finalFilters[key] = value;
+    }
+  });
 
-  // 2. Priority Logic: Agar ID hai toh baaki filter ignore
-  if (finalFilters.orgCode) {
-    finalFilters = { id: finalFilters.orgCode };
-  }
+  // 2. Priority Logic: Agar ID hai toh baaki filter ignore
+  if (finalFilters.orgCode) {
+    finalFilters = { id: finalFilters.orgCode };
+  }
 
-  // Check: Agar kuch bhi nahi bhara
-  if (Object.keys(finalFilters).length === 0) {
-    alert("Bhai, kam se kam ek filter to bharo!");
-    return;
-  }
+  // Check: Agar kuch bhi nahi bhara
+  if (Object.keys(finalFilters).length === 0) {
+    alert("Bhai, kam se kam ek filter to bharo!");
+    return;
+  }
 
-  this.http.get<any[]>(`${environment.apiUrl}/Organization/search`, { params: finalFilters })
-    .subscribe({
-      next: (response) => {
-        let resData = response || [];
+  this.http.get<any[]>(`${environment.apiUrl}/Organization/search`, { params: finalFilters })
+    .subscribe({
+      next: (response) => {
+        let resData = response || [];
 
-        // 3. Filter Logic
-        if (finalFilters.id) {
-          const searchId = finalFilters.id.toString().trim();
-          this.organizations = resData.filter(org => 
-            org.id.toString() === searchId
-          );
-        } else {
-          this.organizations = resData;
-        }
+        // 3. Filter Logic
+        if (finalFilters.id) {
+          const searchId = finalFilters.id.toString().trim();
+          this.organizations = resData.filter(org => 
+            org.id.toString() === searchId
+          );
+        } else {
+          this.organizations = resData;
+        }
 
-        // 🔥 CHANGE DETECTOR: Angular ko force karo UI update karne ke liye
-        this.cdr.detectChanges(); 
-        
-        console.log("✅ Data updated on UI:", this.organizations.length, "records");
-      },
-      error: (err) => {
-        console.error("❌ Search failed:", err);
-        // Error ke waqt bhi detect changes karna safe rehta hai agar loader stop karna ho
-        this.cdr.detectChanges();
-      }
-    });
+        // 🔥 CHANGE DETECTOR: Angular ko force karo UI update karne ke liye
+        this.cdr.detectChanges(); 
+        
+        console.log("✅ Data updated on UI:", this.organizations.length, "records");
+      },
+      error: (err) => {
+        console.error("❌ Search failed:", err);
+        // Error ke waqt bhi detect changes karna safe rehta hai agar loader stop karna ho
+        this.cdr.detectChanges();
+      }
+    });
 }
 resetFilters() {
-  this.searchFilters = {
-    orgCode: '',
-    orgName: '',
-    city: '',
-    branchName: '',
-    orgGroup: '',
-    orgType: '',
-    status: 'Active'
-  };
-  this.getOrgList(); // Poori list load hogi
-  this.cdr.detectChanges(); // 👈 Yahan bhi lagao taaki filter boxes turant khali dikhein
+  this.searchFilters = {
+    orgCode: '',
+    orgName: '',
+    city: '',
+    branchName: '',
+    orgGroup: '',
+    orgType: '',
+    status: 'Active'
+  };
+  this.getOrgList(); // Poori list load hogi
+  this.cdr.detectChanges(); // 👈 Yahan bhi lagao taaki filter boxes turant khali dikhein
 }
-  deleteOrg(id: any) {
-    if (confirm('Are you sure?')) {
-      this.http.delete(`${environment.apiUrl}/Organization/delete/${id}`).subscribe({
-        next: () => {
-          alert('Deleted!');
-          this.getOrgList();
-        }
-      });
-    }
-  }
-  // 1. Keyboard se sirf 0-9 allow karega
+  deleteOrg(id: any) {
+    if (confirm('Are you sure?')) {
+      this.http.delete(`${environment.apiUrl}/Organization/delete/${id}`).subscribe({
+        next: () => {
+          alert('Deleted!');
+          this.getOrgList();
+        }
+      });
+    }
+  }
+  // 1. Keyboard se sirf 0-9 allow karega
 onlyNumbers(event: any) {
-  const pattern = /[0-9]/;
-  const inputChar = String.fromCharCode(event.charCode);
-  if (!pattern.test(inputChar)) {
-    event.preventDefault();
-  }
+  const pattern = /[0-9]/;
+  const inputChar = String.fromCharCode(event.charCode);
+  if (!pattern.test(inputChar)) {
+    event.preventDefault();
+  }
 }
 
 // 2. Indian Mobile Number Pattern Check
 validateIndianNo(contact: any) {
-  const val = contact.whatsapp;
-  if (val && val.length > 0) {
-    // Regex: Start with 6-9, followed by 9 digits
-    const pattern = /^[6-9][0-9]{9}$/;
-    
-    // Agar 10 digit hain aur pattern match nahi hua, toh error dikhao
-    if (val.length === 10 && !pattern.test(val)) {
-      contact.isInvalidNo = true;
-    } 
-    // Agar 10 se kam hain aur galat start hua
-    else if (val.length > 0 && !['6','7','8','9'].includes(val[0])) {
-      contact.isInvalidNo = true;
-    }
-    else {
-      contact.isInvalidNo = false;
-    }
-  } else {
-    contact.isInvalidNo = false;
-  }
+  const val = contact.whatsapp;
+  if (val && val.length > 0) {
+    // Regex: Start with 6-9, followed by 9 digits
+    const pattern = /^[6-9][0-9]{9}$/;
+    
+    // Agar 10 digit hain aur pattern match nahi hua, toh error dikhao
+    if (val.length === 10 && !pattern.test(val)) {
+      contact.isInvalidNo = true;
+    } 
+    // Agar 10 se kam hain aur galat start hua
+    else if (val.length > 0 && !['6','7','8','9'].includes(val[0])) {
+      contact.isInvalidNo = true;
+    }
+    else {
+      contact.isInvalidNo = false;
+    }
+  } else {
+    contact.isInvalidNo = false;
+  }
 }
 checkEmail(contact: any) {
-  const emailVal = contact.email;
-  if (emailVal && emailVal.length > 0) {
-    // Standard Email Regex
-    const pattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
-    
-    // Agar pattern match nahi hua toh invalid mark karo
-    contact.isEmailInvalid = !pattern.test(emailVal);
-  } else {
-    // Agar khali hai toh error hata do (agar email optional hai)
-    contact.isEmailInvalid = false;
-  }
+  const emailVal = contact.email;
+  if (emailVal && emailVal.length > 0) {
+    // Standard Email Regex
+    const pattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+    
+    // Agar pattern match nahi hua toh invalid mark karo
+    contact.isEmailInvalid = !pattern.test(emailVal);
+  } else {
+    // Agar khali hai toh error hata do (agar email optional hai)
+    contact.isEmailInvalid = false;
+  }
 }
 isWebsiteInvalid: boolean = false;
 
 validateWebsite() {
-  const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
-  
-  if (this.website && this.website.trim().length > 0) {
-    // Agar regex match nahi karta toh error true
-    this.isWebsiteInvalid = !urlPattern.test(this.website.trim());
-  } else {
-    this.isWebsiteInvalid = false;
-  }
+  const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+  
+  if (this.website && this.website.trim().length > 0) {
+    // Agar regex match nahi karta toh error true
+    this.isWebsiteInvalid = !urlPattern.test(this.website.trim());
+  } else {
+    this.isWebsiteInvalid = false;
+  }
 }
 // Main email ke liye alag flag
 isMainEmailInvalid: boolean = false;
 
 checkMainEmail() {
-  const emailVal = this.email ? this.email.trim() : '';
-  
-  if (emailVal.length > 0) {
-    // Strict Regex for standard email format
-    const pattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    
-    // Check match
-    this.isMainEmailInvalid = !pattern.test(emailVal);
-  } else {
-    this.isMainEmailInvalid = false;
+  const emailVal = this.email ? this.email.trim() : '';
+  
+  if (emailVal.length > 0) {
+    // Strict Regex for standard email format
+    const pattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    
+    // Check match
+    this.isMainEmailInvalid = !pattern.test(emailVal);
+  } else {
+    this.isMainEmailInvalid = false;
+  }
+}
+
+downloadExcel() {
+  this.isExportOpen = false;
+
+  if (!this.organizations || this.organizations.length === 0) {
+    alert("Excel ke liye data nahi hai!");
+    return;
   }
+
+  // 1. Data prepare karein (Keys wahi rakhi hain jo aapke getOrgList me aati hain)
+  const excelData = this.organizations.map(org => {
+    return {
+      'ID': org.id || '-',
+      'Organization Name': org.orgName || '-',
+      'Alias': org.alias || '-',
+      'Branch': org.branchName || '-',
+      'Roles/Type': org.selectedRoles || '-',
+      'City/Location': org.city || '-', // city field check karein
+      'Email': org.email || '-',
+      'Telephone': org.telephone || '-', // telephone field check karein
+      'Sales Person': org.salesPerson || '-'
+    };
+  });
+
+  // 2. Worksheet banayein
+  const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(excelData);
+
+  // 3. Worksheet ki styling (Optional: Column width set karna)
+  const colWidths = [
+    { wch: 10 }, // ID
+    { wch: 30 }, // Name
+    { wch: 15 }, // Alias
+    { wch: 15 }, // Branch
+    { wch: 20 }, // Roles
+    { wch: 15 }, // City
+    { wch: 25 }, // Email
+    { wch: 15 }, // Telephone
+    { wch: 20 }  // Sales Person
+  ];
+  ws['!cols'] = colWidths;
+
+  // 4. Workbook banayein aur file save karein
+  const wb: XLSX.WorkBook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Organization Records');
+
+  XLSX.writeFile(wb, `Organization_Records_${new Date().getTime()}.xlsx`);
+}
+// --- Pagination Variables ---
+currentPage: number = 1;
+pageSize: number = 10; // Ek page par 10 records dikhenge
+protected readonly Math = Math; // Template mein Math use karne ke liye
+
+// Ye computed property table ko slice karke data degi
+get paginatedOrganizations(): any[] {
+  const startIndex = (this.currentPage - 1) * this.pageSize;
+  return this.organizations.slice(startIndex, startIndex + this.pageSize);
 }
 
-
-
+get totalPages(): number {
+  return Math.ceil(this.organizations.length / this.pageSize) || 1;
 }
+
+setPage(page: number) {
+  if (page < 1 || page > this.totalPages) return;
+  this.currentPage = page;
+}
+// Modal Control
+// Modal Control
+openColumnModal() { 
+  console.log("Modal opening..."); // Debugging ke liye
+  this.showColumnModal = true; 
+  this.cdr.detectChanges(); // Force UI update
+}
+
+closeColumnModal() { 
+  this.showColumnModal = false; 
+  this.cdr.detectChanges();
+}
+
+// Settings Load karna (OnInit mein call karna)
+loadColumnSettings() {
+  this.http.get<any>(`${environment.apiUrl}/OrganizationColumnSettings`).subscribe({
+    next: (res) => {
+      if (res && res.selectedColumns) {
+        this.selectedColumns = JSON.parse(res.selectedColumns);
+        this.availableColumns = JSON.parse(res.availableColumns);
+      } else {
+        // Default Columns agar DB mein kuch na ho
+        this.selectedColumns = ['Org ID', 'Org Name', 'Type', 'Location'];
+        // availableColumns mein wo saare columns daal do jo selectedColumns mein nahi hain
+        const allPossibleColumns = Object.keys(this.columnFieldMap);
+        this.availableColumns = allPossibleColumns.filter(c => !this.selectedColumns.includes(c));
+      }
+      this.cdr.detectChanges();
+    }
+  });
+}
+/// Modal Control functions
+  toggleColumnModal() {
+    this.showColumnModal = !this.showColumnModal;
+  }
+
+  // Column Drag & Drop Logic
+  drop(event: CdkDragDrop<string[]>) {
+    if (event.previousContainer === event.container) {
+      moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
+    } else {
+      transferArrayItem(
+        event.previousContainer.data,
+        event.container.data,
+        event.previousIndex,
+        event.currentIndex
+      );
+    }
+
+    const payload = {
+      availableColumns: JSON.stringify(this.availableColumns),
+      selectedColumns: JSON.stringify(this.selectedColumns)
+    };
+    this.http.post(`${environment.apiUrl}/OrganizationColumnSettings/save`, payload).subscribe();
+  }
+
+  // Row Drag & Drop Logic (Yahi error de raha tha)
+  dropRow(event: CdkDragDrop<any[]>) {
+    const prevIndex = (this.currentPage - 1) * this.pageSize + event.previousIndex;
+    const currIndex = (this.currentPage - 1) * this.pageSize + event.currentIndex;
+
+    moveItemInArray(this.organizations, prevIndex, currIndex);
+    this.cdr.detectChanges();
+  }
+  // organization-add.component.ts ke andar:
+// Variables ke section mein:
+showOrgDatePicker: boolean = false;
+
+setOrgQuickDate(type: string) {
+  const today = new Date();
+  let targetDate = new Date();
+
+  switch (type) {
+    case 'tomorrow': targetDate.setDate(today.getDate() + 1); break;
+    case 'yesterday': targetDate.setDate(today.getDate() - 1); break;
+    case 'nextWeek': targetDate.setDate(today.getDate() + 7); break;
+    case 'lastWeek': targetDate.setDate(today.getDate() - 7); break;
+    default: targetDate = today; // Today
+  }
+
+  const year = targetDate.getFullYear();
+  const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+  const day = String(targetDate.getDate()).padStart(2, '0');
+  const formattedDate = `${year}-${month}-${day}`;
+
+  // Yahan 'as any' lagane se 'string is not assignable to null' wala error khatam ho jayega
+  if (this.searchFilters) {
+    (this.searchFilters as any).createdDate = formattedDate; 
+  }
+
+  this.showOrgDatePicker = false;
+  this.cdr.detectChanges(); // UI refresh ke liye
+}
+
+} // 👈 Ensure class ends here

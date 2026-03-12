@@ -1,0 +1,55 @@
+@media print {
+  /* 1. Puri screen se buttons, navigation aur action buttons gayab karein */
+  header, 
+  nav, 
+  aside, 
+  button, 
+  .flex-col, 
+  .mb-6, 
+  .sticky.right-0, 
+  th:last-child, 
+  td:last-child {
+    display: none !important;
+  }
+
+  /* 2. Container ki width aur shadows reset karein */
+  .container, .bg-white, .shadow-xl {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* 3. Table ko page par fit karne ke liye settings */
+  .overflow-x-auto {
+    overflow: visible !important;
+    display: block !important;
+  }
+
+  table {
+    width: 100% !important;
+    min-width: 0 !important; /* Jo aapne 3000px lagaya tha use hatana padega */
+    border-collapse: collapse !important;
+    table-layout: auto !important;
+  }
+
+  /* 4. Background colors (jo gray/blue shades hain) wo PDF mein bhi dikhein */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* 5. Page Layout Landscape (Aada) set karein taaki columns fit ho sakein */
+  @page {
+    size: landscape;
+    margin: 1cm;
+  }
+
+  /* 6. Text size thoda chhota karein taaki data overflow na ho */
+  td, th {
+    font-size: 8pt !important;
+    padding: 4px !important;
+  }
+}

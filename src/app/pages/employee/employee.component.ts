@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormGroup, FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -8,6 +8,16 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import{environment} from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
+export interface UserEducation {
+  id: number;
+  userId: string;
+  educationLevel: string; // e.g., "10th", "12th", "Graduation"
+  passingYear: string;
+  percentage: number;
+  marksheetPath: string;
+}
 export interface Employee {
   id: string;
   empCode: string;
@@ -38,7 +48,7 @@ password?: string;
   aadhaarNo?: string;
 
   // ✅ Profile
-  photoPath?: string;
+  profilePicture?: string;
 
   // ✅ Job & Salary
   dateOfJoining?: string;
@@ -167,14 +177,13 @@ export class EmployeeComponent implements OnInit {
     isAdmin: false
   }
 isPasswordVisible: boolean = false;
-  employees: Employee[] = [
-  ];
+  employees: Employee[] =[];
 
   filteredEmployees: Employee[] = [];
   rolesList: any[] = [];
   branchesList: any[] = []; 
 
-  constructor( private http: HttpClient ,private router:Router, private userService: UserService, private branchServices: BranchService) {
+  constructor( private http: HttpClient ,private router:Router, private userService: UserService, private branchServices: BranchService,private cdr :ChangeDetectorRef) {
     this.leadForm = new FormGroup({
       empCode: new FormControl(''),
       firstName: new FormControl(''),
@@ -313,7 +322,7 @@ actionChange(permissionId: number, action: string, event: any) {
   }
 selectedBranchId: number | null = null;
   isRoleModalOpen: boolean = false;
-  selectedEmployee: Employee | null = null;
+  selectedEmployee: Employee | any;
 selectedRole: number | null = null;
 roleId?: number;
   RoleModal(emp: Employee): void {
@@ -383,6 +392,19 @@ this.selectedRole = emp.roleId ?? null;    this.isAccountActive = emp.isActive !
   openViewModal(emp: Employee): void {
     this.selectedEmployee = emp;
     this.isViewModalOpen = true;
+    console.log("🎯 View button clicked for ID:", emp.id); // Check karne ke liye
+  
+  this.selectedEmployee = { ...emp }; // Data set kiya
+  this.isViewModalOpen = true;        // Modal khola
+
+  if (emp.id) {
+    this.getEducationDetails(emp.id.toString());
+    this.getExperienceDetails(emp.id.toString()) // API call mari
+  } else {
+    console.warn("⚠️ Is employee ki ID missing hai!");
+  }
+  
+    
   }
 
   closeViewModal(): void {
@@ -393,6 +415,7 @@ this.selectedRole = emp.roleId ?? null;    this.isAccountActive = emp.isActive !
   viewProfile(emp: Employee) {
     this.selectedEmployee = emp;
     this.isViewModalOpen = true;
+    
   }
 
   closeModal() {
@@ -417,22 +440,28 @@ openPreview(imageUrl: string | undefined): void {
   }
 getAllUsers(): void {
   const url = `${environment.apiUrl}/User/list?user_type=all`;
+  const baseUrl = environment.apiUrl.replace('/api', '');
 
   this.http.get<Employee[]>(url).subscribe({
     next: (res: Employee[]) => {
       console.log("🔥 USER LIST API RESPONSE:", res);
+      // ✅ Type casting (as Employee) use karke error solve hoga
+      this.employees = res.map(emp => ({
+        ...emp,
+        profilePicture: emp.profilePicture ? `${baseUrl}${emp.profilePicture}` : '',
+        offerLetterPath: emp.offerLetterPath ? `${baseUrl}${emp.offerLetterPath}` : '',
+        appointmentLetterPath: emp.appointmentLetterPath ? `${baseUrl}${emp.appointmentLetterPath}` : '',
+        invitationLetterPath: emp.invitationLetterPath ? `${baseUrl}${emp.invitationLetterPath}` : '',
+        relievingLetterPath: emp.relievingLetterPath ? `${baseUrl}${emp.relievingLetterPath}` : '',
+        fullAndFinalLetterPath: emp.fullAndFinalLetterPath ? `${baseUrl}${emp.fullAndFinalLetterPath}` : '',
+        educationMarksheets: emp.educationMarksheets ? `${baseUrl}${emp.educationMarksheets}` : ''
+      } as Employee)); // 👈 Ye 'as Employee' add karna zaroori hai
 
-      // ✅ API data save ho raha hai
-      this.employees = res;
-      console.log("department data:", this.employees.map(e => e.department));
-      console.log("team data:", this.employees.map(e => e.team));
-
-      // ✅ Table ke liye copy
+      console.log("✅ Processed Employees:", this.employees);
       this.filteredEmployees = [...this.employees];
+      this.cdr.detectChanges();
     },
-    error: (err) => {
-      console.error("❌ API ERROR:", err);
-    }
+    error: (err) => console.error("❌ API ERROR:", err)
   });
 }
   // Inside export class EmployeeComponent { ... }
@@ -512,5 +541,269 @@ toggleRemoteStatus(emp: any) {
   } catch (error) {
     console.error("PDF Error:", error);
   }
+}
+// --- EXPORT & PRINT LOGIC START ---
+
+  // 1. EXCEL DOWNLOAD (Pura Data interface ke hisaab se)
+  exportToExcel() {
+    if (!this.filteredEmployees || this.filteredEmployees.length === 0) {
+      alert("Niche table mein koi data nahi hai export karne ke liye!");
+      return;
+    }
+
+    const dataToExport = this.filteredEmployees.map(u => ({
+      'Emp Code': u.empCode || '-',
+      'Full Name': `${u.firstName || ''} ${u.middleName || ''} ${u.lastName || ''}`.trim(),
+      'Email': u.email || '-',
+      'Phone': u.mobile || u.telephone || '-',
+      'Designation': u.designation || '-',
+      'Department': u.department || '-',
+      'Functional Area': u.functionalArea || '-',
+      'Branch/Location': u.branch || '-',
+      'DOB': u.dob || '-',
+      'Joining Date': u.dateOfJoining || '-',
+      'Blood Group': u.bloodGroup || '-',
+      'PAN No': u.paN_No || '-',
+      'Aadhaar No': u.aadhaarNo || '-',
+      'Monthly CTC': u.ctC_Monthly || 0,
+      'Bank Name': u.bankName || '-',
+      'A/C Number': u.accountNumber || '-',
+      'IFSC Code': u.ifscCode || '-',
+      'Present Address': `${u.presHouseNo || ''} ${u.presStreet || ''} ${u.presCity || ''} ${u.presState || ''} ${u.presPincode || ''}`.trim() || '-',
+      'Emergency Contact': `${u.emergencyName || ''} (${u.emergencyContactNo || ''})`,
+      'Education (10th/12th %)': `${u.tenthPercentage || 0}% / ${u.twelfthPercentage || 0}%`
+    }));
+
+    const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(dataToExport);
+    const wb: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Employee_Master_Data');
+    
+    XLSX.writeFile(wb, `Cavalier_Employee_Data_${new Date().getTime()}.xlsx`);
+  }
+
+  // 2. PDF DOWNLOAD (A3 Landscape for Professional Look)
+  downloadFullPDF() {
+    if (!this.filteredEmployees || this.filteredEmployees.length === 0) {
+      alert("Download ke liye data nahi hai!");
+      return;
+    }
+
+    const doc = new jsPDF('l', 'mm', 'a3'); 
+    doc.setFontSize(22);
+    doc.setTextColor(74, 63, 63); 
+    doc.text('CAVALIER EMPLOYEE MASTER DATABASE', 14, 15);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Report Generated: ${new Date().toLocaleString()}`, 14, 22);
+
+    // PDF Table Headers
+    const head = [[
+      'Code', 'Name', 'Designation/Dept', 'Contact/Email', 'Location', 'KYC (PAN/UID)', 'CTC', 'Bank Details', 'Address'
+    ]];
+
+    // PDF Table Body (Interface ke base par mapping)
+    const data = this.filteredEmployees.map(u => [
+      u.empCode || '-',
+      `${u.firstName} ${u.lastName}`,
+      `${u.designation}\n${u.department}`,
+      `${u.mobile}\n${u.email}`,
+      u.branch || '-',
+      `PAN: ${u.paN_No || '-'}\nUID: ${u.aadhaarNo || '-'}`,
+      u.ctC_Monthly || '0',
+      `${u.bankName || '-'}\n${u.accountNumber || '-'}`,
+      `${u.presCity || ''}, ${u.presState || ''}`
+    ]);
+
+    autoTable(doc, {
+      head: head,
+      body: data,
+      startY: 30,
+      theme: 'grid',
+      styles: { fontSize: 8, cellPadding: 3, overflow: 'linebreak' },
+      headStyles: { fillColor: [74, 63, 63], textColor: [255, 255, 255], fontStyle: 'bold' },
+      columnStyles: {
+        2: { cellWidth: 40 },
+        3: { cellWidth: 50 },
+        7: { cellWidth: 40 },
+        8: { cellWidth: 60 }
+      },
+      margin: { top: 30, left: 10, right: 10 }
+    });
+
+    doc.save(`Cavalier_Master_Report_${new Date().getTime()}.pdf`);
+  }
+
+  // 3. PRINT TABLE (Jo table screen par dikh rahi hai wahi print hogi)
+  printTable() {
+    if (!this.filteredEmployees || this.filteredEmployees.length === 0) {
+      alert("Print karne ke liye data nahi hai!");
+      return;
+    }
+
+    const printWindow = window.open('', '_blank', 'width=1200,height=800');
+    let tableHtml = `
+      <html>
+        <head>
+          <title>Employee Directory Print</title>
+          <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #333; }
+            h2 { text-align: center; color: #4a3f3f; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: auto; }
+            th, td { border: 1px solid #ccc; padding: 10px; text-align: left; font-size: 11px; }
+            th { background-color: #4a3f3f; color: white; font-weight: bold; }
+            tr:nth-child(even) { background-color: #f9f9f9; }
+            .footer { margin-top: 20px; text-align: right; font-size: 10px; color: #888; }
+            @page { size: landscape; margin: 1cm; }
+          </style>
+        </head>
+        <body>
+          <h2>Employee Records Master Report</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Emp Code</th>
+                <th>Full Name</th>
+                <th>Designation</th>
+                <th>Department</th>
+                <th>Contact</th>
+                <th>Email</th>
+                <th>Branch</th>
+                <th>Aadhaar No</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${this.filteredEmployees.map(u => `
+                <tr>
+                  <td>${u.empCode}</td>
+                  <td>${u.firstName} ${u.lastName}</td>
+                  <td>${u.designation}</td>
+                  <td>${u.department}</td>
+                  <td>${u.mobile || '-'}</td>
+                  <td>${u.email}</td>
+                  <td>${u.branch || '-'}</td>
+                  <td>${u.aadhaarNo || '-'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          <div class="footer">Generated on: ${new Date().toLocaleString()}</div>
+        </body>
+      </html>
+    `;
+
+    printWindow?.document.write(tableHtml);
+    printWindow?.document.close();
+    
+    setTimeout(() => {
+      printWindow?.print();
+      printWindow?.close();
+    }, 700);
+  }
+
+// --- EXPORT & PRINT LOGIC END ---
+// --- PAGINATION SETTINGS ---
+currentPage: number = 1;
+pageSize: number = 10;
+protected readonly Math = Math;
+
+// Table mein "filteredEmployees" ki jagah isko loop karna
+get paginatedEmployees(): Employee[] {
+  const startIndex = (this.currentPage - 1) * this.pageSize;
+  return this.filteredEmployees.slice(startIndex, startIndex + this.pageSize);
+}
+
+get totalPages(): number {
+  return Math.ceil(this.filteredEmployees.length / this.pageSize) || 1;
+}
+
+setPage(page: number) {
+  if (page < 1 || page > this.totalPages) return;
+  this.currentPage = page;
+  this.cdr.detectChanges(); // UI refresh ke liye
+}
+
+onPageSizeChange() {
+  this.currentPage = 1;
+  this.cdr.detectChanges();
+}
+// Is line ko check karein:
+navigateToAccess(emp: any): void {  // <--- 'number' ki jagah 'any' likh dein
+  if (emp) {
+    this.router.navigate(['dashboard/rolePermision', emp]);
+  } else {
+    console.error("Employee ID nahi mili!");
+  }
+}
+// ✅ Education Details fetch karne ka function
+getEducationDetails(userId: string): void {
+  const url = `${environment.apiUrl}/UserEducation/user/${userId}`;
+
+  this.http.get<any[]>(url).subscribe({
+    next: (res) => {
+      console.log("🎓 EDUCATION API RESPONSE:", res);
+      
+      if (this.selectedEmployee && res && res.length > 0) {
+        res.forEach((edu: any) => {
+          const qual = (edu.qualification || '').toLowerCase();
+          
+          // API se aane wala document path agar "/uploads/..." hai toh base URL lagana hoga
+          const fullDocPath = edu.documentPath ? `${environment.apiUrl.replace('/api','')}${edu.documentPath}` : null;
+
+          if (qual.includes('10th')) {
+            // Mapping as per your API response (PassingYear and Percentage)
+            this.selectedEmployee!['tenthYear'] = edu.passingYear; 
+            this.selectedEmployee!['tenthPercentage'] = edu.percentage;
+            this.selectedEmployee!['tenthDoc'] = fullDocPath;
+          } 
+          else if (qual.includes('12th')) {
+            this.selectedEmployee!['twelfthYear'] = edu.passingYear;
+            this.selectedEmployee!['twelfthPercentage'] = edu.percentage;
+            this.selectedEmployee!['twelfthDoc'] = fullDocPath;
+          }
+          else if (qual.includes('graduation') && !qual.includes('post')) {
+            this.selectedEmployee!['graduationYear'] = edu.passingYear;
+            this.selectedEmployee!['graduationPercentage'] = edu.percentage;
+            this.selectedEmployee!['graduationDoc'] = fullDocPath;
+          }
+          else if (qual.includes('post') || qual.includes('pg')) {
+            this.selectedEmployee!['pgYear'] = edu.passingYear;
+            this.selectedEmployee!['pgPercentage'] = edu.percentage;
+            this.selectedEmployee!['pgDoc'] = fullDocPath;
+          }
+        });
+
+        // Forcefully UI refresh karne ke liye
+        this.cdr.detectChanges();
+      }
+    },
+    error: (err) => {
+      console.error("❌ Education API Error:", err);
+    }
+  });
+}
+getExperienceDetails(userId: string): void {
+  const url = `${environment.apiUrl}/Experience/user/${userId}`;
+
+  this.http.get<any[]>(url).subscribe({
+    next: (res) => {
+      console.log("💼 EXPERIENCE API RESPONSE:", res);
+      
+      if (this.selectedEmployee) {
+        // API response ko selectedEmployee.experiences mein dalna
+        // Backend se 'yearsOfExperience' aa raha hai, hum use 'totalYears' mein map kar sakte hain UI ke liye
+        this.selectedEmployee.experiences = res.map(exp => ({
+          ...exp,
+          totalYears: exp.yearsOfExperience, // UI mapping
+          isVerified: exp.verificationComplete // Backend mapping
+        }));
+
+        this.cdr.detectChanges(); // UI refresh
+      }
+    },
+    error: (err) => {
+      console.error("❌ Experience API Error:", err);
+    }
+  });
 }
 }

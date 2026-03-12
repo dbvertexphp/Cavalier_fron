@@ -1,21 +1,27 @@
+import { Component, OnInit } from '@angular/core'; // OnInit add kiya
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { HttpClient, HttpClientModule } from '@angular/common/http'; // HttpClient add kiya
 import { Router } from '@angular/router';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-attendance-add',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, HttpClientModule], // HttpClientModule zaroori hai
   templateUrl: './attendance-add.component.html',
 })
-export class AttendanceAddComponent {
-  constructor(private router: Router) {}
+export class AttendanceAddComponent implements OnInit {
+  // URLs
+  private attendanceApi = `${environment.apiUrl}/Attendance`;
+  private employeeApi = `${environment.apiUrl}/Employees`; // Maan ke chal raha hoon ki Employees ki API hai
 
-  employeeSearch: string = '';
+  employees: any[] = []; // Ab ye khali rahegi, API se bhari jayegi
   filteredEmployees: any[] = [];
   selectedEmployee: any = null;
+  employeeSearch: string = '';
   showCheckInTime: boolean = false;
+  loading: boolean = false;
 
   attendance: any = {
     attendanceDate: this.today(),
@@ -26,13 +32,21 @@ export class AttendanceAddComponent {
     remark: ''
   };
 
-  // List of employees (Including Rahul Sharma)
-  employees = [
-    { empId: 'EMP101', name: 'Rahul Sharma', profile: 'https://i.pravatar.cc/40?img=11', department: 'IT', designation: 'Sr. Developer', branch: 'Indore' },
-    { empId: 'EMP102', name: 'Anita Verma', profile: 'https://i.pravatar.cc/40?img=5', department: 'HR', designation: 'Manager', branch: 'Mumbai' },
-    { empId: 'EMP103', name: 'Vikram Singh', profile: 'https://i.pravatar.cc/40?img=12', department: 'Sales', designation: 'Executive', branch: 'Delhi' },
-    { empId: 'EMP104', name: 'Sneha Rao', profile: 'https://i.pravatar.cc/40?img=20', department: 'Finance', designation: 'Analyst', branch: 'Indore' }
-  ];
+  constructor(private http: HttpClient, private router: Router) {}
+
+  ngOnInit() {
+    this.loadEmployees(); // Page load hote hi employees le aao
+  }
+
+  // 1. Backend se Employees fetch karna
+  loadEmployees() {
+    // Agar aapke paas Employee Controller nahi hai, toh abhi purani list hi rakhein
+    // Lekin production mein ye API se aayega
+    this.http.get<any[]>(this.employeeApi).subscribe({
+      next: (res) => this.employees = res,
+      error: (err) => console.error("Employee fetch failed", err)
+    });
+  }
 
   searchEmployee() {
     const q = this.employeeSearch.toLowerCase().trim();
@@ -49,7 +63,7 @@ export class AttendanceAddComponent {
     this.selectedEmployee = emp;
     this.employeeSearch = emp.name;
     this.filteredEmployees = [];
-    this.showCheckInTime = true; 
+    this.showCheckInTime = true;
   }
 
   setMode(mode: string) {
@@ -60,31 +74,52 @@ export class AttendanceAddComponent {
     }
   }
 
+  // 2. Data ko sach mein Save karna (POST)
   submitAttendance() {
     if (!this.selectedEmployee) return;
 
+    this.loading = true;
+
+    // Payload banayein jo C# Model se match kare
     const payload = {
-      ...this.selectedEmployee,
-      ...this.attendance
+      empId: this.selectedEmployee.empId,
+      name: this.selectedEmployee.name,
+      profile: this.selectedEmployee.profile,
+      department: this.selectedEmployee.department,
+      designation: this.selectedEmployee.designation,
+      branch: this.selectedEmployee.branch,
+      shift: this.attendance.shift,
+      attendanceDate: this.attendance.attendanceDate,
+      checkInTime: this.attendance.checkInTime,
+      attendanceStatus: this.attendance.attendanceStatus,
+      attendanceMode: this.attendance.attendanceMode,
+      remark: this.attendance.remark,
+      // Nayi fields jo humne database mein dali thi unhe default bhej rahe hain
+      checkOutTime: "",
+      workingHours: 0,
+      lateStatus: "No",
+      lateMinutes: 0,
+      earlyExitStatus: "No",
+      earlyExitMinutes: 0,
+      overtimeHours: 0,
+      overtimeApprovedBy: "System"
     };
 
-    console.log('Final Payload Saved:', payload);
-    alert(`Attendance for ${this.selectedEmployee.name} saved successfully!`);
-    
-    // Redirecting back to List page after Save
-    this.router.navigate(['/dashboard/attendance']);
+    this.http.post(this.attendanceApi, payload).subscribe({
+      next: () => {
+        this.loading = false;
+        alert("Attendance Saved Successfully!");
+        this.router.navigate(['/dashboard/attendance/list']);
+      },
+      error: (err) => {
+        this.loading = false;
+        console.error("Save Error:", err);
+        alert("Error saving attendance. Check console.");
+      }
+    });
   }
 
-  cancel() {
-    // Corrected Path: 404 Fix
-    this.router.navigate(['/dashboard/attendance/list']);
-  }
-
-  currentTime(): string {
-    return new Date().toTimeString().slice(0, 5);
-  }
-
-  today(): string {
-    return new Date().toISOString().split('T')[0];
-  }
+  cancel() { this.router.navigate(['/dashboard/attendance/list']); }
+  currentTime(): string { return new Date().toTimeString().slice(0, 5); }
+  today(): string { return new Date().toISOString().split('T')[0]; }
 }

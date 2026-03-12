@@ -272,6 +272,7 @@ fetchCompanyServices() {
             error: (err) => console.error("Error loading LOB:", err)
         });
     }
+
   fetchInquiries() {
   const url = `${environment.apiUrl}/Inquiry`;
   this.http.get<any[]>(url).subscribe(data => {
@@ -690,8 +691,8 @@ const request = this.quotation.id > 0
     this.costRows = [{ lob: '', chargeName: '', chargeType: '', basis: '', currency: 'USD', rate: 0, exchangeRate: 1, amount: 0 }];
   }
 
-  addRevenueRow() {
-  this.revenueRows.push({ lob: '', chargeName: '', chargeType: 'Prepaid', basis: '', currency: 'USD', rate: 0, exchangeRate: 1, amount: 0 });
+  addRevenueRow() { const currentLOB = this.quotation.lineOfBusiness;
+  this.revenueRows.push({ lob:currentLOB, chargeName: '', chargeType: 'Prepaid', basis: '', currency: 'USD', rate: 0, exchangeRate: 1, amount: 0 });
 }
 
 removeRow(index: number) {
@@ -707,8 +708,8 @@ calculateRevenue() {
 }
 
 // 3. Cost Functions
-addCostRow() {
-  this.costRows.push({ lob: '', chargeName: '', chargeType: 'Prepaid', basis: '', currency: 'USD', rate: 0, exchangeRate: 1, amount: 0 });
+addCostRow() {const currentLOB = this.quotation.lineOfBusiness;
+  this.costRows.push({ lob: currentLOB, chargeName: '', chargeType: 'Prepaid', basis: '', currency: 'USD', rate: 0, exchangeRate: 1, amount: 0 });
 }
 
 removeCostRow(index: number) {
@@ -728,32 +729,40 @@ calculateAll() {
   this.pnLRows = [];
   this.totalRevFinal = 0;
   this.totalCostFinal = 0;
- 
-  // Sare unique Charge Names nikalna dono tables se
+
+  // 1. Dono tables se unique Charge Names ki list nikalna
   const allCharges = new Set([
     ...this.revenueRows.map(r => r.chargeName),
     ...this.costRows.map(c => c.chargeName)
   ]);
 
   allCharges.forEach(charge => {
-    if (!charge) return;
+    // Agar charge name khali hai toh skip karein
+    if (!charge || charge.trim() === '') return;
 
+    // 2. Revenue calculation is specific charge ke liye
     const revForCharge = this.revenueRows
       .filter(r => r.chargeName === charge)
-      .reduce((sum, curr) => sum + curr.amount, 0);
+      .reduce((sum, curr) => sum + (Number(curr.amount) || 0), 0);
 
+    // 3. Cost calculation is specific charge ke liye
     const costForCharge = this.costRows
       .filter(c => c.chargeName === charge)
-      .reduce((sum, curr) => sum + curr.amount, 0);
+      .reduce((sum, curr) => sum + (Number(curr.amount) || 0), 0);
 
+    // 4. LOB priority set karna (Pehle Revenue row se, fir Cost se, varna Main Header se)
+    const revRow = this.revenueRows.find(r => r.chargeName === charge);
+    const costRow = this.costRows.find(c => c.chargeName === charge);
+    
+    const finalLOB = revRow?.lob || costRow?.lob || this.quotation.lineOfBusiness || 'N/A';
+
+    // 5. Profit calculation
     const profit = revForCharge - costForCharge;
     const profitPercent = revForCharge !== 0 ? (profit / revForCharge) * 100 : 0;
-    const revRow = this.revenueRows.find(r => r.chargeName === charge);
-const costRow = this.costRows.find(c => c.chargeName === charge);
 
-const finalLOB = revRow?.lob || costRow?.lob || 'N/A';
+    // 6. Summary row mein push karna
     this.pnLRows.push({
-      lob: this.revenueRows.find(r => r.chargeName === charge)?.lob || 'N/A',
+      lob: finalLOB, // Ye automatic sync ho jayega ab
       chargeName: charge,
       revenue: revForCharge,
       cost: costForCharge,
@@ -761,11 +770,16 @@ const finalLOB = revRow?.lob || costRow?.lob || 'N/A';
       profitPercent: profitPercent
     });
 
+    // 7. Grand Totals update karna
     this.totalRevFinal += revForCharge;
     this.totalCostFinal += costForCharge;
   });
 
+  // Final Profit & Loss
   this.totalProfitFinal = this.totalRevFinal - this.totalCostFinal;
+  
+  // UI ko force refresh karne ke liye (Safety check)
+  this.cdr.detectChanges();
 }
 
 // 5. Final Save Logic (JSON conversion for DTO)
@@ -1334,8 +1348,32 @@ setPage(page: number) {
   this.currentPage = page;
   this.cdr.detectChanges();
 }
+//line of buisnes go on lob
+onHeaderLOBChange() {
+  // 1. Pehle value ko ek variable mein le lo aur check karo
+  const newLOB = this.quotation.lineOfBusiness || '';
+  console.log("Header LOB Changed to:", newLOB); // Debugging ke liye
 
+  // 2. Revenue rows ko update karo (sirf agar rows exist karti hain)
+  if (this.revenueRows && this.revenueRows.length > 0) {
+    this.revenueRows.forEach(row => {
+      row.lob = newLOB;
+    });
+  }
 
+  // 3. Cost rows ko update karo
+  if (this.costRows && this.costRows.length > 0) {
+    this.costRows.forEach(row => {
+      row.lob = newLOB;
+    });
+  }
+
+  // 4. P&L Summary recalculate karo
+  this.calculateAll();
+
+  // 5. UI ko force refresh karo
+  this.cdr.detectChanges();
+}
 
 onPageSizeChange() {
   this.currentPage = 1; // Size badalne par pehle page par le jao

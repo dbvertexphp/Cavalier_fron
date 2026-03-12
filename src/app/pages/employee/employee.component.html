@@ -143,10 +143,10 @@
             </td>
             <td class="p-3 sticky right-0 bg-white shadow-[-5px_0px_10px_rgba(0,0,0,0.05)]">
               <div class="flex justify-center gap-1">
-                <button (click)="selectedEmployee = emp; isViewModalOpen = true"
-                  class="bg-blue-600 text-white px-2 py-1 rounded text-[10px] uppercase font-bold hover:bg-blue-800 transition-all">
-                  View
-                </button>
+               <button (click)="openViewModal(emp)"
+        class="bg-blue-600 text-white px-2 py-1 rounded text-[10px] uppercase font-bold hover:bg-blue-800 transition-all">
+  View
+</button>
 
                 <button (click)="editEmployee(emp)"
                   class="text-blue-600 border border-blue-200 px-2 py-1 rounded hover:bg-blue-50 transition-all font-bold text-[10px]">
@@ -158,14 +158,15 @@
                   DEL
                 </button>
 
-                <button type="button" (click)="RoleModal(emp)"
-                  class="bg-gray-700 text-white px-2 py-1 rounded text-[10px] uppercase font-bold hover:bg-black">
-                  Role
-                </button>
+                <button type="button" 
+        (click)="navigateToAccess(emp)"
+        class="bg-gray-700 text-white px-2 py-1 rounded text-[10px] uppercase font-bold hover:bg-black">
+  Role
+</button>
               </div>
 
               <!-- ROLE MODAL OUTSIDE TABLE -->
-              <div *ngIf="isRoleModalOpen"
+              <!-- <div *ngIf="isRoleModalOpen"
                 class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
                 <div
                   class="bg-white w-full max-w-lg shadow-2xl border border-gray-300 overflow-hidden text-left rounded-lg">
@@ -283,7 +284,7 @@
                             {{ perm.subMenu }}
                           </span>
 
-                          <!-- Hidden ID display (optional) -->
+                        
                           <span class="text-[10px] text-gray-400">
                             (ID: {{ perm.permissionID }})
                           </span>
@@ -303,7 +304,7 @@
                     </button>
                   </div>
                 </div>
-              </div>
+              </div> -->
 
               <div *ngIf="isViewModalOpen"
                 class="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4"
@@ -335,7 +336,7 @@
 
                         <div class="flex gap-4 mb-4">
                           <div class="h-20 w-20 rounded-xl overflow-hidden border shadow">
-                            <img *ngIf="selectedEmployee?.photoPath"
+                            <img *ngIf="selectedEmployee?.profilePicture"
                               [src]="'http://localhost:5000' + selectedEmployee?.photoPath"
                               class="h-full w-full object-cover" />
                             <div *ngIf="!selectedEmployee?.photoPath"
@@ -789,12 +790,76 @@
                               </tr>
                             </thead>
                             <tbody class="text-slate-700">
-                             <tr *ngFor="let edu of userEducationList">
-                              <td>{{ edu.qualification }}</td>
-                              <td>{{ edu.passingYear }}</td>
-                              <td>{{ edu.percentage }}%</td>
-                            </tr>
+                              <tr class="border-b last:border-0">
+                                <td class="py-2 font-medium">10th</td>
+                                <td>
+                                  {{ selectedEmployee?.tenthYear || "---" }}
+                                </td>
+                                <td>
+                                  {{
+                                  selectedEmployee?.tenthPercentage
+                                  ? selectedEmployee?.tenthPercentage + "%"
+                                  : "---"
+                                  }}
+                                </td>
+                                <td>
+                                  <a *ngIf="selectedEmployee?.tenthDoc" [href]="selectedEmployee?.tenthDoc"
+                                    target="_blank" class="text-blue-600 hover:underline text-xs">View File</a>
+                                </td>
+                              </tr>
+                              <tr class="border-b last:border-0">
+                                <td class="py-2 font-medium">12th</td>
+                                <td>
+                                  {{ selectedEmployee?.twelfthYear || "---" }}
+                                </td>
+                                <td>
+                                  {{
+                                  selectedEmployee?.twelfthPercentage
+                                  ? selectedEmployee?.twelfthPercentage +
+                                  "%"
+                                  : "---"
+                                  }}
+                                </td>
+                                <td>
+                                  <a *ngIf="selectedEmployee?.twelfthDoc" [href]="selectedEmployee?.twelfthDoc"
+                                    target="_blank" class="text-blue-600 hover:underline text-xs">View File</a>
+                                </td>
+                              </tr>
+                              <tr class="border-b last:border-0">
+                                <td class="py-2 font-medium">Graduation</td>
+                                <td>
+                                  {{
+                                  selectedEmployee?.graduationYear || "---"
+                                  }}
+                                </td>
+                                <td>
+                                  {{
+                                  selectedEmployee?.graduationPercentage
+                                  ? selectedEmployee?.graduationPercentage +
+                                  "%"
+                                  : "---"
+                                  }}
+                                </td>
+                                <td>
+                                  <a *ngIf="selectedEmployee?.graduationDoc" [href]="selectedEmployee?.graduationDoc"
+                                    target="_blank" class="text-blue-600 hover:underline text-xs">View File</a>
+                                </td>
+                              </tr>
+                              <tr *ngIf="selectedEmployee?.pgPercentage" class="border-b last:border-0">
+                                <td class="py-2 font-medium">
+                                  Post Graduation
+                                </td>
+                                <td>{{ selectedEmployee?.pgYear || "---" }}</td>
+                                <td>
+                                  {{ selectedEmployee?.pgPercentage + "%" }}
+                                </td>
+                                <td>
+                                  <a *ngIf="selectedEmployee?.pgDoc" [href]="selectedEmployee?.pgDoc" target="_blank"
+                                    class="text-blue-600 hover:underline text-xs">View File</a>
+                                </td>
+                              </tr>
                             </tbody>
+               
                           </table>
                         </div>
                       </div>

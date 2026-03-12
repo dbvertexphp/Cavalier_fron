@@ -66,6 +66,7 @@ import { LeaveApplicationComponent } from './leave-application/leave-application
 import { EmployeeComponent } from './pages/employee/employee.component';
 import { ShipperComponent } from './pages/shipper/shipper.component';
 import { ConsigneeComponent } from './pages/consignee/consignee.component';
+import { RolePermisionsComponent } from './pages/role-permisions/role-permisions.component';
 
 export const routes: Routes = [
 
@@ -210,6 +211,11 @@ export const routes: Routes = [
         path: 'hr/employee-master',
         component: UserComponent,
         title: 'Employee Masters'
+      },
+      {
+          path: 'rolePermision',
+        component: RolePermisionsComponent,
+       
       },
       {
         path: 'register-user',

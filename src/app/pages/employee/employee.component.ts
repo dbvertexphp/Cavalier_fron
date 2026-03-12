@@ -10,6 +10,14 @@ import{environment} from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
+export interface UserEducation {
+  id: number;
+  userId: string;
+  educationLevel: string; // e.g., "10th", "12th", "Graduation"
+  passingYear: string;
+  percentage: number;
+  marksheetPath: string;
+}
 export interface Employee {
   id: string;
   empCode: string;
@@ -40,7 +48,7 @@ password?: string;
   aadhaarNo?: string;
 
   // ✅ Profile
-  photoPath?: string;
+  profilePicture?: string;
 
   // ✅ Job & Salary
   dateOfJoining?: string;
@@ -169,8 +177,7 @@ selectedPermissionIds: number[] = [];
     isAdmin: false
   }
 isPasswordVisible: boolean = false;
-  employees: Employee[] = [
-  ];
+  employees: Employee[] =[];
 
   filteredEmployees: Employee[] = [];
   rolesList: any[] = [];
@@ -274,7 +281,7 @@ togglePermission(id: number): void {
   }
 selectedBranchId: number | null = null;
   isRoleModalOpen: boolean = false;
-  selectedEmployee: Employee | null = null;
+  selectedEmployee: Employee | any;
 selectedRole: number | null = null;
 roleId?: number;
   RoleModal(emp: Employee): void {
@@ -325,18 +332,19 @@ this.selectedRole = emp.roleId ?? null;    this.isAccountActive = emp.isActive !
   openViewModal(emp: Employee): void {
     this.selectedEmployee = emp;
     this.isViewModalOpen = true;
-    this.selectedEmployee = emp;
-  this.isViewModalOpen = true;
-
-  // Purana data clear karo taaki naya dikhe
-  this.userEducationList = [];
-  this.userExperienceList = [];
+    console.log("🎯 View button clicked for ID:", emp.id); // Check karne ke liye
+  
+  this.selectedEmployee = { ...emp }; // Data set kiya
+  this.isViewModalOpen = true;        // Modal khola
 
   if (emp.id) {
-    const id = Number(emp.id);
-    this.getEmployeeEducation(id);
-    this.getEmployeeExperience(id); // Dono call kar diye
+    this.getEducationDetails(emp.id.toString());
+    this.getExperienceDetails(emp.id.toString()) // API call mari
+  } else {
+    console.warn("⚠️ Is employee ki ID missing hai!");
   }
+  
+    
   }
 
   closeViewModal(): void {
@@ -347,6 +355,7 @@ this.selectedRole = emp.roleId ?? null;    this.isAccountActive = emp.isActive !
   viewProfile(emp: Employee) {
     this.selectedEmployee = emp;
     this.isViewModalOpen = true;
+    
   }
 
   closeModal() {
@@ -371,22 +380,28 @@ openPreview(imageUrl: string | undefined): void {
   }
 getAllUsers(): void {
   const url = `${environment.apiUrl}/User/list?user_type=all`;
+  const baseUrl = environment.apiUrl.replace('/api', '');
 
   this.http.get<Employee[]>(url).subscribe({
     next: (res: Employee[]) => {
       console.log("🔥 USER LIST API RESPONSE:", res);
+      // ✅ Type casting (as Employee) use karke error solve hoga
+      this.employees = res.map(emp => ({
+        ...emp,
+        profilePicture: emp.profilePicture ? `${baseUrl}${emp.profilePicture}` : '',
+        offerLetterPath: emp.offerLetterPath ? `${baseUrl}${emp.offerLetterPath}` : '',
+        appointmentLetterPath: emp.appointmentLetterPath ? `${baseUrl}${emp.appointmentLetterPath}` : '',
+        invitationLetterPath: emp.invitationLetterPath ? `${baseUrl}${emp.invitationLetterPath}` : '',
+        relievingLetterPath: emp.relievingLetterPath ? `${baseUrl}${emp.relievingLetterPath}` : '',
+        fullAndFinalLetterPath: emp.fullAndFinalLetterPath ? `${baseUrl}${emp.fullAndFinalLetterPath}` : '',
+        educationMarksheets: emp.educationMarksheets ? `${baseUrl}${emp.educationMarksheets}` : ''
+      } as Employee)); // 👈 Ye 'as Employee' add karna zaroori hai
 
-      // ✅ API data save ho raha hai
-      this.employees = res;
-      console.log("department data:", this.employees.map(e => e.department));
-      console.log("team data:", this.employees.map(e => e.team));
-
-      // ✅ Table ke liye copy
+      console.log("✅ Processed Employees:", this.employees);
       this.filteredEmployees = [...this.employees];
+      this.cdr.detectChanges();
     },
-    error: (err) => {
-      console.error("❌ API ERROR:", err);
-    }
+    error: (err) => console.error("❌ API ERROR:", err)
   });
 }
   // Inside export class EmployeeComponent { ... }
@@ -407,8 +422,12 @@ loadPermissions(): void {
   });
 }
 toggleRemoteStatus(emp: any) {
-  
+  // ngModel already changed the value of emp.isActive
+  // You just need to handle the API call or logic here
   console.log('Employee:', emp.name, 'is now:', emp.isActive);
+  
+  // Example: if you have a service, call it here
+  // this.employeeService.updateStatus(emp.id, emp.isActive).subscribe();
 }
   
   // downoad pdf code.............................................................idhar se hai  
@@ -648,56 +667,82 @@ onPageSizeChange() {
   this.currentPage = 1;
   this.cdr.detectChanges();
 }
-// ✅ Sahi declaration class ke andar
-userEducationList: any[] = []; 
-userExperienceList: any[] = [];
-// 🎓 Education fetch karne ke liye
-getEmployeeEducation(userId: number): void {
-  console.log("Fetching Education for UserID:", userId);
+// Is line ko check karein:
+navigateToAccess(emp: any): void {  // <--- 'number' ki jagah 'any' likh dein
+  if (emp) {
+    this.router.navigate(['dashboard/rolePermision', emp]);
+  } else {
+    console.error("Employee ID nahi mili!");
+  }
+}
+// ✅ Education Details fetch karne ka function
+getEducationDetails(userId: string): void {
   const url = `${environment.apiUrl}/UserEducation/user/${userId}`;
 
   this.http.get<any[]>(url).subscribe({
     next: (res) => {
-      console.log("🎓 Education API Response:", res);
-      // Data assign karein
-      this.userEducationList = res || [];
+      console.log("🎓 EDUCATION API RESPONSE:", res);
       
-      // UI refresh force karein
-      this.cdr.detectChanges();
+      if (this.selectedEmployee && res && res.length > 0) {
+        res.forEach((edu: any) => {
+          const qual = (edu.qualification || '').toLowerCase();
+          
+          // API se aane wala document path agar "/uploads/..." hai toh base URL lagana hoga
+          const fullDocPath = edu.documentPath ? `${environment.apiUrl.replace('/api','')}${edu.documentPath}` : null;
+
+          if (qual.includes('10th')) {
+            // Mapping as per your API response (PassingYear and Percentage)
+            this.selectedEmployee!['tenthYear'] = edu.passingYear; 
+            this.selectedEmployee!['tenthPercentage'] = edu.percentage;
+            this.selectedEmployee!['tenthDoc'] = fullDocPath;
+          } 
+          else if (qual.includes('12th')) {
+            this.selectedEmployee!['twelfthYear'] = edu.passingYear;
+            this.selectedEmployee!['twelfthPercentage'] = edu.percentage;
+            this.selectedEmployee!['twelfthDoc'] = fullDocPath;
+          }
+          else if (qual.includes('graduation') && !qual.includes('post')) {
+            this.selectedEmployee!['graduationYear'] = edu.passingYear;
+            this.selectedEmployee!['graduationPercentage'] = edu.percentage;
+            this.selectedEmployee!['graduationDoc'] = fullDocPath;
+          }
+          else if (qual.includes('post') || qual.includes('pg')) {
+            this.selectedEmployee!['pgYear'] = edu.passingYear;
+            this.selectedEmployee!['pgPercentage'] = edu.percentage;
+            this.selectedEmployee!['pgDoc'] = fullDocPath;
+          }
+        });
+
+        // Forcefully UI refresh karne ke liye
+        this.cdr.detectChanges();
+      }
     },
     error: (err) => {
-      console.error("❌ Education Fetch Error:", err);
-      this.userEducationList = [];
+      console.error("❌ Education API Error:", err);
     }
   });
 }
-
-// 💼 Experience fetch karne ke liye
-getEmployeeExperience(userId: number): void {
-  // Console log check karein ki correct UserId pass ho raha hai ya nahi
-  console.log("Fetching experience for UserID:", userId);
-
-  // URL verify karein: Kya apka controller 'UserExperience' hai ya 'User'?
-  const url = `${environment.apiUrl}/UserExperience/user/${userId}`;
+getExperienceDetails(userId: string): void {
+  const url = `${environment.apiUrl}/Experience/user/${userId}`;
 
   this.http.get<any[]>(url).subscribe({
     next: (res) => {
-      console.log("🔥 Experience API Response:", res);
+      console.log("💼 EXPERIENCE API RESPONSE:", res);
       
-      // Data ko directly userExperienceList mein dalein
-      this.userExperienceList = res || [];
-      
-      // Agar aap selectedEmployee.experiences ko use kar rahe hain HTML mein, 
-      // toh usko bhi update kar dein sync rakhne ke liye
       if (this.selectedEmployee) {
-        this.selectedEmployee.experiences = [...this.userExperienceList];
-      }
+        // API response ko selectedEmployee.experiences mein dalna
+        // Backend se 'yearsOfExperience' aa raha hai, hum use 'totalYears' mein map kar sakte hain UI ke liye
+        this.selectedEmployee.experiences = res.map(exp => ({
+          ...exp,
+          totalYears: exp.yearsOfExperience, // UI mapping
+          isVerified: exp.verificationComplete // Backend mapping
+        }));
 
-      this.cdr.detectChanges();
+        this.cdr.detectChanges(); // UI refresh
+      }
     },
     error: (err) => {
-      console.error("❌ Experience Fetch Error:", err);
-      this.userExperienceList = [];
+      console.error("❌ Experience API Error:", err);
     }
   });
 }

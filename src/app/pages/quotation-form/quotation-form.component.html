@@ -536,19 +536,18 @@ Cancel
         <option value="Multiple">Multiple</option>
       </select>
       
-      <label class="text-gray-700 font-bold mt-3 block mb-1 uppercase">Line Of Business</label>
-      <select name="lineOfBusiness" [(ngModel)]="quotation.lineOfBusiness" class="w-full border p-2 outline-none">
-        <option value="" disabled selected>Select Business Line</option>
-        <option value="Air Import">Air Import</option>
-        <option value="Air Export">Air Export</option>
-        <option value="Sea Import">Sea Import</option>
-        <option value="Sea Export">Sea Export</option>
-        <option value="Courier Import">Courier Import</option>
-        <option value="Courier Export">Courier Export</option>
-        <option value="Clearance Import">Clearance Import</option>
-        <option value="Clearance Export">Clearance Export</option>
-      </select>
-    </div>
+     
+      <!--<select name="lineOfBusiness" [(ngModel)]="quotation.lineOfBusiness" class="w-full border p-2 outline-none">
+        <select name="lineOfBusiness" [(ngModel)]="quotation.lineOfBusiness" (change)="onHeaderLOBChange()" class="w-full border p-2 outline-none">
+         </div>-->
+    <label class="text-gray-700 font-bold mt-3 block mb-1 uppercase">Line Of Business</label>
+    <select name="lineOfBusiness" [(ngModel)]="quotation.lineOfBusiness" (change)="onHeaderLOBChange()" class="w-full border p-2 outline-none">
+    <option value="" disabled selected>Select Business Line</option>
+    <option *ngFor="let s of companyServices" [value]="s.serviceName">
+      {{ s.serviceName }}
+    </option>
+</select>
+</div>
 
     <div>
      <label class="text-red-700 font-bold block mb-1 uppercase">
@@ -931,10 +930,10 @@ Cancel
       <tbody>
         <tr *ngFor="let r of revenueRows; let i = index" class="hover:bg-gray-50">
           <td class="border p-1">
-            <select [name]="'rlob' + i" [(ngModel)]="r.lob" class="w-full outline-none p-1 bg-transparent uppercase">
-              <option value="">--Select LOB--</option>
+            <select [(ngModel)]="r.lob" [disabled]="true" ...>
               <option *ngFor="let s of services" [value]="s.serviceName">{{ s.serviceName }}</option>
             </select>
+
           </td>
           <td class="border p-1">
             <input [name]="'rcharge' + i" [(ngModel)]="r.chargeName" placeholder="Enter Charge" class="w-full outline-none p-1 bg-transparent">
@@ -984,7 +983,7 @@ Cancel
     <table class="w-full border-collapse text-[11px]">
       <thead class="bg-gray-50 uppercase border-b border-gray-300">
         <tr class="text-gray-600">
-          <th class="border p-2 text-left min-w-[100px]">LOB (Combo)</th>
+          <th class="border p-2 text-left min-w-[100px]">LOB</th>
           <th class="border p-2 text-left min-w-[150px]">Charge Name</th>
           <th class="border p-2 text-left min-w-[100px]">Charge Type</th>
           <th class="border p-2 text-left min-w-[80px]">Basis</th>
@@ -1002,10 +1001,10 @@ Cancel
       <tbody>
         <tr *ngFor="let c of costRows; let i = index" class="hover:bg-gray-50">
           <td class="border p-1">
-            <select [name]="'clob' + i" [(ngModel)]="c.lob" class="w-full outline-none p-1 bg-transparent uppercase">
-              <option value="">--Select LOB--</option>
-              <option *ngFor="let s of services" [value]="s.serviceName">{{ s.serviceName }}</option>
-            </select>
+            <select [(ngModel)]="c.lob" [disabled]="true" ...>
+            <option *ngFor="let s of services" [value]="s.serviceName">{{ s.serviceName }}</option>
+          </select>
+
           </td>
           <td class="border p-1">
             <input [name]="'ccharge' + i" [(ngModel)]="c.chargeName" placeholder="Charge Name" class="w-full outline-none p-1 bg-transparent">

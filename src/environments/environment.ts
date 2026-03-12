@@ -1,5 +1,5 @@
-// environment.ts
 export const environment = {
   production: false,
-  apiUrl: 'https://api.cavalierlogistic.graphicsvolume.com/api' // Isko change karein
+  // Swagger wala URL yahan daalna hai
+  apiUrl: 'http://localhost:5000/api' 
 };

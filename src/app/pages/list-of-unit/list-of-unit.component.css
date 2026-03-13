@@ -1,0 +1,59 @@
+/* 1. Base Row Style - Pointer setup */
+.group {
+  cursor: grab; /* Hath dikhega pakadne ke liye */
+  transition: background-color 0.2s ease;
+}
+
+.group:active {
+  cursor: grabbing; /* Pakadte hi mutthi band ho jayegi */
+}
+
+/* 2. Drag Preview - Jab item "Hawa mein" ho */
+.cdk-drag-preview {
+  box-sizing: border-box;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  
+  /* Uthane wala effect: Thoda bada aur halka sa rotate */
+  transform: scale(1.03) rotate(1.5deg) !important;
+  
+  /* Heavy shadow taaki lage ki niche se door (uuncha) hai */
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 
+              0 0 0 1px rgba(101, 78, 81, 0.2);
+  
+  border-left: 5px solid #654E51;
+  display: flex;
+  align-items: center;
+  padding: 12px 24px;
+  z-index: 1000;
+}
+
+/* 3. Placeholder - Jahan item drop hoga */
+.cdk-drag-placeholder {
+  background: #f9fafb;
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  min-height: 56px;
+  margin: 4px 0;
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+/* 4. Smooth Animation - rearrange hote waqt */
+.cdk-drop-list-dragging .cdk-drag {
+  transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cdk-drag-animating {
+  transition: transform 350ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 5. Drag Handle (Optional) - Agar sirf icon se pakadwana ho */
+.drag-handle {
+  cursor: grab;
+  color: #94a3b8;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}

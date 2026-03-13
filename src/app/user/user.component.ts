@@ -24,6 +24,7 @@ export class UserComponent implements OnInit {
   constructor(private userService: UserService, private router: Router) {}
 
   ngOnInit(): void {
+    
     this.loadUsers(); 
   }
 
@@ -78,12 +79,16 @@ loadUsers(userType: string = 'all') {
 
   // ✅ Updated to accept a specific user object from the table
   modifyUser(user?: any) {
-    // If a user is passed directly from the table button
     if (user) {
+      // Pura user object 'state' mein bhej rahe hain
       this.router.navigate(['/dashboard/register-user'], { 
-        state: { data: user, isEdit: true } 
+        state: { 
+          data: user, 
+          isEdit: true 
+        } 
       });
-      return;
+    } else {
+      alert("Please select a user from the table to modify.");
     }
 
     // Original logic kept for compatibility

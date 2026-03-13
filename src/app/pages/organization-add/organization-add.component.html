@@ -661,14 +661,14 @@
                         <input [(ngModel)]="contact.contactName" [name]="'name'+i" placeholder="Name"
                           class="w-full border p-2 rounded text-sm outline-none focus:border-blue-400">
 
-                        <select [(ngModel)]="contact.designation" [name]="'desig'+i"
+                        <select [(ngModel)]="contact.DesignationId" [name]="'desig'+i"
                           class="w-full border p-2 rounded text-sm bg-white outline-none focus:border-blue-400">
                           <option value="" disabled selected>Select Designation</option>
                           <option value="Manager">Manager</option>
                           <option value="HOD">HOD</option>
                         </select>
 
-                        <select [(ngModel)]="contact.department" [name]="'dept'+i"
+                        <select [(ngModel)]="contact.DepartmentId" [name]="'dept'+i"
                           class="w-full border p-2 rounded text-sm bg-white outline-none focus:border-blue-400">
                           <option value="" disabled selected>Select Department</option>
                           <option value="Sales">Sales</option>

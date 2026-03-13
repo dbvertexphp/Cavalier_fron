@@ -1,3 +1,4 @@
+import { CheckPermissionService } from './../../services/check-permission.service';
 
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -13,7 +14,6 @@ transferArrayItem
 } from '@angular/cdk/drag-drop';
 
 import { DragDropModule } from '@angular/cdk/drag-drop';
-import { CheckPermissionService } from '../../services/check-permission.service';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { HostListener } from '@angular/core'; 
@@ -26,6 +26,9 @@ import * as XLSX from 'xlsx';
 })
 export class QuotationFormComponent implements OnInit {
   PermissionID:any;
+  currentPage: number = 1;
+  pageSize: number = 10;
+  
   searchDone: boolean = false;
   isFormOpen = false;
  private apiEndpoint = `${environment.apiUrl}/Quotations`;
@@ -241,48 +244,8 @@ closeColumnModal(){
   this.showColumnModal = false;
 }
 sortOrders:any = {};
-currentPage: number = 1;
-itemsPerPage: number = 10;
-
-paginatedQuotations: any[] = [];
-
-get totalPages(): number {
-  return Math.ceil(this.quotations.length / this.itemsPerPage);
-}
-updatePagination() {
-
-  const start = (this.currentPage - 1) * this.itemsPerPage;
-  const end = start + this.itemsPerPage;
-
-  this.paginatedQuotations = this.quotations.slice(start, end);
-
-}
-
-nextPage() {
-
-  if (this.currentPage < this.totalPages) {
-    this.currentPage++;
-    this.updatePagination();
-  }
-
-}
-
-previousPage() {
-
-  if (this.currentPage > 1) {
-    this.currentPage--;
-    this.updatePagination();
-  }
-
-}
-
-goToPage(page: number) {
-
-  this.currentPage = page;
-  this.updatePagination();
-
-}
   ngOnInit() {
+      this.PermissionID = Number(localStorage.getItem('permissionID'));
     this.loadColumnSettings();
     this.loadQuotations();
     this.fetchOrganizations();
@@ -290,8 +253,6 @@ goToPage(page: number) {
     this.getNextQuotationNumber();
     this.fetchInquiries();
     this.loadSearchSuggestions();
-        this.PermissionID = Number(localStorage.getItem('permissionID'));
-
     this.fetchCompanyServices()
     this.fetchLOBs();
   }
@@ -614,6 +575,9 @@ selectLead(lead: any) {
   // Dropdown band karo
   this.showLeadDropdown = false;
 }
+get totalPages(): number {
+  return Math.ceil(this.quotations.length / this.pageSize) || 1;
+}
 fetchOrganizations() {
     // 2. URL ko environment variable se combine karein
    const url = `${environment.apiUrl}/Organization/list`;
@@ -623,7 +587,28 @@ fetchOrganizations() {
       console.log(data)
     });
   }
+get paginatedQuotations(): any[] {
+  const start = (this.currentPage - 1) * this.pageSize;
+  return this.quotations.slice(start, start + this.pageSize);
+}
+previousPage() {
+  if (this.currentPage > 1) {
+    this.currentPage--;
+    // this.cdr.detectChanges();   // mostly zarurat nahi padti
+  }
+}
 
+nextPage() {
+  if (this.currentPage < this.totalPages) {
+    this.currentPage++;
+  }
+}
+
+goToPage(page: number) {
+  if (page >= 1 && page <= this.totalPages) {
+    this.currentPage = page;
+  }
+}
   // --- Search Logic ---
  onSearchInput() {
   // 'searchTerm' ki jagah ab 'quotation.organization' use kar rahe hain
@@ -653,27 +638,14 @@ selectOrganization(org: any) {
 }
  
   // --- Methods for Quotation Management ---
- loadQuotations() {
-
-  this.http.get<any[]>(this.apiEndpoint).subscribe({
-
-    next: (res) => {
-
-      this.quotations = res || [];
-
-      this.currentPage = 1;
-
-      this.updatePagination();
-
-      console.log("Quotations Data:", this.quotations);
-
-    },
-
-    error: (err) => console.error('Failed to load quotations:', err)
-
-  });
-
-}
+  loadQuotations() {
+    this.http.get<any[]>(this.apiEndpoint).subscribe({
+      next: (res) => { this.quotations = res; 
+        console.log("Quotations Data:", this.quotations);
+      },
+      error: (err) => console.error('Failed to load quotations:', err)
+    });
+  }
 getNextQuotationNumber() {
     // 2. URL ko environment variable se combine karein
  const url = `${environment.apiUrl}/Quotations/NextQuotationNo`;
@@ -693,7 +665,9 @@ getNextQuotationNumber() {
   }
 
 saveQuotation() {
-    // ... (Data preparation logic)
+    // ... (Aapki validation logic yahan rahegi)
+
+    // Data preparation for Backend
     this.quotation.revenueData = JSON.stringify(this.revenueRows);
     this.quotation.costData = JSON.stringify(this.costRows);
     this.quotation.dimensionsData = JSON.stringify(this.appliedDimensions);
@@ -701,20 +675,17 @@ saveQuotation() {
     this.quotation.totalRevenue = this.totalRevFinal;
     this.quotation.totalCost = this.totalCostFinal;
     this.quotation.totalProfit = this.totalProfitFinal;
-const request = this.quotation.id > 0 
-      ? this.http.put(`${this.apiEndpoint}/${this.quotation.id}`, this.quotation)
+
+    // 4. API Call - Swagger ke mutabiq Edit ke liye /update/id use kiya hai
+    const request = this.quotation.id > 0 
+      ? this.http.put(`${this.apiEndpoint}/update/${this.quotation.id}`, this.quotation)
       : this.http.post(this.apiEndpoint, this.quotation);
 
     request.subscribe({
       next: () => {
-        alert("Quotation Saved Successfully!");
-        
+        alert(this.quotation.id > 0 ? "Quotation Updated Successfully!" : "Quotation Saved Successfully!");
         this.loadQuotations();
-        
-        // 3. Form band karein
         this.toggleForm();
-        
-        // 4. Change detection force karein taaki UI turant update ho
         this.cdr.detectChanges();                
       },
       error: (err) => {
@@ -722,11 +693,54 @@ const request = this.quotation.id > 0
         alert("Save failed! Check console for errors.");
       }
     });
+}
+
+editQuotation(q: any) {
+  this.isFormOpen = true;
+
+  // 1. Basic details copy
+  this.quotation = { ...q };
+
+  // 2. Date Formatting Fix (ISO to yyyy-MM-dd)
+  // Input type="date" ke liye string ko slice karna zaroori hai
+  if (q.validFrom) {
+    this.quotation.validFrom = q.validFrom.split('T')[0];
   }
-  editQuotation(q: any) {
-    this.quotation = { ...q };
-    this.isFormOpen = true;
+  if (q.validTill) {
+    this.quotation.validTill = q.validTill.split('T')[0];
   }
+
+  // 3. Revenue Table data
+  const revData = q.revenueData || q.RevenueData;
+  if (revData) {
+    try {
+      this.revenueRows = typeof revData === 'string' ? JSON.parse(revData) : revData;
+    } catch (e) { console.error("Error revenueData", e); }
+  }
+
+  // 4. Cost Table data
+  const cstData = q.costData || q.CostData;
+  if (cstData) {
+    try {
+      this.costRows = typeof cstData === 'string' ? JSON.parse(cstData) : cstData;
+    } catch (e) { console.error("Error costData", e); }
+  }
+
+  // 5. Dimensions data
+  const dimData = q.dimensionsData || q.DimensionsData;
+  if (dimData) {
+    try {
+      this.appliedDimensions = typeof dimData === 'string' ? JSON.parse(dimData) : dimData;
+      this.dimRows = this.appliedDimensions.length > 0 ? [...this.appliedDimensions] : [{ box: null, l: null, w: null, h: null, unit: 'CMS' }];
+    } catch (e) { console.error("Error dimensionsData", e); }
+  }
+
+  // 6. Totals refresh
+  setTimeout(() => {
+    this.calculateAll();
+    this.cdr.detectChanges();
+  }, 100);
+}
 
   deleteQuotation(id: number) {
     if (confirm("Are you sure?")) {
@@ -1388,7 +1402,7 @@ downloadQuotationsExcel() {
 }
 // --- Pagination Variables ---
 // currentPage: number = 1;
-pageSize: number = 10; // Ek page par kitne records dikhane hain
+ // Ek page par kitne records dikhane hain
 protected readonly Math = Math; // Template mein Math use karne ke liye
 
 // Computed property jo table ko sirf current page ka data degi

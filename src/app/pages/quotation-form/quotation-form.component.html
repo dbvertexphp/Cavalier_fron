@@ -383,7 +383,6 @@ Cancel
 </tbody>
 
 </table>
-<<<<<<< HEAD
 <div class="flex flex-col items-center mt-6 gap-3" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
 
   <!-- Showing entries -->
@@ -433,60 +432,6 @@ Cancel
 
   </div>
 
-=======
-<div class="flex justify-between items-center bg-white p-4 border-t border-gray-200 mt-2 shadow-sm rounded-b-lg no-export" *ngIf="quotations.length > 0">
-  
-  <div class="flex items-center gap-4">
-    <div class="text-[12px] text-gray-600 font-medium">
-      Showing 
-      <span class="font-bold text-gray-800">{{ (currentPage - 1) * pageSize + 1 }}</span> 
-      to 
-      <span class="font-bold text-gray-800">{{ Math.min(currentPage * pageSize, quotations.length) }}</span> 
-      of 
-      <span class="font-bold text-gray-800">{{ quotations.length }}</span> 
-      Records
-    </div>
-    
-    <select [(ngModel)]="pageSize" (change)="onPageSizeChange()" 
-      class="border rounded text-[11px] px-2 py-1 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-blue-400">
-      <option [ngValue]="10">10 / page</option>
-      <option [ngValue]="25">25 / page</option>
-      <option [ngValue]="50">50 / page</option>
-      <option [ngValue]="100">100 / page</option>
-    </select>
-  </div>
-
-  <div class="flex items-center gap-1">
-    <button (click)="setPage(1)" [disabled]="currentPage === 1"
-      class="p-2 text-gray-500 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed">
-      ««
-    </button>
-
-    <button (click)="setPage(currentPage - 1)" [disabled]="currentPage === 1"
-      class="px-3 py-1 text-[11px] font-bold uppercase border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-30 transition-all">
-      Prev
-    </button>
-
-    <div class="flex items-center mx-1 border border-gray-200 rounded overflow-hidden">
-      <span class="px-3 py-1 text-[12px] font-black bg-[#4a3f3f] text-white">
-        {{currentPage}}
-      </span>
-      <span class="px-3 py-1 text-[12px] font-bold bg-gray-50 text-gray-600">
-        of {{totalPages}}
-      </span>
-    </div>
-
-    <button (click)="setPage(currentPage + 1)" [disabled]="currentPage === totalPages"
-      class="px-3 py-1 text-[11px] font-bold uppercase border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-30 transition-all">
-      Next
-    </button>
-
-    <button (click)="setPage(totalPages)" [disabled]="currentPage === totalPages"
-      class="p-2 text-gray-500 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed">
-      »»
-    </button>
-  </div>
->>>>>>> 4f9f4d893cf0c94a46ec2b3082c312d4d5d76379
 </div>
 </div>
   </div>

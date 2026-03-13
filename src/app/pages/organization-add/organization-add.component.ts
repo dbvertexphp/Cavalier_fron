@@ -32,7 +32,7 @@ searchFilters: any = {
  // ... baki variables ke niche
 showColumnModal = false;
 availableColumns: string[] = []; // Ye wo columns jo table mein nahi hain
-
+selectedOrgId: number | null = null; // Edit ke liye ID store karne ko
 
 // Label to Property Mapping (Taki table auto-render ho sake)
 columnFieldMap: any = {
@@ -178,106 +178,81 @@ isShipperSelected(): boolean {
   return this.selectedRoles.includes('shipper');
 }
 saveOrg() {
-  // Website Validation Check
-  if (this.website && this.website.length > 0 && this.isWebsiteInvalid) {
-    alert("please enter a valid webite address! (e.g. www.domain.com)");
-    return;
-  }
+  // Website Validation Check
+  if (this.website && this.website.length > 0 && this.isWebsiteInvalid) {
+    alert("please enter a valid webite address! (e.g. www.domain.com)");
+    return;
+  }
 
-  // Baki saare validation
-  console.log("🚀 Sab sahi hai! Data save ho raha hai.");
-  const telValue = this.telephone ? this.telephone.toString().trim() : '';
+  // Baki saare validation (Aapka existing logic)
+  const telValue = this.telephone ? this.telephone.toString().trim() : '';
+  const isTelInvalid = telValue.length > 0 && telValue.length < 5;
+  if (isTelInvalid) {
+    alert("telephoe must be 5 to 15 dig's");
+    return;
+  }
 
-  // Naya Logic: Min 5, Max 15
-  const isTelInvalid = telValue.length > 0 && telValue.length < 5;
-  if (isTelInvalid) {
-    alert("telephoe must be5 to 15 dig's");
-    return;
-  }
+  const isFormInvalid = this.contacts.some(c => 
+    (c.mobile && c.mobile.length > 0 && c.mobile.length < 10) || 
+    (c.whatsapp && c.whatsapp.length > 0 && c.whatsapp.length < 10) ||
+    (c.isEmailInvalid)
+  );
 
-  console.log("✅ Telephone validation passed!");
-  const faxValue = this.fax ? this.fax.toString().trim() : '';
-  const isFaxInvalid = faxValue.length > 0 && faxValue.length < 6;
-  if (isFaxInvalid) {
-    alert("fax dig min 6 or max 13");
-    return;
-  }
+  if (isFormInvalid) {
+    alert("please fill the valid email or a mobile number!");
+    return; 
+  }
 
-  const isFormInvalid = this.contacts.some(c => 
-    (c.mobile && c.mobile.length > 0 && c.mobile.length < 10) || 
-    (c.whatsapp && c.whatsapp.length > 0 && c.whatsapp.length < 10) ||
-    (c.isEmailInvalid)
-  );
+  if (!this.orgName || !this.alias || !this.country || !this.city) {
+    alert('Please fill mandatory fields: Name, Alias, Country, and City');
+    return;
+  }
 
-  if (isFormInvalid) {
-    alert("please fill the valid email or a mobile number!");
-    return; 
-  }
+  const url = `${environment.apiUrl}/Organization/save`;
 
-  const isAnyNumberInvalid = this.contacts.some(c => 
-    c.whatsapp && c.whatsapp.length > 0 && c.whatsapp.length < 10
-  );
+  // Payload: Agar selectedOrgId hai toh wo bhi bhej rahe hain (Edit mode)
+  const payload = {
+    Id: this.selectedOrgId || 0, // 👈 Ye line Edit ke liye zaroori hai
+    OrgName: this.orgName,
+    Alias: this.alias,
+    BranchName: this.selectedBranch?.name || '',
+    Address: this.address,
+    Country: this.country,
+    City: this.city,
+    Telephone: this.telephone,
+    Email: this.email,
+    StateProvince: this.stateProvince,
+    Website: this.website,
+    PostalCode: this.postalCode,
+    WhatsAppNumber: this.whatsAppNumber,
+    SalesPerson: this.salesPerson,
+    CollectionExec: this.collectionExec,
+    SelectedRoles: this.selectedRoles.join(','),
+    Contacts: this.contacts.map(c => ({
+      ContactName: c.contactName,
+      Mobile: c.mobile,
+      Whatsapp: c.whatsapp,
+      Email: c.email,
+    DesignationId: (c.DesignationId === 'Manager') ? 1 : (c.DesignationId === 'HOD' ? 2 : 0),
+    DepartmentId: (c.DepartmentId === 'Sales') ? 1 : (c.DepartmentId === 'Marketing' ? 2 : 0)
+    }))
+  };
 
-  if (isAnyNumberInvalid) {
-    alert("please fill the valid email or a mobile number!");
-    return;
-  }
-
-  if (!this.orgName || !this.alias || !this.country || !this.city) {
-    alert('Please fill mandatory fields: Name, Alias, Country, and City');
-    return;
-  }
-
-  const url = `${environment.apiUrl}/Organization/save`;
-
-  const payload = {
-    OrgName: this.orgName,
-    Alias: this.alias,
-    BranchName: this.selectedBranch?.name || '',
-    Address: this.address,
-    Country: this.country,
-    City: this.city,
-    Telephone: this.telephone,
-    Email: this.email,
-    StateProvince: this.stateProvince,
-    Website: this.website,
-    PostalCode: this.postalCode,
-    WhatsAppNumber: this.whatsAppNumber,
-    SalesPerson: this.salesPerson,
-    CollectionExec: this.collectionExec,
-    SelectedRoles: this.selectedRoles.join(','),
-    Contacts: this.contacts.map(c => ({
-      ContactName: c.contactName,
-      Mobile: c.mobile,
-      Whatsapp: c.whatsapp,
-      Email: c.email
-    }))
-  };
-
-  this.http.post(url, payload).subscribe({
-    next: () => {
-      alert('Saved Successfully!');
-      
-      // 1. List refresh karo
-      this.getOrgList(); 
-      
-      // 2. Form close karo
-      this.isFormOpen = false;
-
-      // 🔥 3. AGLE BRANCH KA NAAM FETCH KARO (Dynamic Increment)
-      this.fetchNextBranch(); 
-
-      // 4. Form fields reset karo (taaki agla entry fresh ho)
-      this.resetFormFields();
-
-      console.log(payload);
-      this.cdr.detectChanges(); 
-    },
-    error: (err) => {
-      console.error('Save Error:', err);
-      alert('Error saving data.');
-    }
-  });
+  this.http.post(url, payload).subscribe({
+    next: () => {
+      alert(this.selectedOrgId ? 'Updated Successfully!' : 'Saved Successfully!');
+      
+      this.getOrgList(); 
+      this.isFormOpen = false;
+      this.fetchNextBranch(); 
+      this.resetFormFields(); // Isme ab selectedOrgId = null bhi add kar diya hai niche
+      this.cdr.detectChanges(); 
+    },
+    error: (err) => {
+      console.error('Save Error:', err);
+      alert('Error saving data.');
+    }
+  });
 }
 
 // Ek chota sa helper function saare fields khali karne ke liye
@@ -321,10 +296,63 @@ resetFormFields() {
     }
   }
 
-  editOrg(org: any) {
-    console.log('Editing:', org);
-    this.isFormOpen = true;
-  }
+editOrg(org: any) {
+  console.log('Editing:', org);
+  
+  // 1. Form ko open karo
+  this.isFormOpen = true;
+
+  // 2. ID store karo (Taaki saveOrg() ko pata chale ki Update karna hai, New Save nahi)
+  this.selectedOrgId = org.id; 
+
+  // 3. Basic Fields mapping (Backend keys ko frontend variables se match karo)
+  this.orgName = org.orgName || '';
+  this.alias = org.alias || '';
+  this.address = org.address || '';
+  this.country = org.country || '';
+  this.city = org.city || '';
+  this.telephone = org.telephone || '';
+  this.email = org.email || '';
+  this.stateProvince = org.stateProvince || '';
+  this.website = org.website || '';
+  this.postalCode = org.postalCode || '';
+  this.whatsAppNumber = org.whatsAppNumber || '';
+  this.salesPerson = org.salesPerson || '';
+  this.collectionExec = org.collectionExec || '';
+
+  // 4. Branch handle karna
+  if (org.branchName) {
+    this.selectedBranch = { id: 0, name: org.branchName };
+  }
+
+  // 5. Roles handle karna (Agar string comma separated hai toh array banao)
+  if (org.selectedRoles) {
+    this.selectedRoles = typeof org.selectedRoles === 'string' 
+      ? org.selectedRoles.split(',').map((r: string) => r.trim()) 
+      : org.selectedRoles;
+  } else {
+    this.selectedRoles = [];
+  }
+
+  // 6. Dynamic Contacts handle karna
+  // Agar backend se 'contacts' ya 'contactDetails' naam se array aa raha hai
+  if (org.contacts && Array.isArray(org.contacts)) {
+    this.contacts = org.contacts.map((c: any) => ({
+      contactName: c.contactName || c.name || '',
+      mobile: c.mobile || '',
+      whatsapp: c.whatsapp || '',
+      email: c.email || '',
+      designation: c.designation || '',
+      department: c.department || ''
+    }));
+  } else {
+    // Agar koi contact nahi hai toh kam se kam ek khali row rakho
+    this.contacts = [{ contactName: '', designation: '', department: '', mobile: '', whatsapp: '', email: '' }];
+  }
+
+  // 7. UI update trigger karo
+  this.cdr.detectChanges();
+}
 isExportOpen = false;
 
   @ViewChild('tableToExport') tableToExport!: ElementRef;

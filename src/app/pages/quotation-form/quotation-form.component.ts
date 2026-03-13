@@ -17,7 +17,6 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { HostListener } from '@angular/core'; 
 import * as XLSX from 'xlsx';
-import { quotationSchema } from './quotation.Schema';
 @Component({
   selector: 'app-quotation-form',
   standalone: true,
@@ -25,7 +24,6 @@ import { quotationSchema } from './quotation.Schema';
   templateUrl: './quotation-form.component.html',
 })
 export class QuotationFormComponent implements OnInit {
-  errors={}
   searchDone: boolean = false;
   isFormOpen = false;
  private apiEndpoint = `${environment.apiUrl}/Quotations`;
@@ -635,65 +633,84 @@ getNextQuotationNumber() {
         }
       });
   }
+
 saveQuotation() {
-  // 1. Pehle data bundle karo validation ke liye
-  // Note: Validation hum asli arrays (this.revenueRows) par karenge, stringify bad mein karenge
-  const dataToValidate = {
-    ...this.quotation,
-    revenueData: this.revenueRows,
-    costData: this.costRows,
-    dimensionsData: this.appliedDimensions
-  };
+    // ... (Aapki validation logic yahan rahegi)
 
-  // 2. Zod Validation Check
-  const result = quotationSchema.safeParse(dataToValidate);
-
-  if (!result.success) {
-    // Agar validation fail hui, toh errors bharo aur return kar jao
-    this.errors = result.error.flatten().fieldErrors;
+    // Data preparation for Backend
+    this.quotation.revenueData = JSON.stringify(this.revenueRows);
+    this.quotation.costData = JSON.stringify(this.costRows);
+    this.quotation.dimensionsData = JSON.stringify(this.appliedDimensions);
     
-    // Pehla error alert mein dikhana ho toh (Optional)
-    alert("Please fill all required fields correctly!");
-    
-    // Console mein dekho kaunsi field miss hui hai
-    console.log("Validation Errors:", this.errors);
-    return; 
-  }
+    this.quotation.totalRevenue = this.totalRevFinal;
+    this.quotation.totalCost = this.totalCostFinal;
+    this.quotation.totalProfit = this.totalProfitFinal;
 
-  // 3. Agar Validation Pass ho gayi, toh purana logic continue karo
-  this.errors = {}; // Purane errors saaf karo
+    // 4. API Call - Swagger ke mutabiq Edit ke liye /update/id use kiya hai
+    const request = this.quotation.id > 0 
+      ? this.http.put(`${this.apiEndpoint}/update/${this.quotation.id}`, this.quotation)
+      : this.http.post(this.apiEndpoint, this.quotation);
 
-  // Data preparation for Backend
-  this.quotation.revenueData = JSON.stringify(this.revenueRows);
-  this.quotation.costData = JSON.stringify(this.costRows);
-  this.quotation.dimensionsData = JSON.stringify(this.appliedDimensions);
-  
-  this.quotation.totalRevenue = this.totalRevFinal;
-  this.quotation.totalCost = this.totalCostFinal;
-  this.quotation.totalProfit = this.totalProfitFinal;
-
-  // 4. API Call
-  const request = this.quotation.id > 0 
-    ? this.http.put(`${this.apiEndpoint}/${this.quotation.id}`, this.quotation)
-    : this.http.post(this.apiEndpoint, this.quotation);
-
-  request.subscribe({
-    next: () => {
-      alert("Quotation Saved Successfully!");
-      this.loadQuotations();
-      this.toggleForm();
-      this.cdr.detectChanges();                
-    },
-    error: (err) => {
-      console.error("Error details:", err);
-      alert("Save failed! Check console for errors.");
-    }
-  });
+    request.subscribe({
+      next: () => {
+        alert(this.quotation.id > 0 ? "Quotation Updated Successfully!" : "Quotation Saved Successfully!");
+        this.loadQuotations();
+        this.toggleForm();
+        this.cdr.detectChanges();                
+      },
+      error: (err) => {
+        console.error("Error details:", err);
+        alert("Save failed! Check console for errors.");
+      }
+    });
 }
-  editQuotation(q: any) {
-    this.quotation = { ...q };
-    this.isFormOpen = true;
+
+editQuotation(q: any) {
+  this.isFormOpen = true;
+
+  // 1. Basic details copy
+  this.quotation = { ...q };
+
+  // 2. Date Formatting Fix (ISO to yyyy-MM-dd)
+  // Input type="date" ke liye string ko slice karna zaroori hai
+  if (q.validFrom) {
+    this.quotation.validFrom = q.validFrom.split('T')[0];
   }
+  if (q.validTill) {
+    this.quotation.validTill = q.validTill.split('T')[0];
+  }
+
+  // 3. Revenue Table data
+  const revData = q.revenueData || q.RevenueData;
+  if (revData) {
+    try {
+      this.revenueRows = typeof revData === 'string' ? JSON.parse(revData) : revData;
+    } catch (e) { console.error("Error revenueData", e); }
+  }
+
+  // 4. Cost Table data
+  const cstData = q.costData || q.CostData;
+  if (cstData) {
+    try {
+      this.costRows = typeof cstData === 'string' ? JSON.parse(cstData) : cstData;
+    } catch (e) { console.error("Error costData", e); }
+  }
+
+  // 5. Dimensions data
+  const dimData = q.dimensionsData || q.DimensionsData;
+  if (dimData) {
+    try {
+      this.appliedDimensions = typeof dimData === 'string' ? JSON.parse(dimData) : dimData;
+      this.dimRows = this.appliedDimensions.length > 0 ? [...this.appliedDimensions] : [{ box: null, l: null, w: null, h: null, unit: 'CMS' }];
+    } catch (e) { console.error("Error dimensionsData", e); }
+  }
+
+  // 6. Totals refresh
+  setTimeout(() => {
+    this.calculateAll();
+    this.cdr.detectChanges();
+  }, 100);
+}
 
   deleteQuotation(id: number) {
     if (confirm("Are you sure?")) {

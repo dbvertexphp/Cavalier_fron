@@ -439,7 +439,7 @@ openPreview(imageUrl: string | undefined): void {
     }
   }
 getAllUsers(): void {
-  const url = `${environment.apiUrl}/User/list?user_type=all`;
+  const url = `${environment.apiUrl}/User/adminlist?user_type=all`;
   const baseUrl = environment.apiUrl.replace('/api', '');
 
   this.http.get<Employee[]>(url).subscribe({

@@ -101,47 +101,112 @@ isSaving: boolean = false;
 
 // 2. Updated saveSettings function
 saveSettings() {
-  // Agar pehle se saving chal rahi hai toh ruk jao
-  if (this.isSaving) return;
 
-  // Loading indicator on karo
+  if (this.isSaving) return;
   this.isSaving = true;
 
-  // API ko bhejne se pehle sab "v, e, d" ko hata kar sirf Number ID nikalna
+  // -------------------------
+  // 1️⃣ CLEAN PERMISSION IDS
+  // -------------------------
   const cleanIds = this.selectedPermissionIds.map(item => {
     if (typeof item === 'string') {
-      // "101_v" -> 101, "101_e" -> 101, etc.
       const id = item.split('_')[0];
-      return parseInt(id, 10); 
+      return parseInt(id, 10);
     }
     return item;
   });
 
-  // Duplicates hatana (Set use karke)
   const finalPayloadIds = [...new Set(cleanIds)];
 
-  const payload = {
+  // -------------------------
+  // 2️⃣ ROLE ASSIGN PAYLOAD
+  // -------------------------
+  const rolePayload = {
     userId: this.userId,
     roleId: this.selectedRole,
     password: this.selectedEmployeePassword || null,
     isActive: this.isAccountActive,
     branchId: this.selectedBranchId,
-    permissionIds: finalPayloadIds // Backend ko clean numbers milenge
+    permissionIds: finalPayloadIds
   };
 
-  // API Call
-  this.http.put(`${environment.apiUrl}/Permissions/assign-role`, payload).subscribe({
-    next: () => {
-      this.isSaving = false; // Stop loading
-      alert("Settings updated successfully!");
-      this.goBack();
-    },
-    error: (err) => {
-      this.isSaving = false; // Stop loading
-      console.error("Update failed", err);
-      alert("Update failed! Please check your connection or try again.");
+  // -------------------------
+  // 3️⃣ ACTION PERMISSION MAP
+  // -------------------------
+  const permissionMap: any = {};
+
+  this.selectedPermissionIds.forEach(item => {
+
+    if (typeof item === 'number') {
+      if (!permissionMap[item]) {
+        permissionMap[item] = [];
+      }
     }
+
+    if (typeof item === 'string') {
+
+      const parts = item.split('_');
+      const id = parseInt(parts[0], 10);
+      const actionKey = parts[1];
+
+      if (!permissionMap[id]) {
+        permissionMap[id] = [];
+      }
+
+      if (actionKey === 'v') permissionMap[id].push("View");
+      if (actionKey === 'e') permissionMap[id].push("Edit");
+      if (actionKey === 'd') permissionMap[id].push("Delete");
+    }
+
   });
+
+  const permissions = Object.keys(permissionMap).map(id => ({
+    permissionId: parseInt(id),
+    actions: permissionMap[id]
+  }));
+
+  const actionPayload = {
+    userId: parseInt(this.userId!),
+    permissions: permissions
+  };
+
+  // -------------------------
+  // 4️⃣ FIRST API CALL
+  // -------------------------
+  this.http.put(`${environment.apiUrl}/Permissions/assign-role`, rolePayload)
+    .subscribe({
+
+      next: () => {
+
+        // -------------------------
+        // 5️⃣ SECOND API CALL
+        // -------------------------
+        this.http.post(`${environment.apiUrl}/action-permission/save`, actionPayload)
+          .subscribe({
+
+            next: () => {
+              this.isSaving = false;
+              alert("Settings updated successfully!");
+              this.goBack();
+            },
+
+            error: (err) => {
+              this.isSaving = false;
+              console.error("Action permission error", err);
+              alert("Role saved but action permission failed.");
+            }
+
+          });
+
+      },
+
+      error: (err) => {
+        this.isSaving = false;
+        console.error("Role assign error", err);
+        alert("Failed to update role settings.");
+      }
+
+    });
 }
 
   generateRandomPassword() {

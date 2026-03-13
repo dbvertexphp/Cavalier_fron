@@ -7,13 +7,10 @@ import { environment } from '../../../environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
-<<<<<<< HEAD
 import { CheckPermissionService } from '../../services/check-permission.service';
-=======
 import jsPDF from 'jspdf';
 import * as XLSX from 'xlsx';
 import { leadSchema } from './lead.schema';
->>>>>>> 4f9f4d893cf0c94a46ec2b3082c312d4d5d76379
 @Component({
   selector: 'app-lead-form',
   standalone: true,
@@ -1321,20 +1318,20 @@ downloadLeadsExcel() {
   console.log("✅ Excel Downloaded Successfully");
 }
 // --- Pagination Variables ---
-currentPage: number = 1;
-pageSize: number = 10; // Default records per page
-protected readonly Math = Math;
+// currentPage: number = 1;
+// pageSize: number = 10; // Default records per page
+// protected readonly Math = Math;
 
 // Computed Property: Table mein isi ko loop karein
-get paginatedLeads(): any[] {
-  const startIndex = (this.currentPage - 1) * this.pageSize;
-  return this.leads.slice(startIndex, startIndex + this.pageSize);
-}
+// get paginatedLeads(): any[] {
+//   const startIndex = (this.currentPage - 1) * this.pageSize;
+//   return this.leads.slice(startIndex, startIndex + this.pageSize);
+// }
 
 // Total pages calculate karein
-get totalPages(): number {
-  return Math.ceil(this.leads.length / this.pageSize) || 1;
-}
+// get totalPages(): number {
+//   return Math.ceil(this.leads.length / this.pageSize) || 1;
+// }
 
 // Page change handler
 setPage(page: number) {

@@ -1387,19 +1387,19 @@ downloadQuotationsExcel() {
   XLSX.writeFile(wb, `Quotations_Report_${new Date().getTime()}.xlsx`);
 }
 // --- Pagination Variables ---
-currentPage: number = 1;
+// currentPage: number = 1;
 pageSize: number = 10; // Ek page par kitne records dikhane hain
 protected readonly Math = Math; // Template mein Math use karne ke liye
 
 // Computed property jo table ko sirf current page ka data degi
-get paginatedQuotations(): any[] {
-  const startIndex = (this.currentPage - 1) * this.pageSize;
-  return this.quotations.slice(startIndex, startIndex + this.pageSize);
-}
+// get paginatedQuotations(): any[] {
+//   const startIndex = (this.currentPage - 1) * this.pageSize;
+//   return this.quotations.slice(startIndex, startIndex + this.pageSize);
+// }
 
-get totalPages(): number {
-  return Math.ceil(this.quotations.length / this.pageSize) || 1;
-}
+// get totalPages(): number {
+//   return Math.ceil(this.quotations.length / this.pageSize) || 1;
+// }
 
 setPage(page: number) {
   if (page < 1 || page > this.totalPages) return;

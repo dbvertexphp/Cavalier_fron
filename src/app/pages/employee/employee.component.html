@@ -278,58 +278,12 @@
 
   <div *ngFor="let perm of permissionsList" class="border p-2 rounded bg-white">
 
-<<<<<<< HEAD
-    <!-- Permission checkbox -->
-    <label class="flex items-center gap-2 cursor-pointer">
-      <input
-        type="checkbox"
-        (change)="togglePermission(perm.permissionID)"
-        [checked]="selectedPermissionIds.includes(perm.permissionID)"
-        class="w-4 h-4"
-      />
-
-      <span class="text-[12px] font-semibold">
-        {{ perm.subMenu }}
-      </span>
-    </label>
-
-    <!-- Actions -->
-    <div *ngIf="selectedPermissionIds.includes(perm.permissionID)"
-  class="mt-2 ml-6 grid grid-cols-2 gap-2 text-[11px]">
-
-<label class="flex items-center gap-2 mb-2">
-  <input type="checkbox" (change)="actionChange(perm.permissionID,'View',$event)"> View
-</label>
-
-<label class="flex items-center gap-2 mb-2">
-  <input type="checkbox" (change)="actionChange(perm.permissionID,'Add',$event)"> Add
-</label>
-
-<label class="flex items-center gap-2 mb-2">
-  <input type="checkbox" (change)="actionChange(perm.permissionID,'Edit',$event)"> Edit
-</label>
-
-<label class="flex items-center gap-2 mb-2">
-  <input type="checkbox" (change)="actionChange(perm.permissionID,'Delete',$event)"> Delete
-</label>
-
-<label class="flex items-center gap-2">
-  <input type="checkbox" (change)="actionChange(perm.permissionID,'Update',$event)"> Update
-</label>
-
-</div>
-
-  </div>
-
-</div>
-=======
                         
                           <span class="text-[10px] text-gray-400">
                             (ID: {{ perm.permissionID }})
                           </span>
                         </label>
                       </div>
->>>>>>> 4f9f4d893cf0c94a46ec2b3082c312d4d5d76379
                     </div>
                   </div>
 

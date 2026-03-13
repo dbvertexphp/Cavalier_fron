@@ -1,26 +1,25 @@
-import { Component, OnInit } from '@angular/core'; // OnInit add kiya
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpClientModule } from '@angular/common/http'; // HttpClient add kiya
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-attendance-add',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule], // HttpClientModule zaroori hai
+  imports: [CommonModule, FormsModule, HttpClientModule],
   templateUrl: './attendance-add.component.html',
 })
 export class AttendanceAddComponent implements OnInit {
-  // URLs
+  private userListApi = `${environment.apiUrl}/User/list?user_type=all`;
   private attendanceApi = `${environment.apiUrl}/Attendance`;
-  private employeeApi = `${environment.apiUrl}/Employees`; // Maan ke chal raha hoon ki Employees ki API hai
 
-  employees: any[] = []; // Ab ye khali rahegi, API se bhari jayegi
+  employees: any[] = []; 
   filteredEmployees: any[] = [];
   selectedEmployee: any = null;
   employeeSearch: string = '';
-  showCheckInTime: boolean = false;
+  showCheckInTime: boolean = true; // Default true rakha hai manual ke liye
   loading: boolean = false;
 
   attendance: any = {
@@ -35,33 +34,37 @@ export class AttendanceAddComponent implements OnInit {
   constructor(private http: HttpClient, private router: Router) {}
 
   ngOnInit() {
-    this.loadEmployees(); // Page load hote hi employees le aao
+    this.loadUsers(); 
   }
 
-  // 1. Backend se Employees fetch karna
-  loadEmployees() {
-    // Agar aapke paas Employee Controller nahi hai, toh abhi purani list hi rakhein
-    // Lekin production mein ye API se aayega
-    this.http.get<any[]>(this.employeeApi).subscribe({
-      next: (res) => this.employees = res,
-      error: (err) => console.error("Employee fetch failed", err)
+  loadUsers() {
+    this.http.get<any[]>(this.userListApi).subscribe({
+      next: (res) => {
+        console.log("Users fetched:", res);
+        // Agar response nested hai toh yahan data mapping check karlein
+        this.employees = Array.isArray(res) ? res : [];
+      },
+      error: (err) => console.error("Fetch failed:", err)
     });
   }
 
   searchEmployee() {
-    const q = this.employeeSearch.toLowerCase().trim();
+    const q = this.employeeSearch ? this.employeeSearch.toLowerCase().trim() : '';
     if (!q) {
       this.filteredEmployees = [];
       return;
     }
-    this.filteredEmployees = this.employees.filter(emp =>
-      emp.name.toLowerCase().includes(q) || emp.empId.toLowerCase().includes(q)
-    );
+    this.filteredEmployees = this.employees.filter(emp => {
+      const fName = emp.firstName ? String(emp.firstName).toLowerCase() : '';
+      const lName = emp.lastName ? String(emp.lastName).toLowerCase() : '';
+      const code = emp.empCode ? String(emp.empCode).toLowerCase() : '';
+      return fName.includes(q) || lName.includes(q) || code.includes(q);
+    });
   }
 
   selectEmployee(emp: any) {
     this.selectedEmployee = emp;
-    this.employeeSearch = emp.name;
+    this.employeeSearch = `${emp.firstName} ${emp.lastName}`;
     this.filteredEmployees = [];
     this.showCheckInTime = true;
   }
@@ -69,40 +72,36 @@ export class AttendanceAddComponent implements OnInit {
   setMode(mode: string) {
     this.attendance.attendanceMode = mode;
     this.showCheckInTime = (mode === 'Manual' || mode === 'GPS');
-    if (this.showCheckInTime) {
-      this.attendance.checkInTime = this.currentTime();
-    }
   }
 
-  // 2. Data ko sach mein Save karna (POST)
   submitAttendance() {
-    if (!this.selectedEmployee) return;
-
+    if (!this.selectedEmployee) {
+      alert("Please select an employee first");
+      return;
+    }
     this.loading = true;
 
-    // Payload banayein jo C# Model se match kare
     const payload = {
-      empId: this.selectedEmployee.empId,
-      name: this.selectedEmployee.name,
-      profile: this.selectedEmployee.profile,
-      department: this.selectedEmployee.department,
-      designation: this.selectedEmployee.designation,
-      branch: this.selectedEmployee.branch,
+      empId: this.selectedEmployee.empCode || this.selectedEmployee.id.toString(),
+      name: `${this.selectedEmployee.firstName} ${this.selectedEmployee.lastName}`,
+      profile: this.selectedEmployee.photoPath || 'string',
+      department: this.selectedEmployee.department || 'IT',
+      designation: this.selectedEmployee.designation || 'Staff',
+      branch: this.selectedEmployee.presCity || '',
       shift: this.attendance.shift,
-      attendanceDate: this.attendance.attendanceDate,
+      attendanceDate: new Date(this.attendance.attendanceDate).toISOString(),
       checkInTime: this.attendance.checkInTime,
-      attendanceStatus: this.attendance.attendanceStatus,
-      attendanceMode: this.attendance.attendanceMode,
-      remark: this.attendance.remark,
-      // Nayi fields jo humne database mein dali thi unhe default bhej rahe hain
       checkOutTime: "",
       workingHours: 0,
+      attendanceStatus: this.attendance.attendanceStatus,
       lateStatus: "No",
       lateMinutes: 0,
       earlyExitStatus: "No",
       earlyExitMinutes: 0,
       overtimeHours: 0,
-      overtimeApprovedBy: "System"
+      overtimeApprovedBy: "No",
+      attendanceMode: this.attendance.attendanceMode,
+      remark: this.attendance.remark
     };
 
     this.http.post(this.attendanceApi, payload).subscribe({
@@ -113,8 +112,8 @@ export class AttendanceAddComponent implements OnInit {
       },
       error: (err) => {
         this.loading = false;
-        console.error("Save Error:", err);
-        alert("Error saving attendance. Check console.");
+        console.error("Post Error:", err);
+        alert("Error: " + (err.error?.message || "Server connection failed"));
       }
     });
   }

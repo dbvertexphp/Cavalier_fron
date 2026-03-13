@@ -216,9 +216,14 @@ onOriginSearchInput() {
     }
 
     onFileSelected(event: any) {
-      const file = event.target.files[0];
-      if (file) this.selectedFile = file;
-    }
+  const file = event.target.files[0];
+  if (file) {
+    this.selectedFile = file;
+    // 🔥 Important: Database ke column ke liye file ka naam yahan set ho raha hai
+    this.quotation.hazardDocPath = file.name; 
+    console.log("Selected File Name:", file.name);
+  }
+}
 
     neworg() {
       this.router.navigate(['/dashboard/organization-add']);
@@ -247,10 +252,7 @@ onOriginSearchInput() {
         headers: new HttpHeaders({ 'Content-Type': 'application/json' })
       };
 
-      // --- FIXING DATA TYPES FOR DATABASE SYNC ---
-      // Hum ensures kar rahe hain ki saari IDs 'number' format mein jayein
-     // --- FIXING DATA TYPES FOR DATABASE SYNC ---
-// --- FIXING DATA TYPES FOR DATABASE SYNC ---
+     
 const payload = {
   ...this.quotation, 
   inquiryNo: String(this.inquiry.inquiryNo),
@@ -264,7 +266,8 @@ const payload = {
     TransportMode: this.quotation.transportMode,
     TransportType: this.quotation.transportMode,
     
-   
+   HazardDocPath: this.quotation.hazardDocPath || null,
+   weightUnit: this.quotation.GrossweightUnit || 'KGS',
   // id: Number(this.quotation.id) || 0,
   
   // Foreign Key IDs - Hardcoded to 3 or null
@@ -272,6 +275,7 @@ const payload = {
   
   // YAHAN HEE HARDCODE KIYA HAI:
   commodityId: 3, // <--- Hardcoded value 3
+  
   
   // Port and Origin IDs - Agar value valid nahi hai, toh null bhejein
   originId: !isNaN(Number(this.quotation.originId)) && Number(this.quotation.originId) > 0 ? Number(this.quotation.originId) : null,
@@ -344,14 +348,56 @@ const payload = {
       this.closeDimModal();
     }
 
-    editQuotation(q: any) {
-      this.quotation = { ...q };
-      this.appliedDimensions = q.dimensions || [];
-      this.dimRows = this.appliedDimensions.length > 0 
-        ? [...this.appliedDimensions] 
-        : [{ box: 1, l: 0, w: 0, h: 0, unit: 'CMS' }];
-      this.isFormOpen = true;
-    }
+    // editQuotation(q: any) {
+    //   this.quotation = { ...q };
+    //   this.appliedDimensions = q.dimensions || [];
+    //   this.dimRows = this.appliedDimensions.length > 0 
+    //     ? [...this.appliedDimensions] 
+    //     : [{ box: 1, l: 0, w: 0, h: 0, unit: 'CMS' }];
+    //   this.isFormOpen = true;
+    // }
+
+   editQuotation(q: any) {
+  // 1. Backend data ko model mein map karein
+  this.quotation = { ...q };
+
+  // 2. IMPORTANT: IDs ko numbers mein convert karein (Mapping Fix)
+  this.quotation.lineOfBusinessId = q.lineOfBusinessId ? Number(q.lineOfBusinessId) : null;
+  this.quotation.originId = q.originId ? Number(q.originId) : null;
+  this.quotation.portOfLoadingId = q.portOfLoadingId ? Number(q.portOfLoadingId) : null;
+  this.quotation.portOfDischargeId = q.portOfDischargeId ? Number(q.portOfDischargeId) : null;
+
+  // 3. UI object (this.inquiry) ko update karein 
+  // Agar aapke HTML mein [ngModel]="inquiry.origin" hai toh ye zaroori hai
+  this.inquiry = {
+    ...this.inquiry, // purani properties bachane ke liye
+    inquiryNo: q.inquiryNo,
+    organization: q.customerName || q.organization,
+    origin: q.origin, // text representation
+    leadNo: q.leadNo
+  };
+
+  // 4. Dates handling
+  if (q.receivedDate) {
+    this.quotation.receivedDate = new Date(q.receivedDate).toISOString().split('T')[0];
+  }
+
+  // 5. Dimensions parsing
+  this.appliedDimensions = q.dimensions || [];
+  this.dimRows = this.appliedDimensions.length > 0 
+    ? [...this.appliedDimensions] 
+    : [{ box: 1, l: 0, w: 0, h: 0, unit: 'CMS' }];
+
+  // 6. Modal open karein
+  this.isFormOpen = true;
+
+  // 7. Forcefully Angular ko batayein ki data update hua hai
+  setTimeout(() => {
+    this.cdr.detectChanges();
+  }, 100);
+}
+
+
 
     resetQuotationModel() {
       return {
@@ -370,6 +416,7 @@ const payload = {
         noOfPkgs: 1, 
         grossWeightKg: 0, 
         chargeableWeight: 0,
+        hazardDocPath: '',
         cargoStatusDate: new Date().toISOString().split('T')[0],
         dimensions: []
       };
@@ -384,26 +431,7 @@ const payload = {
     receivedDate: null, 
     showMode: 'valid'
   };
-  // loadDropdownData() {
-  //   this.http.get<string[]>(`${environment.apiUrl}/Inquiry`)
-  //     .subscribe(data => {
-  //       this.servicesList = data;
-  //     });
-  // }
-  // onSearch() {
-  //   console.log("Searching with:", this.searchFilters);
-
-  //   this.http.post<any[]>(`${environment.apiUrl}/Inquiry/Search`, this.searchFilters)
-  //     .subscribe({
-  //       next: (res) => {
-  //         this.inquiries = res; // Data table mein update ho jayega
-  //         console.log("Results found:", res.length);
-  //       },
-  //       error: (err) => {
-  //         console.error("Search API Error:", err);
-  //       }
-  //     });
-  // }
+ 
  // Variables define karein
 allUniqueServices: string[] = []; 
 filteredServices: string[] = [];

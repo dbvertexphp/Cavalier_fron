@@ -1,61 +1,41 @@
 <div class="max-w-4xl mx-auto mt-10 bg-white shadow-lg rounded-lg p-8 border border-gray-100">
-
   <h2 class="text-2xl font-black mb-6 text-center text-gray-800 uppercase tracking-widest">
     Add New Attendance
   </h2>
 
   <div class="mb-6 relative">
-    <label class="block mb-2 text-[11px] font-black text-gray-500 uppercase tracking-wider ml-1">
-      Search Employee (Name or ID)
-    </label>
-
+    <label class="block mb-2 text-[11px] font-black text-gray-500 uppercase ml-1">Search Employee (Name or Code)</label>
     <div class="relative">
-      <input
-        type="text"
-        placeholder="Search employee from database..."
-        [(ngModel)]="employeeSearch"
-        (ngModelChange)="searchEmployee()"
-        class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 transition-all shadow-sm pl-11"
-      />
-      <span class="absolute left-4 top-3.5 text-gray-400 font-bold">🔍</span>
+      <input type="text" placeholder="Start typing name..." [(ngModel)]="employeeSearch" (ngModelChange)="searchEmployee()"
+        class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 transition-all shadow-sm pl-11" />
+      <span class="absolute left-4 top-3.5">🔍</span>
     </div>
 
-    <ul
-      *ngIf="filteredEmployees.length"
-      class="absolute z-20 w-full border-2 border-gray-100 mt-2 rounded-xl bg-white shadow-2xl max-h-56 overflow-auto divide-y"
-    >
-      <li
-        *ngFor="let emp of filteredEmployees"
-        (click)="selectEmployee(emp)"
-        class="px-5 py-3 hover:bg-blue-50 cursor-pointer flex items-center gap-4 transition-colors"
-      >
-        <img [src]="emp.profile || 'https://via.placeholder.com/40'" class="w-10 h-10 rounded-full border-2 border-white shadow-sm" />
+    <ul *ngIf="filteredEmployees.length" class="absolute z-20 w-full border-2 border-gray-100 mt-1 rounded-xl bg-white shadow-2xl max-h-60 overflow-y-auto divide-y">
+      <li *ngFor="let emp of filteredEmployees" (click)="selectEmployee(emp)" class="px-5 py-3 hover:bg-blue-50 cursor-pointer flex items-center gap-4 transition-colors">
+        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center font-bold text-blue-600 uppercase">
+          {{ emp.firstName ? emp.firstName[0] : '' }}{{ emp.lastName ? emp.lastName[0] : '' }}
+        </div>
         <div>
-          <p class="font-black text-gray-800 leading-none">{{ emp.name }}</p>
-          <p class="text-[10px] text-gray-500 font-bold mt-1 uppercase">{{ emp.empId }} | {{ emp.department }}</p>
+          <p class="font-black text-gray-800 leading-none">{{ emp.firstName }} {{ emp.lastName }}</p>
+          <p class="text-[10px] text-gray-500 font-bold mt-1 uppercase">{{ emp.empCode }} | {{ emp.department || 'No Dept' }}</p>
         </div>
       </li>
     </ul>
 
-    <div *ngIf="selectedEmployee" class="mt-6 p-4 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 animate-fadeIn">
+    <div *ngIf="selectedEmployee" class="mt-6 p-4 bg-blue-50/50 rounded-2xl border-2 border-dashed border-blue-200">
       <div class="flex items-center gap-6">
-        <img [src]="selectedEmployee.profile || 'https://via.placeholder.com/80'" class="w-20 h-20 rounded-full border-4 border-white shadow-lg" />
+        <div class="w-16 h-16 rounded-full bg-blue-600 text-white flex items-center justify-center text-xl font-black uppercase">
+          {{ selectedEmployee.firstName[0] }}
+        </div>
         <div class="grid grid-cols-2 gap-x-12 gap-y-2 flex-1">
           <div>
-            <label class="block text-[9px] font-black text-gray-400 uppercase">Employee ID</label>
-            <p class="font-black text-gray-700">{{ selectedEmployee.empId }}</p>
-          </div>
-          <div>
-            <label class="block text-[9px] font-black text-gray-400 uppercase">Department</label>
-            <p class="font-black text-gray-700">{{ selectedEmployee.department }}</p>
+            <label class="block text-[9px] font-black text-gray-400 uppercase">Employee Code</label>
+            <p class="font-black text-gray-700">{{ selectedEmployee.empCode }}</p>
           </div>
           <div>
             <label class="block text-[9px] font-black text-gray-400 uppercase">Designation</label>
-            <p class="font-black text-gray-700">{{ selectedEmployee.designation }}</p>
-          </div>
-          <div>
-            <label class="block text-[9px] font-black text-gray-400 uppercase">Branch</label>
-            <p class="font-black text-gray-700">{{ selectedEmployee.branch }}</p>
+            <p class="font-black text-gray-700">{{ selectedEmployee.designation || 'Staff' }}</p>
           </div>
         </div>
       </div>
@@ -63,95 +43,58 @@
   </div>
 
   <form #attendanceForm="ngForm" (ngSubmit)="submitAttendance()" class="space-y-6">
-    
     <div class="grid grid-cols-2 gap-6">
       <div>
         <label class="block mb-2 text-[11px] font-black text-gray-500 uppercase ml-1">Shift</label>
-        <select
-          name="shift"
-          [(ngModel)]="attendance.shift"
-          required
-          class="w-full px-4 py-2.5 border-2 border-gray-100 rounded-xl focus:outline-none focus:border-blue-500 bg-white font-bold text-gray-700"
-        >
+        <select name="shift" [(ngModel)]="attendance.shift" class="w-full px-4 py-2.5 border-2 border-gray-100 rounded-xl font-bold">
           <option value="Morning">Morning Shift</option>
           <option value="Evening">Evening Shift</option>
-          <option value="Night">Night Shift</option>
         </select>
       </div>
-
       <div>
-        <label class="block mb-2 text-[11px] font-black text-gray-500 uppercase ml-1">Attendance Date</label>
-        <input
-          type="date"
-          name="attendanceDate"
-          [(ngModel)]="attendance.attendanceDate"
-          required
-          class="w-full px-4 py-2.5 border-2 border-gray-100 rounded-xl focus:outline-none focus:border-blue-500 bg-white font-bold text-gray-700"
-        />
+        <label class="block mb-2 text-[11px] font-black text-gray-500 uppercase ml-1">Date</label>
+        <input type="date" name="attendanceDate" [(ngModel)]="attendance.attendanceDate" class="w-full px-4 py-2.5 border-2 border-gray-100 rounded-xl font-bold" />
       </div>
     </div>
 
     <div>
-      <label class="block mb-2 text-[11px] font-black text-gray-500 uppercase ml-1">Attendance Mode (Source)</label>
+      <label class="block mb-2 text-[11px] font-black text-gray-500 uppercase ml-1">Source Mode</label>
       <div class="grid grid-cols-3 gap-3">
-        <button type="button" (click)="setMode('Biometric')" [class]="attendance.attendanceMode === 'Biometric' ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'bg-white text-gray-500 border-gray-100'" class="py-2.5 border-2 rounded-xl font-black text-[11px] uppercase transition-all">Biometric</button>
-        <button type="button" (click)="setMode('Manual')" [class]="attendance.attendanceMode === 'Manual' ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'bg-white text-gray-500 border-gray-100'" class="py-2.5 border-2 rounded-xl font-black text-[11px] uppercase transition-all">Manual</button>
-        <button type="button" (click)="setMode('GPS')" [class]="attendance.attendanceMode === 'GPS' ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'bg-white text-gray-500 border-gray-100'" class="py-2.5 border-2 rounded-xl font-black text-[11px] uppercase transition-all">GPS Checkin</button>
+        <button type="button" (click)="setMode('Manual')" 
+          [class]="attendance.attendanceMode === 'Manual' ? 'bg-blue-600 text-white' : 'bg-white text-gray-400 border-gray-100'" 
+          class="py-2.5 border-2 rounded-xl font-black text-[11px] uppercase transition-all">Manual</button>
+        <button type="button" (click)="setMode('Biometric')" 
+          [class]="attendance.attendanceMode === 'Biometric' ? 'bg-blue-600 text-white' : 'bg-white text-gray-400 border-gray-100'" 
+          class="py-2.5 border-2 rounded-xl font-black text-[11px] uppercase transition-all">Biometric</button>
+        <button type="button" (click)="setMode('GPS')" 
+          [class]="attendance.attendanceMode === 'GPS' ? 'bg-blue-600 text-white' : 'bg-white text-gray-400 border-gray-100'" 
+          class="py-2.5 border-2 rounded-xl font-black text-[11px] uppercase transition-all">GPS</button>
       </div>
     </div>
 
-    <div class="p-6 border-2 border-gray-50 rounded-2xl bg-gray-50/50">
-      <div class="grid grid-cols-2 gap-6">
-        <div *ngIf="showCheckInTime">
-          <label class="block mb-2 text-[11px] font-black text-gray-500 uppercase ml-1">Check In Time</label>
-          <input
-            type="time"
-            name="checkInTime"
-            [(ngModel)]="attendance.checkInTime"
-            required
-            class="w-full px-4 py-2.5 border-2 border-white rounded-xl focus:outline-none focus:border-blue-500 shadow-sm font-mono font-bold text-blue-600"
-          />
-        </div>
-        <div class="flex-1">
-          <label class="block mb-2 text-[11px] font-black text-gray-500 uppercase ml-1">Status</label>
-          <select name="status" [(ngModel)]="attendance.attendanceStatus" class="w-full px-4 py-2.5 border-2 border-white rounded-xl focus:outline-none focus:border-blue-500 shadow-sm font-bold text-gray-700">
-            <option value="Present">Present</option>
-            <option value="Half Day">Half Day</option>
-            <option value="Absent">Absent</option>
-          </select>
-        </div>
+    <div class="p-6 bg-gray-50 rounded-2xl border-2 border-white shadow-inner grid grid-cols-2 gap-6">
+      <div *ngIf="showCheckInTime">
+        <label class="block mb-2 text-[11px] font-black text-gray-500 uppercase">Check In</label>
+        <input type="time" name="checkInTime" [(ngModel)]="attendance.checkInTime" 
+          class="w-full px-4 py-2.5 border-2 border-white rounded-xl font-mono font-bold text-blue-600 shadow-sm" />
       </div>
-
-      <div class="mt-4">
-        <label class="block mb-2 text-[11px] font-black text-gray-500 uppercase ml-1">Remarks / Notes</label>
-        <textarea
-          name="remark"
-          [(ngModel)]="attendance.remark"
-          placeholder="Enter any specific reason or remark..."
-          rows="2"
-          class="w-full px-4 py-3 border-2 border-white rounded-xl focus:outline-none focus:border-blue-500 shadow-sm font-bold text-sm"
-        ></textarea>
+      <div>
+        <label class="block mb-2 text-[11px] font-black text-gray-500 uppercase">Status</label>
+        <select name="status" [(ngModel)]="attendance.attendanceStatus" 
+          class="w-full px-4 py-2.5 border-2 border-white rounded-xl font-bold shadow-sm">
+          <option value="Present">Present</option>
+          <option value="Half Day">Half Day</option>
+          <option value="Absent">Absent</option>
+        </select>
       </div>
     </div>
 
     <div class="flex items-center justify-center gap-4 pt-4">
-      <button
-        type="button"
-        (click)="cancel()"
-        class="px-8 py-3 bg-white border-2 border-gray-200 text-gray-600 font-black rounded-xl hover:bg-gray-100 transition-all uppercase text-xs tracking-widest shadow-sm"
-      >
-        Cancel
-      </button>
-      
-      <button
-        type="submit"
-        [disabled]="!attendanceForm.valid || !selectedEmployee || loading"
-        class="px-10 py-3 bg-blue-700 text-white font-black rounded-xl shadow-lg hover:bg-blue-800 transition-all uppercase text-xs tracking-widest disabled:opacity-50 disabled:cursor-not-allowed min-w-[200px]"
-      >
-        <span *ngIf="!loading">Save Attendance</span>
-        <span *ngIf="loading">Saving...</span>
+      <button type="button" (click)="cancel()" class="px-8 py-3 text-gray-400 font-black uppercase text-xs">Cancel</button>
+      <button type="submit" [disabled]="!selectedEmployee || loading" 
+        class="px-10 py-3 bg-blue-700 text-white font-black rounded-xl shadow-lg hover:shadow-blue-200 transition-all uppercase text-xs min-w-[200px]">
+        {{ loading ? 'Saving...' : 'Save Attendance' }}
       </button>
     </div>
-
   </form>
 </div>

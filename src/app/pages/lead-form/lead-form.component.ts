@@ -17,7 +17,6 @@ import * as XLSX from 'xlsx';
   styleUrl: './lead-form.component.css',
    
 })
-
 export class LeadFormComponent implements OnInit {
 // Aapka data array
 showModal: boolean = false;
@@ -90,7 +89,6 @@ event.container.data,
 event.previousIndex,
 event.currentIndex
 );
-
 }
 console.log("Available Columns:", this.availableColumns);
 console.log("Selected Columns:", this.selectedColumns);
@@ -268,6 +266,43 @@ initSearchForm() {
         });
     }
   }
+
+  
+onEditLead(lead: any) {
+  this.isFormOpen = true; 
+  
+  this.leadForm.patchValue({
+    leadId: lead.id,
+    leadNo: lead.leadNo,
+    type: lead.type,
+    source: lead.leadSource, 
+    salesProcess: lead.salesProcess,
+    salesCoordinator: lead.salesCoordinator,
+    branch: lead.branch,
+    date: lead.date ? lead.date.split('T')[0] : '', 
+    leadOwner: lead.leadOwner,
+    expectedValidity: lead.expectedValidity ? lead.expectedValidity.split('T')[0] : '',
+    salesStage: lead.salesStage,
+    reportingManager: lead.reportingManager,
+    hod: lead.hod,
+    team: lead.team,
+    organization: lead.organizationName, 
+    // 🔥 Sabse badi fix: ID set karna
+    organizationId: lead.organizationId || lead.orgId || 123, 
+    location: lead.location,
+    area: lead.area,
+  });
+
+  // Angular ko batayein ki values change hui hain
+  Object.values(this.leadForm.controls).forEach(control => {
+    control.updateValueAndValidity();
+  });
+
+  this.cdr.detectChanges(); 
+}
+
+
+
   private loadOrganizations(): void {
     this.http
       .get<any[]>(`${environment.apiUrl}/Organization/List`)
@@ -280,7 +315,6 @@ initSearchForm() {
         }
       });
   }
-
   onOrganizationSearch(event: Event): void {
     const value = (event.target as HTMLInputElement).value.toLowerCase();
 
@@ -436,60 +470,111 @@ selectDate(date: string): void {
   // Dropdown list ko band karo
   this.filteredDates = [];
 }
+  // onSave() {
+  //   if (this.leadForm.valid) {
+  //     // --- CHANGED: Use getRawValue() to get disabled fields (like leadNo) ---
+  //     const rawValue = this.leadForm.getRawValue();
+
+  //     // Backend ke format mein data prepare karna
+  //     const payload = {
+  //       // --- CHANGED: Send calculated leadNo ---
+  //       leadNo: this.nextLeadNo, 
+  //       date: new Date(rawValue.date).toISOString(), 
+  //       expectedValidity: new Date(rawValue.expectedValidity).toISOString(),
+  //       type: rawValue.type,
+  //       leadOwner: rawValue.leadOwner,
+  //       leadSource: rawValue.source,
+  //       salesProcess: rawValue.salesProcess,
+  //       salesCoordinator: rawValue.salesCoordinator,
+  //       salesStage: rawValue.salesStage,
+  //       branch: rawValue.branch,
+  //       reportingManager: rawValue.reportingManager,
+  //       team: rawValue.team,
+  //       hod: rawValue.hod,
+  //       location: rawValue.location || "Default Location",
+  //       area: rawValue.area || "Default Area",
+  //       organizationName: rawValue.organization
+  //     };
+
+  //     console.log('--- Payload for Backend ---');
+  //     console.log(JSON.stringify(payload, null, 2));
+
+  //     // API Call
+  //     this.http.post(`${environment.apiUrl}/Leads`, payload)
+  //       .subscribe({
+  //         next: (res) => {
+  //           console.log('API Success! Closing form...');                
+  //           // --- ADDED: For Date Shortcuts Panel ---
+  //           this.isFormOpen = false;
+  //           this.initForm();
+  //           this.loadLeads(); // Reload leads to calculate new number for next form
+            
+  //           this.cdr.detectChanges();
+            
+  //           alert('Data successfully sent to backend!');
+  //         },
+  //         error: (err) => {
+  //           console.error('API Error:', err);
+  //           alert('Backend error: ' + err.message);
+  //         }
+  //       });
+
+  //   } else {
+  //     this.leadForm.markAllAsTouched();
+  //     alert('Please fill all required fields.');
+  //   }
+  // }
+
   onSave() {
-    if (this.leadForm.valid) {
-      // --- CHANGED: Use getRawValue() to get disabled fields (like leadNo) ---
-      const rawValue = this.leadForm.getRawValue();
+  if (this.leadForm.valid) {
+    const rawValue = this.leadForm.getRawValue();
 
-      // Backend ke format mein data prepare karna
-      const payload = {
-        // --- CHANGED: Send calculated leadNo ---
-        leadNo: this.nextLeadNo, 
-        date: new Date(rawValue.date).toISOString(), 
-        expectedValidity: new Date(rawValue.expectedValidity).toISOString(),
-        type: rawValue.type,
-        leadOwner: rawValue.leadOwner,
-        leadSource: rawValue.source,
-        salesProcess: rawValue.salesProcess,
-        salesCoordinator: rawValue.salesCoordinator,
-        salesStage: rawValue.salesStage,
-        branch: rawValue.branch,
-        reportingManager: rawValue.reportingManager,
-        team: rawValue.team,
-        hod: rawValue.hod,
-        location: rawValue.location || "Default Location",
-        area: rawValue.area || "Default Area",
-        organizationName: rawValue.organization
-      };
+    const payload = {
+      id: rawValue.leadId || 0, // Edit ke liye ID
+      leadNo: rawValue.leadId ? rawValue.leadNo : this.nextLeadNo, 
+      date: new Date(rawValue.date).toISOString(), 
+      expectedValidity: rawValue.expectedValidity ? new Date(rawValue.expectedValidity).toISOString() : null,
+      type: rawValue.type,
+      leadOwner: rawValue.leadOwner,
+      leadSource: rawValue.source,
+      salesProcess: rawValue.salesProcess,
+      salesCoordinator: rawValue.salesCoordinator,
+      salesStage: rawValue.salesStage,
+      branch: rawValue.branch,
+      reportingManager: rawValue.reportingManager,
+      team: rawValue.team,
+      hod: rawValue.hod,
+      location: rawValue.location || "Default Location",
+      area: rawValue.area || "Default Area",
+      organizationName: rawValue.organization,
+      organizationId: rawValue.organizationId 
+    };
 
-      console.log('--- Payload for Backend ---');
-      console.log(JSON.stringify(payload, null, 2));
+    // 🔥 Edit hai toh PUT, naya hai toh POST
+    const apiCall = rawValue.leadId 
+      ? this.http.put(`${environment.apiUrl}/Leads/${rawValue.leadId}`, payload)
+      : this.http.post(`${environment.apiUrl}/Leads`, payload);
 
-      // API Call
-      this.http.post(`${environment.apiUrl}/Leads`, payload)
-        .subscribe({
-          next: (res) => {
-            console.log('API Success! Closing form...');                
-            // --- ADDED: For Date Shortcuts Panel ---
-            this.isFormOpen = false;
-            this.initForm();
-            this.loadLeads(); // Reload leads to calculate new number for next form
-            
-            this.cdr.detectChanges();
-            
-            alert('Data successfully sent to backend!');
-          },
-          error: (err) => {
-            console.error('API Error:', err);
-            alert('Backend error: ' + err.message);
-          }
-        });
+    apiCall.subscribe({
+      next: (res) => {
+        console.log('Success!');
+        this.isFormOpen = false;
+        this.initForm();
+        this.loadLeads();
+        alert(rawValue.leadId ? 'Updated Successfully!' : 'Saved Successfully!');
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        alert('Backend error: ' + err.message);
+      }
+    });
 
-    } else {
-      this.leadForm.markAllAsTouched();
-      alert('Please fill all required fields.');
-    }
+  } else {
+    // Agar abhi bhi error aaye toh controls ko touch kar do taaki red line dikhe
+    this.leadForm.markAllAsTouched();
+    alert('Please fill all required fields.');
   }
+}
 
 clearFilters() {
   this.leadForm.reset();
@@ -738,11 +823,6 @@ onLeadOrgSearch(event: Event): void {
     org.orgName.toLowerCase().includes(value)
   );
 }
-
-
-
-
-
 // --- ADDED: Date Shortcut Logic for Lead Form ---
 setLeadQuickDate(type: string) {
   const today = new Date();
@@ -772,23 +852,13 @@ setLeadQuickDate(type: string) {
   this.showCustomPicker = false; // Menu band
   this.cdr.detectChanges();      // UI refresh
 }
-
-
-
-
-
-
-
-
 // 2. Dropdown se select karne par (Ab SEARCH CALL NAHI HOGA)
 selectLeadOrg(org: any): void {
   this.leadSearchFilters.organizationName = org.orgName; // Bas value update hogi
   this.filteredOrganizations = [];                      // Dropdown band hoga
   // Yahan se this.onLeadSearch() hata diya gaya hai taaki auto-search na ho
 }
-// 1. Dropdown filter logic (Custom Div style)
-
-
+// 1. Dropdown filter logic (Custom Div style
 // Selection logic
 onHODSearchType(event: Event): void {
   const value = (event.target as HTMLInputElement).value.toLowerCase().trim();
@@ -1000,7 +1070,6 @@ onLeadSearch() {
 // Global Search Function (Filters + Sorting)
 private executeGlobalSearch(targetNo: string | null) {
   let filters: any = {};
-  
   // Baaki saare filters load karo
   if (this.leadSearchFilters.organizationName) filters.organizationName = this.leadSearchFilters.organizationName;
   if (this.leadSearchFilters.type && this.leadSearchFilters.type !== 'Any') filters.type = this.leadSearchFilters.type;

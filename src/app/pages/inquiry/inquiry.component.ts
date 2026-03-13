@@ -10,6 +10,25 @@ import * as XLSX from 'xlsx';
 import { moveItemInArray, transferArrayItem, CdkDragDrop } from '@angular/cdk/drag-drop';
 import { DragDropModule } from '@angular/cdk/drag-drop'; // Ye import ensure karein
 
+<<<<<<< HEAD
+  import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+  import { CommonModule } from '@angular/common';
+  import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http'; 
+  import { FormsModule } from '@angular/forms';
+  import { Router, RouterModule } from '@angular/router';
+  import { environment } from '../../../environments/environment';
+import { CheckPermissionService } from '../../services/check-permission.service';
+
+  @Component({
+    selector: 'app-inquiry',
+    standalone: true,
+    imports: [CommonModule, RouterModule, FormsModule, HttpClientModule],
+    templateUrl: './inquiry.component.html',
+    styleUrl: './inquiry.component.css',
+  })
+  export class InquiryComponent implements OnInit {
+     PermissionID:any;
+=======
 @Component({
   selector: 'app-inquiry',
   standalone: true,
@@ -33,6 +52,7 @@ columnFieldMap: any = {
 
 selectedColumns: string[] = ['ID', 'Inquiry No', 'Date', 'Customer', 'Status'];
 availableColumns: string[] = ['Mode', 'Origin', 'Destination', 'Sales Person'];
+>>>>>>> 4f9f4d893cf0c94a46ec2b3082c312d4d5d76379
     isFormOpen = false;
     private apiUrl = `${environment.apiUrl}/Inquiry`;
 inquiries:any[]=[]
@@ -68,7 +88,39 @@ organizations: any[] = [];
   coordinators: any[] = [];
   branchesList: any[] = [];
   searchDone: boolean = false; // Shuru mein false rahega
-    constructor(private http: HttpClient, private router: Router,private cdr: ChangeDetectorRef ) {}
+    constructor(private http: HttpClient, private router: Router,private cdr: ChangeDetectorRef ,public CheckPermissionService:CheckPermissionService) {}
+currentPage: number = 1;
+itemsPerPage: number = 10;
+
+paginatedQuotations: any[] = [];
+
+get totalPages(): number {
+  return Math.ceil(this.quotations.length / this.itemsPerPage);
+}
+updatePagination() {
+  const start = (this.currentPage - 1) * this.itemsPerPage;
+  const end = start + this.itemsPerPage;
+  this.paginatedQuotations = this.quotations.slice(start, end);
+}
+
+nextPage() {
+  if (this.currentPage < this.totalPages) {
+    this.currentPage++;
+    this.updatePagination();
+  }
+}
+
+previousPage() {
+  if (this.currentPage > 1) {
+    this.currentPage--;
+    this.updatePagination();
+  }
+}
+
+goToPage(page: number) {
+  this.currentPage = page;
+  this.updatePagination();
+}
 
     ngOnInit() {
       this.loadQuotations();
@@ -81,8 +133,12 @@ organizations: any[] = [];
     this.loadInquiryNumbers();
     this.loadCoordinators();
     this.loadBranches();
+<<<<<<< HEAD
+    this.PermissionID = Number(localStorage.getItem('permissionID'));
+=======
     this.loadInquirySettings();
     this.fetchCompanyServices();
+>>>>>>> 4f9f4d893cf0c94a46ec2b3082c312d4d5d76379
     }
 
        // --- Fetch Origins List --
@@ -210,7 +266,7 @@ onOriginSearchInput() {
 
     loadQuotations() {
       this.http.get<any[]>(this.apiUrl).subscribe({
-        next: (res) => (this.quotations = res),
+        next: (res) => (this.quotations = res, this.updatePagination()),
         error: (err) => console.error('Failed to load inquiries:', err)
       });
     }

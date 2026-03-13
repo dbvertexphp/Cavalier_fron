@@ -196,6 +196,15 @@
       </div>
     </div>
     <div class="bg-[#4a3f3f] p-3 flex justify-between items-center text-white">
+<<<<<<< HEAD
+      <div class="font-bold uppercase tracking-widest px-2 text-[12px]">Inquiry Records</div>
+      <button (click)="toggleForm()" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Add')"
+        class="bg-green-600 hover:bg-green-700 px-5 py-1.5 text-[12px] font-bold shadow-sm flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
+        </svg>
+        ADD NEW INQUIRY
+=======
   <div class="font-bold uppercase tracking-widest px-2 text-[12px]">Inquiry Records</div>
 
   <div class="flex items-center gap-3">
@@ -208,6 +217,7 @@
         class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-[12px] px-4 py-1.5 uppercase shadow-sm flex items-center gap-2 transition-all">
         <span>💾</span> EXPORT
         <span [class.rotate-180]="isExportOpen" class="transition-transform text-[10px]">▼</span>
+>>>>>>> 4f9f4d893cf0c94a46ec2b3082c312d4d5d76379
       </button>
 
       <div *ngIf="isExportOpen"
@@ -238,6 +248,98 @@
 </div>
 
     <div class="p-0 overflow-x-auto">
+<<<<<<< HEAD
+      <table class="w-full border-collapse border border-gray-200 whitespace-nowrap">
+        <thead >
+          <tr  class="bg-gray-50 text-gray-600 uppercase text-[11px] border-b">
+            <th class="p-4 text-left font-bold">Inquiry Id.</th>
+            <th class="p-4 text-left font-bold">Inquiry No.</th>
+            <th class="p-4 text-left font-bold">Date</th>
+            <th class="p-4 text-left font-bold">Customer Name</th>
+           <th class="p-4 text-left font-bold">Transport Mode</th>
+            <th class="p-4 text-left font-bold">Status</th>
+            <th class="p-4 text-center font-bold sticky right-0 bg-gray-50 border-l shadow-sm">Action</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
+          <tr *ngFor="let q of paginatedQuotations" class="hover:bg-gray-50 border-b text-gray-700">
+              <td class="p-4 font-bold">{{q.id}}</td>
+            <td class="p-4 font-bold">{{q.inquiryNo}}</td>
+            <td class="p-4 font-bold">{{ q.receivedDate | date:'dd-MMM-yyyy' }}</td>
+            <td class="p-4 uppercase font-medium">{{q.customerName}}</td>
+        <td class="p-4 uppercase font-medium">{{q.transportMode}}</td>
+            <td class="p-4">
+              <span
+                [ngClass]="{'bg-yellow-100 text-yellow-800': q.id > 0,'bg-green-100 text-green-800': q.id === 0}"
+                class="px-3 py-1 rounded text-[11px] font-bold">
+                {{q.cargoStatus}}
+              </span>
+            </td>
+            <td class="p-4 sticky right-0 bg-white border-l text-center">
+              <button (click)="editQuotation(q)"*ngIf="CheckPermissionService.hasPermission(PermissionID,'Edit')"
+                class="text-blue-600 mr-3 font-bold uppercase hover:underline">Edit</button>
+              <button (click)="deleteQuotation(q.id)"*ngIf="CheckPermissionService.hasPermission(PermissionID,'Delete')"
+                class="text-red-600 font-bold uppercase hover:underline">Delete</button>
+            </td>
+          </tr>
+          <tr *ngIf="quotations.length === 0">
+    <td colspan="7" class="p-10 text-center">
+      <div class="flex flex-col items-center justify-center text-gray-400">
+        <span class="text-4xl mb-2">📂</span>
+        <p class="text-[14px] font-bold">No Records Found</p>
+        <p class="text-[12px]">Try adjusting your filters to find what you're looking for.</p>
+      </div>
+    </td>
+  </tr>
+        </tbody>
+      </table>
+      <div class="flex flex-col items-center mt-6 gap-3" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
+
+  <!-- Showing Entries -->
+  <div class="text-sm text-gray-500" >
+    Showing
+    <span class="font-semibold">
+      {{ (currentPage - 1) * itemsPerPage + 1 }}
+    </span>
+    -
+    <span class="font-semibold">
+      {{ (currentPage - 1) * itemsPerPage + paginatedQuotations.length }}
+    </span>
+    of
+    <span class="font-semibold">{{ quotations.length }}</span>
+    entries
+  </div>
+
+  <!-- Pagination -->
+  <div class="flex items-center gap-1 bg-white border shadow-md rounded-lg px-3 py-2">
+
+    <button
+      (click)="previousPage()"
+      [disabled]="currentPage === 1"
+      class="px-3 py-1 rounded hover:bg-gray-100 disabled:opacity-40">
+      ◀
+    </button>
+
+    <ng-container *ngFor="let page of [].constructor(totalPages); let i = index">
+      <button
+        (click)="goToPage(i + 1)"
+        [ngClass]="currentPage === (i + 1) ? 'bg-blue-500 text-white' : 'hover:bg-gray-100'"
+        class="px-3 py-1 rounded text-sm">
+        {{ i + 1 }}
+      </button>
+    </ng-container>
+
+    <button
+      (click)="nextPage()"
+      [disabled]="currentPage === totalPages"
+      class="px-3 py-1 rounded hover:bg-gray-100 disabled:opacity-40">
+      ▶
+    </button>
+
+  </div>
+
+</div>
+=======
     <div class="p-0 overflow-x-auto">
   <table class="w-full border-collapse border border-gray-200 whitespace-nowrap">
     <thead>
@@ -325,6 +427,7 @@
       of 
       <span class="font-bold text-gray-800">{{ quotations.length }}</span> 
       Inquiries
+>>>>>>> 4f9f4d893cf0c94a46ec2b3082c312d4d5d76379
     </div>
     
     <select [(ngModel)]="pageSize" (change)="onPageSizeChange()" 

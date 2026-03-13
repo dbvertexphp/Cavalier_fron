@@ -3,7 +3,7 @@
   <div class="flex justify-between items-center mb-8">
     <h2 class="text-2xl font-black text-gray-800 tracking-tight">Head of Departments (HOD)</h2>
     
-    <button (click)="openModal()" 
+    <button (click)="openModal()" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Add')"
         class="flex items-center gap-2 bg-[#654E51] text-white px-5 py-2.5 rounded-lg hover:bg-[#96736F] transition-all shadow-md active:scale-95">
   <span class="text-xl font-bold">+</span>
   <span>Add HOD</span>
@@ -20,7 +20,7 @@
           </tr>
         </thead>
         
-        <tbody class="divide-y divide-gray-50">
+        <tbody *ngIf="CheckPermissionService.hasPermission(PermissionID,'View');" class="divide-y divide-gray-50">
           <tr *ngIf="hods.length === 0">
             <td colspan="2" class="px-8 py-10 text-center text-gray-400 font-bold uppercase text-[10px] tracking-widest">
               No HODs found.
@@ -36,14 +36,14 @@
             <td class="px-8 py-6 text-center">
               <div class="flex items-center justify-center gap-6">
                 
-                <button (click)="editHod(h)" class="transition-transform hover:scale-110" title="Edit">
+                <button (click)="editHod(h)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Edit')" class="transition-transform hover:scale-110" title="Edit">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                   </svg>
                 </button>
 
-                <button (click)="deleteHod(h.id)" class="transition-transform hover:scale-110" title="Delete">
+                <button (click)="deleteHod(h.id)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Delete')" class="transition-transform hover:scale-110" title="Delete">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M3 6h18"></path>
                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>

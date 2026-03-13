@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { BranchService } from '../services/branch.service'; 
+import { CheckPermissionService } from '../services/check-permission.service';
 
 @Component({
   selector: 'app-branch',
@@ -21,13 +22,15 @@ export class BranchComponent implements OnInit {
   selectionType: 'checkbox' | 'radio' | null = null;
   selectedBranch: any = null; // Radio (Modify) mode ke liye
   selectedBranches: any[] = []; // Checkbox (Delete) mode ke liye
-
+PermissionID:any;
   constructor(
     private branchService: BranchService, 
-    private router: Router
+    private router: Router,
+    public CheckPermissionService:CheckPermissionService
   ) {}
 
   ngOnInit(): void {
+    this.PermissionID = Number(localStorage.getItem('permissionID'));
     this.getBranches();
   }
 

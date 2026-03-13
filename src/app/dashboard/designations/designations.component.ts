@@ -2,6 +2,7 @@ import { Component, OnInit, NgZone, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UserService } from '../../services/user.service';
+import { CheckPermissionService } from '../../services/check-permission.service';
 
 @Component({
   selector: 'app-designations',
@@ -15,15 +16,17 @@ export class DesignationsComponent implements OnInit {
   isLoading = false;
   isSaving = false; 
   isEditMode = false;
+   PermissionID:any;
   currentDesignationId: number | null = null; 
   
   designationList: any[] = []; 
   departments: any[] = [];
   newDesignation = { name: '', departmentId: '' }; 
 
-  constructor(private userService: UserService, private cdr: ChangeDetectorRef) {}
+  constructor(private userService: UserService, private cdr: ChangeDetectorRef,public CheckPermissionService:CheckPermissionService) {}
 
   ngOnInit(): void {
+    this.PermissionID = Number(localStorage.getItem('permissionID'));
     this.loadDesignations();
     this.loadDepartments();
   }

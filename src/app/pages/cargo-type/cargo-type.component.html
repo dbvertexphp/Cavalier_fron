@@ -1,7 +1,7 @@
 <div class="p-3 md:p-6">
   <div class="flex flex-row justify-between items-center mb-6 gap-2">
     <h2 class="text-xl md:text-2xl font-bold text-gray-800 truncate">CARGO TYPE</h2>
-    <button (click)="openModal()" class="bg-[#654E51] text-white px-3 py-2 md:px-5 md:py-2.5 rounded-lg hover:bg-[#4A3739] transition flex items-center gap-1.5 shadow-md shrink-0">
+    <button (click)="openModal()"  *ngIf="CheckPermissionService.hasPermission(PermissionID,'Add')"class="bg-[#654E51] text-white px-3 py-2 md:px-5 md:py-2.5 rounded-lg hover:bg-[#4A3739] transition flex items-center gap-1.5 shadow-md shrink-0">
       <span class="text-lg md:text-xl font-bold">+</span> 
       <span class="text-xs md:text-base font-semibold uppercase md:capitalize">Create Cargo</span>
     </button>
@@ -16,7 +16,7 @@
             <th class="px-4 md:px-6 py-4 text-[10px] md:text-xs font-semibold text-gray-500 uppercase text-center">Actions</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-gray-200">
+        <tbody *ngIf="CheckPermissionService.hasPermission(PermissionID,'View');"class="divide-y divide-gray-200">
           <tr *ngIf="rolesList.length === 0">
             <td colspan="2" class="px-6 py-10 text-center text-gray-400">No Cargo Type found.</td>
           </tr>

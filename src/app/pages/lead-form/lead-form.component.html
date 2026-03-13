@@ -240,96 +240,93 @@
 </div>
          <div class="flex justify-end gap-3 pt-1">
 <button
-(click)="showModal=true"
+
 class="text-blue-600 underline text-[11px] font-bold">
 Advance Filter
 </button>
 
 
 <div *ngIf="showModal"
-class="fixed inset-0 bg-black/40 flex items-center justify-center">
+class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
 
-<div class="bg-white w-[750px] p-5 rounded shadow">
+  <div class="bg-white w-[750px] p-5 rounded shadow-lg">
 
-<h2 class="font-bold mb-4">Advance Filter</h2>
+    <h2 class="font-bold mb-4">Advance Filter</h2>
 
-<div class="grid grid-cols-2 gap-6">
+    <div class="grid grid-cols-2 gap-6">
 
-<!-- Available Columns -->
-<div>
+      <!-- Available Columns -->
+      <div>
 
-<h3 class="font-semibold mb-2">Available Columns</h3>
+        <h3 class="font-semibold mb-2">Available Columns</h3>
 
-<div
-cdkDropList
-[id]="'availableList'"
-[cdkDropListData]="availableColumns"
-[cdkDropListConnectedTo]="['selectedList']"
-(cdkDropListDropped)="drop($event)"
-class="border h-52 p-2 overflow-auto">
+        <div
+        cdkDropList
+        id="availableList"
+        [cdkDropListData]="availableColumns"
+        [cdkDropListConnectedTo]="['selectedList']"
+        (cdkDropListDropped)="drop($event)"
+        class="border h-52 p-2 overflow-auto">
 
-<div
-*ngFor="let col of availableColumns"
-cdkDrag
-class="bg-gray-100 p-2 mb-2 cursor-move rounded">
+          <div
+          *ngFor="let col of availableColumns"
+          cdkDrag
+          class="bg-gray-100 p-2 mb-2 cursor-move rounded">
 
-{{col}}
+            {{col}}
 
-</div>
+          </div>
 
-</div>
+        </div>
 
-</div>
+      </div>
 
+      <!-- Selected Columns -->
+      <div>
 
-<!-- Selected Columns -->
-<div>
+        <h3 class="font-semibold mb-2">Selected Columns</h3>
 
-<h3 class="font-semibold mb-2">Selected Columns</h3>
+        <div
+        cdkDropList
+        id="selectedList"
+        [cdkDropListData]="selectedColumns"
+        [cdkDropListConnectedTo]="['availableList']"
+        (cdkDropListDropped)="drop($event)"
+        class="border h-52 p-2 overflow-auto">
 
-<div
-cdkDropList
-id="selectedList"
-[cdkDropListData]="selectedColumns"
-[cdkDropListConnectedTo]="['availableList']"
-(cdkDropListDropped)="drop($event)"
-class="border h-52 p-2 overflow-auto">
+          <div
+          *ngFor="let col of selectedColumns"
+          cdkDrag
+          class="bg-blue-100 p-2 mb-2 cursor-move rounded flex justify-between items-center">
 
-<div
-*ngFor="let col of selectedColumns"
-cdkDrag
-class="bg-blue-100 p-2 mb-2 cursor-move rounded flex justify-between">
+            <span>{{col}}</span>
 
-<span>{{col}}</span>
+            <select class="text-xs border p-1 rounded"
+            [(ngModel)]="sortOrders[col]">
+              <option value="asc">Asc</option>
+              <option value="desc">Desc</option>
+            </select>
 
-<select class="text-xs border"
-[(ngModel)]="sortOrders[col]">
+          </div>
 
-<option value="asc">Asc</option>
-<option value="desc">Desc</option>
+        </div>
 
-</select>
+      </div>
 
-</div>
+    </div>
 
-</div>
+    <div class="flex justify-end mt-4">
 
-</div>
+      <button
+      (click)="showModal=false"
+      class="bg-gray-400 text-white px-4 py-1 rounded">
+      Close
+      </button>
 
-</div>
+    </div>
 
+  </div>
 
-<div class="flex justify-end mt-4">
-
-<button
-(click)="showModal=false"
-class="bg-gray-400 text-white px-4 py-1 rounded">
-Close
-</button>
-
-</div>
-
-</div>
 </div>
 
   <button type="button" 
@@ -347,6 +344,33 @@ Close
       </div>
     </div>
     
+<<<<<<< HEAD
+    <div class="bg-[#4a3f3f] p-3 flex justify-between items-center text-white">
+
+  <!-- Title -->
+  <div class="font-bold uppercase text-[12px] tracking-widest px-2">
+    Lead Records
+  </div>
+
+  <!-- Buttons -->
+  <div class="flex gap-2">
+
+    <button
+      (click)="toggleForm()" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Add')"
+      class="bg-green-600 hover:bg-green-700 text-white font-bold text-[12px] px-5 py-1.5 uppercase shadow-sm">
+      + Add New Lead
+    </button>
+
+    <button
+      (click)="showModal=true"
+      class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-[12px] px-5 py-1.5 uppercase shadow-sm">
+      Customize Column
+    </button>
+
+  </div>
+
+</div>
+=======
  <div class="bg-[#4a3f3f] p-3 flex justify-between items-center text-white">
   <div class="font-bold uppercase text-[12px] tracking-widest px-2">Lead Records</div>
 
@@ -383,66 +407,169 @@ Close
     </button>
 
   </div> </div>
+>>>>>>> 4f9f4d893cf0c94a46ec2b3082c312d4d5d76379
  
-    <div class="overflow-x-auto">
-     <table class="w-full border-collapse text-[13px]">
+   <!-- TABLE WRAPPER -->
+<div class="overflow-x-auto relative z-0">
 
-<thead class="bg-gray-100 text-gray-600 uppercase border-b border-gray-300 font-bold">
+  <!-- SCROLL CONTAINER -->
+  <div class="max-h-[450px] overflow-y-auto border rounded">
 
-<tr class="divide-x divide-gray-300">
+    <table class="w-full border-collapse text-[13px]">
 
-<th *ngFor="let col of selectedColumns"
-(click)="sortColumn(col)"
-class="p-3 text-left cursor-pointer">
+      <!-- TABLE HEADER -->
+      <thead class="bg-gray-100 text-gray-600 uppercase border-b border-gray-300 font-bold sticky top-0 bg-gray-100 z-0" >
 
-{{col}}
+        <tr class="divide-x divide-gray-300">
 
-<span *ngIf="sortOrders[col]=='asc'">▲</span>
-<span *ngIf="sortOrders[col]=='desc'">▼</span>
+          <th
+            *ngFor="let col of selectedColumns"
+            (click)="sortColumn(col)"
+            class="p-3 text-left cursor-pointer select-none">
 
-</th>
+            {{ col }}
 
-<th class="p-3 text-left">Actions</th>
+            <span *ngIf="sortOrders[col] == 'asc'">▲</span>
+            <span *ngIf="sortOrders[col] == 'desc'">▼</span>
 
-</tr>
+          </th>
 
-</thead>
+          <th class="p-3 text-left">
+            Actions
+          </th>
 
+        </tr>
 
-<tbody class="bg-white divide-y divide-gray-200">
+      </thead>
 
+<<<<<<< HEAD
+      <!-- TABLE BODY -->
+      <tbody class="bg-white divide-y divide-gray-200" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
+=======
 <tr *ngFor="let lead of paginatedLeads"
 class="divide-x divide-gray-200 hover:bg-gray-50">
+>>>>>>> 4f9f4d893cf0c94a46ec2b3082c312d4d5d76379
 
-<td *ngFor="let col of selectedColumns" class="p-3">
+        <tr
+          *ngFor="let lead of paginatedLeads"
+          class="divide-x divide-gray-200 hover:bg-gray-50">
 
-{{lead[columnFieldMap[col]]}}
+          <td
+            *ngFor="let col of selectedColumns"
+            class="p-3">
 
-</td>
+            {{ lead[columnFieldMap[col]] }}
 
+          </td>
 
-<td class="p-3">
+          <td class="p-3">
 
-<div class="flex justify-center gap-3">
+            <div class="flex justify-center gap-3">
 
-<button title="Edit"
-class="text-blue-600 hover:text-blue-800">
-📝
-</button>
+              <button
+                title="Edit" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Edit')"
+                class="text-blue-600 hover:text-blue-800">
 
-<button (click)="onDeleteLead(lead.id)"
-class="text-red-500 hover:text-red-700">
-🗑️
-</button>
+                📝
+
+              </button>
+
+              <button
+                (click)="onDeleteLead(lead.id)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Delete')"
+                class="text-red-500 hover:text-red-700">
+
+                🗑️
+
+              </button>
+
+            </div>
+
+          </td>
+
+        </tr>
+
+        <!-- EMPTY DATA -->
+        <tr *ngIf="paginatedLeads.length === 0">
+
+          <td
+            [attr.colspan]="selectedColumns.length + 1"
+            class="text-center p-5 text-gray-500">
+
+            No Leads Found
+
+          </td>
+
+        </tr>
+
+      </tbody>
+
+    </table>
+
+  </div>
 
 </div>
 
-</td>
 
-</tr>
+<!-- PAGINATION -->
+<div class="flex flex-col items-center mt-8 gap-4" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
 
-</tbody>
+  <!-- Showing Entries -->
+  <div class="text-sm text-gray-500">
+    Showing
+    <span class="font-semibold text-gray-700">
+      {{ (currentPage - 1) * itemsPerPage + 1 }}
+    </span>
+    -
+    <span class="font-semibold text-gray-700">
+      {{ (currentPage - 1) * itemsPerPage + paginatedLeads.length }}
+    </span>
+    of
+    <span class="font-semibold text-gray-700">{{ leads.length }}</span>
+    entries
+  </div>
 
+<<<<<<< HEAD
+  <!-- Pagination -->
+  <div class="flex items-center gap-1 bg-white shadow-lg border rounded-xl px-3 py-2">
+
+    <!-- Prev -->
+    <button
+      (click)="previousPage()"
+      [disabled]="currentPage === 1"
+      class="px-3 py-1 text-sm rounded-md hover:bg-gray-100 disabled:opacity-40 transition">
+      ◀
+    </button>
+
+    <!-- Page Numbers -->
+    <ng-container *ngFor="let page of [].constructor(totalPages); let i = index">
+      
+      <button
+        (click)="goToPage(i + 1)"
+        class="px-3 py-1 text-sm rounded-md transition"
+        [ngClass]="
+          currentPage === (i + 1)
+          ? 'bg-blue-500 text-white shadow'
+          : 'hover:bg-gray-100 text-gray-700'
+        ">
+
+        {{ i + 1 }}
+
+      </button>
+
+    </ng-container>
+
+    <!-- Next -->
+    <button
+      (click)="nextPage()"
+      [disabled]="currentPage === totalPages"
+      class="px-3 py-1 text-sm rounded-md hover:bg-gray-100 disabled:opacity-40 transition">
+      ▶
+    </button>
+
+  </div>
+
+</div>
+=======
 </table>
 <div class="flex justify-between items-center bg-white p-3 border-t border-gray-200 mt-2 shadow-sm rounded-b-lg" *ngIf="leads.length > 0">
   
@@ -489,6 +616,7 @@ class="text-red-500 hover:text-red-700">
   </div>
 </div>
     </div>
+>>>>>>> 4f9f4d893cf0c94a46ec2b3082c312d4d5d76379
   </div>
  
   <form *ngIf="isFormOpen" [formGroup]="leadForm" (ngSubmit)="onSave()">

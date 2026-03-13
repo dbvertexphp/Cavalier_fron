@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { CheckPermissionService } from '../../services/check-permission.service';
 
 @Component({
   selector: 'app-teams',
@@ -14,14 +15,15 @@ export class TeamsComponent implements OnInit {
   isModalOpen = false;
   isEditMode = false;
   selectedTeamId: number | null = null;
-  
+  PermissionID:any;
   private apiUrl = environment.apiUrl + '/Teams';
   teams: any[] = [];
   newTeam = { teamName: '' };
 
-  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
+  constructor(private http: HttpClient, private cdr: ChangeDetectorRef,public CheckPermissionService:CheckPermissionService) {}
 
   ngOnInit(): void {
+     this.PermissionID = Number(localStorage.getItem('permissionID'));
     this.fetchTeams();
   }
 

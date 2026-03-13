@@ -336,7 +336,7 @@ Cancel
         <!-- <button class="bg-[#5a4f4f] hover:bg-[#3d3434] border border-gray-500 px-4 py-1.5 text-[11px] font-bold" (click)="neworg()">
           <i class="fas fa-building mr-1"></i> NEW ORGANIZATION
         </button> -->
-        <button (click)="toggleForm()" class="bg-green-600 hover:bg-green-700 px-5 py-1.5 text-[11px] font-bold">
+        <button (click)="toggleForm()" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Add')" class="bg-green-600 hover:bg-green-700 px-5 py-1.5 text-[11px] font-bold">
           <i class="fas fa-plus mr-1"></i> ADD NEW QUOTATION
         </button>
       </div>
@@ -358,7 +358,7 @@ Cancel
 </tr>
 </thead>
 
-<tbody>
+<tbody *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
 
 <tr *ngFor="let q of paginatedQuotations" class="hover:bg-gray-50 border-b text-gray-700">
 
@@ -369,11 +369,11 @@ Cancel
 </td>
 
 <td class="p-4 sticky right-0 bg-white border-l text-center">
-  <button (click)="editQuotation(q)" class="text-blue-600 mr-3 font-bold uppercase hover:underline">
+  <button (click)="editQuotation(q)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Edit')"class="text-blue-600 mr-3 font-bold uppercase hover:underline">
     Edit
   </button>
 
-  <button (click)="deleteQuotation(q.id)" class="text-red-600 font-bold uppercase hover:underline">
+  <button (click)="deleteQuotation(q.id)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Delete')" class="text-red-600 font-bold uppercase hover:underline">
     Delete
   </button>
 </td>
@@ -383,6 +383,57 @@ Cancel
 </tbody>
 
 </table>
+<<<<<<< HEAD
+<div class="flex flex-col items-center mt-6 gap-3" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
+
+  <!-- Showing entries -->
+  <div class="text-sm text-gray-500">
+    Showing
+    <span class="font-semibold">
+      {{ (currentPage - 1) * itemsPerPage + 1 }}
+    </span>
+    -
+    <span class="font-semibold">
+      {{ (currentPage - 1) * itemsPerPage + paginatedQuotations.length }}
+    </span>
+    of
+    <span class="font-semibold">{{ quotations.length }}</span>
+    entries
+  </div>
+
+  <!-- Pagination Buttons -->
+  <div class="flex items-center gap-1 bg-white border shadow-md rounded-lg px-3 py-2">
+
+    <button
+      (click)="previousPage()"
+      [disabled]="currentPage === 1"
+      class="px-3 py-1 rounded hover:bg-gray-100 disabled:opacity-40">
+      ◀
+    </button>
+
+    <ng-container *ngFor="let page of [].constructor(totalPages); let i = index">
+
+      <button
+        (click)="goToPage(i + 1)"
+        [ngClass]="currentPage === (i + 1) ? 'bg-blue-500 text-white' : 'hover:bg-gray-100'"
+        class="px-3 py-1 rounded text-sm">
+
+        {{ i + 1 }}
+
+      </button>
+
+    </ng-container>
+
+    <button
+      (click)="nextPage()"
+      [disabled]="currentPage === totalPages"
+      class="px-3 py-1 rounded hover:bg-gray-100 disabled:opacity-40">
+      ▶
+    </button>
+
+  </div>
+
+=======
 <div class="flex justify-between items-center bg-white p-4 border-t border-gray-200 mt-2 shadow-sm rounded-b-lg no-export" *ngIf="quotations.length > 0">
   
   <div class="flex items-center gap-4">
@@ -435,6 +486,7 @@ Cancel
       »»
     </button>
   </div>
+>>>>>>> 4f9f4d893cf0c94a46ec2b3082c312d4d5d76379
 </div>
 </div>
   </div>

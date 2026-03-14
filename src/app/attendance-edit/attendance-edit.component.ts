@@ -1,66 +1,61 @@
-import { CommonModule } from '@angular/common';
+// attendance-edit.component.ts
+
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-attendance-edit',
   standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './attendance-edit.component.html',
-  styleUrl: './attendance-edit.component.css',
+  imports: [CommonModule, FormsModule, HttpClientModule],
+  templateUrl: './attendance-edit.component.html'
 })
 export class AttendanceEditComponent implements OnInit {
-  
-  // Saare 10 points yahan professional structure mein hain
-  attendance: any = {
-    empId: '',
-    name: '',
-    profile: 'assets/default-profile.png',
-    department: '',
-    designation: '',
-    branch: '',
-    shift: 'Morning',
-    date: '',
-    checkIn: '',
-    checkOut: '',
-    workingHours: 0,
-    status: 'Present',
-    lateMinutes: 0,
-    earlyExitMinutes: 0,
-    overtime: 0,
-    overtimeBy: '',
-    mode: 'manual',
-    remark: ''
-  };
+  private apiUrl = `${environment.apiUrl}/Attendance`;
+  loading: boolean = false;
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router
-  ) {}
+  attendance: any = {}; // Initialize empty object
+
+  constructor(private route: ActivatedRoute, private router: Router, private http: HttpClient) {}
 
   ngOnInit(): void {
-    // URL se ID nikalne ka sahi tarika
     const id = this.route.snapshot.paramMap.get('id');
-    
     if (id) {
-      this.attendance.empId = id;
-      console.log('Fetching Attendance for:', id);
-      // Yahan API call aayegi: 
-      // this.service.getById(id).subscribe(data => this.attendance = data);
-    } else {
-      console.error('No ID found in URL!');
+      this.fetchDetails(id);
     }
   }
 
-  updateAttendance() {
-    console.log('Saving Data:', this.attendance);
-    // API Call logic yahan aayegi
-    alert('Attendance Record Updated Successfully!');
-    this.router.navigate(['/dashboard/attendance/list']);
+  fetchDetails(id: string) {
+    this.http.get<any>(`${this.apiUrl}/${id}`).subscribe({
+      next: (res) => {
+        // Date input format fix
+        if (res.attendanceDate) {
+          res.attendanceDate = res.attendanceDate.split('T')[0];
+        }
+        this.attendance = res;
+      },
+      error: (err) => console.error("Error fetching record", err)
+    });
   }
 
-  cancel() {
-    this.router.navigate(['/dashboard/attendance/list']);
+  updateAttendance() {
+    this.loading = true;
+    // Backend PUT request usually needs the ID in URL and the body
+    this.http.put(`${this.apiUrl}/${this.attendance.id}`, this.attendance).subscribe({
+      next: () => {
+        alert("Record Updated!");
+        this.router.navigate(['/dashboard/attendance/list']);
+      },
+      error: (err) => {
+        this.loading = false;
+        console.error("Update error", err);
+        alert("Update failed. Check if Backend allows PUT for this ID.");
+      }
+    });
   }
+
+  cancel() { this.router.navigate(['/dashboard/attendance/list']); }
 }

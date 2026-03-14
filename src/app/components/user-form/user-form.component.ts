@@ -55,11 +55,28 @@ export class UserFormComponent implements OnInit {
 
 ngOnInit(): void {
   this.initForm();
+  
   if (!this.isBranchForm) {
     this.loadDropdowns();
     this.getBranches();
     this.loadPermissions();
   }
+
+  // --- Naya Logic: Designation change hone par Department auto-select hoga ---
+  this.userForm.get('designation')?.valueChanges.subscribe((selectedDesId) => {
+    if (selectedDesId) {
+      // designations array mein se matching ID wala object dhoodhna
+      const selectedDesignation = this.designations.find(des => des.id === Number(selectedDesId));
+      
+      if (selectedDesignation && selectedDesignation.departmentId) {
+        // Department field ko update karna
+        this.userForm.patchValue({
+          department: selectedDesignation.departmentId
+        }, { emitEvent: false }); // emitEvent: false taaki infinite loop na bane
+      }
+    }
+  });
+  // -----------------------------------------------------------------------
 
   if (this.initialData) {
     this.isEditMode = true;
@@ -384,14 +401,14 @@ onSubmit() {
   // 1. Zod Validation Check
   if (!this.validateForm()) {
     this.userForm.markAllAsTouched();
-    alert('Form validation fail ho gaya hai, errors check karein.');
+    alert('Form validation faild. Check the feilds properly and try aganin .');
     return;
   }
 
   // 2. Angular Internal Validation Check
   if (this.userForm.invalid) {
     this.userForm.markAllAsTouched();
-    alert('Kuch mandatory fields abhi bhi baki hain bhai.');
+    alert('some important feilds are left.');
     return;
   }
 

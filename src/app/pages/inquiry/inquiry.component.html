@@ -1,5 +1,5 @@
 
-< class="p-3 bg-gray-100 min-h-screen font-sans text-[13px]">
+<div class="p-3 bg-gray-100 min-h-screen font-sans text-[13px]">
   <div *ngIf="!isFormOpen" class="bg-white border border-gray-300 shadow-sm rounded-sm overflow-hidden">
     <div class="bg-gray-100 p-1.5 border-b border-gray-300 flex gap-4 items-center">
        <div class="text-[11px] italic text-gray-500">
@@ -196,110 +196,233 @@
       </div>
     </div>
     <div class="bg-[#4a3f3f] p-3 flex justify-between items-center text-white">
-      <div class="font-bold uppercase tracking-widest px-2 text-[12px]">Inquiry Records</div>
-      <button (click)="toggleForm()" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Add')"
-        class="bg-green-600 hover:bg-green-700 px-5 py-1.5 text-[12px] font-bold shadow-sm flex items-center gap-2">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
-        </svg>
-        ADD NEW INQUIRY
+  <div class="font-bold uppercase tracking-widest px-2 text-[12px]">Inquiry Records</div>
+
+  <div class="flex items-center gap-3">
+    <button (click)="showColumnModal = true" 
+        class="flex items-center gap-2 px-3 py-1.5 text-[11px] font-bold uppercase border border-gray-300 rounded hover:bg-gray-50 transition-all text-white">
+  <span>⚙️</span> Columns
+</button>
+    <div class="relative inline-block">
+      <button type="button" (click)="toggleExportMenu(); $event.stopPropagation()"
+        class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-[12px] px-4 py-1.5 uppercase shadow-sm flex items-center gap-2 transition-all">
+        <span>💾</span> EXPORT
+        <span [class.rotate-180]="isExportOpen" class="transition-transform text-[10px]">▼</span>
       </button>
+
+      <div *ngIf="isExportOpen"
+        class="absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded shadow-2xl z-[100] border border-gray-200 overflow-hidden normal-case ring-1 ring-black ring-opacity-5">
+        <button type="button" (click)="printInquiries()"
+          class="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-2 border-b border-gray-100 text-[13px] text-gray-700">
+          <span>🖨️</span> Print (Top 20)
+        </button>
+        <button type="button" (click)="downloadInquiriesPDF()"
+          class="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-2 text-[13px] text-gray-700">
+          <span>📄</span> Download PDF
+        </button>
+        <button (click)="downloadLeadsExcel()" 
+    class="w-full text-left px-4 py-3 hover:bg-gray-100 flex items-center gap-2 text-[12px] font-medium">
+    <i class="fas fa-file-excel text-green-600"></i> Download Excel
+  </button>
+      </div>
     </div>
 
+    <button (click)="toggleForm()"
+      class="bg-green-600 hover:bg-green-700 px-5 py-1.5 text-[12px] font-bold shadow-sm flex items-center gap-2 transition-all">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
+      </svg>
+      ADD NEW INQUIRY
+    </button>
+  </div>
+</div>
+
     <div class="p-0 overflow-x-auto">
-      <table class="w-full border-collapse border border-gray-200 whitespace-nowrap">
-        <thead >
-          <tr  class="bg-gray-50 text-gray-600 uppercase text-[11px] border-b">
-            <th class="p-4 text-left font-bold">Inquiry Id.</th>
-            <th class="p-4 text-left font-bold">Inquiry No.</th>
-            <th class="p-4 text-left font-bold">Date</th>
-            <th class="p-4 text-left font-bold">Customer Name</th>
-           <th class="p-4 text-left font-bold">Transport Mode</th>
-            <th class="p-4 text-left font-bold">Status</th>
-            <th class="p-4 text-center font-bold sticky right-0 bg-gray-50 border-l shadow-sm">Action</th>
-          </tr>
-        </thead>
-        <tbody class="bg-white" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
-          <tr *ngFor="let q of paginatedQuotations" class="hover:bg-gray-50 border-b text-gray-700">
-              <td class="p-4 font-bold">{{q.id}}</td>
-            <td class="p-4 font-bold">{{q.inquiryNo}}</td>
-            <td class="p-4 font-bold">{{ q.receivedDate | date:'dd-MMM-yyyy' }}</td>
-            <td class="p-4 uppercase font-medium">{{q.customerName}}</td>
-        <td class="p-4 uppercase font-medium">{{q.transportMode}}</td>
-            <td class="p-4">
-              <span
-                [ngClass]="{'bg-yellow-100 text-yellow-800': q.id > 0,'bg-green-100 text-green-800': q.id === 0}"
-                class="px-3 py-1 rounded text-[11px] font-bold">
-                {{q.cargoStatus}}
+    <div class="p-0 overflow-x-auto">
+  <table class="w-full border-collapse border border-gray-200 whitespace-nowrap">
+    <thead>
+      <tr class="bg-gray-50 text-gray-600 uppercase text-[11px] border-b"
+          cdkDropList 
+          cdkDropListOrientation="horizontal" 
+          [cdkDropListData]="selectedColumns"
+          (cdkDropListDropped)="dropColumn($any($event))">
+        
+        <th *ngFor="let col of selectedColumns" 
+            cdkDrag 
+            class="p-4 text-left font-bold cursor-move hover:bg-gray-100 border-r border-gray-200 last:border-r-0">
+          <div class="flex items-center gap-2">
+            <span class="text-gray-300">⋮⋮</span>
+            {{ col }}
+          </div>
+        </th>
+
+        <th class="p-4 text-center font-bold sticky right-0 bg-gray-50 border-l shadow-sm no-export">
+          Action
+        </th>
+      </tr>
+    </thead>
+    
+    <tbody class="bg-white">
+      <tr *ngFor="let q of paginatedInquiries" class="hover:bg-gray-50 border-b text-gray-700">
+        
+        <td *ngFor="let col of selectedColumns" class="p-4">
+          <ng-container [ngSwitch]="col">
+            
+            <span *ngSwitchCase="'Inquiry Id.'" class="font-bold text-gray-900">
+              {{ q.id }}
+            </span>
+
+            <span *ngSwitchCase="'Inquiry No.'" class="font-bold text-blue-600">
+              {{ q.inquiryNo }}
+            </span>
+
+            <span *ngSwitchCase="'Date'" class="font-medium">
+              {{ q.receivedDate | date:'dd-MMM-yyyy' }}
+            </span>
+
+            <span *ngSwitchCase="'Status'">
+              <span [ngClass]="{'bg-yellow-100 text-yellow-800': q.id > 0,'bg-green-100 text-green-800': q.id === 0}"
+                    class="px-3 py-1 rounded text-[11px] font-bold uppercase">
+                {{ q.cargoStatus }}
               </span>
-            </td>
-            <td class="p-4 sticky right-0 bg-white border-l text-center">
-              <button (click)="editQuotation(q)"*ngIf="CheckPermissionService.hasPermission(PermissionID,'Edit')"
-                class="text-blue-600 mr-3 font-bold uppercase hover:underline">Edit</button>
-              <button (click)="deleteQuotation(q.id)"*ngIf="CheckPermissionService.hasPermission(PermissionID,'Delete')"
-                class="text-red-600 font-bold uppercase hover:underline">Delete</button>
-            </td>
-          </tr>
-          <tr *ngIf="quotations.length === 0">
-    <td colspan="7" class="p-10 text-center">
-      <div class="flex flex-col items-center justify-center text-gray-400">
-        <span class="text-4xl mb-2">📂</span>
-        <p class="text-[14px] font-bold">No Records Found</p>
-        <p class="text-[12px]">Try adjusting your filters to find what you're looking for.</p>
-      </div>
-    </td>
-  </tr>
-        </tbody>
-      </table>
-      <div class="flex flex-col items-center mt-6 gap-3" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
+            </span>
 
-  <!-- Showing Entries -->
-  <div class="text-sm text-gray-500" >
-    Showing
-    <span class="font-semibold">
-      {{ (currentPage - 1) * itemsPerPage + 1 }}
-    </span>
-    -
-    <span class="font-semibold">
-      {{ (currentPage - 1) * itemsPerPage + paginatedQuotations.length }}
-    </span>
-    of
-    <span class="font-semibold">{{ quotations.length }}</span>
-    entries
+            <span *ngSwitchDefault class="uppercase font-medium">
+              {{ q[columnFieldMap[col]] || '-' }}
+            </span>
+
+          </ng-container>
+        </td>
+
+        <td class="p-4 sticky right-0 bg-white border-l text-center shadow-[-5px_0_10px_rgba(0,0,0,0.02)]">
+          <button (click)="editQuotation(q)"
+            class="text-blue-600 mr-3 font-bold uppercase hover:underline text-[11px]">Edit</button>
+          <button (click)="deleteQuotation(q.id)"
+            class="text-red-600 font-bold uppercase hover:underline text-[11px]">Delete</button>
+        </td>
+      </tr>
+
+      <tr *ngIf="quotations.length === 0">
+        <td [attr.colspan]="selectedColumns.length + 1" class="p-20 text-center">
+          <div class="flex flex-col items-center justify-center text-gray-400">
+            <span class="text-5xl mb-3">📂</span>
+            <p class="text-[14px] font-bold text-gray-600">No Records Found</p>
+            <p class="text-[12px]">Try adjusting your filters or column settings.</p>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+      <div class="flex justify-between items-center bg-white p-4 border-t border-gray-200 mt-2 shadow-sm rounded-b-lg no-export" *ngIf="quotations.length > 0">
+  
+  <div class="flex items-center gap-4">
+    <div class="text-[12px] text-gray-600 font-medium">
+      Showing 
+      <span class="font-bold text-gray-800">{{ (currentPage - 1) * pageSize + 1 }}</span> 
+      to 
+      <span class="font-bold text-gray-800">{{ Math.min(currentPage * pageSize, quotations.length) }}</span> 
+      of 
+      <span class="font-bold text-gray-800">{{ quotations.length }}</span> 
+      Inquiries
+    </div>
+    
+    <select [(ngModel)]="pageSize" (change)="onPageSizeChange()" 
+      class="border rounded text-[11px] px-2 py-1 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-blue-400">
+      <option [ngValue]="10">10 / Page</option>
+      <option [ngValue]="25">25 / Page</option>
+      <option [ngValue]="50">50 / Page</option>
+    </select>
   </div>
 
-  <!-- Pagination -->
-  <div class="flex items-center gap-1 bg-white border shadow-md rounded-lg px-3 py-2">
-
-    <button
-      (click)="previousPage()"
-      [disabled]="currentPage === 1"
-      class="px-3 py-1 rounded hover:bg-gray-100 disabled:opacity-40">
-      ◀
+  <div class="flex items-center gap-1">
+    <button (click)="setPage(1)" [disabled]="currentPage === 1"
+      class="p-2 text-gray-500 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed">
+      ««
     </button>
 
-    <ng-container *ngFor="let page of [].constructor(totalPages); let i = index">
-      <button
-        (click)="goToPage(i + 1)"
-        [ngClass]="currentPage === (i + 1) ? 'bg-blue-500 text-white' : 'hover:bg-gray-100'"
-        class="px-3 py-1 rounded text-sm">
-        {{ i + 1 }}
-      </button>
-    </ng-container>
-
-    <button
-      (click)="nextPage()"
-      [disabled]="currentPage === totalPages"
-      class="px-3 py-1 rounded hover:bg-gray-100 disabled:opacity-40">
-      ▶
+    <button (click)="setPage(currentPage - 1)" [disabled]="currentPage === 1"
+      class="px-3 py-1 text-[11px] font-bold uppercase border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-30 transition-all">
+      Prev
     </button>
 
+    <div class="flex items-center mx-1 border border-gray-200 rounded overflow-hidden">
+      <span class="px-3 py-1 text-[12px] font-black bg-[#4a3f3f] text-white">
+        {{currentPage}}
+      </span>
+      <span class="px-3 py-1 text-[12px] font-bold bg-gray-50 text-gray-600">
+        of {{totalPages}}
+      </span>
+    </div>
+
+    <button (click)="setPage(currentPage + 1)" [disabled]="currentPage === totalPages"
+      class="px-3 py-1 text-[11px] font-bold uppercase border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-30 transition-all">
+      Next
+    </button>
+
+    <button (click)="setPage(totalPages)" [disabled]="currentPage === totalPages"
+      class="p-2 text-gray-500 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed">
+      »»
+    </button>
   </div>
-
 </div>
     </div>
   </div>
+<div *ngIf="showColumnModal" class="fixed inset-0 z-[100] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+  <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
 
+  <div class="flex min-h-full items-center justify-center p-4 text-center">
+    <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl">
+      
+      <div class="bg-gray-50 px-6 py-4 border-b flex justify-between items-center">
+        <div>
+          <h3 class="text-lg font-bold text-gray-800">Customize Table Columns</h3>
+          <p class="text-xs text-gray-500 font-medium">Drag and drop to reorder or show/hide columns</p>
+        </div>
+        <button (click)="showColumnModal = false" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+      </div>
+
+      <div class="p-6 bg-white flex gap-6" cdkDropListGroup>
+        
+        <div class="flex-1">
+          <label class="block text-[11px] font-black uppercase text-gray-400 mb-3 tracking-wider">Available (Hidden)</label>
+          <div cdkDropList [cdkDropListData]="availableColumns" (cdkDropListDropped)="dropColumn($any($event))"
+               class="min-h-[300px] bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg p-3 space-y-2">
+            <div *ngFor="let item of availableColumns" cdkDrag
+                 class="bg-white border border-gray-200 p-3 rounded shadow-sm text-[12px] font-bold text-gray-600 cursor-move hover:border-blue-400 transition-colors">
+              <span class="mr-2 text-gray-300">⠿</span> {{item}}
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center text-gray-300 text-xl mt-6"> ⇄ </div>
+
+        <div class="flex-1">
+          <label class="block text-[11px] font-black uppercase text-blue-500 mb-3 tracking-wider">Visible in Table</label>
+          <div cdkDropList [cdkDropListData]="selectedColumns" (cdkDropListDropped)="dropColumn($any($event))"
+               class="min-h-[300px] bg-blue-50/30 border-2 border-blue-100 rounded-lg p-3 space-y-2">
+            <div *ngFor="let item of selectedColumns" cdkDrag
+                 class="bg-white border border-blue-200 p-3 rounded shadow-sm text-[12px] font-bold text-gray-800 cursor-move hover:border-blue-400 transition-colors">
+              <span class="mr-2 text-blue-200">⠿</span> {{item}}
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t mt-2">
+        <button (click)="showColumnModal = false" 
+                class="px-4 py-2 text-[11px] font-bold uppercase text-gray-500 hover:bg-gray-200 rounded transition-all">
+          Close
+        </button>
+        <button (click)="showColumnModal = false" 
+                class="px-6 py-2 text-[11px] font-bold uppercase bg-[#4a3f3f] text-white rounded hover:bg-black shadow-md transition-all">
+          Apply Settings
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
   <div *ngIf="isFormOpen" class="bg-white border border-gray-300 shadow-lg">
     <div class="bg-[#4a3f3f] p-2 flex justify-between items-center text-white">
       <div class="flex gap-2 px-2">
@@ -375,21 +498,26 @@
     readonly
     class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-gray-100 text-gray-600 cursor-not-allowed font-semibold">
 </div>
-             <div class="grid grid-cols-2 items-center">
-              <label class="font-bold text-[#802a2a]">Location</label>
-              <select [(ngModel)]="quotation.location" name="location" class="border p-1.5 outline-none bg-white">
-                <option value="DELHI">DELHI</option>
-                <option value="MUMBAI">MUMBAI</option>
-              </select>
-            </div>
-            <div class="grid grid-cols-2 items-center">
-              <label class="font-bold text-gray-700">Sales Coor.</label>
-              <select [(ngModel)]="quotation.salesCoordinator" name="salesCoordinator" class="border p-1.5 outline-none">
-                <option value="">--Select--</option>
-                <option value="Sales 1">Sales User 1</option>
-              </select>
-            </div>
-          </div>
+
+   <div class="flex items-center gap-2">
+  <label class="w-26 font-bold text-[#802a2a]">Location</label>
+  <select [(ngModel)]="quotation.location" name="location" class="flex-1 border p-1.5 outline-none bg-white text-[12px]">
+    <option value="DELHI">DELHI</option>
+    <option value="MUMBAI">MUMBAI</option>
+  </select>
+</div>
+
+<div class="flex items-center gap-2 mt-2">
+  <label class="w-26 font-bold text-gray-700">Sales Coor.</label>
+  <select [(ngModel)]="quotation.salesCoordinator" name="salesCoordinator" class="flex-1 border p-1.5 outline-none text-[12px]">
+    <option value="">--Select--</option>
+    <option value="Sales 1">Sales User 1</option>
+  </select>
+</div>
+        </div>
+
+
+          
           <div class="space-y-2">
             <div class="grid grid-cols-2 items-center">
               <label class="font-bold text-[#802a2a]">Party Role</label>
@@ -414,18 +542,19 @@
                 </svg>
               </div>
             </div>
-        <div class="grid grid-cols-2 items-center">
-            <label class="font-bold text-gray-700">Line Of Business</label>
-           
-            <select [(ngModel)]="quotation.description" name="description" class="border p-1.5 bg-white outline-none">
-              <option value="" disabled selected>Select Business Line</option>
-             
-              <option *ngFor="let service of companyServices" [value]="service.serviceName">
-                {{ service.serviceName }}
-              </option>
-              </select>
-          </div>
-          </div>
+
+<div class="grid grid-cols-2 items-center">
+  <label class="font-bold text-gray-700">Line Of Business</label>
+  
+  <select [(ngModel)]="quotation.lineOfBusinessId" name="lineOfBusinessId" class="border p-1.5 bg-white outline-none">
+    <option [value]="null" disabled selected>Select Business Line</option>
+    
+    <option *ngFor="let service of companyServices" [value]="service.id">
+      {{ service.serviceName }}
+    </option>
+  </select>
+</div> 
+</div>
           <div class="space-y-2">
           <div class="grid grid-cols-2 items-center">
   <label class="font-bold text-red-700">Organization</label>
@@ -467,10 +596,12 @@
                 </svg>
               </div>
             </div>
+
+
             <div class="grid grid-cols-2 items-center">
               <label class="font-bold text-gray-700">Cargo Status</label>
               <div class="flex gap-1 items-center overflow-hidden">
-                <input type="date" [(ngModel)]="quotation.receivedDate" name="cargoStatusDate"
+                <input type="date" [(ngModel)]="quotation.cargoStatusDate" name="cargoStatusDate"
                   class="border p-1 text-[11px] outline-none w-[110px]">
                 <select [(ngModel)]="quotation.shipmentType" name="cargoStatus" class="border p-1 text-[11px] outline-none flex-1 min-w-0">
                   <option value="Ready By">Ready By</option>
@@ -488,7 +619,7 @@
           <div class="space-y-3">
             <div class="flex items-center">
               <label class="w-40 font-bold text-gray-700">Transport Mode</label>
-              <select [(ngModel)]="quotation.transportMode" name="transportMode" class="flex-1 border p-2 outline-none">
+              <select [(ngModel)]="quotation.TransportMode" name="transportMode" class="flex-1 border p-2 outline-none">
                 <option value="Air">Air</option>
                 <option value="Sea">Sea</option>
               </select>
@@ -499,6 +630,8 @@
                 <option value="International">International</option>
               </select>
             </div>
+
+
             <div class="flex flex-col gap-4">
               <div class="flex items-center">
                 <label class="w-40 font-bold text-gray-700">Commodity</label>
@@ -520,6 +653,8 @@
                 </div>
               </div>
             </div>
+
+
             <div class="flex items-center gap-2">
               <label class="w-40 font-bold text-gray-700">Gross Weight</label>
               <div class="flex flex-1">
@@ -530,10 +665,10 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
-                  <select class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
-                    <option>KGS</option>
-                    <option>LBS</option>
-                  </select>
+                  <select [(ngModel)]="quotation.GrossweightUnit" name="weightUnit" class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
+                  <option value="KGS">KGS</option>
+                  <option value="LBS">LBS</option>
+                </select>
                 </div>
               </div>
             </div>
@@ -547,9 +682,9 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
-                  <select class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
-                    <option>KGS</option>
-                    <option>LBS</option>
+                  <select [(ngModel)]="quotation.netWeightUnit" name="netWeightUnit" class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
+                      <option value="KGS">KGS</option>
+                      <option value="LBS">LBS</option>
                   </select>
                 </div>
               </div>
@@ -564,10 +699,10 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
-                  <select class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
-                    <option>KGS</option>
-                    <option>LBS</option>
-                  </select>
+                  <select [(ngModel)]="quotation.chargeableWeightUnit" name="chargeableWeightUnit" class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
+                  <option value="KGS">KGS</option>
+                  <option value="LBS">LBS</option>
+                </select>
                 </div>
               </div>
             </div>
@@ -575,11 +710,12 @@
 
           <div class="space-y-3">
             <div class="flex items-center"><label class="w-40 font-bold text-gray-700">Transport Type</label><select
-                class="flex-1 border p-2 outline-none">
-                <option>Export</option>
-                <option>Import</option>
+               [(ngModel)]="quotation.TransportType"  class="flex-1 border p-2 outline-none">
+                    <option value="Export">Export</option>
+                    <option value="Import">Import</option>
               </select></div>
 
+             
             <div class="flex items-center gap-2">
               <label class="w-40 font-bold text-gray-700">Num of Packages</label>
               <div class="flex flex-1">
@@ -590,9 +726,9 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
-                  <select class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
-                    <option>PKGS</option>
-                    <option>BOXES</option>
+                  <select [(ngModel)]="quotation.noOfPkgsUnit" name="noOfPkgsUnit" class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
+                    <option value="PKGS">PKGS</option>
+                    <option value="BOXES">BOXES</option>
                   </select>
                 </div>
               </div>
@@ -702,31 +838,42 @@
 
   </div>
 </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+</div>
+ </div>
+  </div>
+</div>
 
-            <div class="flex items-center gap-2">
-              <label class="w-40 font-bold text-gray-700">Volume Weight</label>
-              <div class="flex flex-1">
-                <input type="number" [(ngModel)]="quotation.chargeableWeightKg" name="chargeableWeightKg" class="w-full border p-2 outline-none">
-                <div class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                  <select class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
-                    <option>KGS</option>
-                    <option>CBM</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div class="flex items-start"><label class="w-40 font-bold text-gray-700 mt-2">Description</label><textarea
-                 name="description" class="flex-1 border p-2 h-16 outline-none"
-                placeholder="Details..."></textarea></div>
+<div class="flex items-center gap-2">
+  <label class="w-40 font-bold text-gray-700">Volume Weight</label>
+  <div class="flex flex-1">
+    <input type="number" [(ngModel)]="quotation.volumeWeight" name="volumeWeight" 
+           class="w-full border p-2 outline-none">
+    
+    <div class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+      
+      <select [(ngModel)]="quotation.volumeWeightUnit" name="volumeWeightUnit" 
+              class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
+        <option value="KGS">KGS</option>
+        <option value="CBM">CBM</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+
+
+    <div class="flex items-start">
+  <label class="w-40 font-bold text-gray-700 mt-2">Description</label>
+  <textarea 
+    [(ngModel)]="quotation.description" 
+    name="description" 
+    class="flex-1 border p-2 h-16 outline-none focus:border-blue-500" 
+    placeholder="Details...">
+  </textarea>
+</div>
           </div>
         </div>
       </div>
@@ -737,13 +884,16 @@
           <label class="text-[11px] font-normal flex items-center gap-2 cursor-pointer"><input type="checkbox" checked
               class="w-4 h-4"> Service Required</label>
         </div>
+      
         <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-12">
           <div class="space-y-3">
-            <div class="flex items-center"><label class="w-40 font-bold text-gray-700">Movement Type</label><select
-                class="flex-1 border p-2 outline-none">
-                <option>Door-to-Door</option>
-                <option>Port-to-Port</option>
-              </select></div>
+            <div class="flex items-center"><label class="w-40 font-bold text-gray-700">Movement Type</label>
+              <select [(ngModel)]="quotation.movementType" name="movementType" class="flex-1 border p-2 outline-none">
+              <option value="Door-to-Door">Door-to-Door</option>
+              <option value="Port-to-Port">Port-to-Port</option>
+            </select>
+            </div>
+
             <div class="flex flex-col gap-4">
               <div class="flex items-center">
                 <label class="w-40 font-bold text-gray-700">Package/Invoice List</label>
@@ -847,5 +997,4 @@
         {{ quotation.id ? 'Update' : 'Save' }} Inquiry
       </button>
     </div>
-  </div>
-         
+  </div>           

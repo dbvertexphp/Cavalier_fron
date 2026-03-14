@@ -1,21 +1,42 @@
 
-  import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
-  import { CommonModule } from '@angular/common';
-  import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http'; 
-  import { FormsModule } from '@angular/forms';
-  import { Router, RouterModule } from '@angular/router';
-  import { environment } from '../../../environments/environment';
-import { CheckPermissionService } from '../../services/check-permission.service';
 
-  @Component({
-    selector: 'app-inquiry',
-    standalone: true,
-    imports: [CommonModule, RouterModule, FormsModule, HttpClientModule],
-    templateUrl: './inquiry.component.html',
-    styleUrl: './inquiry.component.css',
-  })
+
+
+import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http'; 
+import { FormsModule } from '@angular/forms';
+import { Router, RouterModule } from '@angular/router';
+import { environment } from '../../../environments/environment';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import * as XLSX from 'xlsx';
+import { moveItemInArray, transferArrayItem, CdkDragDrop } from '@angular/cdk/drag-drop';
+import { DragDropModule } from '@angular/cdk/drag-drop'; // Ye import ensure karein
+
+@Component({
+  selector: 'app-inquiry',
+  standalone: true,
+  imports: [CommonModule, RouterModule, FormsModule, HttpClientModule, DragDropModule],
+  templateUrl: './inquiry.component.html',
+  styleUrl: './inquiry.component.css',
+})
   export class InquiryComponent implements OnInit {
-     PermissionID:any;
+    // Labels ko backend properties se map karo (Apne model ke hisaab se check kar lena)
+columnFieldMap: any = {
+  'ID': 'id',
+  'Inquiry No': 'inquiryNo',
+  'Date': 'receivedDate',
+  'Customer': 'customerName',
+  'Mode': 'transportMode',
+  'Origin': 'originPort',
+  'Destination': 'destinationPort',
+  'Status': 'cargoStatus',
+  'Sales Person': 'salesPerson'
+};
+
+selectedColumns: string[] = ['ID', 'Inquiry No', 'Date', 'Customer', 'Status'];
+availableColumns: string[] = ['Mode', 'Origin', 'Destination', 'Sales Person'];
     isFormOpen = false;
     private apiUrl = `${environment.apiUrl}/Inquiry`;
 inquiries:any[]=[]
@@ -51,39 +72,7 @@ organizations: any[] = [];
   coordinators: any[] = [];
   branchesList: any[] = [];
   searchDone: boolean = false; // Shuru mein false rahega
-    constructor(private http: HttpClient, private router: Router,private cdr: ChangeDetectorRef ,public CheckPermissionService:CheckPermissionService) {}
-currentPage: number = 1;
-itemsPerPage: number = 10;
-
-paginatedQuotations: any[] = [];
-
-get totalPages(): number {
-  return Math.ceil(this.quotations.length / this.itemsPerPage);
-}
-updatePagination() {
-  const start = (this.currentPage - 1) * this.itemsPerPage;
-  const end = start + this.itemsPerPage;
-  this.paginatedQuotations = this.quotations.slice(start, end);
-}
-
-nextPage() {
-  if (this.currentPage < this.totalPages) {
-    this.currentPage++;
-    this.updatePagination();
-  }
-}
-
-previousPage() {
-  if (this.currentPage > 1) {
-    this.currentPage--;
-    this.updatePagination();
-  }
-}
-
-goToPage(page: number) {
-  this.currentPage = page;
-  this.updatePagination();
-}
+    constructor(private http: HttpClient, private router: Router,private cdr: ChangeDetectorRef ) {}
 
     ngOnInit() {
       this.loadQuotations();
@@ -96,9 +85,11 @@ goToPage(page: number) {
     this.loadInquiryNumbers();
     this.loadCoordinators();
     this.loadBranches();
-    this.PermissionID = Number(localStorage.getItem('permissionID'));
+    this.loadInquirySettings();
+    this.fetchCompanyServices();
     }
-    // --- Fetch Origins List ---
+
+       // --- Fetch Origins List --
   fetchOrigins() {
     // API Path: /api/Origin
     const url = `${environment.apiUrl}/Origin`;
@@ -107,31 +98,19 @@ goToPage(page: number) {
       console.log(data)
     });
   }
-//  fetchCompanyServices() {
-//         const url = `${environment.apiUrl}/CompanyService`;
-//         this.http.get<any[]>(url).subscribe({
-//             next: (data) => {
-//                 this.companyServices = data;
-//                 console.log("Line of Business loaded:", data);
-//                 this.cdr.detectChanges(); 
-//             },
-//             error: (err) => console.error("Error loading LOB:", err)
-//         });
-//     }
-//     // <<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>
-
 
 fetchCompanyServices() {
-        const url = `${environment.apiUrl}/CompanyService`;
-        this.http.get<any[]>(url).subscribe({
-            next: (data) => {
-                this.companyServices = data;
-                console.log("Line of Business loaded:", data);
-                this.cdr.detectChanges();
-            },
-            error: (err) => console.error("Error loading LOB:", err)
-        });
-    }
+    const url = `${environment.apiUrl}/CompanyService`;
+    this.http.get<any[]>(url).subscribe({
+        next: (data) => {
+            this.companyServices = data;
+            // Ye logs help karenge check karne mein ki 'serviceName' aa raha hai ya nahi
+            console.log("Line of Business loaded:", data); 
+            this.cdr.detectChanges();
+        },
+        error: (err) => console.error("Error loading LOB:", err)
+    });
+}
  
 
   // --- Search Logic ---
@@ -235,15 +214,20 @@ onOriginSearchInput() {
 
     loadQuotations() {
       this.http.get<any[]>(this.apiUrl).subscribe({
-        next: (res) => (this.quotations = res, this.updatePagination()),
+        next: (res) => (this.quotations = res),
         error: (err) => console.error('Failed to load inquiries:', err)
       });
     }
 
     onFileSelected(event: any) {
-      const file = event.target.files[0];
-      if (file) this.selectedFile = file;
-    }
+  const file = event.target.files[0];
+  if (file) {
+    this.selectedFile = file;
+    // 🔥 Important: Database ke column ke liye file ka naam yahan set ho raha hai
+    this.quotation.hazardDocPath = file.name; 
+    console.log("Selected File Name:", file.name);
+  }
+}
 
     neworg() {
       this.router.navigate(['/dashboard/organization-add']);
@@ -272,29 +256,30 @@ onOriginSearchInput() {
         headers: new HttpHeaders({ 'Content-Type': 'application/json' })
       };
 
-      // --- FIXING DATA TYPES FOR DATABASE SYNC ---
-      // Hum ensures kar rahe hain ki saari IDs 'number' format mein jayein
-     // --- FIXING DATA TYPES FOR DATABASE SYNC ---
-// --- FIXING DATA TYPES FOR DATABASE SYNC ---
+     
 const payload = {
-  ...this.quotation,
+  ...this.quotation, 
   inquiryNo: String(this.inquiry.inquiryNo),
     customerName: this.inquiry.organization,
     // Organization Name map karein
     organization: this.inquiry.organization,
-    
+    shipmentType: this.quotation.shipmentType,
     // Baki fields (example)
     leadNo: this.inquiry.leadNo,
     origin: this.inquiry.origin,
+    TransportMode: this.quotation.transportMode,
+    TransportType: this.quotation.transportMode,
     
-   
+   HazardDocPath: this.quotation.hazardDocPath || null,
+   weightUnit: this.quotation.GrossweightUnit || 'KGS',
   // id: Number(this.quotation.id) || 0,
   
   // Foreign Key IDs - Hardcoded to 3 or null
-  lineOfBusinessId: Number(this.quotation.lineOfBusinessId) > 0 ? Number(this.quotation.lineOfBusinessId) : null,
+  lineOfBusinessId: this.quotation.lineOfBusinessId ? Number(this.quotation.lineOfBusinessId) : null,
   
   // YAHAN HEE HARDCODE KIYA HAI:
   commodityId: 3, // <--- Hardcoded value 3
+  
   
   // Port and Origin IDs - Agar value valid nahi hai, toh null bhejein
   originId: !isNaN(Number(this.quotation.originId)) && Number(this.quotation.originId) > 0 ? Number(this.quotation.originId) : null,
@@ -367,14 +352,56 @@ const payload = {
       this.closeDimModal();
     }
 
-    editQuotation(q: any) {
-      this.quotation = { ...q };
-      this.appliedDimensions = q.dimensions || [];
-      this.dimRows = this.appliedDimensions.length > 0 
-        ? [...this.appliedDimensions] 
-        : [{ box: 1, l: 0, w: 0, h: 0, unit: 'CMS' }];
-      this.isFormOpen = true;
-    }
+    // editQuotation(q: any) {
+    //   this.quotation = { ...q };
+    //   this.appliedDimensions = q.dimensions || [];
+    //   this.dimRows = this.appliedDimensions.length > 0 
+    //     ? [...this.appliedDimensions] 
+    //     : [{ box: 1, l: 0, w: 0, h: 0, unit: 'CMS' }];
+    //   this.isFormOpen = true;
+    // }
+
+   editQuotation(q: any) {
+  // 1. Backend data ko model mein map karein
+  this.quotation = { ...q };
+
+  // 2. IMPORTANT: IDs ko numbers mein convert karein (Mapping Fix)
+  this.quotation.lineOfBusinessId = q.lineOfBusinessId ? Number(q.lineOfBusinessId) : null;
+  this.quotation.originId = q.originId ? Number(q.originId) : null;
+  this.quotation.portOfLoadingId = q.portOfLoadingId ? Number(q.portOfLoadingId) : null;
+  this.quotation.portOfDischargeId = q.portOfDischargeId ? Number(q.portOfDischargeId) : null;
+
+  // 3. UI object (this.inquiry) ko update karein 
+  // Agar aapke HTML mein [ngModel]="inquiry.origin" hai toh ye zaroori hai
+  this.inquiry = {
+    ...this.inquiry, // purani properties bachane ke liye
+    inquiryNo: q.inquiryNo,
+    organization: q.customerName || q.organization,
+    origin: q.origin, // text representation
+    leadNo: q.leadNo
+  };
+
+  // 4. Dates handling
+  if (q.receivedDate) {
+    this.quotation.receivedDate = new Date(q.receivedDate).toISOString().split('T')[0];
+  }
+
+  // 5. Dimensions parsing
+  this.appliedDimensions = q.dimensions || [];
+  this.dimRows = this.appliedDimensions.length > 0 
+    ? [...this.appliedDimensions] 
+    : [{ box: 1, l: 0, w: 0, h: 0, unit: 'CMS' }];
+
+  // 6. Modal open karein
+  this.isFormOpen = true;
+
+  // 7. Forcefully Angular ko batayein ki data update hua hai
+  setTimeout(() => {
+    this.cdr.detectChanges();
+  }, 100);
+}
+
+
 
     resetQuotationModel() {
       return {
@@ -385,7 +412,7 @@ const payload = {
         location: 'DELHI', 
         transportMode: 'Air', 
         shipmentType: 'International',
-        lineOfBusinessId: 1,
+        lineOfBusinessId: null,
         commodityId: 1,
         originId: 2, // Matches originid2 request
         portOfLoadingId: 1, // Matches pol1 request
@@ -393,6 +420,8 @@ const payload = {
         noOfPkgs: 1, 
         grossWeightKg: 0, 
         chargeableWeight: 0,
+        hazardDocPath: '',
+        cargoStatusDate: new Date().toISOString().split('T')[0],
         dimensions: []
       };
     }
@@ -406,26 +435,7 @@ const payload = {
     receivedDate: null, 
     showMode: 'valid'
   };
-  // loadDropdownData() {
-  //   this.http.get<string[]>(`${environment.apiUrl}/Inquiry`)
-  //     .subscribe(data => {
-  //       this.servicesList = data;
-  //     });
-  // }
-  // onSearch() {
-  //   console.log("Searching with:", this.searchFilters);
-
-  //   this.http.post<any[]>(`${environment.apiUrl}/Inquiry/Search`, this.searchFilters)
-  //     .subscribe({
-  //       next: (res) => {
-  //         this.inquiries = res; // Data table mein update ho jayega
-  //         console.log("Results found:", res.length);
-  //       },
-  //       error: (err) => {
-  //         console.error("Search API Error:", err);
-  //       }
-  //     });
-  // }
+ 
  // Variables define karein
 allUniqueServices: string[] = []; 
 filteredServices: string[] = [];
@@ -571,19 +581,7 @@ onClear() {
   
   console.log("Filters Cleared!");
 }
-// Pehle constructor me inject kar lena: constructor(private cd: ChangeDetectorRef, ...) {}
-// --- Quick Date Filter Logic ---
-// --- COMMAND: Pehle ye variable class me sabse upar add karein ---
-// --- COMMAND: Pehle searchFilters ko aise update karein ---
-// --- COMMAND: Phir ye methods add karein ---
 
-
-
-
-// 1. Variable add karein
-// --- 1. Variable define karein ---
-// TS file mein ye ensure karein
-// 1. Variable define karein
 showCustomPicker: boolean = false;
 
 // 2. Logic for all shortcuts
@@ -626,11 +624,6 @@ setQuickDate(type: string) {
   this.showCustomPicker = false;
   this.onSearch();
 }
-
-
-
-
-
 
 //-----/////
 onSearch() {
@@ -693,6 +686,289 @@ onSearch() {
       }
     });
 }
+// --- Variables ---
+isExportOpen = false;
+
+toggleExportMenu() {
+  this.isExportOpen = !this.isExportOpen;
+}
+
+// Click bahar ho toh dropdown band ho jaye
+@HostListener('document:click', ['$event'])
+onDocumentClick(event: MouseEvent) {
+  this.isExportOpen = false;
+}
+
+printInquiries() {
+  this.generatePrintLayout('print');
+}
+
+downloadInquiriesPDF() {
+  this.isExportOpen = false;
+  const printData = this.quotations.slice(0, 20);
+
+  const element = document.createElement('div');
+  element.style.padding = '40px';
+  element.style.width = '1000px'; // Fixed width for better resolution
+  element.style.position = 'absolute';
+  element.style.left = '-9999px';
+  element.style.backgroundColor = '#ffffff';
+
+  let rowsHtml = '';
+  printData.forEach((q, index) => {
+    // Zebra crossing effect (alternate row color)
+    const bgColor = index % 2 === 0 ? '#ffffff' : '#f9fafb';
+    rowsHtml += `
+      <tr style="background-color: ${bgColor}; border-bottom: 1px solid #e5e7eb;">
+        <td style="padding: 12px; color: #111827; font-weight: 600;">${q.id}</td>
+        <td style="padding: 12px; color: #4b5563;">${q.inquiryNo}</td>
+        <td style="padding: 12px; color: #4b5563;">${q.receivedDate ? new Date(q.receivedDate).toLocaleDateString('en-GB') : ''}</td>
+        <td style="padding: 12px; color: #111827; text-transform: uppercase; font-size: 11px;">${q.customerName || ''}</td>
+        <td style="padding: 12px; color: #4b5563;">${q.transportMode || ''}</td>
+        <td style="padding: 12px;">
+          <span style="background-color: #d1fae5; color: #065f46; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold;">
+            ${q.cargoStatus || 'PENDING'}
+          </span>
+        </td>
+      </tr>`;
+  });
+
+  element.innerHTML = `
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #4a3f3f; padding-bottom: 10px; margin-bottom: 20px;">
+        <div>
+          <h1 style="margin: 0; color: #4a3f3f; font-size: 24px; text-transform: uppercase; letter-spacing: 2px;">Inquiry Report</h1>
+          <p style="margin: 5px 0 0 0; color: #6b7280; font-size: 12px;">Generated on: ${new Date().toLocaleString()}</p>
+        </div>
+        <div style="text-align: right;">
+          <h3 style="margin: 0; color: #111827;">Cavalier Logistics</h3>
+          <p style="margin: 0; color: #6b7280; font-size: 10px;">Confidential Document</p>
+        </div>
+      </div>
+
+      <table style="width: 100%; border-collapse: collapse; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <thead>
+          <tr style="background-color: #4a3f3f; color: #ffffff; text-align: left;">
+            <th style="padding: 15px 12px; font-size: 12px; text-transform: uppercase; border-top-left-radius: 4px;">ID</th>
+            <th style="padding: 15px 12px; font-size: 12px; text-transform: uppercase;">Inquiry No</th>
+            <th style="padding: 15px 12px; font-size: 12px; text-transform: uppercase;">Date</th>
+            <th style="padding: 15px 12px; font-size: 12px; text-transform: uppercase;">Customer Name</th>
+            <th style="padding: 15px 12px; font-size: 12px; text-transform: uppercase;">Mode</th>
+            <th style="padding: 15px 12px; font-size: 12px; text-transform: uppercase; border-top-right-radius: 4px;">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rowsHtml}
+        </tbody>
+      </table>
+
+      <div style="margin-top: 30px; text-align: center; border-top: 1px solid #e5e7eb; padding-top: 10px;">
+        <p style="color: #9ca3af; font-size: 10px;">This is a system generated report and does not require a physical signature.</p>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(element);
+
+  html2canvas(element, { 
+    scale: 3, // Higher scale for crystal clear text
+    useCORS: true,
+    backgroundColor: '#ffffff'
+  }).then(canvas => {
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('l', 'mm', 'a4');
+    
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+    // Center the image if it's smaller than the page
+    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+    pdf.save(`Inquiry_Summary_${new Date().getTime()}.pdf`);
+    
+    document.body.removeChild(element);
+  });
+}
+
+private generatePrintLayout(mode: string) {
+  this.isExportOpen = false;
+  const printData = this.quotations.slice(0, 20);
+  
+  let rows = '';
+  printData.forEach(q => {
+    rows += `
+      <tr>
+        <td>${q.id}</td>
+        <td><b>${q.inquiryNo}</b></td>
+        <td>${q.receivedDate ? new Date(q.receivedDate).toLocaleDateString('en-GB') : ''}</td>
+        <td style="text-transform: uppercase;">${q.customerName || ''}</td>
+        <td>${q.transportMode || ''}</td>
+        <td>${q.cargoStatus || ''}</td>
+      </tr>`;
+  });
+
+  const printWindow = window.open('', '_blank');
+  if (printWindow) {
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Inquiry_Records_${new Date().getTime()}</title>
+          <style>
+            @page { size: A4 landscape; margin: 10mm; }
+            body { font-family: 'Segoe UI', sans-serif; margin: 20px; color: #333; }
+            h2 { text-align: center; text-transform: uppercase; color: #4a3f3f; border-bottom: 2px solid #4a3f3f; padding-bottom: 10px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid #ccc; padding: 12px 8px; text-align: left; font-size: 12px; }
+            th { background-color: #f4f4f4; font-weight: bold; }
+            tr:nth-child(even) { background-color: #fafafa; }
+          </style>
+        </head>
+        <body>
+          <h2>Inquiry Records Summary</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Inquiry No</th>
+                <th>Date</th>
+                <th>Customer Name</th>
+                <th>Mode</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+          <script>
+            window.onload = function() { 
+              window.print(); 
+              setTimeout(function() { window.close(); }, 100); 
+            };
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  }
+}
+downloadLeadsExcel() {
+  this.isExportOpen = false;
+
+  // Check karein ki data hai ya nahi
+  if (!this.quotations || this.quotations.length === 0) {
+    alert("Excel ke liye koi data nahi mila!");
+    return;
+  }
+
+  // 1. Data prepare karein (Jo columns aapke table mein hain)
+  const excelData = this.quotations.map(q => {
+    return {
+      'ID': q.id || '-',
+      'Inquiry No': q.inquiryNo || '-',
+      'Received Date': q.receivedDate ? new Date(q.receivedDate).toLocaleDateString('en-GB') : '-',
+      'Customer Name': q.customerName || '-',
+      'Transport Mode': q.transportMode || '-',
+      'Status': q.cargoStatus || 'PENDING',
+      'Branch': q.branchName || '-',
+      'Coordinator': q.salesCoordinator || '-',
+      'Shipment Type': q.shipmentType || '-'
+    };
+  });
+
+  // 2. Worksheet create karein
+  const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(excelData);
+
+  // 3. Columns ki width set karein taaki Excel saaf dikhe
+  const colWidths = [
+    { wch: 8 },  // ID
+    { wch: 15 }, // Inquiry No
+    { wch: 15 }, // Date
+    { wch: 30 }, // Customer Name
+    { wch: 15 }, // Mode
+    { wch: 12 }, // Status
+    { wch: 15 }, // Branch
+    { wch: 20 }, // Coordinator
+    { wch: 15 }  // Shipment Type
+  ];
+  ws['!cols'] = colWidths;
+
+  // 4. Workbook banayein aur save karein
+  const wb: XLSX.WorkBook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Inquiry Records');
+
+  // File download trigger karein
+  XLSX.writeFile(wb, `Inquiry_Report_${new Date().getTime()}.xlsx`);
+}
+// --- Pagination Variables ---
+currentPage: number = 1;
+pageSize: number = 10; // Ek page par kitne records dikhane hain
+protected readonly Math = Math; // Template mein Math functions use karne ke liye
+
+// Computed property: Ye table mein sirf current page ka data filter karke bhejega
+get paginatedInquiries(): any[] {
+  const startIndex = (this.currentPage - 1) * this.pageSize;
+  return this.quotations.slice(startIndex, startIndex + this.pageSize);
+}
+
+// Total pages calculate karne ke liye
+get totalPages(): number {
+  return Math.ceil(this.quotations.length / this.pageSize) || 1;
+}
+
+// Page badalne ka function
+setPage(page: number) {
+  if (page < 1 || page > this.totalPages) return;
+  this.currentPage = page;
+  this.cdr.detectChanges();
+}
+
+// Page size badalne par page 1 par reset karein
+onPageSizeChange() {
+  this.currentPage = 1;
+  this.cdr.detectChanges();
+}
+loadInquirySettings() {
+  this.http.get<any>(`${environment.apiUrl}/InquiryColumnSettings`).subscribe(res => {
+    if (res && res.selectedColumns) {
+      this.selectedColumns = JSON.parse(res.selectedColumns);
+      this.availableColumns = JSON.parse(res.availableColumns);
+    }
+  });
+}
+
+dropColumn(event: CdkDragDrop<string[]>) {
+  if (event.previousContainer === event.container) {
+    moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
+  } else {
+    transferArrayItem(
+      event.previousContainer.data,
+      event.container.data,
+      event.previousIndex,
+      event.currentIndex
+    );
+  }
+
+  // Auto-save to Database
+  const payload = {
+    id: 1,
+    selectedColumns: JSON.stringify(this.selectedColumns),
+    availableColumns: JSON.stringify(this.availableColumns)
+  };
+  this.http.post(`${environment.apiUrl}/InquiryColumnSettings/save`, payload).subscribe();
+}
+// inquiry.component.ts ke andar
+showColumnModal: boolean = false; // Isko class properties mein add karein
 }
   
   
+
+
+
+
+
+
+
+
+
+
+
+
+

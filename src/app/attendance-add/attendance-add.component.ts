@@ -1,125 +1,129 @@
-import { Component, OnInit } from '@angular/core'; // OnInit add kiya
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpClientModule } from '@angular/common/http'; // HttpClient add kiya
+import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-attendance-add',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule], // HttpClientModule zaroori hai
+  imports: [CommonModule, FormsModule, HttpClientModule],
   templateUrl: './attendance-add.component.html',
 })
 export class AttendanceAddComponent implements OnInit {
-  // URLs
+  private userListApi = `${environment.apiUrl}/User/list?user_type=all`;
   private attendanceApi = `${environment.apiUrl}/Attendance`;
-  private employeeApi = `${environment.apiUrl}/Employees`; // Maan ke chal raha hoon ki Employees ki API hai
 
-  employees: any[] = []; // Ab ye khali rahegi, API se bhari jayegi
+  employees: any[] = []; 
   filteredEmployees: any[] = [];
   selectedEmployee: any = null;
   employeeSearch: string = '';
-  showCheckInTime: boolean = false;
+  showCheckInTime: boolean = true;
   loading: boolean = false;
 
   attendance: any = {
-    attendanceDate: this.today(),
+    attendanceDate: new Date().toISOString().split('T')[0],
     attendanceMode: 'Manual',
     shift: 'Morning',
-    checkInTime: this.currentTime(),
+    checkInTime: new Date().toTimeString().slice(0, 5),
     attendanceStatus: 'Present',
     remark: ''
   };
 
   constructor(private http: HttpClient, private router: Router) {}
 
-  ngOnInit() {
-    this.loadEmployees(); // Page load hote hi employees le aao
+  ngOnInit() { 
+    this.loadUsers(); 
   }
 
-  // 1. Backend se Employees fetch karna
-  loadEmployees() {
-    // Agar aapke paas Employee Controller nahi hai, toh abhi purani list hi rakhein
-    // Lekin production mein ye API se aayega
-    this.http.get<any[]>(this.employeeApi).subscribe({
-      next: (res) => this.employees = res,
-      error: (err) => console.error("Employee fetch failed", err)
+  // 401 Unauthorized error se bachne ke liye token headers
+  private getHeaders() {
+    const token = localStorage.getItem('token'); 
+    return new HttpHeaders({
+      'Authorization': `Bearer ${token}`
     });
   }
 
-  searchEmployee() {
-    const q = this.employeeSearch.toLowerCase().trim();
-    if (!q) {
-      this.filteredEmployees = [];
-      return;
+ // 1. Pehle users load karne wali API (Yeh ngOnInit mein call hogi)
+loadUsers() {
+  const token = localStorage.getItem('token'); // Application tab mein jo token hai use uthayega
+  const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
+  this.http.get<any>(this.userListApi, { headers }).subscribe({
+    next: (res) => {
+      // Backend agar { data: [...] } bhej raha hai toh res.data lein
+      this.employees = Array.isArray(res) ? res : (res.data || []);
+      console.log("Employees loaded successfully");
+    },
+    error: (err) => {
+      console.error("401 Error: Token missing or invalid", err);
     }
-    this.filteredEmployees = this.employees.filter(emp =>
-      emp.name.toLowerCase().includes(q) || emp.empId.toLowerCase().includes(q)
-    );
-  }
+  });
+}
 
-  selectEmployee(emp: any) {
-    this.selectedEmployee = emp;
-    this.employeeSearch = emp.name;
-    this.filteredEmployees = [];
-    this.showCheckInTime = true;
+// 2. Search logic jo employees array ko filter karega
+searchEmployee() {
+  const q = this.employeeSearch.toLowerCase().trim();
+  if (!q) { 
+    this.filteredEmployees = []; 
+    return; 
   }
+  this.filteredEmployees = this.employees.filter(emp => 
+    emp.firstName?.toLowerCase().includes(q) || 
+    emp.empCode?.toString().toLowerCase().includes(q)
+  );
+}
 
+// 3. User click kare toh ye function chalega (Isme API nahi aati)
+selectEmployee(emp: any) {
+  this.selectedEmployee = emp; // Yahan pura employee object save hota hai
+  this.employeeSearch = `${emp.firstName} ${emp.lastName || ''}`; // Input mein naam dikhayega
+  this.filteredEmployees = []; // Dropdown band kar dega
+}
+
+  // HTML buttons ke liye mode toggle function
   setMode(mode: string) {
     this.attendance.attendanceMode = mode;
     this.showCheckInTime = (mode === 'Manual' || mode === 'GPS');
-    if (this.showCheckInTime) {
-      this.attendance.checkInTime = this.currentTime();
-    }
   }
 
-  // 2. Data ko sach mein Save karna (POST)
   submitAttendance() {
-    if (!this.selectedEmployee) return;
-
+    if (!this.selectedEmployee) {
+      alert("Please select an employee first");
+      return;
+    }
+    
     this.loading = true;
-
-    // Payload banayein jo C# Model se match kare
+    const headers = this.getHeaders();
+    
     const payload = {
-      empId: this.selectedEmployee.empId,
-      name: this.selectedEmployee.name,
-      profile: this.selectedEmployee.profile,
-      department: this.selectedEmployee.department,
-      designation: this.selectedEmployee.designation,
-      branch: this.selectedEmployee.branch,
+      empId: this.selectedEmployee.empCode,
+      name: `${this.selectedEmployee.firstName} ${this.selectedEmployee.lastName || ''}`,
+      department: this.selectedEmployee.department || 'General',
+      designation: this.selectedEmployee.designation || 'Staff',
+      branch: this.selectedEmployee.branch || 'Head Office',
       shift: this.attendance.shift,
       attendanceDate: this.attendance.attendanceDate,
       checkInTime: this.attendance.checkInTime,
       attendanceStatus: this.attendance.attendanceStatus,
       attendanceMode: this.attendance.attendanceMode,
-      remark: this.attendance.remark,
-      // Nayi fields jo humne database mein dali thi unhe default bhej rahe hain
-      checkOutTime: "",
-      workingHours: 0,
-      lateStatus: "No",
-      lateMinutes: 0,
-      earlyExitStatus: "No",
-      earlyExitMinutes: 0,
-      overtimeHours: 0,
-      overtimeApprovedBy: "System"
+      checkOutTime: "", 
+      workingHours: 0
     };
 
-    this.http.post(this.attendanceApi, payload).subscribe({
-      next: () => {
-        this.loading = false;
-        alert("Attendance Saved Successfully!");
-        this.router.navigate(['/dashboard/attendance/list']);
+    this.http.post(this.attendanceApi, payload, { headers }).subscribe({
+      next: () => { 
+        alert("Attendance Saved!"); 
+        this.router.navigate(['/dashboard/attendance/list']); 
       },
-      error: (err) => {
-        this.loading = false;
-        console.error("Save Error:", err);
-        alert("Error saving attendance. Check console.");
+      error: (err) => { 
+        this.loading = false; 
+        console.error("Save failed:", err);
+        alert("Error saving attendance");
       }
     });
   }
 
   cancel() { this.router.navigate(['/dashboard/attendance/list']); }
-  currentTime(): string { return new Date().toTimeString().slice(0, 5); }
-  today(): string { return new Date().toISOString().split('T')[0]; }
 }

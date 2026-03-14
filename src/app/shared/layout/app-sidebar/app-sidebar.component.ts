@@ -357,14 +357,6 @@ selectBranch(branch: any) {
     }
     
   }
-
-
-
-
-
-
-
-
       finalNav.push({
         name: 'Cargo Type',
         icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>`,
@@ -389,17 +381,17 @@ selectBranch(branch: any) {
         path: '/dashboard/origin'
       });
 
-      finalNav.push({
-        name: 'Port of Loading',
-        icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22V8"></path><path d="M5 12H2a10 10 0 0 0 20 0h-3"></path><circle cx="12" cy="5" r="3"></circle></svg>`,
-        path: '/dashboard/port-of-loading'
-      });
+      // finalNav.push({
+      //   name: 'Port of Loading',
+      //   icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22V8"></path><path d="M5 12H2a10 10 0 0 0 20 0h-3"></path><circle cx="12" cy="5" r="3"></circle></svg>`,
+      //   path: '/dashboard/port-of-loading'
+      // });
 
-      finalNav.push({
-        name: 'Port of Discharge',
-        icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 17h20l-2 4H4l-2-4z"></path><path d="M6 17V9"></path><path d="M10 17V9"></path><path d="M18 13l-3 3-3-3"></path><path d="M15 4v12"></path></svg>`,
-        path: '/dashboard/port-of-discharge'
-      });
+      // finalNav.push({
+      //   name: 'Port of Discharge',
+      //   icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 17h20l-2 4H4l-2-4z"></path><path d="M6 17V9"></path><path d="M10 17V9"></path><path d="M18 13l-3 3-3-3"></path><path d="M15 4v12"></path></svg>`,
+      //   path: '/dashboard/port-of-discharge'
+      // });
 
       finalNav.push({
         name: 'Company Service',

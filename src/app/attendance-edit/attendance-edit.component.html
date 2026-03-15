@@ -1,110 +1,52 @@
-<div class="max-w-5xl mx-auto mt-8 bg-white shadow-2xl rounded-xl overflow-hidden border border-gray-200">
-  <div class="bg-gradient-to-r from-gray-800 to-gray-700 px-6 py-4 flex justify-between items-center">
-    <h2 class="text-xl font-bold text-white uppercase tracking-wider">Edit Attendance Record</h2>
-    <span class="text-xs bg-yellow-400 text-black px-3 py-1 rounded-full font-bold">ID: {{attendance.empId}}</span>
+<div class="max-w-5xl mx-auto mt-8 bg-white shadow-2xl rounded-xl overflow-hidden border">
+  <div class="bg-gray-800 px-6 py-4 flex justify-between items-center text-white">
+    <h2 class="text-xl font-bold uppercase">Edit Attendance</h2>
+    <span class="bg-yellow-400 text-black px-3 py-1 rounded-full text-xs font-bold">ID: {{attendance.empId}}</span>
   </div>
 
   <div class="p-6">
-    <div class="flex items-center gap-6 mb-8 p-4 bg-gray-50 rounded-lg border-l-4 border-yellow-500">
-      <img [src]="attendance.profile" class="w-20 h-20 rounded-full border-2 border-white shadow" alt="Profile" />
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full text-sm">
-        <div><label class="text-gray-500 block uppercase text-[10px] font-bold">Name</label><p class="font-bold text-gray-800">{{attendance.name || 'N/A'}}</p></div>
-        <div><label class="text-gray-500 block uppercase text-[10px] font-bold">Department</label><p class="font-bold text-gray-800">{{attendance.department || 'N/A'}}</p></div>
-        <div><label class="text-gray-500 block uppercase text-[10px] font-bold">Branch</label><p class="font-bold text-gray-800">{{attendance.branch || 'Head Office'}}</p></div>
-        <div><label class="text-gray-500 block uppercase text-[10px] font-bold">Emp ID</label><p class="font-bold text-gray-800">{{attendance.empId}}</p></div>
-      </div>
-    </div>
-
-    <form #attendanceForm="ngForm" (ngSubmit)="updateAttendance()" class="space-y-6">
-      
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <form (ngSubmit)="updateAttendance()" class="space-y-6">
+      <div class="grid grid-cols-3 gap-4">
         <div>
-          <label class="block mb-1 text-xs font-bold text-gray-600 uppercase">Date</label>
-          <input type="date" name="date" [(ngModel)]="attendance.date" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-yellow-500 outline-none" />
+          <label class="block mb-1 text-xs font-bold uppercase">Date</label>
+          <input type="date" name="attendanceDate" [(ngModel)]="attendance.attendanceDate" class="w-full px-4 py-2 border rounded-lg" />
         </div>
         <div>
-          <label class="block mb-1 text-xs font-bold text-gray-600 uppercase">Shift</label>
+          <label class="block mb-1 text-xs font-bold uppercase">Shift</label>
           <select name="shift" [(ngModel)]="attendance.shift" class="w-full px-4 py-2 border rounded-lg">
             <option value="Morning">Morning Shift</option>
             <option value="Evening">Evening Shift</option>
-            <option value="Night">Night Shift</option>
           </select>
         </div>
         <div>
-          <label class="block mb-1 text-xs font-bold text-gray-600 uppercase">Attendance Status</label>
-          <select name="status" [(ngModel)]="attendance.status" class="w-full px-4 py-2 border rounded-lg font-bold text-blue-600">
+          <label class="block mb-1 text-xs font-bold uppercase">Status</label>
+          <select name="status" [(ngModel)]="attendance.attendanceStatus" class="w-full px-4 py-2 border rounded-lg font-bold text-blue-600">
             <option value="Present">Present</option>
             <option value="Absent">Absent</option>
             <option value="Half Day">Half Day</option>
-            <option value="Leave">Leave</option>
           </select>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-yellow-50 rounded-lg">
+      <div class="grid grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
         <div>
-          <label class="block mb-1 text-xs font-bold text-gray-600 uppercase">In Time</label>
-          <input type="time" name="checkIn" [(ngModel)]="attendance.checkIn" class="w-full px-4 py-2 border rounded-lg" />
+          <label class="block mb-1 text-xs font-bold uppercase">In Time</label>
+          <input type="time" name="checkInTime" [(ngModel)]="attendance.checkInTime" class="w-full px-4 py-2 border rounded-lg" />
         </div>
         <div>
-          <label class="block mb-1 text-xs font-bold text-gray-600 uppercase">Out Time</label>
-          <input type="time" name="checkOut" [(ngModel)]="attendance.checkOut" class="w-full px-4 py-2 border rounded-lg" />
+          <label class="block mb-1 text-xs font-bold uppercase">Out Time</label>
+          <input type="time" name="checkOutTime" [(ngModel)]="attendance.checkOutTime" class="w-full px-4 py-2 border rounded-lg" />
         </div>
         <div>
-          <label class="block mb-1 text-xs font-bold text-gray-600 uppercase">Total Hours</label>
-          <input type="number" name="workingHours" [(ngModel)]="attendance.workingHours" step="0.1" class="w-full px-4 py-2 border rounded-lg bg-white font-bold" />
+          <label class="block mb-1 text-xs font-bold uppercase">Working Hours</label>
+          <input type="number" name="workingHours" [(ngModel)]="attendance.workingHours" class="w-full px-4 py-2 border rounded-lg font-bold" />
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="border p-4 rounded-lg shadow-sm">
-          <h4 class="text-[10px] font-black uppercase text-red-500 mb-3 tracking-tighter">Penalty / Late Logic</h4>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-[10px] text-gray-500 font-bold">Late (Mins)</label>
-              <input type="number" name="lateMinutes" [(ngModel)]="attendance.lateMinutes" class="w-full border-b focus:border-red-500 outline-none py-1" />
-            </div>
-            <div>
-              <label class="block text-[10px] text-gray-500 font-bold">Early Exit (Mins)</label>
-              <input type="number" name="earlyExitMinutes" [(ngModel)]="attendance.earlyExitMinutes" class="w-full border-b focus:border-red-500 outline-none py-1" />
-            </div>
-          </div>
-        </div>
-
-        <div class="border p-4 rounded-lg shadow-sm">
-          <h4 class="text-[10px] font-black uppercase text-green-600 mb-3 tracking-tighter">Overtime Details</h4>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-[10px] text-gray-500 font-bold">OT Hours</label>
-              <input type="number" name="overtime" [(ngModel)]="attendance.overtime" class="w-full border-b focus:border-green-500 outline-none py-1" />
-            </div>
-            <div>
-              <label class="block text-[10px] text-gray-500 font-bold">Approved By</label>
-              <input type="text" name="overtimeBy" [(ngModel)]="attendance.overtimeBy" placeholder="Manager Name" class="w-full border-b focus:border-green-500 outline-none py-1" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block mb-1 text-xs font-bold text-gray-600 uppercase">Data Source</label>
-          <select name="mode" [(ngModel)]="attendance.mode" class="w-full px-4 py-2 border rounded-lg">
-            <option value="manual">Manual Entry</option>
-            <option value="biometric">Biometric Device</option>
-            <option value="mobile">Mobile App (GPS)</option>
-          </select>
-        </div>
-        <div>
-          <label class="block mb-1 text-xs font-bold text-gray-600 uppercase">Adjustment Reason</label>
-          <textarea name="remark" [(ngModel)]="attendance.remark" rows="1" class="w-full px-4 py-2 border rounded-lg resize-none" placeholder="Why editing this record?"></textarea>
-        </div>
-      </div>
-
-      <div class="flex justify-end gap-4 pt-6 border-t mt-4">
-        <button type="button" (click)="cancel()" class="px-6 py-2 text-gray-500 font-bold hover:bg-gray-100 rounded-lg transition">Cancel</button>
-        <button type="submit" [disabled]="!attendanceForm.valid" class="px-10 py-2 bg-yellow-500 text-white font-bold rounded-lg shadow-lg hover:bg-yellow-600 transition uppercase text-sm">
-          Update Attendance
+      <div class="flex justify-end gap-4 pt-6 border-t">
+        <button type="button" (click)="cancel()" class="px-6 py-2 text-gray-500 font-bold hover:bg-gray-100 rounded-lg">Cancel</button>
+        <button type="submit" class="px-10 py-2 bg-yellow-500 text-white font-bold rounded-lg shadow-lg uppercase text-sm">
+          {{ loading ? 'Updating...' : 'Update Record' }}
         </button>
       </div>
     </form>

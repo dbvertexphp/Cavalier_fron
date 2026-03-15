@@ -9,11 +9,12 @@
     </button>
   </div>
 
-  <div class="bg-white rounded-[24px] shadow-2xl border border-gray-100 overflow-hidden">
+<div class="bg-white rounded-[24px] shadow-2xl border border-gray-100 overflow-hidden">
     <div class="overflow-x-auto">
       <table class="w-full text-left border-collapse">
         <thead>
           <tr class="bg-gray-50/80 border-b border-gray-100">
+            <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[2px] text-gray-400 w-20">S.No</th>
             <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[2px] text-gray-400">Services</th>
             <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[2px] text-gray-400 text-center">Status</th>
             <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[2px] text-gray-400 text-center">Actions</th>
@@ -22,12 +23,16 @@
         
         <tbody class="divide-y divide-gray-50">
           <tr *ngIf="services.length === 0">
-            <td colspan="3" class="px-8 py-10 text-center text-gray-400 font-bold uppercase text-[10px] tracking-widest">
+            <td colspan="4" class="px-8 py-10 text-center text-gray-400 font-bold uppercase text-[10px] tracking-widest">
               No services found
             </td>
           </tr>
 
-          <tr *ngFor="let s of services" class="group hover:bg-blue-50/40 transition-all duration-200">
+          <tr *ngFor="let s of services; let i = index" class="group hover:bg-blue-50/40 transition-all duration-200">
+            <td class="px-8 py-6 border-r border-gray-50 text-[12px] font-bold text-gray-400">
+              {{ i + 1 }}
+            </td>
+
             <td class="px-8 py-6 border-r border-gray-50">
               <span class="text-[#1e293b] font-black text-[14px] uppercase tracking-wide group-hover:text-blue-700 transition-colors">
                 {{ s.serviceName }}

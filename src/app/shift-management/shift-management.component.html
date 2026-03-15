@@ -1,79 +1,49 @@
 <div class="min-h-screen bg-gray-50 p-6 font-sans text-gray-800">
-  
   <div class="flex justify-between items-center mb-8 bg-white p-6 rounded-2xl shadow-sm border-l-8 border-[#654E51]">
     <div>
       <h2 class="text-2xl font-black tracking-tight uppercase">Shift Master Configuration</h2>
       <p class="text-[10px] font-bold text-gray-400 tracking-[3px] uppercase">Employee Workforce Scheduling</p>
     </div>
-    <div>
-      <button (click)="addShift()" class="flex items-center gap-2 px-6 py-2.5 bg-[#654E51] text-white font-black rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all uppercase text-[11px] tracking-widest">
-        <span>+</span> Setup New Shift
-      </button>
-    </div>
+    <button (click)="addShift()" class="flex items-center gap-2 px-6 py-2.5 bg-[#654E51] text-white font-black rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all uppercase text-[11px] tracking-widest">
+      <span>+</span> Setup New Shift
+    </button>
   </div>
 
-  <div class="overflow-hidden rounded-3xl border border-gray-100 shadow-xl bg-white animate-in fade-in zoom-in duration-300">
+  <div class="overflow-hidden rounded-3xl border border-gray-100 shadow-xl bg-white">
     <table class="min-w-full">
       <thead class="bg-gray-50 border-b">
         <tr>
           <th class="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Employee & Shift</th>
           <th class="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Timing & Hours</th>
-          <th class="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Break Schedule</th>
           <th class="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Rules (Late/Off)</th>
           <th class="px-6 py-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Actions</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-50">
-        <tr *ngFor="let shift of shiftList" class="hover:bg-gray-50 transition-all group">
+        <tr *ngFor="let shift of shiftList" class="hover:bg-gray-50 transition-all">
           <td class="px-6 py-5">
             <div class="flex items-center gap-4">
-              <div class="relative">
-                <img [src]="shift.userPhoto" class="w-12 h-12 rounded-2xl object-cover shadow-md border-2 border-white ring-2 ring-gray-100">
-                <div [class]="shift.geoLock ? 'bg-green-500' : 'bg-gray-300'" class="absolute -bottom-1 -right-1 w-4 h-4 border-2 border-white rounded-full"></div>
+              <div class="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center font-bold text-[#654E51]">
+                {{ shift.employeeName.charAt(0) }}
               </div>
               <div>
-                <p class="text-[10px] font-black text-[#654E51] mb-0.5 tracking-tighter">{{ shift.code }} | {{ shift.shiftName }}</p>
-                <h3 class="text-sm font-black uppercase leading-none">{{ shift.employeeName }}</h3>
-                <p class="text-[9px] font-bold text-gray-400 mt-1 uppercase tracking-tighter">{{ shift.department }}</p>
+                <p class="text-[10px] font-black text-[#654E51] mb-0.5">{{ shift.code }} | {{ shift.shiftName }}</p>
+                <h3 class="text-sm font-black uppercase">{{ shift.employeeName }}</h3>
+                <p class="text-[9px] font-bold text-gray-400 uppercase">{{ shift.department }}</p>
               </div>
             </div>
           </td>
-
-          <td class="px-6 py-5">
-            <div class="flex items-center gap-2 text-xs font-black">
-              <span class="bg-blue-50 px-2 py-1 rounded text-blue-700 border border-blue-100">{{ shift.startTime }}</span>
-              <span class="text-gray-300 text-[10px]">➞</span>
-              <span class="bg-orange-50 px-2 py-1 rounded text-orange-700 border border-orange-100">{{ shift.endTime }}</span>
-            </div>
-            <p class="text-[10px] font-bold text-gray-500 mt-2 uppercase">{{ shift.workingHours }} Hrs Work</p>
+          <td class="px-6 py-5 text-xs font-black">
+            <span class="text-blue-700">{{ shift.startTime }} - {{ shift.endTime }}</span>
+            <p class="text-[10px] text-gray-400 uppercase">{{ shift.workingHours }} Hrs Work</p>
           </td>
-
           <td class="px-6 py-5">
-            <div class="flex items-center gap-1.5">
-              <div class="w-1.5 h-1.5 rounded-full bg-orange-400"></div>
-              <p class="text-[11px] font-black text-gray-700">{{ shift.breakStart }} - {{ shift.breakEnd }}</p>
-            </div>
-            <p class="text-[9px] font-black text-orange-500 uppercase mt-1 ml-3">{{ shift.breakMinutes }} Mins</p>
+            <p class="text-[10px] font-black text-red-600">Late: {{ shift.lateAllowed }}m</p>
+            <p class="text-[10px] font-black text-gray-500">Off: {{ shift.weekOff }}</p>
           </td>
-
-          <td class="px-6 py-5">
-            <div class="space-y-1">
-              <p class="text-[10px] font-black text-red-600 uppercase flex items-center gap-1">
-                <span class="w-1 h-1 bg-red-600 rounded-full"></span> Late: {{ shift.lateAllowed }}m
-              </p>
-              <p class="text-[10px] font-black text-gray-500 uppercase tracking-tighter">Off: {{ shift.weekOff }}</p>
-            </div>
-          </td>
-
-          <td class="px-6 py-5 text-center">
-            <div class="flex gap-2 justify-center">
-              <button (click)="editShift(shift)" class="p-2.5 bg-gray-50 text-[#654E51] rounded-xl hover:bg-[#654E51] hover:text-white transition-all shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-              </button>
-              <button (click)="deleteShift(shift.id)" class="p-2.5 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-              </button>
-            </div>
+          <td class="px-6 py-5 text-center flex justify-center gap-2">
+            <button (click)="editShift(shift)" class="p-2 bg-gray-50 text-[#654E51] rounded-lg font-bold text-[10px] uppercase">Edit</button>
+            <button (click)="deleteShift(shift.id)" class="p-2 bg-red-50 text-red-500 rounded-lg font-bold text-[10px] uppercase">Delete</button>
           </td>
         </tr>
       </tbody>
@@ -81,96 +51,78 @@
   </div>
 
   <div *ngIf="showModal" class="fixed inset-0 bg-black/60 flex justify-center items-center z-50 backdrop-blur-md p-4">
-    <div class="bg-white rounded-[40px] shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto border-t-[12px] border-[#654E51] animate-in zoom-in duration-300">
-      <div class="p-10">
-        <div class="flex justify-between items-center mb-8">
-          <h3 class="text-3xl font-black text-gray-800 uppercase tracking-tighter">{{ isEdit ? 'Update' : 'Create' }} Shift</h3>
-          <button (click)="closeModal()" class="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 transition-all">✕</button>
+    <div class="bg-white rounded-[40px] shadow-2xl w-full max-w-4xl border-t-[12px] border-[#654E51] p-10 overflow-visible">
+      <div class="flex justify-between items-center mb-8">
+        <h3 class="text-2xl font-black text-gray-800 uppercase">{{ isEdit ? 'Update' : 'Create' }} Shift</h3>
+        <button (click)="closeModal()" class="text-gray-400 hover:text-red-500">✕</button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="space-y-4">
+          <h4 class="text-xs font-black text-[#654E51] uppercase border-b pb-2">1. Employee Selection</h4>
+          <div class="relative">
+            <label class="text-[10px] font-black text-gray-400 uppercase">Search Employee</label>
+            <input [(ngModel)]="employeeSearch" (input)="searchEmployee()" placeholder="Search..." class="w-full bg-gray-50 border-2 border-gray-100 p-3 rounded-xl font-bold">
+            <ul *ngIf="filteredEmployees.length > 0" class="absolute z-50 w-full bg-white border shadow-2xl rounded-xl mt-1 max-h-40 overflow-y-auto">
+              <li *ngFor="let emp of filteredEmployees" (click)="selectEmployee(emp)" class="p-3 hover:bg-gray-50 cursor-pointer border-b text-sm font-bold">
+                {{ emp.firstName }} {{ emp.lastName }} <span class="text-xs text-gray-400">({{ emp.empCode }})</span>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <label class="text-[10px] font-black text-gray-400 uppercase">Shift Code</label>
+            <input [(ngModel)]="currentShift.code" placeholder="SFT-001" class="w-full bg-gray-50 border-2 border-gray-100 p-3 rounded-xl font-bold">
+          </div>
+          <div>
+            <label class="text-[10px] font-black text-gray-400 uppercase">Shift Name</label>
+            <input [(ngModel)]="currentShift.shiftName" placeholder="Morning Shift" class="w-full bg-gray-50 border-2 border-gray-100 p-3 rounded-xl font-bold">
+          </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div class="space-y-4">
-            <h4 class="text-xs font-black text-[#654E51] uppercase border-b pb-2 tracking-widest">1. Basic Details</h4>
+        <div class="space-y-4 border-x px-6">
+          <h4 class="text-xs font-black text-[#654E51] uppercase border-b pb-2">2. Timing & Break</h4>
+          <div class="grid grid-cols-2 gap-2">
             <div>
-              <label class="text-[10px] font-black text-gray-400 uppercase ml-1">Shift Name</label>
-              <input [(ngModel)]="currentShift.shiftName" placeholder="e.g. Morning Shift" class="w-full bg-gray-50 border-2 border-gray-100 p-3 rounded-xl font-bold">
+               <label class="text-[9px] font-bold">START</label>
+               <input type="time" [(ngModel)]="currentShift.startTime" class="w-full p-2 bg-gray-50 border rounded-xl font-bold">
             </div>
             <div>
-              <label class="text-[10px] font-black text-gray-400 uppercase ml-1">Employee Name</label>
-              <input [(ngModel)]="currentShift.employeeName" placeholder="e.g. Rahul Sharma" class="w-full bg-gray-50 border-2 border-gray-100 p-3 rounded-xl font-bold">
-            </div>
-            <div class="grid grid-cols-2 gap-2">
-                <div>
-                    <label class="text-[10px] font-black text-gray-400 uppercase ml-1">Code</label>
-                    <input [(ngModel)]="currentShift.code" placeholder="MS01" class="w-full bg-gray-50 border-2 border-gray-100 p-3 rounded-xl font-bold">
-                </div>
-                <div>
-                    <label class="text-[10px] font-black text-gray-400 uppercase ml-1">Type</label>
-                    <select [(ngModel)]="currentShift.shiftType" class="w-full bg-gray-50 border-2 border-gray-100 p-3 rounded-xl font-bold text-xs">
-                        <option value="Fixed">Fixed</option>
-                        <option value="Rotational">Rotational</option>
-                        <option value="Night">Night</option>
-                    </select>
-                </div>
+               <label class="text-[9px] font-bold">END</label>
+               <input type="time" [(ngModel)]="currentShift.endTime" class="w-full p-2 bg-gray-50 border rounded-xl font-bold">
             </div>
           </div>
-
-          <div class="space-y-4 border-x px-6">
-            <h4 class="text-xs font-black text-[#654E51] uppercase border-b pb-2 tracking-widest">2. Timing & Break</h4>
-            <div class="grid grid-cols-2 gap-2">
-              <div>
-                <label class="text-[10px] font-black text-gray-400 uppercase ml-1">Start Time</label>
-                <input type="time" [(ngModel)]="currentShift.startTime" class="w-full bg-gray-50 border-2 border-gray-100 p-2 rounded-xl font-bold text-sm">
-              </div>
-              <div>
-                <label class="text-[10px] font-black text-gray-400 uppercase ml-1">End Time</label>
-                <input type="time" [(ngModel)]="currentShift.endTime" class="w-full bg-gray-50 border-2 border-gray-100 p-2 rounded-xl font-bold text-sm">
-              </div>
+          <div class="grid grid-cols-2 gap-2 mt-4">
+            <div>
+               <label class="text-[9px] font-bold">LATE ALLOWED (MINS)</label>
+               <input type="number" [(ngModel)]="currentShift.lateAllowed" class="w-full p-2 bg-gray-50 border rounded-xl font-bold">
             </div>
             <div>
-              <label class="text-[10px] font-black text-gray-400 uppercase ml-1">Break Time Range</label>
-              <div class="grid grid-cols-2 gap-2">
-                <input type="time" [(ngModel)]="currentShift.breakStart" class="w-full bg-gray-50 border-2 border-gray-100 p-2 rounded-xl font-bold text-sm">
-                <input type="time" [(ngModel)]="currentShift.breakEnd" class="w-full bg-gray-50 border-2 border-gray-100 p-2 rounded-xl font-bold text-sm">
-              </div>
-            </div>
-            <div>
-              <label class="text-[10px] font-black text-gray-400 uppercase ml-1">Break Duration (Mins)</label>
-              <input type="number" [(ngModel)]="currentShift.breakMinutes" class="w-full bg-gray-50 border-2 border-gray-100 p-3 rounded-xl font-bold">
-            </div>
-          </div>
-
-          <div class="space-y-4">
-            <h4 class="text-xs font-black text-[#654E51] uppercase border-b pb-2 tracking-widest">3. Rules & Offs</h4>
-            <div class="grid grid-cols-2 gap-2">
-              <div>
-                <label class="text-[10px] font-black text-gray-400 uppercase ml-1">Late (Mins)</label>
-                <input type="number" [(ngModel)]="currentShift.lateAllowed" class="w-full bg-gray-50 border-2 border-gray-100 p-2 rounded-xl font-bold">
-              </div>
-              <div>
-                <label class="text-[10px] font-black text-gray-400 uppercase ml-1">Half Day (Hrs)</label>
-                <input type="number" [(ngModel)]="currentShift.halfDayAfter" class="w-full bg-gray-50 border-2 border-gray-100 p-2 rounded-xl font-bold">
-              </div>
-            </div>
-            <div>
-              <label class="text-[10px] font-black text-gray-400 uppercase ml-1">Weekly Off Day</label>
-              <select [(ngModel)]="currentShift.weekOff" class="w-full bg-gray-50 border-2 border-gray-100 p-3 rounded-xl font-bold">
-                <option>Sunday</option><option>Monday</option><option>Saturday</option><option>None</option>
-              </select>
-            </div>
-            <div class="flex items-center gap-4 bg-gray-50 p-4 rounded-xl border border-dashed border-gray-200">
-              <input type="checkbox" [(ngModel)]="currentShift.geoLock" class="w-5 h-5 accent-[#654E51]">
-              <label class="text-[10px] font-black text-gray-600 uppercase">Enable Geo-Lock</label>
+               <label class="text-[9px] font-bold">WORKING HRS</label>
+               <input type="number" [(ngModel)]="currentShift.workingHours" class="w-full p-2 bg-gray-50 border rounded-xl font-bold">
             </div>
           </div>
         </div>
 
-        <div class="flex justify-end gap-4 mt-10 pt-6 border-t">
-          <button (click)="closeModal()" class="px-8 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-gray-600 transition-all">Discard</button>
-          <button (click)="saveShift()" class="px-10 py-4 bg-[#654E51] text-white text-[11px] font-black rounded-2xl shadow-2xl hover:brightness-110 active:scale-95 transition-all uppercase tracking-[3px]">
-            {{ isEdit ? 'Sync Update' : 'Initialize Shift' }}
-          </button>
+        <div class="space-y-4">
+          <h4 class="text-xs font-black text-[#654E51] uppercase border-b pb-2">3. Rules</h4>
+          <div>
+            <label class="text-[10px] font-black text-gray-400 uppercase">Weekly Off</label>
+            <select [(ngModel)]="currentShift.weekOff" class="w-full bg-gray-50 border p-3 rounded-xl font-bold">
+              <option>Sunday</option><option>Monday</option><option>None</option>
+            </select>
+          </div>
+          <div class="flex items-center gap-4 bg-gray-50 p-4 rounded-xl border border-dashed">
+            <input type="checkbox" [(ngModel)]="currentShift.geoLock" class="accent-[#654E51] w-5 h-5">
+            <label class="text-[10px] font-black text-gray-600 uppercase">Enable Geo-Lock</label>
+          </div>
         </div>
+      </div>
+
+      <div class="flex justify-end gap-4 mt-10 pt-6 border-t">
+        <button (click)="closeModal()" class="font-black text-gray-400 uppercase text-[10px]">Discard</button>
+        <button (click)="saveShift()" class="px-10 py-4 bg-[#654E51] text-white rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-lg">
+          {{ isEdit ? 'Update Shift' : 'Save Shift' }}
+        </button>
       </div>
     </div>
   </div>

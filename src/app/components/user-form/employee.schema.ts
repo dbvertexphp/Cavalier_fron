@@ -9,15 +9,11 @@ export const employeeSchema = z.object({
   mobile: z.string().regex(/^[0-9]{10}$/, "Mobile must be 10 digits"),
   
   // Mapped to your TS names
-  department: z.string().min(1, "Department required"),
+department: z.coerce.string().min(1, "Department required"),
 paN_No: z.string()
-  .min(1, "PAN No required hai")
-  // Input ko validate karne se pehle uppercase mein convert karega
-  .transform((val) => val.toUpperCase()) 
-  // Regex jo space aur case dono ko handle karega
-  .refine((val) => /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(val), {
-    message: "Invalid PAN format (e.g., ABCDE1234F)",
-  }),
+  .min(1, "PAN No required ")
+  // Bas uppercase mein convert karega, format ki tension nahi
+  .transform((val) => val.toUpperCase()),
   aadhaarNo: z.string().regex(/^[0-9]{12}$/, "Invalid Aadhaar"),
   dateOfJoining: z.string().min(1, "Joining date required"),
   ctc_Monthly: z.preprocess((val) => String(val), z.string().regex(/^[0-9.]+$/, "CTC must be number")),
@@ -37,9 +33,9 @@ paN_No: z.string()
   accountHolderName: z.string().min(1, "Required"),
   bankName: z.string().min(1, "Required"),
   ifscCode: z.string()
-  .min(1, "IFSC code khali nahi hona chahiye")
+  .min(1, "IFSC code not be empty.")
   .toUpperCase() // User small likhe ya capital, ye capital bana dega
-  .regex(/^[A-Z0-9]+$/, "Sirf alphabets aur numbers allowed hain (No special characters)"),
+  .regex(/^[A-Z0-9]+$/, "ony alphabets and numbers (No special characters)"),
   accountNumber: z.string().regex(/^[0-9]{9,18}$/, "Invalid account number"),
 
   // Education - Flattened as per your initForm

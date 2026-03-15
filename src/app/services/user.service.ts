@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { User } from '../models/user.model';
 import { environment } from '../../environments/environment';
 
@@ -45,13 +45,24 @@ updateDepartment(id: number, name: string): Observable<any> {
 }
 
   // 4. ✅ Get Departments (Dropdown aur Cards ke liye)
-  getDepartments(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/departments`);
-  }
+  // getDepartments(): Observable<any[]> {
+  //   return this.http.get<any[]>(`${this.apiUrl}/departments`);
 
+  // }
+getDepartments(): Observable<any[]> {
+  return this.http.get<any[]>(`${this.apiUrl}/departments`).pipe(
+    tap((data) => {
+      console.log('Department Data:', data); // Yaha console mein data dikhega
+    })
+  );
+}
   // 5. ✅ Get Designations (URL FIX: Backend expects 'get-designations')
   getDesignations(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/get-designations`);
+    return this.http.get<any[]>(`${this.apiUrl}/get-designations`).pipe(
+      tap((data)=>{
+        console.log('designations data:',data)
+      })
+    );
   }
   //cahnge here 
 // ... existing code ...

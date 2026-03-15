@@ -20,11 +20,12 @@
     </button>
   </div>
 
-  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
     <div class="overflow-x-auto">
       <table class="w-full text-left border-collapse">
         <thead class="bg-gray-50 border-b border-gray-200" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
           <tr>
+            <th class="px-4 md:px-6 py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-widest w-16">S.No</th>
             <th class="px-4 md:px-6 py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-widest">Unit Name</th>
             <th class="px-4 md:px-6 py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-widest">Short Code</th>
             <th class="px-4 md:px-6 py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-widest text-center">Actions</th>
@@ -32,12 +33,16 @@
         </thead>
         <tbody class="divide-y divide-gray-100">
           <tr *ngIf="unitList.length === 0">
-            <td colspan="3" class="px-6 py-12 text-center text-gray-400">
+            <td colspan="4" class="px-6 py-12 text-center text-gray-400">
               <p class="text-sm font-medium">No units added yet.</p>
             </td>
           </tr>
           
-          <tr *ngFor="let unit of unitList" class="hover:bg-gray-50/50 transition-colors group">
+          <tr *ngFor="let unit of unitList; let i = index" class="hover:bg-gray-50/50 transition-colors group">
+            <td class="px-4 md:px-6 py-4 text-xs font-bold text-gray-400">
+              {{ i + 1 }}
+            </td>
+            
             <td class="px-4 md:px-6 py-4">
               <span class="font-semibold text-gray-900 text-sm md:text-base">{{unit.unitName|uppercase}}</span>
             </td>

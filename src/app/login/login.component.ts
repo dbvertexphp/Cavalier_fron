@@ -205,6 +205,7 @@ import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { CheckPermissionService } from '../services/check-permission.service';
+import {NotificationService} from '../services/notification.service';
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -237,7 +238,8 @@ export class LoginComponent implements OnInit {
     private router: Router,
     private http: HttpClient,
     private c: ChangeDetectorRef,
-    private checkPermission: CheckPermissionService
+    private checkPermission: CheckPermissionService,
+    private notificationService: NotificationService
   ) { }
 
   ngOnInit(): void {
@@ -267,79 +269,88 @@ export class LoginComponent implements OnInit {
   }
 
   // 🔐 LOGIN STEP (API BASED)
-  onNextStep(): void {
-    console.log('clicked next step');
-    if (this.loginForm.invalid) {
-      alert('Email & Password required');
-      return;
-    }
+ onNextStep(): void {
+  console.log('clicked next step');
 
-    this.http.post<any>(
-      `${environment.apiUrl}/Auth/login`,
-      this.loginForm.value
-    ).subscribe({
-      next: (res) => {
-
-        const user = res.user;
-        this.isStepTwo = true;
-        this.c.detectChanges(); // Force UI update for step 2
-
-        // ✅ USER + COMPANY
-        this.displayUserName = user.firstName;
-        this.displayCompanyName = (user.branches?.[0]?.companyName || '').toUpperCase();
-
-        localStorage.setItem('userName', user.firstName);
-        localStorage.setItem('companyName', this.displayCompanyName);
-        localStorage.setItem('cavalier_token', res.token);
-
-        // ✅ MASTER ROLE LOGIC
-        const userRole = user.role?.name;
-
-if (userRole === 'Master') {
-
-  // 🔥 BOTH ROLES (Master ke liye)
-  this.roles = [
-    'System Administrator',
-    'Branch Administrator'  
-  ];
-
-  this.branches = user.branches || [];
-  console.log(this.branches);
-
-  this.selectionForm.patchValue({
-    selectedRole: '',
-    selectedCity: ''
-  });
-
-  this.isBranchDisabled = false;
-  this.selectionForm.get('selectedCity')?.enable();
-
-} else {
-
-  // 🔥 NON-MASTER ke liye sirf Branch Administrator
-  this.roles = ['Branch Administrator'];
-
-  this.branches = user.branches || [];
-  console.log(this.branches);
-
-  // Default role auto select
-  this.selectionForm.patchValue({
-    selectedRole: 'Branch Administrator',
-    selectedCity: ''
-  });
-
-  this.isBranchDisabled = false;
-  this.selectionForm.get('selectedCity')?.enable();
-}
-
-        // SAVE
-        localStorage.setItem('userRole', user.role.name);
-      },
-      error: (err) => {
-        alert(err.error?.message || 'Login Failed');
-      }
-    });
+  if (this.loginForm.invalid) {
+    alert('Email & Password required');
+    return;
   }
+
+  this.http.post<any>(
+    `${environment.apiUrl}/Auth/login`,
+    this.loginForm.value
+  ).subscribe({
+    next: async (res) => {
+      const user = res.user;
+      this.isStepTwo = true;
+      this.c.detectChanges();
+
+      this.displayUserName = user.firstName;
+      this.displayCompanyName = (user.branches?.[0]?.companyName || '').toUpperCase();
+
+      localStorage.setItem('userName', user.firstName);
+      localStorage.setItem('companyName', this.displayCompanyName);
+      localStorage.setItem('cavalier_token', res.token);
+
+      const userRole = user.role?.name;
+
+      if (userRole === 'Master') {
+        this.roles = [
+          'System Administrator',
+          'Branch Administrator'
+        ];
+
+        this.branches = user.branches || [];
+        console.log(this.branches);
+
+        this.selectionForm.patchValue({
+          selectedRole: '',
+          selectedCity: ''
+        });
+
+        this.isBranchDisabled = false;
+        this.selectionForm.get('selectedCity')?.enable();
+
+      } else {
+        this.roles = ['Branch Administrator'];
+
+        this.branches = user.branches || [];
+        console.log(this.branches);
+
+        this.selectionForm.patchValue({
+          selectedRole: 'Branch Administrator',
+          selectedCity: ''
+        });
+
+        this.isBranchDisabled = false;
+        this.selectionForm.get('selectedCity')?.enable();
+      }
+
+      localStorage.setItem('userRole', user.role.name);
+
+      // ✅ YAHAN FCM TOKEN GENERATE + SAVE KARO
+      const fcmToken = await this.notificationService.init();
+
+      if (fcmToken) {
+        this.notificationService.sendFcmToken(fcmToken).subscribe({
+          next: (tokenRes) => {
+            console.log('FCM token saved successfully', tokenRes);
+          },
+          error: (tokenErr) => {
+            console.error('Error saving FCM token', tokenErr);
+          }
+        });
+      }
+
+      // optional
+      this.notificationService.listen();
+    },
+    error: (err) => {
+      alert(err.error?.message || 'Login Failed');
+    }
+  });
+}
 
   onRoleChange(): void {
     const role = this.selectionForm.value.selectedRole;

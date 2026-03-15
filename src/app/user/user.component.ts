@@ -53,9 +53,7 @@ loadUsers(userType: string = 'all') {
       this.loading = false;
       this.resetSelection();
 
-      // --- START GENERATION LOGIC ---
      
-      // --- END GENERATION LOGIC ---
     },
     error: (err) => {
       console.error("Data fetch error:", err);
@@ -64,10 +62,7 @@ loadUsers(userType: string = 'all') {
   });
 }
 
-/**
- * Logic to find the highest ID in the current list and increment it.
- * Assumes your user object has a numeric property like 'empId'.
- */
+
 
 
   addUser() {

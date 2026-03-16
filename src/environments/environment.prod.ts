@@ -2,6 +2,7 @@ export const environment = {
   production: true,
   // apiUrl: 'http://api.cavalierlogistic.graphicsvolume.com', // Live URL
   apiUrl: 'https://api.cavalierlogistic.graphicsvolume.com/api', // Live URL
+<<<<<<< HEAD
    firebase: {
     apiKey: "AIzaSyD8ys-ve3XONsOky2FVTVOvr3S6V5vN5vg",
   authDomain: "cavalierfron.firebaseapp.com",
@@ -13,3 +14,6 @@ export const environment = {
   },
    vapidKey: 'BGyIFdotG6ouhNTsc_Z9XwrVftAJ1PK5sVOx3nvmT-0ZjcOu00AmLIsqGHWUplFI3PI7PBIsNUZtEU2Cdm5ibtY'
 };
+=======
+};
+>>>>>>> cdcaecf348a592648c378c15c6391e50eb2c0929

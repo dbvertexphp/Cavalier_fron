@@ -1,4 +1,5 @@
 export const environment = {
+<<<<<<< HEAD
   production: true,
   // apiUrl: 'http://api.cavalierlogistic.graphicsvolume.com', // Live URL
   apiUrl: 'https://api.cavalierlogistic.graphicsvolume.com/api', // Live URL
@@ -13,3 +14,10 @@ export const environment = {
   },
    vapidKey: 'BGyIFdotG6ouhNTsc_Z9XwrVftAJ1PK5sVOx3nvmT-0ZjcOu00AmLIsqGHWUplFI3PI7PBIsNUZtEU2Cdm5ibtY'
 };
+=======
+  production: false,
+  // Swagger wala URL yahan daalna hai
+  apiUrl: 'http://localhost:5000/api',
+   
+};
+>>>>>>> cdcaecf348a592648c378c15c6391e50eb2c0929

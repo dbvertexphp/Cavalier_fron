@@ -621,11 +621,29 @@ Cancel
     </div>
   </div>
 </div>
-      <div class="flex items-center">
+
+
+
+      <!-- <div class="flex items-center">
         <label class="w-40 font-bold text-gray-700">Business Dimensions</label>
         <input type="text" name="businessDims" [(ngModel)]="quotation.businessDimensions" class="flex-1 border p-2 outline-none">
       </div>
-    </div>
+    </div> -->
+
+
+    <div class="flex items-center">
+  <label class="w-40 font-bold text-gray-700">Business Dimensions</label>
+  <select name="businessDims" [(ngModel)]="quotation.businessDimensions" class="flex-1 border p-2 outline-none">
+    <option value="Electronic">Electronic</option>
+    <option value="Mercury">Mercury</option>
+    <option value="Cosmetic">Cosmetic</option>
+    <option value="Toys">Toys</option>
+  </select>
+</div>
+</div>
+
+
+    
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
       <div class="flex items-center">

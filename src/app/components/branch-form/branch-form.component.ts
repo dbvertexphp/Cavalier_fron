@@ -14,7 +14,6 @@ export class BranchFormComponent implements OnInit {
   branchForm: FormGroup;
   isEdit: boolean = false;
   loading: boolean = false;
-  roles: any[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -23,12 +22,10 @@ export class BranchFormComponent implements OnInit {
   ) {
     this.branchForm = this.fb.group({
       id: [0],
-      companyName: [{ value: 'Cavalier Logistic Private Limited', disabled: false }],
+      companyName: [{ value: 'Cavalier Logistic Private Limited', disabled: true }, Validators.required],
       companyAlias: ['', Validators.maxLength(100)],
       branchName: ['', [Validators.required, Validators.maxLength(250)]],
       branchCode: ['', [Validators.required, Validators.maxLength(50)]],
-      
-      // --- Detailed Address Fields ---
       houseNo: [''],
       buildingName: [''],
       floorBlock: [''],
@@ -40,23 +37,19 @@ export class BranchFormComponent implements OnInit {
       state: ['', Validators.required],
       postalCode: ['', [Validators.required, Validators.pattern('^[0-9]{6}$')]],
       country: ['India'],
-      
-      // Full Address Summary (Readonly in HTML)
       address: ['', Validators.required],
-      
       timeZone: [''],
       contactNo: ['', [Validators.required, Validators.pattern('^[0-9]{10,12}$')]],
       email: ['', [Validators.required, Validators.email]],
       faxNumber: [''],
       gstCategory: ['', Validators.required],
-      gstin: ['', [Validators.required]],
+      gstin: ['', Validators.required],
       iecCode: [''],
       defaultCustomHouseCode: [''],
       copyDefaultFrom: [''],
       isActive: [true]
     });
 
-    // Auto-update summary address logic
     this.setupAddressAutoSummary();
   }
 
@@ -64,25 +57,18 @@ export class BranchFormComponent implements OnInit {
     const state = history.state;
     if (state && state.data && state.isEdit) {
       this.isEdit = true;
-      // Patching values if they exist in state.data
       this.branchForm.patchValue(state.data);
     }
   }
 
-  // Yeh function saari fields ko combine karke ek string banata hai
   private setupAddressAutoSummary() {
-    const addressFields = [
-      'houseNo', 'buildingName', 'floorBlock', 'streetName', 
-      'landmark', 'areaSector', 'city', 'district', 'state', 'postalCode'
-    ];
-
+    const addressFields = ['houseNo','buildingName','floorBlock','streetName','landmark','areaSector','city','district','state','postalCode'];
     this.branchForm.valueChanges.subscribe(() => {
       const vals = this.branchForm.getRawValue();
       const summary = addressFields
         .map(field => vals[field])
         .filter(val => val && val.trim() !== '')
         .join(', ');
-      
       this.branchForm.get('address')?.setValue(summary, { emitEvent: false });
     });
   }
@@ -90,13 +76,10 @@ export class BranchFormComponent implements OnInit {
   saveDetails() {
     if (this.branchForm.invalid) {
       this.branchForm.markAllAsTouched();
-      // Debugging ke liye invalid controls check karne ke liye:
-      console.log('Form Invalid Controls:', this.findInvalidControls());
       return;
     }
     
     this.loading = true;
-    // getRawValue use kiya hai taaki disabled fields (CompanyName) bhi chali jayein
     const formData = this.branchForm.getRawValue();
 
     const request = this.isEdit 
@@ -112,24 +95,23 @@ export class BranchFormComponent implements OnInit {
       error: (err) => {
         this.loading = false;
         console.error('API Error:', err);
-        alert('Action Failed: ' + (err.error?.message || 'Server Error. Check console.'));
+        alert('Action Failed: ' + (err.error?.message || 'Server Error.'));
       }
     });
   }
 
-  // Helper function to debug invalid fields
-  private findInvalidControls() {
-    const invalid = [];
-    const controls = this.branchForm.controls;
-    for (const name in controls) {
-      if (controls[name].invalid) {
-        invalid.push(name);
-      }
-    }
-    return invalid;
-  }
-
   cancel() {
     this.router.navigate(['/dashboard/branch']);
+  }
+
+  // Helper for HTML to show validation messages
+  getError(field: string) {
+    const control = this.branchForm.get(field);
+    if (!control || !control.touched || control.valid) return null;
+    if (control.errors?.['required']) return 'This field is required';
+    if (control.errors?.['maxlength']) return `Maximum length exceeded (${control.errors['maxlength'].requiredLength})`;
+    if (control.errors?.['pattern']) return 'Invalid format';
+    if (control.errors?.['email']) return 'Invalid email address';
+    return null;
   }
 }

@@ -3,6 +3,7 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { CheckPermissionService } from '../../services/check-permission.service';
 
 @Component({
   selector: 'app-list-of-unit',
@@ -14,7 +15,7 @@ export class ListOfUnitComponent implements OnInit {
   
   private apiUrl = environment.apiUrl + '/Uom';
   unitList: any[] = [];
-  
+  PermissionID:any;
   isModalOpen = false;
   isEditMode = false;
   showPopup = false;
@@ -23,9 +24,10 @@ export class ListOfUnitComponent implements OnInit {
   // FIX: Initialization me unitName use karein
   currentUnit: any = { id: 0, unitName: '', shortCode: '' };
 
-  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) { }
+  constructor(private http: HttpClient, private cdr: ChangeDetectorRef,public CheckPermissionService:CheckPermissionService) { }
 
   ngOnInit(): void { 
+    this.PermissionID = Number(localStorage.getItem('permissionID'));
     this.fetchUnits();
   }
 

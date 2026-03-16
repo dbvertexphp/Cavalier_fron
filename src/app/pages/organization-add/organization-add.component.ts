@@ -10,6 +10,7 @@ import html2canvas from 'html2canvas';
 import * as XLSX from 'xlsx';
 import { moveItemInArray, transferArrayItem, CdkDragDrop } from '@angular/cdk/drag-drop';
 import { DragDropModule } from '@angular/cdk/drag-drop'; // 👈 Ye zaroori hai // Ye import ensure kar lena
+import { CheckPermissionService } from '../../services/check-permission.service';
 
 @Component({
   selector: 'app-organization-add',
@@ -19,6 +20,7 @@ import { DragDropModule } from '@angular/cdk/drag-drop'; // 👈 Ye zaroori hai 
   styleUrl: './organization-add.component.css',
 })
 export class OrganizationAddComponent implements OnInit {
+    PermissionID:any;
 searchFilters: any = {
   orgCode: '',
   orgName: '',
@@ -86,7 +88,7 @@ cities: any[] = [];
   branches :any [] =[];
   selectedBranch: any = null
 
-  constructor(private location: Location, private http: HttpClient,private cdr: ChangeDetectorRef,private router:Router) {}
+  constructor(private location: Location, private http: HttpClient,private cdr: ChangeDetectorRef,private router:Router,public CheckPermissionService:CheckPermissionService) {}
 fetchNextBranch() {
   const url = `${environment.apiUrl}/Organization/next-branch-name`;
   this.http.get<{nextName: string}>(url).subscribe({
@@ -109,6 +111,7 @@ fetchNextBranch() {
   });
 }
   ngOnInit() {
+   this.PermissionID = Number(localStorage.getItem('permissionID'));
   this.loadColumnSettings();
     this.getOrgList();
     this.fetchNextBranch();

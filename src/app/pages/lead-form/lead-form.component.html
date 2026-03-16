@@ -752,13 +752,15 @@ class="divide-x divide-gray-200 hover:bg-gray-50">
   </div>
 
 
-  <div class="flex flex-col gap-3">
-    <label class="font-bold text-gray-600">Location</label>
-    <select formControlName="location" class="border border-gray-300 p-2 w-full">
-      <option value="">Select Location</option>
-      <option value="North">North</option>
-      <option value="South">South</option>
-    </select>
+ <div class="flex flex-col gap-3">
+  <label class="font-bold text-gray-600">Location</label>
+  <input 
+    type="text" 
+    formControlName="location" 
+    placeholder="Enter Location (e.g. North, South, Delhi)" 
+    class="border border-gray-300 p-2 w-full outline-none focus:border-blue-500 transition-all"
+  >
+
 
     <!-- Zod Error -->
     <div *ngIf="leadForm.get('location')?.errors?.['zod']"
@@ -768,13 +770,14 @@ class="divide-x divide-gray-200 hover:bg-gray-50">
   </div>
   
 
-  <div class="flex flex-col gap-3">
-    <label class="font-bold text-gray-600">Area</label>
-    <select formControlName="area" class="border border-gray-300 p-2 w-full">
-      <option value="">Select Area</option>
-      <option value="Industrial">Industrial</option>
-      <option value="Commercial">Commercial</option>
-    </select>
+ <div class="flex flex-col gap-3">
+  <label class="font-bold text-gray-600">Area</label>
+  <input 
+    type="text" 
+    formControlName="area" 
+    placeholder="Enter Area (e.g. Industrial)" 
+    class="border border-gray-300 p-2 w-full outline-none focus:border-blue-500 transition-all">
+  
 
     <!-- Zod Error -->
     <div *ngIf="leadForm.get('area')?.errors?.['zod']"

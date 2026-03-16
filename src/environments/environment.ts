@@ -1,6 +1,7 @@
 export const environment = {
-  production: false,
-  // Swagger wala URL yahan daalna hai
-//apiUrl: 'http://localhost:5000/api'
-  apiUrl: 'https://api.cavalierlogistic.graphicsvolume.com/api', // Live URL
-};
+  production: true,
+  // apiUrl: 'http://api.cavalierlogistic.graphicsvolume.com', // Live URL
+  apiUrl: 'https://api.cavalierlogistic.graphicsvolume.com/api',
+  firebase: {}, // Khali object
+  vapidKey: '' // Live URL
+  };

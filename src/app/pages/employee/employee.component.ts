@@ -10,6 +10,7 @@ import{environment} from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
+import { CheckPermissionService } from '../../services/check-permission.service';
 export interface UserEducation {
   id: number;
   userId: string;
@@ -161,7 +162,7 @@ export interface Permission {
 })
 export class EmployeeComponent implements OnInit {
   permissionsList: Permission[] = [];
-
+PermissionID:any;
   searchText: string = '';
   isFormOpen: boolean = false;
   editingEmpId: string | null = null;
@@ -183,7 +184,7 @@ isPasswordVisible: boolean = false;
   rolesList: any[] = [];
   branchesList: any[] = []; 
 
-  constructor( private http: HttpClient ,private router:Router, private userService: UserService, private branchServices: BranchService,private cdr :ChangeDetectorRef) {
+  constructor( private http: HttpClient ,private router:Router, private userService: UserService, private branchServices: BranchService,private cdr :ChangeDetectorRef,public CheckPermissionService:CheckPermissionService) {
     this.leadForm = new FormGroup({
       empCode: new FormControl(''),
       firstName: new FormControl(''),
@@ -205,6 +206,7 @@ finalPermissions: any[] = [];
 
 
   ngOnInit(): void {
+    this.PermissionID = Number(localStorage.getItem('permissionID'));
     this.loadRoles();
     this.loadBranches(); 
      this.getAllUsers(); 

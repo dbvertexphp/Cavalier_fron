@@ -621,11 +621,29 @@ Cancel
     </div>
   </div>
 </div>
-      <div class="flex items-center">
+
+
+
+      <!-- <div class="flex items-center">
         <label class="w-40 font-bold text-gray-700">Business Dimensions</label>
         <input type="text" name="businessDims" [(ngModel)]="quotation.businessDimensions" class="flex-1 border p-2 outline-none">
       </div>
-    </div>
+    </div> -->
+
+
+    <div class="flex items-center">
+  <label class="w-40 font-bold text-gray-700">Business Dimensions</label>
+  <select name="businessDims" [(ngModel)]="quotation.businessDimensions" class="flex-1 border p-2 outline-none">
+    <option value="Electronic">Electronic</option>
+    <option value="Mercury">Mercury</option>
+    <option value="Cosmetic">Cosmetic</option>
+    <option value="Toys">Toys</option>
+  </select>
+</div>
+</div>
+
+
+    
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
       <div class="flex items-center">
@@ -666,11 +684,12 @@ Cancel
           <div *ngIf="quotation.commodity === 'Hazard'" class="flex items-center animate-in fade-in slide-in-from-top-2 duration-300">
             <label class="w-40 font-bold text-gray-700">Upload Document</label>
             <div class="flex-1 flex items-center gap-2">
+              
               <input type="file" name="hazardDoc" (change)="onFileSelected($event)" class="flex-1 border p-1 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100">
             </div>
           </div>
         </div>
-
+        
         <div class="flex items-center gap-2">
           <label class="w-40 font-bold text-gray-700">Gross Weight</label>
           <div class="flex flex-1">
@@ -802,10 +821,10 @@ Cancel
           <textarea name="description" [(ngModel)]="quotation.description" class="flex-1 border p-2 h-16 outline-none" placeholder="Details..."></textarea>
         </div>
 
-        <div class="flex items-center">
+        <!-- <div class="flex items-center">
           <label class="w-40 font-bold text-gray-700">Humidity (%)</label>
           <input type="number" name="humidity" [(ngModel)]="quotation.humidity" class="flex-1 border p-2 outline-none" placeholder="0">
-        </div>
+        </div> -->
       </div>
     </div>
   </div>
@@ -832,7 +851,7 @@ Cancel
         </select>
       </div>
       <div class="flex items-center">
-        <label class="w-40 font-bold text-gray-700">AWB Issued By</label>
+        <label class="w-40 font-bold text-gray-700">Carrier Name</label>
         <input name="awbIssuedBy" [(ngModel)]="quotation.awbIssuedBy" class="flex-1 border p-2 outline-none">
       </div>
       <div class="flex items-center">
@@ -846,14 +865,20 @@ Cancel
         <label class="w-40">Place of Receipt</label>
         <input name="placeOfReceipt" [(ngModel)]="quotation.placeOfReceipt" class="flex-1 border p-2 border-red-300 outline-none">
       </div>
-      <div class="flex items-center text-red-700 font-bold">
-        <label class="w-40">Origin / POL</label>
-        <div class="flex flex-1 gap-1">
-          <input name="origin" [(ngModel)]="quotation.originPOL" class="flex-1 border p-2 border-red-300 outline-none">
-          <input name="portOfLoading" [(ngModel)]="quotation.portOfLoading" class="flex-1 border p-2 border-red-300 outline-none">
-        </div>
-      </div>
-    </div>
+      
+      
+    <div class="flex items-center text-red-700 font-bold">
+  <label class="w-40">Origin</label>
+  <div class="flex flex-1 gap-1"></div>
+  <input name="origin" [(ngModel)]="quotation.originPOL" class="ml-10 flex-1 border p-2 border-red-300 outline-none">
+  
+  <label class="w-40 ml-4">POL</label>
+  <input name="portOfLoading" [(ngModel)]="quotation.portOfLoading" class="w-60 border p-2 border-red-300 outline-none">
+</div>
+</div>
+
+    
+
 
     <div class="space-y-3">
       <div class="flex items-center">
@@ -874,16 +899,16 @@ Cancel
         <label class="w-40">Place of Delivery</label>
         <input name="placeOfDelivery" [(ngModel)]="quotation.placeOfDelivery" class="flex-1 border p-2 border-red-300 outline-none">
       </div>
+
       <div class="flex items-center text-red-700 font-bold">
-        <label class="w-40">POD / Final Dest</label>
-        <div class="flex flex-1 gap-1">
-          <input name="portOfDischarge" [(ngModel)]="quotation.portOfDischarge" class="flex-1 border p-2 border-red-300 outline-none">
-          <input name="finalDestination" [(ngModel)]="quotation.podFinalDest" class="flex-1 border p-2 border-red-300 outline-none">
+        <label class="w-40">POD </label>
+        <div class="flex flex-1 gap-1"></div>
+          <input name="portOfDischarge" [(ngModel)]="quotation.portOfDischarge" class="ml-9 flex-1 border p-2 border-red-300 outline-none">
+         <label class="w-40 ml-6">Final Dest</label>
+          <input name="finalDestination" [(ngModel)]="quotation.podFinalDest" class="w-60 border p-2 border-red-300 outline-none">
         </div>
       </div>
-    </div>
-  </div>
-
+      </div>
   <div class="grid grid-cols-2 gap-6 p-4 bg-gray-50 border-t">
     <div class="border p-3 bg-white shadow-sm">
       <div class="bg-gray-200 text-[#4a3f3f] px-3 py-1 mb-2 font-bold uppercase text-[11px]">Pickup Address</div>
@@ -933,12 +958,23 @@ Cancel
           </td>
           <td class="border p-1">
             <input [name]="'rcharge' + i" [(ngModel)]="r.chargeName" placeholder="Enter Charge" class="w-full outline-none p-1 bg-transparent">
+            
           </td>
           <td class="border p-1">
             <select [name]="'rtype' + i" [(ngModel)]="r.chargeType" class="w-full outline-none p-1 bg-transparent">
               <option value="">--Select--</option>
               <option value="Prepaid">Prepaid</option>
               <option value="Collect">Collect</option>
+              <option value="Freight Charges">Freight Charges</option>
+              <option value="Fuel Surcharge">Fuel Surcharge</option>
+              <option value="Customs Clearance">Customs Clearance</option>
+              <option value="Documentation Fee">Documentation Fee</option>
+              <option value="Handling Charges">Handling Charges</option>
+              <option value="Storage Fee">Storage Fee</option>
+              <option value="Delivery Charges">Delivery Charges</option>
+              <option value="Insurance">Insurance</option>
+              <option value="Inspection Fee">Inspection Fee</option>
+
             </select>
           </td>
           <td class="border p-1">
@@ -1010,6 +1046,15 @@ Cancel
               <option value="">--Select--</option>
               <option value="Prepaid">Prepaid</option>
               <option value="Collect">Collect</option>
+               <option value="Freight Charges">Freight Charges</option>
+              <option value="Fuel Surcharge">Fuel Surcharge</option>
+              <option value="Customs Clearance">Customs Clearance</option>
+              <option value="Documentation Fee">Documentation Fee</option>
+              <option value="Handling Charges">Handling Charges</option>
+              <option value="Storage Fee">Storage Fee</option>
+              <option value="Delivery Charges">Delivery Charges</option>
+              <option value="Insurance">Insurance</option>
+              <option value="Inspection Fee">Inspection Fee</option>
             </select>
           </td>
           <td class="border p-1">

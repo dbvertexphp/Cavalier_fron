@@ -802,10 +802,10 @@ Cancel
           <textarea name="description" [(ngModel)]="quotation.description" class="flex-1 border p-2 h-16 outline-none" placeholder="Details..."></textarea>
         </div>
 
-        <div class="flex items-center">
+        <!-- <div class="flex items-center">
           <label class="w-40 font-bold text-gray-700">Humidity (%)</label>
           <input type="number" name="humidity" [(ngModel)]="quotation.humidity" class="flex-1 border p-2 outline-none" placeholder="0">
-        </div>
+        </div> -->
       </div>
     </div>
   </div>
@@ -933,12 +933,24 @@ Cancel
           </td>
           <td class="border p-1">
             <input [name]="'rcharge' + i" [(ngModel)]="r.chargeName" placeholder="Enter Charge" class="w-full outline-none p-1 bg-transparent">
+            
           </td>
           <td class="border p-1">
             <select [name]="'rtype' + i" [(ngModel)]="r.chargeType" class="w-full outline-none p-1 bg-transparent">
               <option value="">--Select--</option>
               <option value="Prepaid">Prepaid</option>
               <option value="Collect">Collect</option>
+              <option value="">--Select Charge--</option>
+              <option value="Freight Charges">Freight Charges</option>
+              <option value="Fuel Surcharge">Fuel Surcharge</option>
+              <option value="Customs Clearance">Customs Clearance</option>
+              <option value="Documentation Fee">Documentation Fee</option>
+              <option value="Handling Charges">Handling Charges</option>
+              <option value="Storage Fee">Storage Fee</option>
+              <option value="Delivery Charges">Delivery Charges</option>
+              <option value="Insurance">Insurance</option>
+              <option value="Inspection Fee">Inspection Fee</option>
+
             </select>
           </td>
           <td class="border p-1">
@@ -1010,6 +1022,16 @@ Cancel
               <option value="">--Select--</option>
               <option value="Prepaid">Prepaid</option>
               <option value="Collect">Collect</option>
+              <option value="">--Select Charge--</option>
+              <option value="Freight Charges">Freight Charges</option>
+              <option value="Fuel Surcharge">Fuel Surcharge</option>
+              <option value="Customs Clearance">Customs Clearance</option>
+              <option value="Documentation Fee">Documentation Fee</option>
+              <option value="Handling Charges">Handling Charges</option>
+              <option value="Storage Fee">Storage Fee</option>
+              <option value="Delivery Charges">Delivery Charges</option>
+              <option value="Insurance">Insurance</option>
+              <option value="Inspection Fee">Inspection Fee</option>
             </select>
           </td>
           <td class="border p-1">

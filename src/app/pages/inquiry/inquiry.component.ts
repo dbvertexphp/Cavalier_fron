@@ -54,6 +54,7 @@ inquiries:any[]=[]
     organizationAddress: '',
     leadNo: '',
     origin: '',
+    
     // ... baki fields ...
   };
   companyServices:any[]=[]
@@ -72,6 +73,8 @@ organizations: any[] = [];
   coordinators: any[] = [];
   branchesList: any[] = [];
   searchDone: boolean = false; // Shuru mein false rahega
+  uploadedDocuments: any[] = [];
+    // Ye line add karein
     constructor(private http: HttpClient, private router: Router,private cdr: ChangeDetectorRef ) {}
 
     ngOnInit() {
@@ -219,15 +222,44 @@ onOriginSearchInput() {
       });
     }
 
-    onFileSelected(event: any) {
+//     onFileSelected(event: any) {
+//   const file = event.target.files[0];
+//   if (file) {
+//     this.selectedFile = file;
+//     // 🔥 Important: Database ke column ke liye file ka naam yahan set ho raha hai
+//     this.quotation.hazardDocPath = file.name; 
+//     console.log("Selected File Name:", file.name);
+//   }
+// }
+
+onFileSelected(event: any) {
   const file = event.target.files[0];
   if (file) {
-    this.selectedFile = file;
-    // 🔥 Important: Database ke column ke liye file ka naam yahan set ho raha hai
-    this.quotation.hazardDocPath = file.name; 
-    console.log("Selected File Name:", file.name);
+    // Nayi file ko array mein add kar rahe hain (Ye static list banayega)
+    this.uploadedDocuments.push({
+      file: file,
+      fileName: file.name
+    });
+
+    // Pehli file ka naam purane logic ki tarah set kar rahe hain (Optional)
+    if (this.uploadedDocuments.length === 1) {
+      this.quotation.hazardDocPath = file.name;
+    }
+
+    // Input ko reset karna taaki user dubara wahi button daba sake
+    event.target.value = '';
+    
+    console.log("Documents List:", this.uploadedDocuments);
   }
 }
+
+// Static list se file hatane ke liye function
+removeDoc(index: number) {
+  this.uploadedDocuments.splice(index, 1);
+}
+
+
+
 
     neworg() {
       this.router.navigate(['/dashboard/organization-add']);

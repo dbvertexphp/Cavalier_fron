@@ -448,7 +448,7 @@ onSubmit() {
     apiCall.subscribe({
       next: (res: any) => {
         console.log(this.isEditMode ? 'Update Success' : 'Register Success', res);
-
+        alert(res);
         // UserId handle karein (res.id ya this.id)
         const currentId = this.isEditMode ? this.id : (res.id || res.userId || res.data?.id);
 
@@ -464,7 +464,7 @@ onSubmit() {
       },
       error: err => {
         console.error('API Error:', err);
-        alert('Operation failed: ' + (err.error?.message || 'Server error'));
+        alert('Email already exists');
       }
     });
   }

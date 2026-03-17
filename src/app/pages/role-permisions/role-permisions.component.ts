@@ -66,62 +66,93 @@ export class RolePermisionsComponent implements OnInit {
 
       this.fetchUserDetails(this.userId);
 
-      this.http.get<any>(
-        `${environment.apiUrl}/action-permission/getuserpermission?userId=${this.userId}`
-      ).subscribe({
-
-        next: (res) => {
-
-          this.selectedPermissionIds = [];
-
-          res.permissions.forEach((p: any) => {
-
-            this.selectedPermissionIds.push(p.permissionId);
-
-            if (p.actions.includes("View")) {
-              this.selectedPermissionIds.push(p.permissionId + "_v");
-            }
-
-            if (p.actions.includes("Edit")) {
-              this.selectedPermissionIds.push(p.permissionId + "_e");
-            }
-
-            if (p.actions.includes("Delete")) {
-              this.selectedPermissionIds.push(p.permissionId + "_d");
-            }
-
-          });
-
-        }
-
-      });
+     
 
     }
 
   }
+loadUserPermissions() {
 
+  if (!this.userId) return;
+
+  this.http.get<any>(
+    `${environment.apiUrl}/action-permission/getuserpermission?userId=${this.userId}`
+  ).subscribe({
+
+    next: (res) => {
+
+      this.branchPermissions = {};
+
+      res.permissions.forEach((p: any) => {
+
+        const branchId = p.branchId;
+
+        if (!this.branchPermissions[branchId]) {
+          this.branchPermissions[branchId] = [];
+        }
+
+        // base permission
+        this.branchPermissions[branchId].push(p.permissionId);
+
+        // actions
+        if (p.actions.includes("View")) {
+          this.branchPermissions[branchId].push(p.permissionId + "_v");
+        }
+
+        if (p.actions.includes("Edit")) {
+          this.branchPermissions[branchId].push(p.permissionId + "_e");
+        }
+
+        if (p.actions.includes("Delete")) {
+          this.branchPermissions[branchId].push(p.permissionId + "_d");
+        }
+
+      });
+
+      // 🔥 first branch auto select
+      const firstBranchId = Object.keys(this.branchPermissions)[0];
+
+      if (firstBranchId) {
+
+        const branch = this.branchesList.find(b => b.id == firstBranchId);
+
+        if (branch) {
+          this.selectedBranchPermission = branch;
+          const branchIdNum = Number(firstBranchId);
+
+this.selectedPermissionIds = [...this.branchPermissions[branchIdNum]];
+        }
+
+      }
+
+    }
+
+  });
+
+}
   // ===============================
   // LOAD BRANCHES
   // ===============================
 
-  loadBranches() {
+ loadBranches() {
+  this.http.get<any[]>(`${environment.apiUrl}/Branch/list`)
+  .subscribe({
 
-    this.http.get<any[]>(`${environment.apiUrl}/Branch/list`)
-    .subscribe({
+    next: (res) => {
 
-      next: (res) => {
+      this.branchesList = res.map(b => ({
+        id: b.id,
+        name: b.branchName,
+        isDefault: false
+      }));
 
-        this.branchesList = res.map(b => ({
-          id: b.id,
-          name: b.branchName,
-          isDefault: false
-        }));
+      // 🔥 YAHI ADD KAR
+      this.loadUserPermissions();
 
-      }
+    }
 
-    });
-
-  }
+  });
+}
 
   // ===============================
   // USER DETAILS

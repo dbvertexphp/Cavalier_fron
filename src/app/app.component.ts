@@ -1,11 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { NotificationService } from './services/notification.service';
-
+import { ToastrModule } from 'ngx-toastr';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterModule],
+  imports: [RouterModule,ToastrModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })

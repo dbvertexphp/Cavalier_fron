@@ -181,10 +181,14 @@
               Policy Assignment
             </h4>
             <label class="block text-[10px] font-black text-stone-400 uppercase tracking-widest mb-2 ml-1">Global Permissions Role</label>
-            <select [(ngModel)]="selectedRole" class="w-full border-2 border-stone-100 p-4 rounded-2xl text-sm font-bold bg-white focus:border-[#654E51] outline-none shadow-sm cursor-pointer appearance-none">
-              <option [value]="null">Manual Configuration</option>
-              <option *ngFor="let role of rolesList" [value]="role.id">{{ role.name }}</option>
-            </select>
+           <select 
+  [(ngModel)]="selectedRole" 
+  (ngModelChange)="onRoleChange(selectedRole)" 
+  class="w-full border-2 border-stone-100 p-4 rounded-2xl text-sm font-bold bg-white focus:border-[#654E51] outline-none shadow-sm cursor-pointer appearance-none">
+  
+  <option [value]="null">Manual Configuration</option>
+  <option *ngFor="let role of rolesList" [value]="role.id">{{ role.name }}</option>
+</select>
           </section>
         </div>
 

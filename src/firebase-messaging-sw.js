@@ -14,7 +14,7 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage(function(payload) {
-  console.log('[firebase-messaging-sw.js] Background message:', payload);
+  console.log('[firebase-messaging-sw.js] Background message1212:', payload);
 
   const title = payload.notification?.title || 'New Notification';
   const options = {

@@ -1,9 +1,11 @@
 import { Permission } from './../../pages/employee/employee.component';
 import { CheckPermissionService } from '../../services/check-permission.service';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UserService } from '../../services/user.service'; // Path sahi kar lena
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-roles',
@@ -18,6 +20,9 @@ export class RolesComponent implements OnInit {
   isEditMode = false; // Edit track karne ke liye
   rolesList: any[] = []; // Ab ye API se bharega
 
+  permissionsList: any[] = []; // Modules list
+  selectedPermissionIds: any[] = [];
+
   // Form Model matching your Backend 'Role' class
   newRole = {
     id: 0,
@@ -28,13 +33,14 @@ export class RolesComponent implements OnInit {
   showPopup = false;
   roleIdToDelete: number | null = null;
   PermissionID:any;
-  constructor(private userService: UserService,public CheckPermissionService:CheckPermissionService) {}
+  constructor(private userService: UserService,public CheckPermissionService:CheckPermissionService,private cdr: ChangeDetectorRef,private http: HttpClient) {}
 
   ngOnInit(): void {
     
     this.PermissionID = Number(localStorage.getItem('permissionID'));
     
     this.loadRoles();
+    this.loadPermissions();
   }
 
   // // --- 1. GET ROLES ---
@@ -59,34 +65,82 @@ loadRoles() {
     error: (err) => console.error("Roles load nahi hue:", err)
   });
 }
+loadPermissions() {
+    this.http.get<any[]>(`${environment.apiUrl}/Permissions/list`).subscribe(res => {
+      this.permissionsList = res.filter(p => p.subMenu);
+    });
+  }
   // --- 2. SAVE ROLE (Add or Update) ---
-  saveRole() {
-    if (this.newRole.name.trim()) {
-      this.isLoading = true;
-      
-      // Logic decide karega add karna hai ya update
-      // Naya role banate waqt hum name aur status dono bhej rahe hain
-      const request = this.isEditMode 
-        ? this.userService.updateRole(this.newRole) 
-        : this.userService.addRole({ name: this.newRole.name, status: this.newRole.status });
-
-      request.subscribe({
-        next: (res) => {
-          this.loadRoles(); // List refresh karein
-          this.closeModal();
-          this.isLoading = false;
-        },
-        error: (err) => {
-          console.error("Role save nahi hua:", err);
-          this.isLoading = false;
-          alert("Error saving role!");
-        }
-      });
-    } else {
-      this.showPopup = false;
-    }
+ saveRole() {
+  if (!this.newRole.name.trim()) {
+    return;
   }
 
+  this.isLoading = true;
+
+  // 1. Permission Mapping (Wahi logic jo aapne likha tha)
+  const permissionMap: any = {};
+  this.selectedPermissionIds.forEach((p: any) => {
+    const isString = typeof p === 'string';
+    const permId = isString ? parseInt(p.split('_')[0]) : p;
+    const actionKey = isString ? p.split('_')[1] : null;
+
+    if (!permissionMap[permId]) {
+      permissionMap[permId] = [];
+    }
+
+    if (actionKey === "v") permissionMap[permId].push("View");
+    if (actionKey === "e") permissionMap[permId].push("Edit");
+    if (actionKey === "d") permissionMap[permId].push("Delete");
+  });
+
+  const finalPermissions = Object.keys(permissionMap).map(id => ({
+    permissionId: Number(id),
+    actions: permissionMap[id] // Ye array backend ko jayega [ "View", "Delete" ]
+  }));
+
+  // 2. Final Payload (Dono Add aur Update ke liye ek hi structure rakho)
+  const finalPayload = {
+    id: this.newRole.id, // Add ke time ye 0 hoga, Edit ke time actual ID
+    name: this.newRole.name,
+    status: this.newRole.status,
+    permissions: finalPermissions
+  };
+
+  console.log("🚀 SENDING TO BACKEND:", finalPayload);
+
+  // 3. API Call
+  const request = this.isEditMode
+    ? this.userService.updateRole(finalPayload) // Yahan bhi finalPayload bhejo
+    : this.userService.addRole(finalPayload);
+
+  request.subscribe({
+    next: (res) => {
+      this.loadRoles(); 
+      this.closeModal();
+      this.isLoading = false;
+    },
+    error: (err) => {
+      this.isLoading = false;
+      alert("Error saving role!");
+    }
+  });
+}
+togglePermission(id: any) { this.toggleLogic(id); }
+  toggleView(id: any) { this.toggleLogic(id + "_v"); }
+  toggleEdit(id: any) { this.toggleLogic(id + "_e"); }
+  toggleDelete(id: any) { this.toggleLogic(id + "_d"); }
+
+  private toggleLogic(key: any) {
+    const index = this.selectedPermissionIds.indexOf(key);
+    if (index > -1) {
+      this.selectedPermissionIds.splice(index, 1);
+    } else {
+      this.selectedPermissionIds.push(key);
+    }
+    this.selectedPermissionIds = [...this.selectedPermissionIds];
+    console.log("Current Selection:", this.selectedPermissionIds);
+  }
   // --- 3. DELETE ROLE ---
   deleteRole(id: number) {
     console.log('this is pemission',this.CheckPermissionService.permissions);

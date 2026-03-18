@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { environment } from '../../../environments/environment';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -47,7 +47,8 @@ export class RolePermisionsComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private http: HttpClient
+    private http: HttpClient,
+    private cdr: ChangeDetectorRef
   ) {}
 
   // ===============================
@@ -194,7 +195,82 @@ this.selectedPermissionIds = [...this.branchPermissions[branchIdNum]];
     .subscribe(res => this.rolesList = res);
 
   }
+onRoleChange(roleId: any) {
+  if (roleId === null || roleId === undefined || roleId === 'null') {
+    this.resetPermissionsUI(); // Manual/Null pe clear karo
+    return;
+  }
 
+  const numericRoleId = Number(roleId);
+  if (isNaN(numericRoleId)) return;
+
+  console.log("Fetching permissions for Role ID:", numericRoleId);
+
+  this.http.get<any[]>(`${environment.apiUrl}/role-permission/by-role/${numericRoleId}`)
+    .subscribe({
+      next: (res) => {
+        console.log("API Response Success:", res);
+        this.applyRolePermissionsToUI(res);
+      },
+      error: (err) => {
+        // 🔥 YAHAN HAI FIX: Jab 404 (No Permissions) aaye, toh UI clear kar do
+        console.warn("No permissions for this role or API error:", err);
+        this.resetPermissionsUI(); 
+      }
+    });
+}
+
+// Ek helper function bana lo reset karne ke liye
+resetPermissionsUI() {
+  if (this.selectedBranchPermission) {
+    const branchId = this.selectedBranchPermission.id;
+    this.branchPermissions[branchId] = []; // Branch ka data khali karo
+  }
+  this.selectedPermissionIds = []; // UI ke checkboxes khali karo
+  this.cdr.detectChanges(); // Force Refresh
+  console.log("UI Reset: Permissions Cleared");
+}
+
+applyRolePermissionsToUI(apiData: any[]) {
+  // 1. Agar branch select nahi hai toh pehli branch uthao
+  if (!this.selectedBranchPermission) {
+    if (this.selectedBranchIds.length > 0) {
+      const firstBranchId = this.selectedBranchIds[0];
+      this.selectedBranchPermission = this.branchesList.find(b => b.id === Number(firstBranchId));
+    } else {
+      alert("Pehle left side se Branch select karo bhai!");
+      return;
+    }
+  }
+
+  const branchId = this.selectedBranchPermission.id;
+
+  // 🔥 STEP 1: Pehle empty array declare karo (Taki agar apiData empty ho toh UI reset ho jaye)
+  const newPermissions: any[] = [];
+
+  // 🔥 STEP 2: Agar API se data aaya hai tabhi loop chalao
+  if (apiData && apiData.length > 0) {
+    apiData.forEach(p => {
+      newPermissions.push(p.permissionId);
+      if (p.actions && Array.isArray(p.actions)) {
+        if (p.actions.includes("View"))   newPermissions.push(p.permissionId + "_v");
+        if (p.actions.includes("Edit"))   newPermissions.push(p.permissionId + "_e");
+        if (p.actions.includes("Delete")) newPermissions.push(p.permissionId + "_d");
+      }
+    });
+  }
+
+  // 🔥 STEP 3: Sabse important - Is branch ka data update karo (Empty ho ya filled)
+  this.branchPermissions[branchId] = [...newPermissions];
+
+  // 🔥 STEP 4: UI ko batana ki data change ho gaya hai
+  this.selectedPermissionIds = [...newPermissions];
+
+  // 🔥 STEP 5: Force Angular to detect changes
+  this.cdr.detectChanges(); 
+
+  console.log("UI Updated! Current Data:", this.selectedPermissionIds);
+}
   // ===============================
   // PERMISSIONS
   // ===============================

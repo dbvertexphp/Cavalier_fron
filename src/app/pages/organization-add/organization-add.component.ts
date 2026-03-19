@@ -28,14 +28,8 @@ searchFilters: any = {
   orgType: '',
   status: 'Active' // 👈 Default 'Active' rakha hai
 };
-isShipperMode: boolean = false;
-shipper: any = { name: '', contactPerson: '', email: '', phone: '', mode: 'AIR FREIGHT', country: '', state: '', city: '', zip: '' };
-countries: any[] = [];
-filteredCountries: any[] = [];
-states: string[] = [];
-filteredStates: string[] = [];
-showCountryDropdown = false;
-showStateDropdown = false;
+selectedBranch: any = { id: 0, name: '', isDefault: false, isActive: true };
+branches: any[] = []; 
  // ... baki variables ke niche
 showColumnModal = false;
 availableColumns: string[] = []; // Ye wo columns jo table mein nahi hain
@@ -90,8 +84,8 @@ cities: any[] = [];
     { name: '', designation: '', department: '', mobile: '', whatsapp: '', email: '' }
   ];
 
-  branches :any [] =[];
-  selectedBranch: any = null
+//   branches :any [] =[];
+//   selectedBranch: any = null
 
   constructor(private location: Location, private http: HttpClient,private cdr: ChangeDetectorRef,private router:Router) {}
  ngOnInit() {
@@ -177,61 +171,34 @@ fetchNextBranch() {
   //   }
   // }
 // selectedRoles array ko track karne ke liye logic
-// 2. toggleRole function ko update karein
 toggleRole(role: string) {
   const index = this.selectedRoles.indexOf(role);
+  
   if (index > -1) {
+    // Agar role pehle se selected hai, toh use remove karo
     this.selectedRoles.splice(index, 1);
-    if (role === 'shipper') this.isShipperMode = false; // Reset if unselected
-  } else {
-    this.selectedRoles.push(role);
-    this.activeTab = role;
     
+    // Agar wahi tab active tha jo band kiya, toh kisi aur tab par shift ho jao ya khali kar do
+    if (this.activeTab === role) {
+      this.activeTab = this.selectedRoles.length > 0 ? this.selectedRoles[0] : 'general';
+    }
+  } else {
+    // Naya role add karo
+    this.selectedRoles.push(role);
+    
+    // Page redirect karne ki jagah isi page ka 'activeTab' badal do
+    this.activeTab = role; 
+
+    // Debugging ke liye console log
     if (role === 'shipper') {
-      console.log("Shipper selected! Showing Shipper Form in-place...");
-      this.isShipperMode = true; // Redirect ke bajaye flag set kiya
-      if (this.countries.length === 0) this.fetchCountries(); // Data load karo
+      console.log("Shipper section activated on current page.");
+    }
+    if (role === 'consignee') {
+      console.log("Consignee section activated on current page.");
     }
   }
 }
 
-// 3. Shipper ke helper functions bhi yahin copy kar lein (fetchCountries, selectCountry, etc.)
-fetchCountries() {
-  this.http.get<any[]>('https://restcountries.com/v3.1/all?fields=name,cca2')
-    .subscribe(data => {
-      this.countries = data.map(c => ({ name: c.name.common, code: c.cca2 })).sort((a,b) => a.name.localeCompare(b.name));
-      this.filteredCountries = this.countries;
-    });
-}
-
-selectCountry(c: any) {
-  this.shipper.country = c.name.toUpperCase();
-  this.showCountryDropdown = false;
-  this.fetchStates(c.name);
-}
-
-fetchStates(countryName: string) {
-  this.http.post<any>('https://countriesnow.space/api/v0.1/countries/states', { country: countryName })
-    .subscribe(res => {
-      this.states = !res.error ? res.data.states.map((s: any) => s.name) : [];
-      this.filteredStates = this.states;
-    });
-}
-// 1. Countries filter karne ke liye
-filterCountries() {
-  this.showCountryDropdown = true;
-  this.filteredCountries = this.countries.filter(c => 
-    c.name.toLowerCase().includes(this.shipper.country.toLowerCase())
-  );
-}
-
-// 2. States filter karne ke liye
-filterStates() {
-  this.showStateDropdown = true;
-  this.filteredStates = this.states.filter(s => 
-    s.toLowerCase().includes(this.shipper.state.toLowerCase())
-  );
-}
 // HTML mein condition check karne ke liye helper
 isShipperSelected(): boolean {
   return this.selectedRoles.includes('shipper');
@@ -243,7 +210,7 @@ saveOrg() {
     return;
   }
 
-  // Baki saare validation (Aapka existing logic)
+  // Baki saare validation
   const telValue = this.telephone ? this.telephone.toString().trim() : '';
   const isTelInvalid = telValue.length > 0 && telValue.length < 5;
   if (isTelInvalid) {
@@ -269,12 +236,13 @@ saveOrg() {
 
   const url = `${environment.apiUrl}/Organization/save`;
 
-  // Payload: Agar selectedOrgId hai toh wo bhi bhej rahe hain (Edit mode)
+  // Payload: Branch logic ke saath (Baaki sab same hai)
   const payload = {
-    Id: this.selectedOrgId || 0, // 👈 Ye line Edit ke liye zaroori hai
+    Id: this.selectedOrgId || 0,
     OrgName: this.orgName,
     Alias: this.alias,
-    BranchName: this.selectedBranch?.name || '',
+    // Yahan selectedBranch ka name ja raha hai
+    BranchName: this.selectedBranch?.name || '', 
     Address: this.address,
     Country: this.country,
     City: this.city,
@@ -292,8 +260,8 @@ saveOrg() {
       Mobile: c.mobile,
       Whatsapp: c.whatsapp,
       Email: c.email,
-    DesignationId: (c.DesignationId === 'Manager') ? 1 : (c.DesignationId === 'HOD' ? 2 : 0),
-    DepartmentId: (c.DepartmentId === 'Sales') ? 1 : (c.DepartmentId === 'Marketing' ? 2 : 0)
+      DesignationId: (c.DesignationId === 'Manager') ? 1 : (c.DesignationId === 'HOD' ? 2 : 0),
+      DepartmentId: (c.DepartmentId === 'Sales') ? 1 : (c.DepartmentId === 'Marketing' ? 2 : 0)
     }))
   };
 
@@ -304,7 +272,7 @@ saveOrg() {
       this.getOrgList(); 
       this.isFormOpen = false;
       this.fetchNextBranch(); 
-      this.resetFormFields(); // Isme ab selectedOrgId = null bhi add kar diya hai niche
+      this.resetFormFields(); 
       this.cdr.detectChanges(); 
     },
     error: (err) => {
@@ -1041,6 +1009,82 @@ setOrgQuickDate(type: string) {
 
   this.showOrgDatePicker = false;
   this.cdr.detectChanges(); // UI refresh ke liye
+}// 1. Initial State (Make sure these are at the top of your class)
+// selectedBranch: any = { id: 0, name: '', isDefault: false, isActive: true };
+// branches: any[] = []; 
+
+/**
+ * NEW BUTTON: Yeh pichli branch se link poori tarah tod dega.
+ */
+addNewBranch() {
+  console.log("Creating a completely fresh branch reference...");
+  
+  // Naya object assign karne se purana wala memory se 'unlink' ho jata hai
+  this.selectedBranch = { 
+    id: 0, 
+    name: '', 
+    isDefault: false, 
+    isActive: true 
+  };
+
+  // Change detection ko force karna zaroori hai taaki HTML purane reference ko bhul jaye
+  this.cdr.detectChanges();
 }
 
-} // 👈 Ensure class ends here
+/**
+ * SAVE BRANCH BUTTON: Jo aap baar-baar click karke branches add karna chahte ho.
+ */
+saveBranchToDB() {
+  const branchName = this.selectedBranch.name?.trim();
+
+  if (!branchName) {
+    alert("Bhai, pehle branch ka naam toh likho!");
+    return;
+  }
+
+  // 1. Check karo ki kya aapke paas Organization ID hai? 
+  // Bina Org ID ke branch save nahi hogi database mein.
+  if (!this.selectedOrgId) {
+    alert("Bhai, pehle Organization select karo ya save karo!");
+    return;
+  }
+
+  // 2. PAYLOAD: Backend ke hisaab se Keys check karo (Capital 'I' vs small 'i')
+  const payload = {
+    Id: this.selectedBranch.id || 0,
+    Name: branchName,
+    OrganizationId: this.selectedOrgId, // 👈 Ye field honi bahut zaroori hai
+    IsDefault: this.selectedBranch.isDefault || false,
+    IsActive: true
+  };
+
+  // 3. URL CHECK: Agar 'save-branch' par 405 aa raha hai, 
+  // toh ho sakta hai URL sirf '/Organization/SaveBranch' ho (bina dash ke)
+  // Ek baar apne Swagger ya API Doc mein confirm karo.
+  const url = `${environment.apiUrl}/Organization/SaveBranch`; 
+
+  this.http.post(url, payload).subscribe({
+    next: (res: any) => {
+      alert(`Branch "${res.name || branchName}" save ho gayi!`);
+
+      const index = this.branches.findIndex(b => b.id === res.id);
+      if (index === -1) {
+        this.branches.push(res); 
+      } else {
+        this.branches[index] = res; 
+      }
+
+      this.addNewBranch(); 
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error("Save Error:", err);
+      // Agar 405 abhi bhi aa raha hai, toh message box mein dikhega
+      if(err.status === 405) {
+        alert("Error 405: Backend par 'POST' method allowed nahi hai ya URL galat hai!");
+      } else {
+        alert("Database error! Save nahi ho paya.");
+      }
+    }
+  });
+}}

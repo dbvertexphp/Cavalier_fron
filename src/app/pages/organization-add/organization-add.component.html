@@ -417,345 +417,153 @@
             </label>
           </div>
         </div>
+<div class="border border-gray-300 rounded-sm overflow-hidden">
+  <div class="bg-gray-100 border-b border-gray-300 flex items-center overflow-x-auto">
+    <button (click)="changeTab('general')"
+      [ngClass]="activeTab === 'general' ? 'bg-white border-t-2 border-t-[#4a3f3f] text-[#4a3f3f]' : 'text-gray-600'"
+      class="px-5 py-2 font-bold border-r border-gray-300 whitespace-nowrap">General</button>
 
-        <div class="border border-gray-300 rounded-sm overflow-hidden">
-          <div class="bg-gray-100 border-b border-gray-300 flex items-center overflow-x-auto">
-            <button (click)="changeTab('general')"
-              [ngClass]="activeTab === 'general' ? 'bg-white border-t-2 border-t-[#4a3f3f] text-[#4a3f3f]' : 'text-gray-600'"
-              class="px-5 py-2 font-bold border-r border-gray-300 whitespace-nowrap">General</button>
+    <button *ngFor="let tab of ['shipper', 'consignee', 'services', 'agent', 'carrier']" (click)="changeTab(tab)"
+      [disabled]="!isRoleSelected(tab)"
+      [ngClass]="{'bg-white border-t-2 border-t-[#4a3f3f] text-[#4a3f3f]': activeTab === tab, 'opacity-30 grayscale pointer-events-none': !isRoleSelected(tab)}"
+      class="px-5 py-2 font-bold border-r border-gray-300 whitespace-nowrap capitalize">{{tab}}</button>
 
-            <button *ngFor="let tab of ['shipper', 'consignee', 'services', 'agent', 'carrier']" (click)="changeTab(tab)"
-              [disabled]="!isRoleSelected(tab)"
-              [ngClass]="{'bg-white border-t-2 border-t-[#4a3f3f] text-[#4a3f3f]': activeTab === tab, 'opacity-30 grayscale pointer-events-none': !isRoleSelected(tab)}"
-              class="px-5 py-2 font-bold border-r border-gray-300 whitespace-nowrap capitalize">{{tab}}</button>
+    <button (click)="changeTab('account')"
+      [ngClass]="activeTab === 'account' ? 'bg-white border-t-2 border-t-[#4a3f3f] text-[#4a3f3f]' : 'text-gray-600'"
+      class="px-5 py-2 font-bold border-r border-gray-300 whitespace-nowrap">Account Info</button>
+    <button (click)="changeTab('billing')"
+      [ngClass]="activeTab === 'billing' ? 'bg-white border-t-2 border-t-[#4a3f3f] text-[#4a3f3f]' : 'text-gray-600'"
+      class="px-5 py-2 font-bold border-r border-gray-300 whitespace-nowrap">Billing</button>
+    <button (click)="changeTab('reg')"
+      [ngClass]="activeTab === 'reg' ? 'bg-white border-t-2 border-t-[#4a3f3f] text-[#4a3f3f]' : 'text-gray-600'"
+      class="px-5 py-2 font-bold border-r border-gray-300 whitespace-nowrap">Reg</button>
+    <button (click)="changeTab('IATA')"
+      [ngClass]="activeTab === 'IATA' ? 'bg-white border-t-2 border-t-[#4a3f3f] text-[#4a3f3f]' : 'text-gray-600'"
+      class="px-5 py-2 font-bold border-r border-gray-300 whitespace-nowrap">IATA</button>
+    <button [disabled]="true"
+      class="px-5 py-2 font-bold border-r border-gray-300 whitespace-nowrap text-gray-400 opacity-50 cursor-not-allowed">KYC</button>
+    <button (click)="changeTab('integrations')"
+      [ngClass]="activeTab === 'integrations' ? 'bg-white border-t-2 border-t-[#4a3f3f] text-[#4a3f3f]' : 'text-gray-600'"
+      class="px-5 py-2 font-bold border-r border-gray-300 whitespace-nowrap">Integrations</button>
+  </div>
 
-            <button (click)="changeTab('account')"
-              [ngClass]="activeTab === 'account' ? 'bg-white border-t-2 border-t-[#4a3f3f] text-[#4a3f3f]' : 'text-gray-600'"
-              class="px-5 py-2 font-bold border-r border-gray-300 whitespace-nowrap">Account Info</button>
-            <button (click)="changeTab('billing')"
-              [ngClass]="activeTab === 'billing' ? 'bg-white border-t-2 border-t-[#4a3f3f] text-[#4a3f3f]' : 'text-gray-600'"
-              class="px-5 py-2 font-bold border-r border-gray-300 whitespace-nowrap">Billing</button>
-            <button (click)="changeTab('reg')"
-              [ngClass]="activeTab === 'reg' ? 'bg-white border-t-2 border-t-[#4a3f3f] text-[#4a3f3f]' : 'text-gray-600'"
-              class="px-5 py-2 font-bold border-r border-gray-300 whitespace-nowrap">Reg</button>
-            <button (click)="changeTab('IATA')"
-              [ngClass]="activeTab === 'IATA' ? 'bg-white border-t-2 border-t-[#4a3f3f] text-[#4a3f3f]' : 'text-gray-600'"
-              class="px-5 py-2 font-bold border-r border-gray-300 whitespace-nowrap">IATA</button>
-            <button [disabled]="true"
-              class="px-5 py-2 font-bold border-r border-gray-300 whitespace-nowrap text-gray-400 opacity-50 cursor-not-allowed">KYC</button>
-            <button (click)="changeTab('integrations')"
-              [ngClass]="activeTab === 'integrations' ? 'bg-white border-t-2 border-t-[#4a3f3f] text-[#4a3f3f]' : 'text-gray-600'"
-              class="px-5 py-2 font-bold border-r border-gray-300 whitespace-nowrap">Integrations</button>
+  <div class="min-h-[450px]">
+    <div *ngIf="activeTab === 'general'" class="flex h-full min-h-[450px]">
+      <div class="w-48 border-r border-gray-300 bg-gray-50 overflow-y-auto">
+        <div class="bg-[#4a3f3f] text-white p-2 text-center font-bold text-[11px]">Branches</div>
+        <div *ngFor="let b of branches" (click)="selectBranch(b)"
+          [ngClass]="selectedBranch.id === b.id ? 'bg-[#617a55] text-white' : 'hover:bg-gray-200 text-gray-700'"
+          class="p-2.5 cursor-pointer border-b border-gray-200 font-semibold transition-colors">
+          {{b.name}}
+        </div>
+      </div>
+
+      <div class="flex-1 p-6 space-y-4 max-w-5xl">
+        <div class="flex items-center gap-4">
+          <label class="w-40 text-red-700 font-bold">Branch Name</label>
+          <input type="text" [value]="selectedBranch.name" class="flex-1 border border-gray-300 p-1.5 outline-none" readonly>
+          <label class="flex items-center gap-2 text-sm font-semibold"><input type="checkbox" [checked]="selectedBranch.isDefault" class="accent-[#4a3f3f]"> Set as Default</label>
+          <label class="flex items-center gap-2 text-sm font-semibold"><input type="checkbox" class="accent-[#4a3f3f]"> Deactivate</label>
+        </div>
+
+        <div class="flex gap-4">
+          <label class="w-40 font-semibold text-gray-700">Address</label>
+          <div class="flex-1 flex flex-col gap-2">
+            <input type="text" [(ngModel)]="address" name="address" placeholder="Building / Street" class="border border-gray-300 p-1.5 outline-none">
+            <input type="text" placeholder="Area / Locality" class="border border-gray-300 p-1.5 outline-none">
+            <input type="text" placeholder="Landmark" class="border border-gray-300 p-1.5 outline-none">
           </div>
+        </div>
 
-          <div class="min-h-[450px]">
-            <div *ngIf="activeTab === 'general'" class="flex h-full min-h-[450px]">
-              <div class="w-48 border-r border-gray-300 bg-gray-50 overflow-y-auto">
-                <div class="bg-[#4a3f3f] text-white p-2 text-center font-bold text-[11px]">Branches</div>
-                <div *ngFor="let b of branches" (click)="selectBranch(b)"
-                  [ngClass]="selectedBranch.id === b.id ? 'bg-[#617a55] text-white' : 'hover:bg-gray-200 text-gray-700'"
-                  class="p-2.5 cursor-pointer border-b border-gray-200 font-semibold transition-colors">
-                  {{b.name}}
-                </div>
+        <div class="grid grid-cols-2 gap-6">
+          <div class="flex items-center gap-3">
+            <label class="w-40 text-red-700 font-bold">Country</label>
+            <div class="flex-1 flex flex-col">
+              <div class="flex border border-gray-300 rounded overflow-hidden">
+                <input type="text" [(ngModel)]="country" name="country" placeholder="Search Country..." class="flex-1 p-1.5 outline-none" required #countryRef="ngModel">
+                <button class="bg-gray-100 px-3">🔍</button>
               </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <label class="w-40">State/Province</label>
+            <div class="flex border border-gray-300 rounded overflow-hidden flex-1">
+              <input type="text" [(ngModel)]="stateProvince" name="stateProvince" class="flex-1 p-1.5 outline-none">
+              <button class="bg-gray-100 px-3">🔍</button>
+            </div>
+          </div>
+        </div>
 
-              <div class="flex-1 p-6 space-y-4 max-w-5xl">
-                <div class="flex items-center gap-4">
-                  <label class="w-40 text-red-700 font-bold">Branch Name</label>
-                  <input type="text" [value]="selectedBranch.name"
-                    class="flex-1 border border-gray-300 p-1.5 outline-none focus:border-[#4a3f3f]" readonly>
-                  <label class="flex items-center gap-2 text-sm font-semibold"><input type="checkbox"
-                      [checked]="selectedBranch.isDefault" class="accent-[#4a3f3f]"> Set as Default</label>
-                  <label class="flex items-center gap-2 text-sm font-semibold"><input type="checkbox"
-                      class="accent-[#4a3f3f]"> Deactivate</label>
-                </div>
+        <div class="grid grid-cols-2 gap-6">
+          <div class="flex items-center gap-3">
+            <label class="w-40">Telephone</label>
+            <input type="text" [(ngModel)]="telephone" class="flex-1 border p-1.5 outline-none">
+          </div>
+          <div class="flex items-center gap-3">
+            <label class="w-40">Fax</label>
+            <input type="text" [(ngModel)]="fax" class="flex-1 border p-1.5 outline-none">
+          </div>
+        </div>
 
-                <div class="flex gap-4">
-                  <label class="w-40 font-semibold text-gray-700">Address</label>
-                  <div class="flex-1 flex flex-col gap-2">
-                    <input type="text" [(ngModel)]="address" name="address" placeholder="Building / Street"
-                      class="border border-gray-300 p-1.5 outline-none focus:border-[#4a3f3f]">
-                    <input type="text" placeholder="Area / Locality"
-                      class="border border-gray-300 p-1.5 outline-none focus:border-[#4a3f3f]">
-                    <input type="text" placeholder="Landmark"
-                      class="border border-gray-300 p-1.5 outline-none focus:border-[#4a3f3f]">
-                  </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-6">
-                  <div class="flex items-center gap-3">
-                    <label class="w-40 text-red-700 font-bold">Country</label>
-                    <div class="flex-1 flex flex-col">
-                        <div class="flex border border-gray-300 rounded overflow-hidden">
-                          <input type="text" [(ngModel)]="country" name="country" placeholder="Search Country..."
-                            class="flex-1 p-1.5 outline-none" required #countryRef="ngModel">
-                          <button class="bg-gray-100 px-3 border-l border-gray-300 hover:bg-gray-200">🔍</button>
-                        </div>
-                        <div *ngIf="countryRef.invalid && (countryRef.dirty || countryRef.touched)" class="text-red-600 text-[11px] mt-1">
-                          Country is required.
-                        </div>
-                    </div>
-                  </div>
-                  <div class="flex items-center gap-3">
-                    <label class="w-40">State/Province</label>
-                    <div class="flex-1 flex border border-gray-300 rounded overflow-hidden">
-                      <input type="text" [(ngModel)]="stateProvince" name="stateProvince" placeholder="Search State..." class="flex-1 p-1.5 outline-none">
-                      <button class="bg-gray-100 px-3 border-l border-gray-300 hover:bg-gray-200">🔍</button>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-6">
-                  <div class="flex items-center gap-3">
-                    <label class="w-40 text-red-700 font-bold">City</label>
-                    <div class="flex-1 flex flex-col">
-                        <div class="flex border border-gray-300 overflow-hidden">
-                          <input type="text" [(ngModel)]="city" name="city" placeholder="Search City..."
-                            class="flex-1 p-1.5 outline-none" required #cityRef="ngModel">
-                          <button class="bg-gray-100 px-3 border-l border-gray-300 hover:bg-gray-200">🔍</button>
-                        </div>
-                        <div *ngIf="cityRef.invalid && (cityRef.dirty || cityRef.touched)" class="text-red-600 text-[11px] mt-1">
-                          City is required.
-                        </div>
-                    </div>
-                  </div>
-                  <div class="flex items-center gap-3">
-                    <label class="w-40">Postal Code</label>
-                    <input type="text" [(ngModel)]="postalCode" name="postalCode"
-                      class="flex-1 border border-gray-300 p-1.5 outline-none">
-                  </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-6">
-                 <div class="flex items-center gap-3">
-  <label class="w-40">Telephone</label>
-  <div class="flex flex-col flex-1">
-    <input 
-      type="text" 
-      [(ngModel)]="telephone"   
-      name="telephone"
-      maxlength="15"
-      (keypress)="onlyNumbers($event)"
-      placeholder="Telephone (5-15 digits)"
-      class="w-full border p-1.5 outline-none focus:border-blue-400"
-      [class.border-red-500]="telephone && telephone.length > 0 && telephone.length < 5"
-    >
-    <span *ngIf="telephone && telephone.length > 0 && telephone.length < 5" 
-          class="text-[10px] text-red-500 mt-1 font-semibold italic">
-      ⚠️ Telephone must be between 5 to 15 digits
-    </span>
-  </div>
-</div>
-                 <div class="flex items-center gap-3">
-  <label class="w-40">Fax</label>
-  <div class="flex flex-col flex-1">
-    <input 
-      type="text" 
-      [(ngModel)]="fax" 
-      name="fax"
-      maxlength="13"
-      (keypress)="onlyNumbers($event)"
-      class="w-full border p-1.5 outline-none focus:border-blue-400"
-      [class.border-red-500]="fax && fax.length > 0 && (fax.length < 6)"
-    >
-    <span *ngIf="fax && fax.length > 0 && fax.length < 6" 
-          class="text-[10px] text-red-500 mt-1 font-semibold italic">
-      ⚠️ Fax must be between 6 to 13 digits
-    </span>
-  </div>
-</div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-6">
-                <div class="flex items-center gap-3">
-  <label class="w-40">Web Site</label>
-  <div class="flex flex-col flex-1">
-    <input 
-      type="text" 
-      [(ngModel)]="website" 
-      name="website"
-      (input)="validateWebsite()"
-      placeholder="e.g. www.google.com"
-      class="w-full border p-1.5 outline-none focus:border-blue-400"
-      [class.border-red-500]="website && website.length > 0 && isWebsiteInvalid"
-    >
-    <span *ngIf="website && website.length > 0 && isWebsiteInvalid" 
-          class="text-[10px] text-red-500 mt-1 font-semibold italic">
-      ⚠️ Please enter a valid website (e.g. www.example.com)
-    </span>
-  </div>
-</div>
-                 <div class="flex items-center gap-3">
-  <label class="w-40">Email Address</label>
-  <div class="flex-1 flex flex-col">
-    <input 
-      type="email" 
-      [(ngModel)]="email" 
-      name="email" 
-      list="emailSuggestions"
-      (input)="checkMainEmail()"
-      class="w-full border p-1.5 outline-none"
-      [ngClass]="email && email.length > 0 && isMainEmailInvalid ? 'border-red-500' : 'border-gray-300'"
-    >
-    <datalist id="emailSuggestions">
-      <option value="admin@cavalierlogistic.in">
-    </datalist>
-
-    <span *ngIf="email && email.length > 0 && isMainEmailInvalid" 
-          class="text-[10px] text-red-500 font-bold">
-      ⚠️ Invalid Email Format
-    </span>
-  </div>
-</div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-6">
-                  <div class="flex items-center gap-3">
-                    <label class="w-40">Sales Person</label>
-                    <select [(ngModel)]="salesPerson" name="salesPerson"
-                      class="flex-1 border border-gray-300 p-1.5 outline-none">
-                      <option value="">Select</option>
-                        <option value="one">one</option>
-                        <option value="two">two</option>
-                    </select>
-                  </div>
-                  <div class="flex items-center gap-3">
-                    <label class="flex items-center gap-2 text-sm font-semibold whitespace-nowrap"><input type="checkbox"
-                        class="accent-[#4a3f3f]"> LOB wise</label>
-                    <button
-                      class="px-3 py-1 border border-gray-300 bg-gray-100 hover:bg-gray-200 rounded text-gray-600">...</button>
-                  </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-6">
-                  <div class="flex items-center gap-3">
-                    <label class="w-40">Collection Exec</label>
-                    <select [(ngModel)]="collectionExec" name="collectionExec"
-                      class="flex-1 border border-gray-300 p-1.5 outline-none">
-                      <option value="">Select</option>
-                      <option value="one">one</option>
-                      <option value="two">two</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div class="border-t pt-6 mt-8">
-                  <div class="mb-4">
-                    <h3 class="text-lg font-bold text-gray-700 uppercase tracking-wider border-l-4 border-green-600 pl-3">
-                      Contact Details
-                    </h3>
-                  </div>
-
-                  <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                    <div class="hidden md:grid grid-cols-6 gap-3 mb-2 px-1">
-                      <label class="text-[11px] font-bold text-gray-500 uppercase">Contact Name</label>
-                      <label class="text-[11px] font-bold text-gray-500 uppercase">Designation</label>
-                      <label class="text-[11px] font-bold text-gray-500 uppercase">Department</label>
-                      <label class="text-[11px] font-bold text-gray-500 uppercase">Mobile</label>
-                      <label class="text-[11px] font-bold text-gray-500 uppercase">Whatsapp</label>
-                      <label class="text-[11px] font-bold text-gray-500 uppercase">Email ID</label>
-                    </div>
-
-                    <div class="space-y-3">
-                      <div *ngFor="let contact of contacts; let i = index" class="grid grid-cols-1 md:grid-cols-6 gap-3 items-center">
-                        <input [(ngModel)]="contact.contactName" [name]="'name'+i" placeholder="Name"
-                          class="w-full border p-2 rounded text-sm outline-none focus:border-blue-400">
-
-                        <select [(ngModel)]="contact.DesignationId" [name]="'desig'+i"
-                          class="w-full border p-2 rounded text-sm bg-white outline-none focus:border-blue-400">
-                          <option value="" disabled selected>Select Designation</option>
-                          <option value="Manager">Manager</option>
-                          <option value="HOD">HOD</option>
-                        </select>
-
-                        <select [(ngModel)]="contact.DepartmentId" [name]="'dept'+i"
-                          class="w-full border p-2 rounded text-sm bg-white outline-none focus:border-blue-400">
-                          <option value="" disabled selected>Select Department</option>
-                          <option value="Sales">Sales</option>
-                          <option value="Marketing">Marketing</option>
-                        </select>
-
-                      <div class="flex flex-col w-full">
-  <input 
-    [(ngModel)]="contact.mobile" 
-    [name]="'mob'+i" 
-    type="text"
-    maxlength="10"
-    (keypress)="onlyNumbers($event)"
-    placeholder="Mobile No"
-    class="w-full border p-2 rounded text-sm outline-none focus:border-blue-400"
-    [class.border-red-500]="contact.mobile && contact.mobile.length > 0 && contact.mobile.length < 10"
-  >
-  
-  <span *ngIf="contact.mobile && contact.mobile.length > 0 && contact.mobile.length < 10" 
-        class="text-[10px] text-red-500 mt-1 font-semibold">
-    Mobile number must be exactly 10 digits
-  </span>
-</div>
-<div class="flex flex-col w-full">
-  <input 
-    [(ngModel)]="contact.whatsapp" 
-    [name]="'wa'+i" 
-    type="text"
-    maxlength="10"
-    (keypress)="onlyNumbers($event)"
-    placeholder="Whatsapp No"
-    class="w-full border p-2 rounded text-sm outline-none focus:border-blue-400"
-    [class.border-red-500]="contact.whatsapp && contact.whatsapp.length > 0 && contact.whatsapp.length < 10"
-  >
-  
-  <span *ngIf="contact.whatsapp && contact.whatsapp.length > 0 && contact.whatsapp.length < 10" 
-        class="text-[10px] text-red-500 mt-1">
-    Number must be exactly 10 digits
-  </span>
-</div>
-
-                        <div class="flex items-center gap-3">
-                         <div class="flex flex-col w-full">
-  <input 
-    [(ngModel)]="contact.email" 
-    [name]="'email'+i" 
-    type="email"
-    (input)="checkEmail(contact)"
-    placeholder="Email Address"
-    class="w-full border p-2 rounded text-sm outline-none focus:border-blue-400"
-    [class.border-red-500]="contact.email && contact.email.length > 0 && contact.isEmailInvalid"
-  >
-  
-  <span *ngIf="contact.email && contact.email.length > 0 && contact.isEmailInvalid" 
-        class="text-[10px] text-red-500 mt-1 font-bold animate-pulse">
-    ⚠️ Invalid Email! Please enter a complete address (e.g., name@domain.com)
-  </span>
-</div>
-
-                          <button *ngIf="i === 0" type="button" (click)="addContact()"
-                            class="text-green-600 hover:text-green-700 transition-colors font-bold text-2xl">
-                            +
-                          </button>
-
-                          <button *ngIf="i > 0" type="button" (click)="removeContact(i)"
-                            class="text-red-500 hover:text-red-600 transition-colors font-bold text-xl px-1">
-                            x
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="flex justify-end gap-3 mt-12 mb-4">
-                  <button class="px-4 py-1.5 border border-gray-400 bg-gray-100 hover:bg-gray-200 font-bold transition-colors">New</button>
-                  <button (click)="saveOrg()" class="px-4 py-1.5 border border-gray-400 bg-gray-100 hover:bg-gray-200 font-bold transition-colors">Update</button>
-                  <button class="px-4 py-1.5 border border-gray-400 bg-gray-100 hover:bg-gray-200 font-bold text-red-600 hover:bg-red-50 transition-colors">Delete</button>
-                </div>
-
-                <div *ngIf="activeTab !== 'general'" class="p-10 text-gray-500 font-bold italic">
-                  {{activeTab | uppercase}} Section Content...
+        <div class="border-t pt-6 mt-8">
+          <div class="mb-4">
+            <h3 class="text-lg font-bold text-gray-700 uppercase tracking-wider border-l-4 border-green-600 pl-3">Contact Details</h3>
+          </div>
+          <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+            <div class="hidden md:grid grid-cols-6 gap-3 mb-2 px-1 text-[11px] font-bold text-gray-500 uppercase">
+              <label>Contact Name</label><label>Designation</label><label>Department</label>
+              <label>Mobile</label><label>Whatsapp</label><label>Email ID</label>
+            </div>
+            <div class="space-y-3">
+              <div *ngFor="let contact of contacts; let i = index" class="grid grid-cols-1 md:grid-cols-6 gap-3 items-center">
+                <input [(ngModel)]="contact.contactName" class="border p-2 rounded text-sm outline-none">
+                <select [(ngModel)]="contact.DesignationId" class="border p-2 rounded text-sm bg-white"><option value="Manager">Manager</option></select>
+                <select [(ngModel)]="contact.DepartmentId" class="border p-2 rounded text-sm bg-white"><option value="Sales">Sales</option></select>
+                <input [(ngModel)]="contact.mobile" class="border p-2 rounded text-sm outline-none">
+                <input [(ngModel)]="contact.whatsapp" class="border p-2 rounded text-sm outline-none">
+                <div class="flex items-center gap-2">
+                  <input [(ngModel)]="contact.email" class="flex-1 border p-2 rounded text-sm outline-none">
+                  <button *ngIf="i === 0" (click)="addContact()" class="text-green-600 font-bold text-2xl">+</button>
+                  <button *ngIf="i > 0" (click)="removeContact(i)" class="text-red-500 font-bold text-xl">x</button>
                 </div>
               </div>
             </div>
           </div>
         </div>
+
+        <div class="flex justify-end gap-3 mt-12 mb-4">
+          <button class="px-4 py-1.5 border border-gray-400 bg-gray-100 font-bold">New</button>
+          <button (click)="saveOrg()" class="px-4 py-1.5 border border-gray-400 bg-gray-100 font-bold">Update</button>
+          <button class="px-4 py-1.5 border border-gray-400 bg-gray-100 font-bold text-red-600">Delete</button>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="activeTab === 'shipper'" class="p-8 bg-white min-h-[450px]">
+      <div class="max-w-5xl space-y-6">
+        <h3 class="text-lg font-bold text-[#4a3f3f] border-b-2 border-[#4a3f3f] pb-2 w-fit uppercase">Shipper Information</h3>
+        <div class="grid grid-cols-2 gap-6">
+           <div class="flex flex-col gap-2">
+             <label class="font-bold text-gray-700">Shipper Type</label>
+             <select class="border p-2 outline-none focus:border-[#4a3f3f]">
+               <option>Direct Shipper</option>
+               <option>Third Party</option>
+             </select>
+           </div>
+           <div class="flex flex-col gap-2">
+             <label class="font-bold text-gray-700">Credit Limit</label>
+             <input type="number" class="border p-2 outline-none focus:border-[#4a3f3f]" placeholder="Enter Limit">
+           </div>
+        </div>
+        <p class="text-gray-500 italic">Shipper specific details section...</p>
+      </div>
+    </div>
+
+    <div *ngIf="activeTab !== 'general' && activeTab !== 'shipper'" class="p-10 text-gray-500 font-bold italic">
+      {{activeTab | uppercase}} Section Content...
+    </div>
+  </div>
+</div>
 
         <div class="mt-6 flex justify-end gap-3 border-t pt-4">
           <button (click)="closeForm()"

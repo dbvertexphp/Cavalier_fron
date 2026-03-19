@@ -1,7 +1,7 @@
 export const environment = {
   production: true,
   // apiUrl: 'http://api.cavalierlogistic.graphicsvolume.com', // Live URL
-  apiUrl: 'http://localhost:5000/api',
+  apiUrl: 'https://api.cavalierlogistic.graphicsvolume.com/api',
   firebase: {
     apiKey: "AIzaSyD8ys-ve3XONsOky2FVTVOvr3S6V5vN5vg",
   authDomain: "cavalierfron.firebaseapp.com",

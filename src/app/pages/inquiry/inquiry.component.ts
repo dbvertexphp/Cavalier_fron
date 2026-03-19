@@ -22,6 +22,61 @@ import { DragDropModule } from '@angular/cdk/drag-drop'; // Ye import ensure kar
   styleUrl: './inquiry.component.css',
 })
   export class InquiryComponent implements OnInit {
+    documents: any[] = [];
+
+addDocument() {
+  this.documents.push({
+    name: '',
+    file: null
+  });
+}
+
+removeDocument(index: number) {
+  this.documents.splice(index, 1);
+}
+onFileSelecteds(event: any, index: number) {
+  const file = event.target.files[0];
+  if (file) {
+    this.documents[index].file = file;
+  }
+}
+isDocumentModalOpen = false;
+
+openDocumentModal() {
+  this.isDocumentModalOpen = true;
+}
+
+closeDocumentModal() {
+  this.isDocumentModalOpen = false;
+}
+isInvoiceModalOpen = false;
+invoiceDocuments: any[] = [];
+
+// modal
+openInvoiceModal() {
+  this.isInvoiceModalOpen = true;
+}
+
+closeInvoiceModal() {
+  this.isInvoiceModalOpen = false;
+}
+
+// add/remove
+addInvoiceDoc() {
+  this.invoiceDocuments.push({ name: '', file: null });
+}
+
+removeInvoiceDoc(index: number) {
+  this.invoiceDocuments.splice(index, 1);
+}
+
+// file select
+onInvoiceFileSelected(event: any, index: number) {
+  const file = event.target.files[0];
+  if (file) {
+    this.invoiceDocuments[index].file = file;
+  }
+}
     // Labels ko backend properties se map karo (Apne model ke hisaab se check kar lena)
 columnFieldMap: any = {
   'ID': 'id',

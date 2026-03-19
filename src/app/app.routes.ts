@@ -67,6 +67,10 @@ import { EmployeeComponent } from './pages/employee/employee.component';
 import { ShipperComponent } from './pages/shipper/shipper.component';
 import { ConsigneeComponent } from './pages/consignee/consignee.component';
 import { RolePermisionsComponent } from './pages/role-permisions/role-permisions.component';
+import { TranportModeComponent } from './pages/tranport-mode/tranport-mode.component';
+import { ShipmentTypeComponent } from './pages/shipment-type/shipment-type.component';
+import { IncoTermComponent } from './pages/inco-term/inco-term.component';
+import { MovementTypeComponent } from './pages/movement-type/movement-type.component';
 
 export const routes: Routes = [
 
@@ -99,6 +103,22 @@ export const routes: Routes = [
         path: 'salescrm/inquiry',
         component: InquiryComponent
       },
+      {
+        path: 'transport-mode',
+        component: TranportModeComponent
+      },
+      {
+        path: 'shipment-type',
+        component: ShipmentTypeComponent
+      },
+        {
+          path: 'incoterms',
+          component: IncoTermComponent
+        },
+        {
+          path: 'movement-type',
+          component: MovementTypeComponent
+        },
       {
         path: 'organization-add',
         component: OrganizationAddComponent

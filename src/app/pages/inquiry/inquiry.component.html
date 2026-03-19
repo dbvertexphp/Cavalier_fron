@@ -634,28 +634,92 @@
 
 
             <div class="flex flex-col gap-4">
-              <div class="flex items-center">
-                <label class="w-40 font-bold text-gray-700">Commodity</label>
-                <select [(ngModel)]="quotation.commodity" name="commodity" class="flex-1 border p-2 outline-none">
-                  <option value="" disabled selected>Select Commodity</option>
-                  <option value="Hazard">Hazard</option>
-                  <option value="Non-Hazard">Non-Hazard</option>
-                  <option value="Perishable">Perishable</option>
-                  <option value="General">General</option>
-                  <option value="Temperature Controlled">Temperature Controlled</option>
-       </select>
-              </div>
-              
-               <div *ngIf="quotation.commodity === 'Hazard'"
-                class="flex items-center animate-in fade-in slide-in-from-top-2 duration-300">
-                <label class="w-40 font-bold text-gray-700">Upload Document</label>
-                <div class="flex-1 flex items-center gap-2">
-                  <input type="file" (change)="onFileSelected($event)"
-                    class="flex-1 border p-1 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"> 
-                </div>
-              </div>
-            </div>  
-            
+
+  <!-- Commodity Dropdown -->
+  <div class="flex items-center">
+    <label class="w-40 font-bold text-gray-700">Commodity</label>
+
+    <select [(ngModel)]="quotation.commodity" name="commodity"
+      class="flex-1 border p-2 outline-none">
+
+      <option value="" disabled>Select Commodity</option>
+      <option value="Hazard">Hazard</option>
+      <option value="Non-Hazard">Non-Hazard</option>
+      <option value="Perishable">Perishable</option>
+      <option value="General">General</option>
+      <option value="Temperature Controlled">Temperature Controlled</option>
+
+    </select>
+  </div>
+
+  <!-- Hazard Section -->
+  <div *ngIf="quotation.commodity === 'Hazard'" class="flex flex-col gap-3">
+
+    <!-- Add Button -->
+   <button (click)="openDocumentModal()" 
+    class="bg-red-500 text-white px-4 py-2 rounded">
+    Manage Documents
+  </button>
+
+    <!-- Dynamic Document Fields -->
+    
+
+  </div>
+
+</div>
+          
+<div *ngIf="isDocumentModalOpen"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+
+  <div class="bg-white w-full max-w-lg rounded-lg p-4">
+
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-3">
+      <h2 class="text-lg font-bold">Upload Documents</h2>
+      <button (click)="closeDocumentModal()" class="text-red-500 text-xl">X</button>
+    </div>
+
+    <!-- Add Button -->
+    <button (click)="addDocument()" 
+      class="bg-red-500 text-white px-4 py-2 rounded mb-3">
+      + Add Document
+    </button>
+
+    <!-- Dynamic Fields -->
+    <div *ngFor="let doc of documents; let i = index"
+      class="flex items-center gap-2 border p-2 rounded mb-2">
+
+      <input type="text"
+        [(ngModel)]="doc.name"
+        placeholder="Document Name"
+        class="border p-2 flex-1" />
+
+      <input type="file"
+        (change)="onFileSelecteds($event, i)"
+        class="flex-1 border p-1 text-sm" />
+
+      <button (click)="removeDocument(i)"
+        class="bg-red-600 text-white px-2 py-1 rounded">
+        X
+      </button>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="flex justify-end mt-4 gap-2">
+      <button (click)="closeDocumentModal()"
+        class="bg-gray-400 text-white px-4 py-2 rounded">
+        Cancel
+      </button>
+
+      <button (click)="closeDocumentModal()"
+        class="bg-green-500 text-white px-4 py-2 rounded">
+        Save
+      </button>
+    </div>
+
+  </div>
+</div>
       
     
   
@@ -905,21 +969,81 @@
       </div>
 
       <div class="flex flex-col gap-4">
-        <div class="flex items-center">
-          <label class="w-40 font-bold text-gray-700">Package/Invoice List</label>
-          <select [(ngModel)]="quotation.invoiceList" name="invoiceList" class="flex-1 border p-2 outline-none">
-            <option value="" disabled>-- Select Status --</option>
-            <option value="Available">Available</option>
-            <option value="Not Available">Not Available</option>
-          </select>
-        </div>
 
-        <div *ngIf="quotation.invoiceList === 'Available'" class="flex items-center animate-fade-in">
-          <label class="w-40 font-bold text-gray-700">Upload Document</label>
-          <input type="file" (change)="onFileSelected($event)"
-            class="flex-1 border p-1.5 bg-white outline-none file:mr-4 file:py-1 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200">
-        </div>
-      </div>
+  <div class="flex items-center">
+    <label class="w-40 font-bold text-gray-700">Package/Invoice List</label>
+
+    <select [(ngModel)]="quotation.invoiceList"
+      class="flex-1 border p-2 outline-none">
+
+      <option value="" disabled>-- Select Status --</option>
+      <option value="Available">Available</option>
+      <option value="Not Available">Not Available</option>
+
+    </select>
+  </div>
+
+  <!-- Button -->
+  <div *ngIf="quotation.invoiceList === 'Available'" class="mt-2">
+    <button (click)="openInvoiceModal()"
+      class="bg-blue-500 text-white px-4 py-2 rounded">
+      Manage Invoice Documents
+    </button>
+  </div>
+
+</div>
+<div *ngIf="isInvoiceModalOpen"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+
+  <div class="bg-white w-full max-w-lg rounded-lg p-4">
+
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-3">
+      <h2 class="text-lg font-bold">Invoice Documents</h2>
+      <button (click)="closeInvoiceModal()" class="text-red-500 text-xl">X</button>
+    </div>
+
+    <!-- Add Button -->
+    <button (click)="addInvoiceDoc()"
+      class="bg-blue-500 text-white px-4 py-2 rounded mb-3">
+      + Add Document
+    </button>
+
+    <!-- Dynamic Fields -->
+    <div *ngFor="let doc of invoiceDocuments; let i = index"
+      class="flex items-center gap-2 border p-2 rounded mb-2">
+
+      <input type="text"
+        [(ngModel)]="doc.name"
+        placeholder="Document Name"
+        class="border p-2 flex-1" />
+
+      <input type="file"
+        (change)="onInvoiceFileSelected($event, i)"
+        class="flex-1 border p-1 text-sm" />
+
+      <button (click)="removeInvoiceDoc(i)"
+        class="bg-red-600 text-white px-2 py-1 rounded">
+        X
+      </button>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="flex justify-end mt-4 gap-2">
+      <button (click)="closeInvoiceModal()"
+        class="bg-gray-400 text-white px-4 py-2 rounded">
+        Cancel
+      </button>
+
+      <button (click)="closeInvoiceModal()"
+        class="bg-green-500 text-white px-4 py-2 rounded">
+        Save
+      </button>
+    </div>
+
+  </div>
+</div>
 
       <div class="flex items-center text-red-700 font-bold">
         <label class="w-40">Origin</label>

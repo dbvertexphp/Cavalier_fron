@@ -491,28 +491,48 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-2 gap-6">
-        <div class="flex items-center gap-3">
-          <label class="w-40 text-red-700 font-bold">Country</label>
-          <div class="flex-1 flex flex-col">
-            <div class="flex border border-gray-300 rounded overflow-hidden">
-              <input type="text" [(ngModel)]="country" name="country" placeholder="Search Country..."
-                class="flex-1 p-1.5 outline-none" required #countryRef="ngModel">
-              <button class="bg-gray-100 px-3 border-l border-gray-300 hover:bg-gray-200">🔍</button>
-            </div>
-            <div *ngIf="countryRef.invalid && (countryRef.dirty || countryRef.touched)" class="text-red-600 text-[11px] mt-1">
-              Country is required.
-            </div>
-          </div>
-        </div>
-        <div class="flex items-center gap-3">
-          <label class="w-40">State/Province</label>
-          <div class="flex-1 flex border border-gray-300 rounded overflow-hidden">
-            <input type="text" [(ngModel)]="stateProvince" name="stateProvince" placeholder="Search State..." class="flex-1 p-1.5 outline-none">
-            <button class="bg-gray-100 px-3 border-l border-gray-300 hover:bg-gray-200">🔍</button>
-          </div>
-        </div>
+<div class="grid grid-cols-2 gap-6">
+  <div class="flex items-center gap-3">
+    <label class="w-40 text-red-700 font-bold">Country</label>
+    <div class="flex-1 flex flex-col">
+      <div class="flex border border-gray-300 rounded overflow-hidden">
+       <input type="text" 
+       [(ngModel)]="country" 
+       name="country" 
+       list="countryOptions"
+       (change)="onCountrySelectionChange()" 
+       (input)="onCountrySelectionChange()" 
+       placeholder="Search Country..."
+       class="flex-1 p-1.5 outline-none" 
+       required #countryRef="ngModel">
+        <button class="bg-gray-100 px-3 border-l border-gray-300 hover:bg-gray-200">🔍</button>
       </div>
+
+      <datalist id="countryOptions">
+        <option *ngFor="let item of countryMasterList" [value]="item.name"></option>
+      </datalist>
+
+      <div *ngIf="countryRef.invalid && (countryRef.dirty || countryRef.touched)" class="text-red-600 text-[11px] mt-1">
+        Country is required.
+      </div>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-3">
+    <label class="w-40">State/Province</label>
+    <div class="flex-1 flex flex-col">
+      <div class="flex border border-gray-300 rounded overflow-hidden">
+        <input type="text" [(ngModel)]="stateProvince" name="stateProvince" list="stateOptions"
+          placeholder="Search State..." class="flex-1 p-1.5 outline-none">
+        <button class="bg-gray-100 px-3 border-l border-gray-300 hover:bg-gray-200">🔍</button>
+      </div>
+
+      <datalist id="stateOptions">
+        <option *ngFor="let state of stateLookupList" [value]="state"></option>
+      </datalist>
+    </div>
+  </div>
+</div>
 
       <div class="grid grid-cols-2 gap-6">
         <div class="flex items-center gap-3">

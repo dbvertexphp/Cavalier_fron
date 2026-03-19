@@ -28,6 +28,10 @@ searchFilters: any = {
   orgType: '',
   status: 'Active' // 👈 Default 'Active' rakha hai
 };
+// 1. Dropdown lists (Data Sources)
+private apiUrl = 'https://countriesnow.space/api/v0.1/countries/states';
+public countryMasterList: any[] = [];    // Sabhi countries ki original list
+public stateLookupList: any[] = [];
 selectedBranch: any = { id: 0, name: '', isDefault: false, isActive: true };
 branches: any[] = []; 
  // ... baki variables ke niche
@@ -92,6 +96,8 @@ cities: any[] = [];
   this.loadColumnSettings();
     this.getOrgList();
     this.fetchNextBranch();
+this.loadCountriesFromApi();
+
   }
 
 getOrgList() {
@@ -1087,4 +1093,37 @@ saveBranchToDB() {
       }
     }
   });
-}}
+}
+loadCountriesFromApi() {
+    this.http.get(this.apiUrl).subscribe({
+      next: (response: any) => {
+        // response.data mein saari countries aur unke states hote hain
+        if (response && response.data) {
+          this.countryMasterList = response.data;
+        }
+      },
+      error: (err) => {
+        console.error('API Error:', err);
+      }
+    });
+  }
+
+  // 2. Jab user country type ya select kare
+  onCountrySelectionChange() {
+    // Pichli state selection clear karo
+    this.stateProvince = ''; 
+
+    // Find the country object from the master list
+    const selectedObj = this.countryMasterList.find(c => 
+      c.name.toLowerCase() === this.country.trim().toLowerCase()
+    );
+
+    if (selectedObj && selectedObj.states) {
+      // States array me se sirf names nikaal kar string array banao
+      this.stateLookupList = selectedObj.states.map((s: any) => s.name);
+    } else {
+      this.stateLookupList = [];
+    }
+
+}
+}

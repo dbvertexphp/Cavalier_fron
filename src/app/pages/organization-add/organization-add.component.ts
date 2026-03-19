@@ -28,7 +28,14 @@ searchFilters: any = {
   orgType: '',
   status: 'Active' // 👈 Default 'Active' rakha hai
 };
-
+isShipperMode: boolean = false;
+shipper: any = { name: '', contactPerson: '', email: '', phone: '', mode: 'AIR FREIGHT', country: '', state: '', city: '', zip: '' };
+countries: any[] = [];
+filteredCountries: any[] = [];
+states: string[] = [];
+filteredStates: string[] = [];
+showCountryDropdown = false;
+showStateDropdown = false;
  // ... baki variables ke niche
 showColumnModal = false;
 availableColumns: string[] = []; // Ye wo columns jo table mein nahi hain
@@ -87,45 +94,62 @@ cities: any[] = [];
   selectedBranch: any = null
 
   constructor(private location: Location, private http: HttpClient,private cdr: ChangeDetectorRef,private router:Router) {}
-fetchNextBranch() {
-  const url = `${environment.apiUrl}/Organization/next-branch-name`;
-  this.http.get<{nextName: string}>(url).subscribe({
-    next: (res) => {
-      // 1. Pehle list ko khali karo taaki purane temporary numbers (like Branch 02) hat jaye in
-      this.branches = []; 
-
-      // 2. Naya branch object banao
-      const newBranch = { id: 0, name: res.nextName, isDefault: true };
-      
-      // 3. List mein sirf naya number daalo
-      this.branches.push(newBranch);
-      
-      // 4. Isko auto-select karo taaki form mein dikhne lage
-      this.selectedBranch = newBranch;
-      
-      this.cdr.detectChanges();
-    },
-    error: (err) => console.error("Branch fetch error:", err)
-  });
-}
-  ngOnInit() {
+ ngOnInit() {
   this.loadColumnSettings();
     this.getOrgList();
     this.fetchNextBranch();
   }
 
-  getOrgList() {
-    const url = `${environment.apiUrl}/Organization/list`;
-    
-    this.http.get(url).subscribe({
-      next: (data: any) => { 
-        this.organizations = data; 
-      },
-      error: (err) => {
-        console.error('List fetch error:', err);
-      }
-    });
-  }
+getOrgList() {
+  const url = `${environment.apiUrl}/Organization/list`;
+  
+  this.http.get(url).subscribe({
+    next: (data: any) => { 
+      this.organizations = data; 
+
+      // --- Naya logic bina existing code chhode ---
+      if (data && Array.isArray(data)) {
+        // Purani organizations se unique branches nikaalo
+        const uniqueNames = [...new Set(data.map(org => org.branchName).filter(n => n))];
+        
+        // Inhe branches array mein bhar do taaki refresh par na jayein
+        this.branches = uniqueNames.map(name => ({ id: 0, name: name, isDefault: false }));
+        
+        // Ab next branch fetch karo taaki suggestion bhi isi list mein jud jaye
+        this.fetchNextBranch();
+      }
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error('List fetch error:', err);
+    }
+  });
+}
+
+fetchNextBranch() {
+  const url = `${environment.apiUrl}/Organization/next-branch-name`;
+  this.http.get<{nextName: string}>(url).subscribe({
+    next: (res) => {
+
+      // 1. Naya branch object banao
+      const newBranch = { id: 0, name: res.nextName, isDefault: true };
+
+      // 2. Check karo duplicate na aaye
+      const exists = this.branches.some(b => b.name === res.nextName);
+
+      if (!exists) {
+        // 3. New branch ko add karo (neeche add hoga)
+        this.branches.push(newBranch);
+      }
+
+      // 4. Auto select latest branch
+      this.selectedBranch = newBranch;
+
+      this.cdr.detectChanges();
+    },
+    error: (err) => console.error("Branch fetch error:", err)
+  });
+}
 
   addContactRow() {
     this.contactList.push({
@@ -153,26 +177,61 @@ fetchNextBranch() {
   //   }
   // }
 // selectedRoles array ko track karne ke liye logic
+// 2. toggleRole function ko update karein
 toggleRole(role: string) {
-  const index = this.selectedRoles.indexOf(role);
-  if (index > -1) {
-    this.selectedRoles.splice(index, 1);
-  } else {
-    this.selectedRoles.push(role);
-    this.activeTab = role;
-    
-    // Agar 'shipper' select hua hai, toh hum toggle kar sakte hain ya redirect
-    if (role === 'shipper') {
-      console.log("Shipper selected! Showing Shipper Form...");
-      this.router.navigate(['/dashboard/shipper']);
-    }
-       if (role === 'consignee') {
-      console.log("Consignee selected! Showing Shipper Form...");
-      this.router.navigate(['/dashboard/Consignee']);
-    }
-  }
+  const index = this.selectedRoles.indexOf(role);
+  if (index > -1) {
+    this.selectedRoles.splice(index, 1);
+    if (role === 'shipper') this.isShipperMode = false; // Reset if unselected
+  } else {
+    this.selectedRoles.push(role);
+    this.activeTab = role;
+    
+    if (role === 'shipper') {
+      console.log("Shipper selected! Showing Shipper Form in-place...");
+      this.isShipperMode = true; // Redirect ke bajaye flag set kiya
+      if (this.countries.length === 0) this.fetchCountries(); // Data load karo
+    }
+  }
 }
 
+// 3. Shipper ke helper functions bhi yahin copy kar lein (fetchCountries, selectCountry, etc.)
+fetchCountries() {
+  this.http.get<any[]>('https://restcountries.com/v3.1/all?fields=name,cca2')
+    .subscribe(data => {
+      this.countries = data.map(c => ({ name: c.name.common, code: c.cca2 })).sort((a,b) => a.name.localeCompare(b.name));
+      this.filteredCountries = this.countries;
+    });
+}
+
+selectCountry(c: any) {
+  this.shipper.country = c.name.toUpperCase();
+  this.showCountryDropdown = false;
+  this.fetchStates(c.name);
+}
+
+fetchStates(countryName: string) {
+  this.http.post<any>('https://countriesnow.space/api/v0.1/countries/states', { country: countryName })
+    .subscribe(res => {
+      this.states = !res.error ? res.data.states.map((s: any) => s.name) : [];
+      this.filteredStates = this.states;
+    });
+}
+// 1. Countries filter karne ke liye
+filterCountries() {
+  this.showCountryDropdown = true;
+  this.filteredCountries = this.countries.filter(c => 
+    c.name.toLowerCase().includes(this.shipper.country.toLowerCase())
+  );
+}
+
+// 2. States filter karne ke liye
+filterStates() {
+  this.showStateDropdown = true;
+  this.filteredStates = this.states.filter(s => 
+    s.toLowerCase().includes(this.shipper.state.toLowerCase())
+  );
+}
 // HTML mein condition check karne ke liye helper
 isShipperSelected(): boolean {
   return this.selectedRoles.includes('shipper');

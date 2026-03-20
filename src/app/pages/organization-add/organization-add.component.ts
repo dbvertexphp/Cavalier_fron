@@ -51,14 +51,39 @@ columnFieldMap: any = {
   'Type': 'selectedRoles',
   'Location': 'city',
   'Branch': 'branchName',
-  'Email': 'email',
+  'Address': 'address',
+  'Country': 'country',
+  'City': 'city',
   'Telephone': 'telephone',
+  'Email': 'email',
+  'State/Province': 'stateProvince',
+  'Website': 'website',
+  'Postal Code': 'postalCode',
+  'WhatsApp': 'whatsAppNumber',
   'Sales Person': 'salesPerson',
-  'Website': 'website'
+  'Collection Exec': 'collectionExec'
 };
 
 // Default columns jo shuru mein dikhenge
-selectedColumns: string[] = ['Org ID', 'Org Name', 'Alias', 'Type', 'Location'];
+selectedColumns: string[] = [
+  'Org ID', 
+  'Org Name', 
+  'Alias', 
+  'Type', 
+  'Country', 
+  'City', 
+  'Location', 
+  'Branch', 
+  'Address',
+  'Email', 
+  'Telephone', 
+  'WhatsApp',
+  'Sales Person', 
+  'Collection Exec',
+  'Website', 
+  'Postal Code', 
+  'State/Province'
+];
   // Suggestions store karne ke liye arrays
   filteredOrgCodes: any[] = [];
   filteredBranches: any[] = [];
@@ -1084,17 +1109,36 @@ closeColumnModal() {
 loadColumnSettings() {
   this.http.get<any>(`${environment.apiUrl}/OrganizationColumnSettings`).subscribe({
     next: (res) => {
+      const allPossibleColumns = Object.keys(this.columnFieldMap);
+
       if (res && res.selectedColumns) {
-        this.selectedColumns = JSON.parse(res.selectedColumns);
-        this.availableColumns = JSON.parse(res.availableColumns);
+        // 1. DB se purani list lo
+        const savedSelected = JSON.parse(res.selectedColumns);
+        const savedAvailable = JSON.parse(res.availableColumns);
+
+        // 2. CHECK: Kya koi naya column code mein add hua hai jo DB mein nahi hai?
+        // Hum saare columns ko filter karenge jo na 'selected' mein hain na 'available' mein
+        const newMissingColumns = allPossibleColumns.filter(
+          col => !savedSelected.includes(col) && !savedAvailable.includes(col)
+        );
+
+        this.selectedColumns = savedSelected;
+        // 3. Naye columns ko 'Available' list ke aage jod do
+        this.availableColumns = [...savedAvailable, ...newMissingColumns];
+
       } else {
-        // Default Columns agar DB mein kuch na ho
+        // Default Logic agar DB khali hai
         this.selectedColumns = ['Org ID', 'Org Name', 'Type', 'Location'];
-        // availableColumns mein wo saare columns daal do jo selectedColumns mein nahi hain
-        const allPossibleColumns = Object.keys(this.columnFieldMap);
         this.availableColumns = allPossibleColumns.filter(c => !this.selectedColumns.includes(c));
       }
+      
       this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error("Settings load error:", err);
+      // Failover: Agar API fail ho jaye toh kam se kam code wala default dikhao
+      this.selectedColumns = Object.keys(this.columnFieldMap).slice(0, 6);
+      this.availableColumns = Object.keys(this.columnFieldMap).filter(c => !this.selectedColumns.includes(c));
     }
   });
 }

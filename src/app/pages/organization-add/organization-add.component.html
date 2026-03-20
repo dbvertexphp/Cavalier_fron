@@ -234,7 +234,7 @@
       </div>
     </div>
 
-    <button (click)="openForm()" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Add')"
+    <button (click)="openForm()"
       class="bg-green-600 hover:bg-green-700 px-6 py-2 text-[14px] font-bold shadow-md flex items-center gap-2 rounded transition-all">
       <span class="text-xl">+</span> ADD NEW ORGANIZATION
     </button>
@@ -256,7 +256,7 @@
         </tr>
       </thead>
 
-      <tbody class="bg-white divide-y divide-gray-200" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
+      <tbody class="bg-white divide-y divide-gray-200">
         <tr *ngFor="let org of paginatedOrganizations" class="hover:bg-blue-50 transition-colors text-gray-800">
           
           <td class="p-5 text-center text-gray-300 no-export">⠿</td>
@@ -279,8 +279,8 @@
           </td>
 
           <td class="p-5 sticky right-0 bg-white border-l text-center shadow-sm">
-            <button (click)="editOrg(org)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Edit')" class="text-blue-600 mr-4 font-bold hover:underline no-export">EDIT</button>
-            <button (click)="deleteOrg(org.id)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Delete')" class="text-red-600 font-bold hover:underline no-export">DELETE</button>
+            <button (click)="editOrg(org)" class="text-blue-600 mr-4 font-bold hover:underline no-export">EDIT</button>
+            <button (click)="deleteOrg(org.id)" class="text-red-600 font-bold hover:underline no-export">DELETE</button>
           </td>
         </tr>
 
@@ -449,29 +449,51 @@
           </div>
 <div class="min-h-[450px]">
   <div *ngIf="activeTab === 'general'" class="flex h-full min-h-[450px]">
-    <div class="w-48 border-r border-gray-300 bg-gray-50 overflow-y-auto">
-      <div class="bg-[#4a3f3f] text-white p-2 text-center font-bold text-[11px]">Branches</div>
-      <div *ngFor="let b of branches" (click)="selectBranch(b)"
-        [ngClass]="selectedBranch.id === b.id ? 'bg-[#617a55] text-white' : 'hover:bg-gray-200 text-gray-700'"
-        class="p-2.5 cursor-pointer border-b border-gray-200 font-semibold transition-colors">
-        {{b.name}}
-      </div>
-    </div>
+<div class="w-48 border-r border-gray-300 bg-gray-50 overflow-y-auto">
+  <div class="bg-[#4a3f3f] text-white p-2 text-center font-bold text-[11px]">Branches</div>
+  
+  <div 
+    *ngFor="let branch of branchList"
+    (click)="selectBranch(branch)" 
+    class="p-2.5 cursor-pointer border-b border-gray-200 font-semibold transition-colors hover:bg-blue-50 active:bg-blue-100 text-[12px] flex justify-between items-center text-black"
+  >
+    
+    <span>{{ branch.branchName }}</span>
+    
+    <i class="fa fa-pencil-alt text-gray-400 text-[10px]"></i>
+  </div>
+
+  <div *ngIf="branchList.length === 0" class="p-4 text-center text-gray-400 text-[11px]">
+    No branches added
+  </div>
+</div>
 
     <div class="flex-1 p-6 space-y-4 max-w-5xl">
       <div class="flex items-center gap-4">
-  <label class="w-40 text-red-700 font-bold">Branch Name</label>
+ <div class="flex items-center gap-2">
+  <label class="w-40 text-red-700 font-bold text-[12px]">Branch Name</label>
   
-  <input type="text" [(ngModel)]="selectedBranch.name"
-    class="flex-1 border border-gray-300 p-1.5 outline-none focus:border-[#4a3f3f]" 
-    placeholder="Enter Branch Name...">
+  <input 
+    type="text" 
+    [(ngModel)]="branchName" 
+    (keyup.enter)="onSaveBranch()"
+    class="flex-1 border border-gray-300 p-1.5 outline-none focus:border-[#4a3f3f] text-[12px]" 
+    placeholder="Enter Branch Name..."
+  />
+
+  <button 
+    (click)="onSaveBranch()" 
+    class="bg-[#4a3f3f] text-white px-3 py-1.5 text-[11px] font-bold hover:bg-black transition-all">
+    ADD
+  </button>
+</div>
 
   <label class="flex items-center gap-2 text-sm font-semibold">
-    <input type="checkbox" [(ngModel)]="selectedBranch.isDefault" class="accent-[#4a3f3f]"> Set as Default
+    <input type="checkbox"  class="accent-[#4a3f3f]"> Set as Default
   </label>
   
   <label class="flex items-center gap-2 text-sm font-semibold">
-    <input type="checkbox" [(ngModel)]="selectedBranch.isActive" class="accent-[#4a3f3f]"> Deactivate
+    <input type="checkbox" class="accent-[#4a3f3f]"> Deactivate
   </label>
 <!-- 
   <button (click)="prepareNewBranch()" class="px-4 py-1.5 border border-gray-400 bg-gray-100 font-bold">New</button>
@@ -632,8 +654,8 @@
 
       <div class="flex justify-end gap-3 mt-12 mb-4">
 <button 
-  (click)="addNewBranch()" 
-  class="px-4 py-1.5 border border-gray-400 bg-gray-100 font-bold hover:bg-gray-200">
+  (click)="onSaveBranch()"
+  class="px-4 py-1.5 border border-gray-400 bg-gray-100 font-bold hover:bg-gray-200 text-[12px]">
   New
 </button>
         <button (click)="saveOrg()" class="px-4 py-1.5 border border-gray-400 bg-gray-100 font-bold">Update</button>

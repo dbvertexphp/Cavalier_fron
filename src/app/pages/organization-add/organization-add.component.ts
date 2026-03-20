@@ -10,7 +10,6 @@ import html2canvas from 'html2canvas';
 import * as XLSX from 'xlsx';
 import { moveItemInArray, transferArrayItem, CdkDragDrop } from '@angular/cdk/drag-drop';
 import { DragDropModule } from '@angular/cdk/drag-drop'; // 👈 Ye zaroori hai // Ye import ensure kar lena
-import { CheckPermissionService } from '../../services/check-permission.service';
 
 @Component({
   selector: 'app-organization-add',
@@ -20,7 +19,6 @@ import { CheckPermissionService } from '../../services/check-permission.service'
   styleUrl: './organization-add.component.css',
 })
 export class OrganizationAddComponent implements OnInit {
-    PermissionID:any;
 searchFilters: any = {
   orgCode: '',
   orgName: '',
@@ -30,6 +28,10 @@ searchFilters: any = {
   orgType: '',
   status: 'Active' // 👈 Default 'Active' rakha hai
 };
+// Isse TypeScript ko pata chal jayega ki ye variable exist karta hai
+editingBranchId: any = null;
+public branchList: any[] = []; // Temporary branches yahan rahengi
+public branchName: string = ''; // Input field ke liye
 // 1. Dropdown lists (Data Sources)
 private apiUrl = 'https://countriesnow.space/api/v0.1/countries/states';
 public countryMasterList: any[] = [];    // Sabhi countries ki original list
@@ -49,14 +51,39 @@ columnFieldMap: any = {
   'Type': 'selectedRoles',
   'Location': 'city',
   'Branch': 'branchName',
-  'Email': 'email',
+  'Address': 'address',
+  'Country': 'country',
+  'City': 'city',
   'Telephone': 'telephone',
+  'Email': 'email',
+  'State/Province': 'stateProvince',
+  'Website': 'website',
+  'Postal Code': 'postalCode',
+  'WhatsApp': 'whatsAppNumber',
   'Sales Person': 'salesPerson',
-  'Website': 'website'
+  'Collection Exec': 'collectionExec'
 };
 
 // Default columns jo shuru mein dikhenge
-selectedColumns: string[] = ['Org ID', 'Org Name', 'Alias', 'Type', 'Location'];
+selectedColumns: string[] = [
+  'Org ID', 
+  'Org Name', 
+  'Alias', 
+  'Type', 
+  'Country', 
+  'City', 
+  'Location', 
+  'Branch', 
+  'Address',
+  'Email', 
+  'Telephone', 
+  'WhatsApp',
+  'Sales Person', 
+  'Collection Exec',
+  'Website', 
+  'Postal Code', 
+  'State/Province'
+];
   // Suggestions store karne ke liye arrays
   filteredOrgCodes: any[] = [];
   filteredBranches: any[] = [];
@@ -93,11 +120,11 @@ cities: any[] = [];
 //   branches :any [] =[];
 //   selectedBranch: any = null
 
-  constructor(private location: Location, private http: HttpClient,private cdr: ChangeDetectorRef,private router:Router,public CheckPermissionService:CheckPermissionService) {}
+  constructor(private location: Location, private http: HttpClient,private cdr: ChangeDetectorRef,private router:Router) {}
  ngOnInit() {
   this.loadColumnSettings();
     this.getOrgList();
-    this.fetchNextBranch();
+//     this.fetchNextBranch();
 this.loadCountriesFromApi();
 
   }
@@ -118,7 +145,7 @@ getOrgList() {
         this.branches = uniqueNames.map(name => ({ id: 0, name: name, isDefault: false }));
         
         // Ab next branch fetch karo taaki suggestion bhi isi list mein jud jaye
-        this.fetchNextBranch();
+
       }
       this.cdr.detectChanges();
     },
@@ -128,30 +155,6 @@ getOrgList() {
   });
 }
 
-fetchNextBranch() {
-  const url = `${environment.apiUrl}/Organization/next-branch-name`;
-  this.http.get<{nextName: string}>(url).subscribe({
-    next: (res) => {
-
-      // 1. Naya branch object banao
-      const newBranch = { id: 0, name: res.nextName, isDefault: true };
-
-      // 2. Check karo duplicate na aaye
-      const exists = this.branches.some(b => b.name === res.nextName);
-
-      if (!exists) {
-        // 3. New branch ko add karo (neeche add hoga)
-        this.branches.push(newBranch);
-      }
-
-      // 4. Auto select latest branch
-      this.selectedBranch = newBranch;
-
-      this.cdr.detectChanges();
-    },
-    error: (err) => console.error("Branch fetch error:", err)
-  });
-}
 
   addContactRow() {
     this.contactList.push({
@@ -244,13 +247,11 @@ saveOrg() {
 
   const url = `${environment.apiUrl}/Organization/save`;
 
-  // Payload: Branch logic ke saath (Baaki sab same hai)
+  // Payload preparation
   const payload = {
     Id: this.selectedOrgId || 0,
     OrgName: this.orgName,
     Alias: this.alias,
-    // Yahan selectedBranch ka name ja raha hai
-    BranchName: this.selectedBranch?.name || '', 
     Address: this.address,
     Country: this.country,
     City: this.city,
@@ -273,14 +274,44 @@ saveOrg() {
     }))
   };
 
+  // --- MAIN SAVE CALL ---
   this.http.post(url, payload).subscribe({
-    next: () => {
+    next: (res: any) => { 
+      console.log("Full Backend Response:", res); 
+      
+      // --- BRANCH SAVE LOGIC START (FIXED) ---
+      let savedIdFromBackend = 0;
+
+      // Aapka backend ID 'res.data.id' mein bhej raha hai
+      if (res && res.data && (res.data.id || res.data.Id)) {
+        savedIdFromBackend = res.data.id || res.data.Id;
+      } else if (typeof res === 'number') {
+        savedIdFromBackend = res;
+      } else if (res && (res.id || res.Id)) {
+        savedIdFromBackend = res.id || res.Id;
+      }
+
+      // Agar New Form hai toh backend ki ID lo, warna update ke liye purani ID
+      const finalOrgId = savedIdFromBackend || this.selectedOrgId;
+
+      console.log("Final ID for saving branches:", finalOrgId);
+
+      // Agar ID mil gayi aur sidebar mein branches hain, toh loop chalao
+      if (finalOrgId && finalOrgId !== 0 && this.branchList.length > 0) {
+        console.log("Triggering branch save API...");
+        this.saveAllLocalBranches(finalOrgId);
+      } else {
+        console.warn("Branch save nahi hui: ID missing ya list khali hai.");
+      }
+      // --- BRANCH SAVE LOGIC END ---
+
       alert(this.selectedOrgId ? 'Updated Successfully!' : 'Saved Successfully!');
       
+      // Cleanup & UI Refresh
       this.getOrgList(); 
       this.isFormOpen = false;
-      this.fetchNextBranch(); 
       this.resetFormFields(); 
+      this.branchList = []; 
       this.cdr.detectChanges(); 
     },
     error: (err) => {
@@ -289,7 +320,66 @@ saveOrg() {
     }
   });
 }
+ onSaveBranch() {
+  if (!this.branchName || !this.branchName.trim()) {
+    alert("Pehle branch ka naam toh likho!");
+    return;
+  }
 
+  // --- CHECK: Kya hum EDIT kar rahe hain ya NAYA add kar rahe hain? ---
+  if (this.editingBranchId !== null) {
+    
+    // CASE 1: UPDATE EXISTING BRANCH (Local List mein)
+    // List mein wahi branch dhoondo jiski ID hamare paas 'editingBranchId' mein hai
+    const index = this.branchList.findIndex(b => (b.id || b.Id) === this.editingBranchId);
+
+    if (index !== -1) {
+      // Local list mein naam change kar do
+      this.branchList[index].branchName = this.branchName.trim();
+      console.log("Branch local list mein UPDATE ho gayi:", this.branchList[index]);
+    }
+
+    // Edit mode khatam, ID reset kar do
+    this.editingBranchId = null;
+
+  } else {
+    
+    // CASE 2: ADD NEW BRANCH (Purana Logic)
+    const newBranch = {
+      branchName: this.branchName.trim(),
+      id: 0, 
+      organizationId: this.selectedOrgId || 0 
+    };
+
+    this.branchList.push(newBranch);
+    console.log("Nayi branch local list mein ADD ho gayi");
+  }
+
+  // --- COMMON STEPS ---
+  this.branchName = ''; // Input box khali kar do
+  this.cdr.detectChanges(); // UI refresh
+}
+saveAllLocalBranches(orgId: number) {
+  // Sirf wo branches loop karo jinki ID 0 hai (yani jo abhi tak DB mein nahi gayi)
+  const unsavedBranches = this.branchList.filter(b => !b.id || b.id === 0);
+
+  unsavedBranches.forEach(branch => {
+    const branchPayload = {
+      BranchName: branch.branchName,
+      OrganizationId: orgId // Nayi Org ID jo Organization save hone ke baad mili
+    };
+
+    // DIRECT API URL
+    this.http.post(`http://localhost:5000/api/OrgBranch/SaveBranch`, branchPayload).subscribe({
+      next: (res) => {
+        console.log(`Branch ${branch.branchName} linked to Org ${orgId} successfully!`);
+      },
+      error: (err) => {
+        console.error("Branch Save Error:", err);
+      }
+    });
+  });
+}
 // Ek chota sa helper function saare fields khali karne ke liye
 resetFormFields() {
   this.orgName = '';
@@ -304,7 +394,18 @@ resetFormFields() {
 }
 
   changeTab(tab: string) { this.activeTab = tab; }
-  selectBranch(branch: any) { this.selectedBranch = branch; }
+selectBranch(branch: any) {
+  console.log("Branch selected for edit:", branch);
+
+  // 1. Input field mein naam populate karo
+  // Kyunki aapka input [(ngModel)]="branchName" se juda hai, wahan naam turant dikhne lagega
+  this.branchName = branch.branchName;
+
+  // 2. Is branch ki ID save kar lo (Nayi branch ke liye ye 0 ya null hogi, purani ke liye DB wali ID)
+  this.editingBranchId = branch.id || branch.Id;
+
+  this.cdr.detectChanges();
+}
   
   cancel() {
     if (this.isFormOpen) {
@@ -370,7 +471,6 @@ editOrg(org: any) {
   }
 
   // 6. Dynamic Contacts handle karna
-  // Agar backend se 'contacts' ya 'contactDetails' naam se array aa raha hai
   if (org.contacts && Array.isArray(org.contacts)) {
     this.contacts = org.contacts.map((c: any) => ({
       contactName: c.contactName || c.name || '',
@@ -381,12 +481,50 @@ editOrg(org: any) {
       department: c.department || ''
     }));
   } else {
-    // Agar koi contact nahi hai toh kam se kam ek khali row rakho
     this.contacts = [{ contactName: '', designation: '', department: '', mobile: '', whatsapp: '', email: '' }];
   }
 
+  // --- NAYA CODE START (Bina kuch purana change kiye) ---
+  // Isse sidebar mein branches load ho jayengi
+  if (org.id) {
+    this.getBranchesByOrg(org.id);
+  }
+  // --- NAYA CODE END ---
+
   // 7. UI update trigger karo
   this.cdr.detectChanges();
+}
+
+// Ye function alag se niche add kar dena
+getBranchesByOrg(orgId: number) {
+  // Direct localhost URL jo Swagger mein chal rahi hai
+  const url = `http://localhost:5000/api/OrgBranch/GetByOrg/${orgId}`;
+
+  console.log("Fetching branches from:", url);
+
+  this.http.get<any[]>(url).subscribe({
+    next: (res) => {
+      console.log("Branches received from DB:", res);
+      
+      if (res && res.length > 0) {
+        // Backend se aayi hui list ko sidebar list mein map karo
+        this.branchList = res.map(b => ({
+          id: b.id || b.Id,
+          branchName: b.branchName || b.BranchName,
+          organizationId: b.organizationId || b.OrganizationId
+        }));
+      } else {
+        this.branchList = [];
+      }
+      
+      this.cdr.detectChanges(); // Sidebar update karne ke liye
+    },
+    error: (err) => {
+      console.error("Branches load karne mein error:", err);
+      this.branchList = []; 
+      this.cdr.detectChanges();
+    }
+  });
 }
 isExportOpen = false;
 
@@ -529,10 +667,39 @@ async downloadPDF() {
   isFormOpen: boolean = false; 
 
   openForm() {
-    this.isFormOpen = true;
-    this.fetchNextBranch();
-    
-  }
+  this.isFormOpen = true;
+  
+  // --- SABSE ZAROORI LINE (Iske bina ID update nahi hogi) ---
+  this.selectedOrgId = 0; 
+  // ---------------------------------------------------------
+
+  this.orgName = '';
+  this.alias = '';
+  this.address = '';
+  this.city = '';
+  this.country = '';
+  this.telephone = '';
+  this.email = '';
+  this.website = '';
+  this.postalCode = '';
+  this.stateProvince = '';
+  this.whatsAppNumber = '';
+  this.salesPerson = '';
+  this.collectionExec = '';
+  this.selectedRoles = [];
+  this.contacts = [{ 
+    contactName: '', 
+    mobile: '', 
+    whatsapp: '', 
+    email: '', 
+    DesignationId: '', 
+    DepartmentId: '' 
+  }];
+  this.branchList = []; // Sidebar saaf ho gaya
+  this.branchName = ''; // Input box khali ho gaya
+  
+  this.cdr.detectChanges(); // UI refresh
+}
 
   closeForm() {
     this.isFormOpen = false;
@@ -942,17 +1109,36 @@ closeColumnModal() {
 loadColumnSettings() {
   this.http.get<any>(`${environment.apiUrl}/OrganizationColumnSettings`).subscribe({
     next: (res) => {
+      const allPossibleColumns = Object.keys(this.columnFieldMap);
+
       if (res && res.selectedColumns) {
-        this.selectedColumns = JSON.parse(res.selectedColumns);
-        this.availableColumns = JSON.parse(res.availableColumns);
+        // 1. DB se purani list lo
+        const savedSelected = JSON.parse(res.selectedColumns);
+        const savedAvailable = JSON.parse(res.availableColumns);
+
+        // 2. CHECK: Kya koi naya column code mein add hua hai jo DB mein nahi hai?
+        // Hum saare columns ko filter karenge jo na 'selected' mein hain na 'available' mein
+        const newMissingColumns = allPossibleColumns.filter(
+          col => !savedSelected.includes(col) && !savedAvailable.includes(col)
+        );
+
+        this.selectedColumns = savedSelected;
+        // 3. Naye columns ko 'Available' list ke aage jod do
+        this.availableColumns = [...savedAvailable, ...newMissingColumns];
+
       } else {
-        // Default Columns agar DB mein kuch na ho
+        // Default Logic agar DB khali hai
         this.selectedColumns = ['Org ID', 'Org Name', 'Type', 'Location'];
-        // availableColumns mein wo saare columns daal do jo selectedColumns mein nahi hain
-        const allPossibleColumns = Object.keys(this.columnFieldMap);
         this.availableColumns = allPossibleColumns.filter(c => !this.selectedColumns.includes(c));
       }
+      
       this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error("Settings load error:", err);
+      // Failover: Agar API fail ho jaye toh kam se kam code wala default dikhao
+      this.selectedColumns = Object.keys(this.columnFieldMap).slice(0, 6);
+      this.availableColumns = Object.keys(this.columnFieldMap).filter(c => !this.selectedColumns.includes(c));
     }
   });
 }
@@ -1024,78 +1210,12 @@ setOrgQuickDate(type: string) {
 /**
  * NEW BUTTON: Yeh pichli branch se link poori tarah tod dega.
  */
-addNewBranch() {
-  console.log("Creating a completely fresh branch reference...");
-  
-  // Naya object assign karne se purana wala memory se 'unlink' ho jata hai
-  this.selectedBranch = { 
-    id: 0, 
-    name: '', 
-    isDefault: false, 
-    isActive: true 
-  };
 
-  // Change detection ko force karna zaroori hai taaki HTML purane reference ko bhul jaye
-  this.cdr.detectChanges();
-}
 
 /**
  * SAVE BRANCH BUTTON: Jo aap baar-baar click karke branches add karna chahte ho.
  */
-saveBranchToDB() {
-  const branchName = this.selectedBranch.name?.trim();
 
-  if (!branchName) {
-    alert("Bhai, pehle branch ka naam toh likho!");
-    return;
-  }
-
-  // 1. Check karo ki kya aapke paas Organization ID hai? 
-  // Bina Org ID ke branch save nahi hogi database mein.
-  if (!this.selectedOrgId) {
-    alert("Bhai, pehle Organization select karo ya save karo!");
-    return;
-  }
-
-  // 2. PAYLOAD: Backend ke hisaab se Keys check karo (Capital 'I' vs small 'i')
-  const payload = {
-    Id: this.selectedBranch.id || 0,
-    Name: branchName,
-    OrganizationId: this.selectedOrgId, // 👈 Ye field honi bahut zaroori hai
-    IsDefault: this.selectedBranch.isDefault || false,
-    IsActive: true
-  };
-
-  // 3. URL CHECK: Agar 'save-branch' par 405 aa raha hai, 
-  // toh ho sakta hai URL sirf '/Organization/SaveBranch' ho (bina dash ke)
-  // Ek baar apne Swagger ya API Doc mein confirm karo.
-  const url = `${environment.apiUrl}/Organization/SaveBranch`; 
-
-  this.http.post(url, payload).subscribe({
-    next: (res: any) => {
-      alert(`Branch "${res.name || branchName}" save ho gayi!`);
-
-      const index = this.branches.findIndex(b => b.id === res.id);
-      if (index === -1) {
-        this.branches.push(res); 
-      } else {
-        this.branches[index] = res; 
-      }
-
-      this.addNewBranch(); 
-      this.cdr.detectChanges();
-    },
-    error: (err) => {
-      console.error("Save Error:", err);
-      // Agar 405 abhi bhi aa raha hai, toh message box mein dikhega
-      if(err.status === 405) {
-        alert("Error 405: Backend par 'POST' method allowed nahi hai ya URL galat hai!");
-      } else {
-        alert("Database error! Save nahi ho paya.");
-      }
-    }
-  });
-}
 loadCountriesFromApi() {
     this.http.get(this.apiUrl).subscribe({
       next: (response: any) => {
@@ -1128,4 +1248,5 @@ loadCountriesFromApi() {
     }
 
 }
+
 }

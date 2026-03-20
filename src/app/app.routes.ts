@@ -225,6 +225,10 @@ export const routes: Routes = [
         path: 'port-setup', // ✅ Sidebar path se match karta hai
         component: PortSetupComponent   // ✅ Direct component use ho raha hai
       },
+       {
+        path: 'organization-add',
+        component: OrganizationAddComponent
+      },
       {
         path: 'branch',
         component: BranchComponent,

@@ -95,7 +95,7 @@ cities: any[] = [];
  ngOnInit() {
   this.loadColumnSettings();
     this.getOrgList();
-    this.fetchNextBranch();
+//     this.fetchNextBranch();
 this.loadCountriesFromApi();
 
   }
@@ -116,7 +116,7 @@ getOrgList() {
         this.branches = uniqueNames.map(name => ({ id: 0, name: name, isDefault: false }));
         
         // Ab next branch fetch karo taaki suggestion bhi isi list mein jud jaye
-        this.fetchNextBranch();
+        // this.fetchNextBranch();
       }
       this.cdr.detectChanges();
     },
@@ -126,30 +126,30 @@ getOrgList() {
   });
 }
 
-fetchNextBranch() {
-  const url = `${environment.apiUrl}/Organization/next-branch-name`;
-  this.http.get<{nextName: string}>(url).subscribe({
-    next: (res) => {
+// fetchNextBranch() {
+//   const url = `${environment.apiUrl}/Organization/next-branch-name`;
+//   this.http.get<{nextName: string}>(url).subscribe({
+//     next: (res) => {
 
-      // 1. Naya branch object banao
-      const newBranch = { id: 0, name: res.nextName, isDefault: true };
+//       // 1. Naya branch object banao
+//       const newBranch = { id: 0, name: res.nextName, isDefault: true };
 
-      // 2. Check karo duplicate na aaye
-      const exists = this.branches.some(b => b.name === res.nextName);
+//       // 2. Check karo duplicate na aaye
+//       const exists = this.branches.some(b => b.name === res.nextName);
 
-      if (!exists) {
-        // 3. New branch ko add karo (neeche add hoga)
-        this.branches.push(newBranch);
-      }
+//       if (!exists) {
+//         // 3. New branch ko add karo (neeche add hoga)
+//         this.branches.push(newBranch);
+//       }
 
-      // 4. Auto select latest branch
-      this.selectedBranch = newBranch;
+//       // 4. Auto select latest branch
+//       this.selectedBranch = newBranch;
 
-      this.cdr.detectChanges();
-    },
-    error: (err) => console.error("Branch fetch error:", err)
-  });
-}
+//       this.cdr.detectChanges();
+//     },
+//     error: (err) => console.error("Branch fetch error:", err)
+//   });
+// }
 
   addContactRow() {
     this.contactList.push({
@@ -277,7 +277,7 @@ saveOrg() {
       
       this.getOrgList(); 
       this.isFormOpen = false;
-      this.fetchNextBranch(); 
+      // this.fetchNextBranch(); 
       this.resetFormFields(); 
       this.cdr.detectChanges(); 
     },
@@ -528,7 +528,7 @@ async downloadPDF() {
 
   openForm() {
     this.isFormOpen = true;
-    this.fetchNextBranch();
+//     this.fetchNextBranch();
     
   }
 
@@ -1022,78 +1022,6 @@ setOrgQuickDate(type: string) {
 /**
  * NEW BUTTON: Yeh pichli branch se link poori tarah tod dega.
  */
-addNewBranch() {
-  console.log("Creating a completely fresh branch reference...");
-  
-  // Naya object assign karne se purana wala memory se 'unlink' ho jata hai
-  this.selectedBranch = { 
-    id: 0, 
-    name: '', 
-    isDefault: false, 
-    isActive: true 
-  };
-
-  // Change detection ko force karna zaroori hai taaki HTML purane reference ko bhul jaye
-  this.cdr.detectChanges();
-}
-
-/**
- * SAVE BRANCH BUTTON: Jo aap baar-baar click karke branches add karna chahte ho.
- */
-saveBranchToDB() {
-  const branchName = this.selectedBranch.name?.trim();
-
-  if (!branchName) {
-    alert("Bhai, pehle branch ka naam toh likho!");
-    return;
-  }
-
-  // 1. Check karo ki kya aapke paas Organization ID hai? 
-  // Bina Org ID ke branch save nahi hogi database mein.
-  if (!this.selectedOrgId) {
-    alert("Bhai, pehle Organization select karo ya save karo!");
-    return;
-  }
-
-  // 2. PAYLOAD: Backend ke hisaab se Keys check karo (Capital 'I' vs small 'i')
-  const payload = {
-    Id: this.selectedBranch.id || 0,
-    Name: branchName,
-    OrganizationId: this.selectedOrgId, // 👈 Ye field honi bahut zaroori hai
-    IsDefault: this.selectedBranch.isDefault || false,
-    IsActive: true
-  };
-
-  // 3. URL CHECK: Agar 'save-branch' par 405 aa raha hai, 
-  // toh ho sakta hai URL sirf '/Organization/SaveBranch' ho (bina dash ke)
-  // Ek baar apne Swagger ya API Doc mein confirm karo.
-  const url = `${environment.apiUrl}/Organization/SaveBranch`; 
-
-  this.http.post(url, payload).subscribe({
-    next: (res: any) => {
-      alert(`Branch "${res.name || branchName}" save ho gayi!`);
-
-      const index = this.branches.findIndex(b => b.id === res.id);
-      if (index === -1) {
-        this.branches.push(res); 
-      } else {
-        this.branches[index] = res; 
-      }
-
-      this.addNewBranch(); 
-      this.cdr.detectChanges();
-    },
-    error: (err) => {
-      console.error("Save Error:", err);
-      // Agar 405 abhi bhi aa raha hai, toh message box mein dikhega
-      if(err.status === 405) {
-        alert("Error 405: Backend par 'POST' method allowed nahi hai ya URL galat hai!");
-      } else {
-        alert("Database error! Save nahi ho paya.");
-      }
-    }
-  });
-}
 loadCountriesFromApi() {
     this.http.get(this.apiUrl).subscribe({
       next: (response: any) => {

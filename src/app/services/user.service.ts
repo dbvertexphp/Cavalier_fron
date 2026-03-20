@@ -136,7 +136,15 @@ registerUser(userData: any) {
     const formData = this.convertToFormData(userData);
     return this.http.put(`${this.apiUrl}/update`, formData);
   }
+// ================= GET ALL PERMISSIONS =================
+getPermissions() {
+  return this.http.get<any[]>(`${this.apiUrl}/Permissions/list`);
+}
 
+// ================= GET ROLE PERMISSIONS =================
+getRolePermissions(roleId: number) {
+  return this.http.get<any[]>(`${this.apiUrl}/Permissions/get-by-role/${roleId}`);
+}
   // 11. ✅ Delete User
   deleteUser(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/delete/${id}`);

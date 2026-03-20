@@ -1,66 +1,50 @@
-import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-attendance-edit',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, HttpClientModule],
   templateUrl: './attendance-edit.component.html',
-  styleUrl: './attendance-edit.component.css',
 })
 export class AttendanceEditComponent implements OnInit {
-  
-  // Saare 10 points yahan professional structure mein hain
+  private apiUrl = `${environment.apiUrl}/Attendance`;
+  loading: boolean = false;
+
   attendance: any = {
-    empId: '',
-    name: '',
-    profile: 'assets/default-profile.png',
-    department: '',
-    designation: '',
-    branch: '',
-    shift: 'Morning',
-    date: '',
-    checkIn: '',
-    checkOut: '',
-    workingHours: 0,
-    status: 'Present',
-    lateMinutes: 0,
-    earlyExitMinutes: 0,
-    overtime: 0,
-    overtimeBy: '',
-    mode: 'manual',
-    remark: ''
+    id: 0, empId: '', name: '', department: '', designation: '', branch: '',
+    shift: 'Morning', attendanceDate: '', checkInTime: '', checkOutTime: '',
+    workingHours: 0, attendanceStatus: 'Present', attendanceMode: 'Manual'
   };
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router
-  ) {}
+  constructor(private route: ActivatedRoute, private router: Router, private http: HttpClient) {}
 
   ngOnInit(): void {
-    // URL se ID nikalne ka sahi tarika
     const id = this.route.snapshot.paramMap.get('id');
-    
-    if (id) {
-      this.attendance.empId = id;
-      console.log('Fetching Attendance for:', id);
-      // Yahan API call aayegi: 
-      // this.service.getById(id).subscribe(data => this.attendance = data);
-    } else {
-      console.error('No ID found in URL!');
-    }
+    if (id) this.fetchAttendance(id);
+  }
+
+  fetchAttendance(id: string) {
+    this.http.get<any>(`${this.apiUrl}/${id}`).subscribe({
+      next: (res) => {
+        if (res.attendanceDate) res.attendanceDate = res.attendanceDate.split('T')[0];
+        this.attendance = res;
+      },
+      error: (err) => console.error(err)
+    });
   }
 
   updateAttendance() {
-    console.log('Saving Data:', this.attendance);
-    // API Call logic yahan aayegi
-    alert('Attendance Record Updated Successfully!');
-    this.router.navigate(['/dashboard/attendance/list']);
+    this.loading = true;
+    this.http.put(`${this.apiUrl}/${this.attendance.id}`, this.attendance).subscribe({
+      next: () => { alert('Updated!'); this.router.navigate(['/dashboard/attendance/list']); },
+      error: (err) => { this.loading = false; console.error(err); }
+    });
   }
 
-  cancel() {
-    this.router.navigate(['/dashboard/attendance/list']);
-  }
+  cancel() { this.router.navigate(['/dashboard/attendance/list']); }
 }

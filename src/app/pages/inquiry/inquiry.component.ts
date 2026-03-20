@@ -22,6 +22,13 @@ import { DragDropModule } from '@angular/cdk/drag-drop'; // Ye import ensure kar
   styleUrl: './inquiry.component.css',
 })
   export class InquiryComponent implements OnInit {
+    transportModes: any[] = [];
+    incoTerms: any[] = [];
+    shipmentTypes: any[] = [];
+    movementTypes: any[] = [];
+    commodityTypes: any[] = [];
+    quotationcheck: any = { TransportMode: '',
+    shipmentType: '',incoterm: '',movementType: '',commodity: ''};
     documents: any[] = [];
 
 addDocument() {
@@ -145,8 +152,58 @@ organizations: any[] = [];
     this.loadBranches();
     this.loadInquirySettings();
     this.fetchCompanyServices();
+    this.getTransportModes();
+this.getShipmentTypes();
+this.getIncoTerms();
+this.getMovementTypes();
+this.getCommodityTypes();
     }
-
+    getCommodityTypes() {
+    // Hits: https://localhost:xxxx/api/CommodityType
+    this.http.get<any[]>(`${environment.apiUrl}/CommodityType`).subscribe({
+      next: (data) => {
+        this.commodityTypes = data;
+      },
+      error: (err) => console.error('Error fetching Commodities:', err)
+    });
+  }
+    getMovementTypes() {
+    // Hits: https://localhost:xxxx/api/MovementTypes
+    this.http.get<any[]>(`${environment.apiUrl}/MovementTypes`).subscribe({
+      next: (data) => {
+        this.movementTypes = data;
+      },
+      error: (err) => console.error('Error fetching Movement Types:', err)
+    });
+  }
+    getIncoTerms() {
+    this.http.get<any[]>(`${environment.apiUrl}/IncoTerms`).subscribe({
+      next: (data) => {
+        this.incoTerms = data;
+      },
+      error: (err) => console.error('Error fetching IncoTerms:', err)
+    });
+  }
+getTransportModes() {
+    // Using environment.apiUrl + your controller route
+    const url = `${environment.apiUrl}/TransportModes`;
+    
+    this.http.get<any[]>(url).subscribe({
+      next: (data) => {
+        this.transportModes = data;
+      },
+      error: (err) => console.error('API Error:', err)
+    });
+  }
+getShipmentTypes() {
+    // This hits: https://localhost:xxxx/api/ShipmentTypes
+    this.http.get<any[]>(`${environment.apiUrl}/ShipmentTypes`).subscribe({
+      next: (data) => {
+        this.shipmentTypes = data;
+      },
+      error: (err) => console.error('Error fetching Shipment Types:', err)
+    });
+  }
        // --- Fetch Origins List --
   fetchOrigins() {
     // API Path: /api/Origin

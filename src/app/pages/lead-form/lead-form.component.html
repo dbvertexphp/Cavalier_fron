@@ -536,7 +536,7 @@ class="divide-x divide-gray-200 hover:bg-gray-50">
           <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold text-[12px] px-4 py-1.5 uppercase shadow-sm">SAVE</button>
         </div>
         <div class="font-bold uppercase text-[12px] tracking-widest truncate px-2">
-          Lead Entry - {{ leadForm.get('organization')?.value || 'New Record' }}
+          Lead Entry - {{  'New Record' }}
         </div>
         <button type="button" (click)="toggleForm()" class="bg-red-500 hover:bg-red-600 px-4 py-1.5 text-[12px] font-bold uppercase">CLOSE</button>
       </div>
@@ -566,12 +566,22 @@ class="divide-x divide-gray-200 hover:bg-gray-50">
       {{ leadForm.get('type')?.errors?.['zod'] }}
     </div>
 
-    <label class="font-bold text-gray-600">Sales Process</label>
-    <select formControlName="salesProcess" class="border border-gray-300 p-2 w-full">
-      <option value="">Select Process</option>
-      <option value="Cold Calling">Cold Calling</option>
-      <option value="Email Campaign">Email Campaign</option>
-    </select>
+   
+
+  <label class="font-bold text-gray-600">
+    Sales Process
+  </label>
+  
+  <select 
+    formControlName="salesProcess" 
+    class="border border-gray-300 p-2 w-full"
+  >
+    <option value="" disabled selected>SELECT PROCESS</option>
+    
+    <option *ngFor="let process of salesProcesses" [value]="process.name">
+      {{ process.name }}
+    </option>
+  </select>
 
     <!-- Zod Error -->
     <div *ngIf="leadForm.get('salesProcess')?.errors?.['zod']"
@@ -602,11 +612,16 @@ class="divide-x divide-gray-200 hover:bg-gray-50">
       {{ leadForm.get('date')?.errors?.['zod'] }}
     </div>
 
-    <label class="text-red-700 font-bold">Lead Owner</label>
-    <select formControlName="leadOwner" class="border border-red-200 p-2 w-full">
-      <option value="BHARAT JUYAL">BHARAT JUYAL</option>
-      <option value="SALES ADMIN">SALES ADMIN</option>
-    </select>
+    <div class="mb-3">
+  <label class="text-red-700 font-bold">Lead Owner</label>
+  <select formControlName="leadOwner" class="border border-red-200 p-2 w-full">
+    <option value="" disabled selected>Select Lead Owner</option>
+    
+    <option *ngFor="let owner of leadOwners" [value]="owner.name">
+      {{ owner.name }}
+    </option>
+  </select>
+</div>
 
     <div *ngIf="leadForm.get('leadOwner')?.invalid && leadForm.get('leadOwner')?.touched"
          class="text-red-600 text-xs mt-[-10px]">
@@ -619,11 +634,16 @@ class="divide-x divide-gray-200 hover:bg-gray-50">
       {{ leadForm.get('leadOwner')?.errors?.['zod'] }}
     </div>
 
-    <label class="font-bold text-gray-600">Sales Coordinator</label>
-    <select formControlName="salesCoordinator" class="border border-gray-300 p-2 w-full">
-      <option value="">Select Co-ordinator</option>
-      <option value="Coordinator 1">Coordinator 1</option>
-    </select>
+    <div class="mb-3">
+  <label class="font-bold text-gray-600">Sales Coordinator</label>
+  <select formControlName="salesCoordinator" class="border border-gray-300 p-2 w-full">
+    <option value="" disabled selected>Select Co-ordinator</option>
+    
+    <option *ngFor="let sc of salesCoordinators" [value]="sc.name">
+      {{ sc.name }}
+    </option>
+  </select>
+</div>
 
     <!-- Zod Error -->
     <div *ngIf="leadForm.get('salesCoordinator')?.errors?.['zod']"
@@ -688,12 +708,20 @@ class="divide-x divide-gray-200 hover:bg-gray-50">
  <div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4 mt-6">
 
   <div class="flex flex-col gap-3">
-    <label class="font-bold text-gray-600">Branch</label>
-    <select formControlName="branch" class="border border-gray-300 p-2 w-full">
-      <option value="DELHI">DELHI</option>
-      <option value="MUMBAI">MUMBAI</option>
-    </select>
-
+ <div class="mb-3">
+  <label class="font-bold text-gray-600">Branch</label>
+  
+  <select 
+    formControlName="branch" 
+    class="border border-gray-300 p-2 w-full text-gray-900 bg-white"
+  >
+    <option value="" disabled selected class="text-gray-400">Select Branch</option>
+    
+    <option *ngFor="let b of branches" [value]="b.name" class="text-gray-900">
+      {{ b.branchName }}
+    </option>
+  </select>
+</div>
     <div *ngIf="leadForm.get('branch')?.invalid && leadForm.get('branch')?.touched"
          class="text-red-600 text-xs mt-[-10px]">
       Branch is required.
@@ -708,11 +736,16 @@ class="divide-x divide-gray-200 hover:bg-gray-50">
 
 
   <div class="flex flex-col gap-3">
-    <label class="font-bold text-gray-600">Reporting Manager</label>
-    <select formControlName="reportingManager" class="border border-gray-300 p-2 w-full">
-      <option value="">Select Manager</option>
-      <option value="Manager A">Manager A</option>
-    </select>
+    <div class="mb-3">
+  <label class="font-bold text-gray-600">Reporting Manager</label>
+  <select formControlName="reportingManager" class="border border-gray-300 p-2 w-full">
+    <option value="" disabled selected>Select Manager</option>
+    
+    <option *ngFor="let rm of reportingManagers" [value]="rm.name">
+      {{ rm.name }}
+    </option>
+  </select>
+</div>
 
     <!-- Zod Error -->
     <div *ngIf="leadForm.get('reportingManager')?.errors?.['zod']"

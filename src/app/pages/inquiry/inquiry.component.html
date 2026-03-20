@@ -619,41 +619,59 @@
         <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-12">
           <div class="space-y-3">
             <div class="flex items-center">
-              <label class="w-40 font-bold text-gray-700">Transport Mode</label>
-              <select [(ngModel)]="quotation.TransportMode" name="transportMode" class="flex-1 border p-2 outline-none">
-                <option value="Air">Air</option>
-                <option value="Sea">Sea</option>
-              </select>
-            </div>
+  <label class="w-40 font-bold text-gray-700">Transport Mode</label>
+  
+  <select 
+    [(ngModel)]="quotation.TransportMode" 
+    name="transportMode" 
+    class="flex-1 border p-2 outline-none">
+    
+    <option value="" disabled>-- Select Mode --</option>
+    
+    <option *ngFor="let mode of transportModes" [value]="mode.name">
+      {{ mode.name }}
+    </option>
+  </select>
+</div>
             <div class="flex items-center">
-              <label class="w-40 font-bold text-gray-700">Shipment Type</label>
-              <select [(ngModel)]="quotation.shipmentType" name="shipmentType" class="flex-1 border p-2 outline-none">
-                <option value="International">International</option>
-              </select>
-            </div>
+  <label class="w-40 font-bold text-gray-700">Shipment Type</label>
+  
+  <select 
+    [(ngModel)]="quotation.shipmentType" 
+    name="shipmentType" 
+    class="flex-1 border p-2 outline-none">
+    
+    <option value="" disabled>-- Select Shipment Type --</option>
+    
+    <option *ngFor="let type of shipmentTypes" [value]="type.name">
+      {{ type.name }}
+    </option>
+  </select>
+</div>
 
 
             <div class="flex flex-col gap-4">
 
   <!-- Commodity Dropdown -->
-  <div class="flex items-center">
-    <label class="w-40 font-bold text-gray-700">Commodity</label>
+ <div class="flex items-center">
+  <label class="w-40 font-bold text-gray-700">Commodity</label>
 
-    <select [(ngModel)]="quotation.commodity" name="commodity"
-      class="flex-1 border p-2 outline-none">
+  <select 
+    [(ngModel)]="quotation.commodity" 
+    name="commodity"
+    class="flex-1 border p-2 outline-none">
 
-      <option value="" disabled>Select Commodity</option>
-      <option value="Hazard">Hazard</option>
-      <option value="Non-Hazard">Non-Hazard</option>
-      <option value="Perishable">Perishable</option>
-      <option value="General">General</option>
-      <option value="Temperature Controlled">Temperature Controlled</option>
+    <option value="" disabled>Select Commodity</option>
+    
+    <option *ngFor="let type of commodityTypes" [value]="type.name">
+      {{ type.name }}
+    </option>
 
-    </select>
-  </div>
+  </select>
+</div>
 
   <!-- Hazard Section -->
-  <div *ngIf="quotation.commodity === 'Hazard'" class="flex flex-col gap-3">
+  <div *ngIf="quotation.commodity === 'Hazard' || quotation.commodity === 'HAZARD' || quotation.commodity === 'Hazardous'" class="flex flex-col gap-3">
 
     <!-- Add Button -->
    <button (click)="openDocumentModal()" 
@@ -960,13 +978,20 @@
   <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-12">
     <div class="space-y-3">
       <div class="flex items-center">
-        <label class="w-40 font-bold text-gray-700">IncoTerms</label>
-        <select [(ngModel)]="quotation.incoterm" name="incoterm" class="flex-1 border p-2 outline-none">
-          <option>EXW</option>
-          <option>FOB</option>
-          <option>CIF</option>
-        </select>
-      </div>
+  <label class="w-40 font-bold text-gray-700">IncoTerms</label>
+  
+  <select 
+    [(ngModel)]="quotation.incoterm" 
+    name="incoterm" 
+    class="flex-1 border p-2 outline-none">
+    
+    <option value="" disabled>-- Select IncoTerm --</option>
+    
+    <option *ngFor="let term of incoTerms" [value]="term.name">
+      {{ term.name }}
+    </option>
+  </select>
+</div>
 
       <div class="flex flex-col gap-4">
 
@@ -1091,12 +1116,20 @@
 
     <div class="space-y-3">
       <div class="flex items-center">
-        <label class="w-40 font-bold text-gray-700">Movement Type</label>
-        <select [(ngModel)]="quotation.movementType" name="movementType" class="flex-1 border p-2 outline-none">
-          <option value="Door-to-Door">Door-to-Door</option>
-          <option value="Port-to-Port">Port-to-Port</option>
-        </select>
-      </div>
+  <label class="w-40 font-bold text-gray-700">Movement Type</label>
+  
+  <select 
+    [(ngModel)]="quotation.movementType" 
+    name="movementType" 
+    class="flex-1 border p-2 outline-none">
+    
+    <option value="" disabled>-- Select Movement Type --</option>
+    
+    <option *ngFor="let move of movementTypes" [value]="move.name">
+      {{ move.name }}
+    </option>
+  </select>
+</div>
 
       <div class="flex items-center text-red-700 font-bold">
         <label class="w-40">Port of Discharge</label>

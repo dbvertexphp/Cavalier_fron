@@ -71,6 +71,10 @@ import { TranportModeComponent } from './pages/tranport-mode/tranport-mode.compo
 import { ShipmentTypeComponent } from './pages/shipment-type/shipment-type.component';
 import { IncoTermComponent } from './pages/inco-term/inco-term.component';
 import { MovementTypeComponent } from './pages/movement-type/movement-type.component';
+import { LeadOwnerComponent } from './pages/lead-owner/lead-owner.component';
+import { SalesCoordinatorComponent } from './pages/sales-coordinator/sales-coordinator.component';
+import { ReportingManagerComponent } from './pages/reporting-manager/reporting-manager.component';
+import { SalesProcessComponent } from './pages/sales-process/sales-process.component';
 
 export const routes: Routes = [
 
@@ -119,9 +123,21 @@ export const routes: Routes = [
           path: 'movement-type',
           component: MovementTypeComponent
         },
+        {
+          path: 'lead-owners',
+          component: LeadOwnerComponent
+        },
+        {
+          path: 'sales-coordinators',
+          component: SalesCoordinatorComponent
+        },
+        {
+          path: 'reporting-manager',
+          component: ReportingManagerComponent
+        },
       {
-        path: 'organization-add',
-        component: OrganizationAddComponent
+        path: 'sale-process',
+        component: SalesProcessComponent
       },
       {
         path: 'roles',

@@ -24,6 +24,11 @@ import { leadSchema } from './lead.schema';
 export class LeadFormComponent implements OnInit {
 // Aapka data array
 // PAGINATION VARIABLES
+salesProcesses: any[] = [];
+leadOwners: any[] = [];
+salesCoordinators: any[] = [];
+reportingManagers: any[] = [];
+branches: any[] = [];
 currentPage: number = 1;
 itemsPerPage: number = 10;
 totalPages: number = 0;
@@ -61,6 +66,10 @@ goToPage(page: number) {
   ) {}
 
   ngOnInit(): void {
+    this.getSalesProcesses();
+    this.getLeadOwners();
+    this.getSalesCoordinators();
+    this.getBranches();
         this.PermissionID = Number(localStorage.getItem('permissionID'));
     this.initForm();
 this.loadColumnSettings();
@@ -77,9 +86,11 @@ this.loadColumnSettings();
     this.loadOrganizations();
     this.loadLeads();
     this.initSearchForm();
-    this.loadLeadSuggestions(); // Isse call karna mat bhulna!
+    this.loadLeadSuggestions();
+    this.getReportingManagers(); // Isse call karna mat bhulna!
      // Important: Leads load first to calculate number
   }
+  
   updatePagination() {
 
   this.totalPages = Math.ceil(this.leads.length / this.itemsPerPage);
@@ -101,7 +112,44 @@ nextPage() {
   }
 
 }
-
+getLeadOwners() {
+  this.http.get<any[]>(`${environment.apiUrl}/LeadOwners`).subscribe({
+    next: (res) => {
+      this.leadOwners = res;
+    },
+    error: (err) => console.error('Error fetching lead owners', err)
+  });
+}
+getSalesCoordinators() {
+  this.http.get<any[]>(`${environment.apiUrl}/SalesCoordinators`).subscribe({
+    next: (res) => {
+      this.salesCoordinators = res;
+    },
+    error: (err) => console.error('Sales Coordinator load karne mein error:', err)
+  });
+}
+getBranches() {
+  this.http.get<any[]>(`${environment.apiUrl}/branch/list`).subscribe(res => {
+    console.log("Branch Data:", res); // 👈 Ye check karo console mein ki 'name' ki jagah kya likha hai
+    this.branches = res;
+  });
+}
+getSalesProcesses() {
+  this.http.get<any[]>(`${environment.apiUrl}/SalesProcesses`).subscribe({
+    next: (res) => {
+      this.salesProcesses = res;
+    },
+    error: (err) => console.error('Error fetching sales processes', err)
+  });
+}
+getReportingManagers() {
+  this.http.get<any[]>(`${environment.apiUrl}/ReportingManagers`).subscribe({
+    next: (res) => {
+      this.reportingManagers = res;
+    },
+    error: (err) => console.error('Reporting Manager fetch error:', err)
+  });
+}
 previousPage() {
 
   if (this.currentPage > 1) {

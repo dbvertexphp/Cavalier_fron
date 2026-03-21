@@ -56,16 +56,25 @@
            placeholder="Type min 3 chars to search..."
            (input)="onLeadOrgSearch($event)"> 
     
-    <span class="p-1 bg-gray-50 border-l border-gray-200 flex items-center justify-center cursor-pointer" 
-          (click)="onLeadSearch()">
+ <span class="p-1 bg-gray-50 border-l border-gray-200 flex items-center justify-center cursor-pointer hover:bg-gray-200" 
+          (click)="oniconLeadSearch()">
       🔍
     </span>
 
-    <div *ngIf="filteredOrganizations.length > 0"
-         class="absolute z-50 w-full bg-white border border-gray-300 top-full left-0 mt-1 max-h-48 overflow-y-auto shadow-md">
+    <div *ngIf="filteredOrganizations && filteredOrganizations.length > 0"
+         class="absolute z-40 w-full bg-white border border-gray-300 top-full left-0 mt-1 max-h-48 overflow-y-auto shadow-md">
       <div *ngFor="let org of filteredOrganizations"
            (click)="selectLeadOrg(org)" 
            class="p-2 hover:bg-red-50 cursor-pointer text-sm border-b">
+        {{ org.orgName }}
+      </div>
+    </div>
+
+    <div *ngIf="iconSearchOrgs && iconSearchOrgs.length > 0"
+         class="absolute z-[999] w-full bg-white border border-gray-400 top-full left-0 mt-1 max-h-60 overflow-y-auto shadow-2xl rounded-sm">
+      <div *ngFor="let org of iconSearchOrgs"
+           (click)="selectIconOrg(org)" 
+           class="p-2 hover:bg-blue-50 cursor-pointer text-[12px] border-b border-gray-100 last:border-none text-black">
         {{ org.orgName }}
       </div>
     </div>
@@ -96,12 +105,26 @@
            placeholder="Search HOD (min 3 chars)..."
            (input)="onHODSearchType($event)"> 
     
+    <span class="p-1 bg-gray-50 border-l border-gray-200 flex items-center justify-center cursor-pointer text-gray-400 hover:bg-gray-100" 
+          (click)="oniconHODSearch()">
+      🔍
+    </span>
+
     <div *ngIf="filteredHODSuggestions.length > 0"
          class="absolute z-50 w-full bg-white border border-gray-300 top-full left-0 mt-1 max-h-48 overflow-y-auto shadow-md">
       <div *ngFor="let hodName of filteredHODSuggestions"
            (click)="selectHOD(hodName)" 
            class="p-2 hover:bg-red-50 cursor-pointer text-sm border-b">
         {{ hodName }}
+      </div>
+    </div>
+
+    <div *ngIf="iconHODList.length > 0"
+         class="absolute z-[999] w-full bg-white border border-gray-400 top-full left-0 mt-1 max-h-60 overflow-y-auto shadow-2xl rounded-sm">
+      <div *ngFor="let h of iconHODList"
+           (click)="selectHODFromIcon(h)" 
+           class="p-2 hover:bg-blue-50 cursor-pointer text-[12px] border-b border-gray-100 last:border-none text-black">
+        {{ h }}
       </div>
     </div>
   </div>
@@ -117,8 +140,8 @@
            placeholder="Search Owner..."
            (input)="onLeadOwnerSearch($event)"> 
     
-    <span class="p-1 bg-gray-50 border-l border-gray-200 flex items-center justify-center cursor-pointer" 
-          (click)="onLeadSearch()">
+    <span class="p-1 bg-gray-50 border-l border-gray-200 flex items-center justify-center cursor-pointer text-gray-400 hover:bg-gray-100" 
+          (click)="onLeadOwnerIconClick()">
       🔍
     </span>
 
@@ -130,19 +153,33 @@
         {{ owner }}
       </div>
     </div>
+
+    <div *ngIf="loIconList.length > 0"
+         class="absolute z-[999] w-full bg-white border border-gray-400 top-full left-0 mt-1 max-h-60 overflow-y-auto shadow-2xl rounded-sm">
+      <div *ngFor="let owner of loIconList"
+           (click)="selectLoFromIcon(owner)" 
+           class="p-2 hover:bg-blue-50 cursor-pointer text-[12px] border-b border-gray-100 last:border-none text-black">
+        {{ owner }}
+      </div>
+    </div>
   </div>
 </div>
 <div class="flex items-center">
-  <label class="w-28 font-bold text-gray-600">Lead No</label>
+  <label class="w-28 font-bold text-gray-600 text-[12px]">Lead No</label>
   
-  <div class="flex-1 relative">                
+  <div class="flex-1 flex border border-gray-300 relative">                
     <input type="text" 
            [(ngModel)]="leadSearchFilters.leadNo" 
            name="searchLeadNo"
-           class="w-full border border-gray-300 p-1 outline-none text-[12px]"
+           class="w-full p-1 outline-none text-[12px]"
            placeholder="Search lead no..."
            (input)="onLeadNoSearchForFilters($event)"
            autocomplete="off"> 
+
+    <span class="p-1 bg-gray-50 border-l border-gray-200 flex items-center justify-center cursor-pointer text-gray-400 hover:bg-gray-100" 
+          (click)="onLeadNoIconClick()">
+      🔍
+    </span>
 
     <div *ngIf="filteredLeads.length > 0"
          class="absolute z-50 w-full bg-white border border-gray-300 top-full left-0 mt-1 max-h-48 overflow-y-auto shadow-md">
@@ -150,6 +187,15 @@
            (click)="selectLeadForFilters(lead)" 
            class="p-2 hover:bg-gray-100 cursor-pointer text-sm border-b">
         {{ lead.leadNo || lead }}
+      </div>
+    </div>
+
+    <div *ngIf="lnIconList.length > 0"
+         class="absolute z-[999] w-full bg-white border border-gray-400 top-full left-0 mt-1 max-h-60 overflow-y-auto shadow-2xl rounded-sm">
+      <div *ngFor="let num of lnIconList"
+           (click)="selectLnFromIcon(num)" 
+           class="p-2 hover:bg-blue-50 cursor-pointer text-[12px] border-b border-gray-100 last:border-none text-black">
+        {{ num }}
       </div>
     </div>
   </div>
@@ -169,8 +215,8 @@
            (input)="onTeamSearch($event)"
            autocomplete="off"> 
     
-    <span class="p-1 bg-gray-50 border-l border-gray-200 flex items-center justify-center cursor-pointer" 
-          (click)="onLeadSearch()">
+    <span class="p-1 bg-gray-50 border-l border-gray-200 flex items-center justify-center cursor-pointer text-gray-400 hover:bg-gray-100" 
+          (click)="onTeamIconClick()">
       🔍
     </span>
 
@@ -182,9 +228,18 @@
         {{ team.teamName || team.name || team }}
       </div>
     </div>
+
+    <div *ngIf="tmIconList.length > 0"
+         class="absolute z-[999] w-full bg-white border border-gray-400 top-full left-0 mt-1 max-h-60 overflow-y-auto shadow-2xl rounded-sm">
+      <div *ngFor="let t of tmIconList"
+           (click)="selectTmFromIcon(t)" 
+           class="p-2 hover:bg-blue-50 cursor-pointer text-[12px] border-b border-gray-100 last:border-none text-black">
+        {{ t }}
+      </div>
+    </div>
   </div>
 </div>
-        <div class="flex items-center">
+     <div class="flex items-center">
   <label class="w-28 font-bold text-gray-600 text-[12px]">Reporting Manager</label>
   
   <div class="flex-1 flex border border-gray-300 relative">                
@@ -196,8 +251,8 @@
            (input)="onManagerSearch($event)"
            autocomplete="off"> 
     
-    <span class="p-1 bg-gray-50 border-l border-gray-200 flex items-center justify-center cursor-pointer" 
-          (click)="onLeadSearch()">
+    <span class="p-1 bg-gray-50 border-l border-gray-200 flex items-center justify-center cursor-pointer text-gray-400 hover:bg-gray-100" 
+          (click)="onManagerIconClick()">
       🔍
     </span>
 
@@ -207,6 +262,15 @@
            (click)="selectManager(manager)" 
            class="p-2 hover:bg-red-50 cursor-pointer text-sm border-b text-gray-700">
         {{ manager }}
+      </div>
+    </div>
+
+    <div *ngIf="rmIconList.length > 0"
+         class="absolute z-[999] w-full bg-white border border-gray-400 top-full left-0 mt-1 max-h-60 overflow-y-auto shadow-2xl rounded-sm">
+      <div *ngFor="let m of rmIconList"
+           (click)="selectRmFromIcon(m)" 
+           class="p-2 hover:bg-blue-50 cursor-pointer text-[12px] border-b border-gray-100 last:border-none text-black">
+        {{ m }}
       </div>
     </div>
   </div>

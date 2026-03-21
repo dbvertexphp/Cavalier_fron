@@ -18,6 +18,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { HostListener } from '@angular/core'; 
 import * as XLSX from 'xlsx';
+import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-quotation-form',
   standalone: true,
@@ -1479,5 +1480,126 @@ this.searchFilters.validFrom = formattedDate as any;
 
   this.showQuotePicker = false; // Menu band
   this.cdr.detectChanges();     // UI refresh
+}showPopup: boolean = false;
+  allQuotationNos: string[] = [];
+  private quotationSub?: Subscription;
+
+  // Constructor mein sirf CDR aur HTTP inject kiya hai
+  
+
+  // 1. Icon click par popup toggle (Same Logic + CDR)
+  togglePopup() {
+    if (this.showPopup) {
+      this.showPopup = false;
+      this.cdr.detectChanges(); // UI update for closing
+    } else {
+      // Purani subscription agar koi pending ho toh cancel kar dein
+      this.quotationSub?.unsubscribe();
+
+      this.quotationSub = this.http.get<any[]>(`${environment.apiUrl}/Quotations`).subscribe({
+        next: (res) => {
+          this.allQuotationNos = res.map(q => q.quotationNo);
+          this.showPopup = true;
+          // CDR: Data aate hi UI ko force update karega
+          this.cdr.detectChanges(); 
+        },
+        error: (err) => {
+          console.error("Error fetching all quotations", err);
+          this.cdr.detectChanges();
+        }
+      });
+    }
+  }
+
+  // 2. Popup se select karne par (Same Logic + CDR)
+  selectFromPopup(val: string) {
+    this.searchFilters.quotationNo = val;
+    this.showPopup = false;
+    this.cdr.detectChanges(); // UI update for selection
+  }
+
+  // 3. Component band hote hi sab saaf (Destroy Logic)
+  ngOnDestroy() {
+    if (this.quotationSub) {
+      this.quotationSub.unsubscribe();
+      console.log('Quotation subscription cleaned up');
+        this.lobSub?.unsubscribe(); // Services subscription bhi clear karein
+         this.quotedBySub?.unsubscribe(); // Teeno subscriptions clear
+    }
+  }
+  // Variables declare karein
+showLOBPopup: boolean = false;
+allLOBs: string[] = [];
+private lobSub?: Subscription;
+
+// 1. Services icon click par toggle logic
+toggleLOBPopup() {
+  if (this.showLOBPopup) {
+    this.showLOBPopup = false;
+    this.cdr.detectChanges();
+  } else {
+    this.lobSub?.unsubscribe();
+
+    // Maan lete hain endpoint /LinesOfBusiness hai (ya jo bhi aapka correct endpoint ho)
+    this.lobSub = this.http.get<any[]>(`${environment.apiUrl}/Quotations`).subscribe({
+      next: (res) => {
+        // Response se string array nikalna
+        this.allLOBs = res.map(item => item.name || item.lineOfBusiness || item); 
+        this.showLOBPopup = true;
+        this.cdr.detectChanges(); 
+      },
+      error: (err) => {
+        console.error("Error fetching LOBs", err);
+        this.cdr.detectChanges();
+      }
+    });
+  }
 }
+
+// 2. Popup se select karne par
+selectLOBFromPopup(val: string) {
+  this.searchFilters.lineOfBusiness = val;
+  this.showLOBPopup = false;
+  this.cdr.detectChanges();
+}
+
+// ngOnDestroy mein cleanup add kar dena
+// Variables declare karein
+showQuotedByPopup: boolean = false;
+allSalesCoors: string[] = [];
+private quotedBySub?: Subscription;
+
+// 1. Icon click par popup toggle logic
+toggleQuotedByPopup() {
+  if (this.showQuotedByPopup) {
+    this.showQuotedByPopup = false;
+    this.cdr.detectChanges();
+  } else {
+    this.quotedBySub?.unsubscribe();
+
+    // API Call (Maan lete hain endpoint /SalesCoordinators hai, aap apna endpoint check kar lena)
+    this.quotedBySub = this.http.get<any[]>(`${environment.apiUrl}/Quotations`).subscribe({
+      next: (res) => {
+        // API response se sales coordinator ka naam nikal rahe hain
+        this.allSalesCoors = res.map(item => item.salesCoor || item.userName || item); 
+        this.showQuotedByPopup = true;
+        this.cdr.detectChanges(); // UI Update
+      },
+      error: (err) => {
+        console.error("Error fetching SalesCoors", err);
+        this.cdr.detectChanges();
+      }
+    });
+  }
+}
+
+// 2. Popup se select karne par
+selectQuotedByFromPopup(val: string) {
+  this.searchFilters.quotedBy = val;
+  this.showQuotedByPopup = false;
+  this.cdr.detectChanges();
+}
+
+// 3. Cleanup in ngOnDestroy
+
 }

@@ -9,24 +9,40 @@
     <div class="p-4 bg-white border-b border-gray-200">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-3">
         <div class="space-y-2">
-    <div class="flex items-center">
-  <label class="w-28 font-bold text-gray-600 text-[12px]">Services</label>
-  <div class="flex-1">
+ <div class="flex items-center relative"> <label class="w-28 font-bold text-gray-600 text-[12px]">Services</label>
+  <div class="flex-1 flex border border-gray-300">
     <input 
       type="text" 
       [(ngModel)]="searchFilters.lineOfBusiness" 
       (input)="onLOBType()"
       list="lobDataList" 
       placeholder="Type min 3 chars..."
-      class="w-full border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
+      class="w-full p-1 outline-none text-[12px] rounded-sm bg-white">
     
-    <datalist id="lobDataList">
-      <option *ngFor="let lob of filteredLOBs" [value]="lob"></option>
-    </datalist>
+    <span 
+      (click)="toggleLOBPopup()" 
+      class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-gray-200">
+      🔍
+    </span>
+  </div>
+
+  <datalist id="lobDataList">
+    <option *ngFor="let lob of filteredLOBs" [value]="lob"></option>
+  </datalist>
+
+  <div *ngIf="showLOBPopup" 
+       class="absolute top-full left-28 right-0 mt-1 bg-white border border-gray-300 shadow-lg z-[999] max-h-60 overflow-y-auto rounded-sm">
+    <ul>
+      <li *ngFor="let lob of allLOBs" 
+          (click)="selectLOBFromPopup(lob)"
+          class="p-2 text-[12px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 last:border-none">
+        {{ lob }}
+      </li>
+      <li *ngIf="allLOBs.length === 0" class="p-2 text-[12px] text-gray-400 text-center">No services found</li>
+    </ul>
   </div>
 </div>
-<div class="flex items-center">
-  <label class="w-28 font-bold text-gray-600">Quotation No.</label>
+<div class="flex items-center relative"> <label class="w-28 font-bold text-gray-600">Quotation No.</label>
   <div class="flex-1 flex border border-gray-300">
     <input 
       type="text" 
@@ -36,12 +52,31 @@
       class="w-full p-1 outline-none text-[12px] rounded-sm"
       placeholder="Type min 3 chars...">
     
-    <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400">🔍</span>
+    <span 
+      (click)="togglePopup()" 
+      class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-gray-200">
+      🔍
+    </span>
   </div>
 
   <datalist id="quotationSuggestions">
     <option *ngFor="let qNo of filteredQuotationNos" [value]="qNo"></option>
   </datalist>
+
+  <div *ngIf="showPopup" 
+       class="absolute top-full left-28 right-0 mt-1 bg-white border border-gray-300 shadow-lg z-[999] max-h-60 overflow-y-auto rounded-sm">
+    <div class="flex justify-between items-center p-2 bg-gray-100 border-b sticky top-0">
+      <span class="font-bold text-[11px] text-gray-500 uppercase">Select Quotation</span>
+      <button (click)="showPopup = false" class="text-red-500 font-bold">✕</button>
+    </div>
+    <ul>
+      <li *ngFor="let qNo of allQuotationNos" 
+          (click)="selectFromPopup(qNo)"
+          class="p-2 text-[12px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 last:border-none">
+        {{ qNo }}
+      </li>
+    </ul>
+  </div>
 </div>
         <div class="flex items-center">
   <label class="w-28 font-bold text-gray-600">Quoted To</label>
@@ -102,24 +137,40 @@
     </div>
   </div>
 
-
-<div class="flex items-center">
-  <label class="w-24 font-bold text-gray-600">Quoted By</label>
-  <div class="flex-1 flex border border-gray-300 relative">
+<div class="flex items-center relative"> <label class="w-24 font-bold text-gray-600 text-[12px]">Quoted By</label>
+  <div class="flex-1 flex border border-gray-300">
     <input 
       type="text" 
       [(ngModel)]="searchFilters.quotedBy" 
       (input)="onQuotedByType()"
       list="quotedBySuggestions"
-      class="w-full p-1 outline-none text-[12px]"
+      class="w-full p-1 outline-none text-[12px] rounded-sm bg-white"
       placeholder="Type min 3 chars...">
     
-    <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400">🔍</span>
+    <span 
+      (click)="toggleQuotedByPopup()" 
+      class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-gray-200">
+      🔍
+    </span>
   </div>
 
   <datalist id="quotedBySuggestions">
     <option *ngFor="let item of filteredQuotedBySuggestions" [value]="item"></option>
   </datalist>
+
+  <div *ngIf="showQuotedByPopup" 
+       class="absolute top-full left-24 right-0 mt-1 bg-white border border-gray-300 shadow-lg z-[999] max-h-60 overflow-y-auto rounded-sm">
+    <ul>
+      <li *ngFor="let sc of allSalesCoors" 
+          (click)="selectQuotedByFromPopup(sc)"
+          class="p-2 text-[12px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 last:border-none">
+        {{ sc }}
+      </li>
+      <li *ngIf="allSalesCoors.length === 0" class="p-2 text-[12px] text-gray-400 text-center italic">
+        No sales coordinators found
+      </li>
+    </ul>
+  </div>
 </div>
           <div class="flex items-center">
   <label class="w-24 font-bold text-gray-600">Status</label>

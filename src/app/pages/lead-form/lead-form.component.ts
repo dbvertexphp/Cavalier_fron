@@ -11,6 +11,7 @@ import { CheckPermissionService } from '../../services/check-permission.service'
 import jsPDF from 'jspdf';
 import * as XLSX from 'xlsx';
 import { leadSchema } from './lead.schema';
+import { Subscription } from 'rxjs';
 // 'fdfd';
 @Component({
   selector: 'app-lead-form',
@@ -1393,5 +1394,285 @@ setPage(page: number) {
 onPageSizeChange() {
   this.currentPage = 1;
   this.cdr.detectChanges();
+}
+// Icon Popup ke liye alag variables (Inhe kisi aur logic mein mat use karna)
+iconSearchOrgs: any[] = []; 
+private iconSearchSub?: Subscription;
+
+// 1. Sirf Icon (🔍) click par chalne wala logic
+oniconLeadSearch() {
+  // Agar list pehle se khuli hai toh toggling (band karna)
+  if (this.iconSearchOrgs.length > 0) {
+    this.iconSearchOrgs = [];
+    this.cdr.detectChanges();
+    return;
+  }
+
+  this.iconSearchSub?.unsubscribe();
+
+  this.iconSearchSub = this.http.get<any[]>(`${environment.apiUrl}/Leads`).subscribe({
+    next: (res) => {
+      if (res && res.length > 0) {
+        // Strict Uniqueness check using Set
+        const uniqueNames = [...new Set(res.map(item => item.organizationName))]
+          .filter(name => name && name.trim() !== "");
+
+        // Mapping to object as per your HTML requirement
+        this.iconSearchOrgs = uniqueNames.map(name => ({ orgName: name }));
+        
+        this.cdr.detectChanges(); 
+      }
+    },
+    error: (err) => {
+      console.error("Icon Search Error:", err);
+      this.cdr.detectChanges();
+    }
+  });
+}
+
+// 2. Icon wali list se select karne par
+selectIconOrg(org: any) {
+  this.leadSearchFilters.organizationName = org.orgName;
+  this.iconSearchOrgs = []; // Sirf icon wali list band hogi
+  this.cdr.detectChanges();
+}// Variables wahi rahenge
+iconHODList: string[] = []; 
+private hodIconSub?: Subscription;
+
+// 1. 🔍 Icon par click karne wala logic
+oniconHODSearch() {
+  // Toggle Logic
+  if (this.iconHODList.length > 0) {
+    this.iconHODList = [];
+    this.cdr.detectChanges(); 
+    return;
+  }
+
+  this.hodIconSub?.unsubscribe();
+
+  this.hodIconSub = this.http.get<any[]>(`${environment.apiUrl}/Hod`).subscribe({
+    next: (res) => {
+      if (res && res.length > 0) {
+        // Unique names extraction
+        const uniqueHODs = [...new Set(res.map(item => item.name || item.hodName || item))]
+          .filter(name => name && typeof name === 'string' && name.trim() !== "");
+
+        this.iconHODList = uniqueHODs;
+
+        // Force detection with a micro-task wrap (Isse instant load hoga)
+        setTimeout(() => {
+          this.cdr.detectChanges();
+        }, 0);
+      }
+    },
+    error: (err) => {
+      console.error("HOD API Error:", err);
+      this.iconHODList = [];
+      this.cdr.detectChanges();
+    }
+  });
+}
+
+// 2. Icon wali list se select karne par
+selectHODFromIcon(name: string) {
+  this.leadSearchFilters.hod = name;
+  this.iconHODList = []; 
+  
+  setTimeout(() => {
+    this.cdr.detectChanges();
+  }, 0);
+}
+// Lead Owner Icon Popup ke liye UNIQUE variables
+loIconList: string[] = []; 
+private loIconSub?: Subscription;
+
+// 1. UNIQUE Function name: onLeadOwnerIconClick
+onLeadOwnerIconClick() {
+  // Toggle Logic
+  if (this.loIconList.length > 0) {
+    this.loIconList = [];
+    this.cdr.detectChanges();
+    return;
+  }
+
+  this.loIconSub?.unsubscribe();
+
+  // API Call to /LeadOwners
+  this.loIconSub = this.http.get<any[]>(`${environment.apiUrl}/LeadOwners`).subscribe({
+    next: (res) => {
+      if (res && res.length > 0) {
+        // Unique Lead Owners nikalna
+        const uniqueOwners = [...new Set(res.map(item => item.name || item.fullName || item.leadOwner || item))]
+          .filter(name => name && typeof name === 'string' && name.trim() !== "");
+
+        this.loIconList = uniqueOwners;
+
+        // Instant UI update
+        setTimeout(() => {
+          this.cdr.detectChanges();
+        }, 0);
+      }
+    },
+    error: (err) => {
+      console.error("Lead Owner API Error:", err);
+      this.loIconList = [];
+      this.cdr.detectChanges();
+    }
+  });
+}
+
+// 2. UNIQUE Selection function: selectLoFromIcon
+selectLoFromIcon(owner: string) {
+  this.leadSearchFilters.leadOwner = owner;
+  this.loIconList = []; // List close
+  
+  setTimeout(() => {
+    this.cdr.detectChanges();
+  }, 0);
+}
+// Lead No Icon Popup ke liye UNIQUE variables
+lnIconList: any[] = []; 
+private lnIconSub?: Subscription;
+
+// 1. UNIQUE Function: onLeadNoIconClick
+onLeadNoIconClick() {
+  // Toggle Logic: Agar pehle se khuli hai toh band kar do
+  if (this.lnIconList.length > 0) {
+    this.lnIconList = [];
+    this.cdr.detectChanges();
+    return;
+  }
+
+  this.lnIconSub?.unsubscribe();
+
+  // API Call to /Leads
+  this.lnIconSub = this.http.get<any[]>(`${environment.apiUrl}/Leads`).subscribe({
+    next: (res) => {
+      if (res && res.length > 0) {
+        // Unique Lead Numbers nikalna
+        // Agar API direct string de rahi hai toh 'item', agar object toh 'item.leadNo'
+        const uniqueLeads = [...new Set(res.map(item => item.leadNo || item))]
+          .filter(val => val && val.toString().trim() !== "");
+
+        this.lnIconList = uniqueLeads;
+
+        // Instant UI update for the popup
+        setTimeout(() => {
+          this.cdr.detectChanges();
+        }, 0);
+      }
+    },
+    error: (err) => {
+      console.error("Lead No API Error:", err);
+      this.lnIconList = [];
+      this.cdr.detectChanges();
+    }
+  });
+}
+
+// 2. UNIQUE Selection function: selectLnFromIcon
+selectLnFromIcon(val: any) {
+  this.leadSearchFilters.leadNo = val;
+  this.lnIconList = []; // Popup close
+  
+  setTimeout(() => {
+    this.cdr.detectChanges();
+  }, 0);
+}
+// Team Icon Popup ke liye UNIQUE variables
+tmIconList: any[] = []; 
+private tmIconSub?: Subscription;
+
+// 1. UNIQUE Function: onTeamIconClick
+onTeamIconClick() {
+  // Toggle Logic: Agar list pehle se khuli hai toh band kar do
+  if (this.tmIconList.length > 0) {
+    this.tmIconList = [];
+    this.cdr.detectChanges();
+    return;
+  }
+
+  this.tmIconSub?.unsubscribe();
+
+  // API Call to /Teams
+  this.tmIconSub = this.http.get<any[]>(`${environment.apiUrl}/Teams`).subscribe({
+    next: (res) => {
+      if (res && res.length > 0) {
+        // Unique Team names nikalna (teamName, name ya direct string)
+        const uniqueTeams = [...new Set(res.map(item => item.teamName || item.name || item))]
+          .filter(val => val && val.toString().trim() !== "");
+
+        this.tmIconList = uniqueTeams;
+
+        // Force UI update taaki ek hi click par load ho jaye
+        setTimeout(() => {
+          this.cdr.detectChanges();
+        }, 0);
+      }
+    },
+    error: (err) => {
+      console.error("Team API Error:", err);
+      this.tmIconList = [];
+      this.cdr.detectChanges();
+    }
+  });
+}
+
+// 2. UNIQUE Selection function: selectTmFromIcon
+selectTmFromIcon(team: any) {
+  this.leadSearchFilters.team = team;
+  this.tmIconList = []; // Popup close
+  
+  setTimeout(() => {
+    this.cdr.detectChanges();
+  }, 0);
+}
+// Reporting Manager Icon Popup ke liye UNIQUE variables
+rmIconList: string[] = []; 
+private rmIconSub?: Subscription;
+
+// 1. UNIQUE Function: onManagerIconClick
+onManagerIconClick() {
+  // Toggle Logic: Agar list pehle se khuli hai toh band kar do
+  if (this.rmIconList.length > 0) {
+    this.rmIconList = [];
+    this.cdr.detectChanges();
+    return;
+  }
+
+  this.rmIconSub?.unsubscribe();
+
+  // API Call to /ReportingManagers
+  this.rmIconSub = this.http.get<any[]>(`${environment.apiUrl}/ReportingManagers`).subscribe({
+    next: (res) => {
+      if (res && res.length > 0) {
+        // Unique Managers nikalna (Check property: name, managerName ya direct string)
+        const uniqueManagers = [...new Set(res.map(item => item.name || item.managerName || item))]
+          .filter(val => val && typeof val === 'string' && val.trim() !== "");
+
+        this.rmIconList = uniqueManagers;
+
+        // Force UI update for instant popup
+        setTimeout(() => {
+          this.cdr.detectChanges();
+        }, 0);
+      }
+    },
+    error: (err) => {
+      console.error("Manager API Error:", err);
+      this.rmIconList = [];
+      this.cdr.detectChanges();
+    }
+  });
+}
+
+// 2. UNIQUE Selection function: selectRmFromIcon
+selectRmFromIcon(manager: string) {
+  this.leadSearchFilters.reportingManager = manager;
+  this.rmIconList = []; // Popup close
+  
+  setTimeout(() => {
+    this.cdr.detectChanges();
+  }, 0);
 }
 }

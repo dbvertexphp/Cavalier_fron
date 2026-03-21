@@ -13,6 +13,7 @@ import html2canvas from 'html2canvas';
 import * as XLSX from 'xlsx';
 import { moveItemInArray, transferArrayItem, CdkDragDrop } from '@angular/cdk/drag-drop';
 import { DragDropModule } from '@angular/cdk/drag-drop'; // Ye import ensure karein
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-inquiry',
@@ -1100,6 +1101,185 @@ dropColumn(event: CdkDragDrop<string[]>) {
 }
 // inquiry.component.ts ke andar
 showColumnModal: boolean = false; // Isko class properties mein add karein
+// Variables declare karein
+showServicePopup: boolean = false;
+allTransportModes: string[] = [];
+private serviceSub?: Subscription;
+
+// 1. Icon click par popup toggle logic
+toggleServicePopup() {
+  if (this.showServicePopup) {
+    this.showServicePopup = false;
+    this.cdr.detectChanges();
+  } else {
+    this.serviceSub?.unsubscribe();
+
+    // API Call to /Inquiry
+    this.serviceSub = this.http.get<any[]>(`${environment.apiUrl}/Inquiry`).subscribe({
+      next: (res) => {
+        // transportMode nikalna, empty values filter karna aur Duplicates hatana
+        const uniqueModes = [...new Set(
+          res
+            .filter(item => item.transportMode && item.transportMode.trim() !== "")
+            .map(item => item.transportMode)
+        )];
+
+        this.allTransportModes = uniqueModes;
+        this.showServicePopup = true;
+        this.cdr.detectChanges(); // Instant UI Update
+      },
+      error: (err) => {
+        console.error("Error fetching Inquiry Services", err);
+        this.cdr.detectChanges();
+      }
+    });
+  }
+}
+
+// 2. Popup se select karne par
+selectServiceFromPopup(val: string) {
+  this.searchFilters.transportMode = val;
+  this.showServicePopup = false;
+  this.cdr.detectChanges();
+}
+
+// 3. ngOnDestroy mein cleanup
+ngOnDestroy() {
+  // Purani subscriptions ke saath isse bhi add karein
+  this.serviceSub?.unsubscribe();
+   this.inqSub?.unsubscribe();
+   this.branchSub?.unsubscribe();
+    this.coordinatorSub?.unsubscribe();
+
+}
+// Variables declare karein
+showInquiryPopup: boolean = false;
+allInquiryNos: string[] = [];
+private inqSub?: Subscription;
+
+// 1. Icon click par toggle logic
+toggleInquiryPopup() {
+  if (this.showInquiryPopup) {
+    this.showInquiryPopup = false;
+    this.cdr.detectChanges();
+  } else {
+    this.inqSub?.unsubscribe();
+
+    this.inqSub = this.http.get<any[]>(`${environment.apiUrl}/Inquiry`).subscribe({
+      next: (res) => {
+        // Inquiry No. nikalna aur unique banana
+        // Note: Agar property 'inquiryNo' hai toh wahi use karein
+        const uniqueInqs = [...new Set(
+          res
+            .filter(item => item.inquiryNo && item.inquiryNo.trim() !== "")
+            .map(item => item.inquiryNo)
+        )];
+
+        this.allInquiryNos = uniqueInqs;
+        this.showInquiryPopup = true;
+        this.cdr.detectChanges(); 
+      },
+      error: (err) => {
+        console.error("Error fetching Inquiries", err);
+        this.cdr.detectChanges();
+      }
+    });
+  }
+}
+
+// 2. Popup se select karne par
+selectInquiryFromPopup(val: string) {
+  this.searchFilters.inquiryNo = val;
+  this.showInquiryPopup = false;
+  this.cdr.detectChanges();
+}
+
+// Variables declare karein
+showBranchPopup: boolean = false;
+allCustomerNames: string[] = [];
+private branchSub?: Subscription;
+
+// 1. Icon click par popup toggle logic
+toggleBranchPopup() {
+  if (this.showBranchPopup) {
+    this.showBranchPopup = false;
+    this.cdr.detectChanges();
+  } else {
+    this.branchSub?.unsubscribe();
+
+    // API call to Inquiry (ya jo bhi aapka endpoint hai)
+    this.branchSub = this.http.get<any[]>(`${environment.apiUrl}/Inquiry`).subscribe({
+      next: (res) => {
+        // customerName nikalna, empty values hatana aur Duplicates khatam karna
+        const uniqueCustomers = [...new Set(
+          res
+            .filter(item => item.customerName && item.customerName.trim() !== "") // Sample mein 'organization' naam tha
+            .map(item => item.customerName) 
+        )];
+
+        this.allCustomerNames = uniqueCustomers;
+        this.showBranchPopup = true;
+        this.cdr.detectChanges(); // Fast UI refresh
+      },
+      error: (err) => {
+        console.error("Error fetching customers", err);
+        this.cdr.detectChanges();
+      }
+    });
+  }
+}
+
+// 2. Popup se select karne par
+selectBranchFromPopup(val: string) {
+  this.searchFilters.branchName = val;
+  this.showBranchPopup = false;
+  this.cdr.detectChanges();
+}
+
+// Variables declare karein
+showCoordinatorPopup: boolean = false;
+allCoordinators: string[] = [];
+private coordinatorSub?: Subscription;
+
+// 1. Icon click par popup toggle logic
+toggleCoordinatorPopup() {
+  if (this.showCoordinatorPopup) {
+    this.showCoordinatorPopup = false;
+    this.cdr.detectChanges();
+  } else {
+    this.coordinatorSub?.unsubscribe();
+
+    this.coordinatorSub = this.http.get<any[]>(`${environment.apiUrl}/Inquiry`).subscribe({
+      next: (res) => {
+        // SalesCoor nikalna, empty values filter karna aur Duplicates hatana
+        const uniqueCoords = [...new Set(
+          res
+            .filter(item => item.salesCoordinator && item.salesCoordinator.trim() !== "")
+            .map(item => item.salesCoordinator)
+        )];
+
+        this.allCoordinators = uniqueCoords;
+        this.showCoordinatorPopup = true;
+        this.cdr.detectChanges(); // UI Update
+      },
+      error: (err) => {
+        console.error("Error fetching Coordinators", err);
+        this.cdr.detectChanges();
+      }
+    });
+  }
+}
+
+// 2. Popup se select karne par
+selectCoordinatorFromPopup(val: string) {
+  this.searchFilters.salesCoordinator = val;
+  this.showCoordinatorPopup = false;
+  this.cdr.detectChanges();
+}
+
+// 3. Subscription Cleanup in ngOnDestroy
+
+
 }
   
   

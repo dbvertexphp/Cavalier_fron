@@ -12,41 +12,79 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-3">
         
         <div class="space-y-2">
-  <div class="flex items-center">
-  <label class="w-28 font-bold text-gray-600 text-sm">Services</label>
-  <div class="flex-1 flex flex-col relative">
+<div class="flex items-center relative"> <label class="w-28 font-bold text-gray-600 text-sm">Services</label>
+  <div class="flex-1 flex border border-gray-300">
     <input 
       type="text" 
       [(ngModel)]="searchFilters.transportMode"
       (input)="onServiceType()"
       list="servicesSuggestions"
       placeholder="Type service (min 3 chars)..."
-      class="w-full border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white"
+      class="w-full p-1 outline-none text-[12px] rounded-sm bg-white"
     >
+    
+    <span 
+      (click)="toggleServicePopup()" 
+      class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-gray-200">
+      🔍
+    </span>
+
     <datalist id="servicesSuggestions">
       <option *ngFor="let s of filteredServices" [value]="s"></option>
     </datalist>
   </div>
+
+  <div *ngIf="showServicePopup" 
+       class="absolute top-full left-28 right-0 mt-1 bg-white border border-gray-300 shadow-lg z-[999] max-h-60 overflow-y-auto rounded-sm">
+    <ul>
+      <li *ngFor="let mode of allTransportModes" 
+          (click)="selectServiceFromPopup(mode)"
+          class="p-2 text-[12px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 last:border-none">
+        {{ mode }}
+      </li>
+      <li *ngIf="allTransportModes.length === 0" class="p-2 text-[12px] text-gray-400 text-center italic">
+        No services found
+      </li>
+    </ul>
+  </div>
 </div>
-       <div class="flex items-center">
-  <label class="w-28 font-bold text-gray-600 text-[12px]">Inquiry No.</label>
-  <div class="flex-1 flex flex-col">
+  <div class="flex items-center relative"> <label class="w-28 font-bold text-gray-600 text-[12px]">Inquiry No.</label>
+  <div class="flex-1 flex border border-gray-300">
     <input 
       type="text" 
       [(ngModel)]="searchFilters.inquiryNo" 
       (input)="onInquiryType()"
       list="inqNoList" 
       placeholder="Type min 3 chars..."
-      class="w-full border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white"
+      class="w-full p-1 outline-none text-[12px] rounded-sm bg-white"
     >
     
+    <span 
+      (click)="toggleInquiryPopup()" 
+      class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-gray-200">
+      🔍
+    </span>
+
     <datalist id="inqNoList">
       <option *ngFor="let num of filteredInquiryNos" [value]="num"></option>
     </datalist>
   </div>
-</div>  
-     <div class="flex items-center">
-  <label class="w-28 font-bold text-red-700">Inquiry to</label>
+
+  <div *ngIf="showInquiryPopup" 
+       class="absolute top-full left-28 right-0 mt-1 bg-white border border-gray-300 shadow-lg z-[999] max-h-60 overflow-y-auto rounded-sm">
+    <ul>
+      <li *ngFor="let inq of allInquiryNos" 
+          (click)="selectInquiryFromPopup(inq)"
+          class="p-2 text-[12px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 last:border-none">
+        {{ inq }}
+      </li>
+      <li *ngIf="allInquiryNos.length === 0" class="p-2 text-[12px] text-gray-400 text-center italic">
+        No Inquiries found
+      </li>
+    </ul>
+  </div>
+</div>
+   <div class="flex items-center relative"> <label class="w-28 font-bold text-red-700 text-[12px]">Inquiry to</label>
   <div class="flex-1 flex border border-red-200">
     <input 
       type="text" 
@@ -54,14 +92,32 @@
       (input)="onBranchType()"
       list="branchList"
       placeholder="Type min 3 chars..."
-      class="w-full p-1 outline-none text-[12px]">
+      class="w-full p-1 outline-none text-[12px] bg-white">
     
-    <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400">🔍</span>
+    <span 
+      (click)="toggleBranchPopup()" 
+      class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-gray-200">
+      🔍
+    </span>
   </div>
 
   <datalist id="branchList">
     <option *ngFor="let branch of filteredBranches" [value]="branch"></option>
   </datalist>
+
+  <div *ngIf="showBranchPopup" 
+       class="absolute top-full left-28 right-0 mt-1 bg-white border border-gray-300 shadow-lg z-[999] max-h-60 overflow-y-auto rounded-sm">
+    <ul>
+      <li *ngFor="let cust of allCustomerNames" 
+          (click)="selectBranchFromPopup(cust)"
+          class="p-2 text-[12px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 last:border-none">
+        {{ cust }}
+      </li>
+      <li *ngIf="allCustomerNames.length === 0" class="p-2 text-[12px] text-gray-400 text-center italic">
+        No customers found
+      </li>
+    </ul>
+  </div>
 </div>
          <div class="flex items-center">
   <label class="w-28 font-bold text-gray-600">Show</label>
@@ -113,8 +169,7 @@
       </div>
     </div>
   </div>
-  <div class="flex items-center">
-  <label class="w-24 font-bold text-gray-600">Inquiry By</label>
+<div class="flex items-center relative"> <label class="w-24 font-bold text-gray-600 text-[12px]">Inquiry By</label>
   <div class="flex-1 flex border border-gray-300">
     <input 
       type="text" 
@@ -122,14 +177,32 @@
       (input)="onCoordinatorType()"
       list="coordinatorList"
       placeholder="Type min 3 chars..."
-      class="w-full p-1 outline-none text-[12px]">
+      class="w-full p-1 outline-none text-[12px] bg-white">
     
-    <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400">🔍</span>
+    <span 
+      (click)="toggleCoordinatorPopup()" 
+      class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-gray-200">
+      🔍
+    </span>
   </div>
 
   <datalist id="coordinatorList">
     <option *ngFor="let name of filteredCoordinators" [value]="name"></option>
   </datalist>
+
+  <div *ngIf="showCoordinatorPopup" 
+       class="absolute top-full left-24 right-0 mt-1 bg-white border border-gray-300 shadow-lg z-[999] max-h-60 overflow-y-auto rounded-sm">
+    <ul>
+      <li *ngFor="let coord of allCoordinators" 
+          (click)="selectCoordinatorFromPopup(coord)"
+          class="p-2 text-[12px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 last:border-none">
+        {{ coord }}
+      </li>
+      <li *ngIf="allCoordinators.length === 0" class="p-2 text-[12px] text-gray-400 text-center italic">
+        No coordinators found
+      </li>
+    </ul>
+  </div>
 </div>
         <div class="flex items-center">
   <label class="w-24 font-bold text-gray-600">Status</label>

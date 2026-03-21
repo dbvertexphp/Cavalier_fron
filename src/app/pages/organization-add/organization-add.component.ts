@@ -189,25 +189,31 @@ toggleRole(role: string) {
     // Agar role pehle se selected hai, toh use remove karo
     this.selectedRoles.splice(index, 1);
     
-    // Agar wahi tab active tha jo band kiya, toh kisi aur tab par shift ho jao ya khali kar do
-    if (this.activeTab === role) {
-      this.activeTab = this.selectedRoles.length > 0 ? this.selectedRoles[0] : 'general';
-    }
+    // YAHAN BADLAV: Agar role remove ho raha hai, tab bhi hum 'general' par hi rahenge
+    // Agar aap chahte ho ki tab na badle, toh niche wali line ko comment/remove kar do
+    // this.activeTab = 'general'; 
+    
   } else {
     // Naya role add karo
     this.selectedRoles.push(role);
     
-    // Page redirect karne ki jagah isi page ka 'activeTab' badal do
-    this.activeTab = role; 
+    // YAHAN FIX: 'activeTab = role' ko hata kar 'general' rakho
+    // Isse checkbox click karne par selection toh hoga, par tab nahi badlega
+    this.activeTab = 'general'; 
 
     // Debugging ke liye console log
     if (role === 'shipper') {
-      console.log("Shipper section activated on current page.");
+      console.log("Shipper added to selected roles, staying on General tab.");
     }
     if (role === 'consignee') {
-      console.log("Consignee section activated on current page.");
+      console.log("Consignee added to selected roles, staying on General tab.");
     }
   }
+}
+
+// Ye function tab switch karne ke liye (Manual click par)
+setActiveTab(tabName: string) {
+  this.activeTab = tabName;
 }
 
 // HTML mein condition check karne ke liye helper
@@ -322,7 +328,7 @@ saveOrg() {
 }
  onSaveBranch() {
   if (!this.branchName || !this.branchName.trim()) {
-    alert("Pehle branch ka naam toh likho!");
+    alert("Please enter a branch name");
     return;
   }
 
@@ -370,10 +376,10 @@ saveAllLocalBranches(orgId: number) {
     };
 
     // DIRECT API URL
-    this.http.post(`http://localhost:5000/api/OrgBranch/SaveBranch`, branchPayload).subscribe({
-      next: (res) => {
-        console.log(`Branch ${branch.branchName} linked to Org ${orgId} successfully!`);
-      },
+  this.http.post(`${environment.apiUrl}/OrgBranch/SaveBranch`, branchPayload).subscribe({
+  next: (res) => {
+    console.log(`Branch ${branch.branchName} linked to Org ${orgId} successfully!`);
+  },
       error: (err) => {
         console.error("Branch Save Error:", err);
       }
@@ -498,7 +504,7 @@ editOrg(org: any) {
 // Ye function alag se niche add kar dena
 getBranchesByOrg(orgId: number) {
   // Direct localhost URL jo Swagger mein chal rahi hai
-  const url = `http://localhost:5000/api/OrgBranch/GetByOrg/${orgId}`;
+const url = `${environment.apiUrl}/OrgBranch/GetByOrg/${orgId}`;
 
   console.log("Fetching branches from:", url);
 
@@ -539,6 +545,7 @@ isExportOpen = false;
   onDocumentClick(event: MouseEvent) {
     if (!(event.target as HTMLElement).closest('.relative')) {
       this.isExportOpen = false;
+this.organizationsList = [];
     }
   }
 
@@ -1248,5 +1255,99 @@ loadCountriesFromApi() {
     }
 
 }
+organizationsList: any[] = [];
+activeDropdown: string = ''; 
+
+allOrgSearch(type: string) {
+  const url = `${environment.apiUrl}/Organization/list`;
+  this.http.get(url).subscribe({
+    next: (res: any) => {
+      const data = Array.isArray(res) ? res : res.data;
+      if (data) {
+        // Dropdown type pehle set karo (Important!)
+        this.activeDropdown = type; 
+        
+        this.organizationsList = data.map((item: any) => ({
+          orgId: item.id || item.organizationId,
+          orgName: item.orgName
+        }));
+      }
+    },
+    error: (err) => console.error("API Error:", err)
+  });
+}
+
+// Select karte waqt hum check karenge ki kis dropdown se click hua hai
+selectOrg(org: any) {
+  if (this.activeDropdown === 'name') {
+    this.searchFilters.orgName = org.orgName;
+  } else if (this.activeDropdown === 'id') {
+    // Agar ID wale input ka variable orgCode hai toh wahan fill karo
+    this.searchFilters.orgCode = org.orgId; 
+  }
+
+  // Selection ke baad sab clear kar do
+  this.organizationsList = [];
+  this.activeDropdown = '';
+}
+cityList: any[] = []; // Full list ke liye
+
+// City fetch karne ke liye (Aapke logic ke hisaab se)
+allCitySearch(type: string) {
+  const url = `${environment.apiUrl}/Organization/list`; // Check your API endpoint
+  this.http.get(url).subscribe({
+    next: (res: any) => {
+      const data = Array.isArray(res) ? res : res.data;
+      if (data) {
+        this.activeDropdown = type; // 'city' set karega
+        this.cityList = data.map((item: any) => ({
+          cityId: item.id || item.cityId,
+          cityName: item.cityName || item.city
+        }));
+        
+        // Taaki suggestions aur dropdown ek saath na dikhen
+        this.filteredCities = []; 
+      }
+    },
+    error: (err) => console.error("City fetch error:", err)
+  });
+}
+
+// Item select karne par
+selectCity(item: any) {
+  this.searchFilters.city = item.cityName;
+  // Agar ID bhi save karni ho: this.searchFilters.cityId = item.cityId;
+  
+  this.cityList = [];
+  this.activeDropdown = '';
+}
+
+
+allBranchSearch(type: string) {
+  // Pehle check karo ki Org select hui hai ya nahi
+  const orgId = this.searchFilters.orgId; 
+  
+  if (!orgId) {
+    alert("Please select an Organization first!");
+    return;
+  }
+
+  const url = `${environment.apiUrl}/OrgBranch/GetByOrg/${orgId}`;
+  this.http.get(url).subscribe({
+    next: (res: any) => {
+      const data = Array.isArray(res) ? res : res.data;
+      if (data) {
+        this.activeDropdown = type; // 'branch' set karega
+        this.branchList = data.map((item: any) => ({
+          branchId: item.id || item.branchId,
+          branchName: item.branchName
+        }));
+        this.filteredBranches = []; // Purani suggestions band
+      }
+    },
+    error: (err) => console.error("Branch fetch error:", err)
+  });
+}
+
 
 }

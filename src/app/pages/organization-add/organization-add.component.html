@@ -8,11 +8,9 @@
     <div class="p-4 bg-white border-b border-gray-200">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-3">
         <div class="space-y-2">
- <div class="flex items-center">
+<div class="flex items-center mb-4">
   <label class="w-28 font-bold text-red-700">Org Name</label>
-  
   <div class="flex-1 flex flex-col relative">
-    
     <div class="flex border border-red-200">
       <input type="text" 
              placeholder="Search Company..." 
@@ -20,26 +18,38 @@
              [(ngModel)]="searchFilters.orgName"
              (input)="getApiSuggestions('orgname', searchFilters.orgName)"
              autocomplete="off">
-      <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400">🔍</span>
+      
+      <div class="relative inline-block w-[30px]">
+        <span (click)="allOrgSearch('name')" 
+              class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer flex items-center justify-center">
+          🔍
+        </span>
+
+        <ul *ngIf="organizationsList.length > 0 && activeDropdown === 'name'" 
+            class="absolute z-[999] left-0 mt-1 w-[200px] max-h-60 overflow-y-auto bg-white border border-gray-300 rounded-md shadow-2xl custom-scrollbar">
+          <li *ngFor="let org of organizationsList" 
+              (click)="selectOrg(org)" 
+              class="p-3 text-sm text-gray-700 hover:bg-indigo-50 cursor-pointer border-b last:border-none">
+            {{ org.orgName }}
+          </li>
+        </ul>
+      </div>
     </div>
 
     <div *ngIf="filteredOrgNames.length > 0" 
          class="absolute top-full left-0 z-[999] w-full bg-white border border-gray-300 max-h-48 overflow-y-auto shadow-lg shadow-gray-400">
-      
       <div *ngFor="let item of filteredOrgNames"
            (click)="selectOrgSuggestion(item)" 
            class="p-2 hover:bg-red-50 cursor-pointer text-[12px] border-b border-gray-100 last:border-none text-black">
         {{ $any(item).orgName || item }}
       </div>
-      
     </div>
   </div>
 </div>
-        
+
 <div class="flex items-center">
   <label class="w-28 font-bold text-gray-600">Org ID</label>
   <div class="flex-1 flex flex-col relative">
-    
     <div class="flex border border-gray-300">
       <input type="text" 
              [(ngModel)]="searchFilters.orgCode"
@@ -47,22 +57,32 @@
              placeholder="Search by ID..." 
              class="w-full p-1 outline-none text-[12px] rounded-sm"
              autocomplete="off">
+
+      <div class="relative inline-block w-[30px]">
+        <span (click)="allOrgSearch('id')" 
+              class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer flex items-center justify-center">
+          🔍
+        </span>
+
+        <ul *ngIf="organizationsList.length > 0 && activeDropdown === 'id'" 
+            class="absolute z-[999] left-0 mt-1 w-[200px] max-h-60 overflow-y-auto bg-white border border-gray-300 rounded-md shadow-2xl custom-scrollbar">
+          <li *ngFor="let org of organizationsList" 
+              (click)="selectOrg(org)" 
+              class="p-3 text-sm text-gray-700 hover:bg-indigo-50 cursor-pointer border-b last:border-none">
+            ID: {{ org.orgId }}
+          </li>
+        </ul>
+      </div>
     </div>
 
     <div *ngIf="filteredOrgCodes.length > 0" 
          class="absolute top-full left-0 z-[1000] w-full bg-white border border-gray-300 max-h-48 overflow-y-auto shadow-lg text-black">
-      
       <div *ngFor="let item of filteredOrgCodes"
            (click)="selectOrgCodeSuggestion(item)" 
            class="p-2 hover:bg-gray-100 cursor-pointer text-[12px] border-b flex justify-between">
-        
         <span class="font-bold text-blue-800">ID: {{ item.id }}</span>
-        
-        <!-- <span class="text-gray-500 text-[11px]">{{ item.orgName }}</span> -->
-        
       </div>
     </div>
-    
   </div>
 </div>
         <div class="flex items-center mb-1">
@@ -78,7 +98,7 @@
         </div>
 
       <div class="space-y-2">
-  <div class="flex items-center">
+ <div class="flex items-center">
   <label class="w-24 font-bold text-gray-600">City</label>
   <div class="flex-1 flex flex-col relative"> 
     
@@ -89,7 +109,22 @@
              placeholder="Search City..." 
              class="w-full p-1 outline-none text-[12px]"
              autocomplete="off">
-      <span class="p-1 bg-gray-50 border-l border-gray-200">📍</span>
+
+      <div class="relative inline-block w-[30px]">
+        <span (click)="allCitySearch('city')" 
+              class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer flex items-center justify-center h-full">
+          📍
+        </span>
+
+        <ul *ngIf="cityList.length > 0 && activeDropdown === 'city'" 
+            class="absolute z-[999] left-0 mt-1 w-[200px] max-h-60 overflow-y-auto bg-white border border-gray-300 rounded-md shadow-2xl custom-scrollbar">
+          <li *ngFor="let item of cityList" 
+              (click)="selectCity(item)" 
+              class="p-3 text-sm text-gray-700 hover:bg-blue-50 cursor-pointer border-b last:border-none transition-colors">
+            {{ item.cityName }}
+          </li>
+        </ul>
+      </div>
     </div>
 
     <div *ngIf="filteredCities.length > 0" 
@@ -124,7 +159,7 @@
 
         <div class="flex flex-col justify-between pt-1">
           <div class="space-y-2 pl-4">
-      <div class="flex items-center mb-1">
+   <div class="flex items-center mb-1">
   <label class="w-20 font-bold text-gray-600">Branch</label>
   <div class="flex-1 flex flex-col relative"> 
     
@@ -135,7 +170,22 @@
              placeholder="Search Branch..." 
              class="w-full p-1 outline-none text-[12px]"
              autocomplete="off">
-      <span class="p-1 bg-gray-50 border-l border-gray-200">🏢</span>
+
+      <div class="relative inline-block w-[30px]">
+        <span (click)="allBranchSearch('branch')" 
+              class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer flex items-center justify-center h-full">
+          🏢
+        </span>
+
+        <ul *ngIf="branchList.length > 0 && activeDropdown === 'branch'" 
+            class="absolute z-[999] left-0 mt-1 w-[200px] max-h-60 overflow-y-auto bg-white border border-gray-300 rounded-md shadow-2xl custom-scrollbar">
+          <li *ngFor="let item of branchList" 
+              (click)="selectBranch(item)" 
+              class="p-3 text-sm text-gray-700 hover:bg-red-50 cursor-pointer border-b last:border-none transition-colors">
+            {{ item.branchName }}
+          </li>
+        </ul>
+      </div>
     </div>
 
     <div *ngIf="filteredBranches.length > 0" 

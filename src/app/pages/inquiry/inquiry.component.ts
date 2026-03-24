@@ -31,7 +31,7 @@ import { Subscription } from 'rxjs';
     quotationcheck: any = { TransportMode: '',
     shipmentType: '',incoterm: '',movementType: '',commodity: ''};
     documents: any[] = [];
-
+public ports: any[] = [];
 addDocument() {
   this.documents.push({
     name: '',
@@ -473,7 +473,9 @@ const payload = {
 
     toggleForm() {
       this.isFormOpen = !this.isFormOpen;
+      
       if (!this.isFormOpen) {
+         this.isPreviewMode = false; // Add this line
         this.quotation = this.resetQuotationModel();
         this.appliedDimensions = [];
         this.dimRows = [{ box: 1, l: 0, w: 0, h: 0, unit: 'CMS' }];
@@ -1279,8 +1281,113 @@ selectCoordinatorFromPopup(val: string) {
 
 // 3. Subscription Cleanup in ngOnDestroy
 
+// 1. Naya variable add karein
+isPreviewMode = false;
+
+// 2. Review Mode toggle karne ka function
+toggleReview() {
+  if (!this.inquiry.organization) {
+    alert("firstly save org");
+    return;
+  }
+  this.isPreviewMode = true;
+  
+}
+
+// 3. Wapas edit mode mein jaane ke liye
+// backToEdit() {
+//   this.isPreviewMode = false;
+// }
+
+// 1. Naya variable add karein
+// isPreviewMode = false;
+// 1. Array define karein review list ke liye
+localInquiryList: any[] = [];
+// isPreviewMode: boolean = false;
+
+// 2. Review Mode toggle karne ka function (With Data Mapping)
+addToLocalReview() {
+  if (!this.inquiry.organization) {
+    alert("firstly save org");
+    return;
+  }
+
+  // Readable Snapshot banana (IDs ko Labels mein convert karke)
+  const completeData = {
+    // Admin & References
+    leadNo: this.inquiry.leadNo || 'N/A',
+    branchName: this.quotation.branchName || 'N/A',
+    inquiryNo: this.inquiry.inquiryNo || 'N/A',
+    location: this.quotation.location || 'N/A',
+    receivedDate: this.quotation.receivedDate,
+    
+    // Customer & Business
+    organization: this.inquiry.organization,
+    partyRole: this.getSimpleLabel(this.quotation.partyRole),
+    lineOfBusiness: this.getLabel(this.companyServices, this.quotation.lineOfBusinessId), 
+    quotedBy: this.quotation.createdBy || 'Current User',
+    pricingBy: this.quotation.pricingBy || 'N/A',
+    
+    // Cargo Details
+    transportMode: this.quotation.transportMode || 'N/A',
+    shipmentType: this.quotation.shipmentType || 'N/A',
+    commodity: this.getLabel(this.commodityTypes, this.quotation.commodityId),
+    cargoStatus: this.quotation.cargoStatus || 'Pending',
+    hazardDoc: this.quotation.hazardDocPath || 'None',
+    
+    // Weights
+    grossWeight: this.quotation.grossWeightKg || 0,
+    netWeight: this.quotation.netWeightKg || 0,
+    chargeableWeight: this.quotation.chargeableWeight || 0,
+    noOfPkgs: this.quotation.noOfPkgs || 0,
+    
+    // Forwarding & Movement
+    incoTerm: this.quotation.incoTerm || 'N/A',
+    movementType: this.quotation.movementType || 'N/A',
+    origin: this.inquiry.origin || 'N/A',
+    portOfLoading: this.getLabel(this.ports, this.quotation.portOfLoadingId),
+    portOfDischarge: this.getLabel(this.ports, this.quotation.portOfDischargeId),
+    finalDestination: this.quotation.finalDestination || 'N/A',
+    pickupAddress: this.quotation.pickupAddress || 'N/A',
+    invoiceStatus: this.quotation.invoiceStatus || 'N/A',
+    
+    // Dimensions
+    dimensions: this.appliedDimensions.length > 0 ? [...this.appliedDimensions] : []
+  };
+
+  this.localInquiryList = [completeData]; // Update snapshot
+  this.isPreviewMode = true; 
+}
+
+// 3. Wapas edit mode mein jaane ke liye
+backToEdit() {
+  this.isPreviewMode = false;
+}
+
+// 4. Helper function to get Label from ID (Handles different list structures)
+getLabel(list: any[], id: any): string {
+  if (!id || !list || list.length === 0) return 'N/A';
+  
+  const found = list.find(x => 
+    x.id == id || 
+    x.serviceId == id || 
+    x.commodityId == id || 
+    x.portId == id ||
+    x.value == id
+  );
+
+  return found ? (found.serviceName || found.commodityName || found.name || found.portName || found.text) : id;
+}
+
+// 5. Helper for simple strings
+getSimpleLabel(val: any): string {
+  return val ? val : 'N/A';
+}
 
 }
+  
+  
+
   
   
 

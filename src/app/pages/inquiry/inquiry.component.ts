@@ -493,11 +493,13 @@ const payload = {
       if (this.dimRows.length > 1) this.dimRows.splice(i, 1); 
     }
 
-    saveDimensions() {
-      // Only capture rows where length is specified
-      this.appliedDimensions = this.dimRows.filter(d => d.l > 0);
-      this.closeDimModal();
-    }
+saveDimensions() {
+  // Logic: Unhi rows ko rakho jisme Length, Width ya Height me se kuch bhi bhara ho
+  this.appliedDimensions = this.dimRows.filter(d => (d.l > 0 || d.w > 0 || d.h > 0));
+  
+  console.log("Dimensions Saved in appliedDimensions:", this.appliedDimensions);
+  this.closeDimModal();
+}
 
     // editQuotation(q: any) {
     //   this.quotation = { ...q };
@@ -1307,57 +1309,104 @@ localInquiryList: any[] = [];
 
 // 2. Review Mode toggle karne ka function (With Data Mapping)
 addToLocalReview() {
+  console.log("--- Review Button Clicked ---");
+
   if (!this.inquiry.organization) {
     alert("firstly save org");
     return;
   }
 
-  // Readable Snapshot banana (IDs ko Labels mein convert karke)
+  // 1. Check Modal Data (dimRows)
+  console.log("1. Raw dimRows from Modal:", this.dimRows);
+
+  // 2. Check Applied Data (appliedDimensions)
+  console.log("2. Raw appliedDimensions:", this.appliedDimensions);
+
+  let finalDimensions = [];
+
+  // Agar dimRows array hai aur usme data hai
+  if (this.dimRows && this.dimRows.length > 0) {
+    // Filter kar rhe hain taaki khali rows na aayein
+    finalDimensions = this.dimRows.filter(d => d.l || d.w || d.h);
+    console.log("3. Filtered Dimensions from dimRows:", finalDimensions);
+  } 
+  
+  // Agar dimRows khali tha, toh appliedDimensions check karo
+  if (finalDimensions.length === 0 && this.appliedDimensions && this.appliedDimensions.length > 0) {
+    finalDimensions = [...this.appliedDimensions];
+    console.log("4. Using appliedDimensions instead:", finalDimensions);
+  }
+
+  if (finalDimensions.length === 0) {
+    console.warn("⚠️ No dimensions found anywhere!");
+  }
+
   const completeData = {
-    // Admin & References
-    leadNo: this.inquiry.leadNo || 'N/A',
-    branchName: this.quotation.branchName || 'N/A',
-    inquiryNo: this.inquiry.inquiryNo || 'N/A',
-    location: this.quotation.location || 'N/A',
-    receivedDate: this.quotation.receivedDate,
-    
-    // Customer & Business
-    organization: this.inquiry.organization,
-    partyRole: this.getSimpleLabel(this.quotation.partyRole),
-    lineOfBusiness: this.getLabel(this.companyServices, this.quotation.lineOfBusinessId), 
-    quotedBy: this.quotation.createdBy || 'Current User',
-    pricingBy: this.quotation.pricingBy || 'N/A',
-    
-    // Cargo Details
-    transportMode: this.quotation.transportMode || 'N/A',
-    shipmentType: this.quotation.shipmentType || 'N/A',
+    lineOfBusiness: this.getLabel(this.companyServices, this.quotation.lineOfBusinessId),
     commodity: this.getLabel(this.commodityTypes, this.quotation.commodityId),
-    cargoStatus: this.quotation.cargoStatus || 'Pending',
-    hazardDoc: this.quotation.hazardDocPath || 'None',
-    
-    // Weights
-    grossWeight: this.quotation.grossWeightKg || 0,
-    netWeight: this.quotation.netWeightKg || 0,
-    chargeableWeight: this.quotation.chargeableWeight || 0,
-    noOfPkgs: this.quotation.noOfPkgs || 0,
-    
-    // Forwarding & Movement
     incoTerm: this.quotation.incoTerm || 'N/A',
-    movementType: this.quotation.movementType || 'N/A',
+    cargoStatus: this.quotation.cargoStatus || 'Pending',
+    noOfPkgs: this.quotation.noOfPkgs || 0,
+    grossWeight: this.quotation.grossWeightKg || 0,
+    chargeableWeight: this.quotation.chargeableWeight || 0,
     origin: this.inquiry.origin || 'N/A',
-    portOfLoading: this.getLabel(this.ports, this.quotation.portOfLoadingId),
-    portOfDischarge: this.getLabel(this.ports, this.quotation.portOfDischargeId),
     finalDestination: this.quotation.finalDestination || 'N/A',
     pickupAddress: this.quotation.pickupAddress || 'N/A',
-    invoiceStatus: this.quotation.invoiceStatus || 'N/A',
-    
-    // Dimensions
-    dimensions: this.appliedDimensions.length > 0 ? [...this.appliedDimensions] : []
+    dimensions: finalDimensions // Snapshot mein save kiya
   };
 
-  this.localInquiryList = [completeData]; // Update snapshot
-  this.isPreviewMode = true; 
+  this.localInquiryList = [completeData];
+  console.log("5. Final Snapshot Saved:", this.localInquiryList);
+  
+  this.isPreviewMode = true;
 }
+
+  // Readable Snapshot banana (IDs ko Labels mein convert karke)
+//   const completeData = {
+//     // Admin & References
+//     leadNo: this.inquiry.leadNo || 'N/A',
+//     branchName: this.quotation.branchName || 'N/A',
+//     inquiryNo: this.inquiry.inquiryNo || 'N/A',
+//     location: this.quotation.location || 'N/A',
+//     receivedDate: this.quotation.receivedDate,
+    
+//     // Customer & Business
+//     organization: this.inquiry.organization,
+//     partyRole: this.getSimpleLabel(this.quotation.partyRole),
+//     lineOfBusiness: this.getLabel(this.companyServices, this.quotation.lineOfBusinessId), 
+//     quotedBy: this.quotation.createdBy || 'Current User',
+//     pricingBy: this.quotation.pricingBy || 'N/A',
+    
+//     // Cargo Details
+//     transportMode: this.quotation.transportMode || 'N/A',
+//     shipmentType: this.quotation.shipmentType || 'N/A',
+//     commodity: this.getLabel(this.commodityTypes, this.quotation.commodityId),
+//     cargoStatus: this.quotation.cargoStatus || 'Pending',
+//     hazardDoc: this.quotation.hazardDocPath || 'None',
+    
+//     // Weights
+//     grossWeight: this.quotation.grossWeightKg || 0,
+//     netWeight: this.quotation.netWeightKg || 0,
+//     chargeableWeight: this.quotation.chargeableWeight || 0,
+//     noOfPkgs: this.quotation.noOfPkgs || 0,
+    
+//     // Forwarding & Movement
+//     incoTerm: this.quotation.incoTerm || 'N/A',
+//     movementType: this.quotation.movementType || 'N/A',
+//     origin: this.inquiry.origin || 'N/A',
+//     portOfLoading: this.getLabel(this.ports, this.quotation.portOfLoadingId),
+//     portOfDischarge: this.getLabel(this.ports, this.quotation.portOfDischargeId),
+//     finalDestination: this.quotation.finalDestination || 'N/A',
+//     pickupAddress: this.quotation.pickupAddress || 'N/A',
+//     invoiceStatus: this.quotation.invoiceStatus || 'N/A',
+    
+//     // Dimensions
+//     dimensions: this.appliedDimensions.length > 0 ? [...this.appliedDimensions] : []
+//   };
+
+//   this.localInquiryList = [completeData]; // Update snapshot
+//   this.isPreviewMode = true; 
+// }
 
 // 3. Wapas edit mode mein jaane ke liye
 backToEdit() {

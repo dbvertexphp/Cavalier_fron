@@ -588,6 +588,15 @@
     <option value="Sales 1">Sales User 1</option>
   </select>
 </div>
+  <div class="flex items-center">
+  <label class="w-40 font-bold text-gray-700">Business Dimensions</label>
+  <select name="businessDims" [(ngModel)]="quotation.businessDimensions" class="flex-1 border p-2 outline-none">
+    <option value="Electronic">Electronic</option>
+    <option value="Mercury">Mercury</option>
+    <option value="Cosmetic">Cosmetic</option>
+    <option value="Toys">Toys</option>
+  </select>
+</div>
         </div>
 
 
@@ -1263,115 +1272,68 @@
 <div *ngIf="isPreviewMode" class="p-6 border-4 border-dashed border-[#4a3f3f] m-4 bg-gray-50 shadow-2xl font-sans">
     <div class="flex justify-between items-center mb-4">
         <h3 class="text-2xl font-black text-[#4a3f3f] uppercase tracking-tighter italic">
-            🔍 FINAL REVIEW: INQUIRY DETAILS
+            🔍 INQUIRY DETAILS
         </h3>
         <div class="flex gap-2">
-            <span class="bg-orange-500 text-white px-3 py-1 text-xs font-bold uppercase">Draft Mode</span>
-            <span class="bg-[#4a3f3f] text-white px-3 py-1 text-xs font-bold uppercase">Cavalier Logistics</span>
+            <span class="bg-[#4a3f3f] text-white px-3 py-1 text-xs font-bold uppercase italic">Cavalier Logistics</span>
         </div>
     </div>
     
     <hr class="border-[#4a3f3f] mb-6 border-2">
     
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      
-      <div class="bg-white p-4 border-t-4 border-blue-600 shadow-sm space-y-2">
-        <h5 class="text-blue-600 font-bold text-xs uppercase mb-3 underline">Admin & References</h5>
-        <p><span class="font-bold text-gray-500 text-sm">Reference by Lead:</span> {{ inquiry.leadNo || 'N/A' }}</p>
-        <p><span class="font-bold text-gray-500 text-sm">Branch:</span> {{ quotation.branchName || 'N/A' }}</p>
-        <p><span class="font-bold text-gray-500 text-sm">Inq. Received:</span> {{ (quotation.receivedDate | date:'dd-MMM-yyyy') || 'N/A' }}</p>
-        <p><span class="font-bold text-gray-500 text-sm">Inq. Replied:</span> {{ (quotation.repliedDate | date:'dd-MMM-yyyy') || 'N/A' }}</p>
-        <p><span class="font-bold text-gray-500 text-sm">Inquiry No:</span> {{ inquiry.inquiryNo }}</p>
-        <p><span class="font-bold text-gray-500 text-sm">Location:</span> {{ quotation.location }}</p>
-        <p><span class="font-bold text-gray-500 text-sm">Sales Coor:</span> {{ quotation.salesCoorId || 'N/A' }}</p>
-      </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-6 border-2 border-gray-200">
+        
+        <div class="space-y-3">
+            <p><span class="font-bold text-gray-600 text-sm uppercase">Line of Business:</span> {{ quotation.lineOfBusinessName || getLabel(companyServices, quotation.lineOfBusinessId) }}</p>
+            <p><span class="font-bold text-gray-600 text-sm uppercase">Cargo Status:</span> <span class="text-orange-600 font-bold">{{ quotation.cargoStatus || 'Pending' }}</span></p>
+            <p><span class="font-bold text-gray-600 text-sm uppercase">Commodity:</span> {{ quotation.commodityName || getLabel(commodityTypes, quotation.commodityId) || 'General Cargo' }}</p>
+            <p><span class="font-bold text-gray-600 text-sm uppercase">No. of Pkgs:</span> {{quotation.noOfPkgs}} {{quotation.packageUnit || 'PKGS'}}</p>
+            
+            <div class="mt-2 bg-gray-50 p-3 border rounded-sm">
+                <span class="font-bold text-gray-600 text-[10px] uppercase block mb-2 border-b">📦 Package Dimensions Log</span>
+                
+                <div *ngFor="let data of localInquiryList">
+                    <div *ngIf="data.dimensions && data.dimensions.length > 0; else checkGlobal">
+                        <div *ngFor="let dim of data.dimensions; let i = index" class="text-[11px] font-mono border-b border-gray-100 last:border-0 py-1">
+                            BOX {{i+1}}: {{dim.l}} x {{dim.w}} x {{dim.h}} {{dim.unit || 'CMS'}}
+                        </div>
+                    </div>
+                </div>
 
-      <div class="bg-white p-4 border-t-4 border-purple-600 shadow-sm space-y-2">
-        <h5 class="text-purple-600 font-bold text-xs uppercase mb-3 underline">Customer & Business</h5>
-        <p><span class="font-bold text-gray-500 text-sm">Party Role:</span> {{ getSimpleLabel(quotation.partyRole) }}</p>
-        <p><span class="font-bold text-gray-500 text-sm">Customer:</span> {{ quotation.customerName || 'Global' }}</p>
-        <p><span class="font-bold text-gray-500 text-sm">Pricing By:</span> {{ quotation.pricingBy || 'N/A' }}</p>
-        <p><span class="font-bold text-gray-500 text-sm">Line Of Business:</span> {{ getLabel(companyServices, quotation.lineOfBusinessId) }}</p>
-        <p><span class="font-bold text-gray-500 text-sm">Organization:</span> {{ inquiry.organization }}</p>
-        <p><span class="font-bold text-gray-500 text-sm">Quoted By:</span> {{ quotation.createdBy || 'Current User' }}</p>
-        <p><span class="font-bold text-gray-500 text-sm">Cargo Status:</span> <span class="text-orange-600 font-bold">{{ quotation.cargoStatus || 'Pending' }}</span></p>
-        <p><span class="font-bold text-gray-500 text-sm">Ready By:</span> {{ (quotation.readyByDate | date:'dd-MMM-yyyy') || 'N/A' }}</p>
-      </div>
+                <ng-template #checkGlobal>
+                    <div *ngIf="appliedDimensions && appliedDimensions.length > 0; else noDim">
+                        <div *ngFor="let dim of appliedDimensions; let i = index" class="text-[11px] font-mono border-b border-gray-100 last:border-0 py-1">
+                            BOX {{i+1}}: {{dim.l}} x {{dim.w}} x {{dim.h}} {{dim.unit || 'CMS'}}
+                        </div>
+                    </div>
+                </ng-template>
 
-      <div class="bg-white p-4 border-t-4 border-green-600 shadow-sm space-y-2">
-        <h5 class="text-green-600 font-bold text-xs uppercase mb-3 underline">Cargo Details</h5>
-        <p><span class="font-bold text-gray-500 text-sm">Transport Mode:</span> {{ quotation.transportMode }}</p>
-        <p><span class="font-bold text-gray-500 text-sm">Shipment Type:</span> {{ quotation.shipmentType }}</p>
-        <p><span class="font-bold text-gray-500 text-sm">Commodity:</span> {{ getLabel(commodityTypes, quotation.commodityId) }}</p>
-        <p><span class="font-bold text-gray-500 text-sm">Transport Type:</span> {{ quotation.transportType || 'N/A' }}</p>
-        <p><span class="font-bold text-gray-500 text-sm">Num of Packages:</span> {{quotation.noOfPkgs}} {{quotation.packageUnit}}</p>
-        <p><span class="font-bold text-gray-500 text-sm">Description:</span> {{ quotation.description || 'N/A' }}</p>
-      </div>
-
-      <div class="bg-white p-4 border-t-4 border-red-600 shadow-sm space-y-2 lg:col-span-1">
-        <h5 class="text-red-600 font-bold text-xs uppercase mb-3 underline">Weights & Measurements</h5>
-        <div class="grid grid-cols-2 gap-3 bg-gray-50 p-3 border">
-            <div><label class="block text-[10px] text-gray-400 font-bold uppercase">Gross Weight</label><b>{{quotation.grossWeightKg}} {{quotation.weightUnit || 'KGS'}}</b></div>
-            <div><label class="block text-[10px] text-gray-400 font-bold uppercase">Net Weight</label><b>{{quotation.netWeightKg || 0}} {{quotation.weightUnit || 'KGS'}}</b></div>
-            <div><label class="block text-[10px] text-gray-400 font-bold uppercase">Chrg. Weight</label><b>{{quotation.chargeableWeight}} {{quotation.weightUnit || 'KGS'}}</b></div>
-            <div><label class="block text-[10px] text-gray-400 font-bold uppercase">Vol. Weight</label><b>{{quotation.volumeWeight}} {{quotation.volumeUnit || 'KGS'}}</b></div>
-        </div>
-      </div>
-
-      <div class="bg-white p-4 border-t-4 border-yellow-600 shadow-sm space-y-2 lg:col-span-2">
-        <h5 class="text-yellow-600 font-bold text-xs uppercase mb-3 underline">Forwarding & Movement</h5>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="space-y-1 text-sm border-r pr-2 border-gray-100">
-                <p><span class="font-bold text-gray-500">Service Required:</span> {{ quotation.serviceRequired || 'N/A' }}</p>
-                <p><span class="font-bold text-gray-500">IncoTerms:</span> {{ quotation.incoTerm || 'N/A' }}</p>
-                <p><span class="font-bold text-gray-500">Package/Invoice List:</span> {{ quotation.invoiceStatus || 'N/A' }}</p>
-                <p><span class="font-bold text-gray-500">Origin:</span> {{ inquiry.origin }}</p>
-                <p><span class="font-bold text-gray-500">Port of Loading:</span> {{ getLabel(ports, quotation.portOfLoadingId) }}</p>
+                <ng-template #noDim>
+                    <span class="text-red-400 italic text-xs">No dimensions captured</span>
+                </ng-template>
             </div>
-            <div class="space-y-1 text-sm">
-                <p><span class="font-bold text-gray-500">Pickup Address:</span> {{ quotation.pickupAddress || 'N/A' }}</p>
-                <p><span class="font-bold text-gray-500">Movement Type:</span> {{ quotation.movementType }}</p>
-                <p><span class="font-bold text-gray-500">Port of Discharge:</span> {{ getLabel(ports, quotation.portOfDischargeId) }}</p>
-                <p><span class="font-bold text-gray-500">Final Destination:</span> {{ quotation.finalDestination }}</p>
-                <p><span class="font-bold text-gray-500">Place of Delivery:</span> {{ quotation.placeOfDelivery || 'N/A' }}</p>
-            </div>
-        </div>
-      </div>
-    </div>
 
-    <div class="mt-6 p-4 bg-white border-2 border-gray-200" *ngIf="appliedDimensions.length > 0">
-      <h5 class="font-bold text-[#4a3f3f] mb-3 flex items-center gap-2 uppercase text-sm italic">📦 Package Dimensions Log</h5>
-      <table class="w-full text-xs text-left border-collapse border">
-        <thead class="bg-gray-800 text-white uppercase font-mono">
-          <tr>
-            <th class="p-2 border text-center">Box #</th>
-            <th class="p-2 border text-center">L ({{ quotation.dimensionUnit || 'CMS' }})</th>
-            <th class="p-2 border text-center">W ({{ quotation.dimensionUnit || 'CMS' }})</th>
-            <th class="p-2 border text-center">H ({{ quotation.dimensionUnit || 'CMS' }})</th>
-            <th class="p-2 border text-orange-400 text-center italic font-bold">Vol. Weight (KGS)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let dim of appliedDimensions; let i = index" class="border-b hover:bg-gray-50 font-mono text-center">
-            <td class="p-2 border font-bold">{{ i + 1 }}</td>
-            <td class="p-2 border font-bold">{{ dim.l }}</td>
-            <td class="p-2 border font-bold">{{ dim.w }}</td>
-            <td class="p-2 border font-bold">{{ dim.h }}</td>
-            <td class="p-2 border font-black text-blue-700 italic">
-                {{ ((dim.l * dim.w * dim.h) / 6000).toFixed(2) }}
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            <p><span class="font-bold text-gray-600 text-sm uppercase">Gross Weight:</span> {{quotation.grossWeightKg}} {{quotation.weightUnit || 'KGS'}}</p>
+        </div>
+
+        <div class="space-y-3">
+            <p><span class="font-bold text-gray-600 text-sm uppercase">Volume Weight:</span> {{quotation.volumeWeight}} {{quotation.volumeUnit || 'KGS'}}</p>
+            <p><span class="font-bold text-gray-600 text-sm uppercase">Chg. Weight:</span> {{quotation.chargeableWeight}} {{quotation.weightUnit || 'KGS'}}</p>
+            <p><span class="font-bold text-gray-600 text-sm uppercase">Inco-Term:</span> {{ quotation.incoTerm || quotation.incoTermName || 'N/A' }}</p>
+            <p><span class="font-bold text-gray-600 text-sm uppercase">Origin:</span> {{ inquiry.origin }}</p>
+            <p><span class="font-bold text-gray-600 text-sm uppercase">Final Destination:</span> {{ quotation.finalDestination }}</p>
+            <p><span class="font-bold text-gray-600 text-sm uppercase">Pick-up Address:</span> {{ quotation.pickupAddress || 'N/A' }}</p>
+        </div>
+
     </div>
 
     <div class="mt-10 flex flex-col md:flex-row justify-end gap-4 pt-6 border-t-2 border-[#4a3f3f]">
-      <button (click)="backToEdit()" class="bg-white border-4 border-orange-500 text-orange-600 px-10 py-3 font-black hover:bg-orange-500 hover:text-white transition-all duration-300 uppercase shadow-md">
-        Cancel / Edit Data
-      </button>
-      <button (click)="saveQuotation()" class="bg-[#4a3f3f] text-white px-16 py-3 font-black shadow-2xl hover:bg-black hover:scale-105 transition-all duration-300 uppercase tracking-widest border-4 border-[#4a3f3f]">
-        Confirm & Submit to DB
-      </button>
+        <button (click)="backToEdit()" class="bg-white border-4 border-orange-500 text-orange-600 px-10 py-2 font-black hover:bg-orange-500 hover:text-white transition-all duration-300 uppercase text-sm">
+            Edit Data
+        </button>
+        <button (click)="saveQuotation()" class="bg-[#4a3f3f] text-white px-16 py-2 font-black shadow-lg hover:bg-black transition-all duration-300 uppercase tracking-widest border-4 border-[#4a3f3f] text-sm">
+            Confirm & Submit
+        </button>
     </div>
 </div>
 

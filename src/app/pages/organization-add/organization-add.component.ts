@@ -38,6 +38,13 @@ public countryMasterList: any[] = [];    // Sabhi countries ki original list
 public stateLookupList: any[] = [];
 selectedBranch: any = { id: 0, name: '', isDefault: false, isActive: true };
 branches: any[] = []; 
+lineOfBusinessList: any[] = [];
+selectedLineOfBusiness: any = null;
+// Is line ko variables section mein add karein
+lineOfBusiness: any = ''; 
+
+// Aur aapki list pehle se hi hogi:
+// lineOfBusinessList: any[] = [];
  // ... baki variables ke niche
 showColumnModal = false;
 availableColumns: string[] = []; // Ye wo columns jo table mein nahi hain
@@ -126,6 +133,7 @@ cities: any[] = [];
     this.getOrgList();
 //     this.fetchNextBranch();
 this.loadCountriesFromApi();
+this.getLineOfBusiness();
 
   }
 
@@ -342,7 +350,7 @@ saveOrg() {
     if (index !== -1) {
       // Local list mein naam change kar do
       this.branchList[index].branchName = this.branchName.trim();
-      console.log("Branch local list mein UPDATE ho gayi:", this.branchList[index]);
+      console.log("Branch updated in local list:", this.branchList[index]);
     }
 
     // Edit mode khatam, ID reset kar do
@@ -358,7 +366,7 @@ saveOrg() {
     };
 
     this.branchList.push(newBranch);
-    console.log("Nayi branch local list mein ADD ho gayi");
+    console.log("New brancch added in local list");
   }
 
   // --- COMMON STEPS ---
@@ -1346,6 +1354,18 @@ allBranchSearch(type: string) {
       }
     },
     error: (err) => console.error("Branch fetch error:", err)
+  });
+}
+getLineOfBusiness() {
+  const url = `${environment.apiUrl}/CompanyService`; // Check karein agar endpoint 'GetLineOfBusiness' ya kuch aur hai
+  this.http.get<any[]>(url).subscribe({
+    next: (res) => {
+      this.lineOfBusinessList = res;
+      console.log("line of business",res)
+    },
+    error: (err) => {
+      console.error("Error fetching Line of Business", err);
+    }
   });
 }
 

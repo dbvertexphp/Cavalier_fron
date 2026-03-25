@@ -423,7 +423,7 @@ const payload = {
   lineOfBusinessId: this.quotation.lineOfBusinessId ? Number(this.quotation.lineOfBusinessId) : null,
   
   // YAHAN HEE HARDCODE KIYA HAI:
-  commodityId: 3, // <--- Hardcoded value 3
+  commodityId: 15, // <--- Hardcoded value 3
   
   
   // Port and Origin IDs - Agar value valid nahi hai, toh null bhejein

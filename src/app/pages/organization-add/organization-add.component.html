@@ -889,7 +889,7 @@
     </div>
   </div>
 </div>
-
+<div *ngIf="activeTab === 'agent'" class="animate-in fade-in duration-500"></div>
 <div class="flex-1 p-6 space-y-4 max-w-5xl">
   <div class="flex items-center gap-4">
     <div class="flex items-center gap-2 flex-1">
@@ -1055,6 +1055,7 @@
     <button (click)="saveOrg()" class="px-4 py-1.5 border border-gray-400 bg-gray-100 font-bold hover:bg-gray-200">Update</button>
     <button class="px-4 py-1.5 border border-gray-400 bg-gray-100 font-bold text-red-600 hover:bg-red-50">Delete</button>
   </div>
+</div>
 </div>
 
 

@@ -513,7 +513,24 @@ Cancel
       class="w-full border p-2 bg-white outline-none pr-7 text-[12px]"
       autocomplete="off">
     
-    <span class="absolute right-1 top-2.5 text-gray-400">🔍</span>
+   <span 
+    (click)="loadInquiryList()" 
+    class="absolute right-1 top-2.5 text-gray-400 cursor-pointer p-1 hover:text-blue-500 transition-all">
+    🔍
+  </span>
+
+  <ul *ngIf="showInquiryDropdown && inquiryList.length > 0" 
+      class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-48 overflow-y-auto mt-1">
+    
+    <li *ngFor="let inq of inquiryList" 
+        (click)="selectInquiry(inq)"
+        class="p-2 hover:bg-blue-50 cursor-pointer text-[12px] border-b border-gray-100 last:border-0">
+      
+      <div class="font-bold text-blue-700">{{ inq.inquiryNo }}</div>
+      
+      <div *ngIf="inq.customerName" class="text-gray-500 text-[10px]">{{ inq.customerName }}</div>
+    </li>
+  </ul>
 
     <ul *ngIf="showInquiryDropdown && filteredInquiries.length > 0" 
         class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-48 overflow-y-auto">

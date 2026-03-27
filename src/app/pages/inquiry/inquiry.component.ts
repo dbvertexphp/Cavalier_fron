@@ -307,6 +307,9 @@ onOriginSearchInput() {
     }, 0);
     
     this.showDropdown = false;
+    this.quotation.organizationName = org.name || org.organizationName;
+  this.showOrgDropdown = false;
+  this.cdr.detectChanges();
   }
     getNextInquiryNumber() {
     // 1. URL ko environment variable se combine karein
@@ -1431,24 +1434,73 @@ getLabel(list: any[], id: any): string {
 // 5. Helper for simple strings
 getSimpleLabel(val: any): string {
   return val ? val : 'N/A';
+}// Variables wahi use karein jo HTML mein *ngIf aur *ngFor mein hain
+showInquiryDropdown: boolean = false;
+filteredInquiries: any[] = [];
+loadAllLeads() {
+  if (this.showInquiryDropdown) {
+    this.showInquiryDropdown = false;
+    return;
+  }
+
+  const url = `${environment.apiUrl}/Leads`;
+  
+  this.http.get<any[]>(url).subscribe({
+    next: (res) => {
+      this.filteredInquiries = res; 
+      this.showInquiryDropdown = true; 
+      
+      // Ye line UI ko turant refresh kar degi
+      this.cdr.detectChanges(); 
+      
+      console.log(res, "Leads response loaded");
+    },
+    error: (err) => {
+      console.error("Leads load karne mein error:", err);
+      this.showInquiryDropdown = false;
+      this.cdr.detectChanges(); // Error case mein bhi UI update karein
+    }
+  });
+}
+selectInquiry(inq: any) {
+  this.quotation.referenceByInquiry = inq.leadNo || inq.inquiryNo; 
+  this.showInquiryDropdown = false; 
+  this.cdr.detectChanges(); // UI refresh
+}
+// Variables define karein
+showOrgDropdown: boolean = false;
+organizationList: any[] = [];
+
+// Constructor mein CDR inject hona chahiye
+
+
+loadAllOrganizations() {
+  // Toggle logic
+  if (this.showOrgDropdown) {
+    this.showOrgDropdown = false;
+    this.cdr.detectChanges();
+    return;
+  }
+
+  const url = `${environment.apiUrl}/Organization/list`;
+  
+  this.http.get<any[]>(url).subscribe({
+    next: (res) => {
+      this.organizationList = res; 
+      this.showOrgDropdown = true; 
+      
+      // CDR: UI ko turant refresh karne ke liye
+      this.cdr.detectChanges(); 
+      
+      console.log(res, "Organization list loaded");
+    },
+    error: (err) => {
+      console.error("Org load error:", err);
+      this.showOrgDropdown = false;
+      this.cdr.detectChanges();
+    }
+  });
 }
 
-}
-  
-  
 
-  
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
+  }

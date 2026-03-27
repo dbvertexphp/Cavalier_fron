@@ -534,6 +534,8 @@ onInquirySearchInput() {
 
 // 3. Selection Logic
 selectInquiry(inq: any) {
+  this.quotation.referenceByInquiry = inq.inquiryNo;
+  this.showInquiryDropdown = false;
   this.quotation.referenceByInquiry = inq.inquiryNo; // Ref number set kiya
   
   // OPTIONAL: Agar aap chahte ho ki Inquiry select karte hi 
@@ -541,6 +543,9 @@ selectInquiry(inq: any) {
   this.quotation.customerName = inq.customerName;
   
   this.showInquiryDropdown = false;
+    this.quotation.referenceByInquiry = inq.inquiryNo;
+  this.showInquiryDropdown = false;
+  this.cdr.detectChanges(); // UI Update
 }
   // --- Lead API Call ---
  // --- Lead API Call ---
@@ -1601,5 +1606,62 @@ selectQuotedByFromPopup(val: string) {
 }
 
 // 3. Cleanup in ngOnDestroy
+getAllInquiries() {
+  // Agar list pehle se khuli hai to band kar de, varna API call kare
+  if (this.showInquiryDropdown) {
+    this.showInquiryDropdown = false;
+  } else {
+    const url = `${environment.apiUrl}/Inquiry`;
+    this.http.get<any[]>(url).subscribe({
+      next: (res) => {
+        this.filteredInquiries = res; // Saari inquiries list mein aa jayengi
+        this.showInquiryDropdown = true; // Dropdown show ho jayega
+      },
+      error: (err) => {
+        console.error("Inquiry load karne mein error aaya:", err);
+      }
+    });
+  }
+}
+
+// Ye function ensure karein ki aapki file mein hai taaki error na aaye
+// selectInquiry(inq: any) {
+//   this.quotation.referenceByInquiry = inq.inquiryNo;
+//   this.showInquiryDropdown = false;
+// }
+// Variables
+inquiryList: any[] = [];
+
+
+
+
+loadInquiryList() {
+  // Toggle feature: Agar khula hai to band kar do
+  if (this.showInquiryDropdown) {
+    this.showInquiryDropdown = false;
+    this.cdr.detectChanges();
+    return;
+  }
+
+  const url = `${environment.apiUrl}/Inquiry`;
+  
+  this.http.get<any[]>(url).subscribe({
+    next: (res) => {
+      this.inquiryList = res; 
+      this.showInquiryDropdown = true; 
+      
+      // CDR: UI ko turant refresh karne ke liye taaki list foran dikhe
+      this.cdr.detectChanges(); 
+      
+      console.log(res, "Inquiry data loaded successfully");
+    },
+    error: (err) => {
+      console.error("Inquiry fetch error:", err);
+      this.showInquiryDropdown = false;
+      this.cdr.detectChanges();
+    }
+  });
+}
+
 
 }

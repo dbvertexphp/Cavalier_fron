@@ -537,7 +537,28 @@
     ADD
   </button> -->
 </div>
+<div class="flex items-center gap-2 flex-1">
+  <label class="w-32 font-bold text-gray-700 text-[12px]">Line of Business</label>
+  
+  <select 
+    [(ngModel)]="lineOfBusiness" 
+    name="lineOfBusiness"
+    class="flex-1 border border-gray-300 p-1.5 outline-none focus:border-[#4a3f3f] text-[12px] bg-white text-black rounded-lg cursor-pointer">
+    
+    <option value="" disabled selected>Select Line of Business</option>
+    
+    <option *ngFor="let item of lineOfBusinessList" [value]="item.id">
+      {{ item.serviceName }} 
+    </option>
 
+  </select>
+
+  <div class="pointer-events-none -ml-6">
+    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+    </svg>
+  </div>
+</div>
   <label class="flex items-center gap-2 text-sm font-semibold">
     <input type="checkbox"  class="accent-[#4a3f3f]"> Set as Default
   </label>
@@ -564,46 +585,95 @@
       </div>
 
 <div class="grid grid-cols-2 gap-6">
-  <div class="flex items-center gap-3">
-    <label class="w-40 text-red-700 font-bold">Country</label>
-    <div class="flex-1 flex flex-col">
-      <div class="flex border border-gray-300 rounded overflow-hidden">
-       <input type="text" 
-       [(ngModel)]="country" 
-       name="country" 
-       list="countryOptions"
-       (change)="onCountrySelectionChange()" 
-       (input)="onCountrySelectionChange()" 
-       placeholder="Search Country..."
-       class="flex-1 p-1.5 outline-none" 
-       required #countryRef="ngModel">
-        <button class="bg-gray-100 px-3 border-l border-gray-300 hover:bg-gray-200">🔍</button>
-      </div>
+<div class="flex items-center gap-3">
+  <label class="w-40 text-red-700 font-bold">Country</label>
+  <div class="flex-1 flex flex-col relative">
+    
+    <div class="flex border border-gray-300 rounded overflow-hidden">
+      <input type="text" 
+             [(ngModel)]="country" 
+             name="country_field_{{country.length}}"  (input)="onCountrySearch($event)" 
+             placeholder="Search Country..."
+             class="flex-1 p-1.5 outline-none" 
+             required 
+             #countryRef="ngModel" 
+             autocomplete="one-time-code">
+           <button 
+  (click)="handleSearchClick()"
+  type="button"
+  class="bg-gray-100 px-3 border-l border-gray-300 hover:bg-gray-200 h-10">
+  🔍
+</button>
 
-      <datalist id="countryOptions">
-        <option *ngFor="let item of countryMasterList" [value]="item.name"></option>
-      </datalist>
-
-      <div *ngIf="countryRef.invalid && (countryRef.dirty || countryRef.touched)" class="text-red-600 text-[11px] mt-1">
-        Country is required.
-      </div>
+<div *ngIf="isPopupOpen" 
+     class="absolute left-0 top-11 w-full max-h-60 overflow-y-auto bg-white border border-gray-300 rounded shadow-lg z-50">
+  <ul>
+    <li *ngFor="let country of allCountryData" 
+        (click)="selectThisCountry(country.name)"
+        class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-50 last:border-0">
+      <span class="mr-2">🌐</span>
+      {{ country.name }}
+    </li>
+  </ul>
+</div>
     </div>
+
+    <ul *ngIf="filteredCountries.length > 0 && country.length >= 3" 
+        class="absolute z-50 w-full bg-white border border-gray-300 mt-10 rounded shadow-lg max-h-60 overflow-y-auto">
+      <li *ngFor="let item of filteredCountries" 
+          (mousedown)="selectCountry(item.name)" 
+          class="p-2 hover:bg-blue-100 cursor-pointer border-b border-gray-100 last:border-none text-gray-800">
+        {{ item.name }}
+      </li>
+    </ul>
+
   </div>
+</div>
 
-  <div class="flex items-center gap-3">
-    <label class="w-40">State/Province</label>
-    <div class="flex-1 flex flex-col">
-      <div class="flex border border-gray-300 rounded overflow-hidden">
-        <input type="text" [(ngModel)]="stateProvince" name="stateProvince" list="stateOptions"
-          placeholder="Search State..." class="flex-1 p-1.5 outline-none">
-        <button class="bg-gray-100 px-3 border-l border-gray-300 hover:bg-gray-200">🔍</button>
-      </div>
+ <div class="flex items-center gap-3">
+  <label class="w-40 text-red-700 font-bold">State/Province</label>
+  <div class="flex-1 flex flex-col relative">
+    
+    <div class="flex border border-gray-300 rounded overflow-hidden">
+      <input type="text" 
+             [(ngModel)]="stateProvince" 
+             name="state_field_{{stateProvince.length}}" 
+             (input)="onStateSearch($event)" 
+             placeholder="Search State..." 
+             class="flex-1 p-1.5 outline-none"
+             autocomplete="one-time-code"
+             #stateRef="ngModel">
+   <button 
+    (click)="fetchRegionalStates()"
+    type="button"
+    class="bg-gray-100 px-3 border-l border-gray-300 hover:bg-gray-200 h-10">
+    🔍
+  </button>
 
-      <datalist id="stateOptions">
-        <option *ngFor="let state of stateLookupList" [value]="state"></option>
-      </datalist>
+  <div *ngIf="isStatePopupVisible" 
+       class="absolute left-0 top-11 w-full max-h-60 overflow-y-auto bg-white border border-gray-300 rounded shadow-lg z-50">
+    <ul>
+      <li *ngFor="let state of regionalStateCollection" 
+          (click)="assignSelectedState(state.name)"
+          class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-50 last:border-0">
+        <span class="mr-2">📍</span>
+        {{ state.name }}
+      </li>
+    </ul>
+  </div>
     </div>
+
+    <ul *ngIf="filteredStates.length > 0 && stateProvince.length >= 3" 
+        class="absolute z-50 w-full bg-white border border-gray-300 mt-10 rounded shadow-lg max-h-60 overflow-y-auto">
+      <li *ngFor="let state of filteredStates" 
+          (mousedown)="selectState(state)"
+          class="p-2 hover:bg-blue-100 cursor-pointer border-b border-gray-100 last:border-none text-gray-800">
+        {{ state }}
+      </li>
+    </ul>
+
   </div>
+</div>
 </div>
 
       <div class="grid grid-cols-2 gap-6">
@@ -944,20 +1014,32 @@
   </div>
 
   <div class="grid grid-cols-2 gap-6">
-    <div class="flex items-center gap-3">
-      <label class="w-40 text-red-700 font-bold">Country</label>
-      <div class="flex-1 flex flex-col">
-        <div class="flex border border-gray-300 rounded overflow-hidden">
-          <input type="text" [(ngModel)]="country" name="country" list="countryOptions"
-            (change)="onCountrySelectionChange()" (input)="onCountrySelectionChange()" placeholder="Search Country..."
-            class="flex-1 p-1.5 outline-none" required #countryRef="ngModel">
-          <button class="bg-gray-100 px-3 border-l border-gray-300 hover:bg-gray-200">🔍</button>
-        </div>
-        <datalist id="countryOptions">
-          <option *ngFor="let item of countryMasterList" [value]="item.name"></option>
-        </datalist>
-      </div>
+   <div class="flex items-center gap-3">
+  <label class="w-40 text-red-700 font-bold">Country</label>
+  <div class="flex-1 flex flex-col relative">
+    
+    <div class="flex border border-gray-300 rounded overflow-hidden">
+      <input type="text" 
+             [(ngModel)]="country" 
+             name="country_field_{{country.length}}"  (input)="onCountrySearch($event)" 
+             placeholder="Search Country..."
+             class="flex-1 p-1.5 outline-none" 
+             required 
+             #countryRef="ngModel" 
+             autocomplete="one-time-code"> <button class="bg-gray-100 px-3 border-l border-gray-300 hover:bg-gray-200">🔍</button>
     </div>
+
+    <ul *ngIf="filteredCountries.length > 0 && country.length >= 3" 
+        class="absolute z-50 w-full bg-white border border-gray-300 mt-10 rounded shadow-lg max-h-60 overflow-y-auto">
+      <li *ngFor="let item of filteredCountries" 
+          (mousedown)="selectCountry(item.name)" 
+          class="p-2 hover:bg-blue-100 cursor-pointer border-b border-gray-100 last:border-none text-gray-800">
+        {{ item.name }}
+      </li>
+    </ul>
+
+  </div>
+</div>
 
     <div class="flex items-center gap-3">
       <label class="w-40">State/Province</label>

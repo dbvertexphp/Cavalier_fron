@@ -306,23 +306,34 @@ initSearchForm() {
   }
   // --- UPDATED: Clear Filters ---
  
-  loadLeads(): void {
-    this.http.get<any[]>(`${environment.apiUrl}/Leads`) 
-      .subscribe({
-        next: (res) => {
-          this.leads = res; 
-           this.currentPage = 1;
+ loadLeads(): void {
+  const token = localStorage.getItem('cavalier_token');
+
+  const headers = {
+    Authorization: `Bearer ${token}`
+  };
+
+  this.http.get<any[]>(`${environment.apiUrl}/Leads`, { headers }) 
+    .subscribe({
+      next: (res) => {
+        this.leads = res; 
+        this.currentPage = 1;
 
         this.updatePagination();
-          console.log('Leads loaded:', res);
-          // --- ADDED: Calculate next number after loading leads ---
-          this.calculateNextLeadNo();
-        },
-        error: (err) => {
-          console.error('Error fetching leads:', err);
+        console.log('Leads loaded:', res);
+
+        // Next Lead Number calculate
+        this.calculateNextLeadNo();
+      },
+      error: (err) => {
+        console.error('Error fetching leads:', err);
+
+        if (err.status === 401) {
+          alert("Unauthorized! Please login again.");
         }
-      });
-  }
+      }
+    });
+}
 
   // --- ADDED: Logic to calculate next lead number ---
   calculateNextLeadNo(): void {
@@ -583,11 +594,22 @@ console.log(validation);
     organizationName: rawValue.organization
   };
 
-  this.http.post(`${environment.apiUrl}/Leads`, payload).subscribe({
+  const token = localStorage.getItem('cavalier_token'); // ya jahan store kiya ho
+
+const headers = {
+  Authorization: `Bearer ${token}`
+};
+
+this.http.post(`${environment.apiUrl}/Leads`, payload, { headers })
+  .subscribe({
     next: () => {
       alert("Lead saved successfully");
       this.initForm();
       this.loadLeads();
+    },
+    error: (err) => {
+      console.error(err);
+      alert("Error saving lead");
     }
   });
 

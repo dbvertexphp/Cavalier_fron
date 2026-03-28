@@ -604,7 +604,7 @@ Cancel
       <!--<select name="lineOfBusiness" [(ngModel)]="quotation.lineOfBusiness" class="w-full border p-2 outline-none">
         <select name="lineOfBusiness" [(ngModel)]="quotation.lineOfBusiness" (change)="onHeaderLOBChange()" class="w-full border p-2 outline-none">
          </div>-->
-    <label class="text-gray-700 font-bold mt-3 block mb-1 uppercase">Line Of Business</label>
+    <label class="text-gray-700 font-bold mt-3 block mb-1 uppercase">Lines Of Business</label>
     <select name="lineOfBusiness" [(ngModel)]="quotation.lineOfBusiness" (change)="onHeaderLOBChange()" class="w-full border p-2 outline-none">
     <option value="" disabled selected>Select Business Line</option>
     <option *ngFor="let s of companyServices" [value]="s.serviceName">

@@ -3,6 +3,7 @@
 
 
 import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
+
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http'; 
 import { FormsModule } from '@angular/forms';
@@ -177,6 +178,18 @@ this.getCommodityTypes();
       error: (err) => console.error('Error fetching Movement Types:', err)
     });
   }
+  onLOBChange(event: any) {
+  const selectedId = event.target.value;
+
+  const selectedService = this.companyServices.find(
+    s => s.id == selectedId
+  );
+
+  if (selectedService) {
+    this.quotation.lineOfBusinessName = selectedService.serviceName;
+    console.log("Selected LOB Name:", selectedService.serviceName);
+  }
+}
     getIncoTerms() {
     this.http.get<any[]>(`${environment.apiUrl}/IncoTerms`).subscribe({
       next: (data) => {
@@ -389,7 +402,37 @@ removeDoc(index: number) {
         });
       }
     }
+getFormattedInquiryNo(): string {
 
+  // 1️⃣ Line of Business Name (Air Import -> AI)
+  const lobName = this.quotation.lineOfBusinessName || '';
+  
+  const initials = (lobName || '')
+  .split(' ')
+  .filter((word: string) => word && word.length > 0)
+  .map((word: string) => word.charAt(0))
+  .join('')
+  .toUpperCase();
+
+  // 2️⃣ Running Number (temporary frontend)
+  let number = 1;
+
+  if (this.inquiry.inquiryNo) {
+    number = parseInt(this.inquiry.inquiryNo) || 1;
+  }
+
+  const formattedNumber = number.toString().padStart(4, '0');
+
+  // 3️⃣ Financial Year
+  const now = new Date();
+  const startYear = now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1;
+  const endYear = startYear + 1;
+
+  const fy = `${startYear.toString().slice(-2)}-${endYear.toString().slice(-2)}`;
+
+  // 4️⃣ Final Format
+  return `CAV/INQ/${initials}/${formattedNumber}/${fy}`;
+}
     saveQuotation() {
       // if (!this.quotation.customerName) {
       //   alert("Customer Name is required!");
@@ -400,14 +443,12 @@ removeDoc(index: number) {
     return;
   }
 
-      const httpOptions = {
-        headers: new HttpHeaders({ 'Content-Type': 'application/json' })
-      };
+      
 
      
 const payload = {
   ...this.quotation, 
-  inquiryNo: String(this.inquiry.inquiryNo),
+  inquiryNo: this.getFormattedInquiryNo(),
     customerName: this.inquiry.organization,
     // Organization Name map karein
     organization: this.inquiry.organization,
@@ -424,9 +465,10 @@ const payload = {
   
   // Foreign Key IDs - Hardcoded to 3 or null
   lineOfBusinessId: this.quotation.lineOfBusinessId ? Number(this.quotation.lineOfBusinessId) : null,
+  lineOfBusinessName: this.quotation.lineOfBusinessName || null,
   
   // YAHAN HEE HARDCODE KIYA HAI:
-  commodityId: 3, // <--- Hardcoded value 3
+  commodityId: 15, // <--- Hardcoded value 3
   
   
   // Port and Origin IDs - Agar value valid nahi hai, toh null bhejein
@@ -444,33 +486,44 @@ const payload = {
 
       console.log("Final Payload for Backend:", payload);
 
-      const action = this.quotation.id > 0 
-        ? this.http.put(`${this.apiUrl}/${this.quotation.id}`, payload, httpOptions)
-        : this.http.post(this.apiUrl, payload, httpOptions);
+     const token = localStorage.getItem('cavalier_token');
 
-      action.subscribe({
-        next: () => {
-          alert("Success: Saved in CavalierDB!");
-          this.isFormOpen = false; // Maan lete hain ye variable form visible rakhta hai
-        
-        // --- 3. --- FORCED UI UPDATE ---
-       
-          this.loadQuotations();
-          this.toggleForm();
-          this.getNextInquiryNumber();
-           this.cdr.detectChanges();
-        },
-        error: (err) => {
-          console.error("Post Error Details:", err);
-          if (err.status === 0) {
-            alert("Connection Refused: Make sure Visual Studio Backend is running.");
-          } else {
-            // Check for Foreign Key conflict or Type mismatch
-            const errMsg = err.error?.message || "Verify if Master IDs exist in DB.";
-            alert("Failed to save: " + errMsg);
-          }
-        }
-      });
+const httpOptions = {
+  headers: {
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  }
+};
+
+const action = this.quotation.id > 0 
+  ? this.http.put(`${this.apiUrl}/${this.quotation.id}`, payload, httpOptions)
+  : this.http.post(this.apiUrl, payload, httpOptions);
+
+action.subscribe({
+  next: () => {
+    alert("Success: Saved in CavalierDB!");
+    this.isFormOpen = false;
+
+    this.loadQuotations();
+    this.toggleForm();
+    this.getNextInquiryNumber();
+    this.cdr.detectChanges();
+  },
+  error: (err) => {
+    console.error("Post Error Details:", err);
+
+    if (err.status === 0) {
+      alert("Connection Refused: Make sure Visual Studio Backend is running.");
+    } 
+    else if (err.status === 401) {
+      alert("Unauthorized! Token invalid ya expire ho gaya. Login again.");
+    }
+    else {
+      const errMsg = err.error?.message || "Verify if Master IDs exist in DB.";
+      alert("Failed to save: " + errMsg);
+    }
+  }
+});
     }
     
 
@@ -593,15 +646,30 @@ allUniqueServices: string[] = [];
 filteredServices: string[] = [];
 
 loadDropdownData() {
-  this.http.get<any[]>(`${environment.apiUrl}/Inquiry`)
-    .subscribe(data => {
-      // 1. Data se transportMode nikalo aur null values hatao
-      const allModes = data.map(item => item.transportMode).filter(m => m);
+  const token = localStorage.getItem('cavalier_token');
 
-      // 2. 🔥 Set se duplicates hata kar master list banao
-      this.allUniqueServices = [...new Set(allModes)];
-      
-      console.log("Master Unique List ready:", this.allUniqueServices);
+  const headers = {
+    Authorization: `Bearer ${token}`
+  };
+
+  this.http.get<any[]>(`${environment.apiUrl}/Inquiry`, { headers })
+    .subscribe({
+      next: (data) => {
+        // 1. Data se transportMode nikalo aur null values hatao
+        const allModes = data.map(item => item.transportMode).filter(m => m);
+
+        // 2. 🔥 Set se duplicates hata kar master list banao
+        this.allUniqueServices = [...new Set(allModes)];
+        
+        console.log("Master Unique List ready:", this.allUniqueServices);
+      },
+      error: (err) => {
+        console.error("Error loading dropdown data:", err);
+
+        if (err.status === 401) {
+          alert("Unauthorized! Please login again.");
+        }
+      }
     });
 }
 
@@ -796,47 +864,66 @@ onSearch() {
   }
 
   // 2. First API Call (Strict Search)
-  this.http.post<any[]>(`${environment.apiUrl}/Inquiry/Search`, filtersToSend)
-    .subscribe({
-      next: (response) => {
-        if (response && response.length > 0) {
-          // Case 1: Exact data mil gaya
-          this.quotations = response;
-          console.log("Strict Search Result:", response);
-          this.cdr.detectChanges(); // UI Update
-        } 
-        else if (filtersToSend.inquiryNo) {
-          // Case 2: Exact match nahi mila, sirf Inquiry No se fallback try karein
-          console.log("No exact match, trying with Inquiry No only...");
-          
-          const fallbackFilters = { inquiryNo: filtersToSend.inquiryNo };
 
-          this.http.post<any[]>(`${environment.apiUrl}/Inquiry/Search`, fallbackFilters)
-            .subscribe({
-              next: (fallbackRes) => {
-                this.quotations = fallbackRes;
-                if(fallbackRes.length > 0) {
-                   console.log("Match found with Inquiry No fallback!");
-                }
-                this.cdr.detectChanges(); // UI Update for fallback
-              },
-              error: () => {
-                this.quotations = [];
-                this.cdr.detectChanges();
+
+const token = localStorage.getItem('cavalier_token');
+
+const httpOptions = {
+  headers: new HttpHeaders({
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  })
+};
+
+this.http.post<any[]>(`${environment.apiUrl}/Inquiry/Search`, filtersToSend, httpOptions)
+  .subscribe({
+    next: (response) => {
+      if (response && response.length > 0) {
+        // Case 1: Exact data mil gaya
+        this.quotations = response;
+        console.log("Strict Search Result:", response);
+        this.cdr.detectChanges();
+      } 
+      else if (filtersToSend.inquiryNo) {
+        console.log("No exact match, trying with Inquiry No only...");
+        
+        const fallbackFilters = { inquiryNo: filtersToSend.inquiryNo };
+
+        // ✅ YAHAN BHI TOKEN LAGANA HAI
+        this.http.post<any[]>(`${environment.apiUrl}/Inquiry/Search`, fallbackFilters, httpOptions)
+          .subscribe({
+            next: (fallbackRes) => {
+              this.quotations = fallbackRes;
+
+              if (fallbackRes.length > 0) {
+                console.log("Match found with Inquiry No fallback!");
               }
-            });
-        } else {
-          // Case 3: Kuch nahi mila
-          this.quotations = [];
-          this.cdr.detectChanges(); // UI Update for empty state
-        }
-      },
-      error: (err) => {
-        console.error("Search failed:", err);
-        alert("Server error while searching!");
+
+              this.cdr.detectChanges();
+            },
+            error: () => {
+              this.quotations = [];
+              this.cdr.detectChanges();
+            }
+          });
+      } 
+      else {
+        this.quotations = [];
         this.cdr.detectChanges();
       }
-    });
+    },
+    error: (err) => {
+      console.error("Search failed:", err);
+
+      if (err.status === 401) {
+        alert("Unauthorized! Token expired, login again.");
+      } else {
+        alert("Server error while searching!");
+      }
+
+      this.cdr.detectChanges();
+    }
+  });
 }
 // --- Variables ---
 isExportOpen = false;

@@ -230,7 +230,7 @@ quotationss: any = this.resetQuotationModel();
 availableColumns:string[] = [];
 
 selectedColumns: string[] = [
-'id',
+
 'quotationNo',
 'organization',
 'lineOfBusiness',
@@ -669,11 +669,45 @@ getNextQuotationNumber() {
         }
       });
   }
+generateQuotationNo(): string {
 
+  const lobName = this.quotation.lineOfBusiness || '';
+
+  // 1️⃣ Initials (Air Import -> AI)
+  const initials = (lobName || '')
+    .split(' ')
+    .filter((w: string) => w)
+    .map((w: string) => w.charAt(0))
+    .join('')
+    .toUpperCase();
+
+  // 2️⃣ Running number (temporary frontend)
+  let number = 1;
+
+  if (this.quotation.quotationNo) {
+    const parts = this.quotation.quotationNo.split('/');
+    if (parts.length >= 4) {
+      number = parseInt(parts[3]) + 1 || 1;
+    }
+  }
+
+  const formattedNumber = number.toString().padStart(4, '0');
+
+  // 3️⃣ Financial Year
+  const now = new Date();
+  const startYear = now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1;
+  const endYear = startYear + 1;
+
+  const fy = `${startYear.toString().slice(-2)}-${endYear.toString().slice(-2)}`;
+
+  // 4️⃣ Final format
+  return `CAV/QTN/${initials}/${formattedNumber}/${fy}`;
+}
 saveQuotation() {
     // ... (Aapki validation logic yahan rahegi)
 
     // Data preparation for Backend
+    this.quotation.quotationNo = this.generateQuotationNo();
     this.quotation.revenueData = JSON.stringify(this.revenueRows);
     this.quotation.costData = JSON.stringify(this.costRows);
     this.quotation.dimensionsData = JSON.stringify(this.appliedDimensions);

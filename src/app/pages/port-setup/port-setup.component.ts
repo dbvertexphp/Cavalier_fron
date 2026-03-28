@@ -4,24 +4,36 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { CdkDragDrop, moveItemInArray, DragDropModule } from '@angular/cdk/drag-drop';
-
+import { NgSelectModule } from '@ng-select/ng-select';
 @Component({
   selector: 'app-port-setup',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule, DragDropModule],
+  imports: [CommonModule, FormsModule, HttpClientModule, DragDropModule,NgSelectModule],
   templateUrl: './port-setup.component.html',
-  styleUrl: './port-setup.component.css'
 })
 export class PortSetupComponent implements OnInit {
+countries: string[] = [];
+cities: string[] = [];
+countrySearch = '';
+citySearch = '';
+selectedCountry = 'Peru';
   private apiUrl = environment.apiUrl + '/PortSetup';
 
   allPorts: any[] = [];
-  // 'sno' column list mein pehle add kiya hai
-  displayedColumns: string[] = ['sno', 'name', 'code', 'function', 'actions'];
 
   isModalOpen = false;
   isEditMode = false;
-  newPort = { id: 0, name: '', code: '', function: '', country: '', status: true, sortOrder: 0 };
+
+  newPort = {
+    id: 0,
+    portName: '',
+    portCode: '',
+    cityName: '',
+    countryName: '',
+    functionName: '',
+    status: true,
+    sortOrder: 0
+  };
 
   searchCountry = '';
   searchPortName = '';
@@ -31,99 +43,125 @@ export class PortSetupComponent implements OnInit {
   constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
+    this.loadCountries();
     this.fetchPorts();
   }
+loadCountries() {
+  this.http.get<any>('https://countriesnow.space/api/v0.1/countries/positions')
+    .subscribe(res => {
+      this.countries = res.data.map((c: any) => c.name);
+    });
+}
 
-  // Token Authorization ke liye headers
+// On country change
+onCountryChange(selectedCountry: string) {
+
+  
+
+  this.http.post<any>('https://countriesnow.space/api/v0.1/countries/cities', {
+    country: selectedCountry
+  }).subscribe(res => {
+    this.cities = res.data;
+  });
+}
+filteredCountries() {
+  return this.countries.filter(c =>
+    c.toLowerCase().includes(this.countrySearch.toLowerCase())
+  );
+}
+
+filteredCities() {
+  return this.cities.filter(c =>
+    c.toLowerCase().includes(this.citySearch.toLowerCase())
+  );
+}
+  // 🔐 Token Header
   private getHeaders() {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('cavalier_token');
     return new HttpHeaders().set('Authorization', `Bearer ${token}`);
   }
 
+  // 📥 Fetch
   fetchPorts() {
-    const headers = this.getHeaders();
-    this.http.get<any[]>(this.apiUrl, { headers }).subscribe({
+    this.http.get<any[]>(this.apiUrl, { headers: this.getHeaders() }).subscribe({
       next: (res) => {
         this.allPorts = res.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
         this.cdr.detectChanges();
-      },
-      error: (err) => console.error("Error loading ports", err)
-    });
-  }
-
-  onColumnDrop(event: CdkDragDrop<string[]>) {
-    moveItemInArray(this.displayedColumns, event.previousIndex, event.currentIndex);
-  }
-
-  onDrop(event: CdkDragDrop<any[]>) {
-    if (event.previousIndex === event.currentIndex) return;
-    moveItemInArray(this.allPorts, event.previousIndex, event.currentIndex);
-    this.allPorts = [...this.allPorts];
-
-    const headers = this.getHeaders();
-    this.http.post(`${this.apiUrl}/reorder`, this.allPorts, { headers }).subscribe({
-      next: () => console.log("Row order updated"),
-      error: (err) => {
-        console.error("Reorder failed", err);
-        this.fetchPorts();
       }
     });
   }
 
+  // ➕ Open Modal
   openModal() {
     this.isEditMode = false;
-    this.newPort = { id: 0, name: '', code: '', function: '', country: '', status: true, sortOrder: 0 };
+    this.newPort = {
+      id: 0,
+      portName: '',
+      portCode: '',
+      cityName: '',
+      countryName: '',
+      functionName: '',
+      status: true,
+      sortOrder: 0
+    };
     this.isModalOpen = true;
-    alert('Please fill in the port details and click Save.');
   }
 
+  // ✏️ Edit
   editPort(port: any) {
     this.isEditMode = true;
     this.newPort = { ...port };
     this.isModalOpen = true;
   }
 
-  closeModal() { this.isModalOpen = false; }
+  // ❌ Close
+  closeModal() {
+    this.isModalOpen = false;
+  }
 
+  // 💾 Save
   savePort() {
     const headers = this.getHeaders();
-    if (this.isEditMode) {
-      this.http.put(`${this.apiUrl}/${this.newPort.id}`, this.newPort, { headers }).subscribe(() => {
-        this.fetchPorts();
-        this.closeModal();
-      });
-    } else {
-      this.http.post(this.apiUrl, this.newPort, { headers }).subscribe(() => {
-        this.fetchPorts();
-        this.closeModal();
-      });
-    }
+
+    const request = this.isEditMode
+      ? this.http.put(`${this.apiUrl}/${this.newPort.id}`, this.newPort, { headers })
+      : this.http.post(this.apiUrl, this.newPort, { headers });
+
+    request.subscribe(() => {
+      alert(this.isEditMode ? "Updated!" : "Saved!");
+      this.fetchPorts();
+      this.closeModal();
+    });
   }
 
+  // 🗑 Delete
   deletePort(id: number) {
-    if (confirm('Are you sure?')) {
-      const headers = this.getHeaders();
-      this.http.delete(`${this.apiUrl}/${id}`, { headers }).subscribe(() => this.fetchPorts());
+    if (confirm('Delete?')) {
+      this.http.delete(`${this.apiUrl}/${id}`, { headers: this.getHeaders() })
+        .subscribe(() => this.fetchPorts());
     }
   }
 
+  // 🔍 Filter
   get filteredPorts() {
     return this.allPorts.filter(port => {
-      const matchCountry = (port.country || '').toLowerCase().includes(this.searchCountry.toLowerCase());
-      const matchName = (port.name || '').toLowerCase().includes(this.searchPortName.toLowerCase());
-      const matchFunction = (port.function || '').toLowerCase().includes(this.searchFunction.toLowerCase());
       const q = this.quickSearch.toLowerCase();
-      const matchQuick = !this.quickSearch ? true : (
-        (port.name || '').toLowerCase().includes(q) ||
-        (port.code || '').toLowerCase().includes(q) ||
-        (port.country || '').toLowerCase().includes(q)
+      return (
+        (port.countryName || '').toLowerCase().includes(this.searchCountry.toLowerCase()) &&
+        (port.portName || '').toLowerCase().includes(this.searchPortName.toLowerCase()) &&
+        (port.functionName || '').toLowerCase().includes(this.searchFunction.toLowerCase()) &&
+        (!this.quickSearch ||
+          port.portName?.toLowerCase().includes(q) ||
+          port.portCode?.toLowerCase().includes(q) ||
+          port.countryName?.toLowerCase().includes(q))
       );
-      return matchCountry && matchName && matchFunction && matchQuick;
     });
   }
 
   resetFilters() {
-    this.searchCountry = ''; this.searchPortName = '';
-    this.searchFunction = ''; this.quickSearch = '';
+    this.searchCountry = '';
+    this.searchPortName = '';
+    this.searchFunction = '';
+    this.quickSearch = '';
   }
 }

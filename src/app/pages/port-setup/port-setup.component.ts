@@ -74,6 +74,7 @@ export class PortSetupComponent implements OnInit {
     this.isEditMode = false;
     this.newPort = { id: 0, name: '', code: '', function: '', country: '', status: true, sortOrder: 0 };
     this.isModalOpen = true;
+    alert('Please fill in the port details and click Save.');
   }
 
   editPort(port: any) {

@@ -30,6 +30,8 @@ searchFilters: any = {
 };
 // Isse TypeScript ko pata chal jayega ki ye variable exist karta hai
 editingBranchId: any = null;
+department:any=[];
+designation:any=[];
 public branchList: any[] = []; // Temporary branches yahan rahengi
 public branchName: string = ''; // Input field ke liye
 // 1. Dropdown lists (Data Sources)
@@ -131,6 +133,8 @@ cities: any[] = [];
 
   constructor(private location: Location, private http: HttpClient,private cdr: ChangeDetectorRef,private router:Router) {}
  ngOnInit() {
+  this.loaddepartment();
+  this.loadestination();
   this.loadColumnSettings();
     this.getOrgList();
 //     this.fetchNextBranch();
@@ -447,7 +451,36 @@ selectBranch(branch: any) {
       this.contacts.splice(index, 1);
     }
   }
+loaddepartment(){
+  this.http.get(`${environment.apiUrl}/User/departments`).subscribe({
+    next: (data: any) => {
+      this.department = data || [];
+      console.log('Departments loaded:', this.department);
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error('Error loading departments:', err);
+      this.department = [];
+      this.cdr.detectChanges();
+    }
 
+});
+};
+loadestination(){
+  this.http.get(`${environment.apiUrl}/User/get-designations`).subscribe({
+    next: (data: any) => {
+      this.designation = data || [];
+      console.log('Designations loaded:', this.designation);
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error('Error loading designations:', err);
+      this.designation = [];
+      this.cdr.detectChanges();
+    }
+
+});
+};
 editOrg(org: any) {
   console.log('Editing:', org);
   

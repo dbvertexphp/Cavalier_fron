@@ -629,13 +629,18 @@
 <div class="grid grid-cols-2 items-center">
   <label class="font-bold text-gray-700">Line Of Business</label>
   
-  <select [(ngModel)]="quotation.lineOfBusinessId" name="lineOfBusinessId" class="border p-1.5 bg-white outline-none">
-    <option [value]="null" disabled selected>Select Business Line</option>
-    
-    <option *ngFor="let service of companyServices" [value]="service.id">
-      {{ service.serviceName }}
-    </option>
-  </select>
+ <select 
+  [(ngModel)]="quotation.lineOfBusinessId" 
+  (change)="onLOBChange($event)"
+  name="lineOfBusinessId" 
+  class="border p-1.5 bg-white outline-none">
+
+  <option [value]="null" disabled>Select Business Line</option>
+  
+  <option *ngFor="let service of companyServices" [value]="service.id">
+    {{ service.serviceName }}
+  </option>
+</select>
 </div> 
 </div>
           <div class="space-y-2">

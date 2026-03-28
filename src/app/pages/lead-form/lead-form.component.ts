@@ -1697,4 +1697,43 @@ selectRmFromIcon(manager: string) {
     this.cdr.detectChanges();
   }, 0);
 }
+// 1. In variables ko aise define karein
+orgList: any[] = [];
+showOrgDropdown: boolean = false;
+
+// Quotation ko Array ki jagah Object banayein {}
+quotation: any = {}; 
+showInquiryDropdown=true
+loadOrganizationList() {
+  if (this.showOrgDropdown) {
+    this.showInquiryDropdown = false; // Agar pehle se variable hai to use karein
+    this.showOrgDropdown = false;
+    this.cdr.detectChanges();
+    return;
+  }
+
+  const url = `${environment.apiUrl}/Organization/List`;
+  
+  this.http.get<any[]>(url).subscribe({
+    next: (res) => {
+      this.orgList = res; 
+      this.showOrgDropdown = true; 
+      this.cdr.detectChanges(); 
+      console.log(res, "Organization list loaded");
+    },
+    error: (err) => {
+      console.error("Organization fetch error:", err);
+      this.showOrgDropdown = false;
+      this.cdr.detectChanges();
+    }
+  });
 }
+
+selectOrg(org: any) {
+  // Ab yahan error nahi aayega kyunki quotation ab object hai
+  // Spelling check kar lena: organizationName
+  this.quotation.organizationName = org.orgName; 
+  
+  this.showOrgDropdown = false;
+  this.cdr.detectChanges(); 
+}}

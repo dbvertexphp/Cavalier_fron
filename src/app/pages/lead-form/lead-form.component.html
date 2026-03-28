@@ -894,7 +894,24 @@ class="divide-x divide-gray-200 hover:bg-gray-50">
     <div class="sm:col-span-2 flex gap-1 relative">
       <div class="flex border border-red-300 w-full bg-white shadow-sm relative">
         <input type="text" formControlName="organization" class="w-full p-2 border-none outline-none" placeholder="Search organization..." (input)="onOrganizationSearch($event)">
-        <span class="p-2 bg-gray-100 border-l border-gray-300 flex items-center justify-center">🔍</span>
+       <span 
+    (click)="loadOrganizationList()" 
+    class="p-2 bg-gray-100 border-l border-gray-300 flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-all">
+    🔍
+  </span>
+
+  <ul *ngIf="showOrgDropdown && orgList.length > 0" 
+      class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-48 overflow-y-auto mt-1">
+    
+    <li *ngFor="let org of orgList" 
+        (click)="selectOrg(org)"
+        class="p-2 hover:bg-blue-50 cursor-pointer text-[12px] border-b border-gray-100 last:border-0">
+      
+      <div class="font-bold text-blue-700">{{ org.orgName }}</div>
+      
+      <div *ngIf="org.orgCode" class="text-gray-500 text-[10px]">{{ org.orgCode }}</div>
+    </li>
+  </ul>
 
         <div *ngIf="filteredOrganizations.length > 0"
              class="absolute z-50 w-full bg-white border border-gray-300 top-full left-0 mt-1 max-h-48 overflow-y-auto shadow-md">

@@ -1233,37 +1233,52 @@ setOrgQuickDate(type: string) {
  * SAVE BRANCH BUTTON: Jo aap baar-baar click karke branches add karna chahte ho.
  */
 
+filteredCountries: any[] = [];
+
+// 1. Load API (Same as before)
 loadCountriesFromApi() {
-    this.http.get(this.apiUrl).subscribe({
-      next: (response: any) => {
-        // response.data mein saari countries aur unke states hote hain
-        if (response && response.data) {
-          this.countryMasterList = response.data;
-        }
-      },
-      error: (err) => {
-        console.error('API Error:', err);
+  this.http.get(this.apiUrl).subscribe({
+    next: (response: any) => {
+      if (response && response.data) {
+        this.countryMasterList = response.data;
       }
-    });
-  }
+    },
+    error: (err) => console.error('API Error:', err)
+  });
+}
 
-  // 2. Jab user country type ya select kare
-  onCountrySelectionChange() {
-    // Pichli state selection clear karo
-    this.stateProvince = ''; 
-
-    // Find the country object from the master list
-    const selectedObj = this.countryMasterList.find(c => 
-      c.name.toLowerCase() === this.country.trim().toLowerCase()
+// 2. Search Logic (3 characters check)
+onCountrySearch(event: any) {
+  const val = event.target.value;
+  
+  if (val && val.length >= 3) {
+    this.filteredCountries = this.countryMasterList.filter(item => 
+      item.name.toLowerCase().includes(val.toLowerCase())
     );
+  } else {
+    this.filteredCountries = []; // Agar 3 se kam hai toh list khali rakho
+  }
+}
 
-    if (selectedObj && selectedObj.states) {
-      // States array me se sirf names nikaal kar string array banao
-      this.stateLookupList = selectedObj.states.map((s: any) => s.name);
-    } else {
-      this.stateLookupList = [];
-    }
+// 3. Selection Logic
+selectCountry(countryName: string) {
+  this.country = countryName;
+  this.filteredCountries = []; // List gayab karne ke liye
+  this.onCountrySelectionChange(); // States load karne ke liye
+}
 
+// 4. States Load Logic (Same as before)
+onCountrySelectionChange() {
+  this.stateProvince = ''; 
+  const selectedObj = this.countryMasterList.find(c => 
+    c.name.toLowerCase() === this.country.trim().toLowerCase()
+  );
+
+  if (selectedObj && selectedObj.states) {
+    this.stateLookupList = selectedObj.states.map((s: any) => s.name);
+  } else {
+    this.stateLookupList = [];
+  }
 }
 organizationsList: any[] = [];
 activeDropdown: string = ''; 
@@ -1370,6 +1385,86 @@ getLineOfBusiness() {
     }
   });
 }
+// Variables declare karein
+filteredStates: string[] = [];
 
+// 1. State Search Logic (Jab user type kare)
+onStateSearch(event: any) {
+  const val = event.target.value;
+  
+  if (val && val.length >= 3) {
+    // stateLookupList mein se filter karega
+    this.filteredStates = this.stateLookupList.filter(state => 
+      state.toLowerCase().includes(val.toLowerCase())
+    );
+  } else {
+    this.filteredStates = [];
+  }
+}
+
+// 2. State Select Logic (Jab popup se click kare)
+selectState(stateName: string) {
+  this.stateProvince = stateName; // Input fill karega
+  this.filteredStates = [];       // Popup band karega
+}
+// Aapke variables (Same to Same)
+
+  allCountryData: any[] = [];
+  isPopupOpen: boolean = false;
+  regionalStateCollection: any[] = [];
+  isStatePopupVisible: boolean = false;
+
+
+
+  loadCountryList() {
+    fetch('https://countriesnow.space/api/v0.1/countries/states')
+      .then(response => response.json())
+      .then(res => {
+        this.allCountryData = res.data;
+        this.cdr.detectChanges(); // Change detect karwayein
+      })
+      .catch(error => console.error("Error:", error));
+  }
+
+  handleSearchClick() {
+    if (this.allCountryData.length === 0) {
+      this.loadCountryList();
+    }
+    this.isPopupOpen = !this.isPopupOpen;
+    this.cdr.detectChanges(); // UI Update
+  }
+
+  selectThisCountry(name: string) {
+    this.country = name;
+    this.isPopupOpen = false;
+    this.stateProvince = ''; 
+    this.cdr.detectChanges(); // Input fill hone ke baad update
+  }
+
+  fetchRegionalStates() {
+    if (!this.country) {
+      alert("Pehle country select karein!");
+      return;
+    }
+    const payload = { country: this.country };
+    fetch('https://countriesnow.space/api/v0.1/countries/states', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+      .then(res => res.json())
+      .then(result => {
+        this.regionalStateCollection = result.data.states;
+        this.isStatePopupVisible = !this.isStatePopupVisible;
+        this.cdr.detectChanges(); // Change detect karwayein
+      })
+      .catch(err => console.error("State load karne mein error:", err));
+  }
+
+  assignSelectedState(stateName: string) {
+    this.stateProvince = stateName;
+    this.isStatePopupVisible = false;
+    this.cdr.detectChanges(); // Input fill hone ke baad update
+  }
 
 }

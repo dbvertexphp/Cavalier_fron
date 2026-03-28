@@ -4,7 +4,7 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { HttpClient, HttpClientModule,HttpHeaders } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 
 import {
@@ -640,13 +640,28 @@ selectOrganization(org: any) {
  
   // --- Methods for Quotation Management ---
   loadQuotations() {
-    this.http.get<any[]>(this.apiEndpoint).subscribe({
-      next: (res) => { this.quotations = res; 
-        console.log("Quotations Data:", this.quotations);
-      },
-      error: (err) => console.error('Failed to load quotations:', err)
-    });
-  }
+  const token = localStorage.getItem('cavalier_token');
+
+  const httpOptions = {
+    headers: new HttpHeaders({
+      Authorization: `Bearer ${token}`
+    })
+  };
+
+  this.http.get<any[]>(this.apiEndpoint, httpOptions).subscribe({
+    next: (res) => { 
+      this.quotations = res; 
+      console.log("Quotations Data:", this.quotations);
+    },
+    error: (err) => {
+      console.error('Failed to load quotations:', err);
+
+      if (err.status === 401) {
+        alert("Unauthorized! Please login again.");
+      }
+    }
+  });
+}
 getNextQuotationNumber() {
     // 2. URL ko environment variable se combine karein
  const url = `${environment.apiUrl}/Quotations/NextQuotationNo`;
@@ -712,22 +727,40 @@ saveQuotation() {
     this.quotation.totalProfit = this.totalProfitFinal;
 
     // 4. API Call - Swagger ke mutabiq Edit ke liye /update/id use kiya hai
-    const request = this.quotation.id > 0 
-      ? this.http.put(`${this.apiEndpoint}/update/${this.quotation.id}`, this.quotation)
-      : this.http.post(this.apiEndpoint, this.quotation);
+    const token = localStorage.getItem('cavalier_token');
 
-    request.subscribe({
-      next: () => {
-        alert(this.quotation.id > 0 ? "Quotation Updated Successfully!" : "Quotation Saved Successfully!");
-        this.loadQuotations();
-        this.toggleForm();
-        this.cdr.detectChanges();                
-      },
-      error: (err) => {
-        console.error("Error details:", err);
-        alert("Save failed! Check console for errors.");
-      }
-    });
+const httpOptions = {
+  headers: new HttpHeaders({
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  })
+};
+
+const request = this.quotation.id > 0 
+  ? this.http.put(`${this.apiEndpoint}/update/${this.quotation.id}`, this.quotation, httpOptions)
+  : this.http.post(this.apiEndpoint, this.quotation, httpOptions);
+
+request.subscribe({
+  next: () => {
+    alert(this.quotation.id > 0 
+      ? "Quotation Updated Successfully!" 
+      : "Quotation Saved Successfully!"
+    );
+
+    this.loadQuotations();
+    this.toggleForm();
+    this.cdr.detectChanges();                
+  },
+  error: (err) => {
+    console.error("Error details:", err);
+
+    if (err.status === 401) {
+      alert("Unauthorized! Token expired, login again.");
+    } else {
+      alert("Save failed! Check console for errors.");
+    }
+  }
+});
 }
 
 editQuotation(q: any) {

@@ -43,7 +43,7 @@ branches: any[] = [];
 lineOfBusinessList: any[] = [];
 selectedLineOfBusiness: any = null;
 // Is line ko variables section mein add karein
-lineOfBusiness: any = ''; 
+lineOfBusiness: number | null = null; 
 
 // Aur aapki list pehle se hi hogi:
 // lineOfBusinessList: any[] = [];
@@ -198,6 +198,68 @@ getOrgList() {
   //   }
   // }
 // selectedRoles array ko track karne ke liye logic
+addCurrentBranchIfValid() {
+ 
+
+  // ❌ Line of Business mandatory
+  if (!this.branchName || !this.branchName.trim()) {
+    return;
+  }
+
+  // 👉 Agar branchName hai → tab validation start
+  if (!this.lineOfBusiness) {
+    alert("Please select Line of Business");
+    return;
+  }
+
+  if (!this.contacts?.[0]?.DepartmentId) {
+    alert("Department select karo");
+    return;
+  }
+
+  if (!this.contacts?.[0]?.DesignationId) {
+    alert("Designation select karo");
+    return;
+  }
+
+  const newBranch = {
+    branchName: this.branchName.trim(),
+    id: 0,
+    organizationId: this.selectedOrgId || 0,
+
+    address: this.address,
+    country: this.country,
+    stateProvince: this.stateProvince,
+    city: this.city,
+    postalCode: this.postalCode,
+    area: this.area,
+    landmark: this.landmark,
+
+    telephone: this.telephone,
+    fax: this.fax,
+    website: this.website,
+    email: this.email,
+
+    contactName: this.contacts?.[0]?.contactName || '',
+    mobile: this.contacts?.[0]?.mobile || '',
+    whatsapp: this.contacts?.[0]?.whatsapp || '',
+    emailId: this.contacts?.[0]?.email || '',
+
+    designationId: this.contacts?.[0]?.DesignationId ?? 0,
+    departmentId: this.contacts?.[0]?.DepartmentId ?? 0,
+
+    isDefault: this.branchList.length === 0
+  };
+
+  this.branchList.push(newBranch);
+
+  console.log("✅ Branch added:", newBranch);
+
+   
+   this.branchName = ''; // Input box khali kar do
+  this.resetBranchFormOnly();
+  this.cdr.detectChanges(); // UI refresh// form clear
+}
 toggleRole(role: string) {
   const index = this.selectedRoles.indexOf(role);
   
@@ -237,183 +299,100 @@ isShipperSelected(): boolean {
   return this.selectedRoles.includes('shipper');
 }
 saveOrg() {
-  // Website Validation Check
-  if (this.website && this.website.length > 0 && this.isWebsiteInvalid) {
-    alert("please enter a valid webite address! (e.g. www.domain.com)");
-    return;
-  }
 
-  // Baki saare validation
-  const telValue = this.telephone ? this.telephone.toString().trim() : '';
-  const isTelInvalid = telValue.length > 0 && telValue.length < 5;
-  if (isTelInvalid) {
-    alert("telephoe must be 5 to 15 dig's");
-    return;
-  }
+  // 🔥 STEP 1: LAST branch bhi check karo (agar user ne New nahi dabaya)
+  this.addCurrentBranchIfValid();
 
-  const isFormInvalid = this.contacts.some(c => 
-    (c.mobile && c.mobile.length > 0 && c.mobile.length < 10) || 
-    (c.whatsapp && c.whatsapp.length > 0 && c.whatsapp.length < 10) ||
-    (c.isEmailInvalid)
-  );
-
-  if (isFormInvalid) {
-    alert("please fill the valid email or a mobile number!");
-    return; 
-  }
-
-  if (!this.orgName || !this.alias || !this.country || !this.city) {
-    alert('Please fill mandatory fields: Name, Alias, Country, and City');
-    return;
-  }
-
-  const url = `${environment.apiUrl}/Organization/save`;
-
-  // Payload preparation
+  // 🔥 STEP 2: Organization Save
   const payload = {
-  Id: this.selectedOrgId || 0,
-  OrgName: this.orgName,
-  Alias: this.alias,
-  SelectedRoles: this.selectedRoles.join(',')
-};
+    Id: this.selectedOrgId || 0,
+    OrgName: this.orgName,
+    Alias: this.alias,
+    SelectedRoles: this.selectedRoles.join(',')
+  };
 
-  // --- MAIN SAVE CALL ---
-  this.http.post(url, payload).subscribe({
-    next: (res: any) => { 
-      console.log("Full Backend Response:", res); 
-      
-      // --- BRANCH SAVE LOGIC START (FIXED) ---
-      let savedIdFromBackend = 0;
+  this.http.post(`${environment.apiUrl}/Organization/save`, payload).subscribe({
+    next: (res: any) => {
 
-      // Aapka backend ID 'res.data.id' mein bhej raha hai
-      if (res && res.data && (res.data.id || res.data.Id)) {
-        savedIdFromBackend = res.data.id || res.data.Id;
-      } else if (typeof res === 'number') {
-        savedIdFromBackend = res;
-      } else if (res && (res.id || res.Id)) {
-        savedIdFromBackend = res.id || res.Id;
-      }
+      let finalOrgId = 0;
 
-      // Agar New Form hai toh backend ki ID lo, warna update ke liye purani ID
-      const finalOrgId = savedIdFromBackend || this.selectedOrgId;
-
-      console.log("Final ID for saving branches:", finalOrgId);
-
-      // Agar ID mil gayi aur sidebar mein branches hain, toh loop chalao
-      if (finalOrgId && finalOrgId !== 0 && this.branchList.length > 0) {
-        console.log("Triggering branch save API...");
-        this.saveAllLocalBranches(finalOrgId);
+      if (res?.data?.id) {
+        finalOrgId = res.data.id;
+      } else if (res?.id) {
+        finalOrgId = res.id;
       } else {
-        console.warn("Branch save nahi hui: ID missing ya list khali hai.");
+        finalOrgId = this.selectedOrgId || 0;
       }
-      // --- BRANCH SAVE LOGIC END ---
 
-      alert(this.selectedOrgId ? 'Updated Successfully!' : 'Saved Successfully!');
-      
-      // Cleanup & UI Refresh
-      this.getOrgList(); 
-      this.isFormOpen = false;
-      this.resetFormFields(); 
-      this.branchList = []; 
-      this.cdr.detectChanges(); 
+      console.log("✅ Org Saved:", finalOrgId);
+
+      // 🔥 STEP 3: BRANCH SAVE
+      if (finalOrgId && this.branchList.length > 0) {
+        this.saveAllLocalBranches(finalOrgId);
+      }
+
+      alert("✅ Organization + Branch Saved Successfully!");
+
+      // OPTIONAL RESET
+      this.branchList = [];
+
     },
     error: (err) => {
-      console.error('Save Error:', err);
-      alert('Error saving data.');
+      console.error("❌ Error:", err);
     }
   });
 }
- onSaveBranch() {
-  if (!this.branchName || !this.branchName.trim()) {
-    alert("Please enter a branch name");
-    return;
-  }
 
-  // --- CHECK: Kya hum EDIT kar rahe hain ya NAYA add kar rahe hain? ---
-  if (this.editingBranchId !== null) {
-    
-    // CASE 1: UPDATE EXISTING BRANCH (Local List mein)
-    // List mein wahi branch dhoondo jiski ID hamare paas 'editingBranchId' mein hai
-    const index = this.branchList.findIndex(b => (b.id || b.Id) === this.editingBranchId);
-
-    if (index !== -1) {
-      // Local list mein naam change kar do
-      this.branchList[index].branchName = this.branchName.trim();
-      console.log("Branch updated in local list:", this.branchList[index]);
-    }
-
-    // Edit mode khatam, ID reset kar do
-    this.editingBranchId = null;
-
-  } else {
-    
-    // CASE 2: ADD NEW BRANCH (Purana Logic)
-    const newBranch = {
-      branchName: this.branchName.trim(),
-      id: 0, 
-      organizationId: this.selectedOrgId || 0 
-    };
-
-    this.branchList.push(newBranch);
-    console.log("New brancch added in local list");
-  }
-
-  // --- COMMON STEPS ---
-  this.branchName = ''; // Input box khali kar do
-  this.resetBranchFormOnly();
-  this.cdr.detectChanges(); // UI refresh
+ 
+onSaveBranch() {
+  this.addCurrentBranchIfValid(); // sirf valid branch add hogi
 }
 saveAllLocalBranches(orgId: number) {
-  // Sirf wo branches loop karo jinki ID 0 hai (yani jo abhi tak DB mein nahi gayi)
-  const unsavedBranches = this.branchList.filter(b => !b.id || b.id === 0);
 
-  unsavedBranches.forEach(branch => {
-    const branchPayload = {
-  Id: branch.id || 0,
-  BranchName: branch.branchName,
-  OrganizationId: orgId,
-  LobId: this.lineOfBusiness || 0,
+  const validBranches = this.branchList.filter(b => b.branchName && b.branchName.trim());
 
-  // 🔥 Address Info
-  Address: this.address,
-  Country: this.country,
-  StateProvince: this.stateProvince,
-  City: this.city,
-  PostalCode: this.postalCode,
-  Area: this.area,          // 🔥 NEW
-  Landmark: this.landmark,  // 🔥 NEW
-  // 🔥 Contact Info
-  Telephone: this.telephone,
-  Fax: this.fax,
-  WebSite: this.website,
-  EmailAddress: this.email,
+  validBranches.forEach(branch => {
 
-  ContactName: this.contacts?.[0]?.contactName || '',
-  Mobile: this.contacts?.[0]?.mobile || '',
-  Whatsapp: this.contacts?.[0]?.whatsapp || '',
-  EmailId: this.contacts?.[0]?.email || '',
+    const payload = {
+      Id: branch.id || 0,
+      BranchName: branch.branchName,
+      OrganizationId: orgId,
+      LobId: this.lineOfBusiness ?? null,
 
-  DesignationId: this.contacts?.[0]?.designation || null,
-  DepartmentId: this.contacts?.[0]?.department || null,
+      Address: branch.address,
+      Country: branch.country,
+      StateProvince: branch.stateProvince,
+      City: branch.city,
+      PostalCode: branch.postalCode,
+      Area: branch.area,
+      Landmark: branch.landmark,
 
-  // 🔥 Flags
-  IsDefault: branch.isDefault || false,
-  IsDeactivated: false,
-  IsManager: false,
-  IsHOD: false,
-  IsSales: false,
-  IsMarketing: false
-};
+      Telephone: branch.telephone,
+      Fax: branch.fax,
+      WebSite: branch.website,
+      EmailAddress: branch.email,
 
-    // DIRECT API URL
-  this.http.post(`${environment.apiUrl}/OrgBranch/SaveBranch`, branchPayload).subscribe({
-  next: (res) => {
-    console.log(`Branch ${branch.branchName} linked to Org ${orgId} successfully!`);
-  },
-      error: (err) => {
-        console.error("Branch Save Error:", err);
-      }
-    });
+      ContactName: branch.contactName,
+      Mobile: branch.mobile,
+      Whatsapp: branch.whatsapp,
+      EmailId: branch.emailId,
+
+      DesignationId: branch.designationId ?? 0,
+      DepartmentId: branch.departmentId ?? 0,
+
+      IsDefault: branch.isDefault || false,
+      IsDeactivated: false,
+      IsManager: false,
+      IsHOD: false,
+      IsSales: false,
+      IsMarketing: false
+    };
+console.log("LOB VALUE:", this.lineOfBusiness);
+    this.http.post(`${environment.apiUrl}/OrgBranch/SaveBranch`, payload)
+      .subscribe({
+        next: () => console.log("✅ Branch saved:", branch.branchName),
+        error: (err) => console.error("❌ Branch error:", err)
+      });
   });
 }
 // Ek chota sa helper function saare fields khali karne ke liye
@@ -1518,9 +1497,10 @@ selectState(stateName: string) {
 resetBranchFormOnly() {
   // 1. Basic Fields
   this.branchName = '';
-  this.lineOfBusiness = '';
-  this.selectedLineOfBusiness = null;
   
+  this.selectedLineOfBusiness = null;
+  this.area = '';
+  this.landmark= '';
   // 2. Address & Location Fields
   this.address = '';
   this.country = '';

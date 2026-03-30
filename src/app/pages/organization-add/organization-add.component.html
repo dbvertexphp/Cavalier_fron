@@ -541,17 +541,17 @@
   <label class="w-32 font-bold text-gray-700 text-[12px]">Line of Business</label>
   
   <select 
-    [(ngModel)]="lineOfBusiness" 
-    name="lineOfBusiness"
-    class="flex-1 border border-gray-300 p-1.5 outline-none focus:border-[#4a3f3f] text-[12px] bg-white text-black rounded-lg cursor-pointer">
-    
-    <option value="" disabled selected>Select Line of Business</option>
-    
-    <option *ngFor="let item of lineOfBusinessList" [value]="item.id">
-      {{ item.serviceName }} 
-    </option>
+  [(ngModel)]="lineOfBusiness" 
+  name="lineOfBusiness"
+  class="flex-1 border border-gray-300 p-1.5 outline-none focus:border-[#4a3f3f] text-[12px] bg-white text-black rounded-lg cursor-pointer">
 
-  </select>
+  <option [ngValue]="null" disabled>Select Line of Business</option>
+  
+  <option *ngFor="let item of lineOfBusinessList" [ngValue]="item.id">
+    {{ item.serviceName }} 
+  </option>
+
+</select>
 
   <div class="pointer-events-none -ml-6">
     <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

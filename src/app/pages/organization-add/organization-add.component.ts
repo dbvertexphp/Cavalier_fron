@@ -112,6 +112,8 @@ cities: any[] = [];
   country: string = '';
   city: string = '';
   telephone: string = '';
+area: string = '';
+landmark: string = '';
   email: string = '';
   stateProvince: string = '';
   website: string = '';
@@ -269,30 +271,11 @@ saveOrg() {
 
   // Payload preparation
   const payload = {
-    Id: this.selectedOrgId || 0,
-    OrgName: this.orgName,
-    Alias: this.alias,
-    Address: this.address,
-    Country: this.country,
-    City: this.city,
-    Telephone: this.telephone,
-    Email: this.email,
-    StateProvince: this.stateProvince,
-    Website: this.website,
-    PostalCode: this.postalCode,
-    WhatsAppNumber: this.whatsAppNumber,
-    SalesPerson: this.salesPerson,
-    CollectionExec: this.collectionExec,
-    SelectedRoles: this.selectedRoles.join(','),
-    Contacts: this.contacts.map(c => ({
-      ContactName: c.contactName,
-      Mobile: c.mobile,
-      Whatsapp: c.whatsapp,
-      Email: c.email,
-      DesignationId: (c.DesignationId === 'Manager') ? 1 : (c.DesignationId === 'HOD' ? 2 : 0),
-      DepartmentId: (c.DepartmentId === 'Sales') ? 1 : (c.DepartmentId === 'Marketing' ? 2 : 0)
-    }))
-  };
+  Id: this.selectedOrgId || 0,
+  OrgName: this.orgName,
+  Alias: this.alias,
+  SelectedRoles: this.selectedRoles.join(',')
+};
 
   // --- MAIN SAVE CALL ---
   this.http.post(url, payload).subscribe({
@@ -385,9 +368,41 @@ saveAllLocalBranches(orgId: number) {
 
   unsavedBranches.forEach(branch => {
     const branchPayload = {
-      BranchName: branch.branchName,
-      OrganizationId: orgId // Nayi Org ID jo Organization save hone ke baad mili
-    };
+  Id: branch.id || 0,
+  BranchName: branch.branchName,
+  OrganizationId: orgId,
+  LobId: this.lineOfBusiness || 0,
+
+  // 🔥 Address Info
+  Address: this.address,
+  Country: this.country,
+  StateProvince: this.stateProvince,
+  City: this.city,
+  PostalCode: this.postalCode,
+  Area: this.area,          // 🔥 NEW
+  Landmark: this.landmark,  // 🔥 NEW
+  // 🔥 Contact Info
+  Telephone: this.telephone,
+  Fax: this.fax,
+  WebSite: this.website,
+  EmailAddress: this.email,
+
+  ContactName: this.contacts?.[0]?.contactName || '',
+  Mobile: this.contacts?.[0]?.mobile || '',
+  Whatsapp: this.contacts?.[0]?.whatsapp || '',
+  EmailId: this.contacts?.[0]?.email || '',
+
+  DesignationId: this.contacts?.[0]?.designation || null,
+  DepartmentId: this.contacts?.[0]?.department || null,
+
+  // 🔥 Flags
+  IsDefault: branch.isDefault || false,
+  IsDeactivated: false,
+  IsManager: false,
+  IsHOD: false,
+  IsSales: false,
+  IsMarketing: false
+};
 
     // DIRECT API URL
   this.http.post(`${environment.apiUrl}/OrgBranch/SaveBranch`, branchPayload).subscribe({

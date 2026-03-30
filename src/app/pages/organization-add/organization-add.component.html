@@ -577,10 +577,19 @@
         <div class="flex-1 flex flex-col gap-2">
           <input type="text" [(ngModel)]="address" name="address" placeholder="Building / Street"
             class="border border-gray-300 p-1.5 outline-none focus:border-[#4a3f3f]">
-          <input type="text" placeholder="Area / Locality"
-            class="border border-gray-300 p-1.5 outline-none focus:border-[#4a3f3f]">
-          <input type="text" placeholder="Landmark"
-            class="border border-gray-300 p-1.5 outline-none focus:border-[#4a3f3f]">
+         <input type="text" 
+      [(ngModel)]="area" 
+      name="area"
+      placeholder="Area / Locality"
+      class="border border-gray-300 p-1.5 outline-none focus:border-[#4a3f3f]">
+
+    <!-- Landmark -->
+    <input type="text" 
+      [(ngModel)]="landmark" 
+      name="landmark"
+      placeholder="Landmark"
+      class="border border-gray-300 p-1.5 outline-none focus:border-[#4a3f3f]">
+
         </div>
       </div>
 

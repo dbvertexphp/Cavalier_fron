@@ -1205,32 +1205,47 @@ toggleServicePopup() {
   if (this.showServicePopup) {
     this.showServicePopup = false;
     this.cdr.detectChanges();
-  } else {
-    this.serviceSub?.unsubscribe();
-
-    // API Call to /Inquiry
-    this.serviceSub = this.http.get<any[]>(`${environment.apiUrl}/Inquiry`).subscribe({
-      next: (res) => {
-        // transportMode nikalna, empty values filter karna aur Duplicates hatana
-        const uniqueModes = [...new Set(
-          res
-            .filter(item => item.transportMode && item.transportMode.trim() !== "")
-            .map(item => item.transportMode)
-        )];
-
-        this.allTransportModes = uniqueModes;
-        this.showServicePopup = true;
-        this.cdr.detectChanges(); // Instant UI Update
-      },
-      error: (err) => {
-        console.error("Error fetching Inquiry Services", err);
-        this.cdr.detectChanges();
-      }
-    });
+    return;
   }
+
+  // 1. Token nikaalo
+  const token = localStorage.getItem('cavalier_token'); 
+  if (!token) {
+    console.warn("Bhai login token nahi mila!");
+    return;
+  }
+
+  // 2. Headers mein pass karo
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`
+  });
+
+  this.serviceSub?.unsubscribe();
+
+  // 3. API Call with Headers
+  this.serviceSub = this.http.get<any[]>(`${environment.apiUrl}/Inquiry`, { headers }).subscribe({
+    next: (res) => {
+      // transportMode nikalna aur Duplicates hatana
+      const uniqueModes = [...new Set(
+        res
+          .filter(item => item.transportMode && item.transportMode.trim() !== "")
+          .map(item => item.transportMode)
+      )];
+
+      this.allTransportModes = uniqueModes;
+      this.showServicePopup = true;
+      this.cdr.detectChanges(); 
+      console.log("Transport modes loaded with token");
+    },
+    error: (err) => {
+      console.error("Error fetching Inquiry Services", err);
+      this.showServicePopup = false;
+      this.cdr.detectChanges();
+    }
+  });
 }
 
-// 2. Popup se select karne par
+// Popup se select karne par
 selectServiceFromPopup(val: string) {
   this.searchFilters.transportMode = val;
   this.showServicePopup = false;
@@ -1256,38 +1271,51 @@ toggleInquiryPopup() {
   if (this.showInquiryPopup) {
     this.showInquiryPopup = false;
     this.cdr.detectChanges();
-  } else {
-    this.inqSub?.unsubscribe();
-
-    this.inqSub = this.http.get<any[]>(`${environment.apiUrl}/Inquiry`).subscribe({
-      next: (res) => {
-        // Inquiry No. nikalna aur unique banana
-        // Note: Agar property 'inquiryNo' hai toh wahi use karein
-        const uniqueInqs = [...new Set(
-          res
-            .filter(item => item.inquiryNo && item.inquiryNo.trim() !== "")
-            .map(item => item.inquiryNo)
-        )];
-
-        this.allInquiryNos = uniqueInqs;
-        this.showInquiryPopup = true;
-        this.cdr.detectChanges(); 
-      },
-      error: (err) => {
-        console.error("Error fetching Inquiries", err);
-        this.cdr.detectChanges();
-      }
-    });
+    return;
   }
+
+  // 1. Token nikaalo
+  const token = localStorage.getItem('cavalier_token'); 
+  if (!token) {
+    console.warn("Bhai login token nahi mila!");
+    return;
+  }
+
+  // 2. Headers mein pass karo
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`
+  });
+
+  this.inqSub?.unsubscribe();
+
+  // 3. API Call with Headers
+  this.inqSub = this.http.get<any[]>(`${environment.apiUrl}/Inquiry`, { headers }).subscribe({
+    next: (res) => {
+      // Inquiry No. nikalna aur Unique banana
+      const uniqueInqs = [...new Set(
+        res
+          .filter(item => item.inquiryNo && item.inquiryNo.trim() !== "")
+          .map(item => item.inquiryNo)
+      )];
+
+      this.allInquiryNos = uniqueInqs;
+      this.showInquiryPopup = true;
+      this.cdr.detectChanges(); 
+      console.log("Inquiry list loaded with token");
+    },
+    error: (err) => {
+      console.error("Error fetching Inquiries", err);
+      this.showInquiryPopup = false;
+      this.cdr.detectChanges();
+    }
+  });
 }
 
-// 2. Popup se select karne par
 selectInquiryFromPopup(val: string) {
   this.searchFilters.inquiryNo = val;
   this.showInquiryPopup = false;
   this.cdr.detectChanges();
 }
-
 // Variables declare karein
 showBranchPopup: boolean = false;
 allCustomerNames: string[] = [];
@@ -1340,31 +1368,47 @@ toggleCoordinatorPopup() {
   if (this.showCoordinatorPopup) {
     this.showCoordinatorPopup = false;
     this.cdr.detectChanges();
-  } else {
-    this.coordinatorSub?.unsubscribe();
-
-    this.coordinatorSub = this.http.get<any[]>(`${environment.apiUrl}/Inquiry`).subscribe({
-      next: (res) => {
-        // SalesCoor nikalna, empty values filter karna aur Duplicates hatana
-        const uniqueCoords = [...new Set(
-          res
-            .filter(item => item.salesCoordinator && item.salesCoordinator.trim() !== "")
-            .map(item => item.salesCoordinator)
-        )];
-
-        this.allCoordinators = uniqueCoords;
-        this.showCoordinatorPopup = true;
-        this.cdr.detectChanges(); // UI Update
-      },
-      error: (err) => {
-        console.error("Error fetching Coordinators", err);
-        this.cdr.detectChanges();
-      }
-    });
+    return;
   }
+
+  // 1. Token nikaalo
+  const token = localStorage.getItem('cavalier_token'); 
+  if (!token) {
+    console.warn("Bhai login token nahi mila!");
+    return;
+  }
+
+  // 2. Headers mein pass karo
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`
+  });
+
+  this.coordinatorSub?.unsubscribe();
+
+  // 3. API Call with Headers
+  this.coordinatorSub = this.http.get<any[]>(`${environment.apiUrl}/Inquiry`, { headers }).subscribe({
+    next: (res) => {
+      // SalesCoordinator nikalna, empty values filter karna aur Duplicates hatana
+      const uniqueCoords = [...new Set(
+        res
+          .filter(item => item.salesCoordinator && item.salesCoordinator.trim() !== "")
+          .map(item => item.salesCoordinator)
+      )];
+
+      this.allCoordinators = uniqueCoords;
+      this.showCoordinatorPopup = true;
+      this.cdr.detectChanges(); 
+      console.log("Coordinator list loaded with token");
+    },
+    error: (err) => {
+      console.error("Error fetching Coordinators", err);
+      this.showCoordinatorPopup = false;
+      this.cdr.detectChanges();
+    }
+  });
 }
 
-// 2. Popup se select karne par
+// Popup se select karne par
 selectCoordinatorFromPopup(val: string) {
   this.searchFilters.salesCoordinator = val;
   this.showCoordinatorPopup = false;
@@ -1549,11 +1593,7 @@ loadAllLeads() {
     }
   });
 }
-selectInquiry(inq: any) {
-  this.quotation.referenceByInquiry = inq.leadNo || inq.inquiryNo; 
-  this.showInquiryDropdown = false; 
-  this.cdr.detectChanges(); // UI refresh
-}
+
 // Variables define karein
 showOrgDropdown: boolean = false;
 organizationList: any[] = [];
@@ -1566,6 +1606,13 @@ loadAllOrganizations() {
   if (this.showOrgDropdown) {
     this.showOrgDropdown = false;
     this.cdr.detectChanges();
+    return;
+  }
+  
+  // 1. Token nikaalo
+  const token = localStorage.getItem('cavalier_token'); 
+  if (!token) {
+    console.warn("Bhai login token nahi mila!");
     return;
   }
 
@@ -1589,5 +1636,59 @@ loadAllOrganizations() {
   });
 }
 
+filterTransportModes(event: any) {
+  // Baad mein logic likh lena
+}
+filterInquiryList(event: any) {
+  // Baad mein logic likh lena
+}
+filterCoordinatorList(event: any) {
+  // Baad mein logic likh lena
+}
+loadAllLeadss() {
+  // Toggle logic
+  if (this.showInquiryDropdown || this.showLeadDropdown) {
+    this.showInquiryDropdown = false;
+    this.showLeadDropdown = false;
+    this.cdr.detectChanges();
+    return;
+  }
 
+  // 1. Token nikaalo
+  const token = localStorage.getItem('cavalier_token'); 
+  if (!token) {
+    console.warn("Bhai login token nahi mila!");
+    return;
+  }
+
+  // 2. Headers set karo
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`
+  });
+
+  const url = `${environment.apiUrl}/leads`; // Ya jo bhi tumhara Leads ka endpoint ho
+  
+  // 3. API Call with Token
+  this.http.get<any[]>(url, { headers }).subscribe({
+    next: (res) => {
+      this.filteredInquiries = res; 
+      this.showInquiryDropdown = true; 
+      this.cdr.detectChanges(); 
+      console.log("Leads loaded with token");
+    },
+    error: (err) => {
+      console.error("Error fetching leads:", err);
+      this.showInquiryDropdown = false;
+      this.cdr.detectChanges();
+    }
+  });
+}
+
+// Selection Function
+selectInquiry(inq: any) {
+  this.inquiry.leadNo = inq.leadNo || inq.inquiryNo;
+  // Agar koi aur fields update karni ho toh yahan kar sakte ho
+  this.showInquiryDropdown = false;
+  this.cdr.detectChanges();
+}
   }

@@ -4,7 +4,7 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpClientModule,HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 
 import {
@@ -719,6 +719,19 @@ generateQuotationNo(): string {
   return `CAV/QTN/${initials}/${formattedNumber}/${fy}`;
 }
 saveQuotation() {
+  // 1. Token nikaalo (Directly from localStorage)
+    const token = localStorage.getItem('cavalier_token');
+    
+    if (!token) {
+        alert("Bhai, Session expire ho gaya hai. Please login fir se karein.");
+        return;
+    }
+
+    // 2. Headers mein Token set karo
+    const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+    });
     // ... (Aapki validation logic yahan rahegi)
 
     // Data preparation for Backend
@@ -732,7 +745,7 @@ saveQuotation() {
     this.quotation.totalProfit = this.totalProfitFinal;
 
     // 4. API Call - Swagger ke mutabiq Edit ke liye /update/id use kiya hai
-    const token = localStorage.getItem('cavalier_token');
+    
 
 const httpOptions = {
   headers: new HttpHeaders({

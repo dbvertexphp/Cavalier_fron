@@ -460,7 +460,7 @@ onSubmit() {
           alert('User Saved, but ID not received for sub-records');
         }
 
-        this.router.navigate(['/dashboard/hr/Employee']);
+        this.router.navigate(['/dashboard/Employee']);
       },
       error: err => {
         console.error('API Error:', err);

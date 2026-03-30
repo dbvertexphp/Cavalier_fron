@@ -12,6 +12,7 @@ import jsPDF from 'jspdf';
 import * as XLSX from 'xlsx';
 import { leadSchema } from './lead.schema';
 import { Subscription } from 'rxjs';
+import { HttpHeaders } from '@angular/common/http'; // Top par import check kar lena
 // 'fdfd';
 @Component({
   selector: 'app-lead-form',
@@ -1463,8 +1464,8 @@ private hodIconSub?: Subscription;
 
 // 1. 🔍 Icon par click karne wala logic
 oniconHODSearch() {
-  // Toggle Logic
-  if (this.iconHODList.length > 0) {
+  // 1. Toggle Close Logic (Single Click Close)
+  if (this.iconHODList && this.iconHODList.length > 0) {
     this.iconHODList = [];
     this.cdr.detectChanges(); 
     return;
@@ -1472,19 +1473,21 @@ oniconHODSearch() {
 
   this.hodIconSub?.unsubscribe();
 
+  // API Call se pehle Loader ya initial check ke liye detectChanges call karo
+  this.cdr.detectChanges(); 
+
   this.hodIconSub = this.http.get<any[]>(`${environment.apiUrl}/Hod`).subscribe({
     next: (res) => {
       if (res && res.length > 0) {
-        // Unique names extraction
         const uniqueHODs = [...new Set(res.map(item => item.name || item.hodName || item))]
           .filter(name => name && typeof name === 'string' && name.trim() !== "");
 
+        // Data assign karne ke turant baad detectChanges()
         this.iconHODList = uniqueHODs;
-
-        // Force detection with a micro-task wrap (Isse instant load hoga)
-        setTimeout(() => {
-          this.cdr.detectChanges();
-        }, 0);
+        
+        // Sabse important line: Isse Angular ko pata chalega ki Modal render karna hai
+        this.cdr.markForCheck(); 
+        this.cdr.detectChanges(); 
       }
     },
     error: (err) => {
@@ -1513,26 +1516,26 @@ onLeadOwnerIconClick() {
   // Toggle Logic
   if (this.loIconList.length > 0) {
     this.loIconList = [];
-    this.cdr.detectChanges();
+    this.cdr.detectChanges(); 
     return;
   }
 
   this.loIconSub?.unsubscribe();
 
-  // API Call to /LeadOwners
+  // Loader state ke liye trigger
+  this.cdr.detectChanges(); 
+
   this.loIconSub = this.http.get<any[]>(`${environment.apiUrl}/LeadOwners`).subscribe({
     next: (res) => {
       if (res && res.length > 0) {
-        // Unique Lead Owners nikalna
         const uniqueOwners = [...new Set(res.map(item => item.name || item.fullName || item.leadOwner || item))]
           .filter(name => name && typeof name === 'string' && name.trim() !== "");
 
         this.loIconList = uniqueOwners;
 
-        // Instant UI update
-        setTimeout(() => {
-          this.cdr.detectChanges();
-        }, 0);
+        // Forced Update: Isse popup turant dikhega
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       }
     },
     error: (err) => {
@@ -1543,63 +1546,83 @@ onLeadOwnerIconClick() {
   });
 }
 
-// 2. UNIQUE Selection function: selectLoFromIcon
+// Selection logic
 selectLoFromIcon(owner: string) {
   this.leadSearchFilters.leadOwner = owner;
-  this.loIconList = []; // List close
+  this.loIconList = []; 
   
-  setTimeout(() => {
-    this.cdr.detectChanges();
-  }, 0);
+  // Close hone par bhi detect change zaroori hai
+  this.cdr.detectChanges();
+}
+
+// Error handle karne ke liye empty function (agar tum filter baad mein likhna chaho)
+filterLeadOwners(event: any) {
+  // Add your filtering logic here if needed
 }
 // Lead No Icon Popup ke liye UNIQUE variables
 lnIconList: any[] = []; 
 private lnIconSub?: Subscription;
 
-// 1. UNIQUE Function: onLeadNoIconClick
 onLeadNoIconClick() {
-  // Toggle Logic: Agar pehle se khuli hai toh band kar do
-  if (this.lnIconList.length > 0) {
+  // Toggle Logic: Agar pehle se khula hai toh band kar do
+  if (this.lnIconList && this.lnIconList.length > 0) {
     this.lnIconList = [];
     this.cdr.detectChanges();
     return;
   }
 
-  this.lnIconSub?.unsubscribe();
+  // 1. Sahi key name use karo
+  const token = localStorage.getItem('cavalier_token'); 
 
-  // API Call to /Leads
-  this.lnIconSub = this.http.get<any[]>(`${environment.apiUrl}/Leads`).subscribe({
+  console.log("Checking Token:", token);
+
+  if (!token) {
+    console.warn("Bhai login token nahi mila!");
+    return;
+  }
+
+  this.loIconSub?.unsubscribe();
+
+  // 2. Headers mein pass karo
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`
+  });
+
+  // 3. API Call
+  this.loIconSub = this.http.get<any[]>(`${environment.apiUrl}/Inquiry`, { headers }).subscribe({
     next: (res) => {
       if (res && res.length > 0) {
-        // Unique Lead Numbers nikalna
-        // Agar API direct string de rahi hai toh 'item', agar object toh 'item.leadNo'
-        const uniqueLeads = [...new Set(res.map(item => item.leadNo || item))]
+        // Unique Inquiry/Lead Numbers nikalna
+        const uniqueNos = [...new Set(res.map(item => item.inquiryNo || item.leadNo || item))]
           .filter(val => val && val.toString().trim() !== "");
 
-        this.lnIconList = uniqueLeads;
+        this.lnIconList = uniqueNos;
 
-        // Instant UI update for the popup
-        setTimeout(() => {
-          this.cdr.detectChanges();
-        }, 0);
+        // Instant UI Update (Single click fix)
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       }
     },
     error: (err) => {
-      console.error("Lead No API Error:", err);
+      console.error("Leads API Error:", err);
       this.lnIconList = [];
       this.cdr.detectChanges();
     }
   });
 }
 
-// 2. UNIQUE Selection function: selectLnFromIcon
-selectLnFromIcon(val: any) {
+// 2. Selection function
+selectLeadNoFromIcon(val: any) {
   this.leadSearchFilters.leadNo = val;
   this.lnIconList = []; // Popup close
   
-  setTimeout(() => {
-    this.cdr.detectChanges();
-  }, 0);
+  // Instant UI update
+  this.cdr.detectChanges();
+}
+
+// Search filter error na de isliye
+filterLeadNumbers(event: any) {
+  // Baad mein logic likh sakte ho
 }
 // Team Icon Popup ke liye UNIQUE variables
 tmIconList: any[] = []; 
@@ -1705,21 +1728,34 @@ showOrgDropdown: boolean = false;
 quotation: any = {}; 
 showInquiryDropdown=true
 loadOrganizationList() {
+  // Toggle logic same rakha hai
   if (this.showOrgDropdown) {
-    this.showInquiryDropdown = false; // Agar pehle se variable hai to use karein
     this.showOrgDropdown = false;
     this.cdr.detectChanges();
     return;
   }
 
+  // 1. Token nikalo
+  const token = localStorage.getItem('cavalier_token'); 
+  if (!token) {
+    console.warn("Bhai login token nahi mila!");
+    return;
+  }
+
+  // 2. Headers set karo
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`
+  });
+
   const url = `${environment.apiUrl}/Organization/List`;
   
-  this.http.get<any[]>(url).subscribe({
+  // 3. API Call with Token
+  this.http.get<any[]>(url, { headers }).subscribe({
     next: (res) => {
       this.orgList = res; 
       this.showOrgDropdown = true; 
       this.cdr.detectChanges(); 
-      console.log(res, "Organization list loaded");
+      console.log(res, "Organization list loaded with token");
     },
     error: (err) => {
       console.error("Organization fetch error:", err);
@@ -1730,13 +1766,38 @@ loadOrganizationList() {
 }
 
 selectOrg(org: any) {
-  // Ab yahan error nahi aayega kyunki quotation ab object hai
-  // Spelling check kar lena: organizationName
-  this.quotation.organizationName = org.orgName; 
+  // Purana logic: quotation update karna
+  if (this.quotation) {
+    this.quotation.organizationName = org.orgName; 
+  }
   
+  // LeadSearchFilters bhi update kar dete hain safety ke liye
+  this.leadSearchFilters.organizationName = org.orgName;
+
   this.showOrgDropdown = false;
   this.cdr.detectChanges(); 
 }
 filterHODs(event: any) {
   // Baad mein logic likh lena
+}
+
+filterLeads(event: any) {
+  // Baad mein logic likh lena
+}
+filterTeams(event: any) {
+  // Baad mein logic likh lena
+}
+filterManagers(event: any) {
+  // Baad mein logic likh lena
+}
+filterOrgList(event: any) {
+  // Baad mein logic likh lena
+}
+// Is function ka naam wahi rakho jo HTML mang raha hai: selectLnFromIcon
+selectLnFromIcon(val: any) {
+  this.leadSearchFilters.leadNo = val; // Tumhara logic
+  this.lnIconList = []; // Modal close karne ke liye
+  
+  // Instant UI update taaki modal turant band ho jaye
+  this.cdr.detectChanges();
 }}

@@ -4,7 +4,7 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 
 import {
@@ -704,6 +704,19 @@ generateQuotationNo(): string {
   return `CAV/QTN/${initials}/${formattedNumber}/${fy}`;
 }
 saveQuotation() {
+  // 1. Token nikaalo (Directly from localStorage)
+    const token = localStorage.getItem('cavalier_token'); 
+    
+    if (!token) {
+        alert("Bhai, Session expire ho gaya hai. Please login fir se karein.");
+        return;
+    }
+
+    // 2. Headers mein Token set karo
+    const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+    });
     // ... (Aapki validation logic yahan rahegi)
 
     // Data preparation for Backend

@@ -1736,4 +1736,7 @@ selectOrg(org: any) {
   
   this.showOrgDropdown = false;
   this.cdr.detectChanges(); 
+}
+filterHODs(event: any) {
+  // Baad mein logic likh lena
 }}

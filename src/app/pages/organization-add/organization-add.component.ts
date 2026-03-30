@@ -373,6 +373,7 @@ saveOrg() {
 
   // --- COMMON STEPS ---
   this.branchName = ''; // Input box khali kar do
+  this.resetBranchFormOnly();
   this.cdr.detectChanges(); // UI refresh
 }
 saveAllLocalBranches(orgId: number) {
@@ -1466,5 +1467,36 @@ selectState(stateName: string) {
     this.isStatePopupVisible = false;
     this.cdr.detectChanges(); // Input fill hone ke baad update
   }
+resetBranchFormOnly() {
+  // 1. Basic Fields
+  this.branchName = '';
+  this.lineOfBusiness = '';
+  this.selectedLineOfBusiness = null;
+  
+  // 2. Address & Location Fields
+  this.address = '';
+  this.country = '';
+  this.stateProvince = '';
+  this.city = '';
+  this.postalCode = '';
+  
+  // 3. Contact & Communication
+  this.telephone = '';
+  this.fax = '';
+  this.website = '';
+  this.email = '';
+  
+  // 4. Contact Details Table/Array Reset
+  // Isse contact list wapas initial state (ek khali row) par aa jayegi
+  this.contacts = [
+    { contactName: '', designation: '', department: '', mobile: '', whatsapp: '', email: '' }
+  ];
 
+  // 5. Flags Reset
+  this.editingBranchId = null;
+  this.isWebsiteInvalid = false;
+  this.isMainEmailInvalid = false;
+
+  console.log("Branch fields have been reset!");
+}
 }

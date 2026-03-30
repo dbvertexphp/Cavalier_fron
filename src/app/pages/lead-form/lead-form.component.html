@@ -105,19 +105,60 @@
            placeholder="Search HOD (min 3 chars)..."
            (input)="onHODSearchType($event)"> 
     
-    <span class="p-1 bg-gray-50 border-l border-gray-200 flex items-center justify-center cursor-pointer text-gray-400 hover:bg-gray-100" 
-          (click)="oniconHODSearch()">
-      🔍
-    </span>
+<span class="p-1 bg-gray-50 border-l border-gray-200 flex items-center justify-center cursor-pointer text-gray-400 hover:bg-gray-100 transition-all hover:text-blue-500" 
+      (click)="oniconHODSearch()">
+  🔍
+</span>
 
-    <div *ngIf="filteredHODSuggestions.length > 0"
-         class="absolute z-50 w-full bg-white border border-gray-300 top-full left-0 mt-1 max-h-48 overflow-y-auto shadow-md">
-      <div *ngFor="let hodName of filteredHODSuggestions"
-           (click)="selectHOD(hodName)" 
-           class="p-2 hover:bg-red-50 cursor-pointer text-sm border-b">
-        {{ hodName }}
-      </div>
+<div *ngIf="iconHODList.length > 0" 
+     class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-[9998] transition-opacity duration-300"
+     (click)="iconHODList = []">
+</div>
+
+<div *ngIf="iconHODList.length > 0"
+     class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] w-[95%] max-w-[400px] bg-white shadow-[0_20px_50px_rgba(0,0,0,0.2)] rounded-2xl overflow-hidden border border-gray-100 animate-in fade-in zoom-in duration-200">
+  
+  <div class="px-5 py-4 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 flex flex-col gap-3">
+    <div class="flex justify-between items-center">
+      <h3 class="text-sm font-bold text-gray-800 tracking-tight uppercase">Select Department Head</h3>
+      <button (click)="iconHODList = []" 
+              class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-50 text-gray-400 hover:text-red-500 transition-all">
+        ✕
+      </button>
     </div>
+
+    <div class="relative group">
+      <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 group-focus-within:text-blue-500 transition-colors">
+        🔍
+      </span>
+      <input 
+        type="text" 
+        placeholder="Search HOD name..." 
+        class="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+        (input)="filterHODs($event)"
+      >
+    </div>
+  </div>
+
+  <div class="max-h-[350px] overflow-y-auto custom-scrollbar bg-white">
+    <div *ngFor="let hodName of iconHODList"
+         (click)="selectHODFromIcon(hodName)" 
+         class="px-5 py-3.5 hover:bg-blue-50/50 cursor-pointer text-sm text-gray-700 border-b border-gray-50 last:border-0 flex items-center justify-between group transition-all">
+      <span class="group-hover:text-blue-600 font-medium">{{ hodName }}</span>
+      <span class="opacity-0 group-hover:opacity-100 text-blue-400 transform translate-x-[-10px] group-hover:translate-x-0 transition-all text-xs">
+        Select →
+      </span>
+    </div>
+
+    <div *ngIf="iconHODList.length === 0" class="py-12 text-center">
+      <p class="text-gray-400 text-xs italic">No matching HOD found</p>
+    </div>
+  </div>
+
+  <div class="py-2 bg-gray-50 border-t border-gray-100 text-center">
+    <p class="text-[10px] text-gray-400 uppercase tracking-widest">Cavalier Logistics</p>
+  </div>
+</div>
 
     <div *ngIf="iconHODList.length > 0"
          class="absolute z-[999] w-full bg-white border border-gray-400 top-full left-0 mt-1 max-h-60 overflow-y-auto shadow-2xl rounded-sm">

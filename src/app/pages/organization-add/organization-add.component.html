@@ -179,8 +179,8 @@
 
         <ul *ngIf="branchList.length > 0 && activeDropdown === 'branch'" 
             class="absolute z-[999] left-0 mt-1 w-[200px] max-h-60 overflow-y-auto bg-white border border-gray-300 rounded-md shadow-2xl custom-scrollbar">
-          <li *ngFor="let item of branchList" 
-              (click)="selectBranch(item)" 
+          <li *ngFor="let item of branchList let i = index" 
+              (click)="selectBranch(item, i)" 
               class="p-3 text-sm text-gray-700 hover:bg-red-50 cursor-pointer border-b last:border-none transition-colors">
             {{ item.branchName }}
           </li>
@@ -503,15 +503,17 @@
   <div class="bg-[#4a3f3f] text-white p-2 text-center font-bold text-[11px]">Branches</div>
   
   <div 
-    *ngFor="let branch of branchList"
-    (click)="selectBranch(branch)" 
-    class="p-2.5 cursor-pointer border-b border-gray-200 font-semibold transition-colors hover:bg-blue-50 active:bg-blue-100 text-[12px] flex justify-between items-center text-black"
-  >
-    
-    <span>{{ branch.branchName }}</span>
-    
-    <i class="fa fa-pencil-alt text-gray-400 text-[10px]"></i>
-  </div>
+  *ngFor="let branch of branchList; let i = index"
+  (click)="selectBranch(branch, i)" 
+  [ngClass]="{
+    'bg-blue-100 border-l-4 border-blue-500': selectedBranchIndex === i,
+    'hover:bg-blue-50': selectedBranchIndex !== i
+  }"
+  class="p-2.5 cursor-pointer border-b border-gray-200 font-semibold text-[12px] flex justify-between items-center"
+>
+  <span>{{ branch.branchName }}</span>
+  <i class="fa fa-pencil-alt text-gray-400 text-[10px]"></i>
+</div>
 
   <div *ngIf="branchList.length === 0" class="p-4 text-center text-gray-400 text-[11px]">
     No branches added
@@ -523,13 +525,17 @@
  <div class="flex items-center gap-2">
   <label class="w-40 text-red-700 font-bold text-[12px]">Branch Name</label>
   
-  <input 
-    type="text" 
-    [(ngModel)]="branchName" 
-    (keyup.enter)="onSaveBranch()"
-    class="flex-1 border border-gray-300 p-1.5 outline-none focus:border-[#4a3f3f] text-[12px]" 
-    placeholder="Enter Branch Name..."
-  />
+<input 
+  type="text" 
+  [(ngModel)]="branchName" 
+  [readonly]="!isEditMode"
+  [ngClass]="{
+    'bg-[#f3f4f6] cursor-not-allowed text-gray-500': !isEditMode,
+    'bg-white border-gray-300 focus:border-[#4a3f3f]': isEditMode
+  }"
+  class="flex-1 border border-gray-300 p-1.5 outline-none text-[12px]" 
+  placeholder="Enter Branch Name..."
+/>
 <!-- 
   <button 
     (click)="onSaveBranch()" 
@@ -541,8 +547,9 @@
   <label class="w-32 font-bold text-gray-700 text-[12px]">Line of Business</label>
   
   <select 
-  [(ngModel)]="lineOfBusiness" 
+  [(ngModel)]="lineOfBusiness" [disabled]="!isEditMode"
   name="lineOfBusiness"
+  [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'"
   class="flex-1 border border-gray-300 p-1.5 outline-none focus:border-[#4a3f3f] text-[12px] bg-white text-black rounded-lg cursor-pointer">
 
   <option [ngValue]="null" disabled>Select Line of Business</option>
@@ -575,10 +582,12 @@
       <div class="flex gap-4">
         <label class="w-40 font-semibold text-gray-700">Address</label>
         <div class="flex-1 flex flex-col gap-2">
-          <input type="text" [(ngModel)]="address" name="address" placeholder="Building / Street"
+          <input type="text" [(ngModel)]="address" [readonly]="!isEditMode" [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'" name="address" placeholder="Building / Street"
             class="border border-gray-300 p-1.5 outline-none focus:border-[#4a3f3f]">
          <input type="text" 
       [(ngModel)]="area" 
+      [readonly]="!isEditMode"
+      [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'"
       name="area"
       placeholder="Area / Locality"
       class="border border-gray-300 p-1.5 outline-none focus:border-[#4a3f3f]">
@@ -586,6 +595,8 @@
     <!-- Landmark -->
     <input type="text" 
       [(ngModel)]="landmark" 
+      [readonly]="!isEditMode"
+      [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'"
       name="landmark"
       placeholder="Landmark"
       class="border border-gray-300 p-1.5 outline-none focus:border-[#4a3f3f]">
@@ -601,6 +612,8 @@
     <div class="flex border border-gray-300 rounded overflow-hidden">
       <input type="text" 
              [(ngModel)]="country" 
+             [readonly]="!isEditMode"
+             [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'"
              name="country_field_{{country.length}}"  (input)="onCountrySearch($event)" 
              placeholder="Search Country..."
              class="flex-1 p-1.5 outline-none" 
@@ -646,6 +659,8 @@
     <div class="flex border border-gray-300 rounded overflow-hidden">
       <input type="text" 
              [(ngModel)]="stateProvince" 
+                [readonly]="!isEditMode"
+             [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'"
              name="state_field_{{stateProvince.length}}" 
              (input)="onStateSearch($event)" 
              placeholder="Search State..." 
@@ -690,7 +705,7 @@
           <label class="w-40 text-red-700 font-bold">City</label>
           <div class="flex-1 flex flex-col">
             <div class="flex border border-gray-300 overflow-hidden">
-              <input type="text" [(ngModel)]="city" name="city" placeholder="Search City..."
+              <input type="text" [(ngModel)]="city" [readonly]="!isEditMode" [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'" name="city" placeholder="Search City..."
                 class="flex-1 p-1.5 outline-none" required #cityRef="ngModel">
               <button class="bg-gray-100 px-3 border-l border-gray-300 hover:bg-gray-200">🔍</button>
             </div>
@@ -701,7 +716,7 @@
         </div>
         <div class="flex items-center gap-3">
           <label class="w-40">Postal Code</label>
-          <input type="text" [(ngModel)]="postalCode" name="postalCode"
+          <input type="text" [(ngModel)]="postalCode" [readonly]="!isEditMode" [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'" name="postalCode"
             class="flex-1 border border-gray-300 p-1.5 outline-none">
         </div>
       </div>
@@ -710,7 +725,7 @@
         <div class="flex items-center gap-3">
           <label class="w-40">Telephone</label>
           <div class="flex flex-col flex-1">
-            <input type="text" [(ngModel)]="telephone" name="telephone" maxlength="15" (keypress)="onlyNumbers($event)"
+            <input type="text" [(ngModel)]="telephone" [readonly]="!isEditMode" [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'" name="telephone" maxlength="15" (keypress)="onlyNumbers($event)"
               placeholder="Telephone (5-15 digits)" class="w-full border p-1.5 outline-none focus:border-blue-400"
               [class.border-red-500]="telephone && telephone.length > 0 && telephone.length < 5">
             <span *ngIf="telephone && telephone.length > 0 && telephone.length < 5" class="text-[10px] text-red-500 mt-1 font-semibold italic">⚠️ Telephone must be 5-15 digits</span>
@@ -719,7 +734,7 @@
         <div class="flex items-center gap-3">
           <label class="w-40">Fax</label>
           <div class="flex flex-col flex-1">
-            <input type="text" [(ngModel)]="fax" name="fax" maxlength="13" (keypress)="onlyNumbers($event)"
+            <input type="text" [(ngModel)]="fax" [readonly]="!isEditMode" [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'" name="fax" maxlength="13" (keypress)="onlyNumbers($event)"
               class="w-full border p-1.5 outline-none focus:border-blue-400"
               [class.border-red-500]="fax && fax.length > 0 && (fax.length < 6)">
             <span *ngIf="fax && fax.length > 0 && fax.length < 6" class="text-[10px] text-red-500 mt-1 font-semibold italic">⚠️ Fax must be 6-13 digits</span>
@@ -731,7 +746,7 @@
         <div class="flex items-center gap-3">
           <label class="w-40">Web Site</label>
           <div class="flex flex-col flex-1">
-            <input type="text" [(ngModel)]="website" name="website" (input)="validateWebsite()" placeholder="e.g. www.google.com"
+            <input type="text" [(ngModel)]="website" [readonly]="!isEditMode" [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'" name="website" (input)="validateWebsite()" placeholder="e.g. www.google.com"
               class="w-full border p-1.5 outline-none focus:border-blue-400"
               [class.border-red-500]="website && website.length > 0 && isWebsiteInvalid">
             <span *ngIf="website && website.length > 0 && isWebsiteInvalid" class="text-[10px] text-red-500 mt-1 font-semibold italic">⚠️ Invalid website format</span>
@@ -740,8 +755,21 @@
         <div class="flex items-center gap-3">
           <label class="w-40">Email Address</label>
           <div class="flex-1 flex flex-col">
-            <input type="email" [(ngModel)]="email" name="email" list="emailSuggestions" (input)="checkMainEmail()"
-              class="w-full border p-1.5 outline-none" [ngClass]="email && email.length > 0 && isMainEmailInvalid ? 'border-red-500' : 'border-gray-300'">
+          <input 
+  type="email" 
+  [(ngModel)]="email" 
+  [readonly]="!isEditMode"  
+  name="email" 
+  list="emailSuggestions" 
+  (input)="checkMainEmail()"
+  class="w-full p-1.5 outline-none"
+  [ngClass]="{
+    'border-red-500': email && email.length > 0 && isMainEmailInvalid,
+    'border-gray-300': !(email && email.length > 0 && isMainEmailInvalid),
+    'bg-[#f3f4f6] cursor-not-allowed text-gray-500': !isEditMode,
+    'bg-white': isEditMode
+  }"
+>
             <datalist id="emailSuggestions"><option value="admin@cavalierlogistic.in"></datalist>
             <span *ngIf="email && email.length > 0 && isMainEmailInvalid" class="text-[10px] text-red-500 font-bold">⚠️ Invalid Email Format</span>
           </div>
@@ -757,8 +785,8 @@
           </div>
           <div class="space-y-3">
             <div *ngFor="let contact of contacts; let i = index" class="grid grid-cols-1 md:grid-cols-6 gap-3 items-center">
-              <input [(ngModel)]="contact.contactName" [name]="'name'+i" placeholder="Name" class="w-full border p-2 rounded text-sm outline-none">
-              <select [(ngModel)]="contact.DesignationId" 
+              <input [(ngModel)]="contact.contactName" [readonly]="!isEditMode"  [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'"  [name]="'name'+i" placeholder="Name" class="w-full border p-2 rounded text-sm outline-none">
+              <select [(ngModel)]="contact.DesignationId" [disabled]="!isEditMode" [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'"  
         [name]="'desig'+i" 
         class="w-full border p-2 rounded text-sm bg-white">
 
@@ -769,7 +797,7 @@
   </option>
 
 </select>
-             <select [(ngModel)]="contact.DepartmentId" 
+             <select [(ngModel)]="contact.DepartmentId" [disabled]="!isEditMode" [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'" 
         [name]="'dept'+i" 
         class="w-full border p-2 rounded text-sm bg-white">
 
@@ -781,14 +809,17 @@
 
 </select>
               <div class="flex flex-col">
-                <input [(ngModel)]="contact.mobile" type="text" maxlength="10" (keypress)="onlyNumbers($event)" placeholder="Mobile" class="w-full border p-2 rounded text-sm">
+                <input [(ngModel)]="contact.mobile"  [disabled]="!isEditMode" [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'"   [readonly]="!isEditMode"
+             [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'" type="text" maxlength="10" (keypress)="onlyNumbers($event)" placeholder="Mobile" class="w-full border p-2 rounded text-sm">
                 <span *ngIf="contact.mobile?.length > 0 && contact.mobile?.length < 10" class="text-[9px] text-red-500">10 digits required</span>
               </div>
               <div class="flex flex-col">
-                <input [(ngModel)]="contact.whatsapp" type="text" maxlength="10" (keypress)="onlyNumbers($event)" placeholder="Whatsapp" class="w-full border p-2 rounded text-sm">
+                <input [(ngModel)]="contact.whatsapp"    [readonly]="!isEditMode"
+             [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'" type="text" maxlength="10" (keypress)="onlyNumbers($event)" placeholder="Whatsapp" class="w-full border p-2 rounded text-sm">
               </div>
               <div class="flex items-center gap-3">
-                <input [(ngModel)]="contact.email" type="email" (input)="checkEmail(contact)" placeholder="Email" class="flex-1 border p-2 rounded text-sm">
+                <input [(ngModel)]="contact.email"    [readonly]="!isEditMode"
+             [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'" type="email" (input)="checkEmail(contact)" placeholder="Email" class="flex-1 border p-2 rounded text-sm">
                 <button *ngIf="i === 0" type="button" (click)="addContact()" class="text-green-600 font-bold text-2xl">+</button>
                 <button *ngIf="i > 0" type="button" (click)="removeContact(i)" class="text-red-500 font-bold text-xl">x</button>
               </div>
@@ -799,13 +830,19 @@
 
       <div class="flex justify-end gap-3 mt-12 mb-4">
 <button 
-  (click)="onSaveBranch()"
-  class="px-4 py-1.5 border border-gray-400 bg-gray-100 font-bold hover:bg-gray-200 text-[12px]">
-  New
+  (click)="onActionButtonClick()"
+  class="px-4 py-1.5 border border-gray-400 bg-gray-100 font-bold text-[12px]">
+
+  {{ getActionButtonText() }}
+
 </button>
         <button (click)="saveOrg()" class="px-4 py-1.5 border border-gray-400 bg-gray-100 font-bold">Update</button>
-        <button class="px-4 py-1.5 border border-gray-400 bg-gray-100 font-bold text-red-600">Delete</button>
-      </div>
+<button 
+  (click)="deleteSelectedBranch()"
+  class="px-4 py-1.5 border border-gray-400 bg-gray-100 font-bold text-red-600">
+
+  Cancel
+</button>      </div>
     </div>
   </div>
 
@@ -1174,8 +1211,12 @@
         <div class="mt-6 flex justify-end gap-3 border-t pt-4">
           <button (click)="closeForm()"
             class="px-6 py-2 border border-gray-400 font-bold text-gray-600 hover:bg-gray-100 uppercase text-[11px]">Cancel</button>
-          <button (click)="saveOrg()"
-            class="bg-[#4a3f3f] text-white px-10 py-2 font-bold shadow-md hover:bg-black uppercase text-[11px] tracking-wider">Save Organization</button>
+         <button 
+  (click)="saveCompleteOrganization()"
+  class="bg-[#4a3f3f] text-white px-10 py-2 font-bold shadow-md hover:bg-black uppercase text-[11px] tracking-wider">
+
+  Save Organization
+</button>
         </div>
       </div>
     </div>

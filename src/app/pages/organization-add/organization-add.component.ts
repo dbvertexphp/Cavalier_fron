@@ -19,6 +19,9 @@ import { DragDropModule } from '@angular/cdk/drag-drop'; // 👈 Ye zaroori hai 
   styleUrl: './organization-add.component.css',
 })
 export class OrganizationAddComponent implements OnInit {
+  isEditMode: boolean = false;
+  hasSavedOrg: boolean = false;
+selectedBranchIndex: number = -1;
 searchFilters: any = {
   orgCode: '',
   orgName: '',
@@ -32,6 +35,186 @@ searchFilters: any = {
 editingBranchId: any = null;
 department:any=[];
 designation:any=[];
+// ==================== NEW BUTTON - UPDATED VERSION ====================
+// Current branch ko validate karne ke liye
+validateCurrentBranch(): boolean {
+
+  if (!this.branchName?.trim()) {
+    alert("❌ Please fill Branch Name before adding new branch!");
+    return false;
+  }
+
+  if (!this.country?.trim()) {
+    alert("❌ Please fill Country before adding new branch!");
+    return false;
+  }
+
+  if (!this.stateProvince?.trim()) {
+    alert("❌ Please fill State/Province before adding new branch!");
+    return false;
+  }
+
+  if (!this.city?.trim()) {
+    alert("❌ Please fill City before adding new branch!");
+    return false;
+  }
+
+  const firstContact = this.contacts?.[0];
+  if (!firstContact?.DepartmentId) {
+    alert("❌ Please select Department before adding new branch!");
+    return false;
+  }
+
+  if (!firstContact?.DesignationId) {
+    alert("❌ Please select Designation before adding new branch!");
+    return false;
+  }
+
+  return true;   // Sab theek hai
+}
+onNewBranch() {
+
+  // 🔥 Pehle check karo ki current branch valid hai ya nahi
+  if (this.selectedBranchIndex >= 0) {
+    const isCurrentValid = this.validateCurrentBranch();
+    if (!isCurrentValid) {
+      return;   // Agar invalid hai toh New nahi allow karenge
+    }
+  }
+
+  // Agar valid hai ya koi branch selected nahi hai, tab naya branch create karo
+  this.isEditMode = true;
+  this.selectedBranchIndex = -1;
+
+  this.resetBranchFormOnly();
+
+  const newBlankBranch = {
+    id: 0,
+    branchName: 'Default',
+    address: '',
+    country: '',
+    stateProvince: '',
+    city: '',
+    postalCode: '',
+    area: '',
+    landmark: '',
+    telephone: '',
+    fax: '',
+    website: '',
+    email: '',
+    lineOfBusiness: null,
+    isDefault: this.branchList.length === 0,
+    organizationId: this.selectedOrgId || 0,
+    designationId: 0,
+    departmentId: 0,
+    contactName: '',
+    mobile: '',
+    whatsapp: '',
+    emailId: ''
+  };
+
+  this.branchList.push(newBlankBranch);
+
+  const newIndex = this.branchList.length - 1;
+  this.selectedBranchIndex = newIndex;
+
+  this.cdr.detectChanges();
+}
+// Button ka text decide karega
+getActionButtonText(): string {
+  if (this.hasSavedOrg) {
+    return this.isEditMode ? 'New' : 'New';
+  } else {
+    return this.isEditMode ? 'New' : 'New';
+  }
+}
+// ==================== DELETE SELECTED BRANCH ====================
+deleteSelectedBranch() {
+  if (this.selectedBranchIndex < 0) {
+    alert("Pehle koi branch select karo!");
+    return;
+  }
+
+ 
+    
+    // Branch list se delete kar do
+    this.branchList.splice(this.selectedBranchIndex, 1);
+
+    // Form reset kar do
+    this.resetBranchFormOnly();
+
+    // Selection clear kar do
+    this.selectedBranchIndex = -1;
+    this.isEditMode = false;
+
+    this.cdr.detectChanges();
+
+   
+}
+// Button click ka logic
+// Button click ka sahi logic
+onActionButtonClick() {
+  if (this.hasSavedOrg) {
+    // Update ke baad "New" button dikhta hai
+    this.onNewBranch();
+  } else {
+    // Pehli organization save nahi hui
+    if (this.isEditMode) {
+      this.onCancel();
+    } else {
+      this.onNewBranch();
+    }
+  }
+}
+onCancel() {
+  this.isEditMode = false;
+  this.selectedBranchIndex = -1;
+  // Form reset nahi kar rahe — user chahe to manually New click karega
+}
+selectBranch(branch: any, index: number) {
+  this.isEditMode = true;           // Form editable rahe
+  this.selectedBranchIndex = index;
+
+  // Basic Fields
+  this.branchName = branch.branchName || '';
+  this.address = branch.address || '';
+  this.country = branch.country || '';
+  this.stateProvince = branch.stateProvince || '';
+  this.city = branch.city || '';
+  this.postalCode = branch.postalCode || '';
+  this.area = branch.area || '';
+  this.landmark = branch.landmark || '';
+
+  this.telephone = branch.telephone || '';
+  this.fax = branch.fax || '';
+  this.website = branch.website || '';
+  this.email = branch.email || '';
+  this.lineOfBusiness = branch.lineOfBusiness ?? null;
+
+  // 🔥 Contact Details - Yeh important part tha jo missing tha
+  if (branch.contactName || branch.mobile || branch.whatsapp || branch.emailId) {
+    this.contacts = [{
+      contactName: branch.contactName || '',
+      DesignationId: branch.designationId ?? null,
+      DepartmentId: branch.departmentId ?? null,
+      mobile: branch.mobile || '',
+      whatsapp: branch.whatsapp || '',
+      email: branch.emailId || ''
+    }];
+  } else {
+    // Agar contact data nahi hai toh default empty row
+    this.contacts = [{
+      contactName: '',
+      DesignationId: null,
+      DepartmentId: null,
+      mobile: '',
+      whatsapp: '',
+      email: ''
+    }];
+  }
+
+  this.cdr.detectChanges();
+}
 public branchList: any[] = []; // Temporary branches yahan rahengi
 public branchName: string = ''; // Input field ke liye
 // 1. Dropdown lists (Data Sources)
@@ -198,67 +381,95 @@ getOrgList() {
   //   }
   // }
 // selectedRoles array ko track karne ke liye logic
-addCurrentBranchIfValid() {
- 
+// Jab Update button click ho (saveOrg se call hota hai)
+// ==================== VALIDATION BEFORE ADDING BRANCH ====================
+addCurrentBranchIfValid(): boolean {
 
-  // ❌ Line of Business mandatory
-  if (!this.branchName || !this.branchName.trim()) {
-    return;
+  // Required Fields Validation
+  if (!this.branchName?.trim()) {
+    alert("❌ Branch Name is required!");
+    return false;
+  }
+ if (!this.lineOfBusiness) {                    // ← Fixed here
+    alert("❌ Line of Business is required!");
+    return false;
   }
 
-  // 👉 Agar branchName hai → tab validation start
-  if (!this.lineOfBusiness) {
-    alert("Please select Line of Business");
-    return;
+  if (!this.country?.trim()) {
+    alert("❌ Country is required!");
+    return false;
   }
 
-  if (!this.contacts?.[0]?.DepartmentId) {
-    alert("Department select karo");
-    return;
+  if (!this.stateProvince?.trim()) {
+    alert("❌ State/Province is required!");
+    return false;
   }
 
-  if (!this.contacts?.[0]?.DesignationId) {
-    alert("Designation select karo");
-    return;
+  if (!this.city?.trim()) {
+    alert("❌ City is required!");
+    return false;
   }
 
-  const newBranch = {
-    branchName: this.branchName.trim(),
+  // Contact Details Validation
+  const firstContact = this.contacts?.[0];
+  if (!firstContact) {
+    alert("❌ Contact Details are missing!");
+    return false;
+  }
+
+  if (!firstContact.DepartmentId) {
+    alert("❌ Department is required!");
+    return false;
+  }
+
+  if (!firstContact.DesignationId) {
+    alert("❌ Designation is required!");
+    return false;
+  }
+
+  // If all validations pass, create branch object
+  const branchData = {
     id: 0,
+    branchName: this.branchName.trim(),
+    address: this.address || '',
+    country: this.country || '',
+    stateProvince: this.stateProvince || '',
+    city: this.city || '',
+    postalCode: this.postalCode || '',
+    area: this.area || '',
+    landmark: this.landmark || '',
+    telephone: this.telephone || '',
+    fax: this.fax || '',
+    website: this.website || '',
+    email: this.email || '',
+    lineOfBusiness: this.lineOfBusiness,
+
+    // Contact Information
+    contactName: firstContact.contactName || '',
+    mobile: firstContact.mobile || '',
+    whatsapp: firstContact.whatsapp || '',
+    emailId: firstContact.email || '',
+    designationId: firstContact.DesignationId ?? 0,
+    departmentId: firstContact.DepartmentId ?? 0,
+
+    isDefault: this.branchList.length === 0,
     organizationId: this.selectedOrgId || 0,
-
-    address: this.address,
-    country: this.country,
-    stateProvince: this.stateProvince,
-    city: this.city,
-    postalCode: this.postalCode,
-    area: this.area,
-    landmark: this.landmark,
-
-    telephone: this.telephone,
-    fax: this.fax,
-    website: this.website,
-    email: this.email,
-
-    contactName: this.contacts?.[0]?.contactName || '',
-    mobile: this.contacts?.[0]?.mobile || '',
-    whatsapp: this.contacts?.[0]?.whatsapp || '',
-    emailId: this.contacts?.[0]?.email || '',
-
-    designationId: this.contacts?.[0]?.DesignationId ?? 0,
-    departmentId: this.contacts?.[0]?.DepartmentId ?? 0,
-
-    isDefault: this.branchList.length === 0
   };
 
-  this.branchList.push(newBranch);
+  // Update existing branch or add new one
+  if (this.selectedBranchIndex >= 0 && this.branchList[this.selectedBranchIndex]) {
+    this.branchList[this.selectedBranchIndex] = { 
+      ...this.branchList[this.selectedBranchIndex], 
+      ...branchData 
+    };
+    console.log("✅ Branch Updated at index:", this.selectedBranchIndex);
+  } else {
+    this.branchList.push(branchData);
+    console.log("✅ New Branch Added");
+  }
 
-  console.log("✅ Branch added:", newBranch);
-
-   
-   this.branchName = ''; // Input box khali kar do
-  this.resetBranchFormOnly();
-  this.cdr.detectChanges(); // UI refresh// form clear
+  this.cdr.detectChanges();
+  return true;   // Success
 }
 toggleRole(role: string) {
   const index = this.selectedRoles.indexOf(role);
@@ -298,49 +509,18 @@ setActiveTab(tabName: string) {
 isShipperSelected(): boolean {
   return this.selectedRoles.includes('shipper');
 }
+// ==================== UPDATED saveOrg() - NO API CALL ON UPDATE ====================
 saveOrg() {
+  const isValid = this.addCurrentBranchIfValid();
 
-  // 🔥 STEP 1: LAST branch bhi check karo (agar user ne New nahi dabaya)
-  this.addCurrentBranchIfValid();
+  if (!isValid) {
+    return;   // Stop if validation fails
+  }
 
-  // 🔥 STEP 2: Organization Save
-  const payload = {
-    Id: this.selectedOrgId || 0,
-    OrgName: this.orgName,
-    Alias: this.alias,
-    SelectedRoles: this.selectedRoles.join(',')
-  };
+  this.hasSavedOrg = true;
 
-  this.http.post(`${environment.apiUrl}/Organization/save`, payload).subscribe({
-    next: (res: any) => {
-
-      let finalOrgId = 0;
-
-      if (res?.data?.id) {
-        finalOrgId = res.data.id;
-      } else if (res?.id) {
-        finalOrgId = res.id;
-      } else {
-        finalOrgId = this.selectedOrgId || 0;
-      }
-
-      console.log("✅ Org Saved:", finalOrgId);
-
-      // 🔥 STEP 3: BRANCH SAVE
-      if (finalOrgId && this.branchList.length > 0) {
-        this.saveAllLocalBranches(finalOrgId);
-      }
-
-      alert("✅ Organization + Branch Saved Successfully!");
-
-      // OPTIONAL RESET
-      this.branchList = [];
-
-    },
-    error: (err) => {
-      console.error("❌ Error:", err);
-    }
-  });
+  
+  this.cdr.detectChanges();
 }
 
  
@@ -409,18 +589,18 @@ resetFormFields() {
 }
 
   changeTab(tab: string) { this.activeTab = tab; }
-selectBranch(branch: any) {
-  console.log("Branch selected for edit:", branch);
+// selectBranch(branch: any) {
+//   console.log("Branch selected for edit:", branch);
 
-  // 1. Input field mein naam populate karo
-  // Kyunki aapka input [(ngModel)]="branchName" se juda hai, wahan naam turant dikhne lagega
-  this.branchName = branch.branchName;
+//   // 1. Input field mein naam populate karo
+//   // Kyunki aapka input [(ngModel)]="branchName" se juda hai, wahan naam turant dikhne lagega
+//   this.branchName = branch.branchName;
 
-  // 2. Is branch ki ID save kar lo (Nayi branch ke liye ye 0 ya null hogi, purani ke liye DB wali ID)
-  this.editingBranchId = branch.id || branch.Id;
+//   // 2. Is branch ki ID save kar lo (Nayi branch ke liye ye 0 ya null hogi, purani ke liye DB wali ID)
+//   this.editingBranchId = branch.id || branch.Id;
 
-  this.cdr.detectChanges();
-}
+//   this.cdr.detectChanges();
+// }
   
   cancel() {
     if (this.isFormOpen) {
@@ -461,6 +641,74 @@ loaddepartment(){
 
 });
 };
+// ==================== FINAL SAVE - COMPLETE ORGANIZATION ====================
+// ==================== SAVE COMPLETE ORGANIZATION WITH PROPER VALIDATION ====================
+saveCompleteOrganization() {
+
+  // 1. Organization Name check
+  if (!this.orgName?.trim()) {
+    alert("❌ Organization Name is required!");
+    return;
+  }
+
+  // 2. At least one branch should exist
+  if (this.branchList.length === 0) {
+    alert("❌ Please add at least one branch!");
+    return;
+  }
+
+  // 3. Check every branch - kam se kam ek branch mein ye sab fields hone chahiye
+  let hasValidBranch = false;
+
+  for (let branch of this.branchList) {
+    if (
+      branch.branchName && branch.branchName.trim() !== '' &&
+      branch.lineOfBusiness &&
+      branch.country && branch.country.trim() !== '' &&
+      branch.stateProvince && branch.stateProvince.trim() !== '' &&
+      branch.city && branch.city.trim() !== '' &&
+      branch.departmentId &&
+      branch.designationId
+    ) {
+      hasValidBranch = true;
+      break;
+    }
+  }
+
+  if (!hasValidBranch) {
+    alert("❌ At least one branch must have:\n• Branch Name\n• Line of Business\n• Country\n• State/Province\n• City\n• Department\n• Designation");
+    return;
+  }
+
+  // Agar sab validation pass ho gaye, tab API call karo
+  const payload = {
+    Id: this.selectedOrgId || 0,
+    OrgName: this.orgName.trim(),
+    Alias: this.alias || '',
+    SelectedRoles: this.selectedRoles.join(',')
+  };
+
+  this.http.post(`${environment.apiUrl}/Organization/save`, payload).subscribe({
+    next: (res: any) => {
+      const finalOrgId = res?.data?.id || res?.id || this.selectedOrgId || 0;
+
+      if (finalOrgId) {
+        this.selectedOrgId = finalOrgId;
+
+        // Saare branches ko database mein save karo
+        if (this.branchList.length > 0) {
+          this.saveAllLocalBranches(finalOrgId);
+        }
+
+        alert("✅ Organization + All Branches Saved Successfully in Database!");
+      }
+    },
+    error: (err) => {
+      console.error("Save Organization Error:", err);
+      alert("❌ Failed to save Organization. Please try again.");
+    }
+  });
+}
 loadestination(){
   this.http.get(`${environment.apiUrl}/User/get-designations`).subscribe({
     next: (data: any) => {
@@ -1495,36 +1743,27 @@ selectState(stateName: string) {
     this.cdr.detectChanges(); // Input fill hone ke baad update
   }
 resetBranchFormOnly() {
-  // 1. Basic Fields
   this.branchName = '';
-  
-  this.selectedLineOfBusiness = null;
-  this.area = '';
-  this.landmark= '';
-  // 2. Address & Location Fields
   this.address = '';
   this.country = '';
   this.stateProvince = '';
   this.city = '';
   this.postalCode = '';
-  
-  // 3. Contact & Communication
+  this.area = '';
+  this.landmark = '';
   this.telephone = '';
   this.fax = '';
   this.website = '';
   this.email = '';
-  
-  // 4. Contact Details Table/Array Reset
-  // Isse contact list wapas initial state (ek khali row) par aa jayegi
-  this.contacts = [
-    { contactName: '', designation: '', department: '', mobile: '', whatsapp: '', email: '' }
-  ];
+  this.lineOfBusiness = null;
 
-  // 5. Flags Reset
-  this.editingBranchId = null;
-  this.isWebsiteInvalid = false;
-  this.isMainEmailInvalid = false;
-
-  console.log("Branch fields have been reset!");
+  this.contacts = [{
+    contactName: '',
+    DesignationId: null,
+    DepartmentId: null,
+    mobile: '',
+    whatsapp: '',
+    email: ''
+  }];
 }
-}
+} 

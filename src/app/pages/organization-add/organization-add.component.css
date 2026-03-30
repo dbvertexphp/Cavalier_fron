@@ -29,3 +29,22 @@
 .cdk-drag-placeholder {
   opacity: 0; /* Jahan se row uthayi wahan khali jagah dikhegi */
 }
+/* 🔥 readonly look */
+.readonly-mode input,
+.readonly-mode select,
+.readonly-mode textarea {
+  background-color: #f3f4f6;   /* light gray */
+  color: #6b7280;              /* dull text */
+  cursor: not-allowed;
+}
+
+/* border bhi halka */
+.readonly-mode input,
+.readonly-mode select {
+  border-color: #d1d5db;
+}
+
+/* checkbox bhi */
+.readonly-mode input[type="checkbox"] {
+  accent-color: gray;
+}

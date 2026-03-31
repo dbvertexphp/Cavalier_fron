@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule, FormArray, FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -7,7 +7,7 @@ import { BranchService } from '../../services/branch.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { employeeSchema } from './employee.schema';
-
+import flatpickr from 'flatpickr';
 @Component({
   selector: 'app-user-form',
   standalone: true,
@@ -15,6 +15,7 @@ import { employeeSchema } from './employee.schema';
   templateUrl: './user-form.component.html'
 })
 export class UserFormComponent implements OnInit {
+  @ViewChild('dobInput') dobInput!: ElementRef;
   todayDate: string = new Date().toISOString().split('T')[0];
   permissions: any[] = [];
   selectedPermissionIds: number[] = [];
@@ -114,7 +115,10 @@ ngOnInit(): void {
       permissionIds: current
     });
   }
-
+onDobChange(event: any) {
+  console.log('DOB changed to:', event.target.value);
+  // Agar koi extra logic chahiye toh yahan likh sakte ho
+}
   initForm() {
     if (this.isBranchForm) {
       this.userForm = this.fb.group({
@@ -631,6 +635,13 @@ onlyNumbers(event: any) {
   if (!pattern.test(inputChar)) {
     event.preventDefault(); // Agar number nahi hai toh type hi nahi hoga
   }
+}
+ngAfterViewInit() {
+  flatpickr(this.dobInput.nativeElement, {
+    dateFormat: "Y-m-d",
+    maxDate: "today",
+    allowInput: true  // 🔥 THIS IS IMPORTANT (typing allow karega)
+  });
 }
 populateForm(data: any) {
   if (!data) return;

@@ -225,23 +225,57 @@ selectedOrgId: number | null = null;
 isOrgEditMode: boolean = false;// Edit ke liye ID store karne ko
 
 // Label to Property Mapping (Taki table auto-render ho sake)
+// columnFieldMap: any = {
+//   'Org ID': 'id',
+//   'Org Name': 'orgName',
+//   'Alias': 'alias',
+//   'Type': 'selectedRoles',
+//   'Location': 'city',
+//   'Branch': 'branchName',
+//   'Organization ID': 'organizationId', 
+//   'Address': 'address',
+//   'Country': 'country',
+//   'City': 'city',
+//   'Telephone': 'telephone',
+//   'Email': 'email',
+//   'State/Province': 'stateProvince',
+//   'Website': 'website',
+//   'Postal Code': 'postalCode',
+//   'WhatsApp': 'whatsAppNumber',
+//   'Sales Person': 'salesPerson',
+//   'Collection Exec': 'collectionExec'
+// };
+
+// // Default columns jo shuru mein dikhenge
+// selectedColumns: string[] = [
+//   'Org ID', 
+//   'Org Name', 
+//   'Alias', 
+//   'Type', 
+//   'Country', 
+//   'City', 
+//   'Organization ID',
+//   'Location', 
+//   'Branch', 
+//   'Address',
+//   'Email', 
+//   'Telephone', 
+//   'WhatsApp',
+//   'Sales Person', 
+//   'Collection Exec',
+//   'Website', 
+//   'Postal Code', 
+//   'State/Province'
+// ];
 columnFieldMap: any = {
   'Org ID': 'id',
   'Org Name': 'orgName',
   'Alias': 'alias',
   'Type': 'selectedRoles',
-  'Location': 'city',
-  'Branch': 'branchName',
+
+  'Total Branches': 'branchName',
   'Organization ID': 'organizationId', 
-  'Address': 'address',
-  'Country': 'country',
-  'City': 'city',
-  'Telephone': 'telephone',
-  'Email': 'email',
-  'State/Province': 'stateProvince',
-  'Website': 'website',
-  'Postal Code': 'postalCode',
-  'WhatsApp': 'whatsAppNumber',
+
   'Sales Person': 'salesPerson',
   'Collection Exec': 'collectionExec'
 };
@@ -252,20 +286,13 @@ selectedColumns: string[] = [
   'Org Name', 
   'Alias', 
   'Type', 
-  'Country', 
-  'City', 
+  'Total Branches',
   'Organization ID',
-  'Location', 
-  'Branch', 
-  'Address',
-  'Email', 
-  'Telephone', 
-  'WhatsApp',
+
+
   'Sales Person', 
   'Collection Exec',
-  'Website', 
-  'Postal Code', 
-  'State/Province'
+
 ];
   // Suggestions store karne ke liye arrays
   filteredOrgCodes: any[] = [];

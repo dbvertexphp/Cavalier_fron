@@ -1211,11 +1211,12 @@
         <div class="mt-6 flex justify-end gap-3 border-t pt-4">
           <button (click)="closeForm()"
             class="px-6 py-2 border border-gray-400 font-bold text-gray-600 hover:bg-gray-100 uppercase text-[11px]">Cancel</button>
-         <button 
-  (click)="saveCompleteOrganization()"
+        <button 
+  (click)="saveOrganization()"
   class="bg-[#4a3f3f] text-white px-10 py-2 font-bold shadow-md hover:bg-black uppercase text-[11px] tracking-wider">
 
-  Save Organization
+  {{ isOrgEditMode ? 'Update Organization' : 'Save Organization' }}
+
 </button>
         </div>
       </div>

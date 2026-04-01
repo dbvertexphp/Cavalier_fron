@@ -130,6 +130,7 @@
               <thead class="sticky top-0 bg-white border-b">
                 <tr class="text-[10px] font-bold text-gray-500 uppercase">
                   <th class="p-4 text-left">Module</th>
+                  <th class="p-4 text-center text-green-500">Add</th>
                   <th class="p-4 text-center text-blue-500">View</th>
                   <th class="p-4 text-center text-amber-500">Edit</th>
                   <th class="p-4 text-center text-red-500">Delete</th>
@@ -155,7 +156,12 @@
                       </span>
                     </div>
                   </td>
-
+<td class="text-center">
+              <input type="checkbox"
+                [checked]="selectedPermissionIds.includes(perm.permissionID + '_a')"
+                (change)="toggleAdd(perm.permissionID)"
+                class="w-4 h-4 accent-green-500">
+            </td>
                   <!-- VIEW -->
                   <td class="text-center">
                     <input type="checkbox"

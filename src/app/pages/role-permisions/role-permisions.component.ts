@@ -96,6 +96,9 @@ loadUserPermissions() {
         this.branchPermissions[branchId].push(p.permissionId);
 
         // actions
+        if (p.actions.includes("Add")) {
+          this.branchPermissions[branchId].push(p.permissionId + "_a");
+        }
         if (p.actions.includes("View")) {
           this.branchPermissions[branchId].push(p.permissionId + "_v");
         }
@@ -253,6 +256,7 @@ applyRolePermissionsToUI(apiData: any[]) {
     apiData.forEach(p => {
       newPermissions.push(p.permissionId);
       if (p.actions && Array.isArray(p.actions)) {
+        if (p.actions.includes("Add"))   newPermissions.push(p.permissionId + "_a");
         if (p.actions.includes("View"))   newPermissions.push(p.permissionId + "_v");
         if (p.actions.includes("Edit"))   newPermissions.push(p.permissionId + "_e");
         if (p.actions.includes("Delete")) newPermissions.push(p.permissionId + "_d");
@@ -324,6 +328,9 @@ applyRolePermissionsToUI(apiData: any[]) {
   toggleDelete(id: any) {
     this.toggleLogic(id + "_d");
   }
+  toggleAdd(id: any) {
+  this.toggleLogic(id + "_a");
+}
 
  private toggleLogic(key: any) {
 
@@ -435,6 +442,7 @@ saveSettings() {
         }
 
         if(action === "v") permissionMap[permId].push("View");
+        if(action === "a") permissionMap[permId].push("Add");
         if(action === "e") permissionMap[permId].push("Edit");
         if(action === "d") permissionMap[permId].push("Delete");
 

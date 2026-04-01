@@ -13,6 +13,7 @@ import * as XLSX from 'xlsx';
 import { leadSchema } from './lead.schema';
 import { Subscription } from 'rxjs';
 import { HttpHeaders } from '@angular/common/http'; // Top par import check kar lena
+import { UserService } from '../../services/user.service';
 // 'fdfd';
 @Component({
   selector: 'app-lead-form',
@@ -26,6 +27,7 @@ import { HttpHeaders } from '@angular/common/http'; // Top par import check kar 
 export class LeadFormComponent implements OnInit {
 // Aapka data array
 // PAGINATION VARIABLES
+
 salesProcesses: any[] = [];
 leadOwners: any[] = [];
 salesCoordinators: any[] = [];
@@ -64,10 +66,13 @@ goToPage(page: number) {
     private router: Router,
     private http: HttpClient,
     private cdr: ChangeDetectorRef,
-    public CheckPermissionService:CheckPermissionService
+    public CheckPermissionService:CheckPermissionService,
+    public userServices:UserService
   ) {}
 
   ngOnInit(): void {
+    this.loadDropdownData()
+    this.loadLeadOwners();
     this.getSalesProcesses();
     this.getLeadOwners();
     this.getSalesCoordinators();
@@ -977,7 +982,8 @@ onLeadOwnerSearch(event: Event): void {
 // 2. Selection Logic
 selectLeadOwner(ownerName: string): void {
   this.leadSearchFilters.leadOwner = ownerName; // Object property update
-  this.filteredLeadOwners = [];                 // Dropdown band
+  this.filteredLeadOwners = [];       
+   // Dropdown band
   this.cdr.detectChanges();
 }
 loadLeadSuggestions() {
@@ -1006,6 +1012,7 @@ this.managerUniqueList = [...new Set(data
 )];
 
           console.log("✅ HOD Unique List Loaded:", this.hodUniqueList);
+          console.log("✅ owner Unique List Loaded:", this.leadOwnerList);
           this.cdr.detectChanges(); 
         }
       },
@@ -1811,4 +1818,37 @@ selectLnFromIcon(val: any) {
   
   // Instant UI update taaki modal turant band ho jaye
   this.cdr.detectChanges();
-}}
+}
+loadLeadOwners(): void {
+  // Teri API call
+  this.userServices.getUsers('all').subscribe({
+    next: (data: any) => {
+      // API se aane wala data leadOwners mein assign kar diya
+      this.leadOwners = data; 
+      console.log('Lead Owners loaded:', this.leadOwners);
+          this.cdr.detectChanges(); 
+    },
+    error: (err) => {
+      console.error('Error loading users:', err);
+    }
+  });
+}loadDropdownData(): void {
+  this.userServices.getUsers('all').subscribe({
+    next: (data: any) => {
+      // Data assign kiya
+      this.leadOwners = data;
+      this.salesCoordinators = data;
+      this.reportingManagers = data;
+      this.hodList = data;
+      
+      console.log('Data loaded, triggering change detection...');
+
+      // 3. Ye magic line hai jo UI turant update kar degi
+      this.cdr.detectChanges(); 
+    },
+    error: (err) => {
+      console.error('API Error:', err);
+    }
+  });
+}
+}

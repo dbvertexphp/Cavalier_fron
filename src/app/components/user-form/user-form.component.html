@@ -74,13 +74,13 @@
       </div>
     </div>
 
-    <div>
+    <!-- <div>
       <label>Middle Name</label>
       <input formControlName="middleName" class="w-full border p-2 rounded">
       <div *ngIf="userForm.get('middleName')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
         {{ userForm.get('middleName')?.errors?.['zod'] }}
-      </div>
-    </div>
+      </div> -->
+    <!-- </div> -->
 
     <div>
       <label class="font-bold">Last Name*</label>
@@ -506,7 +506,6 @@
   </div>
 </div>
   </div>
-
 <div class="space-y-6 border-t pt-4">
   <h3 class="font-bold text-green-600 underline">Corresponding Address</h3>
   <div class="bg-gray-50 p-4 rounded border">
@@ -562,19 +561,22 @@
     </div>
   </div>
 
-  <div class="flex items-center space-x-2 px-1">
-    <input 
-      type="checkbox" 
-      id="sameAsPres" 
-      (change)="syncAddress($event)"
-      class="w-4 h-4 cursor-pointer"
-    >
-    <label for="sameAsPres" class="text-sm font-bold text-gray-600 cursor-pointer">
-      Same as Corresponding Address
-    </label>
+  <div class="flex items-center space-x-4 px-1">
+    <h3 class="font-bold text-green-600 underline text-nowrap">Parmanent Address</h3>
+    
+    <div class="flex items-center space-x-2">
+      <input 
+        type="checkbox" 
+        id="sameAsPres" 
+        (change)="syncAddress($event)"
+        class="w-4 h-4 cursor-pointer"
+      >
+      <label for="sameAsPres" class="text-sm font-bold text-gray-600 cursor-pointer">
+        Same as Corresponding Address
+      </label>
+    </div>
   </div>
 
-  <h3 class="font-bold text-green-600 underline">Parmanent Address</h3>
   <div class="bg-gray-50 p-4 rounded border">
     <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
       <div>

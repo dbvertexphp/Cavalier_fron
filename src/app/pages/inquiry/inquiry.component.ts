@@ -393,15 +393,32 @@ removeDoc(index: number) {
     neworg() {
       this.router.navigate(['/dashboard/organization-add']);
     }
+deleteQuotation(id: number) {
+  if (confirm("Are you sure?")) {
+    
+    // 1. IMMEDIATE UI UPDATE (Wait mat karo API ka)
+    // Maan lo aapka array 'quotations' naam se hai
+    this.quotations = this.quotations.filter((q: any) => q.id !== id);
+    
+    // 2. Angular ko bolo ki turant UI badal de
+    this.cdr.detectChanges(); 
 
-    deleteQuotation(id: number) {
-      if (confirm("Are you sure?")) {
-        this.http.delete(`${this.apiUrl}/${id}`).subscribe(() => {
-          alert("Deleted Successfully!");
-          this.loadQuotations();
-        });
+    this.http.delete(`${this.apiUrl}/${id}`).subscribe({
+      next: () => {
+        console.log("Deleted Successfully!");
+        // Backend se sync karne ke liye piche se load kar lo
+        this.loadQuotations(); 
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error("Delete failed", err);
+        alert("Delete failed! Refreshing list...");
+        this.loadQuotations(); // Agar error aaye toh wapas list le aao
+        this.cdr.detectChanges();
       }
-    }
+    });
+  }
+}
 getFormattedInquiryNo(): string {
 
   // 1️⃣ Line of Business Name (Air Import -> AI)

@@ -828,11 +828,29 @@ editQuotation(q: any) {
   }, 100);
 }
 
-  deleteQuotation(id: number) {
-    if (confirm("Are you sure?")) {
-      this.http.delete(`${this.apiEndpoint}/${id}`).subscribe(() => this.loadQuotations());
-    }
+// Constructor mein inject karein
+
+
+deleteQuotation(id: number) {
+  if (confirm("Are you sure?")) {
+    this.http.delete(`${this.apiEndpoint}/${id}`).subscribe({
+      next: () => {
+        // 2. Data load hone ke baad manual refresh trigger karein
+        this.loadQuotations();
+        
+        // 3. Ek chota sa delay de kar Angular ko force karein UI update ke liye
+        setTimeout(() => {
+          this.cdr.detectChanges();
+          console.log("UI Refreshed!");
+        }, 100);
+      },
+      error: (err) => {
+        console.error("Delete Error:", err);
+        this.cdr.detectChanges();
+      }
+    });
   }
+}
 
   // --- Filter & Search Methods (Fixes 'searchQuotations', 'clearFilters' errors) ---
   searchQuotations() {

@@ -120,7 +120,7 @@
             </td>
             <td class="p-3">{{ emp.department }}</td>
             <td class="p-3 text-gray-500">{{ emp.designation }}</td>
-            <td class="p-3">{{ emp.dob || "N/A" }}</td>
+          <td class="p-3">{{ emp.dob ? (emp.dob | date:'dd-MM-yyyy') : "N/A" }}</td>
             <td class="p-3">{{ emp.gender || "N/A" }}</td>
             <td class="p-3">{{ emp.mobile || "N/A" }}</td>
             <td class="p-3 text-gray-600 lowercase">{{ emp.email }}</td>

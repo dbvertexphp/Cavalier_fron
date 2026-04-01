@@ -357,28 +357,39 @@ initSearchForm() {
     this.leadForm.patchValue({ leadNo: this.nextLeadNo });
   }
 
-  onDeleteLead(id: any) {
-    if (confirm('Do you want to delete this lead')) {
-      this.http.delete(`${environment.apiUrl}/Leads/${id}`, { responseType: 'text' })
-        .subscribe({
-          next: (res) => {
-            console.log('Delete response:', res);
-            alert('Lead Deleted Successfully!');
-            this.loadLeads(); // Table refresh karein
-          },
-          error: (err) => {
-            console.error('Delete Error:', err);
-            
-            if (err.status === 200) {
-              alert('Lead Deleted Successfully!');
-              this.loadLeads();
-            } else {
-              alert('Delete fail !');
-            }
+onDeleteLead(id: any) {
+  if (confirm('Do you want to delete this lead')) {
+    // 1. Pehle hi list se hata do (Optimistic Update)
+    // Maan lo aapki leads 'leads' array mein hain:
+    this.leads = this.leads.filter((l: any) => l.id !== id);
+    this.cdr.detectChanges(); // Turant table se gayab ho jayega
+
+    this.http.delete(`${environment.apiUrl}/Leads/${id}`, { responseType: 'text' })
+      .subscribe({
+        next: (res) => {
+          console.log('Delete response:', res);
+          
+          // 2. Alert ko baad mein dikhao taaki UI na ruke
+          setTimeout(() => {
+            this.loadLeads(); // Backend se sync
+            this.cdr.detectChanges();
+            console.log('Lead Deleted Successfully!');
+          }, 100);
+        },
+        error: (err) => {
+          console.error('Delete Error:', err);
+          if (err.status === 200) {
+            this.loadLeads();
+            this.cdr.detectChanges();
+          } else {
+            alert('Delete fail !');
+            this.loadLeads(); // Fail hone par wapas laao
+            this.cdr.detectChanges();
           }
-        });
-    }
+        }
+      });
   }
+}
   private loadOrganizations(): void {
     this.http
       .get<any[]>(`${environment.apiUrl}/Organization/List`)

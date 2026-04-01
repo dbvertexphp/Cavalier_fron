@@ -4,3 +4,21 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   width: 20px;
   height: 20px;
 }
+/* Default icon ko hide karenge par clickable rakhenge */
+.custom-date-input::-webkit-calendar-picker-indicator {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 40px;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    opacity: 0; /* Isse default icon dikhega nahi par click wahi kaam karega */
+    cursor: pointer;
+}
+
+/* Chrome/Safari mein placeholder alignment ke liye */
+.custom-date-input {
+    display: flex;
+    align-items: center;
+}

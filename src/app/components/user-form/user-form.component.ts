@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule, FormArray, FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -7,7 +7,7 @@ import { BranchService } from '../../services/branch.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { employeeSchema } from './employee.schema';
-import flatpickr from 'flatpickr';
+
 @Component({
   selector: 'app-user-form',
   standalone: true,
@@ -15,7 +15,6 @@ import flatpickr from 'flatpickr';
   templateUrl: './user-form.component.html'
 })
 export class UserFormComponent implements OnInit {
-  @ViewChild('dobInput') dobInput!: ElementRef;
   todayDate: string = new Date().toISOString().split('T')[0];
   permissions: any[] = [];
   selectedPermissionIds: number[] = [];
@@ -43,7 +42,8 @@ export class UserFormComponent implements OnInit {
     private userService: UserService,
     private branchService: BranchService,
     private router: Router,
-    private http: HttpClient
+    private http: HttpClient,
+    private cdr: ChangeDetectorRef
   ) {
     const nav = this.router.getCurrentNavigation();
     if (nav?.extras.state) {
@@ -55,6 +55,8 @@ export class UserFormComponent implements OnInit {
   }
 
 ngOnInit(): void {
+    this.userService.getDepartments().subscribe(res => this.departments = res);
+  this.userService.getDesignations().subscribe(res => this.designations = res);
   this.initForm();
   
   if (!this.isBranchForm) {
@@ -115,145 +117,144 @@ ngOnInit(): void {
       permissionIds: current
     });
   }
-onDobChange(event: any) {
-  console.log('DOB changed to:', event.target.value);
-  // Agar koi extra logic chahiye toh yahan likh sakte ho
-}
-  initForm() {
-    if (this.isBranchForm) {
-      this.userForm = this.fb.group({
-        companyName: ['Cavalier Logistics'],
-        companyAlias: ['CL'],
-        branchName: [''],
-        branchCode: [''],
-        email: ['admin@cavalierlogistic.in'], // Default as per your preference
-        city: [''],
-        state: [''],
-        postalCode: [''],
-        contactNo: [''],
-        gstCategory: ['Regular'],
-        gstin: [''],
-        address: [''],
-        isActive: [true]
-      });
-    } else {
-      this.userForm = this.fb.group({
-        firstName: [''],
-        middleName: [''],
-        lastName: [''],
-        dob: [''],
-        gender: ['Male'],
-        maritalStatus: ['Single'],
-        bloodGroup: [''],
-        password: ['123456'],
-        department: [''],
-        designation: [''],
-        functionalArea: [''],
-        userType: [''],
-        branchId: [null],
-        roleId: [null],
-        licenceType: [''],
-        dateOfJoining: [''],
-        ctc_Monthly: [0],
-        salaryAccountNo: [''],
-        email: [''],
-        mobile: [''],
-        telephone: [''],
-        paN_No: [''],
-        aadhaarNo: [''],
-        ipAdress: [''],
-        permissionIds: [[]],
-        
-        presHouseNo: [''],
-        presBuilding: [''],
-        presFloor: [''],
-        presBlock: [''],
-        presStreet: [''],
-        presLandmark: [''],
-        presArea: [''],
-        presCity: [''],
-        presDistrict: [''],
-        presState: [''],
-        presPincode: [''],
-        presCountry: ['India'],
 
-        educations: this.fb.array([]),
-        experiences: this.fb.array([this.createExperienceGroup()]),
-tenthId: [null], // <--- Add this
-tenthName: ['10th'],
-tenthYear: [''],
-tenthPercentage: [''],
-tenthMarksheet: [null],
+initForm() {
+  if (this.isBranchForm) {
+    this.userForm = this.fb.group({
+      userType: [''],
+      employeeCode: [''],
+      companyName: ['Cavalier Logistics'],
+      companyAlias: ['CL'],
+      branchName: [''],
+      branchCode: [''],
+      email: ['admin@cavalierlogistic.in'],
+      city: [''],
+      state: [''],
+      postalCode: [''],
+      contactNo: [''],
+      gstCategory: ['Regular'],
+      gstin: [''],
+      address: [''],
+      isActive: [true]
+    });
+  } else {
+    this.userForm = this.fb.group({
+      employeeCode: [''], // Sirf ek baar yahan rehne diya
+      firstName: [''],
+      middleName: [''],
+      lastName: [''],
+      dob: [''],
+      gender: ['Male'],
+      maritalStatus: ['Single'],
+      bloodGroup: [''],
+      password: ['123456'],
+      department: [''],
+      designation: [''],
+      functionalArea: [''],
+      userType: [''],
+      branchId: [null],
+      roleId: [null],
+      licenceType: [''],
+      dateOfJoining: [''],
+      ctc_Monthly: [0],
+      salaryAccountNo: [''],
+      email: [''],
+      mobile: [''],
+      telephone: [''],
+      paN_No: [''],
+      aadhaarNo: [''],
+      ipAdress: [''],
+      permissionIds: [[]],
+      
+      presHouseNo: [''],
+      presBuilding: [''],
+      presFloor: [''],
+      presBlock: [''],
+      presStreet: [''],
+      presLandmark: [''],
+      presArea: [''],
+      presCity: [''],
+      presDistrict: [''],
+      presState: [''],
+      presPincode: [''],
+      presCountry: ['India'],
 
-twelfthId: [null], // <--- Add this
-twelfthName: ['12th'],
-twelfthYear: [''],
-twelfthPercentage: [''],
-twelfthMarksheet: [null],
+      educations: this.fb.array([]),
+      experiences: this.fb.array([this.createExperienceGroup()]),
+      tenthId: [null],
+      tenthName: ['10th'],
+      tenthYear: [''],
+      tenthPercentage: [''],
+      tenthMarksheet: [null],
 
-graduationId: [null], // <--- Add this
-graduationName: ['Graduation'],
-graduationYear: [''],
-graduationPercentage: [''],
-graduationMarksheet: [null],
+      twelfthId: [null],
+      twelfthName: ['12th'],
+      twelfthYear: [''],
+      twelfthPercentage: [''],
+      twelfthMarksheet: [null],
 
-postGraduationId: [null], // <--- Add this
-postGraduationName: ['Post Graduation'],
-postGraduationYear: [''],
-postGraduationPercentage: [''],
-postGraduationMarksheet: [null],
-       
+      graduationId: [null],
+      graduationName: ['Graduation'],
+      graduationYear: [''],
+      graduationPercentage: [''],
+      graduationMarksheet: [null],
 
-        permHouseNo: [''],
-        permBuilding: [''],
-        permFloor: [''],
-        permBlock: [''],
-        permStreet: [''],
-        permLandmark: [''],
-        permArea: [''],
-        permCity: [''],
-        permDistrict: [''],
-        permState: [''],
-        permPincode: [''],
-        permCountry: ['India'],
+      postGraduationId: [null],
+      postGraduationName: ['Post Graduation'],
+      postGraduationYear: [''],
+      postGraduationPercentage: [''],
+      postGraduationMarksheet: [null],
 
-        accountHolderName: [''],
-        bankName: [''],
-        ifscCode: [''],
-        accountType: [''],
-        accountNumber: [''],
-bankBranchName: [''],
-        profileSelect: [''],
-        profilePicture: [null],
-        profilePicturePath: [''],
-        signature: [''],
-        reportTo: [''],
-        emergencyName: [''],
-       EmergencyRelation: [''], // 'emergencyRelationship' ko badal kar ye kar dein
-       
-        emergencyContactNo: [''],
-        mfaRegistration: [false],
-        fieldVisit: [false],
-        alwaysBccmyself: [false],
-        invitationLetter: [null],
-        offerLetter: [null],
-appointmentLetter: [null],
-relievingLetter: [null],
-fullAndFinalLetter: [null],
-        invitationLetterPath: [''],
-        simIssued: [false],
-        status: [true],
-        hodId: [null], 
-        teamId: [null],
-        exitDate:[null],
-        
-        address: [''],
-        city: [''],
-        state: [''],
-        postalCode: ['']
-      });
-    }
+      permHouseNo: [''],
+      permBuilding: [''],
+      permFloor: [''],
+      permBlock: [''],
+      permStreet: [''],
+      permLandmark: [''],
+      permArea: [''],
+      permCity: [''],
+      permDistrict: [''],
+      permState: [''],
+      permPincode: [''],
+      permCountry: ['India'],
+
+      accountHolderName: [''],
+      bankName: [''],
+      ifscCode: [''],
+      accountType: [''],
+      accountNumber: [''],
+      bankBranchName: [''],
+      profileSelect: [''],
+      profilePicture: [null],
+      profilePicturePath: [''],
+      signature: [''],
+      reportTo: [''],
+      emergencyName: [''],
+      EmergencyRelation: [''],
+      
+      emergencyContactNo: [''],
+      mfaRegistration: [false],
+      fieldVisit: [false],
+      alwaysBccmyself: [false],
+      invitationLetter: [null],
+      offerLetter: [null],
+      appointmentLetter: [null],
+      relievingLetter: [null],
+      fullAndFinalLetter: [null],
+      invitationLetterPath: [''],
+      simIssued: [false],
+      status: [true],
+      hodId: [null], 
+      teamId: [null],
+      exitDate:[null],
+      
+      address: [''],
+      city: [''],
+      state: [''],
+      postalCode: ['']
+    });
   }
+}
 
   // ============= DYNAMIC EDUCATION METHODS =============
   
@@ -438,9 +439,20 @@ onSubmit() {
   } else {
     // ================= USER FORM LOGIC (EDIT + REGISTER) =================
     
+    // BACKEND COMPATIBILITY LOGIC (Bina aapka structure chhede)
+    let formattedDob = raw.dob;
+    if (raw.dob && raw.dob.includes('-')) {
+      const parts = raw.dob.split('-');
+      if (parts.length === 3 && parts[0].length === 2) { 
+        // DD-MM-YYYY -> YYYY-MM-DD (Backend compatibility)
+        formattedDob = `${parts[2]}-${parts[1]}-${parts[0]}`;
+      }
+    }
+
     const finalPayload = {
       ...raw,
-      id: this.isEditMode ? this.id : 0, // Edit mein ID bhejni zaroori hai
+      dob: formattedDob, // Yahan updated dob chali jayegi
+      id: this.isEditMode ? this.id : 0, 
       EmergencyRelation: raw.emergencyRelationship || raw.EmergencyRelation
     };
 
@@ -453,7 +465,6 @@ onSubmit() {
       next: (res: any) => {
         console.log(this.isEditMode ? 'Update Success' : 'Register Success', res);
         alert(res);
-        // UserId handle karein (res.id ya this.id)
         const currentId = this.isEditMode ? this.id : (res.id || res.userId || res.data?.id);
 
         if (currentId) {
@@ -636,13 +647,6 @@ onlyNumbers(event: any) {
     event.preventDefault(); // Agar number nahi hai toh type hi nahi hoga
   }
 }
-ngAfterViewInit() {
-  flatpickr(this.dobInput.nativeElement, {
-    dateFormat: "Y-m-d",
-    maxDate: "today",
-    allowInput: true  // 🔥 THIS IS IMPORTANT (typing allow karega)
-  });
-}
 populateForm(data: any) {
   if (!data) return;
 
@@ -734,7 +738,162 @@ populateForm(data: any) {
     });
   }
 }
+// 1. Jab user type kare (Auto Dash insertion)
+onDateInput(event: any) {
+  let v = event.target.value.replace(/\D/g, ''); // Sirf digits rakho
+  if (v.length > 8) v = v.substring(0, 8); // Max 8 digits (DDMMYYYY)
+  
+  let displayValue = "";
+  
+  // Dynamic Formatting as User Types
+  if (v.length > 4) {
+    displayValue = `${v.substring(0, 2)}-${v.substring(2, 4)}-${v.substring(4, 8)}`;
+  } else if (v.length > 2) {
+    displayValue = `${v.substring(0, 2)}-${v.substring(2, 4)}`;
+  } else {
+    displayValue = v;
+  }
+  
+  // UI par DD-MM-YYYY set kar rahe hain
+  this.userForm.get('dob')?.setValue(displayValue, { emitEvent: false });
+}
+// 2. Jab Calendar se select kare (YYYY-MM-DD ko DD-MM-YYYY mein badle)
+onCalendarChange(val: string) {
+  if (!val) return;
+  const [year, month, day] = val.split('-');
+  const formattedDate = `${day}-${month}-${year}`;
+  this.userForm.get('dob')?.setValue(formattedDate);
+}
+syncAddress(event: any) {
+  if (event.target.checked) {
+    // Sari present address ki values nikal lo
+    const currentValues = this.userForm.value;
+    
+    // Permanent address fields mein patch kar do
+    this.userForm.patchValue({
+      permHouseNo: currentValues.presHouseNo,
+      permBuilding: currentValues.presBuilding,
+      permFloor: currentValues.presFloor,
+      permBlock: currentValues.presBlock,
+      permStreet: currentValues.presStreet,
+      permLandmark: currentValues.presLandmark,
+      permArea: currentValues.presArea,
+      permCity: currentValues.presCity,
+      permDistrict: currentValues.presDistrict,
+      permState: currentValues.presState,
+      permPincode: currentValues.presPincode,
+      permCountry: currentValues.presCountry,
+    });
+  } else {
+    // Agar uncheck kare toh permanent address clear kar de (Optional)
+    this.userForm.patchValue({
+      permHouseNo: '', permBuilding: '', permFloor: '', permBlock: '',
+      permStreet: '', permLandmark: '', permArea: '', permCity: '',
+      permDistrict: '', permState: '', permPincode: '', permCountry: ''
+    });
+  }
+}
+// Variables (Add these in your class)
+
+filteredDepts: any[] = [];
+filteredDesig: any[] = [];
+
+
+
+// 1. Search Logic (Min 3 characters)
+onSearch(event: any, type: string) {
+  const query = event.target.value.toLowerCase();
+  if (query.length >= 3) {
+    if (type === 'dept') {
+      this.filteredDepts = this.departments.filter(d => d.name.toLowerCase().includes(query));
+    } else {
+      this.filteredDesig = this.designations.filter(d => d.name.toLowerCase().includes(query));
+    }
+  } else {
+    this.filteredDepts = [];
+    this.filteredDesig = [];
+  }
 }
 
+// 2. Selection Logic (Value set karne ke liye)
+// selectItem(item: any, type: string, inputElement: HTMLInputElement) {
+//   if (type === 'dept') {
+//     this.userForm.get('department')?.setValue(item.id); // Backend ke liye ID
+//     inputElement.value = item.name; // User ke liye Name
+//     this.filteredDepts = [];
+//   } else {
+//     this.userForm.get('designation')?.setValue(item.id); // Backend ke liye ID
+//     inputElement.value = item.name; // User ke liye Name
+//     this.filteredDesig = [];
+//   }
+// }
 
+// 3. Modal logic (Aapke project ke modal ke hisaab se)
+openDeptModal() {
+  // Example: Yahan aap apna modal open karein aur selecting par selectItem call karein
+  alert("Modal for all Departments will open here");
+}
 
+openDesigModal() {
+  alert("Modal for all Designations will open here");
+}
+
+isModalOpen = false;
+modalType: 'dept' | 'des' = 'dept';
+
+// Modal Open karne ka function
+openModal(type: 'dept' | 'des') {
+  this.modalType = type;
+  this.isModalOpen = true;
+}
+
+// Select Item Logic (Updated to handle Modal + Input)
+selectItem(item: any, type: string, inputElement: HTMLInputElement) {
+  if (type === 'dept') {
+    this.userForm.get('department')?.setValue(item.id);
+    inputElement.value = item.name;
+    this.filteredDepts = [];
+  } else {
+    this.userForm.get('designation')?.setValue(item.id);
+    inputElement.value = item.name;
+    this.filteredDesig = [];
+  }
+}
+// Class variables (Make sure these exist)
+// isLoading = false;
+users: any[] = [];
+
+onUserTypeChange(event: any) {
+  const selectedType = event.target.value;
+
+  if (selectedType) {
+    this.isLoading = true;
+    
+    this.userService.getUsers(selectedType).subscribe({
+      next: (data: any[]) => {
+        this.isLoading = false;
+
+        if (data && data.length > 0) {
+          const lastRecord = data[data.length - 1]; 
+          const latestCode = lastRecord.empCode; // "TRN/004"
+
+          // setTimeout use kar rahe hain taaki Angular check cycle khatam ho jaye
+          setTimeout(() => {
+            // Hum direct patchValue use karenge pure form par
+            this.userForm.patchValue({
+              employeeCode: latestCode
+            }, { emitEvent: false }); // emitEvent false karne se loop nahi banega
+
+            this.cdr.detectChanges(); // UI refresh
+            console.log("Value ab set ho gayi hai:", latestCode);
+          }, 0);
+        }
+      },
+      error: (err) => {
+        this.isLoading = false;
+        console.error("API Error:", err);
+      }
+    });
+  }
+}
+}

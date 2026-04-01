@@ -19,15 +19,22 @@ paN_No: z.string()
   ctc_Monthly: z.preprocess((val) => String(val), z.string().regex(/^[0-9.]+$/, "CTC must be number")),
 
   // Address - Mapping to your 'pres' and 'perm' names
-  presHouseNo: z.string().min(1, "House no required"),
-  presStreet: z.string().min(1, "Street required"),
-  presCity: z.string().min(1, "City required"),
-  presPincode: z.string().regex(/^[0-9]{6}$/, "Invalid pincode"),
+  // Zod Schema (Address Section)
 
-  permHouseNo: z.string().min(1, "House no required"),
-  permStreet: z.string().min(1, "Street required"),
-  permCity: z.string().min(1, "City required"),
-  permPincode: z.string().regex(/^[0-9]{6}$/, "Invalid pincode"),
+  presHouseNo: z.string().optional().or(z.literal('')),
+  presStreet: z.string().optional().or(z.literal('')),
+  presCity: z.string().optional().or(z.literal('')),
+  presDistrict: z.string().optional().or(z.literal('')),
+  presState: z.string().optional().or(z.literal('')),
+  presPincode: z.string().optional().or(z.literal('')),
+  // ... baaki sari fields ko bhi optional() kar dein
+  
+  permHouseNo: z.string().optional().or(z.literal('')),
+  permStreet: z.string().optional().or(z.literal('')),
+  permCity: z.string().optional().or(z.literal('')),
+  permDistrict: z.string().optional().or(z.literal('')),
+  permState: z.string().optional().or(z.literal('')),
+  permPincode: z.string().optional().or(z.literal('')),
 
   // Bank Details
   accountHolderName: z.string().min(1, "Required"),
@@ -38,9 +45,25 @@ paN_No: z.string()
   .regex(/^[A-Z0-9]+$/, "ony alphabets and numbers (No special characters)"),
   accountNumber: z.string().regex(/^[0-9]{9,18}$/, "Invalid account number"),
 
-  // Education - Flattened as per your initForm
-  tenthYear: z.string().regex(/^(19|20)[0-9]{2}$/, "Invalid year"),
-  twelfthYear: z.string().regex(/^(19|20)[0-9]{2}$/, "Invalid year"),
+// In sabko optional kar diya taaki validation error na aaye
+  tenthYear: z.string().optional().or(z.literal('')),
+  tenthPercentage: z.string().optional().or(z.literal('')),
+  
+  twelfthYear: z.string().optional().or(z.literal('')),
+  twelfthPercentage: z.string().optional().or(z.literal('')),
+  
+  graduationYear: z.string().optional().or(z.literal('')),
+  graduationPercentage: z.string().optional().or(z.literal('')),
+  
+  postGraduationYear: z.string().optional().or(z.literal('')),
+  postGraduationPercentage: z.string().optional().or(z.literal('')),
+
+  // FormArray ke liye bhi optional handle karein
+  educations: z.array(z.object({
+    educationName: z.string().optional(),
+    year: z.string().optional(),
+    percentage: z.string().optional()
+  })).optional(),
 
   // Emergency
   emergencyName: z.string().min(1, "Required"),

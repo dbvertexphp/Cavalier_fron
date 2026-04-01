@@ -74,56 +74,65 @@
     </div>
   </div>
 </div>
-
 <div *ngIf="showOrgDropdown && orgList.length > 0" 
-     class="fixed inset-0 bg-slate-900/60 backdrop-blur-[4px] z-[9998] animate-in fade-in duration-300"
+     class="fixed inset-0 bg-slate-900/50 backdrop-blur-[2px] z-[9998] transition-opacity duration-300 ease-in-out"
      (click)="showOrgDropdown = false">
 </div>
 
 <div *ngIf="showOrgDropdown && orgList.length > 0"
-     class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] 
-            w-[92%] sm:w-[85%] md:w-[450px] 
-            max-h-[85vh] flex flex-col
-            bg-white shadow-[0_20px_50px_rgba(0,0,0,0.4)] rounded-2xl overflow-hidden border border-gray-100 
-            animate-in fade-in zoom-in duration-200">
-  
-  <div class="px-5 py-4 bg-gradient-to-r from-red-50 to-white border-b border-red-100 flex-shrink-0 flex flex-col gap-3">
-    <div class="flex justify-between items-center">
-      <h3 class="text-[11px] font-bold text-red-800 uppercase tracking-tight">Select Organization</h3>
-      <button (click)="showOrgDropdown = false" 
-              class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-100 text-red-400 transition-all">
-        ✕
-      </button>
-    </div>
+     class="fixed inset-0 flex items-center justify-center z-[9999] p-4 pointer-events-none"> 
 
-    <div class="relative">
-      <span class="absolute inset-y-0 left-3 flex items-center text-gray-400">🔍</span>
-      <input 
-        type="text" 
-        placeholder="Search organization..." 
-        class="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-red-500/20"
-        (input)="filterOrgList($event)">
-    </div>
-  </div>
+  <div class="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-gray-200 
+              flex flex-col max-h-[85vh] overflow-hidden pointer-events-auto
+              animate-in fade-in duration-300 ease-out">
 
-  <div class="overflow-y-auto bg-white custom-scrollbar flex-1 min-h-0">
-    <div *ngFor="let org of orgList"
-         (click)="selectOrg(org)" 
-         class="px-5 py-3.5 hover:bg-red-50/50 cursor-pointer text-sm text-gray-700 border-b border-gray-50 last:border-0 flex items-center justify-between group transition-all">
-      
-      <div class="flex flex-col">
-        <span class="group-hover:text-red-700 font-medium truncate pr-2">{{ org.orgName }}</span>
-        <span class="text-[10px] text-gray-400">{{ org.orgCode || 'ORG-CODE' }}</span>
+    <div class="px-6 py-4 border-b border-gray-100 bg-white flex-shrink-0">
+      <div class="flex justify-between items-center mb-4">
+        <div>
+          <h3 class="text-lg font-bold text-gray-900">Select Organization</h3>
+          <p class="text-xs text-gray-500">Search and select from the list below</p>
+        </div>
+        <button (click)="showOrgDropdown = false" 
+                class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 transition-all">
+          ✕
+        </button>
       </div>
-      
-      <span class="flex-shrink-0 opacity-0 group-hover:opacity-100 text-red-400 transform translate-x-[-10px] group-hover:translate-x-0 transition-all text-[10px] font-semibold">
-        Select →
-      </span>
-    </div>
-  </div>
 
-  <div class="py-2.5 bg-red-50/30 border-t border-red-50 text-center flex-shrink-0">
-    <p class="text-[10px] text-red-400 uppercase tracking-widest font-bold">Cavalier Logistics</p>
+      <div class="relative">
+        <span class="absolute inset-y-0 left-4 flex items-center text-gray-400">🔍</span>
+        <input 
+          type="text" 
+          placeholder="Type to filter..." 
+          class="w-full pl-11 pr-4 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-400 transition-all"
+          (input)="filterOrgList($event)"
+        >
+      </div>
+    </div>
+
+    <div class="overflow-y-auto bg-white flex-1 min-h-0 custom-scrollbar p-2">
+      <div *ngFor="let org of orgList"
+           (click)="selectOrg(org)" 
+           class="group flex items-center justify-between px-4 py-3 mb-1 rounded-xl hover:bg-blue-50 cursor-pointer transition-colors border border-transparent hover:border-blue-50">
+        
+        <div class="flex items-center gap-4">
+          <div class="w-9 h-9 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center text-xs font-bold flex-shrink-0 uppercase">
+            {{ org.orgName.substring(0, 1) }}
+          </div>
+          <div class="flex flex-col">
+            <span class="text-sm font-semibold text-gray-800">{{ org.orgName }}</span>
+            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{{ org.orgCode }}</span>
+          </div>
+        </div>
+        
+        <span class="opacity-0 group-hover:opacity-100 text-blue-500 text-[10px] font-bold transition-opacity">
+          SELECT
+        </span>
+      </div>
+    </div>
+
+    <div class="px-6 py-3 bg-gray-50 border-t border-gray-100 text-center flex-shrink-0">
+      <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Cavalier Logistics</p>
+    </div>
   </div>
 </div>
   
@@ -156,14 +165,37 @@
         🔍
       </span>
 
-      <div *ngIf="filteredHODSuggestions.length > 0"
-           class="absolute z-50 w-full bg-white border border-gray-300 top-full left-0 mt-1 max-h-48 overflow-y-auto shadow-md">
-        <div *ngFor="let hodName of filteredHODSuggestions"
-             (click)="selectHOD(hodName)" 
-             class="p-2 hover:bg-red-50 cursor-pointer text-sm border-b">
-          {{ hodName }}
-        </div>
+   <div class="relative w-full">
+  
+  <div *ngIf="filteredHODSuggestions.length > 0"
+       class="absolute z-[999] w-full bg-white border border-gray-200 top-full left-0 mt-1 
+              max-h-60 overflow-y-auto shadow-xl rounded-xl p-1
+              animate-in fade-in duration-200 ease-out">
+    
+    <div *ngFor="let hodName of filteredHODSuggestions"
+         (click)="selectHOD(hodName)" 
+         class="flex items-center gap-3 p-3 mb-0.5 hover:bg-red-50 cursor-pointer rounded-lg transition-colors group">
+      
+      <div class="w-7 h-7 rounded-md bg-red-100 text-red-600 flex items-center justify-center text-[10px] font-bold flex-shrink-0 uppercase border border-red-200">
+        {{ hodName.substring(0, 1) }}
       </div>
+
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-semibold text-gray-700 group-hover:text-red-700 truncate">
+          {{ hodName }}
+        </p>
+      </div>
+
+      <span class="opacity-0 group-hover:opacity-100 text-red-400 text-[9px] font-bold">
+        SELECT
+      </span>
+    </div>
+
+    <div *ngIf="filteredHODSuggestions.length === 0" class="p-4 text-center text-gray-400 text-xs italic">
+      No matching HOD found
+    </div>
+  </div>
+</div>
     </div>
   </div>
 

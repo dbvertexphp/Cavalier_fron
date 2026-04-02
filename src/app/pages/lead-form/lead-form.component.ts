@@ -343,24 +343,40 @@ initSearchForm() {
 
   // --- ADDED: Logic to calculate next lead number ---
   calculateNextLeadNo(): void {
-    if (this.leads && this.leads.length > 0) {
-      // Find the highest number in existing leads
-      const maxLeadNo = this.leads.reduce((max, lead) => {
-        // Assuming leadNo is like "0005" or "5"
-        const currentNo = parseInt(lead.leadNo) || 0;
-        return currentNo > max ? currentNo : max;
-      }, 0);
-
-      // Increment and format (e.g., 5 -> "0006")
-      const nextNumber = maxLeadNo + 1;
-      this.nextLeadNo = nextNumber.toString().padStart(4, '0');
-    } else {
-      this.nextLeadNo = '0001';
-    }
-    
-    // Update the form field
+  if (!this.leads || this.leads.length === 0) {
+    this.nextLeadNo = 'CAV/LEAD/0001';
     this.leadForm.patchValue({ leadNo: this.nextLeadNo });
+    return;
   }
+
+  let maxNumber = 0;
+
+  // Har lead se number extract karke sabse bada nikaalo
+  this.leads.forEach((lead: any) => {
+    if (lead?.leadNo) {
+      // "CAV/LEAD/0012" se number (0012) nikaalne ke liye regex
+      const match = lead.leadNo.toString().match(/CAV\/LEAD\/(\d+)/i);
+      
+      if (match && match[1]) {
+        const currentNumber = parseInt(match[1], 10);
+        if (currentNumber > maxNumber) {
+          maxNumber = currentNumber;
+        }
+      }
+    }
+  });
+
+  // Next number generate karo
+  const nextNumber = maxNumber + 1;
+  
+  // Format: CAV/LEAD/0013
+  this.nextLeadNo = `CAV/LEAD/${nextNumber.toString().padStart(4, '0')}`;
+
+  // Form field mein set kar do
+  this.leadForm.patchValue({ leadNo: this.nextLeadNo });
+
+  console.log('Next Lead No generated:', this.nextLeadNo); // Debugging ke liye
+}
 
 onDeleteLead(id: any) {
   if (confirm('Do you want to delete this lead')) {

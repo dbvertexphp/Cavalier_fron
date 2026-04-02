@@ -3,7 +3,7 @@ import { z } from "zod";
 export const employeeSchema = z.object({
   userType: z.string().min(1, "User type required"),
   firstName: z.string().min(1, "First name required").regex(/^[a-zA-Z ]+$/, "Only letters allowed"),
-  lastName: z.string().min(1, "Last name required").regex(/^[a-zA-Z ]+$/, "Only letters allowed"),
+  
   email: z.string().min(1, "Email required").email("Invalid email"),
   dob: z.string().min(1, "DOB required"),
   mobile: z.string().regex(/^[0-9]{10}$/, "Mobile must be 10 digits"),

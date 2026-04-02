@@ -937,7 +937,7 @@ class="divide-x divide-gray-200 hover:bg-gray-50">
     <option value="" disabled selected>Select Lead Owner</option>
     
     <option *ngFor="let owner of leadOwners" [value]="owner.firstName">
-      {{ owner.firstName }}
+      {{ owner.firstName + ' ' + (owner.lastName || '') }}
     </option>
   </select>
 </div>
@@ -957,7 +957,7 @@ class="divide-x divide-gray-200 hover:bg-gray-50">
   <select formControlName="salesCoordinator" class="border border-gray-300 p-2 w-full">
     <option value="" disabled selected>Select Co-ordinator</option>
     <option *ngFor="let sc of salesCoordinators" [value]="sc.firstName">
-      {{ sc.firstName }}
+      {{ sc.firstName + ' ' + (sc.lastName || '') }}
     </option>
   </select>
 </div>
@@ -1059,7 +1059,7 @@ class="divide-x divide-gray-200 hover:bg-gray-50">
     <option value="" disabled selected>Select Manager</option>
     
     <option *ngFor="let rm of reportingManagers" [value]="rm.firstName">
-      {{ rm.firstName }}
+      {{ rm.firstName + ' ' + (rm.lastName || '') }}
     </option>
   </select>
 </div>
@@ -1096,7 +1096,7 @@ class="divide-x divide-gray-200 hover:bg-gray-50">
     <select formControlName="hod" class="border border-gray-300 p-2 w-full">
       <option value="">Select HOD</option>
     <option *ngFor="let hod of hodList" [value]="hod.firstName">
-  {{ hod.firstName }}
+  {{ hod.firstName + ' ' + (hod.lastName || '') }}
 </option>
     </select>
 

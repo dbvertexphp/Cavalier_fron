@@ -739,30 +739,47 @@ populateForm(data: any) {
   }
 }
 // 1. Jab user type kare (Auto Dash insertion)
-onDateInput(event: any) {
-  let v = event.target.value.replace(/\D/g, ''); // Sirf digits rakho
-  if (v.length > 8) v = v.substring(0, 8); // Max 8 digits (DDMMYYYY)
-  
-  let displayValue = "";
-  
-  // Dynamic Formatting as User Types
-  if (v.length > 4) {
-    displayValue = `${v.substring(0, 2)}-${v.substring(2, 4)}-${v.substring(4, 8)}`;
-  } else if (v.length > 2) {
-    displayValue = `${v.substring(0, 2)}-${v.substring(2, 4)}`;
+// ==================== REUSABLE DATE FUNCTIONS ====================
+
+// 1. Jab user keyboard se type kare (DD-MM-YYYY format)
+onDateInput(event: any, controlName: string = 'dob'): void {
+  const input = event.target as HTMLInputElement;
+  let value = input.value.replace(/\D/g, ''); // Sirf numbers rakho
+
+  if (value.length > 8) value = value.substring(0, 8);
+
+  let formatted = '';
+  if (value.length > 4) {
+    formatted = `${value.substring(0, 2)}-${value.substring(2, 4)}-${value.substring(4, 8)}`;
+  } else if (value.length > 2) {
+    formatted = `${value.substring(0, 2)}-${value.substring(2, 4)}`;
   } else {
-    displayValue = v;
+    formatted = value;
   }
-  
-  // UI par DD-MM-YYYY set kar rahe hain
-  this.userForm.get('dob')?.setValue(displayValue, { emitEvent: false });
+
+  // Text field mein formatted value dikhao
+  input.value = formatted;
+
+  // Form control mein value set karo
+  this.userForm.get(controlName)?.setValue(formatted, { emitEvent: false });
 }
-// 2. Jab Calendar se select kare (YYYY-MM-DD ko DD-MM-YYYY mein badle)
-onCalendarChange(val: string) {
-  if (!val) return;
-  const [year, month, day] = val.split('-');
+
+// 2. Jab Calendar se date select kare
+onCalendarChange(event: any, controlName: string = 'dob'): void {
+  const dateInput = event.target as HTMLInputElement;
+  if (!dateInput.value) return;
+
+  const [year, month, day] = dateInput.value.split('-');
   const formattedDate = `${day}-${month}-${year}`;
-  this.userForm.get('dob')?.setValue(formattedDate);
+
+  // Form control update karo
+  this.userForm.get(controlName)?.setValue(formattedDate);
+
+  // Visible text input ko bhi update kar do (important!)
+  const textInput = dateInput.parentElement?.querySelector('input[type="text"]') as HTMLInputElement;
+  if (textInput) {
+    textInput.value = formattedDate;
+  }
 }
 syncAddress(event: any) {
   if (event.target.checked) {

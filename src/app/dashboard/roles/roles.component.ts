@@ -69,11 +69,54 @@ loadRoles() {
     error: (err) => console.error("Roles load nahi hue:", err)
   });
 }
-loadPermissions() {
-    this.http.get<any[]>(`${environment.apiUrl}/Permissions/list`).subscribe(res => {
-      this.permissionsList = res.filter(p => p.subMenu);
-    });
+// Permission ka sahi naam return karega
+getPermissionDisplayName(perm: any): string {
+  if (!perm) return 'N/A';
+
+  // Priority 1: Agar subMenu hai aur empty nahi hai → sirf subMenu dikhao
+  if (perm.subMenu && perm.subMenu.toString().trim() !== '') {
+    return perm.subMenu.trim();
   }
+
+  // Priority 2: Warna menu dikhao (jaise Organization, Branch, Settings)
+  if (perm.menu && perm.menu.toString().trim() !== '') {
+    return perm.menu.trim();
+  }
+
+  return 'Unnamed';
+}
+loadPermissions() {
+  this.http.get<any[]>(`${environment.apiUrl}/Permissions/list`).subscribe({
+    next: (res) => {
+      
+      this.permissionsList = res.filter(p => {
+        // Basic validation
+        if (!p || !p.menu || p.menu.toString().trim() === '') {
+          return false;
+        }
+
+        // Exclude unwanted items
+        const excluded = ['dashboard', 'port of loading', 'port of discharge'];
+        
+        const menuLower = p.menu.toString().toLowerCase().trim();
+        const subMenuLower = p.subMenu ? p.subMenu.toString().toLowerCase().trim() : '';
+
+        // Agar excluded list mein hai toh mat dikhao
+        if (excluded.includes(menuLower) || excluded.includes(subMenuLower)) {
+          return false;
+        }
+
+        return true;
+      });
+
+      console.log('✅ Final Permissions List after filter:', this.permissionsList.length, 'items');
+      console.log(this.permissionsList); // Debugging ke liye
+    },
+    error: (err) => {
+      console.error('❌ Error loading permissions:', err);
+    }
+  });
+}
   // --- 2. SAVE ROLE (Add or Update) ---
  saveRole() {
   if (!this.newRole.name.trim()) {

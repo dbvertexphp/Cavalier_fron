@@ -465,7 +465,7 @@ getFormattedInquiryNo(): string {
      
 const payload = {
   ...this.quotation, 
-  inquiryNo: this.getFormattedInquiryNo(),
+  inquiryNo: this.inquiry.inquiryNo,
     customerName: this.inquiry.organization,
     // Organization Name map karein
     organization: this.inquiry.organization,
@@ -716,6 +716,7 @@ loadInquiryNumbers() {
     // 2. 🔥 Set ka use karke duplicates hatao
     this.allUniqueInquiryNos = [...new Set(rawNumbers)];
     console.log("Unique Inquiry Numbers Loaded");
+    console.log(this.allUniqueInquiryNos);
   });
 }
 

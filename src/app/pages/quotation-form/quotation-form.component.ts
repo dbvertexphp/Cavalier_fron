@@ -735,7 +735,7 @@ saveQuotation() {
     // ... (Aapki validation logic yahan rahegi)
 
     // Data preparation for Backend
-    this.quotation.quotationNo = this.generateQuotationNo();
+    this.quotation.quotationNo = this.quotation.quotationNo;
     this.quotation.revenueData = JSON.stringify(this.revenueRows);
     this.quotation.costData = JSON.stringify(this.costRows);
     this.quotation.dimensionsData = JSON.stringify(this.appliedDimensions);

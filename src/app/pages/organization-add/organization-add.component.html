@@ -551,24 +551,40 @@
 <div class="flex items-center gap-2 flex-1">
   <label class="w-32 font-bold text-gray-700 text-[12px]">Line of Business</label>
   
-  <select 
-  [(ngModel)]="lineOfBusiness" [disabled]="!isEditMode"
-  name="lineOfBusiness"
-  [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'"
-  class="flex-1 border border-gray-300 p-1.5 outline-none focus:border-[#4a3f3f] text-[12px] bg-white text-black rounded-lg cursor-pointer">
+  <div class="flex-1 relative">
+    
+    <!-- Dropdown Trigger (Select jaisa dikhega) -->
+    <!-- Dropdown Trigger -->
+<div 
+  (click)="toggleLobDropdown()"
+  class="flex-1 border border-gray-300 p-1.5 rounded-lg bg-white flex items-center justify-between cursor-pointer hover:border-[#4a3f3f]">
 
-  <option [ngValue]="null" disabled>Select Line of Business</option>
-  
-  <option *ngFor="let item of lineOfBusinessList" [ngValue]="item.id">
-    {{ item.serviceName }} 
-  </option>
+  <span class="text-[12px] text-gray-700">
+    {{ getSelectedLobNames() }}
+  </span>
 
-</select>
+  <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+  </svg>
+</div>
 
-  <div class="pointer-events-none -ml-6">
-    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-    </svg>
+    <!-- Dropdown with Checkboxes -->
+    <div *ngIf="showLobDropdown" 
+         class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-xl max-h-60 overflow-y-auto py-1">
+
+      <div *ngFor="let item of lineOfBusinessList" 
+           (click)="toggleLobSelection(item)"
+           class="px-4 py-3 hover:bg-gray-50 flex items-center gap-3 cursor-pointer border-b last:border-0">
+
+        <input 
+          type="checkbox"
+          [checked]="isLobSelected(item)"
+          (click)="$event.stopPropagation()"
+          class="w-4 h-4 accent-[#4a3f3f] cursor-pointer">
+
+        <span class="text-[13px]">{{ item.serviceName }}</span>
+      </div>
+    </div>
   </div>
 </div>
   <label class="flex items-center gap-2 text-sm font-semibold">

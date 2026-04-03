@@ -744,6 +744,7 @@ class="divide-x divide-gray-200 hover:bg-gray-50">
             <div class="flex justify-center gap-3">
 
               <button
+              (click)="onEditLead(lead.id)"
                 title="Edit" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Edit')"
                 class="text-blue-600 hover:text-blue-800">
 
@@ -855,8 +856,8 @@ class="divide-x divide-gray-200 hover:bg-gray-50">
           <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold text-[12px] px-4 py-1.5 uppercase shadow-sm">SAVE</button>
         </div>
         <div class="font-bold uppercase text-[12px] tracking-widest truncate px-2">
-          Lead Entry - {{  'New Record' }}
-        </div>
+  Lead Entry - {{ isEditMode ? 'Edit Record #' + selectedLeadId : 'New Record' }}
+</div>
         <button type="button" (click)="toggleForm()" class="bg-red-500 hover:bg-red-600 px-4 py-1.5 text-[12px] font-bold uppercase">CLOSE</button>
       </div>
  
@@ -1204,7 +1205,10 @@ class="divide-x divide-gray-200 hover:bg-gray-50">
 </div>
 
   <div class="bg-[#f9fafb] mt-8 p-4 flex flex-wrap justify-center sm:justify-end gap-3 border-t border-gray-300">
-    <button type="submit" class="bg-[#4a3f3f] text-white px-8 py-2 font-bold shadow-md hover:bg-black uppercase flex-grow sm:flex-grow-0">Save</button>
+ <button type="submit" 
+        class="bg-[#4a3f3f] text-white px-8 py-2 font-bold shadow-md hover:bg-black uppercase flex-grow sm:flex-grow-0">
+  {{ isEditMode ? 'Update Lead' : 'Save Lead' }}
+</button>
     <button type="button" class="bg-white border border-gray-300 px-6 py-2 font-bold text-gray-700 hover:bg-gray-50 uppercase shadow-sm flex-grow sm:flex-grow-0">Save & Close</button>
     <button type="button" class="bg-white border border-gray-300 px-6 py-2 font-bold text-gray-700 hover:bg-gray-50 uppercase shadow-sm flex-grow sm:flex-grow-0">Save & New</button>
     <button type="button" (click)="toggleForm()" class="bg-gray-200 border border-gray-400 px-8 py-2 font-bold text-gray-700 hover:bg-gray-300 uppercase shadow-sm flex-grow sm:flex-grow-0">Close</button>

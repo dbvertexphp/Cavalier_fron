@@ -27,6 +27,8 @@ import { UserService } from '../../services/user.service';
 export class LeadFormComponent implements OnInit {
 // Aapka data array
 // PAGINATION VARIABLES
+isEditMode: boolean = false;
+selectedLeadId: number | null = null;
 
 salesProcesses: any[] = [];
 leadOwners: any[] = [];
@@ -133,6 +135,61 @@ getSalesCoordinators() {
       this.salesCoordinators = res;
     },
     error: (err) => console.error('Sales Coordinator load karne mein error:', err)
+  });
+}
+onEditLead(id: any) {
+  if (!id || id <= 0) {
+    alert("Invalid Lead ID");
+    return;
+  }
+
+  const url = `${environment.apiUrl}/Leads/${id}`;
+
+  this.http.get<any>(url).subscribe({
+    next: (lead) => {
+      console.log("Lead data received:", lead);   // Debugging ke liye
+
+      this.isEditMode = true;
+      this.selectedLeadId = id;
+
+      // Form Autofill
+      this.leadForm.patchValue({
+        date: lead.date ? lead.date.split('T')[0] : '',
+        expectedValidity: lead.expectedValidity ? lead.expectedValidity.split('T')[0] : '',
+
+        type: lead.type || '',
+        leadOwner: lead.leadOwner || '',
+        salesProcess: lead.salesProcess || '',
+        salesCoordinator: lead.salesCoordinator || '',
+        salesStage: lead.salesStage || '',
+
+        branch: lead.branch || '',
+        reportingManager: lead.reportingManager || '',
+        team: lead.team || '',
+        hod: lead.hod || '',
+
+        location: lead.location || '',
+        area: lead.area || '',
+        organization: lead.organizationName || '',     // Backend mein OrganizationName hai
+        source: lead.leadSource || ''                 // Agar form mein source naam hai
+      });
+
+      this.nextLeadNo = lead.leadNo || '';
+
+      // Form kholo
+      this.isFormOpen = true;
+      this.cdr.detectChanges(); // UI ko turant update karne ke liye
+    },
+
+    error: (err) => {
+      console.error('Error fetching lead:', err);
+
+      if (err.status === 404) {
+        alert(`Lead with ID ${id} not found!`);
+      } else {
+        alert('Failed to load lead details. Please try again later.');
+      }
+    }
   });
 }
 getBranches() {
@@ -580,36 +637,24 @@ selectDate(date: string): void {
   this.filteredDates = [];
 }
 onSave() {
-
   const rawValue = this.leadForm.getRawValue();
-console.log(rawValue);
 
-const validation = leadSchema.safeParse(rawValue);
-console.log(validation);
-
+  const validation = leadSchema.safeParse(rawValue);
+  
   if (!validation.success) {
-
     const errors = validation.error.flatten().fieldErrors;
-
     Object.keys(errors).forEach((field: string) => {
-
-  const control = this.leadForm.get(field);
-
-  if (control) {
-    control.setErrors({ zod: errors[field as keyof typeof errors]?.[0] });
-  }
-
-});
-
+      const control = this.leadForm.get(field);
+      if (control) {
+        control.setErrors({ zod: errors[field as keyof typeof errors]?.[0] });
+      }
+    });
     alert("Please fix validation errors");
     return;
   }
 
-  // 👉 agar validation pass ho gaya to API call chalegi
-  console.log("Valid data", rawValue);
-
+  // Payload banayein (Backend ke hisab se)
   const payload = {
-    leadNo: this.nextLeadNo,
     date: new Date(rawValue.date).toISOString(),
     expectedValidity: new Date(rawValue.expectedValidity).toISOString(),
     type: rawValue.type,
@@ -627,27 +672,50 @@ console.log(validation);
     organizationName: rawValue.organization
   };
 
-  const token = localStorage.getItem('cavalier_token'); // ya jahan store kiya ho
+  const token = localStorage.getItem('cavalier_token');
+  const headers = { Authorization: `Bearer ${token}` };
 
-const headers = {
-  Authorization: `Bearer ${token}`
-};
+  if (this.isEditMode && this.selectedLeadId) {
+    // ==================== UPDATE (PUT) ====================
+    this.http.put(`${environment.apiUrl}/Leads/${this.selectedLeadId}`, payload, { headers })
+      .subscribe({
+        next: () => {
+          alert("Lead Updated Successfully!");
+          this.resetFormAfterSave();
+        },
+        error: (err) => {
+          console.error(err);
+          alert("Failed to update lead!");
+        }
+      });
 
-this.http.post(`${environment.apiUrl}/Leads`, payload, { headers })
-  .subscribe({
-    next: () => {
-      alert("Lead saved successfully");
-      this.initForm();
-      this.loadLeads();
-    },
-    error: (err) => {
-      console.error(err);
-      alert("Error saving lead");
-    }
-  });
+  } else {
+    // ==================== CREATE (POST) ====================
+    leadNo: this.nextLeadNo,   // Sirf new lead ke liye leadNo bhejna hai
 
+    this.http.post(`${environment.apiUrl}/Leads`, payload, { headers })
+      .subscribe({
+        next: () => {
+          alert("Lead Created Successfully!");
+          this.resetFormAfterSave();
+        },
+        error: (err) => {
+          console.error(err);
+          alert("Failed to create lead!");
+        }
+      });
+  }
 }
-
+resetFormAfterSave() {
+  this.isFormOpen = false;
+  this.isEditMode = false;
+  this.selectedLeadId = null;
+  this.leadForm.reset();
+  this.nextLeadNo = '';
+  
+  this.initForm();        // Default values reset karne ke liye
+  this.loadLeads();       // Table refresh
+}
 clearFilters() {
   this.leadForm.reset();
 ;// normal GET API call

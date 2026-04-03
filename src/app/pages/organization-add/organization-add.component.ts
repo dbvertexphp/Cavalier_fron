@@ -19,6 +19,9 @@ import { DragDropModule } from '@angular/cdk/drag-drop'; // 👈 Ye zaroori hai 
   styleUrl: './organization-add.component.css',
 })
 export class OrganizationAddComponent implements OnInit {
+  lineOfBusinessList: any[] = [];
+selectedLineOfBusiness: any[] = [];        // Multiple select ke liye array
+showLobDropdown: boolean = false;
   isEditMode: boolean = false;
   hasSavedOrg: boolean = false;
 selectedBranchIndex: number = -1;
@@ -37,6 +40,30 @@ department:any=[];
 designation:any=[];
 // ==================== NEW BUTTON - UPDATED VERSION ====================
 // Current branch ko validate karne ke liye
+toggleLobDropdown() {
+  this.showLobDropdown = !this.showLobDropdown;
+}
+
+isLobSelected(item: any): boolean {
+  return this.selectedLineOfBusiness.some(sel => sel.id === item.id);
+}
+
+toggleLobSelection(item: any) {
+  const index = this.selectedLineOfBusiness.findIndex(sel => sel.id === item.id);
+
+  if (index > -1) {
+    this.selectedLineOfBusiness.splice(index, 1);
+  } else {
+    this.selectedLineOfBusiness.push(item);
+  }
+  this.cdr.detectChanges();
+}
+
+removeLob(index: number, event: Event) {
+  event.stopPropagation();
+  this.selectedLineOfBusiness.splice(index, 1);
+  this.cdr.detectChanges();
+}
 validateCurrentBranch(): boolean {
 
   if (!this.branchName?.trim()) {
@@ -128,6 +155,15 @@ getActionButtonText(): string {
     return this.isEditMode ? 'New' : 'New';
   }
 }
+getSelectedLobNames(): string {
+  if (!this.selectedLineOfBusiness || this.selectedLineOfBusiness.length === 0) {
+    return 'Select Line of Business';
+  }
+  return this.selectedLineOfBusiness
+             .map(item => item?.serviceName || '')
+             .filter(name => name)           // empty names hatao
+             .join(', ');
+}
 // ==================== DELETE SELECTED BRANCH ====================
 deleteSelectedBranch() {
   if (this.selectedBranchIndex < 0) {
@@ -190,7 +226,9 @@ selectBranch(branch: any, index: number) {
   this.website        = branch.website || '';
   this.email          = branch.email || branch.emailAddress || '';
 
-  this.lineOfBusiness = branch.lobId || null;
+  // selectBranch method ke andar
+this.selectedLineOfBusiness = branch.lineOfBusinessList || [];   // Agar array aa raha hai
+// ya agar sirf ID aa raha hai toh alag logic likhna padega
 
   this.contacts = [{
     contactName: branch.contactName || '',
@@ -211,8 +249,7 @@ public countryMasterList: any[] = [];    // Sabhi countries ki original list
 public stateLookupList: any[] = [];
 selectedBranch: any = { id: 0, name: '', isDefault: false, isActive: true };
 branches: any[] = []; 
-lineOfBusinessList: any[] = [];
-selectedLineOfBusiness: any = null;
+
 // Is line ko variables section mein add karein
 lineOfBusiness: number | null = null; 
 
@@ -433,7 +470,10 @@ addCurrentBranchIfValid(): boolean {
     website: this.website || '',
     email: this.email || '',
 
-    lobId: this.lineOfBusiness ?? null,
+   // Branch payload mein ye line add kar do
+LobId: this.selectedLineOfBusiness.length > 0 
+       ? this.selectedLineOfBusiness.map(item => item.id) 
+       : null,
 
     contactName: firstContact.contactName || '',
     mobile: firstContact.mobile || '',
@@ -529,7 +569,10 @@ saveAllLocalBranches(orgId: number) {
       Id: branch.id || 0,                    // Existing ID bhejna zaroori hai
       BranchName: branch.branchName?.trim(),
       OrganizationId: orgId,
-      LobId: this.lineOfBusiness ?? branch.lobId ?? null,
+      // Branch payload mein ye line add kar do
+LobId: this.selectedLineOfBusiness.length > 0 
+       ? this.selectedLineOfBusiness.map(item => item.id) 
+       : null,
 
       Address: branch.address?.trim(),
       Area: branch.area?.trim(),

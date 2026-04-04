@@ -1666,8 +1666,8 @@ filterCoordinatorList(event: any) {
 loadAllLeadss() {
   // Toggle logic
   if (this.showInquiryDropdown || this.showLeadDropdown) {
-    this.showInquiryDropdown = false;
-    this.showLeadDropdown = false;
+    this.showInquiryDropdown = true;
+    this.showLeadDropdown = true;
     this.cdr.detectChanges();
     return;
   }

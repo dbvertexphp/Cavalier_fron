@@ -1905,7 +1905,7 @@ selectLnFromIcon(val: any) {
 }
 loadLeadOwners(): void {
   // Teri API call
-  this.userServices.getUsers('all').subscribe({
+  this.userServices.getUsers('onlyuserdata').subscribe({
     next: (data: any) => {
       // API se aane wala data leadOwners mein assign kar diya
       this.leadOwners = data; 
@@ -1917,7 +1917,7 @@ loadLeadOwners(): void {
     }
   });
 }loadDropdownData(): void {
-  this.userServices.getUsers('all').subscribe({
+  this.userServices.getUsers('onlyuserdata').subscribe({
     next: (data: any) => {
       // Data assign kiya
       this.leadOwners = data;

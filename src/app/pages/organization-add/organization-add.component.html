@@ -548,30 +548,39 @@
     ADD
   </button> -->
 </div>
+
+
 <div class="flex items-center gap-2 flex-1">
   <label class="w-32 font-bold text-gray-700 text-[12px]">Line of Business</label>
   
-  <div class="flex-1 relative">
-    
-    <!-- Dropdown Trigger (Select jaisa dikhega) -->
-    <!-- Dropdown Trigger -->
-<div 
-  (click)="toggleLobDropdown()"
-  class="flex-1 border border-gray-300 p-1.5 rounded-lg bg-white flex items-center justify-between cursor-pointer hover:border-[#4a3f3f]">
+  <div class="flex-1 relative" #lobDropdownContainer>
 
-  <span class="text-[12px] text-gray-700">
-    {{ getSelectedLobNames() }}
-  </span>
+    <!-- Selected Chips Area -->
+    <div 
+      (click)="toggleLobDropdown($event)"
+      class="min-h-[42px] border border-gray-300 rounded-lg bg-white p-2 flex flex-wrap gap-2 items-center cursor-pointer hover:border-[#4a3f3f]">
 
-  <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-  </svg>
-</div>
+      <!-- Chips with Cross -->
+      <div *ngFor="let item of selectedLineOfBusiness; let i = index" 
+           class="bg-[#4a3f3f] text-white text-[12px] px-3 py-1 rounded-full flex items-center gap-1.5">
+        <span>{{ item.serviceName }}</span>
+        <button 
+          (click)="removeLob(i, $event)"
+          class="ml-1 w-4 h-4 flex items-center justify-center text-xs hover:bg-red-600 rounded-full">
+          ✕
+        </button>
+      </div>
 
-    <!-- Dropdown with Checkboxes -->
+      <!-- Text -->
+      <span class="text-[12px] text-gray-500 flex-1 ml-1">
+        {{ selectedLineOfBusiness.length === 0 ? 'Select Line of Business' : 'Add more...' }}
+      </span>
+    </div>
+
+    <!-- Dropdown Menu -->
     <div *ngIf="showLobDropdown" 
          class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-xl max-h-60 overflow-y-auto py-1">
-
+      
       <div *ngFor="let item of lineOfBusinessList" 
            (click)="toggleLobSelection(item)"
            class="px-4 py-3 hover:bg-gray-50 flex items-center gap-3 cursor-pointer border-b last:border-0">
@@ -579,12 +588,13 @@
         <input 
           type="checkbox"
           [checked]="isLobSelected(item)"
-          (click)="$event.stopPropagation()"
+          (click)="$event.stopPropagation()" 
           class="w-4 h-4 accent-[#4a3f3f] cursor-pointer">
 
         <span class="text-[13px]">{{ item.serviceName }}</span>
       </div>
     </div>
+
   </div>
 </div>
   <label class="flex items-center gap-2 text-sm font-semibold">

@@ -25,6 +25,7 @@ showLobDropdown: boolean = false;
   isEditMode: boolean = false;
   hasSavedOrg: boolean = false;
 selectedBranchIndex: number = -1;
+@ViewChild('lobDropdownContainer', { static: false }) lobDropdownContainer!: ElementRef;
 searchFilters: any = {
   orgCode: '',
   orgName: '',
@@ -40,7 +41,8 @@ department:any=[];
 designation:any=[];
 // ==================== NEW BUTTON - UPDATED VERSION ====================
 // Current branch ko validate karne ke liye
-toggleLobDropdown() {
+toggleLobDropdown(event: Event) {
+  event.stopPropagation();           // Bahut important
   this.showLobDropdown = !this.showLobDropdown;
 }
 
@@ -59,9 +61,17 @@ toggleLobSelection(item: any) {
   this.cdr.detectChanges();
 }
 
+// Already hai tumhare code mein
 removeLob(index: number, event: Event) {
   event.stopPropagation();
   this.selectedLineOfBusiness.splice(index, 1);
+  this.cdr.detectChanges();
+}
+
+// Naya function add karo (Clear All ke liye)
+clearAllLob(event: Event) {
+  event.stopPropagation();
+  this.selectedLineOfBusiness = [];
   this.cdr.detectChanges();
 }
 validateCurrentBranch(): boolean {
@@ -369,7 +379,19 @@ landmark: string = '';
 //   branches :any [] =[];
 //   selectedBranch: any = null
 
-  constructor(private location: Location, private http: HttpClient,private cdr: ChangeDetectorRef,private router:Router) {}
+  constructor(private location: Location, private http: HttpClient,private cdr: ChangeDetectorRef,private router:Router,private elementRef: ElementRef) {}
+@HostListener('document:click', ['$event'])
+onDocumentClick(event: MouseEvent) {
+  if (this.lobDropdownContainer && 
+      !this.lobDropdownContainer.nativeElement.contains(event.target as Node)) {
+    this.showLobDropdown = false;
+    this.cdr.detectChanges();
+  }
+   if (!(event.target as HTMLElement).closest('.relative')) {
+      this.isExportOpen = false;
+this.organizationsList = [];
+    }
+}
  ngOnInit() {
   this.loaddepartment();
   this.loadestination();
@@ -454,7 +476,7 @@ addCurrentBranchIfValid(): boolean {
   }
 
   const branchData = {
-    // Purana ID preserve karo - Yeh line bahut zaroori hai
+    // Purana ID preserve karo
     id: this.selectedBranchIndex >= 0 ? this.branchList[this.selectedBranchIndex].id : 0,
 
     branchName: this.branchName.trim(),
@@ -470,10 +492,10 @@ addCurrentBranchIfValid(): boolean {
     website: this.website || '',
     email: this.email || '',
 
-   // Branch payload mein ye line add kar do
-LobId: this.selectedLineOfBusiness.length > 0 
-       ? this.selectedLineOfBusiness.map(item => item.id) 
-       : null,
+    // 🔥 IMPORTANT CHANGE: LobId ki jagah LobIds bhejo aur array ko string mein convert karo
+   LobIds: this.selectedLineOfBusiness.length > 0 
+        ? this.selectedLineOfBusiness.map(item => item.id).join(',') 
+        : null,
 
     contactName: firstContact.contactName || '',
     mobile: firstContact.mobile || '',
@@ -561,18 +583,20 @@ onSaveBranch() {
 }
 // ==================== SAVE ALL BRANCHES (Add + Update) ====================
 // ==================== SAVE ALL BRANCHES (Add + Update) - FIXED ====================
+// ==================== SAVE ALL BRANCHES (Add + Update) ====================
 saveAllLocalBranches(orgId: number) {
   const validBranches = this.branchList.filter(b => b.branchName?.trim());
 
   validBranches.forEach(branch => {
     const payload = {
-      Id: branch.id || 0,                    // Existing ID bhejna zaroori hai
+      Id: branch.id || 0,
       BranchName: branch.branchName?.trim(),
       OrganizationId: orgId,
-      // Branch payload mein ye line add kar do
-LobId: this.selectedLineOfBusiness.length > 0 
-       ? this.selectedLineOfBusiness.map(item => item.id) 
-       : null,
+
+      // 🔥 YE CHANGE KARO - Array ko string mein convert karo
+     LobIds: this.selectedLineOfBusiness.length > 0 
+        ? this.selectedLineOfBusiness.map(item => item.id).join(',') 
+        : null,
 
       Address: branch.address?.trim(),
       Area: branch.area?.trim(),
@@ -603,12 +627,15 @@ LobId: this.selectedLineOfBusiness.length > 0
       IsMarketing: false
     };
 
-    console.log(`→ Saving Branch: "${branch.branchName}" | ID = ${payload.Id}`);
+    console.log(`→ Saving Branch: "${branch.branchName}" | LobIds = ${payload.LobIds}`);
 
     this.http.post(`${environment.apiUrl}/OrgBranch/SaveBranch`, payload)
       .subscribe({
         next: (res) => console.log(`✅ Branch "${branch.branchName}" saved successfully`),
-        error: (err) => console.error(`❌ Failed to save branch "${branch.branchName}"`, err)
+        error: (err) => {
+          console.error(`❌ Failed to save branch "${branch.branchName}"`, err);
+          console.log("Full error:", err.error);   // Yeh line add kar lo debugging ke liye
+        }
       });
   });
 }
@@ -881,7 +908,13 @@ getBranchesByOrg(orgId: number) {
           whatsapp: b.whatsapp || '',
           emailId: b.emailId || b.emailAddress || '',
 
-          lobId: b.lobId || null,
+         lobIds: b.lobIds || null,
+  
+  // 🔥 FIXED - Proper typing with explicit types
+  lobIdsList: b.lobIds 
+    ? b.lobIds.split(',').map((id: string) => parseInt(id.trim(), 10))
+                 .filter((id: number) => !isNaN(id))
+    : [],
           designationId: b.designationId || null,
           departmentId: b.departmentId || null,
 
@@ -922,13 +955,8 @@ isExportOpen = false;
   }
 
   // Click outside menu to close
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent) {
-    if (!(event.target as HTMLElement).closest('.relative')) {
-      this.isExportOpen = false;
-this.organizationsList = [];
-    }
-  }
+  
+  
 
   // Pure data printing via Iframe (No sidebar/filters)
 printData() {

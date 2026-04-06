@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 // --- ADDED: Validators import ---
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -27,6 +27,8 @@ import { UserService } from '../../services/user.service';
 export class LeadFormComponent implements OnInit {
 // Aapka data array
 // PAGINATION VARIABLES
+leadSources: any[] = [];     // Lead Source ke liye
+salesStages: any[] = [];
 isEditMode: boolean = false;
 selectedLeadId: number | null = null;
 
@@ -69,7 +71,8 @@ goToPage(page: number) {
     private http: HttpClient,
     private cdr: ChangeDetectorRef,
     public CheckPermissionService:CheckPermissionService,
-    public userServices:UserService
+    public userServices:UserService,
+    private eRef: ElementRef
   ) {}
 
   ngOnInit(): void {
@@ -78,6 +81,8 @@ goToPage(page: number) {
     this.getSalesProcesses();
     this.getLeadOwners();
     this.getSalesCoordinators();
+    this.loadLeadSources();
+  this.loadSalesStages();
     this.getBranches();
         this.PermissionID = Number(localStorage.getItem('permissionID'));
     this.initForm();
@@ -121,6 +126,76 @@ nextPage() {
   }
 
 }
+// Lead Sources Load
+loadLeadSources() {
+  this.http.get<any[]>(`${environment.apiUrl}/LeadSources`)
+    .subscribe({
+      next: (res) => {
+        this.leadSources = res;
+      },
+      error: (err) => console.error('Error loading Lead Sources', err)
+    });
+}
+
+// Sales Stages Load
+loadSalesStages() {
+  this.http.get<any[]>(`${environment.apiUrl}/SalesStages`)
+    .subscribe({
+      next: (res) => {
+        this.salesStages = res;
+      },
+      error: (err) => console.error('Error loading Sales Stages', err)
+    });
+}
+@HostListener('document:click', ['$event'])
+onDocumentClick(event: MouseEvent) {
+  const target = event.target as HTMLElement;
+
+  // NEW button ignore
+  if (target.closest('button')?.textContent?.trim() === 'NEW') {
+    return;
+  }
+
+  // Agar click dropdown ke andar hai toh band mat karo
+  const dropdownClicked = 
+    target.closest('ul') || 
+    target.closest('.absolute.z-50') || 
+    target.closest('input[formControlName="organization"]');
+
+  if (dropdownClicked) {
+    return;
+  }
+
+  // Bahar click → sab band
+  this.closeAllDropdowns();
+}
+
+// Close sab dropdowns
+closeAllDropdowns() {
+  this.showOrgDropdown = false;
+  this.filteredOrganizations = [];     // ← Yeh line missing thi!
+  this.cdr.detectChanges();
+}
+
+// Focus pe bhi dropdown khol sakte ho (optional but better UX)
+onOrganizationFocus() {
+  if (this.filteredOrganizations.length === 0 && this.organizations.length > 0) {
+    // Optionally show all or keep typing based
+  }
+}
+
+  // NEW button function
+  navigateToNewOrg(event?: MouseEvent) {
+    if (event) {
+      event.stopImmediatePropagation();
+    }
+
+    this.closeAllDropdowns();   // NEW click karte hi dropdown band
+
+    this.router.navigate(['/dashboard/organization-add'], {
+      state: { isFormOpen: true }
+    });
+  }
 getLeadOwners() {
   this.http.get<any[]>(`${environment.apiUrl}/LeadOwners`).subscribe({
     next: (res) => {
@@ -537,9 +612,7 @@ onDeleteLead(id: any) {
     this.isFormOpen = !this.isFormOpen;
   }
 
-  navigateToNewOrg() {
-    this.router.navigate(['/dashboard/organization-add']);
-  }
+
 
   private toISODate(date: Date): string {
     return date.toISOString().substring(0, 10);
@@ -588,8 +661,7 @@ selectLead(lead: any): void {
 }
 // --- ADDED: Variables for filtering Sales Stages ---
 filteredSalesStages: any[] = [];
-// Assuming your API gives a list of strings for sales stages
-salesStages: string[] = ['Inquiry Received', 'Qualified', 'Proposal Sent', 'Sales Closed']; 
+
 
 // --- ADDED: Search logic for Sales Stage ---
 onSalesStageSearch(event: Event): void {

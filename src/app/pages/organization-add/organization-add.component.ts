@@ -393,6 +393,11 @@ this.organizationsList = [];
     }
 }
  ngOnInit() {
+  const state = history.state;           // ya this.router.lastSuccessfulNavigation?.extras?.state
+
+    if (state && state.isFormOpen === true) {
+      this.isFormOpen = true;
+    }
   this.loaddepartment();
   this.loadestination();
   this.loadColumnSettings();
@@ -1087,36 +1092,7 @@ async downloadPDF() {
   openForm() {
   this.isFormOpen = true;
   
-  // --- SABSE ZAROORI LINE (Iske bina ID update nahi hogi) ---
-  this.selectedOrgId = 0; 
-  // ---------------------------------------------------------
-
-  this.orgName = '';
-  this.alias = '';
-  this.address = '';
-  this.city = '';
-  this.country = '';
-  this.telephone = '';
-  this.email = '';
-  this.website = '';
-  this.postalCode = '';
-  this.stateProvince = '';
-  this.whatsAppNumber = '';
-  this.salesPerson = '';
-  this.collectionExec = '';
-  this.selectedRoles = [];
-  this.contacts = [{ 
-    contactName: '', 
-    mobile: '', 
-    whatsapp: '', 
-    email: '', 
-    DesignationId: '', 
-    DepartmentId: '' 
-  }];
-  this.branchList = []; // Sidebar saaf ho gaya
-  this.branchName = ''; // Input box khali ho gaya
-  
-  this.cdr.detectChanges(); // UI refresh
+ 
 }
 
   closeForm() {

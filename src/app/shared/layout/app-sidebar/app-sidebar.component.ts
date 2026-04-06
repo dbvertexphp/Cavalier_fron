@@ -368,6 +368,16 @@ selectBranch(branch: any) {
         icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>`,
         path: '/dashboard/commoditytype'
       });
+      finalNav.push({
+        name: 'Sales Stage',
+        icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>`,
+        path: '/dashboard/sales-stage'
+      });
+      finalNav.push({
+        name: 'Lead Source',
+        icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>`,
+        path: '/dashboard/Lead-Source'
+      });
 
       finalNav.push({
         name: 'Party Role',

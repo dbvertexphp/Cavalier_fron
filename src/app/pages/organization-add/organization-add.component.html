@@ -874,13 +874,13 @@
   {{ getActionButtonText() }}
 
 </button>
-        <button (click)="saveOrg()" class="px-4 py-1.5 border border-gray-400 bg-gray-100 font-bold">Update</button>
-<!-- <button 
+        <button (click)="saveOrg()" class="px-4 py-1.5 border border-gray-400 bg-gray-100 font-bold">Save Data</button>
+<button 
   (click)="deleteSelectedBranch()"
   class="px-4 py-1.5 border border-gray-400 bg-gray-100 font-bold text-red-600">
 
-  Cancel
-</button>   -->
+  Delete
+</button>  
     </div>
     </div>
   </div>
@@ -1224,7 +1224,7 @@
           <input [(ngModel)]="contact.mobile" type="text" maxlength="10" placeholder="Mobile" class="w-full border p-2 rounded text-sm">
           <input [(ngModel)]="contact.whatsapp" type="text" maxlength="10" placeholder="Whatsapp" class="w-full border p-2 rounded text-sm">
           <div class="flex items-center gap-3">
-            <input [(ngModel)]="contact.email" type="email" placeholder="Email" class="flex-1 border p-2 rounded text-sm">
+            <input [(ngModel)]="contact.email" type="email" placeholder="Email" class="flex-1 border p-2 rounded text-sm" style="width:160px">
             <button *ngIf="i === 0" (click)="addContact()" class="text-green-600 font-bold text-2xl">+</button>
             <button *ngIf="i > 0" (click)="removeContact(i)" class="text-red-500 font-bold text-xl">x</button>
           </div>

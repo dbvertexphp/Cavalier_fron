@@ -83,7 +83,7 @@
     <!-- </div> -->
 
     <div>
-      <label class="font-bold">Last Name*</label>
+      <label class="font-bold">Last Name</label>
       <input formControlName="lastName" class="w-full border p-2 rounded">
       
     </div>
@@ -267,7 +267,7 @@
       <label class="font-semibold text-gray-600 block uppercase">HOD</label>
       <select formControlName="hodId" class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f] bg-white">
         <option [value]="null" disabled selected>Select HOD</option>
-        <option *ngFor="let h of hods" [value]="h.id">{{ h.name }}</option>
+        <option *ngFor="let h of hods" [value]="h.id">{{ h.firstName }} {{ h.lastName }}</option>
       </select>
       <div *ngIf="userForm.get('hodId')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
         {{ userForm.get('hodId')?.errors?.['zod'] }}
@@ -761,7 +761,7 @@
 </div>
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4 border-t pt-4">
     <div>
-      <label>Emergency Contact Name</label> 
+      <label>Emergency Contact Name *</label> 
       <input formControlName="emergencyName" class="w-full border p-2 rounded">
       <div *ngIf="userForm.get('emergencyName')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
         {{ userForm.get('emergencyName')?.errors?.['zod'] }}
@@ -783,7 +783,7 @@
       </datalist>
       </div>
     <div>
-  <label class="block mb-1 font-medium text-gray-700">Emergency Mobile</label> 
+  <label class="block mb-1 font-medium text-gray-700">Emergency Mobile *</label> 
   <input 
     type="text"
     formControlName="emergencyContactNo" 

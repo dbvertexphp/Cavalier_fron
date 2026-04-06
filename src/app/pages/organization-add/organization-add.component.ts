@@ -177,7 +177,7 @@ getSelectedLobNames(): string {
 // ==================== DELETE SELECTED BRANCH ====================
 deleteSelectedBranch() {
   if (this.selectedBranchIndex < 0) {
-    alert("Pehle koi branch select karo!");
+    alert("Please Select a Branch First!");
     return;
   }
 
@@ -829,6 +829,8 @@ saveOrganization() {
           ? "✅ Organization Updated Successfully!" 
           : "✅ Organization Created Successfully!");
       }
+      window.location.reload();
+      
     },
     error: (err) => {
       console.error("Organization Save/Update Error:", err);
@@ -1417,14 +1419,16 @@ checkEmail(contact: any) {
 isWebsiteInvalid: boolean = false;
 
 validateWebsite() {
-  const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
-  
-  if (this.website && this.website.trim().length > 0) {
-    // Agar regex match nahi karta toh error true
-    this.isWebsiteInvalid = !urlPattern.test(this.website.trim());
-  } else {
-    this.isWebsiteInvalid = false;
-  }
+  const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/i;
+
+  if (this.website && this.website.trim().length > 0) {
+    const trimmedUrl = this.website.trim();
+    
+    // 'i' flag add kiya hai → Case-insensitive ban gaya
+    this.isWebsiteInvalid = !urlPattern.test(trimmedUrl);
+  } else {
+    this.isWebsiteInvalid = false;
+  }
 }
 // Main email ke liye alag flag
 isMainEmailInvalid: boolean = false;
@@ -1648,14 +1652,16 @@ loadCountriesFromApi() {
 
 // 2. Search Logic (3 characters check)
 onCountrySearch(event: any) {
-  const val = event.target.value;
-  
-  if (val && val.length >= 3) {
-    this.filteredCountries = this.countryMasterList.filter(item => 
+  const val = (event.target.value || '').toUpperCase().trim();
+
+  event.target.value = val;   // Input box mein uppercase dikhe
+
+  if (val.length >= 3) {
+    this.filteredCountries = this.countryMasterList.filter(item =>
       item.name.toLowerCase().includes(val.toLowerCase())
     );
   } else {
-    this.filteredCountries = []; // Agar 3 se kam hai toh list khali rakho
+    this.filteredCountries = [];
   }
 }
 

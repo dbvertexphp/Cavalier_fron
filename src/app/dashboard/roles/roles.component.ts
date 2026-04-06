@@ -167,6 +167,7 @@ loadPermissions() {
     next: (res) => {
       this.loadRoles(); 
       this.closeModal();
+      alert(res.message);
       this.isLoading = false;
       
     },

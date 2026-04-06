@@ -442,7 +442,7 @@
             <div class="flex items-center gap-2">
               <label class="w-24 text-red-700 font-bold">Name</label>
               <div class="flex-1">
-                <input type="text" [(ngModel)]="orgName" name="orgName" placeholder="Full Organization Name"
+                <input type="text" [(ngModel)]="orgName" name="orgName" (input)="orgName = $event.target.value.toUpperCase()" placeholder="Full Organization Name"
                        class="w-full border border-gray-300 p-1.5 focus:border-[#4a3f3f] outline-none shadow-sm" required #orgNameRef="ngModel">
                 <div *ngIf="orgNameRef.invalid && (orgNameRef.dirty || orgNameRef.touched)" class="text-red-600 text-[11px] mt-1">
                   Organization Name is required.
@@ -452,7 +452,7 @@
             <div class="flex items-center gap-2">
               <label class="w-24 text-red-700 font-bold">Alias</label>
               <div class="w-48">
-                <input type="text" [(ngModel)]="alias" name="alias" placeholder="Short Name"
+                <input type="text" [(ngModel)]="alias" (input)="alias = $event.target.value.toUpperCase()" name="alias" placeholder="Short Name"
                        class="w-full border border-gray-300 p-1.5 focus:border-[#4a3f3f] outline-none" required #aliasRef="ngModel">
                 <div *ngIf="aliasRef.invalid && (aliasRef.dirty || aliasRef.touched)" class="text-red-600 text-[11px] mt-1">
                   Alias is required.
@@ -534,6 +534,7 @@
   type="text" 
   [(ngModel)]="branchName" 
   [readonly]="!isEditMode"
+  (input)="branchName = $event.target.value.toUpperCase()"
   [ngClass]="{
     'bg-[#f3f4f6] cursor-not-allowed text-gray-500': !isEditMode,
     'bg-white border-gray-300 focus:border-[#4a3f3f]': isEditMode
@@ -601,9 +602,9 @@
     <input type="checkbox"  class="accent-[#4a3f3f]"> Set as Default
   </label>
   
-  <label class="flex items-center gap-2 text-sm font-semibold">
+  <!-- <label class="flex items-center gap-2 text-sm font-semibold">
     <input type="checkbox" class="accent-[#4a3f3f]"> Deactivate
-  </label>
+  </label> -->
 <!-- 
   <button (click)="prepareNewBranch()" class="px-4 py-1.5 border border-gray-400 bg-gray-100 font-bold">New</button>
   
@@ -613,10 +614,11 @@
       <div class="flex gap-4">
         <label class="w-40 font-semibold text-gray-700">Address</label>
         <div class="flex-1 flex flex-col gap-2">
-          <input type="text" [(ngModel)]="address" [readonly]="!isEditMode" [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'" name="address" placeholder="Building / Street"
+          <input type="text" [(ngModel)]="address" (input)="address = $event.target.value.toUpperCase()" [readonly]="!isEditMode" [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'" name="address" placeholder="Building / Street"
             class="border border-gray-300 p-1.5 outline-none focus:border-[#4a3f3f]">
          <input type="text" 
       [(ngModel)]="area" 
+      (input)="area = $event.target.value.toUpperCase()"
       [readonly]="!isEditMode"
       [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'"
       name="area"
@@ -626,6 +628,7 @@
     <!-- Landmark -->
     <input type="text" 
       [(ngModel)]="landmark" 
+      (input)="landmark = $event.target.value.toUpperCase()"
       [readonly]="!isEditMode"
       [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'"
       name="landmark"
@@ -643,6 +646,7 @@
     <div class="flex border border-gray-300 rounded overflow-hidden">
       <input type="text" 
              [(ngModel)]="country" 
+             (input)="country = $event.target.value.toUpperCase()"
              [readonly]="!isEditMode"
              [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'"
              name="country_field_{{country.length}}"  (input)="onCountrySearch($event)" 
@@ -665,7 +669,7 @@
         (click)="selectThisCountry(country.name)"
         class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-50 last:border-0">
       <span class="mr-2">🌐</span>
-      {{ country.name }}
+      {{ country.name | uppercase }}
     </li>
   </ul>
 </div>
@@ -676,7 +680,7 @@
       <li *ngFor="let item of filteredCountries" 
           (mousedown)="selectCountry(item.name)" 
           class="p-2 hover:bg-blue-100 cursor-pointer border-b border-gray-100 last:border-none text-gray-800">
-        {{ item.name }}
+        {{ item.name | uppercase }}
       </li>
     </ul>
 
@@ -689,8 +693,9 @@
     
     <div class="flex border border-gray-300 rounded overflow-hidden">
       <input type="text" 
-             [(ngModel)]="stateProvince" 
-                [readonly]="!isEditMode"
+             [(ngModel)]="stateProvince"
+             (input)="stateProvince = $event.target.value.toUpperCase()"
+                [readonly]="!isEditMode" 
              [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'"
              name="state_field_{{stateProvince.length}}" 
              (input)="onStateSearch($event)" 
@@ -712,7 +717,7 @@
           (click)="assignSelectedState(state.name)"
           class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-50 last:border-0">
         <span class="mr-2">📍</span>
-        {{ state.name }}
+        {{ state.name | uppercase }}
       </li>
     </ul>
   </div>
@@ -723,7 +728,7 @@
       <li *ngFor="let state of filteredStates" 
           (mousedown)="selectState(state)"
           class="p-2 hover:bg-blue-100 cursor-pointer border-b border-gray-100 last:border-none text-gray-800">
-        {{ state }}
+        {{ state | uppercase }}
       </li>
     </ul>
 
@@ -736,7 +741,7 @@
           <label class="w-40 text-red-700 font-bold">City</label>
           <div class="flex-1 flex flex-col">
             <div class="flex border border-gray-300 overflow-hidden">
-              <input type="text" [(ngModel)]="city" [readonly]="!isEditMode" [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'" name="city" placeholder="Search City..."
+              <input type="text" [(ngModel)]="city" (input)="city = $event.target.value.toUpperCase()" [readonly]="!isEditMode" [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'" name="city" placeholder="Search City..."
                 class="flex-1 p-1.5 outline-none" required #cityRef="ngModel">
               <button class="bg-gray-100 px-3 border-l border-gray-300 hover:bg-gray-200">🔍</button>
             </div>
@@ -747,7 +752,7 @@
         </div>
         <div class="flex items-center gap-3">
           <label class="w-40">Postal Code</label>
-          <input type="text" [(ngModel)]="postalCode" [readonly]="!isEditMode" [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'" name="postalCode"
+          <input type="text" [(ngModel)]="postalCode" (input)="postalCode = $event.target.value.toUpperCase()" [readonly]="!isEditMode" [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'" name="postalCode"
             class="flex-1 border border-gray-300 p-1.5 outline-none">
         </div>
       </div>
@@ -756,7 +761,7 @@
         <div class="flex items-center gap-3">
           <label class="w-40">Telephone</label>
           <div class="flex flex-col flex-1">
-            <input type="text" [(ngModel)]="telephone" [readonly]="!isEditMode" [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'" name="telephone" maxlength="15" (keypress)="onlyNumbers($event)"
+            <input type="text" [(ngModel)]="telephone" (input)="telephone = $event.target.value.toUpperCase()" [readonly]="!isEditMode" [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'" name="telephone" maxlength="15" (keypress)="onlyNumbers($event)"
               placeholder="Telephone (5-15 digits)" class="w-full border p-1.5 outline-none focus:border-blue-400"
               [class.border-red-500]="telephone && telephone.length > 0 && telephone.length < 5">
             <span *ngIf="telephone && telephone.length > 0 && telephone.length < 5" class="text-[10px] text-red-500 mt-1 font-semibold italic">⚠️ Telephone must be 5-15 digits</span>
@@ -765,7 +770,7 @@
         <div class="flex items-center gap-3">
           <label class="w-40">Fax</label>
           <div class="flex flex-col flex-1">
-            <input type="text" [(ngModel)]="fax" [readonly]="!isEditMode" [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'" name="fax" maxlength="13" (keypress)="onlyNumbers($event)"
+            <input type="text" [(ngModel)]="fax" (input)="fax = $event.target.value.toUpperCase()" [readonly]="!isEditMode" [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'" name="fax" maxlength="13" (keypress)="onlyNumbers($event)"
               class="w-full border p-1.5 outline-none focus:border-blue-400"
               [class.border-red-500]="fax && fax.length > 0 && (fax.length < 6)">
             <span *ngIf="fax && fax.length > 0 && fax.length < 6" class="text-[10px] text-red-500 mt-1 font-semibold italic">⚠️ Fax must be 6-13 digits</span>
@@ -777,7 +782,7 @@
         <div class="flex items-center gap-3">
           <label class="w-40">Web Site</label>
           <div class="flex flex-col flex-1">
-            <input type="text" [(ngModel)]="website" [readonly]="!isEditMode" [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'" name="website" (input)="validateWebsite()" placeholder="e.g. www.google.com"
+            <input type="text" [(ngModel)]="website"  (input)="website = $event.target.value.toUpperCase()" [readonly]="!isEditMode" [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'" name="website" (input)="validateWebsite()" placeholder="e.g. www.google.com"
               class="w-full border p-1.5 outline-none focus:border-blue-400"
               [class.border-red-500]="website && website.length > 0 && isWebsiteInvalid">
             <span *ngIf="website && website.length > 0 && isWebsiteInvalid" class="text-[10px] text-red-500 mt-1 font-semibold italic">⚠️ Invalid website format</span>
@@ -789,11 +794,12 @@
           <input 
   type="email" 
   [(ngModel)]="email" 
+  (input)="email = $event.target.value.toUpperCase()"
   [readonly]="!isEditMode"  
   name="email" 
   list="emailSuggestions" 
   (input)="checkMainEmail()"
-  class="w-full p-1.5 outline-none"
+  class="w-full border p-1.5 outline-none focus:border-blue-400"
   [ngClass]="{
     'border-red-500': email && email.length > 0 && isMainEmailInvalid,
     'border-gray-300': !(email && email.length > 0 && isMainEmailInvalid),
@@ -816,7 +822,7 @@
           </div>
           <div class="space-y-3">
             <div *ngFor="let contact of contacts; let i = index" class="grid grid-cols-1 md:grid-cols-6 gap-3 items-center">
-              <input [(ngModel)]="contact.contactName" [readonly]="!isEditMode"  [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'"  [name]="'name'+i" placeholder="Name" class="w-full border p-2 rounded text-sm outline-none">
+              <input [(ngModel)]="contact.contactName" (input)="contact.contactName = $event.target.value.toUpperCase()" [readonly]="!isEditMode"  [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'"  [name]="'name'+i" placeholder="Name" class="w-full border p-2 rounded text-sm outline-none">
               <select [(ngModel)]="contact.DesignationId" [disabled]="!isEditMode" [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'"  
         [name]="'desig'+i" 
         class="w-full border p-2 rounded text-sm bg-white">
@@ -824,7 +830,7 @@
   <option [ngValue]="null">-- Select Designation --</option>
 
   <option *ngFor="let des of designation" [value]="des.id">
-    {{ des.name }}
+   {{ des.name | uppercase }}
   </option>
 
 </select>
@@ -835,7 +841,8 @@
   <option [ngValue]="null" disabled selected>Select Department</option>
 
   <option *ngFor="let dept of department" [value]="dept.id">
-    {{ dept.name }}
+    
+    {{ dept.name | uppercase }}
   </option>
 
 </select>
@@ -849,8 +856,8 @@
              [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'" type="text" maxlength="10" (keypress)="onlyNumbers($event)" placeholder="Whatsapp" class="w-full border p-2 rounded text-sm">
               </div>
               <div class="flex items-center gap-3">
-                <input [(ngModel)]="contact.email"    [readonly]="!isEditMode"
-             [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'" type="email" (input)="checkEmail(contact)" placeholder="Email" class="flex-1 border p-2 rounded text-sm">
+                <input [(ngModel)]="contact.email"     [readonly]="!isEditMode"
+             [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'" type="email" (input)="contact.email = $event.target.value.toUpperCase(); checkEmail(contact)" placeholder="Email" class="flex-1 border p-2 rounded text-sm">
                 <button *ngIf="i === 0" type="button" (click)="addContact()" class="text-green-600 font-bold text-2xl">+</button>
                 <button *ngIf="i > 0" type="button" (click)="removeContact(i)" class="text-red-500 font-bold text-xl">x</button>
               </div>
@@ -868,12 +875,13 @@
 
 </button>
         <button (click)="saveOrg()" class="px-4 py-1.5 border border-gray-400 bg-gray-100 font-bold">Update</button>
-<button 
+<!-- <button 
   (click)="deleteSelectedBranch()"
   class="px-4 py-1.5 border border-gray-400 bg-gray-100 font-bold text-red-600">
 
   Cancel
-</button>      </div>
+</button>   -->
+    </div>
     </div>
   </div>
 
@@ -1115,7 +1123,7 @@
       <input type="text" 
              [(ngModel)]="country" 
              name="country_field_{{country.length}}"  (input)="onCountrySearch($event)" 
-             placeholder="Search Country..."
+             placeholder="Search Country1234..."
              class="flex-1 p-1.5 outline-none" 
              required 
              #countryRef="ngModel" 
@@ -1127,7 +1135,7 @@
       <li *ngFor="let item of filteredCountries" 
           (mousedown)="selectCountry(item.name)" 
           class="p-2 hover:bg-blue-100 cursor-pointer border-b border-gray-100 last:border-none text-gray-800">
-        {{ item.name }}
+        {{ item.name | uppercase }}
       </li>
     </ul>
 

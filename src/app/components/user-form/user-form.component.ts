@@ -15,6 +15,7 @@ import { employeeSchema } from './employee.schema';
   templateUrl: './user-form.component.html'
 })
 export class UserFormComponent implements OnInit {
+  userlist:any=[];
   todayDate: string = new Date().toISOString().split('T')[0];
   permissions: any[] = [];
   selectedPermissionIds: number[] = [];
@@ -55,6 +56,8 @@ export class UserFormComponent implements OnInit {
   }
 
 ngOnInit(): void {
+  this.getuser();
+  console.log('this is userlist',this.userlist);
     this.userService.getDepartments().subscribe(res => this.departments = res);
   this.userService.getDesignations().subscribe(res => this.designations = res);
   this.initForm();
@@ -349,7 +352,7 @@ createExperienceGroup(): FormGroup {
     this.userService.getDepartments().subscribe(res => this.departments = res);
     this.userService.getDesignations().subscribe(res => this.designations = res);
     this.userService.getRoles().subscribe(res => this.roles = res);
-    this.userService.getHods().subscribe(res => this.hods = res);
+    this.userService.getUsers('onlyuserdata').subscribe(res => this.hods = res);
     this.userService.getTeams().subscribe(res => this.teams = res);
   }
 
@@ -406,7 +409,7 @@ onSubmit() {
   // 1. Zod Validation Check
   if (!this.validateForm()) {
     this.userForm.markAllAsTouched();
-    alert('Form validation faild. Check the feilds properly and try aganin .');
+    alert('Please fill all input fields correctly.');
     return;
   }
 
@@ -589,6 +592,16 @@ async saveEducation(userId: any) {
 //     error: (err) => console.error('Education API Error:', err)
 //   });
 // }
+getuser(){
+  this.userService.getUsers('onlyuserdata').subscribe({
+    next: res => {
+      console.log('User Data:', res);
+      this.userlist=res;
+     this.cdr.detectChanges(); // Ensure UI updates after data is set
+    }
+
+  });
+};
 async saveExperience(userId: any) {
   const raw = this.userForm.getRawValue();
   const experienceArray = raw.experiences || [];

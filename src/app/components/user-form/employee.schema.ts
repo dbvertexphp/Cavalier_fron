@@ -5,17 +5,41 @@ export const employeeSchema = z.object({
   firstName: z.string().min(1, "First name required").regex(/^[a-zA-Z ]+$/, "Only letters allowed"),
   
   email: z.string().min(1, "Email required").email("Invalid email"),
-  dob: z.string().min(1, "DOB required"),
+ dob: z.string()
+  .min(1, "DOB required")
+  .regex(/^\d{2}-\d{2}-\d{4}$/, "Format must be DD-MM-YYYY")
+  .refine((val) => {
+    const [day, month, year] = val.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    return (
+      date.getFullYear() === year &&
+      date.getMonth() === month - 1 &&
+      date.getDate() === day
+    );
+  }, "Invalid DOB"),
+
+dateOfJoining: z.string()
+  .min(1, "Joining date required")
+  .regex(/^\d{2}-\d{2}-\d{4}$/, "Format must be DD-MM-YYYY")
+  .refine((val) => {
+    const [day, month, year] = val.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    return (
+      date.getFullYear() === year &&
+      date.getMonth() === month - 1 &&
+      date.getDate() === day
+    );
+  }, "Invalid joining date"),
   mobile: z.string().regex(/^[0-9]{10}$/, "Mobile must be 10 digits"),
   
   // Mapped to your TS names
-department: z.coerce.string().min(1, "Department required"),
+
 paN_No: z.string()
   .min(1, "PAN No required ")
   // Bas uppercase mein convert karega, format ki tension nahi
   .transform((val) => val.toUpperCase()),
   aadhaarNo: z.string().regex(/^[0-9]{12}$/, "Invalid Aadhaar"),
-  dateOfJoining: z.string().min(1, "Joining date required"),
+  
   ctc_Monthly: z.preprocess((val) => String(val), z.string().regex(/^[0-9.]+$/, "CTC must be number")),
 
   // Address - Mapping to your 'pres' and 'perm' names

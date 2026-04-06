@@ -212,6 +212,9 @@
         <li *ngFor="let d of filteredDepts" (click)="selectItem(d, 'dept', deptInput)" class="p-2 hover:bg-blue-50 cursor-pointer border-b last:border-0">{{ d.name }}</li>
       </ul>
     </div>
+     <div *ngIf="userForm.get('department')?.touched && userForm.get('department')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
+    {{ userForm.get('department')?.errors?.['zod'] }}
+  </div>
   </div>
 
   <div class="relative">
@@ -229,6 +232,9 @@
         <li *ngFor="let d of filteredDesig" (click)="selectItem(d, 'des', desigInput)" class="p-2 hover:bg-blue-50 cursor-pointer border-b last:border-0">{{ d.name }}</li>
       </ul>
     </div>
+     <div *ngIf="userForm.get('designation')?.touched && userForm.get('designation')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
+    {{ userForm.get('designation')?.errors?.['zod'] }}
+  </div>
   </div>
 </div>
 

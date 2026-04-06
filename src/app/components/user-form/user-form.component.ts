@@ -479,7 +479,7 @@ onSubmit() {
       },
       error: err => {
         console.error('API Error:', err);
-        alert('Email already exists');
+        alert('Please Check Field properly');
       }
     });
   }

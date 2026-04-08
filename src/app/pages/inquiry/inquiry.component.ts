@@ -24,6 +24,9 @@ import { Subscription } from 'rxjs';
   styleUrl: './inquiry.component.css',
 })
   export class InquiryComponent implements OnInit {
+   
+isPickupEnabled: boolean = false; 
+    selectedLeadData: any = null;
     transportModes: any[] = [];
     incoTerms: any[] = [];
     shipmentTypes: any[] = [];
@@ -117,6 +120,8 @@ inquiries:any[]=[]
     organization: '',         // Search input ke liye
     organizationAddress: '',
     leadNo: '',
+    isDirect: false,
+  isIndirect: false,
     origin: '',
     
     // ... baki fields ...
@@ -181,14 +186,38 @@ this.getCommodityTypes();
   onLOBChange(event: any) {
   const selectedId = event.target.value;
 
-  const selectedService = this.companyServices.find(
-    s => s.id == selectedId
-  );
+  // Selected service find karo
+  const selectedService = this.companyServices.find(s => s.id == selectedId);
 
-  if (selectedService) {
-    this.quotation.lineOfBusinessName = selectedService.serviceName;
-    console.log("Selected LOB Name:", selectedService.serviceName);
+  if (!selectedService || !selectedService.serviceName) {
+    console.warn("No service found for ID:", selectedId);
+    return;
   }
+
+  const fullName = selectedService.serviceName.trim();
+  this.quotation.lineOfBusinessName = fullName;
+
+  // 🔥 Pure Dynamic Logic - Koi hard-coded if condition nahi
+  const parts = fullName.split(/[\s\-]+/);   // space aur hyphen dono se split
+
+  if (parts.length >= 2) {
+    // Pehla word → Transport Mode
+    this.quotation.TransportMode = parts[0];
+
+    // Aakhri word → Transport Type
+    let lastWord = parts[parts.length - 1];
+
+    // Capitalize first letter (Import → Import, export → Export)
+    this.quotation.TransportType = lastWord.charAt(0).toUpperCase() + lastWord.slice(1).toLowerCase();
+  } 
+  else if (parts.length === 1) {
+    // Agar sirf ek word hai
+    this.quotation.TransportMode = parts[0];
+    this.quotation.TransportType = '';        // ya 'Domestic' rakh sakte ho
+  }
+
+  console.log(`✅ LOB Selected: ${fullName}`);
+  console.log(`Auto Filled → Transport Mode: ${this.quotation.TransportMode} | Transport Type: ${this.quotation.TransportType}`);
 }
     getIncoTerms() {
     this.http.get<any[]>(`${environment.apiUrl}/IncoTerms`).subscribe({
@@ -198,6 +227,50 @@ this.getCommodityTypes();
       error: (err) => console.error('Error fetching IncoTerms:', err)
     });
   }
+  onServiceTypeChange() {
+  console.log(`Service Type Changed → Direct: ${this.quotation.isDirect} | Indirect: ${this.quotation.isIndirect}`);
+
+  // Optional: Agar dono select nahi karna chahte toh logic laga sakte ho
+  // Example: Agar Direct true hai to Indirect false kar do (mutually exclusive)
+  // if (this.quotation.isDirect) this.quotation.isIndirect = false;
+  // if (this.quotation.isIndirect) this.quotation.isDirect = false;
+}
+ onIncotermChange(event: any) {
+  const selectedIncoterm = event.target.value?.toUpperCase().trim();
+
+  if (!selectedIncoterm) return;
+
+  this.quotation.incoterm = selectedIncoterm;
+
+  console.log(`Incoterm changed to: ${selectedIncoterm}`);
+
+  // 🔥 Updated Logic as per your requirement
+  switch (selectedIncoterm) {
+    
+    // PORT TO PORT
+    case 'FOB':
+    
+      this.quotation.movementType = 'PORT TO PORT';
+      this.isPickupEnabled = false;
+      this.quotation.pickupAddress='';
+      break;
+
+    // DOOR TO PORT
+    case 'EXWORK':
+      
+      this.quotation.movementType = 'DOOR TO PORT';
+      this.isPickupEnabled = true;
+      break;
+
+    // DOOR TO DOOR (Default for everything else)
+    default:
+      this.quotation.movementType = 'DOOR TO DOOR';
+      this.isPickupEnabled = false;
+      this.quotation.pickupAddress='';
+  }
+
+  console.log(`→ Movement Type Auto Selected: ${this.quotation.movementType}`);
+}
 getTransportModes() {
     // Using environment.apiUrl + your controller route
     const url = `${environment.apiUrl}/TransportModes`;
@@ -287,9 +360,17 @@ onOriginSearchInput() {
 
   // --- Selection Logic ---
   selectLead(lead: any) {
-    this.inquiry.leadNo = lead.leadNo; 
-    this.showLeadDropdown = false;
+  if (!lead || !lead.leadNo) {
+    console.warn("Invalid lead selected");
+    return;
   }
+
+  this.inquiry.leadNo = lead.leadNo;
+  this.showLeadDropdown = false;
+
+  // 🔥 API Call - LeadNo se pura data fetch karo
+  this.loadLeadByLeadNo(lead.leadNo);
+}
     // --- Fetch Organization List ---
   fetchOrganizations() {
     const url = `${environment.apiUrl}/Organization/list`;
@@ -1704,9 +1785,52 @@ loadAllLeadss() {
 
 // Selection Function
 selectInquiry(inq: any) {
+  if (!inq || !inq.leadNo) {
+    console.warn("Invalid inquiry/lead selected");
+    return;
+  }
+
   this.inquiry.leadNo = inq.leadNo || inq.inquiryNo;
-  // Agar koi aur fields update karni ho toh yahan kar sakte ho
   this.showInquiryDropdown = false;
-  this.cdr.detectChanges();
+
+  // 🔥 API Call
+  this.loadLeadByLeadNo(this.inquiry.leadNo);
+}
+// ================== LOAD FULL LEAD BY LEADNO ==================
+// ================== LOAD FULL LEAD BY LEADNO ==================
+loadLeadByLeadNo(leadNo: string) {
+  if (!leadNo) return;
+
+  const url = `${environment.apiUrl}/Leads/byLeadNo?leadNo=${encodeURIComponent(leadNo)}`;
+
+  this.http.get<any>(url).subscribe({
+    next: (leadData) => {
+      console.log("✅ Full Lead Data Received:", leadData);
+
+      this.selectedLeadData = leadData;
+
+      // Form auto-fill
+      this.inquiry.leadNo = leadData.leadNo || leadData.LeadNo;
+
+      if (leadData.organizationName) {
+        this.inquiry.organization = leadData.organizationName;
+        this.quotation.organizationName = leadData.organizationName;
+      }
+
+      if (leadData.location) this.quotation.location = leadData.location;
+      if (leadData.branch) this.quotation.branchName = leadData.branch;
+      if (leadData.type) this.quotation.type = leadData.type;
+
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error("❌ Error fetching lead:", err);
+      if (err.status === 404) {
+        alert(`Lead ${leadNo} not found!`);
+      } else {
+        alert("Failed to load lead details");
+      }
+    }
+  });
 }
   }

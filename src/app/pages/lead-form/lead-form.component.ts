@@ -593,7 +593,7 @@ onDeleteLead(id: any) {
       source: ['', Validators.required],
       salesProcess: ['', Validators.required],
       salesCoordinator: ['', Validators.required],
-      branch: ['DELHI', Validators.required],
+      branch: ['', Validators.required],
       date: [this.toISODate(today), Validators.required],
       leadOwner: ['BHARAT JUYAL', Validators.required],
       expectedValidity: [this.toISODate(validityDate)],
@@ -724,6 +724,7 @@ onSave() {
     alert("Please fix validation errors");
     return;
   }
+  console.log('Validated Form Value:', rawValue);
 
   // Payload banayein (Backend ke hisab se)
   const payload = {

@@ -828,11 +828,21 @@
 </div>
   <div class="grid grid-cols-2 items-center">
               <label class="font-bold text-gray-700">Branch</label>
-              <select [(ngModel)]="quotation.branchName" name="branchName" class="border p-1.5 outline-none">
-                <option value="">--Select--</option>
-                <option value="MUMBAI">CAVALIER</option>
-                <option value="DELHI">DELHI</option>
-              </select>
+              <select 
+    [(ngModel)]="quotation.branchName" 
+    name="branchName" 
+    class="border p-1.5 outline-none">
+
+    <option value="">--Select--</option>
+    
+    <!-- Dynamic options from branchList -->
+    <option 
+        *ngFor="let branch of branchlist" 
+        [value]="branch.branchName">
+        {{ branch.branchName }}
+    </option>
+
+</select>
             </div>
             <div class="grid grid-cols-2 items-center">
               <label class="font-bold text-gray-700">Inq. Received</label>
@@ -860,10 +870,13 @@
 
    <div class="flex items-center gap-2">
   <label class="w-26 font-bold text-[#802a2a]">Location</label>
-  <select [(ngModel)]="quotation.location" name="location" class="flex-1 border p-1.5 outline-none bg-white text-[12px]">
-    <option value="DELHI">DELHI</option>
-    <option value="MUMBAI">MUMBAI</option>
-  </select>
+  
+  <input 
+      type="text" 
+      [(ngModel)]="quotation.location" 
+      name="location"
+      class="flex-1 border p-1.5 outline-none bg-white text-[12px]" 
+      placeholder="Enter location">
 </div>
 
 <div class="flex items-center gap-2 mt-2">
@@ -1014,17 +1027,34 @@
             </div>
 
 
-            <div class="grid grid-cols-2 items-center">
-              <label class="font-bold text-gray-700">Cargo Status</label>
-              <div class="flex gap-1 items-center overflow-hidden">
-                <input type="date" [(ngModel)]="quotation.cargoStatusDate" name="cargoStatusDate"
-                  class="border p-1 text-[11px] outline-none w-[110px]">
-                <select [(ngModel)]="quotation.shipmentType" name="cargoStatus" class="border p-1 text-[11px] outline-none flex-1 min-w-0">
-                  <option value="Ready By">Ready By</option>
-                  <option value="Pending">Pending</option>
-                </select>
-              </div>
-            </div>
+      <div class="grid grid-cols-2 items-center">
+  <label class="font-bold text-gray-700">Cargo Status</label>
+  
+  <div class="flex gap-1 items-center overflow-hidden">
+    
+    <!-- Date Input -->
+    <input 
+      type="date" 
+      [(ngModel)]="quotation.cargoStatusDate" 
+      name="cargoStatusDate"
+      [readonly]="quotation.shipmentType === 'Ready'"
+      class="border p-1 text-[11px] outline-none w-[130px] 
+             bg-white focus:outline-none
+             {{ quotation.shipmentType === 'Ready' ? 'bg-gray-100 text-gray-500 cursor-default' : '' }}">
+
+    <!-- Select Dropdown -->
+    <select 
+      [(ngModel)]="quotation.shipmentType" 
+      name="shipmentType"
+      (change)="onShipmentTypeChange()"
+      class="border p-1 text-[11px] outline-none flex-1 min-w-0">
+      
+      <option value="Ready">Ready</option>
+      <option value="Ready By">Ready By</option>
+      
+    </select>
+  </div>
+</div>
           </div>
         </div>
       </div>

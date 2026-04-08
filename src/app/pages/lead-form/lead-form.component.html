@@ -1073,7 +1073,7 @@ class="divide-x divide-gray-200 hover:bg-gray-50">
       <label class="font-bold text-gray-600">Branch</label>
       <select formControlName="branch" class="border border-gray-300 p-2 w-full">
         <option value="" disabled selected>Select Branch</option>
-        <option *ngFor="let b of branches" [value]="b.name">
+        <option *ngFor="let b of branches" [value]="b.branchName">
           {{ b.branchName }}
         </option>
       </select>

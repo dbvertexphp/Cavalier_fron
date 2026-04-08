@@ -15,6 +15,7 @@ import * as XLSX from 'xlsx';
 import { moveItemInArray, transferArrayItem, CdkDragDrop } from '@angular/cdk/drag-drop';
 import { DragDropModule } from '@angular/cdk/drag-drop'; // Ye import ensure karein
 import { Subscription } from 'rxjs';
+import { BranchService } from '../../services/branch.service';
 
 @Component({
   selector: 'app-inquiry',
@@ -24,7 +25,7 @@ import { Subscription } from 'rxjs';
   styleUrl: './inquiry.component.css',
 })
   export class InquiryComponent implements OnInit {
-   
+   branchlist:any[]=[];
 isPickupEnabled: boolean = false; 
     selectedLeadData: any = null;
     transportModes: any[] = [];
@@ -144,9 +145,10 @@ organizations: any[] = [];
   searchDone: boolean = false; // Shuru mein false rahega
   uploadedDocuments: any[] = [];
     // Ye line add karein
-    constructor(private http: HttpClient, private router: Router,private cdr: ChangeDetectorRef ) {}
+    constructor(private http: HttpClient, private router: Router,private cdr: ChangeDetectorRef,private branchservice:BranchService ) {}
 
     ngOnInit() {
+      this.getbranch();
       this.loadQuotations();
       this.getNextInquiryNumber();
       this.fetchOrganizations();
@@ -164,6 +166,10 @@ this.getShipmentTypes();
 this.getIncoTerms();
 this.getMovementTypes();
 this.getCommodityTypes();
+this.quotation.shipmentType = 'Ready';
+    
+    
+    this.setTodayDate();
     }
     getCommodityTypes() {
     // Hits: https://localhost:xxxx/api/CommodityType
@@ -174,6 +180,33 @@ this.getCommodityTypes();
       error: (err) => console.error('Error fetching Commodities:', err)
     });
   }
+  setTodayDate() {
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+    this.quotation.cargoStatusDate = today;
+}
+
+// Jab user Ready ya Ready By select kare
+onShipmentTypeChange() {
+    if (this.quotation.shipmentType === 'Ready') {
+        this.setTodayDate();   // Ready select karte hi aaj ki date set ho jayegi
+    }
+    // Ready By select karne par date ko editable rehne do (user khud change kar sake)
+}
+  getbranch() {
+    this.branchservice.getBranches().subscribe({
+        next: (response: any) => {
+            this.branchlist = response;        // insert all response data
+            console.log('Branches loaded:', this.branchlist);
+        },
+        error: (err: any) => {
+            console.error('Error fetching branches:', err);
+            // Optional: show toast/error message to user
+        },
+        complete: () => {
+            console.log('Branch fetch completed');
+        }
+    });
+}
     getMovementTypes() {
     // Hits: https://localhost:xxxx/api/MovementTypes
     this.http.get<any[]>(`${environment.apiUrl}/MovementTypes`).subscribe({

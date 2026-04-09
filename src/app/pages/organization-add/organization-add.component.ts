@@ -892,7 +892,7 @@ getBranchesByOrg(orgId: number) {
       if (res && Array.isArray(res) && res.length > 0) {
         
         this.branchList = res.map((b: any) => ({
-          id: b.id,                          // Sabse important
+          id: b.id,                          // Sabse important
           branchName: b.branchName || '',
 
           organizationId: b.organizationId,
@@ -915,13 +915,13 @@ getBranchesByOrg(orgId: number) {
           whatsapp: b.whatsapp || '',
           emailId: b.emailId || b.emailAddress || '',
 
-         lobIds: b.lobIds || null,
+          lobIds: b.lobIds || null,
   
-  // 🔥 FIXED - Proper typing with explicit types
-  lobIdsList: b.lobIds 
-    ? b.lobIds.split(',').map((id: string) => parseInt(id.trim(), 10))
-                 .filter((id: number) => !isNaN(id))
-    : [],
+          // 🔥 FIXED - Proper typing with explicit types
+          lobIdsList: b.lobIds 
+            ? b.lobIds.split(',').map((id: string) => parseInt(id.trim(), 10))
+                                 .filter((id: number) => !isNaN(id))
+            : [],
           designationId: b.designationId || null,
           departmentId: b.departmentId || null,
 
@@ -936,9 +936,11 @@ getBranchesByOrg(orgId: number) {
           designation: b.designation,
           department: b.department,
           companyService: b.companyService
-        }));
+        }))
+        // 🔥 YE LINE ADD KI HAI: Default branch ko top par laane ke liye
+        .sort((a, b) => (b.isDefault === a.isDefault ? 0 : b.isDefault ? 1 : -1));
 
-        console.log("✅ branchList ready for sidebar:", this.branchList);
+        console.log("✅ branchList ready for sidebar (Sorted by Default):", this.branchList);
       } else {
         this.branchList = [];
         console.log("No branches found.");
@@ -1870,5 +1872,19 @@ resetBranchFormOnly() {
     whatsapp: '',
     email: ''
   }];
+}
+onDefaultChange(currentIndex: number) {
+  if (this.branchList[currentIndex].isDefault) {
+    // 1. Baaki sabhi branches se default status hatao
+    this.branchList.forEach((b, i) => {
+      if (i !== currentIndex) b.isDefault = false;
+    });
+    
+    // 2. (Optional) Agar tu chahta hai ki tick karte hi wo top par chali jaye:
+    // const [target] = this.branchList.splice(currentIndex, 1);
+    // this.branchList.unshift(target);
+    // this.selectedBranchIndex = 0;
+  }
+  this.cdr.detectChanges();
 }
 } 

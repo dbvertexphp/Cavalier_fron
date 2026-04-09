@@ -926,4 +926,35 @@ onUserTypeChange(event: any) {
     });
   }
 }
+// user-form.component.ts mein class ke andar ye add kar:
+
+downloadData(type: string) {
+  let dataToDownload = [];
+  let fileName = "";
+
+  if (type === 'dept') {
+    dataToDownload = this.filteredDepts.length > 0 ? this.filteredDepts : this.departments;
+    fileName = "departments.csv";
+  } else if (type === 'des') {
+    dataToDownload = this.filteredDesig.length > 0 ? this.filteredDesig : this.designations; // designations array ka naam check kar lena
+    fileName = "designations.csv";
+  }
+
+  if (!dataToDownload || dataToDownload.length === 0) {
+    alert("No data available to download");
+    return;
+  }
+
+  const csvContent = "data:text/csv;charset=utf-8," 
+    + "ID,Name\n" 
+    + dataToDownload.map(d => `${d.id},${d.name}`).join("\n");
+
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", fileName);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
 }

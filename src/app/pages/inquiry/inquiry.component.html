@@ -1425,6 +1425,21 @@
 
 
 
+   <div class="flex items-start">
+  <label class="w-40 font-bold text-gray-700 mt-2">CBM Weight</label>
+  
+  <div class="flex-1 flex items-center gap-2">
+    <input 
+      type="number" 
+      [(ngModel)]="quotation.cbm" 
+      name="cbm"
+      readonly
+      class="flex-1 border p-2 outline-none bg-gray-50 focus:border-blue-500 h-10 font-medium"
+      placeholder="0.000">
+
+    <span class="text-gray-500 font-medium">CBM</span>
+  </div>
+</div>
     <div class="flex items-start">
   <label class="w-40 font-bold text-gray-700 mt-2">Description</label>
   <textarea 
@@ -1547,37 +1562,77 @@
       <!-- Origin -->
       <div class="flex items-center text-red-700 font-bold">
         <label class="w-40">Origin</label>
-        <div class="relative flex-1 flex items-center">
-          <input [(ngModel)]="inquiry.origin" name="origin" placeholder="Search Origin..."
-            (input)="onOriginSearchInput()"
-            class="w-full border p-2 border-red-300 outline-none pr-8 text-[12px] text-gray-700 font-normal">
+      <div class="relative flex-1 flex items-center">
+  <input 
+    [(ngModel)]="inquiry.origin" 
+    name="origin" 
+    placeholder="Search Origin..."
+    (input)="onOriginSearchInput()"
+    class="w-full border p-2 border-red-300 outline-none pr-8 text-[12px] text-gray-700 font-normal">
 
-          <button class="absolute right-2 text-gray-500 hover:text-black">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </button>
+  <button class="absolute right-2 text-gray-500 hover:text-black">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    </svg>
+  </button>
 
-          <ul *ngIf="showOriginDropdown && filteredOrigins.length > 0" class="absolute top-full left-0 z-10 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto text-gray-700 font-normal">
-            <li *ngFor="let origin of filteredOrigins" (click)="selectOrigin(origin)" class="p-2 hover:bg-gray-100 cursor-pointer text-[12px]">
-              {{ origin.name }}
-            </li>
-          </ul>
-        </div>
+  <!-- Dropdown -->
+  <ul *ngIf="showOriginDropdown" 
+      class="absolute top-full left-0 z-10 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto text-gray-700 font-normal">
+
+    <!-- Agar results hain -->
+    <li *ngFor="let origin of filteredOrigins" 
+        (click)="selectOrigin(origin)" 
+        class="p-2 hover:bg-gray-100 cursor-pointer text-[12px]">
+      {{ origin.name }}
+    </li>
+
+    <!-- Agar koi result nahi mila -->
+    <li *ngIf="showOriginDropdown && filteredOrigins.length === 0" 
+        class="p-3 text-center text-red-500 text-[12px] font-medium">
+      No Origin Found
+    </li>
+
+  </ul>
+</div>
       </div>
 
       <!-- Port of Loading -->
       <div class="flex items-center text-red-700 font-bold">
-        <label class="w-40">Port of Loading</label>
-        <div class="relative flex-1 flex items-center">
-          <input [(ngModel)]="quotation.portOfLoading" name="portOfLoading" class="w-full border p-2 border-red-300 outline-none pr-8">
-          <button class="absolute right-2 text-gray-500 hover:text-black">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </button>
-        </div>
-      </div>
+  <label class="w-40">Port of Loading</label>
+  
+  <div class="relative flex-1 flex items-center">
+    <input 
+      [(ngModel)]="quotation.portOfLoading" 
+      name="portOfLoading"
+      placeholder="Search Port of Loading..."
+      (input)="onPortOfLoadingSearch()"
+      class="w-full border p-2 border-red-300 outline-none pr-8 text-[12px]">
+
+    <button class="absolute right-2 text-gray-500 hover:text-black">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+    </button>
+
+    <!-- Dropdown -->
+    <ul *ngIf="showPortOfLoadingDropdown" 
+        class="absolute top-full left-0 z-10 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto text-gray-700 text-[12px]">
+
+      <li *ngFor="let port of filteredPortsOfLoading" 
+          (click)="selectPortOfLoading(port)" 
+          class="p-2 hover:bg-gray-100 cursor-pointer">
+        {{ port.name || port.portName }}
+      </li>
+
+      <!-- No Data Found -->
+      <li *ngIf="showPortOfLoadingDropdown && filteredPortsOfLoading.length === 0" 
+          class="p-3 text-center text-red-500 italic">
+        No Port Found
+      </li>
+    </ul>
+  </div>
+</div>
 
       <!-- Pickup Address -->
       <div class="flex items-start">
@@ -1610,17 +1665,41 @@
 </div>
 
       <!-- Port of Discharge -->
-      <div class="flex items-center text-red-700 font-bold">
-        <label class="w-40">Port of Discharge</label>
-        <div class="relative flex-1 flex items-center">
-          <input [(ngModel)]="quotation.portOfDestination" name="portOfDestination" class="w-full border p-2 border-red-300 outline-none pr-8">
-          <button class="absolute right-2 text-gray-500 hover:text-black">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </button>
-        </div>
-      </div>
+     <div class="flex items-center text-red-700 font-bold">
+  <label class="w-40">Port of Discharge</label>
+  
+  <div class="relative flex-1 flex items-center">
+    <input 
+      [(ngModel)]="quotation.portOfDestination" 
+      name="portOfDestination"
+      placeholder="Search Port of Discharge..."
+      (input)="onPortOfDischargeSearch()"
+      class="w-full border p-2 border-red-300 outline-none pr-8 text-[12px]">
+
+    <button class="absolute right-2 text-gray-500 hover:text-black">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+    </button>
+
+    <!-- Dropdown -->
+    <ul *ngIf="showPortOfDischargeDropdown" 
+        class="absolute top-full left-0 z-10 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto text-gray-700 text-[12px]">
+
+      <li *ngFor="let port of filteredPortsOfDischarge" 
+          (click)="selectPortOfDischarge(port)" 
+          class="p-2 hover:bg-gray-100 cursor-pointer">
+        {{ port.name || port.portName }}
+      </li>
+
+      <!-- No Data Found Message -->
+      <li *ngIf="showPortOfDischargeDropdown && filteredPortsOfDischarge.length === 0" 
+          class="p-3 text-center text-red-500 italic">
+        No Port Found
+      </li>
+    </ul>
+  </div>
+</div>
 
       <!-- Final Destination -->
       <div class="flex items-center text-red-700 font-bold">

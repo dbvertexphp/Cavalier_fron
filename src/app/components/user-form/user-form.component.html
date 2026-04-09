@@ -198,44 +198,62 @@
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-blue-50/10 p-4 rounded border border-blue-100">
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
   <div class="relative">
-    <label class="block text-sm font-semibold text-gray-700 mb-1">Department</label>
-    <div class="relative flex items-center">
-      <input type="text" #deptInput placeholder="Search Department..." (input)="onSearch($event, 'dept')" class="w-full border p-2 pr-10 rounded focus:ring-2 focus:ring-blue-200 outline-none">
-      
-      <div (click)="openModal('dept')" class="absolute right-3 text-gray-400 cursor-pointer hover:text-blue-500">
+  <label class="block text-sm font-semibold text-gray-700 mb-1">Department</label>
+  <div class="relative flex items-center">
+    <input type="text" #deptInput placeholder="Search Department..." (input)="onSearch($event, 'dept')" class="w-full border p-2 pr-20 rounded focus:ring-2 focus:ring-blue-200 outline-none">
+    
+    <div class="absolute right-3 flex items-center gap-2">
+      <div (click)="downloadData('dept')" class="text-gray-400 cursor-pointer hover:text-green-500" title="Download Data">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+      </div>
+
+      <div (click)="openModal('dept')" class="text-gray-400 cursor-pointer hover:text-blue-500">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
       </div>
-
-      <ul *ngIf="filteredDepts.length > 0" class="absolute top-full left-0 z-50 w-full bg-white border rounded shadow-lg mt-1 max-h-40 overflow-y-auto text-sm">
-        <li *ngFor="let d of filteredDepts" (click)="selectItem(d, 'dept', deptInput)" class="p-2 hover:bg-blue-50 cursor-pointer border-b last:border-0">{{ d.name }}</li>
-      </ul>
     </div>
-     <div *ngIf="userForm.get('department')?.touched && userForm.get('department')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
+
+    <ul *ngIf="filteredDepts.length > 0" class="absolute top-full left-0 z-50 w-full bg-white border rounded shadow-lg mt-1 max-h-40 overflow-y-auto text-sm">
+      <li *ngFor="let d of filteredDepts" (click)="selectItem(d, 'dept', deptInput)" class="p-2 hover:bg-blue-50 cursor-pointer border-b last:border-0">{{ d.name }}</li>
+    </ul>
+  </div>
+
+  <div *ngIf="userForm.get('department')?.touched && userForm.get('department')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
     {{ userForm.get('department')?.errors?.['zod'] }}
   </div>
-  </div>
+</div>
 
-  <div class="relative">
-    <label class="block text-sm font-semibold text-gray-700 mb-1">Designation</label>
-    <div class="relative flex items-center">
-      <input type="text" #desigInput placeholder="Search Designation..." (input)="onSearch($event, 'des')" class="w-full border p-2 pr-10 rounded focus:ring-2 focus:ring-blue-200 outline-none">
-      
-      <div (click)="openModal('des')" class="absolute right-3 text-gray-400 cursor-pointer hover:text-blue-500">
+ <div class="relative">
+  <label class="block text-sm font-semibold text-gray-700 mb-1">Designation</label>
+  <div class="relative flex items-center">
+    <input type="text" #desigInput placeholder="Search Designation..." (input)="onSearch($event, 'des')" class="w-full border p-2 pr-20 rounded focus:ring-2 focus:ring-blue-200 outline-none">
+    
+    <div class="absolute right-3 flex items-center gap-2">
+      <div (click)="downloadData('des')" class="text-gray-400 cursor-pointer hover:text-green-500" title="Download Designations">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+      </div>
+
+      <div (click)="openModal('des')" class="text-gray-400 cursor-pointer hover:text-blue-500">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
       </div>
-
-      <ul *ngIf="filteredDesig.length > 0" class="absolute top-full left-0 z-50 w-full bg-white border rounded shadow-lg mt-1 max-h-40 overflow-y-auto text-sm">
-        <li *ngFor="let d of filteredDesig" (click)="selectItem(d, 'des', desigInput)" class="p-2 hover:bg-blue-50 cursor-pointer border-b last:border-0">{{ d.name }}</li>
-      </ul>
     </div>
-     <div *ngIf="userForm.get('designation')?.touched && userForm.get('designation')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
+
+    <ul *ngIf="filteredDesig.length > 0" class="absolute top-full left-0 z-50 w-full bg-white border rounded shadow-lg mt-1 max-h-40 overflow-y-auto text-sm">
+      <li *ngFor="let d of filteredDesig" (click)="selectItem(d, 'des', desigInput)" class="p-2 hover:bg-blue-50 cursor-pointer border-b last:border-0">{{ d.name }}</li>
+    </ul>
+  </div>
+
+  <div *ngIf="userForm.get('designation')?.touched && userForm.get('designation')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
     {{ userForm.get('designation')?.errors?.['zod'] }}
   </div>
-  </div>
+</div>
 </div>
 
 <div *ngIf="isModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-50 p-4">

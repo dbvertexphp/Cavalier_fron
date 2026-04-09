@@ -165,37 +165,14 @@
         🔍
       </span>
 
-   <div class="relative w-full">
-  
-  <div *ngIf="filteredHODSuggestions.length > 0"
-       class="absolute z-[999] w-full bg-white border border-gray-200 top-full left-0 mt-1 
-              max-h-60 overflow-y-auto shadow-xl rounded-xl p-1
-              animate-in fade-in duration-200 ease-out">
-    
-    <div *ngFor="let hodName of filteredHODSuggestions"
-         (click)="selectHOD(hodName)" 
-         class="flex items-center gap-3 p-3 mb-0.5 hover:bg-red-50 cursor-pointer rounded-lg transition-colors group">
-      
-      <div class="w-7 h-7 rounded-md bg-red-100 text-red-600 flex items-center justify-center text-[10px] font-bold flex-shrink-0 uppercase border border-red-200">
-        {{ hodName.substring(0, 1) }}
-      </div>
-
-      <div class="flex-1 min-w-0">
-        <p class="text-sm font-semibold text-gray-700 group-hover:text-red-700 truncate">
+      <div *ngIf="filteredHODSuggestions.length > 0"
+           class="absolute z-50 w-full bg-white border border-gray-300 top-full left-0 mt-1 max-h-48 overflow-y-auto shadow-md">
+        <div *ngFor="let hodName of filteredHODSuggestions"
+             (click)="selectHOD(hodName)" 
+             class="p-2 hover:bg-red-50 cursor-pointer text-sm border-b">
           {{ hodName }}
-        </p>
+        </div>
       </div>
-
-      <span class="opacity-0 group-hover:opacity-100 text-red-400 text-[9px] font-bold">
-        SELECT
-      </span>
-    </div>
-
-    <div *ngIf="filteredHODSuggestions.length === 0" class="p-4 text-center text-gray-400 text-xs italic">
-      No matching HOD found
-    </div>
-  </div>
-</div>
     </div>
   </div>
 
@@ -733,7 +710,6 @@ class="divide-x divide-gray-200 hover:bg-gray-50">
             <div class="flex justify-center gap-3">
 
               <button
-              (click)="onEditLead(lead.id)"
                 title="Edit" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Edit')"
                 class="text-blue-600 hover:text-blue-800">
 
@@ -845,322 +821,361 @@ class="divide-x divide-gray-200 hover:bg-gray-50">
           <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold text-[12px] px-4 py-1.5 uppercase shadow-sm">SAVE</button>
         </div>
         <div class="font-bold uppercase text-[12px] tracking-widest truncate px-2">
-  Lead Entry - {{ isEditMode ? 'Edit Record #' + selectedLeadId : 'New Record' }}
-</div>
+          Lead Entry - {{  'New Record' }}
+        </div>
         <button type="button" (click)="toggleForm()" class="bg-red-500 hover:bg-red-600 px-4 py-1.5 text-[12px] font-bold uppercase">CLOSE</button>
       </div>
  
       
       <div class="p-6 bg-white">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4">
 
-  <!-- ==================== ROW 1: Organization + Lead No ==================== -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4 mb-6">
-
-    <!-- 1. Organization (Sabse Pehle) -->
-    <div class="flex flex-col gap-3">
-      <label class="text-red-700 font-bold">Organization</label>
-      <div class="flex gap-1 relative">
-        <div class="flex border border-red-300 w-full bg-white shadow-sm relative">
-          <input 
-            type="text" 
-            formControlName="organization" 
-            class="w-full p-2 border-none outline-none" 
-            placeholder="Search organization..." 
-            (input)="onOrganizationSearch($event)"
-            (focus)="onOrganizationFocus()">
-
-          <span 
-            (click)="loadOrganizationList()" 
-            class="p-2 bg-gray-100 border-l border-gray-300 flex items-center justify-center cursor-pointer hover:bg-gray-200">
-            🔍
-          </span>
-
-          <!-- Typing Search Dropdown -->
-          <div *ngIf="filteredOrganizations.length > 0" 
-               class="absolute z-50 w-full bg-white border border-gray-300 top-full left-0 mt-1 max-h-48 overflow-y-auto shadow-md rounded-sm">
-            <div *ngFor="let org of filteredOrganizations"
-                 (click)="selectOrganization(org)"
-                 class="p-2 hover:bg-red-100 cursor-pointer text-sm border-b last:border-0">
-              {{ org.orgName }}
-              <span *ngIf="org.orgCode" class="text-gray-500 text-xs block">{{ org.orgCode }}</span>
-            </div>
-          </div>
-
-          <!-- Full List Dropdown (Icon click) -->
-          <ul *ngIf="showOrgDropdown && orgList.length > 0" 
-              class="absolute z-50 w-full bg-white border border-gray-300 top-full left-0 mt-1 max-h-48 overflow-y-auto shadow-lg rounded-sm">
-            <li *ngFor="let org of orgList" 
-                (click)="selectOrg(org)"
-                class="p-2 hover:bg-blue-50 cursor-pointer text-[12px] border-b last:border-0">
-              <div class="font-bold text-blue-700">{{ org.orgName }}</div>
-              <div *ngIf="org.orgCode" class="text-gray-500 text-[10px]">{{ org.orgCode }}</div>
-            </li>
-          </ul>
-        </div>
-
-        <button type="button" 
-                (click)="navigateToNewOrg($event)"
-                class="bg-green-800 text-white px-3 rounded-sm font-bold text-xs hover:bg-black whitespace-nowrap">
-          NEW
-        </button>
-      </div>
-
-      <!-- Error Messages -->
-      <div *ngIf="leadForm.get('organization')?.invalid && leadForm.get('organization')?.touched"
-           class="text-red-600 text-xs">
-        Organization is required.
-      </div>
-      <div *ngIf="leadForm.get('organization')?.errors?.['zod']"
-           class="text-red-600 text-xs">
-        {{ leadForm.get('organization')?.errors?.['zod'] }}
-      </div>
-    </div>
-
-    <!-- 2. Lead No. (Organization ke baad) -->
-    <div class="flex flex-col gap-3">
-      <label class="font-bold text-gray-600">Lead No.</label>
-      <input 
-        type="text" 
-        [value]="nextLeadNo" 
-        readonly 
-        class="border border-gray-300 p-2 bg-gray-100 outline-none w-full" 
-      />
-    </div>
-    <div class="flex flex-col gap-3">
-      <label class="font-bold text-gray-600">Type</label>
-      <select formControlName="type" class="border border-gray-300 p-2 w-full">
-        <option value="New Business">New Business</option>
-        <option value="Existing Business">Existing Business</option>
-      </select>
-      <div *ngIf="leadForm.get('type')?.invalid && leadForm.get('type')?.touched" class="text-red-600 text-xs">
-        Type is required.
-      </div>
-      <div *ngIf="leadForm.get('type')?.errors?.['zod']" class="text-red-600 text-xs">
-        {{ leadForm.get('type')?.errors?.['zod'] }}
-      </div>
-    </div>
-
-  </div>
-
-  <!-- ==================== Baaki saare fields (3 Column Layout) ==================== -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
-
-    <!-- Type -->
+  <div class="flex flex-col gap-3">
+    <label class="font-bold text-gray-600">Lead No.</label>
+    <input type="text" [value]="nextLeadNo" readonly class="border border-gray-300 p-2 bg-gray-100 outline-none w-full" />
     
+    <label class="font-bold text-gray-600">Type</label>
+    <select formControlName="type" class="border border-gray-300 p-2 w-full">
+      <option value="New Business">New Business</option>
+      <option value="Existing Business">Existing Business</option>
+    </select>
 
-    <!-- Sales Process -->
-    <div class="flex flex-col gap-3">
-      <label class="font-bold text-gray-600">Sales Process</label>
-      <select formControlName="salesProcess" class="border border-gray-300 p-2 w-full">
-        <option value="" disabled selected>SELECT PROCESS</option>
-        <option *ngFor="let process of salesProcesses" [value]="process.name">
-          {{ process.name }}
-        </option>
-      </select>
-      <div *ngIf="leadForm.get('salesProcess')?.errors?.['zod']" class="text-red-600 text-xs">
-        {{ leadForm.get('salesProcess')?.errors?.['zod'] }}
-      </div>
+    <div *ngIf="leadForm.get('type')?.invalid && leadForm.get('type')?.touched"
+         class="text-red-600 text-xs mt-[-10px]">
+      Type is required.
     </div>
 
-    <!-- Date -->
-    <div class="flex flex-col gap-3">
-      <label class="font-bold text-gray-600">Date</label>
-      <input 
-        type="date" 
-        formControlName="date" 
-        class="border border-gray-300 p-2 w-full"
-        #dateInput
-        (focus)="dateInput.showPicker()">
-      <div *ngIf="leadForm.get('date')?.invalid && leadForm.get('date')?.touched" class="text-red-600 text-xs">
-        Date is required.
-      </div>
-      <div *ngIf="leadForm.get('date')?.errors?.['zod']" class="text-red-600 text-xs">
-        {{ leadForm.get('date')?.errors?.['zod'] }}
-      </div>
+    <!-- Zod Error -->
+    <div *ngIf="leadForm.get('type')?.errors?.['zod']"
+         class="text-red-600 text-xs mt-[-10px]">
+      {{ leadForm.get('type')?.errors?.['zod'] }}
     </div>
 
-    <!-- Lead Owner -->
-    <div class="flex flex-col gap-3">
-      <label class="font-bold text-gray-600">Lead Owner</label>
-      <select formControlName="leadOwner" class="border border-gray-300 p-2 w-full">
-        <option value="" disabled selected>Select Lead Owner</option>
-        <option *ngFor="let owner of leadOwners" [value]="owner.firstName">
-          {{ owner.firstName + ' ' + (owner.lastName || '') }}
-        </option>
-      </select>
-      <div *ngIf="leadForm.get('leadOwner')?.invalid && leadForm.get('leadOwner')?.touched" class="text-red-600 text-xs">
-        Lead Owner is required.
-      </div>
-      <div *ngIf="leadForm.get('leadOwner')?.errors?.['zod']" class="text-red-600 text-xs">
-        {{ leadForm.get('leadOwner')?.errors?.['zod'] }}
-      </div>
-    </div>
+   
 
-    <!-- Sales Coordinator -->
-    <div class="flex flex-col gap-3">
-      <label class="font-bold text-gray-600">Sales Coordinator</label>
-      <select formControlName="salesCoordinator" class="border border-gray-300 p-2 w-full">
-        <option value="" disabled selected>Select Co-ordinator</option>
-        <option *ngFor="let sc of salesCoordinators" [value]="sc.firstName">
-          {{ sc.firstName + ' ' + (sc.lastName || '') }}
-        </option>
-      </select>
-      <div *ngIf="leadForm.get('salesCoordinator')?.errors?.['zod']" class="text-red-600 text-xs">
-        {{ leadForm.get('salesCoordinator')?.errors?.['zod'] }}
-      </div>
-    </div>
-
-    <!-- Expected Validity -->
-    <div class="flex flex-col gap-3">
-      <label class="font-bold text-gray-600">Expected Validity</label>
-      <input
-        type="date"
-        formControlName="expectedValidity"
-        class="border border-gray-300 p-2 w-full"
-        #validityInput
-        (focus)="validityInput.showPicker()">
-      <div *ngIf="leadForm.get('expectedValidity')?.errors?.['zod']" class="text-red-600 text-xs">
-        {{ leadForm.get('expectedValidity')?.errors?.['zod'] }}
-      </div>
-    </div>
-
-    <!-- Lead Source -->
-    <div class="flex flex-col gap-3">
-  <label class="font-bold text-gray-600">Lead Source</label>
-  <select formControlName="source" class="border border-gray-300 p-2 w-full">
-    <option value="">Select Source</option>
-    <option *ngFor="let source of leadSources" [value]="source.name">
-      {{ source.name }}
+  <label class="font-bold text-gray-600">
+    Sales Process
+  </label>
+  
+  <select 
+    formControlName="salesProcess" 
+    class="border border-gray-300 p-2 w-full"
+  >
+    <option value="" disabled selected>SELECT PROCESS</option>
+    
+    <option *ngFor="let process of salesProcesses" [value]="process.name">
+      {{ process.name }}
     </option>
   </select>
+
+    <!-- Zod Error -->
+    <div *ngIf="leadForm.get('salesProcess')?.errors?.['zod']"
+         class="text-red-600 text-xs mt-[-10px]">
+      {{ leadForm.get('salesProcess')?.errors?.['zod'] }}
+    </div>
+  </div>
+
+  <div class="flex flex-col gap-3">
+    <label class="font-bold text-gray-600">Date</label>
+
+    <input 
+      type="date" 
+      formControlName="date" 
+      class="border border-gray-300 p-2 w-full"
+      (focus)="dateInput.showPicker()"
+      #dateInput
+    >
+
+    <div *ngIf="leadForm.get('date')?.invalid && leadForm.get('date')?.touched" 
+         class="text-red-600 text-xs mt-[-10px]">
+      Date is required.
+    </div>
+
+    <!-- Zod Error -->
+    <div *ngIf="leadForm.get('date')?.errors?.['zod']"
+         class="text-red-600 text-xs mt-[-10px]">
+      {{ leadForm.get('date')?.errors?.['zod'] }}
+    </div>
+
+   <div class="mb-3">
+  <label class="text-red-700 font-bold">Lead Owner</label>
+  <select formControlName="leadOwner" class="border border-red-200 p-2 w-full">
+    <option value="" disabled selected>Select Lead Owner</option>
+    
+    <option *ngFor="let owner of leadOwners" [value]="owner.firstName">
+      {{ owner.firstName }}
+    </option>
+  </select>
+</div>
+
+    <div *ngIf="leadForm.get('leadOwner')?.invalid && leadForm.get('leadOwner')?.touched"
+         class="text-red-600 text-xs mt-[-10px]">
+      Lead Owner is required.
+    </div>
+
+    <!-- Zod Error -->
+    <div *ngIf="leadForm.get('leadOwner')?.errors?.['zod']"
+         class="text-red-600 text-xs mt-[-10px]">
+      {{ leadForm.get('leadOwner')?.errors?.['zod'] }}
+    </div>
+<div class="mb-3">
+  <label class="font-bold text-gray-600">Sales Coordinator</label>
+  <select formControlName="salesCoordinator" class="border border-gray-300 p-2 w-full">
+    <option value="" disabled selected>Select Co-ordinator</option>
+    <option *ngFor="let sc of salesCoordinators" [value]="sc.firstName">
+      {{ sc.firstName }}
+    </option>
+  </select>
+</div>
+
+    <!-- Zod Error -->
+    <div *ngIf="leadForm.get('salesCoordinator')?.errors?.['zod']"
+         class="text-red-600 text-xs mt-[-10px]">
+      {{ leadForm.get('salesCoordinator')?.errors?.['zod'] }}
+    </div>
+  </div>
+
+  <div class="flex flex-col gap-3">
+    <label class="font-bold text-gray-600">Expected Validity</label>
+
+    <input
+      type="date"
+      formControlName="expectedValidity"
+      class="border border-gray-300 p-2 w-full"
+      #validityInput
+      (click)="validityInput.showPicker()"
+      (focus)="validityInput.showPicker()"
+    />
+
+    <!-- Zod Error -->
+    <div *ngIf="leadForm.get('expectedValidity')?.errors?.['zod']"
+         class="text-red-600 text-xs mt-[-10px]">
+      {{ leadForm.get('expectedValidity')?.errors?.['zod'] }}
+    </div>
+
+    <label class="font-bold text-gray-600">Lead Source</label>
+    <select formControlName="source" class="border border-gray-300 p-2 w-full">
+      <option value="">Select Source</option>
+      <option value="Website">Website</option>
+      <option value="Referral">Referral</option>
+    </select>
+
+    <!-- Zod Error -->
+    <div *ngIf="leadForm.get('source')?.errors?.['zod']"
+         class="text-red-600 text-xs mt-[-10px]">
+      {{ leadForm.get('source')?.errors?.['zod'] }}
+    </div>
+
+    <label class="font-bold text-gray-600">Sales Stage</label>
+    <select formControlName="salesStage" class="border border-gray-300 p-2 w-full">
+      <option value="Inquiry Received">Inquiry Received</option>
+      <option value="Qualified">Qualified</option>
+      <option value="Proposal Sent">Proposal Sent</option>
+      <option value="Sales Closed">Sales Closed</option>
+    </select>
+
+    <div *ngIf="leadForm.get('salesStage')?.invalid && leadForm.get('salesStage')?.touched"
+         class="text-red-600 text-xs mt-[-10px]">
+      Sales Stage is required.
+    </div>
+
+    <!-- Zod Error -->
+    <div *ngIf="leadForm.get('salesStage')?.errors?.['zod']"
+         class="text-red-600 text-xs mt-[-10px]">
+      {{ leadForm.get('salesStage')?.errors?.['zod'] }}
+    </div>
+  </div>
+
+</div>
+
+ <div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4 mt-6">
+
+  <div class="flex flex-col gap-3">
+ <div class="mb-3">
+  <label class="font-bold text-gray-600">Branch</label>
   
-  <div *ngIf="leadForm.get('source')?.errors?.['zod']" class="text-red-600 text-xs">
-    {{ leadForm.get('source')?.errors?.['zod'] }}
+  <select 
+    formControlName="branch" 
+    class="border border-gray-300 p-2 w-full text-gray-900 bg-white"
+  >
+    <option value="" disabled selected class="text-gray-400">Select Branch</option>
+    
+    <option *ngFor="let b of branches" [value]="b.name" class="text-gray-900">
+      {{ b.branchName }}
+    </option>
+  </select>
+</div>
+    <div *ngIf="leadForm.get('branch')?.invalid && leadForm.get('branch')?.touched"
+         class="text-red-600 text-xs mt-[-10px]">
+      Branch is required.
+    </div>
+
+    <!-- Zod Error -->
+    <div *ngIf="leadForm.get('branch')?.errors?.['zod']"
+         class="text-red-600 text-xs mt-[-10px]">
+      {{ leadForm.get('branch')?.errors?.['zod'] }}
+    </div>
+  </div>
+
+
+  <div class="flex flex-col gap-3">
+   <div class="mb-3">
+  <label class="font-bold text-gray-600">Reporting Manager</label>
+  <select formControlName="reportingManager" class="border border-gray-300 p-2 w-full">
+    <option value="" disabled selected>Select Manager</option>
+    
+    <option *ngFor="let rm of reportingManagers" [value]="rm.firstName">
+      {{ rm.firstName }}
+    </option>
+  </select>
+</div>
+    <!-- Zod Error -->
+    <div *ngIf="leadForm.get('reportingManager')?.errors?.['zod']"
+         class="text-red-600 text-xs mt-[-10px]">
+      {{ leadForm.get('reportingManager')?.errors?.['zod'] }}
+    </div>
+  </div>
+
+
+  <div class="flex flex-col gap-3">
+    <label class="font-bold text-gray-600">Teams</label>
+    <select formControlName="team" class="border border-gray-300 p-2 w-full">
+      <option value="">Select Team</option>
+      <option *ngFor="let team of teamList" [value]="team.teamName">{{ team.teamName }}</option>
+    </select>
+
+    <!-- Zod Error -->
+    <div *ngIf="leadForm.get('team')?.errors?.['zod']"
+         class="text-red-600 text-xs mt-[-10px]">
+      {{ leadForm.get('team')?.errors?.['zod'] }}
+    </div>
+  </div>
+
+
+  <div class="flex flex-col gap-3">
+    <!-- <label class="font-bold text-gray-600">HOD</label>
+    <select formControlName="hod" class="border border-gray-300 p-2 w-full">
+      <option value="">Select HOD</option>
+      <option *ngFor="let hod of hodList" [value]="hod.name">{{ hod.name }}</option>
+    </select> -->
+        <label class="font-bold text-gray-600">HOD</label>
+    <select formControlName="hod" class="border border-gray-300 p-2 w-full">
+      <option value="">Select HOD</option>
+    <option *ngFor="let hod of hodList" [value]="hod.firstName">
+  {{ hod.firstName }}
+</option>
+    </select>
+
+    <!-- Zod Error -->
+    <div *ngIf="leadForm.get('hod')?.errors?.['zod']"
+         class="text-red-600 text-xs mt-[-10px]">
+      {{ leadForm.get('hod')?.errors?.['zod'] }}
+    </div>
+  </div>
+
+
+ <div class="flex flex-col gap-3">
+  <label class="font-bold text-gray-600">Location</label>
+  <input 
+    type="text" 
+    formControlName="location" 
+    placeholder="Enter Location (e.g. North, South, Delhi)" 
+    class="border border-gray-300 p-2 w-full outline-none focus:border-blue-500 transition-all"
+  >
+
+
+    <!-- Zod Error -->
+    <div *ngIf="leadForm.get('location')?.errors?.['zod']"
+         class="text-red-600 text-xs mt-[-10px]">
+      {{ leadForm.get('location')?.errors?.['zod'] }}
+    </div>
+  </div>
+  
+
+ <div class="flex flex-col gap-3">
+  <label class="font-bold text-gray-600">Area</label>
+  <input 
+    type="text" 
+    formControlName="area" 
+    placeholder="Enter Area (e.g. Industrial)" 
+    class="border border-gray-300 p-2 w-full outline-none focus:border-blue-500 transition-all">
+  
+
+    <!-- Zod Error -->
+    <div *ngIf="leadForm.get('area')?.errors?.['zod']"
+         class="text-red-600 text-xs mt-[-10px]">
+      {{ leadForm.get('area')?.errors?.['zod'] }}
+    </div>
+  </div>
+
+</div>
+  
+  <hr class="my-6 border-gray-200">
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
+  <div class="grid grid-cols-1 sm:grid-cols-3 items-center gap-3">
+    <label class="text-red-700 font-bold">Organization</label>
+
+    <div class="sm:col-span-2 flex gap-1 relative">
+      <div class="flex border border-red-300 w-full bg-white shadow-sm relative">
+        <input type="text" formControlName="organization" class="w-full p-2 border-none outline-none" placeholder="Search organization..." (input)="onOrganizationSearch($event)">
+       <span 
+    (click)="loadOrganizationList()" 
+    class="p-2 bg-gray-100 border-l border-gray-300 flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-all">
+    🔍
+  </span>
+
+  <ul *ngIf="showOrgDropdown && orgList.length > 0" 
+      class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-48 overflow-y-auto mt-1">
+    
+    <li *ngFor="let org of orgList" 
+        (click)="selectOrg(org)"
+        class="p-2 hover:bg-blue-50 cursor-pointer text-[12px] border-b border-gray-100 last:border-0">
+      
+      <div class="font-bold text-blue-700">{{ org.orgName }}</div>
+      
+      <div *ngIf="org.orgCode" class="text-gray-500 text-[10px]">{{ org.orgCode }}</div>
+    </li>
+  </ul>
+
+        <div *ngIf="filteredOrganizations.length > 0"
+             class="absolute z-50 w-full bg-white border border-gray-300 top-full left-0 mt-1 max-h-48 overflow-y-auto shadow-md">
+          <div *ngFor="let org of filteredOrganizations"
+               (click)="selectOrganization(org)"
+               class="p-2 hover:bg-red-100 cursor-pointer text-sm border-b">
+            {{ org.orgName }}
+          </div>
+        </div>
+      </div>
+
+      <button type="button"
+              (click)="navigateToNewOrg()"
+              class="bg-green-800 text-white px-2 rounded-sm font-bold text-[10px] hover:bg-black">
+        NEW
+      </button>
+    </div>
+
+    <div *ngIf="leadForm.get('organization')?.invalid && leadForm.get('organization')?.touched"
+         class="sm:col-start-2 sm:col-span-2 text-red-600 text-xs mt-[-10px]">
+      Organization is required.
+    </div>
+
+    <!-- Zod Error -->
+    <div *ngIf="leadForm.get('organization')?.errors?.['zod']"
+         class="sm:col-start-2 sm:col-span-2 text-red-600 text-xs mt-[-10px]">
+      {{ leadForm.get('organization')?.errors?.['zod'] }}
+    </div>
+
   </div>
 </div>
 
-    <!-- Sales Stage -->
-   <div class="flex flex-col gap-3">
-  <label class="font-bold text-gray-600">Sales Stage</label>
-  <select formControlName="salesStage" class="border border-gray-300 p-2 w-full">
-    <option value="">Select Sales Stage</option>
-    <option *ngFor="let stage of salesStages" [value]="stage.name">
-      {{ stage.name }}
-    </option>
-  </select>
-  
-  <div *ngIf="leadForm.get('salesStage')?.invalid && leadForm.get('salesStage')?.touched" class="text-red-600 text-xs">
-    Sales Stage is required.
+  <div class="bg-[#f9fafb] mt-8 p-4 flex flex-wrap justify-center sm:justify-end gap-3 border-t border-gray-300">
+    <button type="submit" class="bg-[#4a3f3f] text-white px-8 py-2 font-bold shadow-md hover:bg-black uppercase flex-grow sm:flex-grow-0">Save</button>
+    <button type="button" class="bg-white border border-gray-300 px-6 py-2 font-bold text-gray-700 hover:bg-gray-50 uppercase shadow-sm flex-grow sm:flex-grow-0">Save & Close</button>
+    <button type="button" class="bg-white border border-gray-300 px-6 py-2 font-bold text-gray-700 hover:bg-gray-50 uppercase shadow-sm flex-grow sm:flex-grow-0">Save & New</button>
+    <button type="button" (click)="toggleForm()" class="bg-gray-200 border border-gray-400 px-8 py-2 font-bold text-gray-700 hover:bg-gray-300 uppercase shadow-sm flex-grow sm:flex-grow-0">Close</button>
+    <!-- <button type="button" class="bg-blue-600 text-white px-8 py-2 font-bold shadow-sm hover:bg-blue-700 uppercase flex-grow sm:flex-grow-0">Copy</button> -->
   </div>
-  <div *ngIf="leadForm.get('salesStage')?.errors?.['zod']" class="text-red-600 text-xs">
-    {{ leadForm.get('salesStage')?.errors?.['zod'] }}
-  </div>
-</div>
-
-    <!-- Branch -->
-    <div class="flex flex-col gap-3">
-      <label class="font-bold text-gray-600">Branch</label>
-      <select formControlName="branch" class="border border-gray-300 p-2 w-full">
-        <option value="" disabled selected>Select Branch</option>
-        <option *ngFor="let b of branches" [value]="b.branchName">
-          {{ b.branchName }}
-        </option>
-      </select>
-      <div *ngIf="leadForm.get('branch')?.invalid && leadForm.get('branch')?.touched" class="text-red-600 text-xs">
-        Branch is required.
-      </div>
-      <div *ngIf="leadForm.get('branch')?.errors?.['zod']" class="text-red-600 text-xs">
-        {{ leadForm.get('branch')?.errors?.['zod'] }}
-      </div>
-    </div>
-
-    <!-- Reporting Manager -->
-    <div class="flex flex-col gap-3">
-      <label class="font-bold text-gray-600">Reporting Manager</label>
-      <select formControlName="reportingManager" class="border border-gray-300 p-2 w-full">
-        <option value="" disabled selected>Select Manager</option>
-        <option *ngFor="let rm of reportingManagers" [value]="rm.firstName">
-          {{ rm.firstName + ' ' + (rm.lastName || '') }}
-        </option>
-      </select>
-      <div *ngIf="leadForm.get('reportingManager')?.errors?.['zod']" class="text-red-600 text-xs">
-        {{ leadForm.get('reportingManager')?.errors?.['zod'] }}
-      </div>
-    </div>
-
-    <!-- Team -->
-    <div class="flex flex-col gap-3">
-      <label class="font-bold text-gray-600">Team</label>
-      <select formControlName="team" class="border border-gray-300 p-2 w-full">
-        <option value="">Select Team</option>
-        <option *ngFor="let team of teamList" [value]="team.teamName">
-          {{ team.teamName }}
-        </option>
-      </select>
-      <div *ngIf="leadForm.get('team')?.errors?.['zod']" class="text-red-600 text-xs">
-        {{ leadForm.get('team')?.errors?.['zod'] }}
-      </div>
-    </div>
-
-    <!-- HOD -->
-    <div class="flex flex-col gap-3">
-      <label class="font-bold text-gray-600">HOD</label>
-      <select formControlName="hod" class="border border-gray-300 p-2 w-full">
-        <option value="">Select HOD</option>
-        <option *ngFor="let hod of hodList" [value]="hod.firstName">
-          {{ hod.firstName + ' ' + (hod.lastName || '') }}
-        </option>
-      </select>
-      <div *ngIf="leadForm.get('hod')?.errors?.['zod']" class="text-red-600 text-xs">
-        {{ leadForm.get('hod')?.errors?.['zod'] }}
-      </div>
-    </div>
-
-    <!-- Location -->
-    <div class="flex flex-col gap-3">
-      <label class="font-bold text-gray-600">Location</label>
-      <input 
-        type="text" 
-        formControlName="location" 
-        placeholder="Enter Location (e.g. North, South, Delhi)" 
-        class="border border-gray-300 p-2 w-full outline-none focus:border-blue-500">
-      <div *ngIf="leadForm.get('location')?.errors?.['zod']" class="text-red-600 text-xs">
-        {{ leadForm.get('location')?.errors?.['zod'] }}
-      </div>
-    </div>
-
-    <!-- Area -->
-    <div class="flex flex-col gap-3">
-      <label class="font-bold text-gray-600">Area</label>
-      <input 
-        type="text" 
-        formControlName="area" 
-        placeholder="Enter Area (e.g. Industrial)" 
-        class="border border-gray-300 p-2 w-full outline-none focus:border-blue-500">
-      <div *ngIf="leadForm.get('area')?.errors?.['zod']" class="text-red-600 text-xs">
-        {{ leadForm.get('area')?.errors?.['zod'] }}
-      </div>
-    </div>
-
-  </div>
-
-  <hr class="my-8 border-gray-200">
-
-  <!-- Buttons -->
-  <div class="bg-[#f9fafb] p-4 flex flex-wrap justify-center sm:justify-end gap-3 border-t border-gray-300">
-    <button type="submit" 
-            class="bg-[#4a3f3f] text-white px-8 py-2 font-bold shadow-md hover:bg-black uppercase">
-      {{ isEditMode ? 'Update Lead' : 'Save Lead' }}
-    </button>
-    <button type="button" (click)="toggleForm()" 
-            class="bg-gray-200 border border-gray-400 px-8 py-2 font-bold text-gray-700 hover:bg-gray-300 uppercase">
-      Close
-    </button>
-    <button type="button" class="bg-blue-600 text-white px-8 py-2 font-bold shadow-sm hover:bg-blue-700 uppercase">
-      Copy
-    </button>
-  </div>
-
 </div>
     </div>
   </form>

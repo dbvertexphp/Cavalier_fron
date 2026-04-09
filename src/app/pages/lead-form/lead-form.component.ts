@@ -1948,7 +1948,15 @@ selectOrg(org: any) {
   
   // LeadSearchFilters bhi update kar dete hain safety ke liye
   this.leadSearchFilters.organizationName = org.orgName;
+this.leadForm.patchValue({
+    organization: org.orgName
+  });
 
+  // 2. Dropdown ko band karein
+  this.showOrgDropdown = false;
+
+  // 3. (Optional) Filtered list ko khali karein taaki purana data na dikhe
+  this.orgList = [];
   this.showOrgDropdown = false;
   this.cdr.detectChanges(); 
 }

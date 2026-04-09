@@ -26,6 +26,12 @@ import { BranchService } from '../../services/branch.service';
 })
   export class InquiryComponent implements OnInit {
     @ViewChild('cargoDateInput') cargoDateInput!: ElementRef<HTMLInputElement>;
+    portsOfDischarge: any[] = [];        // API se aane wala full list
+filteredPortsOfDischarge: any[] = [];
+showPortOfDischargeDropdown: boolean = false;
+portsOfLoading: any[] = [];               // Full list from API
+filteredPortsOfLoading: any[] = [];
+showPortOfLoadingDropdown: boolean = false;
    branchlist:any[]=[];
 isPickupEnabled: boolean = false; 
     selectedLeadData: any = null;
@@ -207,6 +213,7 @@ organizations: any[] = [];
     ngOnInit() {
       this.getbranch();
       this.loadQuotations();
+      this.portOfLoading();
       this.getNextInquiryNumber();
       this.fetchOrganizations();
       this.fetchLeads();
@@ -220,6 +227,7 @@ organizations: any[] = [];
     this.fetchCompanyServices();
     this.getTransportModes();
 this.getShipmentTypes();
+this.portdischarge();
 this.getIncoTerms();
 this.getMovementTypes();
 this.getCommodityTypes();
@@ -241,7 +249,40 @@ this.quotation.shipmentType = 'Ready';
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
     this.quotation.cargoStatusDate = today;
 }
+portOfLoading() {
+  this.http.get<any[]>(`${environment.apiUrl}/PortOfLoading`).subscribe({
+    next: (data) => {
+      this.portsOfLoading = data;
+      console.log("Port of Loading loaded:", data);
+    },
+    error: (err) => {
+      console.error("Error loading Port of Loading:", err);
+    }
+  });
+}
+onPortOfLoadingSearch() {
+  const searchTerm = (this.quotation.portOfLoading || '').toString().trim().toLowerCase();
 
+  if (searchTerm === '') {
+    this.showPortOfLoadingDropdown = false;
+    this.filteredPortsOfLoading = [];
+    return;
+  }
+
+  this.filteredPortsOfLoading = this.portsOfLoading.filter(port => {
+    const portName = port.name || port.portName || port.PortName || port.description || '';
+    return portName.toString().toLowerCase().includes(searchTerm);
+  });
+
+  this.showPortOfLoadingDropdown = true;
+}
+selectPortOfLoading(port: any) {
+  if (!port) return;
+  
+  this.quotation.portOfLoading = port.name || port.portName || port.PortName || '';
+  this.showPortOfLoadingDropdown = false;
+  this.filteredPortsOfLoading = [];
+}
 // Jab user Ready ya Ready By select kare
 onShipmentTypeChange() {
   if (this.quotation.shipmentType === 'Ready') {
@@ -435,22 +476,25 @@ fetchCompanyServices() {
 
   // --- Search Logic ---
 onOriginSearchInput() {
-  // 1. Check karein ki inquiry.origin null ya undefined na ho
-  if (this.inquiry.origin) {
-    this.showOriginDropdown = true;
-    
-    // 2. Safe check: inquiry.origin ko string mein convert karein aur safe toLowerCase()
-    const searchTerm = this.inquiry.origin.toString().toLowerCase();
+  const searchTerm = (this.inquiry.origin || '').toString().trim().toLowerCase();
 
-    this.filteredOrigins = this.origins.filter(org =>
-      // 3. API response mein 'name' hai ya 'originName', wo check karein
-      org.name ? org.name.toLowerCase().includes(searchTerm) : false
-    );
-  } else {
+  // Agar search box khali hai
+  if (searchTerm === '') {
     this.showOriginDropdown = false;
     this.filteredOrigins = [];
+    return;
   }
+
+  // Filter karo
+  this.filteredOrigins = this.origins.filter(org => {
+    const originName = org.name || org.originName || org.OriginName || org.portName || '';
+    return originName.toString().toLowerCase().includes(searchTerm);
+  });
+
+  // Dropdown hamesha show karo jab search kar rahe ho
+  this.showOriginDropdown = true;
 }
+
 
   // --- Selection Logic ---
   selectOrigin(origin: any) {
@@ -475,6 +519,40 @@ onOriginSearchInput() {
       this.showLeadDropdown = false;
     }
   }
+portdischarge() {
+  this.http.get<any[]>(`${environment.apiUrl}/PortOfDischarge`).subscribe({
+    next: (data) => {
+      this.portsOfDischarge = data;
+      console.log("Port of Discharge loaded:", data);
+    },
+    error: (err) => {
+      console.error("Error loading Port of Discharge:", err);
+    }
+  });
+}
+onPortOfDischargeSearch() {
+  const searchTerm = (this.quotation.portOfDestination || '').toString().trim().toLowerCase();
+
+  if (searchTerm === '') {
+    this.showPortOfDischargeDropdown = false;
+    this.filteredPortsOfDischarge = [];
+    return;
+  }
+
+  this.filteredPortsOfDischarge = this.portsOfDischarge.filter(port => {
+    const portName = port.name || port.portName || port.PortName || port.description || '';
+    return portName.toString().toLowerCase().includes(searchTerm);
+  });
+
+  this.showPortOfDischargeDropdown = true;
+}
+selectPortOfDischarge(port: any) {
+  if (!port) return;
+  
+  this.quotation.portOfDestination = port.name || port.portName || port.PortName || '';
+  this.showPortOfDischargeDropdown = false;
+  this.filteredPortsOfDischarge = [];
+}
 
   // --- Selection Logic ---
   selectLead(lead: any) {

@@ -2,7 +2,7 @@
 
 
 
-import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http'; 
@@ -25,6 +25,7 @@ import { BranchService } from '../../services/branch.service';
   styleUrl: './inquiry.component.css',
 })
   export class InquiryComponent implements OnInit {
+    @ViewChild('cargoDateInput') cargoDateInput!: ElementRef<HTMLInputElement>;
    branchlist:any[]=[];
 isPickupEnabled: boolean = false; 
     selectedLeadData: any = null;
@@ -90,6 +91,62 @@ onInvoiceFileSelected(event: any, index: number) {
     this.invoiceDocuments[index].file = file;
   }
 }
+// ================== VOLUME WEIGHT CALCULATION ==================
+
+// Single dimension row ka volume weight calculate kare
+dimRow: any = { 
+  box: 1, 
+  l: 0, 
+  w: 0, 
+  h: 0 
+};
+calculateSingleVolumeWeight(dim: any): number {
+  if (!dim.l || !dim.w || !dim.h || dim.l <= 0 || dim.w <= 0 || dim.h <= 0) {
+    return 0;
+  }
+
+  let volumeCm3 = dim.l * dim.w * dim.h;
+
+  if (dim.unit === 'INCH') {
+    volumeCm3 = volumeCm3 * 16.387;   // convert inch³ to cm³
+  }
+
+  return (dim.box || 1) * (volumeCm3 / 6000);
+}
+calculateVolumeWeight() {
+  const box = Number(this.dimRow.box) || 1;
+  const l = Number(this.dimRow.l) || 0;
+  const w = Number(this.dimRow.w) || 0;
+  const h = Number(this.dimRow.h) || 0;
+
+  if (l === 0 || w === 0 || h === 0) {
+    this.quotation.volumeWeight = 0;
+    return;
+  }
+
+  // Sirf yeh formula (unit ignore kiya)
+  const volume = (box * l * w * h) / 6000;
+  this.quotation.volumeWeight = parseFloat(volume.toFixed(2));
+}
+
+// Total Volume Weight (saare rows ka sum)
+// getTotalVolumeWeight(): number {
+//   if (!this.dimRows || this.dimRows.length === 0) return 0;
+
+//   let total = 0;
+//   this.dimRows.forEach(dim => {
+//     total += this.calculateVolumeWeight(dim);
+//   });
+
+//   return parseFloat(total.toFixed(2));   // 2 decimal tak
+// }
+
+// Chargeable Weight (Max of Gross Weight aur Volume Weight)
+// getChargeableWeight(): number {
+//   const gross = Number(this.quotation.grossWeightKg) || 0;
+//   const vol   = this.getTotalVolumeWeight();
+//   return Math.max(gross, vol);
+// }
     // Labels ko backend properties se map karo (Apne model ke hisaab se check kar lena)
 columnFieldMap: any = {
   'ID': 'id',
@@ -187,10 +244,38 @@ this.quotation.shipmentType = 'Ready';
 
 // Jab user Ready ya Ready By select kare
 onShipmentTypeChange() {
-    if (this.quotation.shipmentType === 'Ready') {
-        this.setTodayDate();   // Ready select karte hi aaj ki date set ho jayegi
+  if (this.quotation.shipmentType === 'Ready') {
+    this.setTodayDate();
+  } 
+  else if (this.quotation.shipmentType === 'Ready By') {
+
+    if (!this.quotation.cargoStatusDate) {
+      this.setTodayDate();
     }
-    // Ready By select karne par date ko editable rehne do (user khud change kar sake)
+
+    // Better logic to open calendar every time
+    setTimeout(() => {
+      if (this.cargoDateInput?.nativeElement) {
+        const input = this.cargoDateInput.nativeElement;
+
+        // Focus + Click + showPicker (sab try karo)
+        input.focus();
+
+        // Small delay for better reliability
+        setTimeout(() => {
+          input.click();
+
+          // Modern browsers ke liye best method
+          try {
+            (input as any).showPicker();
+          } catch (e) {
+            // Fallback
+            console.log("showPicker not supported, using click");
+          }
+        }, 50);
+      }
+    }, 120);   // Thoda zyada delay diya hai better result ke liye
+  }
 }
   getbranch() {
     this.branchservice.getBranches().subscribe({
@@ -669,22 +754,49 @@ action.subscribe({
       }
     }
 
-    openDimModal() { this.isDimModalOpen = true; }
+   openDimModal() {
+  // Agar dimRows khali hai ya purana data hai toh reset kar do
+  if (!this.dimRows || this.dimRows.length === 0) {
+    this.dimRows = [{
+      box: 1,
+      l: 0,
+      w: 0,
+      h: 0,
+      unit: 'CMS'
+    }];
+  }
+  
+  this.isDimModalOpen = true;
+}
     closeDimModal() { this.isDimModalOpen = false; }
     
-    addNewDimRow() { 
-      this.dimRows.push({ box: 1, l: 0, w: 0, h: 0, unit: 'CMS' }); 
-    }
+    addNewDimRow() {
+  this.dimRows.push({
+    box: 1,
+    l: 0,
+    w: 0,
+    h: 0,
+    unit: 'CMS'
+  });
+  
+  // UI update ke liye
+  this.cdr.detectChanges();
+}
     
-    removeDimRow(i: number) { 
-      if (this.dimRows.length > 1) this.dimRows.splice(i, 1); 
-    }
+ removeDimRow(i: number) {
+  if (this.dimRows.length > 1) {
+    this.dimRows.splice(i, 1);
+  }
+}
 
 saveDimensions() {
-  // Logic: Unhi rows ko rakho jisme Length, Width ya Height me se kuch bhi bhara ho
-  this.appliedDimensions = this.dimRows.filter(d => (d.l > 0 || d.w > 0 || d.h > 0));
+  this.appliedDimensions = this.dimRows.filter(d => d.l > 0 && d.w > 0 && d.h > 0);
   
-  console.log("Dimensions Saved in appliedDimensions:", this.appliedDimensions);
+  // Volume Weight automatically set kar do
+  // this.quotation.volumeWeight = this.getTotalVolumeWeight();
+
+  console.log("Volume Weight Calculated:", this.quotation.volumeWeight);
+  
   this.closeDimModal();
 }
 

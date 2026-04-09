@@ -530,31 +530,20 @@
     <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Cavalier Logistics</p>
   </div>
 </div>
-         <div class="flex items-center">
-  <label class="w-28 font-bold text-gray-600 text-[12px]">Lead Status</label>
+       <div class="flex items-center">
+  <label class="w-28 font-bold text-gray-600 text-[12px]">Status</label>
   
-  <div class="flex-1 flex border border-gray-300 relative">                
-    <input type="text" 
-           [(ngModel)]="leadSearchFilters.salesStage" 
-           [ngModelOptions]="{standalone: true}" 
-           class="w-full p-1 outline-none text-[12px] h-[26px]"
-           placeholder="Search Status..."
-           (input)="onStatusSearch($event)"
-           autocomplete="off"> 
-    
-    <span class="p-1 bg-gray-50 border-l border-gray-200 flex items-center justify-center cursor-pointer" 
-          (click)="onLeadSearch()">
-      🔍
-    </span>
-
-    <div *ngIf="filteredStatusSuggestions.length > 0"
-         class="absolute z-50 w-full bg-white border border-gray-300 top-full left-0 mt-1 max-h-48 overflow-y-auto shadow-md">
-      <div *ngFor="let status of filteredStatusSuggestions"
-           (click)="selectStatus(status)" 
-           class="p-2 hover:bg-red-50 cursor-pointer text-sm border-b text-gray-700">
-        {{ status }}
-      </div>
-    </div>
+  <div class="flex-1">
+    <select 
+      [(ngModel)]="leadSearchFilters.salesStage" 
+      [ngModelOptions]="{standalone: true}" 
+      class="w-full p-1 border border-gray-300 outline-none text-[12px] h-[26px] bg-white cursor-pointer">
+      
+      <option value="">Select Status</option>
+      <option value="Active">Active</option>
+      <option value="Inactive">Inactive</option>
+      
+    </select>
   </div>
 </div>
          <div class="flex justify-end gap-3 pt-1">

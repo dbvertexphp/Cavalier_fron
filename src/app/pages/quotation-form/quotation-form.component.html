@@ -173,7 +173,7 @@
   </div>
 </div>
           <div class="flex items-center">
-  <label class="w-24 font-bold text-gray-600">Status</label>
+  <label class="w-24 font-bold text-gray-600">Quatation Status</label>
   <div class="relative flex-1">
     <select 
       [(ngModel)]="searchFilters.status" 
@@ -183,6 +183,21 @@
       <option value="Won">Read By</option>
       </select>
     <i class="fa fa-chevron-down absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] pointer-events-none"></i>
+  </div>
+</div>
+<div class="flex items-center">
+  <label class="w-28 font-bold text-gray-600 text-[12px]">Status</label>
+  
+  <div class="flex-1">
+    <select 
+    
+      class="w-full p-1 border border-gray-300 outline-none text-[12px] h-[26px] bg-white cursor-pointer">
+      
+      <option value="">Select Status</option>
+      <option value="Active">Active</option>
+      <option value="Inactive">Inactive</option>
+      
+    </select>
   </div>
 </div>
         </div>

@@ -259,6 +259,7 @@
     
   </select>
 </div>
+
  </div>
 
 
@@ -400,7 +401,7 @@
   </div>
 </div>
         <div class="flex items-center">
-  <label class="w-24 font-bold text-gray-600">Status</label>
+  <label class="w-24 font-bold text-gray-600">Inquiry Status</label>
   <select 
     [(ngModel)]="searchFilters.cargoStatus"
     class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
@@ -412,6 +413,21 @@
     <option value="In Progress">In Progress</option>
     
   </select>
+</div>
+<div class="flex items-center">
+  <label class="w-28 font-bold text-gray-600 text-[12px]">Status</label>
+  
+  <div class="flex-1">
+    <select 
+       
+      class="w-full p-1 border border-gray-300 outline-none text-[12px] h-[26px] bg-white cursor-pointer">
+      
+      <option value="">Select Status</option>
+      <option value="Active">Active</option>
+      <option value="Inactive">Inactive</option>
+      
+    </select>
+  </div>
 </div>
         </div>
 
@@ -1027,31 +1043,31 @@
             </div>
 
 
-      <div class="grid grid-cols-2 items-center">
+     <div class="grid grid-cols-2 items-center">
   <label class="font-bold text-gray-700">Cargo Status</label>
   
-  <div class="flex gap-1 items-center overflow-hidden">
+  <div class="flex gap-1 items-center">
     
     <!-- Date Input -->
     <input 
+      #cargoDateInput
       type="date" 
       [(ngModel)]="quotation.cargoStatusDate" 
       name="cargoStatusDate"
       [readonly]="quotation.shipmentType === 'Ready'"
-      class="border p-1 text-[11px] outline-none w-[130px] 
-             bg-white focus:outline-none
-             {{ quotation.shipmentType === 'Ready' ? 'bg-gray-100 text-gray-500 cursor-default' : '' }}">
+      [disabled]="quotation.shipmentType === 'Ready'"
+      class="border p-1 text-[11px] outline-none w-[140px] bg-white
+             {{ quotation.shipmentType === 'Ready' 
+                 ? 'bg-gray-100 text-gray-500 cursor-default' 
+                 : 'cursor-pointer border-blue-400 focus:ring-1 focus:ring-blue-300' }}">
 
     <!-- Select Dropdown -->
     <select 
       [(ngModel)]="quotation.shipmentType" 
-      name="shipmentType"
       (change)="onShipmentTypeChange()"
-      class="border p-1 text-[11px] outline-none flex-1 min-w-0">
-      
+      class="border p-1 text-[11px] outline-none flex-1 min-w-0 h-[32px] bg-white">
       <option value="Ready">Ready</option>
       <option value="Ready By">Ready By</option>
-      
     </select>
   </div>
 </div>
@@ -1280,16 +1296,20 @@
 
                 <div class="flex flex-1 items-center">
                   <div class="flex flex-1 items-center gap-1">
-                     <input type="number" placeholder="BOX"
+                     <input type="number" placeholder="BOX" [(ngModel)]="dimRow.box" 
+        (input)="calculateVolumeWeight()"
                       class="w-full border p-2 outline-none text-center rounded-l-sm focus:border-blue-400">
                     <span class="text-gray-400 font-bold"></span>
-                    <input type="number" placeholder="L"
+                    <input type="number" placeholder="L" [(ngModel)]="dimRow.l" 
+        (input)="calculateVolumeWeight()"
                       class="w-full border p-2 outline-none text-center rounded-l-sm focus:border-blue-400">
                     <span class="text-gray-400 font-bold">x</span>
-                    <input type="number" placeholder="W"
+                    <input type="number" placeholder="W" [(ngModel)]="dimRow.w" 
+        (input)="calculateVolumeWeight()"
                       class="w-full border p-2 outline-none text-center focus:border-blue-400">
                     <span class="text-gray-400 font-bold">x</span>
-                    <input type="number" placeholder="H"
+                    <input type="number" placeholder="H" [(ngModel)]="dimRow.h" 
+        (input)="calculateVolumeWeight()"
                       class="w-full border p-2 outline-none text-center focus:border-blue-400">
                   </div>
 

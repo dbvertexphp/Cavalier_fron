@@ -83,11 +83,9 @@
     <!-- </div> -->
 
     <div>
-      <label class="font-bold">Last Name*</label>
+      <label class="font-bold">Last Name</label>
       <input formControlName="lastName" class="w-full border p-2 rounded">
-      <div *ngIf="userForm.get('lastName')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
-        {{ userForm.get('lastName')?.errors?.['zod'] }}
-      </div>
+      
     </div>
 
     <div>
@@ -105,24 +103,25 @@
   
   <div class="relative flex items-center">
     <input 
-      type="text" 
-      formControlName="dob" 
-      placeholder="DD-MM-YYYY"
-      maxlength="10"
-      (input)="onDateInput($event)"
-      class="w-full border p-2 pr-10 rounded focus:ring-2 focus:ring-blue-500 outline-none"
-    >
-    
-    <input 
-      #hiddenPicker
-      type="date" 
-      [max]="todayDate"
-      (change)="onCalendarChange(hiddenPicker.value)"
-      class="absolute opacity-0 pointer-events-none w-0 h-0"
-    >
+  type="text" 
+  formControlName="dob" 
+  placeholder="DD-MM-YYYY"
+  maxlength="10"
+  (input)="onDateInput($event, 'dob')"
+  class="w-full border p-2 pr-12 rounded focus:ring-2 focus:ring-blue-500 outline-none"
+/>
+
+<input 
+  #dobPicker
+  type="date" 
+  [max]="todayDate"
+  (change)="onCalendarChange($event, 'dob')" 
+  class="absolute opacity-0 pointer-events-none w-0 h-0"
+/>
+
     
     <div 
-      (click)="hiddenPicker.showPicker()" 
+      (click)="dobPicker.showPicker()" 
       class="absolute right-3 text-gray-400 cursor-pointer hover:text-blue-500"
     >
       <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -199,38 +198,62 @@
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-blue-50/10 p-4 rounded border border-blue-100">
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
   <div class="relative">
-    <label class="block text-sm font-semibold text-gray-700 mb-1">Department</label>
-    <div class="relative flex items-center">
-      <input type="text" #deptInput placeholder="Search Department..." (input)="onSearch($event, 'dept')" class="w-full border p-2 pr-10 rounded focus:ring-2 focus:ring-blue-200 outline-none">
-      
-      <div (click)="openModal('dept')" class="absolute right-3 text-gray-400 cursor-pointer hover:text-blue-500">
+  <label class="block text-sm font-semibold text-gray-700 mb-1">Department</label>
+  <div class="relative flex items-center">
+    <input type="text" #deptInput placeholder="Search Department..." (input)="onSearch($event, 'dept')" class="w-full border p-2 pr-20 rounded focus:ring-2 focus:ring-blue-200 outline-none">
+    
+    <div class="absolute right-3 flex items-center gap-2">
+      <div (click)="downloadData('dept')" class="text-gray-400 cursor-pointer hover:text-green-500" title="Download Data">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+      </div>
+
+      <div (click)="openModal('dept')" class="text-gray-400 cursor-pointer hover:text-blue-500">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
       </div>
-
-      <ul *ngIf="filteredDepts.length > 0" class="absolute top-full left-0 z-50 w-full bg-white border rounded shadow-lg mt-1 max-h-40 overflow-y-auto text-sm">
-        <li *ngFor="let d of filteredDepts" (click)="selectItem(d, 'dept', deptInput)" class="p-2 hover:bg-blue-50 cursor-pointer border-b last:border-0">{{ d.name }}</li>
-      </ul>
     </div>
+
+    <ul *ngIf="filteredDepts.length > 0" class="absolute top-full left-0 z-50 w-full bg-white border rounded shadow-lg mt-1 max-h-40 overflow-y-auto text-sm">
+      <li *ngFor="let d of filteredDepts" (click)="selectItem(d, 'dept', deptInput)" class="p-2 hover:bg-blue-50 cursor-pointer border-b last:border-0">{{ d.name }}</li>
+    </ul>
   </div>
 
-  <div class="relative">
-    <label class="block text-sm font-semibold text-gray-700 mb-1">Designation</label>
-    <div class="relative flex items-center">
-      <input type="text" #desigInput placeholder="Search Designation..." (input)="onSearch($event, 'des')" class="w-full border p-2 pr-10 rounded focus:ring-2 focus:ring-blue-200 outline-none">
-      
-      <div (click)="openModal('des')" class="absolute right-3 text-gray-400 cursor-pointer hover:text-blue-500">
+  <div *ngIf="userForm.get('department')?.touched && userForm.get('department')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
+    {{ userForm.get('department')?.errors?.['zod'] }}
+  </div>
+</div>
+
+ <div class="relative">
+  <label class="block text-sm font-semibold text-gray-700 mb-1">Designation</label>
+  <div class="relative flex items-center">
+    <input type="text" #desigInput placeholder="Search Designation..." (input)="onSearch($event, 'des')" class="w-full border p-2 pr-20 rounded focus:ring-2 focus:ring-blue-200 outline-none">
+    
+    <div class="absolute right-3 flex items-center gap-2">
+      <div (click)="downloadData('des')" class="text-gray-400 cursor-pointer hover:text-green-500" title="Download Designations">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+      </div>
+
+      <div (click)="openModal('des')" class="text-gray-400 cursor-pointer hover:text-blue-500">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
       </div>
-
-      <ul *ngIf="filteredDesig.length > 0" class="absolute top-full left-0 z-50 w-full bg-white border rounded shadow-lg mt-1 max-h-40 overflow-y-auto text-sm">
-        <li *ngFor="let d of filteredDesig" (click)="selectItem(d, 'des', desigInput)" class="p-2 hover:bg-blue-50 cursor-pointer border-b last:border-0">{{ d.name }}</li>
-      </ul>
     </div>
+
+    <ul *ngIf="filteredDesig.length > 0" class="absolute top-full left-0 z-50 w-full bg-white border rounded shadow-lg mt-1 max-h-40 overflow-y-auto text-sm">
+      <li *ngFor="let d of filteredDesig" (click)="selectItem(d, 'des', desigInput)" class="p-2 hover:bg-blue-50 cursor-pointer border-b last:border-0">{{ d.name }}</li>
+    </ul>
   </div>
+
+  <div *ngIf="userForm.get('designation')?.touched && userForm.get('designation')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
+    {{ userForm.get('designation')?.errors?.['zod'] }}
+  </div>
+</div>
 </div>
 
 <div *ngIf="isModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-50 p-4">
@@ -262,7 +285,7 @@
       <label class="font-semibold text-gray-600 block uppercase">HOD</label>
       <select formControlName="hodId" class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f] bg-white">
         <option [value]="null" disabled selected>Select HOD</option>
-        <option *ngFor="let h of hods" [value]="h.id">{{ h.name }}</option>
+        <option *ngFor="let h of hods" [value]="h.id">{{ h.firstName }} {{ h.lastName }}</option>
       </select>
       <div *ngIf="userForm.get('hodId')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
         {{ userForm.get('hodId')?.errors?.['zod'] }}
@@ -316,23 +339,41 @@
     <h3 class="font-semibold text-lg">Job & Salary</h3>
     <div class="grid grid-cols-2 gap-4">
      <div>
-  <label class="block font-medium mb-1">Joining Date*</label>
+  <label class="block mb-1 font-medium text-gray-700">Joining Date*</label>
   
-  <div class="relative flex items-center">
-    <input 
-      #joiningPicker
-      type="date" 
-      formControlName="dateOfJoining" 
-      (click)="joiningPicker.showPicker()"
-      class="w-full border rounded px-3 py-2 pr-10 focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer appearance-none" 
-    />
-    
-    <div (click)="joiningPicker.showPicker()" class="absolute right-3 text-gray-400 pointer-events-none">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v12a2 2 0 002 2z" />
-      </svg>
-    </div>
+<div class="relative flex items-center">
+  <!-- Text Input - User can type DD-MM-YYYY -->
+  <input 
+  type="text" 
+  formControlName="dateOfJoining" 
+  placeholder="DD-MM-YYYY"
+  maxlength="10"
+  (input)="onDateInput($event, 'dateOfJoining')"
+  class="w-full border p-2 pr-12 rounded focus:ring-2 focus:ring-blue-500 outline-none"
+/>
+
+<input 
+  #joiningPicker
+  type="date" 
+  [max]="todayDate"
+  (change)="onCalendarChange($event, 'dateOfJoining')" 
+  class="absolute opacity-0 pointer-events-none w-0 h-0"
+/>
+
+  <!-- Calendar Icon -->
+  <div 
+    (click)="joiningPicker.showPicker()" 
+    class="absolute right-3 text-gray-400 cursor-pointer hover:text-blue-500 transition-colors"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </svg>
   </div>
+</div>
+
+<!-- Error Message (Zod validation ke liye) -->
+
   
   <div *ngIf="userForm.get('dateOfJoining')?.touched && userForm.get('dateOfJoining')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
     {{ userForm.get('dateOfJoining')?.errors?.['zod'] }}
@@ -403,21 +444,45 @@
      <div class="space-y-1">
   <label class="font-semibold text-gray-600 block uppercase text-sm">Date Of Exit</label>
   
-  <div class="relative flex items-center">
-    <input 
-      #exitPicker
-      type="date" 
-      formControlName="exitDate" 
-      (click)="exitPicker.showPicker()"
-      class="w-full border p-2 pr-10 rounded outline-none focus:border-[#4a3f3f] bg-white cursor-pointer appearance-none"
-    >
-    
-    <div (click)="exitPicker.showPicker()" class="absolute right-3 text-gray-400 pointer-events-none">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-      </svg>
-    </div>
+
+
+<div class="relative flex items-center">
+  <!-- Text Input - User can type DD-MM-YYYY -->
+  <input 
+    type="text" 
+    formControlName="exitDate" 
+    placeholder="DD-MM-YYYY"
+    maxlength="10"
+    (input)="onDateInput($event, 'exitDate')"
+    class="w-full border p-2 pr-12 rounded focus:ring-2 focus:ring-blue-500 outline-none"
+  >
+  
+  <!-- Hidden Calendar Picker -->
+  <input 
+    #exitPicker
+    type="date" 
+    [max]="todayDate"
+    (change)="onCalendarChange($event, 'exitDate')"
+    class="absolute opacity-0 pointer-events-none w-0 h-0"
+  >
+  
+  <!-- Calendar Icon -->
+  <div 
+    (click)="exitPicker.showPicker()" 
+    class="absolute right-3 text-gray-400 cursor-pointer hover:text-blue-500 transition-colors"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </svg>
   </div>
+</div>
+
+<!-- Optional Error Message -->
+<div *ngIf="userForm.get('exitDate')?.touched && userForm.get('exitDate')?.errors?.['zod']" 
+     class="text-red-600 text-xs mt-1">
+  {{ userForm.get('exitDate')?.errors?.['zod'] }}
+</div>
   
   <div *ngIf="userForm.get('exitDate')?.touched && userForm.get('exitDate')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
     {{ userForm.get('exitDate')?.errors?.['zod'] }}
@@ -714,7 +779,7 @@
 </div>
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4 border-t pt-4">
     <div>
-      <label>Emergency Contact Name</label> 
+      <label>Emergency Contact Name *</label> 
       <input formControlName="emergencyName" class="w-full border p-2 rounded">
       <div *ngIf="userForm.get('emergencyName')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
         {{ userForm.get('emergencyName')?.errors?.['zod'] }}
@@ -736,7 +801,7 @@
       </datalist>
       </div>
     <div>
-  <label class="block mb-1 font-medium text-gray-700">Emergency Mobile</label> 
+  <label class="block mb-1 font-medium text-gray-700">Emergency Mobile *</label> 
   <input 
     type="text"
     formControlName="emergencyContactNo" 

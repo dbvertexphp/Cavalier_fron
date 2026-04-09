@@ -15,6 +15,7 @@ import { employeeSchema } from './employee.schema';
   templateUrl: './user-form.component.html'
 })
 export class UserFormComponent implements OnInit {
+  userlist:any=[];
   todayDate: string = new Date().toISOString().split('T')[0];
   permissions: any[] = [];
   selectedPermissionIds: number[] = [];
@@ -55,6 +56,8 @@ export class UserFormComponent implements OnInit {
   }
 
 ngOnInit(): void {
+  this.getuser();
+  console.log('this is userlist',this.userlist);
     this.userService.getDepartments().subscribe(res => this.departments = res);
   this.userService.getDesignations().subscribe(res => this.designations = res);
   this.initForm();
@@ -349,7 +352,7 @@ createExperienceGroup(): FormGroup {
     this.userService.getDepartments().subscribe(res => this.departments = res);
     this.userService.getDesignations().subscribe(res => this.designations = res);
     this.userService.getRoles().subscribe(res => this.roles = res);
-    this.userService.getHods().subscribe(res => this.hods = res);
+    this.userService.getUsers('onlyuserdata').subscribe(res => this.hods = res);
     this.userService.getTeams().subscribe(res => this.teams = res);
   }
 
@@ -406,7 +409,7 @@ onSubmit() {
   // 1. Zod Validation Check
   if (!this.validateForm()) {
     this.userForm.markAllAsTouched();
-    alert('Form validation faild. Check the feilds properly and try aganin .');
+    alert('Please fill all input fields correctly.');
     return;
   }
 
@@ -479,7 +482,7 @@ onSubmit() {
       },
       error: err => {
         console.error('API Error:', err);
-        alert('Email already exists');
+        alert('Please Check Field properly');
       }
     });
   }
@@ -589,6 +592,16 @@ async saveEducation(userId: any) {
 //     error: (err) => console.error('Education API Error:', err)
 //   });
 // }
+getuser(){
+  this.userService.getUsers('onlyuserdata').subscribe({
+    next: res => {
+      console.log('User Data:', res);
+      this.userlist=res;
+     this.cdr.detectChanges(); // Ensure UI updates after data is set
+    }
+
+  });
+};
 async saveExperience(userId: any) {
   const raw = this.userForm.getRawValue();
   const experienceArray = raw.experiences || [];
@@ -739,30 +752,47 @@ populateForm(data: any) {
   }
 }
 // 1. Jab user type kare (Auto Dash insertion)
-onDateInput(event: any) {
-  let v = event.target.value.replace(/\D/g, ''); // Sirf digits rakho
-  if (v.length > 8) v = v.substring(0, 8); // Max 8 digits (DDMMYYYY)
-  
-  let displayValue = "";
-  
-  // Dynamic Formatting as User Types
-  if (v.length > 4) {
-    displayValue = `${v.substring(0, 2)}-${v.substring(2, 4)}-${v.substring(4, 8)}`;
-  } else if (v.length > 2) {
-    displayValue = `${v.substring(0, 2)}-${v.substring(2, 4)}`;
+// ==================== REUSABLE DATE FUNCTIONS ====================
+
+// 1. Jab user keyboard se type kare (DD-MM-YYYY format)
+onDateInput(event: any, controlName: string = 'dob'): void {
+  const input = event.target as HTMLInputElement;
+  let value = input.value.replace(/\D/g, ''); // Sirf numbers rakho
+
+  if (value.length > 8) value = value.substring(0, 8);
+
+  let formatted = '';
+  if (value.length > 4) {
+    formatted = `${value.substring(0, 2)}-${value.substring(2, 4)}-${value.substring(4, 8)}`;
+  } else if (value.length > 2) {
+    formatted = `${value.substring(0, 2)}-${value.substring(2, 4)}`;
   } else {
-    displayValue = v;
+    formatted = value;
   }
-  
-  // UI par DD-MM-YYYY set kar rahe hain
-  this.userForm.get('dob')?.setValue(displayValue, { emitEvent: false });
+
+  // Text field mein formatted value dikhao
+  input.value = formatted;
+
+  // Form control mein value set karo
+  this.userForm.get(controlName)?.setValue(formatted, { emitEvent: false });
 }
-// 2. Jab Calendar se select kare (YYYY-MM-DD ko DD-MM-YYYY mein badle)
-onCalendarChange(val: string) {
-  if (!val) return;
-  const [year, month, day] = val.split('-');
+
+// 2. Jab Calendar se date select kare
+onCalendarChange(event: any, controlName: string = 'dob'): void {
+  const dateInput = event.target as HTMLInputElement;
+  if (!dateInput.value) return;
+
+  const [year, month, day] = dateInput.value.split('-');
   const formattedDate = `${day}-${month}-${year}`;
-  this.userForm.get('dob')?.setValue(formattedDate);
+
+  // Form control update karo
+  this.userForm.get(controlName)?.setValue(formattedDate);
+
+  // Visible text input ko bhi update kar do (important!)
+  const textInput = dateInput.parentElement?.querySelector('input[type="text"]') as HTMLInputElement;
+  if (textInput) {
+    textInput.value = formattedDate;
+  }
 }
 syncAddress(event: any) {
   if (event.target.checked) {
@@ -895,5 +925,36 @@ onUserTypeChange(event: any) {
       }
     });
   }
+}
+// user-form.component.ts mein class ke andar ye add kar:
+
+downloadData(type: string) {
+  let dataToDownload = [];
+  let fileName = "";
+
+  if (type === 'dept') {
+    dataToDownload = this.filteredDepts.length > 0 ? this.filteredDepts : this.departments;
+    fileName = "departments.csv";
+  } else if (type === 'des') {
+    dataToDownload = this.filteredDesig.length > 0 ? this.filteredDesig : this.designations; // designations array ka naam check kar lena
+    fileName = "designations.csv";
+  }
+
+  if (!dataToDownload || dataToDownload.length === 0) {
+    alert("No data available to download");
+    return;
+  }
+
+  const csvContent = "data:text/csv;charset=utf-8," 
+    + "ID,Name\n" 
+    + dataToDownload.map(d => `${d.id},${d.name}`).join("\n");
+
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", fileName);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 }

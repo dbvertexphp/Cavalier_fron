@@ -165,37 +165,14 @@
         🔍
       </span>
 
-   <div class="relative w-full">
-  
-  <div *ngIf="filteredHODSuggestions.length > 0"
-       class="absolute z-[999] w-full bg-white border border-gray-200 top-full left-0 mt-1 
-              max-h-60 overflow-y-auto shadow-xl rounded-xl p-1
-              animate-in fade-in duration-200 ease-out">
-    
-    <div *ngFor="let hodName of filteredHODSuggestions"
-         (click)="selectHOD(hodName)" 
-         class="flex items-center gap-3 p-3 mb-0.5 hover:bg-red-50 cursor-pointer rounded-lg transition-colors group">
-      
-      <div class="w-7 h-7 rounded-md bg-red-100 text-red-600 flex items-center justify-center text-[10px] font-bold flex-shrink-0 uppercase border border-red-200">
-        {{ hodName.substring(0, 1) }}
-      </div>
-
-      <div class="flex-1 min-w-0">
-        <p class="text-sm font-semibold text-gray-700 group-hover:text-red-700 truncate">
+      <div *ngIf="filteredHODSuggestions.length > 0"
+           class="absolute z-50 w-full bg-white border border-gray-300 top-full left-0 mt-1 max-h-48 overflow-y-auto shadow-md">
+        <div *ngFor="let hodName of filteredHODSuggestions"
+             (click)="selectHOD(hodName)" 
+             class="p-2 hover:bg-red-50 cursor-pointer text-sm border-b">
           {{ hodName }}
-        </p>
+        </div>
       </div>
-
-      <span class="opacity-0 group-hover:opacity-100 text-red-400 text-[9px] font-bold">
-        SELECT
-      </span>
-    </div>
-
-    <div *ngIf="filteredHODSuggestions.length === 0" class="p-4 text-center text-gray-400 text-xs italic">
-      No matching HOD found
-    </div>
-  </div>
-</div>
     </div>
   </div>
 
@@ -1208,7 +1185,7 @@ class="divide-x divide-gray-200 hover:bg-gray-50">
     <button type="button" class="bg-white border border-gray-300 px-6 py-2 font-bold text-gray-700 hover:bg-gray-50 uppercase shadow-sm flex-grow sm:flex-grow-0">Save & Close</button>
     <button type="button" class="bg-white border border-gray-300 px-6 py-2 font-bold text-gray-700 hover:bg-gray-50 uppercase shadow-sm flex-grow sm:flex-grow-0">Save & New</button>
     <button type="button" (click)="toggleForm()" class="bg-gray-200 border border-gray-400 px-8 py-2 font-bold text-gray-700 hover:bg-gray-300 uppercase shadow-sm flex-grow sm:flex-grow-0">Close</button>
-    <button type="button" class="bg-blue-600 text-white px-8 py-2 font-bold shadow-sm hover:bg-blue-700 uppercase flex-grow sm:flex-grow-0">Copy</button>
+    <!-- <button type="button" class="bg-blue-600 text-white px-8 py-2 font-bold shadow-sm hover:bg-blue-700 uppercase flex-grow sm:flex-grow-0">Copy</button> -->
   </div>
 </div>
     </div>

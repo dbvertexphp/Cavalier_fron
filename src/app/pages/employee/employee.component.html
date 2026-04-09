@@ -127,19 +127,31 @@
             <td class="p-3">{{ emp.functionalArea || "N/A" }}</td>
             <td class="p-3">
               <div class="flex items-center justify-center gap-3">
-                <label class="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" [(ngModel)]="emp.isActive" (change)="toggleRemoteStatus(emp)"
-                    class="sr-only peer" />
+  <label class="relative inline-flex items-center cursor-pointer">
+    <!-- Important: Bind with emp.status instead of isActive -->
+    <input 
+      type="checkbox" 
+      [(ngModel)]="emp.status" 
+      (change)="toggleRemoteStatus(emp)"
+      class="sr-only peer" />
 
-                  <div
-                    class="relative w-11 h-6 bg-gray-200 rounded-full peer-focus:outline-none peer peer-checked:bg-green-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-[58%]">
-                  </div>
+    <!-- Toggle Switch -->
+    <div class="w-11 h-6 bg-gray-200 rounded-full peer-focus:outline-none 
+                peer-focus:ring-4 peer-focus:ring-green-300 
+                peer peer-checked:bg-green-600 
+                transition-colors duration-200
+                after:content-[''] after:absolute after:top-[2px] after:left-[2px] 
+                after:bg-white after:border after:border-gray-300 after:rounded-full 
+                after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5">
+    </div>
 
-                  <span class="ml-3 text-xs font-medium" [ngClass]="emp.isActive ? 'text-green-700' : 'text-red-700'">
-                    {{ emp.isActive ? "Active" : "Inactive" }}
-                  </span>
-                </label>
-              </div>
+    <!-- Status Text -->
+    <span class="ml-3 text-xs font-semibold tracking-wide"
+          [ngClass]="emp.status ? 'text-green-700' : 'text-red-700'">
+      {{ emp.status ? 'ACTIVE' : 'INACTIVE' }}
+    </span>
+  </label>
+</div>
             </td>
             <td class="p-3 sticky right-0 bg-white shadow-[-5px_0px_10px_rgba(0,0,0,0.05)]">
               <div class="flex justify-center gap-1">

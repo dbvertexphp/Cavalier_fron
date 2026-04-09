@@ -163,18 +163,23 @@ getRolePermissions(roleId: number) {
   }
   // ✅ Update Existing Role
   updateRole(roleData: any): Observable<any> {
-    const payload = {
-      Id: roleData.id || roleData.Id,
-      Name: roleData.name || roleData.Name,
-      Status: roleData.status !== undefined ? roleData.status : true
-    };
-    return this.http.put(`${this.apiUrl}/update-role`, payload);
+    
+    return this.http.put(`${this.apiUrl}/update-role`, roleData);
   }
 
   // ✅ Delete Role
   deleteRole(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/delete-role/${id}`);
   }
+  // In user.service.ts
+toggleUserStatus(userId: number, status: boolean) {
+  const payload = {
+    userId: userId,
+    status: status
+  };
+
+  return this.http.put(`${environment.apiUrl}/User/toggle-status`, payload);
+}
 
   /**
    * 🛠 Helper: Object ko FormData mein convert karne ke liye

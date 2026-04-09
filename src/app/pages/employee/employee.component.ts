@@ -41,7 +41,8 @@ password?: string;
   functionalArea?: string;
   role?: string;
   branch?: string;
-  isActive?: boolean;
+  isActive?: boolean; 
+  status?: boolean; 
   bloodGroup?: string;
   maritalStatus?: string;
 
@@ -484,12 +485,21 @@ loadPermissions(): void {
   });
 }
 toggleRemoteStatus(emp: any) {
-  // ngModel already changed the value of emp.isActive
-  // You just need to handle the API call or logic here
-  console.log('Employee:', emp.name, 'is now:', emp.isActive);
-  
-  // Example: if you have a service, call it here
-  // this.employeeService.updateStatus(emp.id, emp.isActive).subscribe();
+  console.log(`Employee: ${emp.id} is now: ${emp.status}`);
+
+  this.userService.toggleUserStatus(emp.id, emp.status).subscribe({
+    next: (res: any) => {
+      console.log("✅ Status updated successfully:", res.message);
+    },
+    error: (err) => {
+      console.error("❌ Failed to update status:", err);
+      
+      // Revert back if API fails
+      emp.status = !emp.status;
+      
+      alert(`Failed to update status for Employee ${emp.id}`);
+    }
+  });
 }
   
   // downoad pdf code.............................................................idhar se hai  

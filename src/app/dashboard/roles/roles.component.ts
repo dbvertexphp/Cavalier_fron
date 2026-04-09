@@ -55,21 +55,68 @@ export class RolesComponent implements OnInit {
 loadRoles() {
   
   this.userService.getRoles().subscribe({
+    
     next: (data: any) => {
       // Har role ko upper case mein convert kar raha hoon
       this.rolesList = data.map((role: any) => ({
         ...role,
         name: role.name.toUpperCase() // Maan lete hain property ka naam 'name' hai
+        
+        
       }));
+      this.cdr.detectChanges(); // Force UI update after data load
     },
     error: (err) => console.error("Roles load nahi hue:", err)
   });
 }
-loadPermissions() {
-    this.http.get<any[]>(`${environment.apiUrl}/Permissions/list`).subscribe(res => {
-      this.permissionsList = res.filter(p => p.subMenu);
-    });
+// Permission ka sahi naam return karega
+getPermissionDisplayName(perm: any): string {
+  if (!perm) return 'N/A';
+
+  // Priority 1: Agar subMenu hai aur empty nahi hai → sirf subMenu dikhao
+  if (perm.subMenu && perm.subMenu.toString().trim() !== '') {
+    return perm.subMenu.trim();
   }
+
+  // Priority 2: Warna menu dikhao (jaise Organization, Branch, Settings)
+  if (perm.menu && perm.menu.toString().trim() !== '') {
+    return perm.menu.trim();
+  }
+
+  return 'Unnamed';
+}
+loadPermissions() {
+  this.http.get<any[]>(`${environment.apiUrl}/Permissions/list`).subscribe({
+    next: (res) => {
+      
+      this.permissionsList = res.filter(p => {
+        // Basic validation
+        if (!p || !p.menu || p.menu.toString().trim() === '') {
+          return false;
+        }
+
+        // Exclude unwanted items
+        const excluded = ['dashboard', 'port of loading', 'port of discharge'];
+        
+        const menuLower = p.menu.toString().toLowerCase().trim();
+        const subMenuLower = p.subMenu ? p.subMenu.toString().toLowerCase().trim() : '';
+
+        // Agar excluded list mein hai toh mat dikhao
+        if (excluded.includes(menuLower) || excluded.includes(subMenuLower)) {
+          return false;
+        }
+
+        return true;
+      });
+
+      console.log('✅ Final Permissions List after filter:', this.permissionsList.length, 'items');
+      console.log(this.permissionsList); // Debugging ke liye
+    },
+    error: (err) => {
+      console.error('❌ Error loading permissions:', err);
+    }
+  });
+}
   // --- 2. SAVE ROLE (Add or Update) ---
  saveRole() {
   if (!this.newRole.name.trim()) {
@@ -92,6 +139,8 @@ loadPermissions() {
     if (actionKey === "v") permissionMap[permId].push("View");
     if (actionKey === "e") permissionMap[permId].push("Edit");
     if (actionKey === "d") permissionMap[permId].push("Delete");
+    if (actionKey === "a") permissionMap[permId].push("Add");
+    
   });
 
   const finalPermissions = Object.keys(permissionMap).map(id => ({
@@ -118,13 +167,18 @@ loadPermissions() {
     next: (res) => {
       this.loadRoles(); 
       this.closeModal();
+      alert(res.message);
       this.isLoading = false;
+      
     },
     error: (err) => {
       this.isLoading = false;
       alert("Error saving role!");
     }
   });
+}
+toggleAdd(id: any) {
+  this.toggleLogic(id + "_a");
 }
 togglePermission(id: any) { this.toggleLogic(id); }
   toggleView(id: any) { this.toggleLogic(id + "_v"); }
@@ -143,6 +197,7 @@ togglePermission(id: any) { this.toggleLogic(id); }
   }
   // --- 3. DELETE ROLE ---
   deleteRole(id: number) {
+    console.log("Delete Role ID:", id);
     console.log('this is pemission',this.CheckPermissionService.permissions);
     this.roleIdToDelete = id;
     this.showPopup = true;
@@ -163,30 +218,81 @@ togglePermission(id: any) { this.toggleLogic(id); }
 
   // --- UI Helpers ---
   openModal() {
-    this.isEditMode = false;
-    this.newRole = { id: 0, name: '', status: true }; // Har baar open pe status Active rahega
-    this.isModalOpen = true;
-  }
+  this.isEditMode = false;
+  this.newRole = { id: 0, name: '', status: true };
+  this.selectedPermissionIds = [];   // ← Important: Clear selections
+  this.isModalOpen = true;
+}
 
   closeModal() {
-    this.isModalOpen = false;
-    this.isEditMode = false;
-    this.newRole = { id: 0, name: '', status: true };
-  }
+  this.isModalOpen = false;
+  this.isEditMode = false;
+  this.newRole = { id: 0, name: '', status: true };
+  this.selectedPermissionIds = [];   // Clear
+}
 
   cancelDelete() {
     this.roleIdToDelete = null;
     this.showPopup = false;
   }
+// In user.service.ts
+getRolePermissions(roleId: number) {
+  return this.http.get<any[]>(`${environment.apiUrl}/role-permission/by-role/${roleId}`);
+}
+ editRole(role: any) {
+  this.isEditMode = true;
 
-  editRole(role: any) {
-    this.isEditMode = true;
-    // Data populate kar rahe hain modal mein
-    this.newRole = { 
-      id: role.id, 
-      name: role.name, 
-      status: role.status 
-    };
-    this.isModalOpen = true;
-  }
+  this.newRole = {
+    id: role.id,
+    name: role.name,
+    status: role.status
+  };
+
+  this.selectedPermissionIds = [];
+
+  // Open modal immediately for better UX
+  this.isModalOpen = true;
+
+  this.getRolePermissions(role.id).subscribe({
+    next: (rolePerms: any[]) => {
+      this.selectedPermissionIds = [];
+
+      rolePerms.forEach(rp => {
+        const pid = Number(rp.permissionId);   // Ensure it's number
+
+        if (rp.actions && Array.isArray(rp.actions) && rp.actions.length > 0) {
+          
+          // ✅ MAIN PERMISSION CHECKBOX - Select if ANY action exists
+          this.selectedPermissionIds.push(pid);
+
+          // Select individual action checkboxes
+          rp.actions.forEach((action: string) => {
+            const act = action.toLowerCase().trim();
+
+            if (act === 'add' || act === 'a') {
+              this.selectedPermissionIds.push(pid + '_a');
+            } 
+            else if (act === 'view' || act === 'v') {
+              this.selectedPermissionIds.push(pid + '_v');
+            } 
+            else if (act === 'edit' || act === 'e') {
+              this.selectedPermissionIds.push(pid + '_e');
+            } 
+            else if (act === 'delete' || act === 'd') {
+              this.selectedPermissionIds.push(pid + '_d');
+            }
+          });
+        }
+      });
+
+      // Force update
+      this.selectedPermissionIds = [...this.selectedPermissionIds];
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error("Failed to load role permissions:", err);
+      this.cdr.detectChanges();
+    }
+  });
+}
 }

@@ -19,9 +19,13 @@ import { DragDropModule } from '@angular/cdk/drag-drop'; // 👈 Ye zaroori hai 
   styleUrl: './organization-add.component.css',
 })
 export class OrganizationAddComponent implements OnInit {
+  lineOfBusinessList: any[] = [];
+selectedLineOfBusiness: any[] = [];        // Multiple select ke liye array
+showLobDropdown: boolean = false;
   isEditMode: boolean = false;
   hasSavedOrg: boolean = false;
 selectedBranchIndex: number = -1;
+@ViewChild('lobDropdownContainer', { static: false }) lobDropdownContainer!: ElementRef;
 searchFilters: any = {
   orgCode: '',
   orgName: '',
@@ -37,6 +41,39 @@ department:any=[];
 designation:any=[];
 // ==================== NEW BUTTON - UPDATED VERSION ====================
 // Current branch ko validate karne ke liye
+toggleLobDropdown(event: Event) {
+  event.stopPropagation();           // Bahut important
+  this.showLobDropdown = !this.showLobDropdown;
+}
+
+isLobSelected(item: any): boolean {
+  return this.selectedLineOfBusiness.some(sel => sel.id === item.id);
+}
+
+toggleLobSelection(item: any) {
+  const index = this.selectedLineOfBusiness.findIndex(sel => sel.id === item.id);
+
+  if (index > -1) {
+    this.selectedLineOfBusiness.splice(index, 1);
+  } else {
+    this.selectedLineOfBusiness.push(item);
+  }
+  this.cdr.detectChanges();
+}
+
+// Already hai tumhare code mein
+removeLob(index: number, event: Event) {
+  event.stopPropagation();
+  this.selectedLineOfBusiness.splice(index, 1);
+  this.cdr.detectChanges();
+}
+
+// Naya function add karo (Clear All ke liye)
+clearAllLob(event: Event) {
+  event.stopPropagation();
+  this.selectedLineOfBusiness = [];
+  this.cdr.detectChanges();
+}
 validateCurrentBranch(): boolean {
 
   if (!this.branchName?.trim()) {
@@ -128,10 +165,19 @@ getActionButtonText(): string {
     return this.isEditMode ? 'New' : 'New';
   }
 }
+getSelectedLobNames(): string {
+  if (!this.selectedLineOfBusiness || this.selectedLineOfBusiness.length === 0) {
+    return 'Select Line of Business';
+  }
+  return this.selectedLineOfBusiness
+             .map(item => item?.serviceName || '')
+             .filter(name => name)           // empty names hatao
+             .join(', ');
+}
 // ==================== DELETE SELECTED BRANCH ====================
 deleteSelectedBranch() {
   if (this.selectedBranchIndex < 0) {
-    alert("Pehle koi branch select karo!");
+    alert("Please Select a Branch First!");
     return;
   }
 
@@ -190,7 +236,9 @@ selectBranch(branch: any, index: number) {
   this.website        = branch.website || '';
   this.email          = branch.email || branch.emailAddress || '';
 
-  this.lineOfBusiness = branch.lobId || null;
+  // selectBranch method ke andar
+this.selectedLineOfBusiness = branch.lineOfBusinessList || [];   // Agar array aa raha hai
+// ya agar sirf ID aa raha hai toh alag logic likhna padega
 
   this.contacts = [{
     contactName: branch.contactName || '',
@@ -211,8 +259,7 @@ public countryMasterList: any[] = [];    // Sabhi countries ki original list
 public stateLookupList: any[] = [];
 selectedBranch: any = { id: 0, name: '', isDefault: false, isActive: true };
 branches: any[] = []; 
-lineOfBusinessList: any[] = [];
-selectedLineOfBusiness: any = null;
+
 // Is line ko variables section mein add karein
 lineOfBusiness: number | null = null; 
 
@@ -332,8 +379,25 @@ landmark: string = '';
 //   branches :any [] =[];
 //   selectedBranch: any = null
 
-  constructor(private location: Location, private http: HttpClient,private cdr: ChangeDetectorRef,private router:Router) {}
+  constructor(private location: Location, private http: HttpClient,private cdr: ChangeDetectorRef,private router:Router,private elementRef: ElementRef) {}
+@HostListener('document:click', ['$event'])
+onDocumentClick(event: MouseEvent) {
+  if (this.lobDropdownContainer && 
+      !this.lobDropdownContainer.nativeElement.contains(event.target as Node)) {
+    this.showLobDropdown = false;
+    this.cdr.detectChanges();
+  }
+   if (!(event.target as HTMLElement).closest('.relative')) {
+      this.isExportOpen = false;
+this.organizationsList = [];
+    }
+}
  ngOnInit() {
+  const state = history.state;           // ya this.router.lastSuccessfulNavigation?.extras?.state
+
+    if (state && state.isFormOpen === true) {
+      this.isFormOpen = true;
+    }
   this.loaddepartment();
   this.loadestination();
   this.loadColumnSettings();
@@ -417,7 +481,7 @@ addCurrentBranchIfValid(): boolean {
   }
 
   const branchData = {
-    // Purana ID preserve karo - Yeh line bahut zaroori hai
+    // Purana ID preserve karo
     id: this.selectedBranchIndex >= 0 ? this.branchList[this.selectedBranchIndex].id : 0,
 
     branchName: this.branchName.trim(),
@@ -433,7 +497,10 @@ addCurrentBranchIfValid(): boolean {
     website: this.website || '',
     email: this.email || '',
 
-    lobId: this.lineOfBusiness ?? null,
+    // 🔥 IMPORTANT CHANGE: LobId ki jagah LobIds bhejo aur array ko string mein convert karo
+   LobIds: this.selectedLineOfBusiness.length > 0 
+        ? this.selectedLineOfBusiness.map(item => item.id).join(',') 
+        : null,
 
     contactName: firstContact.contactName || '',
     mobile: firstContact.mobile || '',
@@ -521,15 +588,20 @@ onSaveBranch() {
 }
 // ==================== SAVE ALL BRANCHES (Add + Update) ====================
 // ==================== SAVE ALL BRANCHES (Add + Update) - FIXED ====================
+// ==================== SAVE ALL BRANCHES (Add + Update) ====================
 saveAllLocalBranches(orgId: number) {
   const validBranches = this.branchList.filter(b => b.branchName?.trim());
 
   validBranches.forEach(branch => {
     const payload = {
-      Id: branch.id || 0,                    // Existing ID bhejna zaroori hai
+      Id: branch.id || 0,
       BranchName: branch.branchName?.trim(),
       OrganizationId: orgId,
-      LobId: this.lineOfBusiness ?? branch.lobId ?? null,
+
+      // 🔥 YE CHANGE KARO - Array ko string mein convert karo
+     LobIds: this.selectedLineOfBusiness.length > 0 
+        ? this.selectedLineOfBusiness.map(item => item.id).join(',') 
+        : null,
 
       Address: branch.address?.trim(),
       Area: branch.area?.trim(),
@@ -560,12 +632,15 @@ saveAllLocalBranches(orgId: number) {
       IsMarketing: false
     };
 
-    console.log(`→ Saving Branch: "${branch.branchName}" | ID = ${payload.Id}`);
+    console.log(`→ Saving Branch: "${branch.branchName}" | LobIds = ${payload.LobIds}`);
 
     this.http.post(`${environment.apiUrl}/OrgBranch/SaveBranch`, payload)
       .subscribe({
         next: (res) => console.log(`✅ Branch "${branch.branchName}" saved successfully`),
-        error: (err) => console.error(`❌ Failed to save branch "${branch.branchName}"`, err)
+        error: (err) => {
+          console.error(`❌ Failed to save branch "${branch.branchName}"`, err);
+          console.log("Full error:", err.error);   // Yeh line add kar lo debugging ke liye
+        }
       });
   });
 }
@@ -759,6 +834,8 @@ saveOrganization() {
           ? "✅ Organization Updated Successfully!" 
           : "✅ Organization Created Successfully!");
       }
+      window.location.reload();
+      
     },
     error: (err) => {
       console.error("Organization Save/Update Error:", err);
@@ -815,7 +892,7 @@ getBranchesByOrg(orgId: number) {
       if (res && Array.isArray(res) && res.length > 0) {
         
         this.branchList = res.map((b: any) => ({
-          id: b.id,                          // Sabse important
+          id: b.id,                          // Sabse important
           branchName: b.branchName || '',
 
           organizationId: b.organizationId,
@@ -838,7 +915,13 @@ getBranchesByOrg(orgId: number) {
           whatsapp: b.whatsapp || '',
           emailId: b.emailId || b.emailAddress || '',
 
-          lobId: b.lobId || null,
+          lobIds: b.lobIds || null,
+  
+          // 🔥 FIXED - Proper typing with explicit types
+          lobIdsList: b.lobIds 
+            ? b.lobIds.split(',').map((id: string) => parseInt(id.trim(), 10))
+                                 .filter((id: number) => !isNaN(id))
+            : [],
           designationId: b.designationId || null,
           departmentId: b.departmentId || null,
 
@@ -853,9 +936,11 @@ getBranchesByOrg(orgId: number) {
           designation: b.designation,
           department: b.department,
           companyService: b.companyService
-        }));
+        }))
+        // 🔥 YE LINE ADD KI HAI: Default branch ko top par laane ke liye
+        .sort((a, b) => (b.isDefault === a.isDefault ? 0 : b.isDefault ? 1 : -1));
 
-        console.log("✅ branchList ready for sidebar:", this.branchList);
+        console.log("✅ branchList ready for sidebar (Sorted by Default):", this.branchList);
       } else {
         this.branchList = [];
         console.log("No branches found.");
@@ -879,13 +964,8 @@ isExportOpen = false;
   }
 
   // Click outside menu to close
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent) {
-    if (!(event.target as HTMLElement).closest('.relative')) {
-      this.isExportOpen = false;
-this.organizationsList = [];
-    }
-  }
+  
+  
 
   // Pure data printing via Iframe (No sidebar/filters)
 printData() {
@@ -1014,36 +1094,7 @@ async downloadPDF() {
   openForm() {
   this.isFormOpen = true;
   
-  // --- SABSE ZAROORI LINE (Iske bina ID update nahi hogi) ---
-  this.selectedOrgId = 0; 
-  // ---------------------------------------------------------
-
-  this.orgName = '';
-  this.alias = '';
-  this.address = '';
-  this.city = '';
-  this.country = '';
-  this.telephone = '';
-  this.email = '';
-  this.website = '';
-  this.postalCode = '';
-  this.stateProvince = '';
-  this.whatsAppNumber = '';
-  this.salesPerson = '';
-  this.collectionExec = '';
-  this.selectedRoles = [];
-  this.contacts = [{ 
-    contactName: '', 
-    mobile: '', 
-    whatsapp: '', 
-    email: '', 
-    DesignationId: '', 
-    DepartmentId: '' 
-  }];
-  this.branchList = []; // Sidebar saaf ho gaya
-  this.branchName = ''; // Input box khali ho gaya
-  
-  this.cdr.detectChanges(); // UI refresh
+ 
 }
 
   closeForm() {
@@ -1346,14 +1397,16 @@ checkEmail(contact: any) {
 isWebsiteInvalid: boolean = false;
 
 validateWebsite() {
-  const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
-  
-  if (this.website && this.website.trim().length > 0) {
-    // Agar regex match nahi karta toh error true
-    this.isWebsiteInvalid = !urlPattern.test(this.website.trim());
-  } else {
-    this.isWebsiteInvalid = false;
-  }
+  const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/i;
+
+  if (this.website && this.website.trim().length > 0) {
+    const trimmedUrl = this.website.trim();
+    
+    // 'i' flag add kiya hai → Case-insensitive ban gaya
+    this.isWebsiteInvalid = !urlPattern.test(trimmedUrl);
+  } else {
+    this.isWebsiteInvalid = false;
+  }
 }
 // Main email ke liye alag flag
 isMainEmailInvalid: boolean = false;
@@ -1577,14 +1630,16 @@ loadCountriesFromApi() {
 
 // 2. Search Logic (3 characters check)
 onCountrySearch(event: any) {
-  const val = event.target.value;
-  
-  if (val && val.length >= 3) {
-    this.filteredCountries = this.countryMasterList.filter(item => 
+  const val = (event.target.value || '').toUpperCase().trim();
+
+  event.target.value = val;   // Input box mein uppercase dikhe
+
+  if (val.length >= 3) {
+    this.filteredCountries = this.countryMasterList.filter(item =>
       item.name.toLowerCase().includes(val.toLowerCase())
     );
   } else {
-    this.filteredCountries = []; // Agar 3 se kam hai toh list khali rakho
+    this.filteredCountries = [];
   }
 }
 
@@ -1817,5 +1872,19 @@ resetBranchFormOnly() {
     whatsapp: '',
     email: ''
   }];
+}
+onDefaultChange(currentIndex: number) {
+  if (this.branchList[currentIndex].isDefault) {
+    // 1. Baaki sabhi branches se default status hatao
+    this.branchList.forEach((b, i) => {
+      if (i !== currentIndex) b.isDefault = false;
+    });
+    
+    // 2. (Optional) Agar tu chahta hai ki tick karte hi wo top par chali jaye:
+    // const [target] = this.branchList.splice(currentIndex, 1);
+    // this.branchList.unshift(target);
+    // this.selectedBranchIndex = 0;
+  }
+  this.cdr.detectChanges();
 }
 } 

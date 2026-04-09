@@ -75,6 +75,8 @@ import { LeadOwnerComponent } from './pages/lead-owner/lead-owner.component';
 import { SalesCoordinatorComponent } from './pages/sales-coordinator/sales-coordinator.component';
 import { ReportingManagerComponent } from './pages/reporting-manager/reporting-manager.component';
 import { SalesProcessComponent } from './pages/sales-process/sales-process.component';
+import { LeadSourceComponent } from './lead-source/lead-source.component';
+import { SalesStageComponent } from './sales-stage/sales-stage.component';
 
 export const routes: Routes = [
 
@@ -126,6 +128,14 @@ export const routes: Routes = [
         {
           path: 'lead-owners',
           component: LeadOwnerComponent
+        },
+        {
+          path: 'Lead-Source',
+          component: LeadSourceComponent
+        },
+        {
+          path: 'sales-stage',
+          component: SalesStageComponent
         },
         {
           path: 'sales-coordinators',

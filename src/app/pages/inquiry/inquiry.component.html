@@ -1757,98 +1757,1957 @@
       </button>
     </div>
   </div>
-<div *ngIf="isPreviewMode" class="p-6 border-4 border-dashed border-[#4a3f3f] m-4 bg-gray-50 shadow-2xl font-sans">
-    <div class="flex justify-between items-center mb-4">
-        <h3 class="text-2xl font-black text-[#4a3f3f] uppercase tracking-tighter italic">
-            🔍 INQUIRY DETAILS
-        </h3>
-        <div class="flex gap-2">
-            <span class="bg-[#4a3f3f] text-white px-3 py-1 text-xs font-bold uppercase italic">Cavalier Logistics5</span>
+
+<div class="p-3 bg-gray-100 min-h-screen font-sans text-[13px]">
+
+  <div *ngIf="!isFormOpen" class="bg-white border border-gray-300 shadow-sm rounded-sm overflow-hidden">
+    <div class="bg-gray-100 p-1.5 border-b border-gray-300 flex gap-4 items-center">
+       <div class="text-[11px] italic text-gray-500">
+         Items in <span class="text-green-600 font-bold">green</span> = Sucess | <span class="text-red-600 font-bold">Red</span> = Faild
+      </div>
+    </div>
+
+    <div class="p-4 bg-white border-b border-gray-200">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-3">
+        
+        <div class="space-y-2">
+<div class="flex items-center">
+  <label class="w-28 font-bold text-gray-600 text-[12px]">Service Type</label>
+  
+  <div class="flex-1 flex border border-gray-300 relative">                
+    <input 
+      type="text" 
+      [(ngModel)]="searchFilters.transportMode"
+      (input)="onServiceType()"
+      list="servicesSuggestions"
+      placeholder="Type service (min 3 chars)..."
+      class="w-full p-1 outline-none text-[12px] rounded-sm bg-white"
+    >
+    
+    <span 
+      (click)="toggleServicePopup()" 
+      class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-gray-200 transition-colors">
+      🔍
+    </span>
+
+    <datalist id="servicesSuggestions">
+      <option *ngFor="let s of filteredServices" [value]="s"></option>
+    </datalist>
+  </div>
+</div>
+
+<div *ngIf="showServicePopup && allTransportModes.length > 0" 
+     class="fixed inset-0 bg-gray-900/70 backdrop-blur-sm z-[9998] transition-opacity duration-300 ease-out"
+     [ngClass]="{'opacity-100': showServicePopup, 'opacity-0': !showServicePopup}"
+     (click)="showServicePopup = false">
+</div>
+
+<div *ngIf="showServicePopup && allTransportModes.length > 0"
+     class="fixed inset-0 flex items-center justify-center z-[9999] p-4 sm:p-6 md:p-10" 
+     (click)="$event.stopPropagation()"> <div class="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-gray-100 
+              flex flex-col max-h-[90vh] overflow-hidden
+              transform transition-all duration-300 ease-out"
+       [ngClass]="{'opacity-100 scale-100': showServicePopup, 'opacity-0 scale-95': !showServicePopup}">
+
+    <div class="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex-shrink-0">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="text-xl font-bold text-gray-950 tracking-tight">Select Transport Mode</h3>
+          <p class="text-xs text-gray-500 mt-1">Choose the best service for your shipment</p>
+        </div>
+        <button (click)="showServicePopup = false" 
+                class="w-9 h-9 flex items-center justify-center rounded-full bg-white hover:bg-red-50 text-gray-400 hover:text-red-500 border border-gray-200 hover:border-red-100 transition-all focus:ring-2 focus:ring-red-200 outline-none">
+          ✕
+        </button>
+      </div>
+
+      <div class="relative">
+        <span class="absolute inset-y-0 left-4 flex items-center text-gray-400">
+          🔍
+        </span>
+        <input 
+          type="text" 
+          placeholder="Search air, sea, road modes..." 
+          class="w-full pl-12 pr-4 py-3 text-sm bg-white border border-gray-200 rounded-2xl outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all placeholder:text-gray-400"
+          (input)="filterTransportModes($event)"
+        >
+      </div>
+    </div>
+
+    <div class="overflow-y-auto bg-white flex-1 min-h-0 custom-scrollbar">
+      <div class="p-3 space-y-1">
+        <div *ngFor="let mode of allTransportModes"
+             (click)="selectServiceFromPopup(mode)" 
+             class="group flex items-center justify-between px-4 py-4 rounded-xl hover:bg-blue-50/70 cursor-pointer transition-all border border-transparent hover:border-blue-100">
+          
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-full bg-blue-100/70 text-blue-600 flex items-center justify-center text-lg font-bold flex-shrink-0">
+              {{ mode.substring(0, 1).toUpperCase() }}
+            </div>
+            <span class="text-sm font-semibold text-gray-800 group-hover:text-blue-700 truncate pr-2">
+              {{ mode }}
+            </span>
+          </div>
+          
+          <span class="flex-shrink-0 opacity-0 group-hover:opacity-100 text-blue-500 transform translate-x-1 group-hover:translate-x-0 transition-all text-xs font-bold flex items-center gap-1.5 bg-blue-100/70 px-3 py-1.5 rounded-full">
+            Select <span>→</span>
+          </span>
+        </div>
+      </div>
+
+      <div *ngIf="allTransportModes.length === 0" class="py-16 text-center text-gray-500 flex flex-col items-center gap-4">
+          <span class="text-4xl">📭</span>
+          <p class="text-sm font-medium italic">No transport modes found matching your filter.</p>
+          <p class="text-xs text-gray-400">Try adjusting your search criteria.</p>
+      </div>
+    </div>
+
+    <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex-shrink-0 flex items-center justify-between">
+      <p class="text-xs text-gray-400 uppercase tracking-widest font-bold">Cavalier Logistics1</p>
+      <button (click)="showServicePopup = false" 
+              class="px-5 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-100 transition-all focus:ring-2 focus:ring-gray-200 outline-none">
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
+<div class="flex items-center relative"> 
+  <label class="w-28 font-bold text-gray-600 text-[12px]">Inquiry No.</label>
+  
+  <div class="flex-1 flex border border-gray-300">
+    <input 
+      type="text" 
+      [(ngModel)]="searchFilters.inquiryNo" 
+      (input)="onInquiryType()"
+      list="inqNoList" 
+      placeholder="Type min 3 chars..."
+      class="w-full p-1 outline-none text-[12px] rounded-sm bg-white"
+    >
+    
+    <span 
+      (click)="toggleInquiryPopup()" 
+      class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-gray-200 transition-colors">
+      🔍
+    </span>
+
+    <datalist id="inqNoList">
+      <option *ngFor="let num of filteredInquiryNos" [value]="num"></option>
+    </datalist>
+  </div>
+</div>
+<div *ngIf="showInquiryPopup && allInquiryNos.length > 0" 
+     class="fixed inset-0 bg-gray-900/70 backdrop-blur-sm z-[9998] transition-opacity duration-300 ease-out"
+     [ngClass]="{'opacity-100': showInquiryPopup, 'opacity-0': !showInquiryPopup}"
+     (click)="showInquiryPopup = false">
+</div>
+
+<div *ngIf="showInquiryPopup && allInquiryNos.length > 0"
+     class="fixed inset-0 flex items-center justify-center z-[9999] p-4 sm:p-6 md:p-10" 
+     (click)="$event.stopPropagation()"> 
+
+  <div class="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-gray-100 
+              flex flex-col max-h-[90vh] overflow-hidden
+              transform transition-all duration-300 ease-out"
+       [ngClass]="{'opacity-100 scale-100': showInquiryPopup, 'opacity-0 scale-95': !showInquiryPopup}">
+
+    <div class="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex-shrink-0">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="text-xl font-bold text-gray-950 tracking-tight">Select Inquiry Number</h3>
+          <p class="text-xs text-gray-500 mt-1">Search and select the reference inquiry</p>
+        </div>
+        <button (click)="showInquiryPopup = false" 
+                class="w-9 h-9 flex items-center justify-center rounded-full bg-white hover:bg-red-50 text-gray-400 hover:text-red-500 border border-gray-200 hover:border-red-100 transition-all focus:ring-2 focus:ring-red-200 outline-none">
+          ✕
+        </button>
+      </div>
+
+      <div class="relative">
+        <span class="absolute inset-y-0 left-4 flex items-center text-gray-400">
+          🔍
+        </span>
+        <input 
+          type="text" 
+          placeholder="Filter inquiries..." 
+          class="w-full pl-12 pr-4 py-3 text-sm bg-white border border-gray-200 rounded-2xl outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all placeholder:text-gray-400"
+          (input)="filterInquiryList($event)"
+        >
+      </div>
+    </div>
+
+    <div class="overflow-y-auto bg-white flex-1 min-h-0 custom-scrollbar">
+      <div class="p-3 space-y-1">
+        <div *ngFor="let inq of allInquiryNos"
+             (click)="selectInquiryFromPopup(inq)" 
+             class="group flex items-center justify-between px-4 py-4 rounded-xl hover:bg-blue-50/70 cursor-pointer transition-all border border-transparent hover:border-blue-100">
+          
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-full bg-blue-100/70 text-blue-600 flex items-center justify-center text-sm font-bold flex-shrink-0 border border-blue-200">
+              #
+            </div>
+            <span class="text-sm font-semibold text-gray-800 group-hover:text-blue-700 truncate pr-2">
+              {{ inq }}
+            </span>
+          </div>
+          
+          <span class="flex-shrink-0 opacity-0 group-hover:opacity-100 text-blue-500 transform translate-x-1 group-hover:translate-x-0 transition-all text-xs font-bold flex items-center gap-1.5 bg-blue-100/70 px-3 py-1.5 rounded-full">
+            Select <span>→</span>
+          </span>
+        </div>
+      </div>
+
+      <div *ngIf="allInquiryNos.length === 0" class="py-16 text-center text-gray-500 flex flex-col items-center gap-4">
+          <span class="text-4xl">📄</span>
+          <p class="text-sm font-medium italic">No inquiries found matching your search.</p>
+          <p class="text-xs text-gray-400">Please check the inquiry number again.</p>
+      </div>
+    </div>
+
+    <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex-shrink-0 flex items-center justify-between">
+      <p class="text-xs text-gray-400 uppercase tracking-widest font-bold">Cavalier Logistics2</p>
+      <button (click)="showInquiryPopup = false" 
+              class="px-5 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-100 transition-all focus:ring-2 focus:ring-gray-200 outline-none">
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
+   <div class="flex items-center relative"> <label class="w-28 font-bold text-red-700 text-[12px]">Inquiry to</label>
+  <div class="flex-1 flex border border-red-200">
+    <input 
+      type="text" 
+      [(ngModel)]="searchFilters.branchName"
+      (input)="onBranchType()"
+      list="branchList"
+      placeholder="Type min 3 chars..."
+      class="w-full p-1 outline-none text-[12px] bg-white">
+    
+    <span 
+      (click)="toggleBranchPopup()" 
+      class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-gray-200">
+      🔍
+    </span>
+  </div>
+
+  <datalist id="branchList">
+    <option *ngFor="let branch of filteredBranches" [value]="branch"></option>
+  </datalist>
+
+  <div *ngIf="showBranchPopup" 
+       class="absolute top-full left-28 right-0 mt-1 bg-white border border-gray-300 shadow-lg z-[999] max-h-60 overflow-y-auto rounded-sm">
+    <ul>
+      <li *ngFor="let cust of allCustomerNames" 
+          (click)="selectBranchFromPopup(cust)"
+          class="p-2 text-[12px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 last:border-none">
+        {{ cust }}
+      </li>
+      <li *ngIf="allCustomerNames.length === 0" class="p-2 text-[12px] text-gray-400 text-center italic">
+        No customers found
+      </li>
+    </ul>
+  </div>
+</div>
+         <div class="flex items-center">
+  <label class="w-28 font-bold text-gray-600">Show</label>
+  <select 
+    [(ngModel)]="searchFilters.showMode"
+    class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
+    
+    <option value="valid">Valid Inquiry Only</option>
+    <option value="all">All Inquiries</option>
+    
+  </select>
+</div>
+
+ </div>
+
+
+<div class="space-y-2">
+  <div class="flex items-center relative"> 
+    <label class="w-24 font-bold text-gray-600 text-[12px]">Date</label>
+   
+    <div
+      class="flex-1 flex border border-gray-300 items-center pr-2 cursor-pointer bg-white relative h-[30px]"
+      (click)="datePicker.showPicker(); showCustomPicker = !showCustomPicker">
+     
+      <input
+        #datePicker
+        type="date"
+        [(ngModel)]="searchFilters.receivedDate"
+        class="w-full p-1 outline-none text-[12px] cursor-pointer"
+        (focus)="datePicker.showPicker()"
+        (change)="onSearch(); showCustomPicker = false">
+       
+      <span class="text-[14px]">📅</span>
+
+      <div *ngIf="showCustomPicker" 
+           (mouseleave)="showCustomPicker = false"
+           class="absolute top-0 right-full z-[1001] bg-white shadow-xl border border-gray-300 flex flex-col w-[115px] rounded-sm overflow-hidden mr-[-1px]">
+        
+        <div class="bg-gray-100 px-2 py-1 text-[9px] font-bold text-gray-500 uppercase border-b">Quick Select</div>
+        
+        <div (click)="setQuickDate('today'); $event.stopPropagation()" class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 transition-colors">Today</div>
+        <div (click)="setQuickDate('tomorrow'); $event.stopPropagation()" class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 text-blue-700 font-semibold">Tomorrow</div>
+        <div (click)="setQuickDate('yesterday'); $event.stopPropagation()" class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 transition-colors">Yesterday</div>
+        
+        <div (click)="setQuickDate('nextWeek'); $event.stopPropagation()" class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 transition-colors">Next Week</div>
+        <div (click)="setQuickDate('lastWeek'); $event.stopPropagation()" class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 transition-colors">Last Week</div>
+        
+        <div (click)="setQuickDate('nextMonth'); $event.stopPropagation()" class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 transition-colors">Next Month</div>
+        <div (click)="setQuickDate('lastMonth'); $event.stopPropagation()" class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer transition-colors">Last Month</div>
+      </div>
+    </div>
+  </div>
+<div class="flex items-center relative"> 
+  <label class="w-24 font-bold text-gray-600 text-[12px]">Inquiry By</label>
+  
+  <div class="flex-1 flex border border-gray-300">
+    <input 
+      type="text" 
+      [(ngModel)]="searchFilters.salesCoordinator"
+      (input)="onCoordinatorType()"
+      list="coordinatorList"
+      placeholder="Type min 3 chars..."
+      class="w-full p-1 outline-none text-[12px] bg-white"
+      autocomplete="off">
+    
+    <span 
+      (click)="toggleCoordinatorPopup()" 
+      class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-gray-200 transition-colors">
+      🔍
+    </span>
+  </div>
+
+  <datalist id="coordinatorList">
+    <option *ngFor="let name of filteredCoordinators" [value]="name"></option>
+  </datalist>
+</div>
+<div *ngIf="showCoordinatorPopup && allCoordinators.length > 0" 
+     class="fixed inset-0 bg-gray-900/70 backdrop-blur-sm z-[9998] transition-opacity duration-300 ease-out"
+     [ngClass]="{'opacity-100': showCoordinatorPopup, 'opacity-0': !showCoordinatorPopup}"
+     (click)="showCoordinatorPopup = false">
+</div>
+
+<div *ngIf="showCoordinatorPopup && allCoordinators.length > 0"
+     class="fixed inset-0 flex items-center justify-center z-[9999] p-4 sm:p-6 md:p-10" 
+     (click)="$event.stopPropagation()"> 
+
+  <div class="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-gray-100 
+              flex flex-col max-h-[90vh] overflow-hidden
+              transform transition-all duration-300 ease-out"
+       [ngClass]="{'opacity-100 scale-100': showCoordinatorPopup, 'opacity-0 scale-95': !showCoordinatorPopup}">
+
+    <div class="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex-shrink-0">
+      <div class="flex justify-between items-center mb-4">
+        <div>
+          <h3 class="text-xl font-bold text-gray-950 tracking-tight">Select Coordinator</h3>
+          <p class="text-xs text-gray-500 mt-1">Assign a coordinator for this task</p>
+        </div>
+        <button (click)="showCoordinatorPopup = false" 
+                class="w-9 h-9 flex items-center justify-center rounded-full bg-white hover:bg-red-50 text-gray-400 hover:text-red-500 border border-gray-200 hover:border-red-100 transition-all focus:ring-2 focus:ring-red-200 outline-none">
+          ✕
+        </button>
+      </div>
+
+      <div class="relative">
+        <span class="absolute inset-y-0 left-4 flex items-center text-gray-400">
+          🔍
+        </span>
+        <input 
+          type="text" 
+          placeholder="Search coordinator name..." 
+          class="w-full pl-12 pr-4 py-3 text-sm bg-white border border-gray-200 rounded-2xl outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all placeholder:text-gray-400"
+          (input)="filterCoordinatorList($event)"
+        >
+      </div>
+    </div>
+
+    <div class="overflow-y-auto bg-white flex-1 min-h-0 custom-scrollbar">
+      <div class="p-3 space-y-1">
+        <div *ngFor="let coord of allCoordinators"
+             (click)="selectCoordinatorFromPopup(coord)" 
+             class="group flex items-center justify-between px-4 py-4 rounded-xl hover:bg-blue-50/70 cursor-pointer transition-all border border-transparent hover:border-blue-100">
+          
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-full bg-blue-100/70 text-blue-600 flex items-center justify-center text-sm font-bold flex-shrink-0 border border-blue-200 uppercase">
+              {{ coord.substring(0, 1) }}
+            </div>
+            <span class="text-sm font-semibold text-gray-800 group-hover:text-blue-700 truncate pr-2">
+              {{ coord }}
+            </span>
+          </div>
+          
+          <span class="flex-shrink-0 opacity-0 group-hover:opacity-100 text-blue-500 transform translate-x-1 group-hover:translate-x-0 transition-all text-xs font-bold flex items-center gap-1.5 bg-blue-100/70 px-3 py-1.5 rounded-full">
+            Select <span>→</span>
+          </span>
+        </div>
+      </div>
+
+      <div *ngIf="allCoordinators.length === 0" class="py-16 text-center text-gray-500 flex flex-col items-center gap-4">
+          <span class="text-4xl">👤</span>
+          <p class="text-sm font-medium italic">No coordinators found.</p>
+          <p class="text-xs text-gray-400">Try a different name.</p>
+      </div>
+    </div>
+
+    <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex-shrink-0 flex items-center justify-between">
+      <p class="text-xs text-gray-400 uppercase tracking-widest font-bold">Cavalier Logistics3</p>
+      <button (click)="showCoordinatorPopup = false" 
+              class="px-5 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-100 transition-all focus:ring-2 focus:ring-gray-200 outline-none">
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
+        <div class="flex items-center">
+  <label class="w-24 font-bold text-gray-600">Inquiry Status</label>
+  <select 
+    [(ngModel)]="searchFilters.cargoStatus"
+    class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
+    
+    <option value="(Any)">(Any)</option>
+    <option value="Pending">Pending</option>
+    <option value="Success">Success</option>
+    <option value="Failed">Failed</option>
+    <option value="In Progress">In Progress</option>
+    
+  </select>
+</div>
+<div class="flex items-center">
+  <label class="w-28 font-bold text-gray-600 text-[12px]">Status</label>
+  
+  <div class="flex-1">
+    <select 
+       
+      class="w-full p-1 border border-gray-300 outline-none text-[12px] h-[26px] bg-white cursor-pointer">
+      
+      <option value="">Select Status</option>
+      <option value="Active">Active</option>
+      <option value="Inactive">Inactive</option>
+      
+    </select>
+  </div>
+</div>
+<div class="flex items-center mb-1">
+  <label class="w-28 font-bold text-gray-600 text-[12px]">Branch</label>
+  
+  <div class="flex-1 flex border border-gray-300 relative rounded-sm bg-white shadow-sm focus-within:ring-1 focus-within:ring-red-400">                
+    
+    <input 
+      type="text" 
+      [(ngModel)]="branchSearchText"
+      (input)="onBranchSearch()"
+      placeholder="Type to search branch..."
+      class="w-full p-1.5 outline-none text-[12px] bg-white"
+      autocomplete="off"
+    >
+    
+    <span 
+      (click)="toggleBranchModal()" 
+      class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-red-500 hover:text-white transition-all flex items-center justify-center w-9"
+      title="View All Branches">
+      🔍
+    </span>
+
+    <ul *ngIf="branchSearchText.length >= 3 && filteredBranchSuggestions.length > 0" 
+        class="absolute top-full left-0 w-full bg-white border border-gray-300 z-[4000] shadow-xl max-h-60 overflow-y-auto mt-1 rounded-sm list-none p-0">
+      
+      <li *ngFor="let b of filteredBranchSuggestions" 
+          (click)="selectBranchFromDropdown(b)"
+          class="p-2 text-[12px] hover:bg-red-50 cursor-pointer border-b border-gray-100 last:border-none flex justify-between items-center transition-colors">
+        <div class="flex flex-col">
+          <span class="font-bold text-gray-700 uppercase">{{ b.branchName }}</span>
+          <span class="text-[10px] text-gray-400">{{ b.branchCode }}</span>
+        </div>
+        <span *ngIf="b.isSelected" class="text-red-500 text-[10px] font-bold">SELECTED</span>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div *ngIf="isBranchModalOpen" 
+     class="fixed inset-0 z-[3000] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div class="bg-white w-full max-w-md shadow-2xl rounded-sm border-t-4 border-red-600 animate-in zoom-in duration-200">
+        <div class="flex justify-between items-center p-3 border-b bg-gray-50">
+            <h3 class="text-[12px] font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
+               🏢 Select Branches
+            </h3>
+            <button (click)="toggleBranchModal()" 
+                    class="text-gray-400 hover:text-red-500 text-2xl font-bold leading-none">&times;</button>
+        </div>
+
+        <div class="max-h-80 overflow-y-auto p-1 custom-scrollbar">
+            <div class="p-2 sticky top-0 bg-white">
+                <input type="text" 
+                       [(ngModel)]="branchSearchText" 
+                       (input)="onBranchSearch()"
+                       placeholder="Filter branches..." 
+                       class="w-full p-1 border border-gray-200 text-[11px] outline-none rounded-sm">
+            </div>
+
+            <ul class="list-none p-0 m-0">
+                <li *ngFor="let branch of filteredBranchSuggestions" 
+                    class="flex items-center gap-3 p-2.5 hover:bg-red-50 border-b border-gray-50 last:border-none cursor-pointer transition-colors"
+                    (click)="toggleBranchSelection(branch)">
+                    
+                    <input type="checkbox" 
+                           [checked]="branch.isSelected" 
+                           (click)="$event.stopPropagation()"
+                           (change)="toggleBranchSelection(branch)"
+                           class="w-4 h-4 accent-red-600 cursor-pointer">
+                    
+                    <div class="flex flex-col">
+                        <span class="text-[12px] text-gray-800 font-medium uppercase">{{ branch.branchName }}</span>
+                        <span *ngIf="branch.branchCode" class="text-[10px] text-gray-400">{{ branch.branchCode }}</span>
+                    </div>
+                </li>
+
+                <li *ngIf="filteredBranchSuggestions.length === 0" class="p-5 text-center text-gray-400 text-[11px] italic">
+                    No branches found.
+                </li>
+            </ul>
+        </div>
+
+        <div class="p-3 border-t bg-gray-50 flex justify-end gap-2">
+            <button (click)="toggleBranchModal()" 
+                    class="px-4 py-1.5 text-[11px] font-bold text-gray-500 hover:bg-gray-200 rounded-sm uppercase">
+                Cancel
+            </button>
+            <button (click)="confirmSelection()" 
+                    class="px-6 py-1.5 text-[11px] font-bold bg-red-600 text-white hover:bg-red-700 rounded-sm shadow-md transition-all uppercase">
+                Confirm Selection
+            </button>
         </div>
     </div>
-    
-    <hr class="border-[#4a3f3f] mb-6 border-2">
-    
-    <div class="bg-white border-2 border-gray-200 overflow-hidden">
-        <table class="w-full text-left border-collapse">
-            <tbody class="divide-y divide-gray-200">
-                <tr>
-                    <td class="p-4 bg-gray-50 font-bold text-gray-600 text-sm uppercase w-1/3">Line of Business</td>
-                    <td class="p-4 text-gray-800">{{ quotation.lineOfBusinessName || getLabel(companyServices, quotation.lineOfBusinessId) }}</td>
-                </tr>
-                <tr>
-                    <td class="p-4 bg-gray-50 font-bold text-gray-600 text-sm uppercase">Cargo Status</td>
-                    <td class="p-4 text-orange-600 font-bold">{{ quotation.cargoStatus || 'Pending' }}</td>
-                </tr>
-                <tr>
-                    <td class="p-4 bg-gray-50 font-bold text-gray-600 text-sm uppercase">Commodity</td>
-                    <td class="p-4 text-gray-800">{{ quotation.commodityName || getLabel(commodityTypes, quotation.commodityId) || 'General Cargo' }}</td>
-                </tr>
-                <tr>
-                    <td class="p-4 bg-gray-50 font-bold text-gray-600 text-sm uppercase">No. of Pkgs</td>
-                    <td class="p-4 text-gray-800">{{quotation.noOfPkgs}} {{quotation.packageUnit || 'PKGS'}}</td>
-                </tr>
-                <tr>
-                    <td class="p-4 bg-gray-50 font-bold text-gray-600 text-sm uppercase">📦 Package Dimensions Log</td>
-                    <td class="p-4 text-gray-800">
-                        <div *ngFor="let data of localInquiryList">
-                            <div *ngIf="data.dimensions && data.dimensions.length > 0; else checkGlobal">
-                                <div *ngFor="let dim of data.dimensions; let i = index" class="text-[11px] font-mono border-b border-gray-100 last:border-0 py-1">
-                                    BOX {{i+1}}: {{dim.l}} x {{dim.w}} x {{dim.h}} {{dim.unit || 'CMS'}}
-                                </div>
-                            </div>
-                        </div>
-                        <ng-template #checkGlobal>
-                            <div *ngIf="appliedDimensions && appliedDimensions.length > 0; else noDim">
-                                <div *ngFor="let dim of appliedDimensions; let i = index" class="text-[11px] font-mono border-b border-gray-100 last:border-0 py-1">
-                                    BOX {{i+1}}: {{dim.l}} x {{dim.w}} x {{dim.h}} {{dim.unit || 'CMS'}}
-                                </div>
-                            </div>
-                        </ng-template>
-                        <ng-template #noDim>
-                            <span class="text-red-400 italic text-xs">No dimensions captured</span>
-                        </ng-template>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="p-4 bg-gray-50 font-bold text-gray-600 text-sm uppercase">Gross Weight</td>
-                    <td class="p-4 text-gray-800">{{quotation.grossWeightKg}} {{quotation.weightUnit || 'KGS'}}</td>
-                </tr>
-                <tr>
-                    <td class="p-4 bg-gray-50 font-bold text-gray-600 text-sm uppercase">Volume Weight</td>
-                    <td class="p-4 text-gray-800">{{quotation.volumeWeight}} {{quotation.volumeUnit || 'KGS'}}</td>
-                </tr>
-                <tr>
-                    <td class="p-4 bg-gray-50 font-bold text-gray-600 text-sm uppercase">Chg. Weight</td>
-                    <td class="p-4 text-gray-800">{{quotation.chargeableWeight}} {{quotation.weightUnit || 'KGS'}}</td>
-                </tr>
-                <tr>
-                    <td class="p-4 bg-gray-50 font-bold text-gray-600 text-sm uppercase">Inco-Term</td>
-                    <td class="p-4 text-gray-800">{{ quotation.incoTerm || quotation.incoTermName || 'N/A' }}</td>
-                </tr>
-                <tr>
-                    <td class="p-4 bg-gray-50 font-bold text-gray-600 text-sm uppercase">Origin</td>
-                    <td class="p-4 text-gray-800">{{ inquiry.origin }}</td>
-                </tr>
-                <tr>
-                    <td class="p-4 bg-gray-50 font-bold text-gray-600 text-sm uppercase">Final Destination</td>
-                    <td class="p-4 text-gray-800">{{ quotation.finalDestination }}</td>
-                </tr>
-                <tr>
-                    <td class="p-4 bg-gray-50 font-bold text-gray-600 text-sm uppercase">Pick-up Address</td>
-                    <td class="p-4 text-gray-800">{{ quotation.pickupAddress || 'N/A' }}</td>
-                </tr>
-            </tbody>
-        </table>
+</div>
+        </div>
+
+        <div class="flex flex-col justify-between pt-1">
+          <div class="space-y-2 pl-4">
+            <div 
+  (click)="toggleAdvanceFilter()"
+  class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline flex items-center gap-1">
+  Advance Filter 
+  <span class="text-[10px]" [style.transform]="isAdvanceFilterVisible ? 'rotate(180deg)' : 'rotate(0deg)'">
+    ▼
+  </span>
+</div>
+
+<div *ngIf="isAdvanceFilterVisible" class="transition-all duration-300">
+   <div class="grid grid-cols-2 gap-4 mt-4">
+      </div>
+</div>
+        <div 
+  (click)="onClear()"
+  class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline">
+  Clear
+</div>
+            <div class="relative group">
+  <div class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline">
+    Legend
+  </div>
+
+  <div class="absolute hidden group-hover:block bg-white border border-gray-300 p-2 shadow-lg rounded-md z-10 w-40 top-5 left-0">
+    <div class="flex items-center gap-2 mb-1">
+      <span class="w-3 h-3 bg-green-500 rounded-full"></span>
+      <span class="text-[10px] text-gray-700">Green = Success</span>
     </div>
-    <div class="mt-10 flex flex-col md:flex-row justify-end gap-4 pt-6 border-t-2 border-[#4a3f3f]">
-        <button (click)="backToEdit()" class="bg-white border-4 border-orange-500 text-orange-600 px-10 py-2 font-black hover:bg-orange-500 hover:text-white transition-all duration-300 uppercase text-sm">
-            Edit Data
-        </button>
-        <button (click)="saveQuotation()" class="bg-[#4a3f3f] text-white px-16 py-2 font-black shadow-lg hover:bg-black transition-all duration-300 uppercase tracking-widest border-4 border-[#4a3f3f] text-sm">
-            Confirm & Submit
-        </button>
+    <div class="flex items-center gap-2">
+      <span class="w-3 h-3 bg-red-500 rounded-full"></span>
+      <span class="text-[10px] text-gray-700">Red = Failed</span>
     </div>
+  </div>
+</div>
+          </div>
+          
+       <div class="flex justify-end mt-4">
+  <button 
+    (click)="onSearch()"
+    class="bg-[#4a3f3f] text-white px-8 py-1.5 font-bold shadow-md uppercase text-[11px] hover:bg-black transition-all">
+    Search
+  </button>
+</div>
+        </div>
+
+      </div>
+    </div>
+    <div class="bg-[#4a3f3f] p-3 flex justify-between items-center text-white">
+  <div class="font-bold uppercase tracking-widest px-2 text-[12px]">Inquiry Records</div>
+
+  <div class="flex items-center gap-3">
+    <button (click)="showColumnModal = true" 
+        class="flex items-center gap-2 px-3 py-1.5 text-[11px] font-bold uppercase border border-gray-300 rounded hover:bg-gray-50 transition-all text-white">
+  <span>⚙️</span> Columns
+</button>
+    <div class="relative inline-block">
+      <button type="button" (click)="toggleExportMenu(); $event.stopPropagation()"
+        class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-[12px] px-4 py-1.5 uppercase shadow-sm flex items-center gap-2 transition-all">
+        <span>💾</span> EXPORT
+        <span [class.rotate-180]="isExportOpen" class="transition-transform text-[10px]">▼</span>
+      </button>
+
+      <div *ngIf="isExportOpen"
+        class="absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded shadow-2xl z-[100] border border-gray-200 overflow-hidden normal-case ring-1 ring-black ring-opacity-5">
+        <button type="button" (click)="printInquiries()"
+          class="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-2 border-b border-gray-100 text-[13px] text-gray-700">
+          <span>🖨️</span> Print (Top 20)
+        </button>
+        <button type="button" (click)="downloadInquiriesPDF()"
+          class="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-2 text-[13px] text-gray-700">
+          <span>📄</span> Download PDF
+        </button>
+        <button (click)="downloadLeadsExcel()" 
+    class="w-full text-left px-4 py-3 hover:bg-gray-100 flex items-center gap-2 text-[12px] font-medium">
+    <i class="fas fa-file-excel text-green-600"></i> Download Excel
+  </button>
+      </div>
+    </div>
+
+    <button (click)="toggleForm()"
+      class="bg-green-600 hover:bg-green-700 px-5 py-1.5 text-[12px] font-bold shadow-sm flex items-center gap-2 transition-all">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
+      </svg>
+      ADD NEW INQUIRY
+    </button>
+  </div>
+</div>
+
+    <div class="p-0 overflow-x-auto">
+    <div class="p-0 overflow-x-auto">
+  <table class="w-full border-collapse border border-gray-200 whitespace-nowrap">
+    <thead>
+      <tr class="bg-gray-50 text-gray-600 uppercase text-[11px] border-b"
+          cdkDropList 
+          cdkDropListOrientation="horizontal" 
+          [cdkDropListData]="selectedColumns"
+          (cdkDropListDropped)="dropColumn($any($event))">
+        
+        <th *ngFor="let col of selectedColumns" 
+            cdkDrag 
+            class="p-4 text-left font-bold cursor-move hover:bg-gray-100 border-r border-gray-200 last:border-r-0">
+          <div class="flex items-center gap-2">
+            <span class="text-gray-300">⋮⋮</span>
+            {{ col }}
+          </div>
+        </th>
+
+        <th class="p-4 text-center font-bold sticky right-0 bg-gray-50 border-l shadow-sm no-export">
+          Action
+        </th>
+      </tr>
+    </thead>
+    
+    <tbody class="bg-white">
+      <tr *ngFor="let q of paginatedInquiries" class="hover:bg-gray-50 border-b text-gray-700">
+        
+        <td *ngFor="let col of selectedColumns" class="p-4">
+          <ng-container [ngSwitch]="col">
+            
+            <span *ngSwitchCase="'Inquiry Id.'" class="font-bold text-gray-900">
+              {{ q.id }}
+            </span>
+
+            <span *ngSwitchCase="'Inquiry No.'" class="font-bold text-blue-600">
+              {{ q.inquiryNo }}
+            </span>
+
+            <span *ngSwitchCase="'Date'" class="font-medium">
+              {{ q.receivedDate | date:'dd-MMM-yyyy' }}
+            </span>
+
+            <span *ngSwitchCase="'Status'">
+              <span [ngClass]="{'bg-yellow-100 text-yellow-800': q.id > 0,'bg-green-100 text-green-800': q.id === 0}"
+                    class="px-3 py-1 rounded text-[11px] font-bold uppercase">
+                {{ q.cargoStatus }}
+              </span>
+            </span>
+
+            <span *ngSwitchDefault class="uppercase font-medium">
+              {{ q[columnFieldMap[col]] || '-' }}
+            </span>
+
+          </ng-container>
+        </td>
+
+        <td class="p-4 sticky right-0 bg-white border-l text-center shadow-[-5px_0_10px_rgba(0,0,0,0.02)]">
+          <button (click)="editQuotation(q)"
+            class="text-blue-600 mr-3 font-bold uppercase hover:underline text-[11px]">Edit</button>
+          <button (click)="deleteQuotation(q.id)"
+            class="text-red-600 font-bold uppercase hover:underline text-[11px]">Delete</button>
+        </td>
+      </tr>
+
+      <tr *ngIf="quotations.length === 0">
+        <td [attr.colspan]="selectedColumns.length + 1" class="p-20 text-center">
+          <div class="flex flex-col items-center justify-center text-gray-400">
+            <span class="text-5xl mb-3">📂</span>
+            <p class="text-[14px] font-bold text-gray-600">No Records Found</p>
+            <p class="text-[12px]">Try adjusting your filters or column settings.</p>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+      <div class="flex justify-between items-center bg-white p-4 border-t border-gray-200 mt-2 shadow-sm rounded-b-lg no-export" *ngIf="quotations.length > 0">
+  
+  <div class="flex items-center gap-4">
+    <div class="text-[12px] text-gray-600 font-medium">
+      Showing 
+      <span class="font-bold text-gray-800">{{ (currentPage - 1) * pageSize + 1 }}</span> 
+      to 
+      <span class="font-bold text-gray-800">{{ Math.min(currentPage * pageSize, quotations.length) }}</span> 
+      of 
+      <span class="font-bold text-gray-800">{{ quotations.length }}</span> 
+      Inquiries
+    </div>
+    
+    <select [(ngModel)]="pageSize" (change)="onPageSizeChange()" 
+      class="border rounded text-[11px] px-2 py-1 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-blue-400">
+      <option [ngValue]="10">10 / Page</option>
+      <option [ngValue]="25">25 / Page</option>
+      <option [ngValue]="50">50 / Page</option>
+    </select>
+  </div>
+
+  <div class="flex items-center gap-1">
+    <button (click)="setPage(1)" [disabled]="currentPage === 1"
+      class="p-2 text-gray-500 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed">
+      ««
+    </button>
+
+    <button (click)="setPage(currentPage - 1)" [disabled]="currentPage === 1"
+      class="px-3 py-1 text-[11px] font-bold uppercase border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-30 transition-all">
+      Prev
+    </button>
+
+    <div class="flex items-center mx-1 border border-gray-200 rounded overflow-hidden">
+      <span class="px-3 py-1 text-[12px] font-black bg-[#4a3f3f] text-white">
+        {{currentPage}}
+      </span>
+      <span class="px-3 py-1 text-[12px] font-bold bg-gray-50 text-gray-600">
+        of {{totalPages}}
+      </span>
+    </div>
+
+    <button (click)="setPage(currentPage + 1)" [disabled]="currentPage === totalPages"
+      class="px-3 py-1 text-[11px] font-bold uppercase border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-30 transition-all">
+      Next
+    </button>
+
+    <button (click)="setPage(totalPages)" [disabled]="currentPage === totalPages"
+      class="p-2 text-gray-500 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed">
+      »»
+    </button>
+  </div>
+</div>
+    </div>
+  </div>
+<div *ngIf="showColumnModal" class="fixed inset-0 z-[100] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+  <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+
+  <div class="flex min-h-full items-center justify-center p-4 text-center">
+    <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl">
+      
+      <div class="bg-gray-50 px-6 py-4 border-b flex justify-between items-center">
+        <div>
+          <h3 class="text-lg font-bold text-gray-800">Customize Table Columns</h3>
+          <p class="text-xs text-gray-500 font-medium">Drag and drop to reorder or show/hide columns</p>
+        </div>
+        <button (click)="showColumnModal = false" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+      </div>
+
+      <div class="p-6 bg-white flex gap-6" cdkDropListGroup>
+        
+        <div class="flex-1">
+          <label class="block text-[11px] font-black uppercase text-gray-400 mb-3 tracking-wider">Available (Hidden)</label>
+          <div cdkDropList [cdkDropListData]="availableColumns" (cdkDropListDropped)="dropColumn($any($event))"
+               class="min-h-[300px] bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg p-3 space-y-2">
+            <div *ngFor="let item of availableColumns" cdkDrag
+                 class="bg-white border border-gray-200 p-3 rounded shadow-sm text-[12px] font-bold text-gray-600 cursor-move hover:border-blue-400 transition-colors">
+              <span class="mr-2 text-gray-300">⠿</span> {{item}}
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center text-gray-300 text-xl mt-6"> ⇄ </div>
+
+        <div class="flex-1">
+          <label class="block text-[11px] font-black uppercase text-blue-500 mb-3 tracking-wider">Visible in Table</label>
+          <div cdkDropList [cdkDropListData]="selectedColumns" (cdkDropListDropped)="dropColumn($any($event))"
+               class="min-h-[300px] bg-blue-50/30 border-2 border-blue-100 rounded-lg p-3 space-y-2">
+            <div *ngFor="let item of selectedColumns" cdkDrag
+                 class="bg-white border border-blue-200 p-3 rounded shadow-sm text-[12px] font-bold text-gray-800 cursor-move hover:border-blue-400 transition-colors">
+              <span class="mr-2 text-blue-200">⠿</span> {{item}}
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t mt-2">
+        <button (click)="showColumnModal = false" 
+                class="px-4 py-2 text-[11px] font-bold uppercase text-gray-500 hover:bg-gray-200 rounded transition-all">
+          Close
+        </button>
+        <button (click)="showColumnModal = false" 
+                class="px-6 py-2 text-[11px] font-bold uppercase bg-[#4a3f3f] text-white rounded hover:bg-black shadow-md transition-all">
+          Apply Settings
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+  <div *ngIf="isFormOpen" class="bg-white border border-gray-300 shadow-lg">
+    <div class="bg-[#4a3f3f] p-2 flex justify-between items-center text-white">
+      <div class="flex gap-2 px-2">
+        <button (click)="saveQuotation()"
+          class="bg-green-600 hover:bg-green-700 text-white font-bold text-[12px] px-4 py-1.5 uppercase shadow-sm">SAVE</button>
+      </div>
+      <div class="font-bold uppercase text-[12px] tracking-widest">
+        {{ quotation.id ? 'Edit Inquiry Entry' : 'New Inquiry Entry' }}
+      </div>
+      <button (click)="toggleForm()"
+        class="bg-red-500 hover:bg-red-600 px-4 py-1.5 text-[12px] font-bold">CLOSE</button>
+    </div>
+
+    <div class="p-5 space-y-6">
+      <div class="bg-gray-50 p-4 border border-gray-200 rounded">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-x-8 gap-y-3">
+          <div class="space-y-2">
+           <div class="grid grid-cols-2 items-center gap-3">
+  <label class="font-bold text-gray-700 text-[12px]">Reference by lead.</label>
+
+  <div class="relative flex border border-gray-300 rounded overflow-hidden">
+    <input 
+      [(ngModel)]="inquiry.leadNo" 
+      name="leadNo" 
+      placeholder="Search Lead..."
+      (input)="onLeadSearchInput()"
+      class="p-2 bg-white outline-none w-full text-gray-600 text-[12px]" 
+      autocomplete="off" />
+
+    <span 
+      (click)="loadAllLeadss()" 
+      class="p-2 bg-gray-50 border-l border-gray-200 flex items-center text-gray-400 cursor-pointer hover:bg-gray-200 transition-colors">
+      🔍
+    </span>
+
+    <ul *ngIf="showLeadDropdown && filteredLeads.length > 0" 
+        class="absolute top-full left-0 z-10 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto">
+      <li *ngFor="let lead of filteredLeads" 
+          (click)="selectLead(lead)"
+          class="p-2 hover:bg-gray-100 cursor-pointer text-[12px] border-b">
+        {{ lead.leadNo }}
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div *ngIf="showInquiryDropdown && filteredInquiries.length > 0" 
+     class="fixed inset-0 bg-slate-900/60 backdrop-blur-[4px] z-[9998] animate-in fade-in duration-300"
+     (click)="showInquiryDropdown = false">
+</div>
+
+<div *ngIf="showInquiryDropdown && filteredInquiries.length > 0"
+     (click)="showInquiryDropdown = false"
+     class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/30 backdrop-blur-sm">
+
+  <!-- 🔥 MAIN MODAL -->
+  <div *ngIf="filteredInquiries.length > 0"
+       (click)="$event.stopPropagation()"
+       class="w-[92%] sm:w-[85%] md:w-[450px] 
+              max-h-[85vh] flex flex-col
+              bg-white shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-2xl overflow-hidden border border-gray-100 
+              animate-in fade-in zoom-in duration-200">
+
+    <!-- 🔹 HEADER -->
+    <div class="px-5 py-4 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 flex-shrink-0 flex flex-col gap-3">
+      
+      <div class="flex justify-between items-center">
+        <h3 class="text-[11px] font-bold text-gray-800 tracking-tight uppercase">
+          Select Reference Lead
+        </h3>
+
+        <button (click)="showInquiryDropdown = false" 
+                class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-50 text-gray-400 hover:text-red-500 transition-all">
+          ✕
+        </button>
+      </div>
+
+      <!-- 🔍 SEARCH -->
+      <div class="relative group">
+        <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 group-focus-within:text-blue-500 transition-colors">
+          🔍
+        </span>
+
+        <input 
+          type="text" 
+          placeholder="Filter by Lead No or Customer..." 
+          class="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+          (input)="onLeadSearchInput()"
+        >
+      </div>
+
+    </div>
+
+    <!-- 🔹 LIST -->
+    <div class="overflow-y-auto bg-white custom-scrollbar flex-1 min-h-0">
+
+      <div *ngFor="let inq of filteredInquiries" 
+           (click)="selectInquiry(inq)"
+           class="px-5 py-4 hover:bg-blue-50/50 cursor-pointer border-b border-gray-50 last:border-0 flex items-center justify-between group transition-all">
+        
+        <div class="flex flex-col gap-0.5">
+          <span class="group-hover:text-blue-700 font-bold text-sm text-blue-600">
+            {{ inq.leadNo || inq.inquiryNo }}
+          </span>
+
+          <span class="text-gray-500 text-[11px] font-medium italic">
+            {{ inq.customerName || 'No Customer Name' }}
+          </span>
+        </div>
+        
+        <span class="flex-shrink-0 opacity-0 group-hover:opacity-100 text-blue-400 transform translate-x-[-10px] group-hover:translate-x-0 transition-all text-[10px] font-semibold">
+          Select →
+        </span>
+
+      </div>
+
+      <!-- ❌ EMPTY -->
+      <div *ngIf="filteredInquiries.length === 0" 
+           class="p-10 text-center text-gray-400 text-xs italic">
+        No reference leads found.
+      </div>
+
+    </div>
+
+    <!-- 🔹 FOOTER -->
+    <div class="py-2.5 bg-gray-50 border-t border-gray-100 text-center flex-shrink-0">
+      <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">
+        Cavalier Logistics
+      </p>
+    </div>
+
+  </div>
+
+</div>
+  <div class="grid grid-cols-2 items-center">
+              <label class="font-bold text-gray-700">Branch</label>
+              <select 
+    [(ngModel)]="quotation.branchName" 
+    name="branchName" 
+    class="border p-1.5 outline-none">
+
+    <option value="">--Select--</option>
+    
+    <!-- Dynamic options from branchList -->
+    <option 
+        *ngFor="let branch of branchlist" 
+        [value]="branch.branchName">
+        {{ branch.branchName }}
+    </option>
+
+</select>
+            </div>
+            <div class="grid grid-cols-2 items-center">
+              <label class="font-bold text-gray-700">Inq. Received</label>
+              <input type="date" [(ngModel)]="quotation.receivedDate" name="receivedDate"
+                class="border p-1 text-[11px] outline-none">
+            </div>
+            <div class="grid grid-cols-2 items-center">
+              <label class="font-bold text-gray-700">Inq. Replied</label>
+              <input type="date" [(ngModel)]="quotation.repliedDate" name="repliedDate"
+                class="border p-1 text-[11px] outline-none">
+            </div>
+          </div>
+          <div class="space-y-2">
+            
+          
+        <div class="flex items-center">
+  <label class="w-28 font-bold text-gray-600">Inquiry No.</label>
+  <input 
+    type="text" 
+    name="inquiryNo"
+    [(ngModel)]="inquiry.inquiryNo"
+    readonly
+    class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-gray-100 text-gray-600 cursor-not-allowed font-semibold">
+</div>
+
+   <div class="flex items-center gap-2">
+  <label class="w-26 font-bold text-[#802a2a]">Location</label>
+  
+  <input 
+      type="text" 
+      [(ngModel)]="quotation.location" 
+      name="location"
+      class="flex-1 border p-1.5 outline-none bg-white text-[12px]" 
+      placeholder="Enter location">
+</div>
+
+<div class="flex items-center gap-2 mt-2">
+  <label class="w-26 font-bold text-gray-700">Sales Coor.</label>
+  <select [(ngModel)]="quotation.salesCoordinator" name="salesCoordinator" class="flex-1 border p-1.5 outline-none text-[12px]">
+    <option value="">--Select--</option>
+    <option value="Sales 1">Sales User 1</option>
+  </select>
+</div>
+  <div class="flex items-center">
+  <label class="w-40 font-bold text-gray-700">Business Dimensions</label>
+  <select name="businessDims" [(ngModel)]="quotation.businessDimensions" class="flex-1 border p-2 outline-none">
+    <option value="Electronic">Electronic</option>
+    <option value="Mercury">Mercury</option>
+    <option value="Cosmetic">Cosmetic</option>
+    <option value="Toys">Toys</option>
+  </select>
+</div>
+        </div>
+
+
+          
+          <div class="space-y-2">
+            <div class="grid grid-cols-2 items-center">
+              <label class="font-bold text-[#802a2a]">Party Role</label>
+              <select [(ngModel)]="quotation.partyRole" name="partyRole" class="border p-1.5 outline-none">
+                <option value="">--Select--</option>
+                <option value="Shipper">Shipper</option>
+                <option value="Consignee">Consignee</option>
+                <option value="Dest.Agent">Dest.Agent</option>
+                <option value="Origin Agent">Origin Agent</option>
+                <option value="Customer">Customer</option>
+                <option value="Global">Global</option>
+              </select>
+            </div>
+            <div class="grid grid-cols-2 items-center">
+              <label class="font-bold text-[#802a2a]">Pricing By</label>
+              <div class="relative flex items-center">
+                <input [(ngModel)]="quotation.pricingDoneBy" name="pricingDoneBy" class="w-full border p-1.5 outline-none pr-6">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 absolute right-2 text-gray-400" fill="none"
+                  viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+            </div>
+
+<div class="grid grid-cols-2 items-center">
+  <label class="font-bold text-gray-700">Line Of Business</label>
+  
+  <select 
+    [(ngModel)]="quotation.lineOfBusinessId" 
+    (change)="onLOBChange($event)"
+    name="lineOfBusinessId" 
+    class="border p-1.5 bg-white outline-none">
+
+    <option [value]="null" disabled>Select Business Line</option>
+    
+    <option *ngFor="let service of companyServices" [value]="service.id">
+      {{ service.serviceName }}
+    </option>
+  </select>
+</div>
+<div class="grid grid-cols-2 items-center gap-4">
+  <label class="font-bold text-gray-700">Service Type</label>
+  
+  <div class="flex items-center gap-6">
+    
+    <!-- Direct Checkbox -->
+    <label class="flex items-center gap-2 cursor-pointer">
+      <input 
+        type="checkbox" 
+        [(ngModel)]="quotation.isDirect" 
+        (change)="onServiceTypeChange()"
+        class="w-4 h-4 accent-blue-600">
+      <span class="text-gray-700 font-medium">Direct</span>
+    </label>
+
+    <!-- Indirect Checkbox -->
+    <label class="flex items-center gap-2 cursor-pointer">
+      <input 
+        type="checkbox" 
+        [(ngModel)]="quotation.isIndirect" 
+        (change)="onServiceTypeChange()"
+        class="w-4 h-4 accent-blue-600">
+      <span class="text-gray-700 font-medium">Indirect</span>
+    </label>
+
+  </div>
+</div>
+</div>
+          <div class="space-y-2">
+          <div class="grid grid-cols-2 items-center">
+  <label class="font-bold text-red-700">Organization</label>
+  <div class="flex gap-1">
+    <div class="relative flex-1 flex items-center">
+      <input 
+        [(ngModel)]="inquiry.organization"
+        name="organization"
+        (input)="onSearchInput()"
+        class="w-full border p-1.5 border-red-300 outline-none pr-6 text-[12px]">
+    
+  <svg 
+    (click)="loadAllOrganizations()" 
+    xmlns="http://www.w3.org/2000/svg" 
+    class="w-3 h-3 absolute right-2 top-3 text-gray-400 cursor-pointer hover:text-blue-500" 
+    fill="none"
+    viewBox="0 0 24 24" 
+    stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+  </svg>
+
+  <ul *ngIf="showOrgDropdown && organizationList.length > 0" 
+      class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-48 overflow-y-auto">
+    <li *ngFor="let org of organizationList" 
+        (click)="selectOrganization(org)"
+        class="p-2 hover:bg-blue-50 cursor-pointer text-[12px] border-b border-gray-100">
+      <div class="font-bold text-blue-700">{{ org.orgName || org.organizationName }}</div>
+      <div class="text-gray-500 text-[10px]">{{ org.code }}</div>
+    </li>
+  </ul>
+
+      <ul *ngIf="showDropdown && filteredOrganizations.length > 0" 
+          class="absolute top-full left-0 z-10 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto">
+        <li *ngFor="let org of filteredOrganizations" 
+            (click)="selectOrganization(org)"
+            class="p-2 hover:bg-gray-100 cursor-pointer text-[12px]">
+          {{ org.orgName }}
+        </li>
+      </ul>
+    </div>
+    
+    <button (click)="neworg()"
+      class="bg-green-800 text-white text-[9px] px-2 font-bold hover:bg-black uppercase">New</button>
+  </div>
+</div>
+            <div class="grid grid-cols-2 items-center">
+              <label class="font-bold text-[#802a2a]">Quoted By</label>
+              <div class="relative flex items-center">
+                <input [(ngModel)]="quotation.qtnDoneBy" name="qtnDoneBy" class="w-full border p-1.5 outline-none pr-6">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 absolute right-2 text-gray-400" fill="none"
+                  viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+            </div>
+
+
+     <div class="grid grid-cols-2 items-center">
+  <label class="font-bold text-gray-700">Cargo Status</label>
+  
+  <div class="flex gap-1 items-center">
+    
+    <!-- Date Input -->
+    <input 
+      #cargoDateInput
+      type="date" 
+      [(ngModel)]="quotation.cargoStatusDate" 
+      name="cargoStatusDate"
+      [readonly]="quotation.shipmentType === 'Ready'"
+      [disabled]="quotation.shipmentType === 'Ready'"
+      class="border p-1 text-[11px] outline-none w-[140px] bg-white
+             {{ quotation.shipmentType === 'Ready' 
+                 ? 'bg-gray-100 text-gray-500 cursor-default' 
+                 : 'cursor-pointer border-blue-400 focus:ring-1 focus:ring-blue-300' }}">
+
+    <!-- Select Dropdown -->
+    <select 
+      [(ngModel)]="quotation.shipmentType" 
+      (change)="onShipmentTypeChange()"
+      class="border p-1 text-[11px] outline-none flex-1 min-w-0 h-[32px] bg-white">
+      <option value="Ready">Ready</option>
+      <option value="Ready By">Ready By</option>
+    </select>
+  </div>
+</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="border border-gray-300 bg-white shadow-sm">
+        <div class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px]">- Cargo Details</div>
+        <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-12">
+          <div class="space-y-3">
+      <div class="flex items-center">
+  <label class="w-40 font-bold text-gray-700">Transport Mode</label>
+  
+  <select 
+    [(ngModel)]="quotation.TransportMode" 
+    name="transportMode" 
+    class="flex-1 border p-2 outline-none">
+    
+    <option value="" disabled>-- Select Mode --</option>
+    
+    <option *ngFor="let mode of transportModes" [value]="mode.name">
+      {{ mode.name }}
+    </option>
+  </select>
+</div>
+            <div class="flex items-center">
+  <label class="w-40 font-bold text-gray-700">Shipment Type</label>
+  
+  <select 
+    [(ngModel)]="quotation.shipmentType" 
+    name="shipmentType" 
+    class="flex-1 border p-2 outline-none">
+    
+    <option value="" disabled>-- Select Shipment Type --</option>
+    
+    <option *ngFor="let type of shipmentTypes" [value]="type.name">
+      {{ type.name }}
+    </option>
+  </select>
+</div>
+
+
+            <div class="flex flex-col gap-4">
+
+  <!-- Commodity Dropdown -->
+ <div class="flex items-center">
+  <label class="w-40 font-bold text-gray-700">Commodity</label>
+
+  <select 
+    [(ngModel)]="quotation.commodity" 
+    name="commodity"
+    class="flex-1 border p-2 outline-none">
+
+    <option value="" disabled>Select Commodity</option>
+    
+    <option *ngFor="let type of commodityTypes" [value]="type.name">
+      {{ type.name }}
+    </option>
+
+  </select>
+</div>
+
+  <!-- Hazard Section -->
+  <div *ngIf="quotation.commodity === 'Hazard' || quotation.commodity === 'HAZARD' || quotation.commodity === 'Hazardous'" class="flex flex-col gap-3">
+
+    <!-- Add Button -->
+   <button (click)="openDocumentModal()" 
+    class="bg-red-500 text-white px-4 py-2 rounded">
+    Manage Documents
+  </button>
+
+    <!-- Dynamic Document Fields -->
+    
+
+  </div>
+
+</div>
+          
+<div *ngIf="isDocumentModalOpen"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+
+  <div class="bg-white w-full max-w-lg rounded-lg p-4">
+
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-3">
+      <h2 class="text-lg font-bold">Upload Documents</h2>
+      <button (click)="closeDocumentModal()" class="text-red-500 text-xl">X</button>
+    </div>
+
+    <!-- Add Button -->
+    <button (click)="addDocument()" 
+      class="bg-red-500 text-white px-4 py-2 rounded mb-3">
+      + Add Document
+    </button>
+
+    <!-- Dynamic Fields -->
+    <div *ngFor="let doc of documents; let i = index"
+      class="flex items-center gap-2 border p-2 rounded mb-2">
+
+      <input type="text"
+        [(ngModel)]="doc.name"
+        placeholder="Document Name"
+        class="border p-2 flex-1" />
+
+      <input type="file"
+        (change)="onFileSelecteds($event, i)"
+        class="flex-1 border p-1 text-sm" />
+
+      <button (click)="removeDocument(i)"
+        class="bg-red-600 text-white px-2 py-1 rounded">
+        X
+      </button>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="flex justify-end mt-4 gap-2">
+      <button (click)="closeDocumentModal()"
+        class="bg-gray-400 text-white px-4 py-2 rounded">
+        Cancel
+      </button>
+
+      <button (click)="closeDocumentModal()"
+        class="bg-green-500 text-white px-4 py-2 rounded">
+        Save
+      </button>
+    </div>
+
+  </div>
+</div>
+      
+    
+  
+          
+
+            <div class="flex items-center gap-2">
+              <label class="w-40 font-bold text-gray-700">Gross Weight</label>
+              <div class="flex flex-1">
+                <input type="number" [(ngModel)]="quotation.grossWeightKg" name="grossWeightKg" class="w-full border p-2 outline-none">
+                <div class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <select [(ngModel)]="quotation.GrossweightUnit" name="weightUnit" class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
+                  <option value="KGS">KGS</option>
+                  <option value="LBS">LBS</option>
+                </select>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="w-40 font-bold text-gray-700">Net Weight</label>
+              <div class="flex flex-1">
+                <input type="number" [(ngModel)]="quotation.netWeight" name="netWeight" class="w-full border p-2 outline-none">
+                <div class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <select [(ngModel)]="quotation.netWeightUnit" name="netWeightUnit" class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
+                      <option value="KGS">KGS</option>
+                      <option value="LBS">LBS</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="w-40 font-bold text-gray-700">Chrg. Weight</label>
+              <div class="flex flex-1">
+                <input type="number" [(ngModel)]="quotation.chargeableWeight" name="chargeableWeight" class="w-full border p-2 outline-none">
+                <div class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <select [(ngModel)]="quotation.chargeableWeightUnit" name="chargeableWeightUnit" class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
+                  <option value="KGS">KGS</option>
+                  <option value="LBS">LBS</option>
+                </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <div class="flex items-center">
+  <label class="w-40 font-bold text-gray-700">Transport Type</label>
+  
+  <select 
+    [(ngModel)]="quotation.TransportType" 
+    name="transportType" 
+    class="flex-1 border p-2 outline-none">
+    
+    <option value="Export">Export</option>
+    <option value="Import">Import</option>
+  </select>
+</div>
+
+             
+            <div class="flex items-center gap-2">
+              <label class="w-40 font-bold text-gray-700">Num of Packages</label>
+              <div class="flex flex-1">
+                <input type="number" [(ngModel)]="quotation.noOfPkgs" name="noOfPkgs" class="w-full border p-2 outline-none">
+                <div class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <select [(ngModel)]="quotation.noOfPkgsUnit" name="noOfPkgsUnit" class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
+                    <option value="PKGS">PKGS</option>
+                    <option value="BOXES">BOXES</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="w-40 font-bold text-gray-700">Dimensions</label>
+
+                <div class="flex flex-1 items-center">
+                  <div class="flex flex-1 items-center gap-1">
+                     <input type="number" placeholder="BOX" [(ngModel)]="dimRow.box" 
+        (input)="calculateVolumeWeight()"
+                      class="w-full border p-2 outline-none text-center rounded-l-sm focus:border-blue-400">
+                    <span class="text-gray-400 font-bold"></span>
+                    <input type="number" placeholder="L" [(ngModel)]="dimRow.l" 
+        (input)="calculateVolumeWeight()"
+                      class="w-full border p-2 outline-none text-center rounded-l-sm focus:border-blue-400">
+                    <span class="text-gray-400 font-bold">x</span>
+                    <input type="number" placeholder="W" [(ngModel)]="dimRow.w" 
+        (input)="calculateVolumeWeight()"
+                      class="w-full border p-2 outline-none text-center focus:border-blue-400">
+                    <span class="text-gray-400 font-bold">x</span>
+                    <input type="number" placeholder="H" [(ngModel)]="dimRow.h" 
+        (input)="calculateVolumeWeight()"
+                      class="w-full border p-2 outline-none text-center focus:border-blue-400">
+                  </div>
+
+                  <div class="flex items-center border border-l-0 bg-gray-50 h-[38px] divide-x divide-gray-300">
+                    <div class="flex items-center px-2 gap-1 cursor-pointer">
+                      <select
+                        class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer appearance-none">
+                        <option>CMS</option>
+                        <option>INCH</option>
+                      </select>
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-gray-400" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                   <button type="button" (click)="openDimModal()"
+  class="bg-green-600 hover:bg-green-700 text-white px-3 h-full flex items-center justify-center transition-colors shadow-inner"
+  title="Add more dimensions">
+  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
+  </svg>
+</button>
+
+<div *ngIf="isDimModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+  <div class="bg-white w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+    
+    <div class="bg-gray-800 text-white px-6 py-4 flex justify-between items-center">
+      <h3 class="font-bold text-lg uppercase tracking-wider">Add Multiple Dimensions</h3>
+      <button (click)="closeDimModal()" class="text-white hover:text-red-400 text-2xl">&times;</button>
+    </div>
+
+    <div class="p-6 max-h-[60vh] overflow-y-auto">
+      <div *ngFor="let dim of dimRows; let i = index" class="flex items-center gap-2 mb-4 group">
+        
+        <label class="w-24 font-bold text-gray-700 text-xs uppercase">Dim {{i + 1}}</label>
+
+        <div class="flex flex-1 items-center gap-1">
+          <input type="number" [(ngModel)]="dim.box" [name]="'box' + i" placeholder="BOX"
+            class="w-full border p-2 outline-none text-center rounded-sm focus:border-blue-400 text-sm">
+          
+          <span class="text-gray-400 font-bold"></span>
+          
+          <input type="number" [(ngModel)]="dim.l" [name]="'l' + i" placeholder="L"
+            class="w-full border p-2 outline-none text-center rounded-sm focus:border-blue-400 text-sm">
+          
+          <span class="text-gray-400 font-bold text-xs">x</span>
+          
+          <input type="number" [(ngModel)]="dim.w" [name]="'w' + i" placeholder="W"
+            class="w-full border p-2 outline-none text-center focus:border-blue-400 text-sm">
+          
+          <span class="text-gray-400 font-bold text-xs">x</span>
+          
+          <input type="number" [(ngModel)]="dim.h" [name]="'h' + i" placeholder="H"
+            class="w-full border p-2 outline-none text-center focus:border-blue-400 text-sm">
+
+          <div class="flex items-center border bg-gray-50 h-[38px] px-2 rounded-sm">
+            <select [(ngModel)]="dim.unit" [name]="'unit' + i"
+              class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer appearance-none">
+              <option value="CMS">CMS</option>
+              <option value="INCH">INCH</option>
+            </select>
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-gray-400 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+
+          <button *ngIf="dimRows.length > 1" (click)="removeDimRow(i)" class="text-red-400 hover:text-red-600 p-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <button (click)="addNewDimRow()" class="mt-2 text-blue-600 font-bold text-xs flex items-center gap-1 hover:underline">
+        <span class="text-lg">+</span> Add Another Dimension
+      </button>
+    </div>
+
+    <div class="p-4 bg-gray-50 border-t flex justify-end gap-3">
+      <button (click)="closeDimModal()" class="px-6 py-2 text-gray-600 font-bold text-sm">Cancel</button>
+      <button (click)="saveDimensions()" class="px-8 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 shadow-lg text-sm transition-all">
+        Apply Dimensions
+      </button>
+    </div>
+
+  </div>
+</div>
+</div>
+ </div>
+  </div>
+</div>
+
+<div class="flex items-center gap-2">
+  <label class="w-40 font-bold text-gray-700">Volume Weight</label>
+  <div class="flex flex-1">
+    <input type="number" [(ngModel)]="quotation.volumeWeight" name="volumeWeight" 
+           class="w-full border p-2 outline-none">
+    
+    <div class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+      
+      <select [(ngModel)]="quotation.volumeWeightUnit" name="volumeWeightUnit" 
+              class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
+        <option value="KGS">KGS</option>
+        <option value="CBM">CBM</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+
+
+   <div class="flex items-start">
+  <label class="w-40 font-bold text-gray-700 mt-2">CBM Weight</label>
+  
+  <div class="flex-1 flex items-center gap-2">
+    <input 
+      type="number" 
+      [(ngModel)]="quotation.cbm" 
+      name="cbm"
+      readonly
+      class="flex-1 border p-2 outline-none bg-gray-50 focus:border-blue-500 h-10 font-medium"
+      placeholder="0.000">
+
+    <span class="text-gray-500 font-medium">CBM</span>
+  </div>
+</div>
+    <div class="flex items-start">
+  <label class="w-40 font-bold text-gray-700 mt-2">Description</label>
+  <textarea 
+    [(ngModel)]="quotation.description" 
+    name="description" 
+    class="flex-1 border p-2 h-16 outline-none focus:border-blue-500" 
+    placeholder="Details...">
+  </textarea>
+</div>
+          </div>
+        </div>
+      </div>
+
+
+<div class="border border-gray-300 bg-white shadow-sm">
+  <div class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px] flex justify-between">
+    <span>+ Forwarding & Movement</span>
+    <label class="text-[11px] font-normal flex items-center gap-2 cursor-pointer">
+      <input type="checkbox" checked class="w-4 h-4"> Service Required
+    </label>
+  </div>
+
+  <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-12">
+    
+    <!-- Left Column -->
+    <div class="space-y-3">
+      
+      <!-- IncoTerms -->
+   <div class="flex items-center">
+  <label class="w-40 font-bold text-gray-700">IncoTerms</label>
+  <select 
+    [(ngModel)]="quotation.incoterm" 
+    (change)="onIncotermChange($event)"
+    name="incoterm" 
+    class="flex-1 border p-2 outline-none">
+    <option value="" disabled>-- Select IncoTerm --</option>
+    <option *ngFor="let term of incoTerms" [value]="term.name">
+      {{ term.name }}
+    </option>
+  </select>
+</div>
+
+      <!-- Package/Invoice List -->
+      <div class="flex flex-col gap-4">
+        <div class="flex items-center">
+          <label class="w-40 font-bold text-gray-700">Package/Invoice List</label>
+          <select [(ngModel)]="quotation.invoiceList" class="flex-1 border p-2 outline-none">
+            <option value="" disabled>-- Select Status --</option>
+            <option value="Available">Available</option>
+            <option value="Not Available">Not Available</option>
+          </select>
+        </div>
+
+        <div *ngIf="quotation.invoiceList === 'Available'" class="mt-2">
+          <button (click)="openInvoiceModal()" class="bg-blue-500 text-white px-4 py-2 rounded">
+            Manage Invoice Documents
+          </button>
+        </div>
+      </div>
+
+      <!-- Cargo Value - Naya Added -->
+      <div class="flex items-center">
+        <label class="w-40 font-bold text-gray-700">Cargo Value</label>
+        
+        <div class="flex flex-1 border border-gray-300 rounded-md overflow-hidden">
+          <!-- Currency Dropdown with Symbol -->
+          <select 
+            name="currency"
+            [(ngModel)]="quotation.currency" 
+            class="border-r p-2 outline-none bg-gray-50 text-gray-700 w-52">
+            <option value="">Select Currency</option>
+            
+            <!-- Major Currencies (Recommended first) -->
+            <option value="INR">₹ INR - Indian Rupee</option>
+            <option value="USD">$ USD - United States Dollar</option>
+            <option value="EUR">€ EUR - Euro</option>
+            <option value="GBP">£ GBP - British Pound Sterling</option>
+            <option value="AED">د.إ AED - UAE Dirham</option>
+            <option value="SGD">$ SGD - Singapore Dollar</option>
+            <option value="CAD">$ CAD - Canadian Dollar</option>
+            <option value="AUD">$ AUD - Australian Dollar</option>
+            <option value="JPY">¥ JPY - Japanese Yen</option>
+            <option value="CNY">¥ CNY - Chinese Yuan</option>
+            
+            <!-- Other Currencies (scrollable) -->
+            <option value="AFN">؋ AFN - Afghan Afghani</option>
+            <option value="ARS">$ ARS - Argentine Peso</option>
+            <option value="BRL">R$ BRL - Brazilian Real</option>
+            <option value="CHF">CHF - Swiss Franc</option>
+            <option value="HKD">$ HKD - Hong Kong Dollar</option>
+            <option value="IDR">Rp IDR - Indonesian Rupiah</option>
+            <option value="KRW">₩ KRW - South Korean Won</option>
+            <option value="MXN">$ MXN - Mexican Peso</option>
+            <option value="MYR">RM MYR - Malaysian Ringgit</option>
+            <option value="NOK">kr NOK - Norwegian Krone</option>
+            <option value="NZD">$ NZD - New Zealand Dollar</option>
+            <option value="PHP">₱ PHP - Philippine Peso</option>
+            <option value="PKR">₨ PKR - Pakistani Rupee</option>
+            <option value="RUB">₽ RUB - Russian Ruble</option>
+            <option value="SAR">﷼ SAR - Saudi Riyal</option>
+            <option value="SEK">kr SEK - Swedish Krona</option>
+            <option value="THB">฿ THB - Thai Baht</option>
+            <option value="TRY">₺ TRY - Turkish Lira</option>
+            <option value="ZAR">R ZAR - South African Rand</option>
+            <!-- Agar aur chahiye toh pehle wale message se copy kar sakte ho -->
+          </select>
+
+          <!-- Amount Input -->
+          <input 
+            type="number" 
+            name="cargoValue"
+            [(ngModel)]="quotation.cargoValue" 
+            class="flex-1 p-2 outline-none text-right"
+            placeholder="0.00"
+            min="0"
+            step="0.01">
+        </div>
+      </div>
+
+      <!-- Origin -->
+      <div class="flex items-center text-red-700 font-bold">
+        <label class="w-40">Origin</label>
+      <div class="relative flex-1 flex items-center">
+  <input 
+    [(ngModel)]="inquiry.origin" 
+    name="origin" 
+    placeholder="Search Origin..."
+    (input)="onOriginSearchInput()"
+    class="w-full border p-2 border-red-300 outline-none pr-8 text-[12px] text-gray-700 font-normal">
+
+  <button class="absolute right-2 text-gray-500 hover:text-black">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    </svg>
+  </button>
+
+  <!-- Dropdown -->
+  <ul *ngIf="showOriginDropdown" 
+      class="absolute top-full left-0 z-10 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto text-gray-700 font-normal">
+
+    <!-- Agar results hain -->
+    <li *ngFor="let origin of filteredOrigins" 
+        (click)="selectOrigin(origin)" 
+        class="p-2 hover:bg-gray-100 cursor-pointer text-[12px]">
+      {{ origin.name }}
+    </li>
+
+    <!-- Agar koi result nahi mila -->
+    <li *ngIf="showOriginDropdown && filteredOrigins.length === 0" 
+        class="p-3 text-center text-red-500 text-[12px] font-medium">
+      No Origin Found
+    </li>
+
+  </ul>
+</div>
+      </div>
+
+      <!-- Port of Loading -->
+      <div class="flex items-center text-red-700 font-bold">
+  <label class="w-40">Port of Loading</label>
+  
+  <div class="relative flex-1 flex items-center">
+    <input 
+      [(ngModel)]="quotation.portOfLoading" 
+      name="portOfLoading"
+      placeholder="Search Port of Loading..."
+      (input)="onPortOfLoadingSearch()"
+      class="w-full border p-2 border-red-300 outline-none pr-8 text-[12px]">
+
+    <button class="absolute right-2 text-gray-500 hover:text-black">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+    </button>
+
+    <!-- Dropdown -->
+    <ul *ngIf="showPortOfLoadingDropdown" 
+        class="absolute top-full left-0 z-10 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto text-gray-700 text-[12px]">
+
+      <li *ngFor="let port of filteredPortsOfLoading" 
+          (click)="selectPortOfLoading(port)" 
+          class="p-2 hover:bg-gray-100 cursor-pointer">
+        {{ port.name || port.portName }}
+      </li>
+
+      <!-- No Data Found -->
+      <li *ngIf="showPortOfLoadingDropdown && filteredPortsOfLoading.length === 0" 
+          class="p-3 text-center text-red-500 italic">
+        No Port Found
+      </li>
+    </ul>
+  </div>
+</div>
+
+      <!-- Pickup Address -->
+      <div class="flex items-start">
+  <label class="w-40 font-bold text-gray-700 mt-2">Pickup Address</label>
+  <textarea 
+    [(ngModel)]="quotation.pickupAddress" 
+    name="pickupAddress" 
+    [readonly]="!isPickupEnabled"
+    [class.bg-gray-100]="!isPickupEnabled"
+    class="flex-1 border p-2 h-14 outline-none" 
+    placeholder="Full pickup location...">
+  </textarea>
+</div>
+
+    </div>
+
+    <!-- Right Column -->
+    <div class="space-y-3">
+      <!-- Movement Type -->
+      <div class="flex items-center">
+  <label class="w-40 font-bold text-gray-700">Movement Type</label>
+  <select [(ngModel)]="quotation.movementType" 
+          name="movementType" 
+          class="flex-1 border p-2 outline-none">
+    <option value="" disabled>-- Select Movement Type --</option>
+    <option *ngFor="let move of movementTypes" [value]="move.name">
+      {{ move.name }}
+    </option>
+  </select>
+</div>
+
+      <!-- Port of Discharge -->
+     <div class="flex items-center text-red-700 font-bold">
+  <label class="w-40">Port of Discharge</label>
+  
+  <div class="relative flex-1 flex items-center">
+    <input 
+      [(ngModel)]="quotation.portOfDestination" 
+      name="portOfDestination"
+      placeholder="Search Port of Discharge..."
+      (input)="onPortOfDischargeSearch()"
+      class="w-full border p-2 border-red-300 outline-none pr-8 text-[12px]">
+
+    <button class="absolute right-2 text-gray-500 hover:text-black">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+    </button>
+
+    <!-- Dropdown -->
+    <ul *ngIf="showPortOfDischargeDropdown" 
+        class="absolute top-full left-0 z-10 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto text-gray-700 text-[12px]">
+
+      <li *ngFor="let port of filteredPortsOfDischarge" 
+          (click)="selectPortOfDischarge(port)" 
+          class="p-2 hover:bg-gray-100 cursor-pointer">
+        {{ port.name || port.portName }}
+      </li>
+
+      <!-- No Data Found Message -->
+      <li *ngIf="showPortOfDischargeDropdown && filteredPortsOfDischarge.length === 0" 
+          class="p-3 text-center text-red-500 italic">
+        No Port Found
+      </li>
+    </ul>
+  </div>
+</div>
+
+      <!-- Final Destination -->
+      <div class="flex items-center text-red-700 font-bold">
+        <label class="w-40">Final Destination</label>
+        <input [(ngModel)]="quotation.finalDestination" name="finalDestination" class="flex-1 border p-2 border-red-300 outline-none">
+      </div>
+
+      <!-- Place of Delivery -->
+      <div class="flex items-center">
+        <label class="w-40 font-bold text-gray-700">Place of Delivery</label>
+        <input [(ngModel)]="quotation.placeOfDelivery" name="placeOfDelivery" class="flex-1 border p-2 outline-none">
+      </div>
+    </div>
+
+  </div>
+</div>
+<div *ngIf="isFormOpen" class="bg-white border shadow-sm rounded-sm mb-6">
+  
+  <!-- <div *ngIf="!isPreviewMode" class="p-6">
+    <h3 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2 uppercase tracking-wide">Add/Edit Inquiry</h3>
+    
+    <div class="form-group mb-6">
+      <label class="block text-sm font-bold text-gray-700 mb-2 uppercase">Organization</label>
+      <input 
+        [(ngModel)]="inquiry.organization" 
+        (input)="onSearchInput()"
+        class="w-full border border-gray-300 p-2 focus:outline-none focus:border-[#4a3f3f]"
+        placeholder="Enter Organization Name">
+    </div> -->
+
+    <div class="p-4 bg-gray-50 border-t flex justify-end gap-3">
+      <button (click)="toggleForm()"
+        class="bg-white border border-gray-400 px-8 py-2 font-bold text-gray-700 hover:bg-gray-200 uppercase transition-all">
+        Cancel
+      </button>
+      <button (click)="toggleReview()"
+        class="bg-blue-600 text-white px-8 py-2 font-bold shadow-md hover:bg-blue-700 uppercase transition-all">
+        Review Before Save
+      </button>
+      <button (click)="saveQuotation()"
+        class="bg-[#4a3f3f] text-white px-10 py-2 font-bold shadow-md hover:bg-black uppercase transition-all">
+        {{ quotation.id ? 'Update' : 'Save' }} Inquiry
+      </button>
+    </div>
+  </div>
+<div *ngIf="isPreviewMode" class="fixed inset-0 z-[1050] flex items-center justify-center p-2 md:p-4 bg-black/80 backdrop-blur-sm">
+    
+    <div class="relative w-full max-w-4xl mx-auto shadow-2xl animate-in fade-in zoom-in duration-200">
+        
+        <div class="relative flex flex-col w-full bg-gray-50 border-4 border-dashed border-[#4a3f3f] max-h-[92vh] overflow-hidden rounded-sm">
+            
+            <div class="sticky top-0 z-50 bg-gray-50 px-4 md:px-6 py-4 border-b-2 border-[#4a3f3f] flex justify-between items-center">
+                <h3 class="text-lg md:text-2xl font-black text-[#4a3f3f] uppercase tracking-tighter italic flex items-center gap-2">
+                   <span>🔍</span> INQUIRY DETAILS
+                </h3>
+                
+                <div class="flex items-center gap-2 md:gap-4">
+                    <span class="hidden sm:block bg-[#4a3f3f] text-white px-3 py-1 text-[10px] font-bold uppercase italic tracking-widest">
+                        Cavalier Logistics
+                    </span>
+                    <button (click)="backToEdit()" class="text-[#4a3f3f] hover:text-red-600 transition-all hover:rotate-90 text-3xl font-bold leading-none p-1">
+                        &times;
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-4 md:p-8 overflow-y-auto custom-scrollbar bg-gray-50">
+                
+                <div class="bg-white border-2 border-gray-200 overflow-hidden shadow-sm">
+                    <table class="w-full text-left border-collapse">
+                        <tbody class="divide-y divide-gray-200">
+                            <tr>
+                                <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase w-1/3">Line of Business</td>
+                                <td class="p-3 md:p-4 text-gray-800 text-sm font-semibold">{{ quotation.lineOfBusinessName || getLabel(companyServices, quotation.lineOfBusinessId) }}</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Cargo Status</td>
+                                <td class="p-3 md:p-4 text-orange-600 font-black text-sm uppercase italic">{{ quotation.cargoStatus || 'Pending' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Commodity</td>
+                                <td class="p-3 md:p-4 text-gray-800 text-sm font-medium">{{ quotation.commodityName || getLabel(commodityTypes, quotation.commodityId) || 'General Cargo' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">No. of Pkgs</td>
+                                <td class="p-3 md:p-4 text-gray-800 text-sm">{{quotation.noOfPkgs}} {{quotation.packageUnit || 'PKGS'}}</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">📦 Package Dimensions Log</td>
+                                <td class="p-3 md:p-4 text-gray-800">
+                                    <div class="space-y-1">
+                                        <div *ngFor="let data of localInquiryList">
+                                            <div *ngIf="data.dimensions && data.dimensions.length > 0; else checkGlobal">
+                                                <div *ngFor="let dim of data.dimensions; let i = index" class="text-[10px] md:text-[11px] font-mono border-b border-gray-100 last:border-0 py-1 flex justify-between">
+                                                    <span class="font-bold text-[#4a3f3f]">BOX {{i+1}}:</span>
+                                                    <span>{{dim.l}} x {{dim.w}} x {{dim.h}} {{dim.unit || 'CMS'}}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <ng-template #checkGlobal>
+                                            <div *ngIf="appliedDimensions && appliedDimensions.length > 0; else noDim">
+                                                <div *ngFor="let dim of appliedDimensions; let i = index" class="text-[10px] md:text-[11px] font-mono border-b border-gray-100 last:border-0 py-1 flex justify-between">
+                                                    <span class="font-bold text-[#4a3f3f]">BOX {{i+1}}:</span>
+                                                    <span>{{dim.l}} x {{dim.w}} x {{dim.h}} {{dim.unit || 'CMS'}}</span>
+                                                </div>
+                                            </div>
+                                        </ng-template>
+                                        <ng-template #noDim>
+                                            <span class="text-red-400 italic text-[10px]">No dimensions captured</span>
+                                        </ng-template>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Gross Weight</td>
+                                <td class="p-3 md:p-4 text-gray-800 text-sm font-bold">{{quotation.grossWeightKg}} {{quotation.weightUnit || 'KGS'}}</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Volume Weight</td>
+                                <td class="p-3 md:p-4 text-gray-800 text-sm">{{quotation.volumeWeight}} {{quotation.volumeUnit || 'KGS'}}</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Chg. Weight</td>
+                                <td class="p-3 md:p-4 text-[#4a3f3f] font-black text-base">{{quotation.chargeableWeight}} {{quotation.weightUnit || 'KGS'}}</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Inco-Term</td>
+                                <td class="p-3 md:p-4 text-gray-800 text-sm">{{ quotation.incoTerm || quotation.incoTermName || 'N/A' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Origin / Final Destination</td>
+                                <td class="p-3 md:p-4 text-gray-800 text-xs md:text-sm font-bold flex items-center gap-2">
+                                    {{ inquiry.origin }} <span class="text-orange-500">➜</span> {{ quotation.finalDestination }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase border-b-0">Pick-up Address</td>
+                                <td class="p-3 md:p-4 text-gray-800 text-xs italic border-b-0">{{ quotation.pickupAddress || 'N/A' }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-8 flex flex-col sm:flex-row justify-end gap-3 md:gap-4">
+                    <button (click)="backToEdit()" class="order-2 sm:order-1 bg-white border-4 border-orange-500 text-orange-600 px-6 md:px-10 py-2.5 font-black hover:bg-orange-500 hover:text-white transition-all duration-300 uppercase text-xs md:text-sm">
+                        Edit Data
+                    </button>
+                    <button (click)="saveQuotation()" class="order-1 sm:order-2 bg-[#4a3f3f] text-white px-8 md:px-16 py-2.5 font-black shadow-lg hover:bg-black transition-all duration-300 uppercase tracking-widest border-4 border-[#4a3f3f] text-xs md:text-sm">
+                        Confirm & Submit
+                    </button>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
 </div>
 
 </div>

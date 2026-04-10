@@ -9,6 +9,98 @@
     <div class="p-4 bg-white border-b border-gray-200">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-3">
         <div class="space-y-2">
+          <div class="flex items-center mb-1">
+  <label class="w-28 font-bold text-gray-600 text-[12px]">Branch</label>
+  
+  <div class="flex-1 flex border border-gray-300 relative rounded-sm bg-white shadow-sm focus-within:ring-1 focus-within:ring-red-400">                
+    
+    <input 
+      type="text" 
+      [(ngModel)]="branchSearchText"
+      (input)="onBranchSearch()"
+      placeholder="Type to search branch..."
+      class="w-full p-1.5 outline-none text-[12px] bg-white"
+      autocomplete="off"
+    >
+    
+    <span 
+      (click)="toggleBranchModal()" 
+      class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-red-500 hover:text-white transition-all flex items-center justify-center w-9"
+      title="View All Branches">
+      🔍
+    </span>
+
+    <ul *ngIf="branchSearchText.length >= 3 && filteredBranchSuggestions.length > 0" 
+        class="absolute top-full left-0 w-full bg-white border border-gray-300 z-[4000] shadow-xl max-h-60 overflow-y-auto mt-1 rounded-sm list-none p-0">
+      
+      <li *ngFor="let b of filteredBranchSuggestions" 
+          (click)="selectBranchFromDropdown(b)"
+          class="p-2 text-[12px] hover:bg-red-50 cursor-pointer border-b border-gray-100 last:border-none flex justify-between items-center transition-colors">
+        <div class="flex flex-col">
+          <span class="font-bold text-gray-700 uppercase">{{ b.branchName }}</span>
+          <span class="text-[10px] text-gray-400">{{ b.branchCode }}</span>
+        </div>
+        <span *ngIf="b.isSelected" class="text-red-500 text-[10px] font-bold">SELECTED</span>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div *ngIf="isBranchModalOpen" 
+     class="fixed inset-0 z-[3000] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div class="bg-white w-full max-w-md shadow-2xl rounded-sm border-t-4 border-red-600 animate-in zoom-in duration-200">
+        <div class="flex justify-between items-center p-3 border-b bg-gray-50">
+            <h3 class="text-[12px] font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
+               🏢 Select Branches
+            </h3>
+            <button (click)="toggleBranchModal()" 
+                    class="text-gray-400 hover:text-red-500 text-2xl font-bold leading-none">&times;</button>
+        </div>
+
+        <div class="max-h-80 overflow-y-auto p-1 custom-scrollbar">
+            <div class="p-2 sticky top-0 bg-white">
+                <input type="text" 
+                       [(ngModel)]="branchSearchText" 
+                       (input)="onBranchSearch()"
+                       placeholder="Filter branches..." 
+                       class="w-full p-1 border border-gray-200 text-[11px] outline-none rounded-sm">
+            </div>
+
+            <ul class="list-none p-0 m-0">
+                <li *ngFor="let branch of filteredBranchSuggestions" 
+                    class="flex items-center gap-3 p-2.5 hover:bg-red-50 border-b border-gray-50 last:border-none cursor-pointer transition-colors"
+                    (click)="toggleBranchSelection(branch)">
+                    
+                    <input type="checkbox" 
+                           [checked]="branch.isSelected" 
+                           (click)="$event.stopPropagation()"
+                           (change)="toggleBranchSelection(branch)"
+                           class="w-4 h-4 accent-red-600 cursor-pointer">
+                    
+                    <div class="flex flex-col">
+                        <span class="text-[12px] text-gray-800 font-medium uppercase">{{ branch.branchName }}</span>
+                        <span *ngIf="branch.branchCode" class="text-[10px] text-gray-400">{{ branch.branchCode }}</span>
+                    </div>
+                </li>
+
+                <li *ngIf="filteredBranchSuggestions.length === 0" class="p-5 text-center text-gray-400 text-[11px] italic">
+                    No branches found.
+                </li>
+            </ul>
+        </div>
+
+        <div class="p-3 border-t bg-gray-50 flex justify-end gap-2">
+            <button (click)="toggleBranchModal()" 
+                    class="px-4 py-1.5 text-[11px] font-bold text-gray-500 hover:bg-gray-200 rounded-sm uppercase">
+                Cancel
+            </button>
+            <button (click)="confirmSelection()" 
+                    class="px-6 py-1.5 text-[11px] font-bold bg-red-600 text-white hover:bg-red-700 rounded-sm shadow-md transition-all uppercase">
+                Confirm Selection
+            </button>
+        </div>
+    </div>
+</div>
  <div class="flex items-center relative"> <label class="w-28 font-bold text-gray-600 text-[12px]">Services</label>
   <div class="flex-1 flex border border-gray-300">
     <input 
@@ -227,15 +319,18 @@
     </div>
 
   </div>
+  
             <div (click)="clearFilters()" class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline">
               Clear
             </div>
+            
            <div class="relative group inline-block">
   <div class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline flex items-center gap-1">
     <i class="fa fa-info-circle"></i> Legend
   </div>
 
   <div class="absolute left-0 bottom-full mb-2 hidden group-hover:block w-48 bg-white border border-gray-200 shadow-lg rounded-md p-2 z-50 text-[10px]">
+    
     <h4 class="font-bold border-b pb-1 mb-1 text-gray-700">Status Meanings</h4>
     
     <div class="flex flex-col gap-1">
@@ -254,6 +349,7 @@
       </div>
     </div>
   </div>
+  
 </div>
 <div 
 class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline"
@@ -369,6 +465,7 @@ Cancel
         </div>
       </div>
     </div>
+    
     <div class="bg-[#4a3f3f] p-3 flex justify-between items-center text-white">
       <div class="font-bold uppercase text-[12px] tracking-widest px-2">Inquiry Records</div>
       <div class="flex gap-2">

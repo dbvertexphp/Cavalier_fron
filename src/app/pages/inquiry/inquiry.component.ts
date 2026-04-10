@@ -26,6 +26,7 @@ import { BranchService } from '../../services/branch.service';
 })
   export class InquiryComponent implements OnInit {
     @ViewChild('cargoDateInput') cargoDateInput!: ElementRef<HTMLInputElement>;
+    isDeliveryEnabled:boolean=false;
     portsOfDischarge: any[] = [];        // API se aane wala full list
 filteredPortsOfDischarge: any[] = [];
 showPortOfDischargeDropdown: boolean = false;
@@ -402,6 +403,14 @@ onShipmentTypeChange() {
   this.quotation.incoterm = selectedIncoterm;
 
   console.log(`Incoterm changed to: ${selectedIncoterm}`);
+  if(selectedIncoterm === 'DDP' || selectedIncoterm === 'DDU' || selectedIncoterm === 'DAP'){ 
+    this.isDeliveryEnabled = true;
+  } 
+  else {
+    this.isDeliveryEnabled = false;
+    this.quotation.deliveryAddress = '';
+  }
+
 
   // 🔥 Updated Logic as per your requirement
   switch (selectedIncoterm) {

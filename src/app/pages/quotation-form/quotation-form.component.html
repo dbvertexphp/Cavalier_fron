@@ -1219,16 +1219,33 @@ Cancel
             </select>
 
           </td>
-          <td class="border p-1">
-            <input [name]="'rcharge' + i" [(ngModel)]="r.chargeName" placeholder="Enter Charge" class="w-full outline-none p-1 bg-transparent">
-            
-          </td>
+         <td class="border p-1">
+  <!-- Charge Name as Dropdown -->
+  <select 
+    [name]="'rcharge' + i" 
+    [(ngModel)]="r.chargeName" 
+    class="w-full outline-none p-1 bg-transparent">
+    
+    <option value="">-- Select Charge Name --</option>
+    
+    <option value="Freight Charges">Freight Charges</option>
+    <option value="Fuel Surcharge">Fuel Surcharge</option>
+    <option value="Customs Clearance">Customs Clearance</option>
+    <option value="Documentation Fee">Documentation Fee</option>
+    <option value="Handling Charges">Handling Charges</option>
+    <option value="Storage Fee">Storage Fee</option>
+    <option value="Delivery Charges">Delivery Charges</option>
+    <option value="Insurance">Insurance</option>
+    <option value="Inspection Fee">Inspection Fee</option>
+    <option value="Other Charges">Other Charges</option>   <!-- Optional -->
+  </select>
+</td>
           <td class="border p-1">
             <select [name]="'rtype' + i" [(ngModel)]="r.chargeType" class="w-full outline-none p-1 bg-transparent">
               <option value="">--Select--</option>
               <option value="Prepaid">Prepaid</option>
               <option value="Collect">Collect</option>
-              <option value="Freight Charges">Freight Charges</option>
+              <!-- <option value="Freight Charges">Freight Charges</option>
               <option value="Fuel Surcharge">Fuel Surcharge</option>
               <option value="Customs Clearance">Customs Clearance</option>
               <option value="Documentation Fee">Documentation Fee</option>
@@ -1236,7 +1253,7 @@ Cancel
               <option value="Storage Fee">Storage Fee</option>
               <option value="Delivery Charges">Delivery Charges</option>
               <option value="Insurance">Insurance</option>
-              <option value="Inspection Fee">Inspection Fee</option>
+              <option value="Inspection Fee">Inspection Fee</option> -->
 
             </select>
           </td>
@@ -1244,11 +1261,18 @@ Cancel
             <input [name]="'rbasis' + i" [(ngModel)]="r.basis" placeholder="e.g. Per KG" class="w-full outline-none p-1 bg-transparent text-center">
           </td>
           <td class="border p-1">
-            <input [name]="'rcur' + i" [(ngModel)]="r.currency" [attr.list]="'revCurList' + i" class="w-full outline-none p-1 text-center uppercase font-semibold text-blue-600">
-            <datalist [id]="'revCurList' + i">
-              <option *ngFor="let c of currencies" [value]="c.value">{{c.label}}</option>
-            </datalist>
-          </td>
+  <input 
+    [name]="'rcur' + i" 
+    [(ngModel)]="r.currency" 
+    [attr.list]="'revCurList' + i"
+    placeholder="Select Currency"
+    class="w-full outline-none p-1 text-center uppercase font-semibold text-blue-600">
+
+  <datalist [id]="'revCurList' + i">
+    <!-- No "Select Currency" option inside datalist -->
+    <option *ngFor="let c of currencies" [value]="c.value">{{c.label}}</option>
+  </datalist>
+</td>
           <td class="border p-1">
             <input type="number" [name]="'rrate' + i" [(ngModel)]="r.rate" (input)="calculateRevenue()" class="w-full outline-none p-1 text-right font-medium">
           </td>
@@ -1302,14 +1326,31 @@ Cancel
 
           </td>
           <td class="border p-1">
-            <input [name]="'ccharge' + i" [(ngModel)]="c.chargeName" placeholder="Charge Name" class="w-full outline-none p-1 bg-transparent">
-          </td>
+  <select 
+    [name]="'ccharge' + i" 
+    [(ngModel)]="c.chargeName" 
+    class="w-full outline-none p-1 bg-transparent">
+    
+    <option value="">-- Select Charge Name --</option>
+    
+    <option value="Freight Charges">Freight Charges</option>
+    <option value="Fuel Surcharge">Fuel Surcharge</option>
+    <option value="Customs Clearance">Customs Clearance</option>
+    <option value="Documentation Fee">Documentation Fee</option>
+    <option value="Handling Charges">Handling Charges</option>
+    <option value="Storage Fee">Storage Fee</option>
+    <option value="Delivery Charges">Delivery Charges</option>
+    <option value="Insurance">Insurance</option>
+    <option value="Inspection Fee">Inspection Fee</option>
+    <option value="Other Charges">Other Charges</option>
+  </select>
+</td>
           <td class="border p-1">
             <select [name]="'ctype' + i" [(ngModel)]="c.chargeType" class="w-full outline-none p-1 bg-transparent">
               <option value="">--Select--</option>
               <option value="Prepaid">Prepaid</option>
               <option value="Collect">Collect</option>
-               <option value="Freight Charges">Freight Charges</option>
+               <!-- <option value="Freight Charges">Freight Charges</option>
               <option value="Fuel Surcharge">Fuel Surcharge</option>
               <option value="Customs Clearance">Customs Clearance</option>
               <option value="Documentation Fee">Documentation Fee</option>
@@ -1317,14 +1358,14 @@ Cancel
               <option value="Storage Fee">Storage Fee</option>
               <option value="Delivery Charges">Delivery Charges</option>
               <option value="Insurance">Insurance</option>
-              <option value="Inspection Fee">Inspection Fee</option>
+              <option value="Inspection Fee">Inspection Fee</option> -->
             </select>
           </td>
           <td class="border p-1">
             <input [name]="'cbasis' + i" [(ngModel)]="c.basis" placeholder="Basis" class="w-full outline-none p-1 bg-transparent text-center">
           </td>
           <td class="border p-1">
-            <input [name]="'ccur' + i" [(ngModel)]="c.currency" [attr.list]="'costCurList' + i" class="w-full outline-none p-1 text-center uppercase font-semibold text-red-600">
+            <input [name]="'ccur' + i" [(ngModel)]="c.currency" [attr.list]="'costCurList' + i" placeholder="Select Currency" class="w-full outline-none p-1 text-center uppercase font-semibold text-red-600">
             <datalist [id]="'costCurList' + i">
               <option *ngFor="let curr of currencies" [value]="curr.value">{{curr.label}}</option>
             </datalist>

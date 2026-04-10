@@ -1712,6 +1712,18 @@
         <label class="w-40 font-bold text-gray-700">Place of Delivery</label>
         <input [(ngModel)]="quotation.placeOfDelivery" name="placeOfDelivery" class="flex-1 border p-2 outline-none">
       </div>
+      <div class="flex items-start">
+  <label class="w-40 font-bold text-gray-700 mt-2">Delivery Address</label>
+  
+  <textarea 
+    [(ngModel)]="quotation.deliveryAddress" 
+    name="deliveryAddress"
+    [readonly]="!isDeliveryEnabled"
+    [class.bg-gray-100]="!isDeliveryEnabled"
+    rows="3"
+    class="flex-1 border p-2 outline-none resize-none">
+  </textarea>
+</div>
     </div>
 
   </div>

@@ -246,6 +246,7 @@ closeColumnModal(){
 }
 sortOrders:any = {};
   ngOnInit() {
+    this.loadBranchess();
       this.PermissionID = Number(localStorage.getItem('permissionID'));
     this.loadColumnSettings();
     this.loadQuotations();
@@ -1760,6 +1761,63 @@ loadInquiryList() {
     }
   });
 }
+branchList: any[] = [];           
+  filteredBranchSuggestions: any[] = []; 
+  isBranchModalOpen: boolean = false;
+  branchSearchText: string = '';
+  loadBranchess() {
+    // Yahan apna pura URL direct daal do (Environment se ya hardcoded check karne ke liye)
+  const fullUrl = `${environment.apiUrl}/branch/list`;// <-- BHAI YAHAN APNA PURA URL DAAL DE
 
+    this.http.get(fullUrl).subscribe({
+      next: (res: any) => {
+        console.log("API Success Response:", res);
 
+        // API response format handle karna
+        const data = Array.isArray(res) ? res : (res.data || res.result || []);
+        
+        this.branchList = data.map((b: any) => ({ 
+          ...b, 
+          isSelected: false 
+        }));
+
+        this.filteredBranchSuggestions = [...this.branchList];
+      },
+      error: (err) => {
+        console.error("Direct Call Failed! Error details:", err);
+      }
+    });
+  }
+
+  // Baki logic (Search, Toggle, Confirm) wahi rahega jo pehle tha...
+  onBranchSearch() {
+    const search = this.branchSearchText.toLowerCase().trim();
+    this.filteredBranchSuggestions = this.branchList.filter(b => 
+      b.branchName?.toLowerCase().includes(search)
+    );
+  }
+
+  toggleBranchModal() { this.isBranchModalOpen = !this.isBranchModalOpen; }
+  toggleBranchSelection(branch: any) { branch.isSelected = !branch.isSelected; }
+  
+  confirmSelection() {
+    this.isBranchModalOpen = false;
+    const selected = this.branchList.filter(b => b.isSelected);
+    console.log("Final Selected Branches:", selected);
+  }
+  selectBranchFromDropdown(branch: any) {
+  // Input field mein naam set kar do
+  this.branchSearchText = branch.branchName;
+  
+  // Is branch ko toggle/select karo (jaise modal karta hai)
+  this.toggleBranchSelection(branch);
+  
+  // Selection ke baad dropdown ko hide karne ke liye
+  // Aap filter list ko reset ya text clear logic handle kar sakte hain
+  // Filhal length 0 kar dete hain taaki dropdown chala jaye
+  this.filteredBranchSuggestions = []; 
+  
+  // Reset search text if you want it to behave like a picker
+  // this.branchSearchText = ''; 
 }
+  }

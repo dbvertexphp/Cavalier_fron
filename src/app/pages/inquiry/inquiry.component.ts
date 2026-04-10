@@ -2117,5 +2117,8 @@ branchList: any[] = [];
   // Reset search text if you want it to behave like a picker
   // this.branchSearchText = ''; 
 }
+  isModalOpen: boolean = false; // Ye line add karein
   
+  // baaki aapka purana code...
+showCostTable: boolean = false;
 }

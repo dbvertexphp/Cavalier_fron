@@ -2587,6 +2587,7 @@
     </div>
   </div>
 </div>
+<div *ngIf="!showCostTable" class="inquiry-form-section">
   <div *ngIf="isFormOpen" class="bg-white border border-gray-300 shadow-lg">
     <div class="bg-[#4a3f3f] p-2 flex justify-between items-center text-white">
       <div class="flex gap-2 px-2">
@@ -3610,10 +3611,9 @@
     </div> -->
 
     <div class="p-4 bg-gray-50 border-t flex justify-end gap-3">
-      <button (click)="toggleForm()"
-        class="bg-white border border-gray-400 px-8 py-2 font-bold text-gray-700 hover:bg-gray-200 uppercase transition-all">
-        Cancel
-      </button>
+    <div *ngIf="!showCostTable && !isPreviewMode">
+   <button (click)="showCostTable = true"   class="bg-blue-600 text-white px-8 py-2 font-bold shadow-md hover:bg-blue-700 uppercase transition-all">>Single Carrier</button>
+</div>
       <button (click)="toggleReview()"
         class="bg-blue-600 text-white px-8 py-2 font-bold shadow-md hover:bg-blue-700 uppercase transition-all">
         Review Before Save
@@ -3624,6 +3624,62 @@
       </button>
     </div>
   </div>
+<div class="main-content-area">
+
+ 
+<div *ngIf="showCostTable" class="animate-in slide-in-from-bottom duration-300">
+    <div class="p-6 bg-white min-h-screen">
+      <div class="mb-4">
+          <button (click)="showCostTable = false" class="text-[#4a3f3f] font-bold">← Back to Inquiry Form</button>
+      </div>
+
+      <div class="border border-gray-300 shadow-sm rounded-sm">
+        <div class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px] flex justify-between items-center">
+          <span>COST BREAKDOWN</span>
+        </div>
+
+        <div class="overflow-x-auto bg-white">
+          <table class="w-full border-collapse text-[11px]">
+            <thead class="bg-gray-50 uppercase border-b border-gray-300">
+              <tr class="text-gray-600">
+                <th class="border p-2 text-left">LOB</th>
+                <th class="border p-2 text-left min-w-[150px]">Charge Name</th>
+                <th class="border p-2 text-left">Charge Type</th>
+                <th class="border p-2 text-left">Basis</th>
+                <th class="border p-2 text-center">Cur</th>
+                <th class="border p-2 text-right">Rate</th>
+                <th class="border p-2 text-right">Ex. Rate</th>
+                <th class="border p-2 text-right bg-red-50">Amount</th>
+                <th class="border p-2 text-center w-[50px] bg-gray-100">
+                   <button class="bg-green-600 text-white w-5 h-5 rounded-full">+</button>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="border p-1"><select class="w-full bg-transparent" disabled><option>Standard</option></select></td>
+                <td class="border p-1"><input class="w-full outline-none" placeholder="Charge Name"></td>
+                <td class="border p-1"><select class="w-full"><option>Freight Charges</option></select></td>
+                <td class="border p-1"><input class="w-full text-center" placeholder="Basis"></td>
+                <td class="border p-1"><input class="w-full text-center font-bold text-red-600" value="USD"></td>
+                <td class="border p-1"><input type="number" class="w-full text-right" value="0"></td>
+                <td class="border p-1"><input type="number" class="w-full text-right" value="1"></td>
+                <td class="border p-1 bg-red-50 text-right font-bold">0.00</td>
+                <td class="border p-1 text-center"><button class="text-red-400">x</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="mt-4 flex justify-end gap-3">
+         <button (click)="showCostTable = false" class="px-4 py-2 bg-gray-200 rounded">Cancel</button>
+         <button (click)="showCostTable = false" class="px-4 py-2 bg-[#4a3f3f] text-white rounded font-bold">Apply Cost</button>
+      </div>
+    </div>
+</div>
+
+
 <div *ngIf="isPreviewMode" class="fixed inset-0 z-[1050] flex items-center justify-center p-2 md:p-4 bg-black/80 backdrop-blur-sm">
     
     <div class="relative w-full max-w-4xl mx-auto shadow-2xl animate-in fade-in zoom-in duration-200">

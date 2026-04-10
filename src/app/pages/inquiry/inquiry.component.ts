@@ -2,7 +2,7 @@
 
 
 
-import { ChangeDetectorRef, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http'; 
@@ -25,13 +25,6 @@ import { BranchService } from '../../services/branch.service';
   styleUrl: './inquiry.component.css',
 })
   export class InquiryComponent implements OnInit {
-    @ViewChild('cargoDateInput') cargoDateInput!: ElementRef<HTMLInputElement>;
-    portsOfDischarge: any[] = [];        // API se aane wala full list
-filteredPortsOfDischarge: any[] = [];
-showPortOfDischargeDropdown: boolean = false;
-portsOfLoading: any[] = [];               // Full list from API
-filteredPortsOfLoading: any[] = [];
-showPortOfLoadingDropdown: boolean = false;
    branchlist:any[]=[];
 isPickupEnabled: boolean = false; 
     selectedLeadData: any = null;
@@ -97,62 +90,6 @@ onInvoiceFileSelected(event: any, index: number) {
     this.invoiceDocuments[index].file = file;
   }
 }
-// ================== VOLUME WEIGHT CALCULATION ==================
-
-// Single dimension row ka volume weight calculate kare
-dimRow: any = { 
-  box: 1, 
-  l: 0, 
-  w: 0, 
-  h: 0 
-};
-calculateSingleVolumeWeight(dim: any): number {
-  if (!dim.l || !dim.w || !dim.h || dim.l <= 0 || dim.w <= 0 || dim.h <= 0) {
-    return 0;
-  }
-
-  let volumeCm3 = dim.l * dim.w * dim.h;
-
-  if (dim.unit === 'INCH') {
-    volumeCm3 = volumeCm3 * 16.387;   // convert inch³ to cm³
-  }
-
-  return (dim.box || 1) * (volumeCm3 / 6000);
-}
-calculateVolumeWeight() {
-  const box = Number(this.dimRow.box) || 1;
-  const l = Number(this.dimRow.l) || 0;
-  const w = Number(this.dimRow.w) || 0;
-  const h = Number(this.dimRow.h) || 0;
-
-  if (l === 0 || w === 0 || h === 0) {
-    this.quotation.volumeWeight = 0;
-    return;
-  }
-
-  // Sirf yeh formula (unit ignore kiya)
-  const volume = (box * l * w * h) / 6000;
-  this.quotation.volumeWeight = parseFloat(volume.toFixed(2));
-}
-
-// Total Volume Weight (saare rows ka sum)
-// getTotalVolumeWeight(): number {
-//   if (!this.dimRows || this.dimRows.length === 0) return 0;
-
-//   let total = 0;
-//   this.dimRows.forEach(dim => {
-//     total += this.calculateVolumeWeight(dim);
-//   });
-
-//   return parseFloat(total.toFixed(2));   // 2 decimal tak
-// }
-
-// Chargeable Weight (Max of Gross Weight aur Volume Weight)
-// getChargeableWeight(): number {
-//   const gross = Number(this.quotation.grossWeightKg) || 0;
-//   const vol   = this.getTotalVolumeWeight();
-//   return Math.max(gross, vol);
-// }
     // Labels ko backend properties se map karo (Apne model ke hisaab se check kar lena)
 columnFieldMap: any = {
   'ID': 'id',
@@ -213,7 +150,6 @@ organizations: any[] = [];
     ngOnInit() {
       this.getbranch();
       this.loadQuotations();
-      this.portOfLoading();
       this.getNextInquiryNumber();
       this.fetchOrganizations();
       this.fetchLeads();
@@ -227,7 +163,6 @@ organizations: any[] = [];
     this.fetchCompanyServices();
     this.getTransportModes();
 this.getShipmentTypes();
-this.portdischarge();
 this.getIncoTerms();
 this.getMovementTypes();
 this.getCommodityTypes();
@@ -249,74 +184,13 @@ this.quotation.shipmentType = 'Ready';
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
     this.quotation.cargoStatusDate = today;
 }
-portOfLoading() {
-  this.http.get<any[]>(`${environment.apiUrl}/PortOfLoading`).subscribe({
-    next: (data) => {
-      this.portsOfLoading = data;
-      console.log("Port of Loading loaded:", data);
-    },
-    error: (err) => {
-      console.error("Error loading Port of Loading:", err);
-    }
-  });
-}
-onPortOfLoadingSearch() {
-  const searchTerm = (this.quotation.portOfLoading || '').toString().trim().toLowerCase();
 
-  if (searchTerm === '') {
-    this.showPortOfLoadingDropdown = false;
-    this.filteredPortsOfLoading = [];
-    return;
-  }
-
-  this.filteredPortsOfLoading = this.portsOfLoading.filter(port => {
-    const portName = port.name || port.portName || port.PortName || port.description || '';
-    return portName.toString().toLowerCase().includes(searchTerm);
-  });
-
-  this.showPortOfLoadingDropdown = true;
-}
-selectPortOfLoading(port: any) {
-  if (!port) return;
-  
-  this.quotation.portOfLoading = port.name || port.portName || port.PortName || '';
-  this.showPortOfLoadingDropdown = false;
-  this.filteredPortsOfLoading = [];
-}
 // Jab user Ready ya Ready By select kare
 onShipmentTypeChange() {
-  if (this.quotation.shipmentType === 'Ready') {
-    this.setTodayDate();
-  } 
-  else if (this.quotation.shipmentType === 'Ready By') {
-
-    if (!this.quotation.cargoStatusDate) {
-      this.setTodayDate();
+    if (this.quotation.shipmentType === 'Ready') {
+        this.setTodayDate();   // Ready select karte hi aaj ki date set ho jayegi
     }
-
-    // Better logic to open calendar every time
-    setTimeout(() => {
-      if (this.cargoDateInput?.nativeElement) {
-        const input = this.cargoDateInput.nativeElement;
-
-        // Focus + Click + showPicker (sab try karo)
-        input.focus();
-
-        // Small delay for better reliability
-        setTimeout(() => {
-          input.click();
-
-          // Modern browsers ke liye best method
-          try {
-            (input as any).showPicker();
-          } catch (e) {
-            // Fallback
-            console.log("showPicker not supported, using click");
-          }
-        }, 50);
-      }
-    }, 120);   // Thoda zyada delay diya hai better result ke liye
-  }
+    // Ready By select karne par date ko editable rehne do (user khud change kar sake)
 }
   getbranch() {
     this.branchservice.getBranches().subscribe({
@@ -476,25 +350,22 @@ fetchCompanyServices() {
 
   // --- Search Logic ---
 onOriginSearchInput() {
-  const searchTerm = (this.inquiry.origin || '').toString().trim().toLowerCase();
+  // 1. Check karein ki inquiry.origin null ya undefined na ho
+  if (this.inquiry.origin) {
+    this.showOriginDropdown = true;
+    
+    // 2. Safe check: inquiry.origin ko string mein convert karein aur safe toLowerCase()
+    const searchTerm = this.inquiry.origin.toString().toLowerCase();
 
-  // Agar search box khali hai
-  if (searchTerm === '') {
+    this.filteredOrigins = this.origins.filter(org =>
+      // 3. API response mein 'name' hai ya 'originName', wo check karein
+      org.name ? org.name.toLowerCase().includes(searchTerm) : false
+    );
+  } else {
     this.showOriginDropdown = false;
     this.filteredOrigins = [];
-    return;
   }
-
-  // Filter karo
-  this.filteredOrigins = this.origins.filter(org => {
-    const originName = org.name || org.originName || org.OriginName || org.portName || '';
-    return originName.toString().toLowerCase().includes(searchTerm);
-  });
-
-  // Dropdown hamesha show karo jab search kar rahe ho
-  this.showOriginDropdown = true;
 }
-
 
   // --- Selection Logic ---
   selectOrigin(origin: any) {
@@ -519,40 +390,6 @@ onOriginSearchInput() {
       this.showLeadDropdown = false;
     }
   }
-portdischarge() {
-  this.http.get<any[]>(`${environment.apiUrl}/PortOfDischarge`).subscribe({
-    next: (data) => {
-      this.portsOfDischarge = data;
-      console.log("Port of Discharge loaded:", data);
-    },
-    error: (err) => {
-      console.error("Error loading Port of Discharge:", err);
-    }
-  });
-}
-onPortOfDischargeSearch() {
-  const searchTerm = (this.quotation.portOfDestination || '').toString().trim().toLowerCase();
-
-  if (searchTerm === '') {
-    this.showPortOfDischargeDropdown = false;
-    this.filteredPortsOfDischarge = [];
-    return;
-  }
-
-  this.filteredPortsOfDischarge = this.portsOfDischarge.filter(port => {
-    const portName = port.name || port.portName || port.PortName || port.description || '';
-    return portName.toString().toLowerCase().includes(searchTerm);
-  });
-
-  this.showPortOfDischargeDropdown = true;
-}
-selectPortOfDischarge(port: any) {
-  if (!port) return;
-  
-  this.quotation.portOfDestination = port.name || port.portName || port.PortName || '';
-  this.showPortOfDischargeDropdown = false;
-  this.filteredPortsOfDischarge = [];
-}
 
   // --- Selection Logic ---
   selectLead(lead: any) {
@@ -832,49 +669,22 @@ action.subscribe({
       }
     }
 
-   openDimModal() {
-  // Agar dimRows khali hai ya purana data hai toh reset kar do
-  if (!this.dimRows || this.dimRows.length === 0) {
-    this.dimRows = [{
-      box: 1,
-      l: 0,
-      w: 0,
-      h: 0,
-      unit: 'CMS'
-    }];
-  }
-  
-  this.isDimModalOpen = true;
-}
+    openDimModal() { this.isDimModalOpen = true; }
     closeDimModal() { this.isDimModalOpen = false; }
     
-    addNewDimRow() {
-  this.dimRows.push({
-    box: 1,
-    l: 0,
-    w: 0,
-    h: 0,
-    unit: 'CMS'
-  });
-  
-  // UI update ke liye
-  this.cdr.detectChanges();
-}
+    addNewDimRow() { 
+      this.dimRows.push({ box: 1, l: 0, w: 0, h: 0, unit: 'CMS' }); 
+    }
     
- removeDimRow(i: number) {
-  if (this.dimRows.length > 1) {
-    this.dimRows.splice(i, 1);
-  }
-}
+    removeDimRow(i: number) { 
+      if (this.dimRows.length > 1) this.dimRows.splice(i, 1); 
+    }
 
 saveDimensions() {
-  this.appliedDimensions = this.dimRows.filter(d => d.l > 0 && d.w > 0 && d.h > 0);
+  // Logic: Unhi rows ko rakho jisme Length, Width ya Height me se kuch bhi bhara ho
+  this.appliedDimensions = this.dimRows.filter(d => (d.l > 0 || d.w > 0 || d.h > 0));
   
-  // Volume Weight automatically set kar do
-  // this.quotation.volumeWeight = this.getTotalVolumeWeight();
-
-  console.log("Volume Weight Calculated:", this.quotation.volumeWeight);
-  
+  console.log("Dimensions Saved in appliedDimensions:", this.appliedDimensions);
   this.closeDimModal();
 }
 

@@ -1745,97 +1745,115 @@
       </button>
     </div>
   </div>
-<div *ngIf="isPreviewMode" class="p-6 border-4 border-dashed border-[#4a3f3f] m-4 bg-gray-50 shadow-2xl font-sans">
-    <div class="flex justify-between items-center mb-4">
-        <h3 class="text-2xl font-black text-[#4a3f3f] uppercase tracking-tighter italic">
-            🔍 INQUIRY DETAILS
-        </h3>
-        <div class="flex gap-2">
-            <span class="bg-[#4a3f3f] text-white px-3 py-1 text-xs font-bold uppercase italic">Cavalier Logistics5</span>
+<div *ngIf="isPreviewMode" class="fixed inset-0 z-[1050] flex items-center justify-center p-2 md:p-4 bg-black/80 backdrop-blur-sm">
+    
+    <div class="relative w-full max-w-4xl mx-auto shadow-2xl animate-in fade-in zoom-in duration-200">
+        
+        <div class="relative flex flex-col w-full bg-gray-50 border-4 border-dashed border-[#4a3f3f] max-h-[92vh] overflow-hidden rounded-sm">
+            
+            <div class="sticky top-0 z-50 bg-gray-50 px-4 md:px-6 py-4 border-b-2 border-[#4a3f3f] flex justify-between items-center">
+                <h3 class="text-lg md:text-2xl font-black text-[#4a3f3f] uppercase tracking-tighter italic flex items-center gap-2">
+                   <span>🔍</span> INQUIRY DETAILS
+                </h3>
+                
+                <div class="flex items-center gap-2 md:gap-4">
+                    <span class="hidden sm:block bg-[#4a3f3f] text-white px-3 py-1 text-[10px] font-bold uppercase italic tracking-widest">
+                        Cavalier Logistics
+                    </span>
+                    <button (click)="backToEdit()" class="text-[#4a3f3f] hover:text-red-600 transition-all hover:rotate-90 text-3xl font-bold leading-none p-1">
+                        &times;
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-4 md:p-8 overflow-y-auto custom-scrollbar bg-gray-50">
+                
+                <div class="bg-white border-2 border-gray-200 overflow-hidden shadow-sm">
+                    <table class="w-full text-left border-collapse">
+                        <tbody class="divide-y divide-gray-200">
+                            <tr>
+                                <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase w-1/3">Line of Business</td>
+                                <td class="p-3 md:p-4 text-gray-800 text-sm font-semibold">{{ quotation.lineOfBusinessName || getLabel(companyServices, quotation.lineOfBusinessId) }}</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Cargo Status</td>
+                                <td class="p-3 md:p-4 text-orange-600 font-black text-sm uppercase italic">{{ quotation.cargoStatus || 'Pending' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Commodity</td>
+                                <td class="p-3 md:p-4 text-gray-800 text-sm font-medium">{{ quotation.commodityName || getLabel(commodityTypes, quotation.commodityId) || 'General Cargo' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">No. of Pkgs</td>
+                                <td class="p-3 md:p-4 text-gray-800 text-sm">{{quotation.noOfPkgs}} {{quotation.packageUnit || 'PKGS'}}</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">📦 Package Dimensions Log</td>
+                                <td class="p-3 md:p-4 text-gray-800">
+                                    <div class="space-y-1">
+                                        <div *ngFor="let data of localInquiryList">
+                                            <div *ngIf="data.dimensions && data.dimensions.length > 0; else checkGlobal">
+                                                <div *ngFor="let dim of data.dimensions; let i = index" class="text-[10px] md:text-[11px] font-mono border-b border-gray-100 last:border-0 py-1 flex justify-between">
+                                                    <span class="font-bold text-[#4a3f3f]">BOX {{i+1}}:</span>
+                                                    <span>{{dim.l}} x {{dim.w}} x {{dim.h}} {{dim.unit || 'CMS'}}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <ng-template #checkGlobal>
+                                            <div *ngIf="appliedDimensions && appliedDimensions.length > 0; else noDim">
+                                                <div *ngFor="let dim of appliedDimensions; let i = index" class="text-[10px] md:text-[11px] font-mono border-b border-gray-100 last:border-0 py-1 flex justify-between">
+                                                    <span class="font-bold text-[#4a3f3f]">BOX {{i+1}}:</span>
+                                                    <span>{{dim.l}} x {{dim.w}} x {{dim.h}} {{dim.unit || 'CMS'}}</span>
+                                                </div>
+                                            </div>
+                                        </ng-template>
+                                        <ng-template #noDim>
+                                            <span class="text-red-400 italic text-[10px]">No dimensions captured</span>
+                                        </ng-template>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Gross Weight</td>
+                                <td class="p-3 md:p-4 text-gray-800 text-sm font-bold">{{quotation.grossWeightKg}} {{quotation.weightUnit || 'KGS'}}</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Volume Weight</td>
+                                <td class="p-3 md:p-4 text-gray-800 text-sm">{{quotation.volumeWeight}} {{quotation.volumeUnit || 'KGS'}}</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Chg. Weight</td>
+                                <td class="p-3 md:p-4 text-[#4a3f3f] font-black text-base">{{quotation.chargeableWeight}} {{quotation.weightUnit || 'KGS'}}</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Inco-Term</td>
+                                <td class="p-3 md:p-4 text-gray-800 text-sm">{{ quotation.incoTerm || quotation.incoTermName || 'N/A' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Origin / Final Destination</td>
+                                <td class="p-3 md:p-4 text-gray-800 text-xs md:text-sm font-bold flex items-center gap-2">
+                                    {{ inquiry.origin }} <span class="text-orange-500">➜</span> {{ quotation.finalDestination }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase border-b-0">Pick-up Address</td>
+                                <td class="p-3 md:p-4 text-gray-800 text-xs italic border-b-0">{{ quotation.pickupAddress || 'N/A' }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-8 flex flex-col sm:flex-row justify-end gap-3 md:gap-4">
+                    <button (click)="backToEdit()" class="order-2 sm:order-1 bg-white border-4 border-orange-500 text-orange-600 px-6 md:px-10 py-2.5 font-black hover:bg-orange-500 hover:text-white transition-all duration-300 uppercase text-xs md:text-sm">
+                        Edit Data
+                    </button>
+                    <button (click)="saveQuotation()" class="order-1 sm:order-2 bg-[#4a3f3f] text-white px-8 md:px-16 py-2.5 font-black shadow-lg hover:bg-black transition-all duration-300 uppercase tracking-widest border-4 border-[#4a3f3f] text-xs md:text-sm">
+                        Confirm & Submit
+                    </button>
+                </div>
+            </div>
+            
         </div>
-    </div>
-    
-    <hr class="border-[#4a3f3f] mb-6 border-2">
-    
-    <div class="bg-white border-2 border-gray-200 overflow-hidden">
-        <table class="w-full text-left border-collapse">
-            <tbody class="divide-y divide-gray-200">
-                <tr>
-                    <td class="p-4 bg-gray-50 font-bold text-gray-600 text-sm uppercase w-1/3">Line of Business</td>
-                    <td class="p-4 text-gray-800">{{ quotation.lineOfBusinessName || getLabel(companyServices, quotation.lineOfBusinessId) }}</td>
-                </tr>
-                <tr>
-                    <td class="p-4 bg-gray-50 font-bold text-gray-600 text-sm uppercase">Cargo Status</td>
-                    <td class="p-4 text-orange-600 font-bold">{{ quotation.cargoStatus || 'Pending' }}</td>
-                </tr>
-                <tr>
-                    <td class="p-4 bg-gray-50 font-bold text-gray-600 text-sm uppercase">Commodity</td>
-                    <td class="p-4 text-gray-800">{{ quotation.commodityName || getLabel(commodityTypes, quotation.commodityId) || 'General Cargo' }}</td>
-                </tr>
-                <tr>
-                    <td class="p-4 bg-gray-50 font-bold text-gray-600 text-sm uppercase">No. of Pkgs</td>
-                    <td class="p-4 text-gray-800">{{quotation.noOfPkgs}} {{quotation.packageUnit || 'PKGS'}}</td>
-                </tr>
-                <tr>
-                    <td class="p-4 bg-gray-50 font-bold text-gray-600 text-sm uppercase">📦 Package Dimensions Log</td>
-                    <td class="p-4 text-gray-800">
-                        <div *ngFor="let data of localInquiryList">
-                            <div *ngIf="data.dimensions && data.dimensions.length > 0; else checkGlobal">
-                                <div *ngFor="let dim of data.dimensions; let i = index" class="text-[11px] font-mono border-b border-gray-100 last:border-0 py-1">
-                                    BOX {{i+1}}: {{dim.l}} x {{dim.w}} x {{dim.h}} {{dim.unit || 'CMS'}}
-                                </div>
-                            </div>
-                        </div>
-                        <ng-template #checkGlobal>
-                            <div *ngIf="appliedDimensions && appliedDimensions.length > 0; else noDim">
-                                <div *ngFor="let dim of appliedDimensions; let i = index" class="text-[11px] font-mono border-b border-gray-100 last:border-0 py-1">
-                                    BOX {{i+1}}: {{dim.l}} x {{dim.w}} x {{dim.h}} {{dim.unit || 'CMS'}}
-                                </div>
-                            </div>
-                        </ng-template>
-                        <ng-template #noDim>
-                            <span class="text-red-400 italic text-xs">No dimensions captured</span>
-                        </ng-template>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="p-4 bg-gray-50 font-bold text-gray-600 text-sm uppercase">Gross Weight</td>
-                    <td class="p-4 text-gray-800">{{quotation.grossWeightKg}} {{quotation.weightUnit || 'KGS'}}</td>
-                </tr>
-                <tr>
-                    <td class="p-4 bg-gray-50 font-bold text-gray-600 text-sm uppercase">Volume Weight</td>
-                    <td class="p-4 text-gray-800">{{quotation.volumeWeight}} {{quotation.volumeUnit || 'KGS'}}</td>
-                </tr>
-                <tr>
-                    <td class="p-4 bg-gray-50 font-bold text-gray-600 text-sm uppercase">Chg. Weight</td>
-                    <td class="p-4 text-gray-800">{{quotation.chargeableWeight}} {{quotation.weightUnit || 'KGS'}}</td>
-                </tr>
-                <tr>
-                    <td class="p-4 bg-gray-50 font-bold text-gray-600 text-sm uppercase">Inco-Term</td>
-                    <td class="p-4 text-gray-800">{{ quotation.incoTerm || quotation.incoTermName || 'N/A' }}</td>
-                </tr>
-                <tr>
-                    <td class="p-4 bg-gray-50 font-bold text-gray-600 text-sm uppercase">Origin</td>
-                    <td class="p-4 text-gray-800">{{ inquiry.origin }}</td>
-                </tr>
-                <tr>
-                    <td class="p-4 bg-gray-50 font-bold text-gray-600 text-sm uppercase">Final Destination</td>
-                    <td class="p-4 text-gray-800">{{ quotation.finalDestination }}</td>
-                </tr>
-                <tr>
-                    <td class="p-4 bg-gray-50 font-bold text-gray-600 text-sm uppercase">Pick-up Address</td>
-                    <td class="p-4 text-gray-800">{{ quotation.pickupAddress || 'N/A' }}</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-    <div class="mt-10 flex flex-col md:flex-row justify-end gap-4 pt-6 border-t-2 border-[#4a3f3f]">
-        <button (click)="backToEdit()" class="bg-white border-4 border-orange-500 text-orange-600 px-10 py-2 font-black hover:bg-orange-500 hover:text-white transition-all duration-300 uppercase text-sm">
-            Edit Data
-        </button>
-        <button (click)="saveQuotation()" class="bg-[#4a3f3f] text-white px-16 py-2 font-black shadow-lg hover:bg-black transition-all duration-300 uppercase tracking-widest border-4 border-[#4a3f3f] text-sm">
-            Confirm & Submit
-        </button>
     </div>
 </div>
 

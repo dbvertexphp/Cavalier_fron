@@ -2117,4 +2117,5 @@ branchList: any[] = [];
   // Reset search text if you want it to behave like a picker
   // this.branchSearchText = ''; 
 }
-  }
+  
+}

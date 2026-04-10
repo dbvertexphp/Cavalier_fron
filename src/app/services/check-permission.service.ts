@@ -13,19 +13,19 @@ export class CheckPermissionService {
   constructor(private http:HttpClient) {}
 
   // 🔥 API CALL
-loadPermissions() {
-  const token = localStorage.getItem('cavalier_token');
-  console.log("Current Token being used for Permissions:", token); // 🔥 Check if this is the NEW token
+  loadPermissions(){
 
-  return this.http.get<any>(
-    `${environment.apiUrl}/action-permission/user`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`
+    const token = localStorage.getItem('cavalier_token');
+
+    return this.http.get<any>(
+      `${environment.apiUrl}/action-permission/user`,
+      {
+        headers:{
+          Authorization:`Bearer ${token}`
+        }
       }
-    }
-  );
-}
+    );
+  }
 
   // 🔥 SAVE PERMISSIONS
   setPermissions(data:any){

@@ -408,7 +408,55 @@ this.getLineOfBusiness();
 this.loadBranchess()
 
   }
+// Agent Section Properties
+agentBranchName: string = '';
+agentLineOfBusiness: any = '';
+agentIsDefault: boolean = false;
+agentIsDeactive: boolean = false;
 
+agentAddress: string = '';
+agentArea: string = '';
+agentLandmark: string = '';
+
+agentCountry: string = '';
+agentState: string = '';
+agentCity: string = '';
+agentPostalCode: string = '';
+
+agentTelephone: string = '';
+agentFax: string = '';
+agentWebsite: string = '';
+agentEmail: string = '';
+
+// Contact Details Array
+agentContacts: any[] = [
+  {
+    contactName: '',
+    designationId: '',
+    departmentId: '',
+    mobile: '',
+    whatsapp: '',
+    email: ''
+  }
+];
+
+// Methods (example)
+agentaddContact() {
+  this.agentContacts.push({
+    contactName: '',
+    designationId: '',
+    departmentId: '',
+    mobile: '',
+    whatsapp: '',
+    email: ''
+  });
+}
+
+agentremoveContact(index: number) {
+  if (this.agentContacts.length > 1) {
+    this.agentContacts.splice(index, 1);
+  }
+}
 getOrgList() {
   const url = `${environment.apiUrl}/Organization/list`;
   

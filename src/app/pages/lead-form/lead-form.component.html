@@ -242,32 +242,51 @@
         </div>
 <div class="space-y-2">
   
-  <div class="flex items-center">
-    <label class="w-28 font-bold text-gray-600 text-[12px]">HOD</label>
-    <div class="flex-1 flex border border-gray-300 relative">                
-      <input type="text" 
-             [(ngModel)]="leadSearchFilters.hod" 
-             [ngModelOptions]="{standalone: true}" 
-             class="w-full p-1 outline-none text-[12px]"
-             placeholder="Search HOD (min 3 chars)..."
-             (input)="onHODSearchType($event)"> 
-      
-      <span class="p-1 bg-gray-50 border-l border-gray-200 flex items-center justify-center cursor-pointer text-gray-400 hover:bg-gray-100" 
-            (click)="oniconHODSearch()">
-        🔍
-      </span>
+<div class="flex items-center">
+  <label class="w-28 font-bold text-gray-600 text-[12px]">HOD</label>
+  <div class="flex-1 flex border border-gray-300 relative">                
+    <input type="text" 
+           [(ngModel)]="leadSearchFilters.hod" 
+           [ngModelOptions]="{standalone: true}" 
+           class="w-full p-1 outline-none text-[12px]"
+           placeholder="Search HOD..."
+           (input)="onHODSearchType($event)"> 
+    
+    <span class="p-1 bg-gray-50 border-l border-gray-200 flex items-center justify-center cursor-pointer text-gray-400 hover:bg-gray-100" 
+          (click)="oniconHODSearch()">
+      🔍
+    </span>
 
-      <div *ngIf="filteredHODSuggestions.length > 0"
-           class="absolute z-50 w-full bg-white border border-gray-300 top-full left-0 mt-1 max-h-48 overflow-y-auto shadow-md">
-        <div *ngFor="let hodName of filteredHODSuggestions"
-             (click)="selectHOD(hodName)" 
-             class="p-2 hover:bg-red-50 cursor-pointer text-sm border-b">
-          {{ hodName }}
+   
+    </div>
+</div>
+ <div *ngIf="filteredHODSuggestions.length > 0" 
+         style="position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; display: flex !important; align-items: center !important; justify-content: center !important; z-index: 999999 !important; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);">
+      
+      <div style="background: white; width: 350px; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); overflow: hidden; border: 1px solid #e2e8f0;">
+        
+        <div style="background: #1e293b; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;">
+          <span style="color: white; font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">Select HOD</span>
+          <button (click)="filteredHODSuggestions = []" style="color: white; font-size: 20px; line-height: 1; border: none; background: transparent; cursor: pointer;">&times;</button>
+        </div>
+
+        <div style="max-height: 300px; overflow-y: auto;">
+          <div *ngFor="let hodName of filteredHODSuggestions"
+               (click)="selectHOD(hodName)" 
+               style="padding: 12px 20px; border-bottom: 1px solid #f1f5f9; cursor: pointer; display: flex; align-items: center; transition: background 0.2s;"
+               onmouseover="this.style.backgroundColor='#fef2f2'; this.style.color='#dc2626'"
+               onmouseout="this.style.backgroundColor='transparent'; this.style.color='inherit'">
+            
+            <div style="width: 8px; height: 8px; border-radius: 50%; background: #ef4444; margin-right: 12px;"></div>
+            <span style="font-size: 13px; font-weight: 500;">{{ hodName }}</span>
+          </div>
+        </div>
+
+        <div style="padding: 8px; background: #f8fafc; text-align: center; border-top: 1px solid #f1f5f9;">
+          <span style="font-size: 9px; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Cavalier Logistics CRM</span>
         </div>
       </div>
     </div>
-  </div>
-
   <div class="flex items-center">
     <label class="w-28 font-bold text-gray-600 text-[12px]">Lead Owner</label>
     <div class="flex-1 flex border border-gray-300 relative">                

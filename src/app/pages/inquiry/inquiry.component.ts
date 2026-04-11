@@ -26,6 +26,7 @@ import { BranchService } from '../../services/branch.service';
 })
   export class InquiryComponent implements OnInit {
     @ViewChild('cargoDateInput') cargoDateInput!: ElementRef<HTMLInputElement>;
+    isDeliveryEnabled:boolean=false;
     portsOfDischarge: any[] = [];        // API se aane wala full list
 filteredPortsOfDischarge: any[] = [];
 showPortOfDischargeDropdown: boolean = false;
@@ -449,6 +450,14 @@ onShipmentTypeChange() {
   this.quotation.incoterm = selectedIncoterm;
 
   console.log(`Incoterm changed to: ${selectedIncoterm}`);
+  if(selectedIncoterm === 'DDP' || selectedIncoterm === 'DDU' || selectedIncoterm === 'DAP'){ 
+    this.isDeliveryEnabled = true;
+  } 
+  else {
+    this.isDeliveryEnabled = false;
+    this.quotation.deliveryAddress = '';
+  }
+
 
   // 🔥 Updated Logic as per your requirement
   switch (selectedIncoterm) {
@@ -2207,8 +2216,80 @@ branchList: any[] = [];
   // Reset search text if you want it to behave like a picker
   // this.branchSearchText = ''; 
 }
-  isModalOpen: boolean = false; // Ye line add karein
-  
-  // baaki aapka purana code...
+ // Component.ts mein
 showCostTable: boolean = false;
+
+toggleTable(value: boolean) {
+  console.log("Button clicked! Setting showCostTable to:", value);
+  this.showCostTable = value;
+}
+services = [
+    { serviceName: 'Standard' },
+    { serviceName: 'Express' },
+    { serviceName: 'Economy' }
+  ];
+
+  currencies = [
+    { label: 'INR', value: 'INR' },
+    { label: 'USD', value: 'USD' },
+    { label: 'AED', value: 'AED' }
+  ];
+
+  // 3. Cost Rows ka Array
+  costRows: any[] = [
+    {
+      lob: 'Standard',
+      chargeName: '',
+      chargeType: '',
+      basis: '',
+      currency: 'INR',
+      rate: 0,
+      exchangeRate: 1,
+      amount: 0
+    }
+  ];
+
+
+
+  // --- LOGIC FUNCTIONS ---
+
+  // Nayi row add karne ke liye
+  addCostRow() {
+    this.costRows.push({
+      lob: 'Standard', // Default value
+      chargeName: '',
+      chargeType: '',
+      basis: '',
+      currency: 'INR',
+      rate: 0,
+      exchangeRate: 1,
+      amount: 0
+    });
+  }
+
+  // Row delete karne ke liye (Index base par)
+  removeCostRow(index: number) {
+    if (this.costRows.length > 1) {
+      this.costRows.splice(index, 1);
+      this.calculateCost(); // Delete ke baad total recalculate karne ke liye
+    }
+  }
+
+  // Calculation Logic: Amount = Rate * Exchange Rate
+  calculateCost() {
+    this.costRows.forEach(row => {
+      if (row.rate && row.exchangeRate) {
+        row.amount = row.rate * row.exchangeRate;
+      } else {
+        row.amount = 0;
+      }
+    });
+  }
+
+  // Final Save Logic
+  applyCost() {
+    console.log('Final Cost Data:', this.costRows);
+    this.showCostTable = false; // Table close karke wapas form par
+  }
+  
 }

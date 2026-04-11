@@ -26,6 +26,7 @@ import { Subscription } from 'rxjs';
   templateUrl: './quotation-form.component.html',
 })
 export class QuotationFormComponent implements OnInit {
+  token:string='';
   PermissionID:any;
   currentPage: number = 1;
   pageSize: number = 10;
@@ -61,10 +62,11 @@ showInquiryDropdown: boolean = false;
   quotation: any = this.resetQuotationModel();
 
   // --- Revenue & Cost Logic ---
-revenueRows: any[] = [{ lob: '', chargeName: '', chargeType: 'Prepaid', basis: '', currency: 'USD', rate: 0, exchangeRate: 1, amount: 0 }];
-costRows: any[] = [{ lob: '', chargeName: '', chargeType: 'Prepaid', basis: '', currency: 'USD', rate: 0, exchangeRate: 1, amount: 0 }];
+revenueRows: any[] = [{ lob: '', chargeName: '', chargeType: 'Prepaid', basis: '',  rate: 0, exchangeRate: 1, amount: 0 }];
+costRows: any[] = [{ lob: '', chargeName: '', chargeType: 'Prepaid', basis: '',  rate: 0, exchangeRate: 1, amount: 0 }];
 pnLRows: any[] = [];
 currencies = [
+ 
  { value: 'USD', label: 'US dollar' },
     { value: 'EUR', label: 'Euro' },
     { value: 'INR', label: 'Indian rupee' },
@@ -246,7 +248,11 @@ closeColumnModal(){
 }
 sortOrders:any = {};
   ngOnInit() {
+
+  this.gettoken();
+
     this.loadBranchess();
+
       this.PermissionID = Number(localStorage.getItem('permissionID'));
     this.loadColumnSettings();
     this.loadQuotations();
@@ -535,18 +541,42 @@ onInquirySearchInput() {
 
 // 3. Selection Logic
 selectInquiry(inq: any) {
+  alert("Selected Inquiry: " + inq.inquiryNo + " - " + (inq.customerName || ''));
+
   this.quotation.referenceByInquiry = inq.inquiryNo;
+  this.quotation.customerName = inq.customerName || '';
   this.showInquiryDropdown = false;
-  this.quotation.referenceByInquiry = inq.inquiryNo; // Ref number set kiya
-  
-  // OPTIONAL: Agar aap chahte ho ki Inquiry select karte hi 
-  // Customer Name bhi auto-fill ho jaye:
-  this.quotation.customerName = inq.customerName;
-  
-  this.showInquiryDropdown = false;
-    this.quotation.referenceByInquiry = inq.inquiryNo;
-  this.showInquiryDropdown = false;
-  this.cdr.detectChanges(); // UI Update
+  this.cdr.detectChanges();
+
+  const inquiryNo = inq.inquiryNo?.trim();
+  if (!inquiryNo) {
+    console.error("InquiryNo is missing");
+    return;
+  }
+
+  // ✅ Correct URL using Query String
+  const url = `${environment.apiUrl}/Inquiry/by-no?inquiryNo=${inquiryNo}`;
+
+  this.http.get<any>(url).subscribe({
+    next: (fullData) => {
+      console.log("✅ Full Inquiry Data Received:", fullData);
+      
+
+      // Optional: Fill more fields
+      // this.quotation.customerName = fullData.customerName;
+      // this.quotation.branchName = fullData.branchName;
+
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error("❌ Error:", err);
+      if (err.status === 404) {
+        alert(`Inquiry not found: ${inquiryNo}`);
+      } else {
+        alert("Failed to load inquiry details. Please check console.");
+      }
+    }
+  });
 }
   // --- Lead API Call ---
  // --- Lead API Call ---
@@ -864,12 +894,13 @@ deleteQuotation(id: number) {
 
   // --- Table Handling ---
   initTableRows() {
-    this.revenueRows = [{ lob: '', chargeName: '', chargeType: '', basis: '', currency: 'USD', rate: 0, exchangeRate: 1, amount: 0 }];
-    this.costRows = [{ lob: '', chargeName: '', chargeType: '', basis: '', currency: 'USD', rate: 0, exchangeRate: 1, amount: 0 }];
+    this.revenueRows = [{ lob: '', chargeName: '', chargeType: '', basis: '',  rate: 0, exchangeRate: 1, amount: 0 }];
+    this.costRows = [{ lob: '', chargeName: '', chargeType: '', basis: '',  rate: 0, exchangeRate: 1, amount: 0 }];
   }
 
   addRevenueRow() { const currentLOB = this.quotation.lineOfBusiness;
-  this.revenueRows.push({ lob:currentLOB, chargeName: '', chargeType: 'Prepaid', basis: '', currency: 'USD', rate: 0, exchangeRate: 1, amount: 0 });
+  this.revenueRows.push({ lob:currentLOB, chargeName: '', chargeType: 'Prepaid', basis: '', 
+     rate: 0, exchangeRate: 1, amount: 0 });
 }
 
 removeRow(index: number) {
@@ -886,7 +917,7 @@ calculateRevenue() {
 
 // 3. Cost Functions
 addCostRow() {const currentLOB = this.quotation.lineOfBusiness;
-  this.costRows.push({ lob: currentLOB, chargeName: '', chargeType: 'Prepaid', basis: '', currency: 'USD', rate: 0, exchangeRate: 1, amount: 0 });
+  this.costRows.push({ lob: currentLOB, chargeName: '', chargeType: 'Prepaid', basis: '',  rate: 0, exchangeRate: 1, amount: 0 });
 }
 
 removeCostRow(index: number) {
@@ -1731,11 +1762,14 @@ getAllInquiries() {
 // Variables
 inquiryList: any[] = [];
 
-
+gettoken(){
+  this.token = localStorage.getItem('cavalier_token') || '';
+  return this.token;
+}
 
 
 loadInquiryList() {
-  // Toggle feature: Agar khula hai to band kar do
+  // Toggle feature
   if (this.showInquiryDropdown) {
     this.showInquiryDropdown = false;
     this.cdr.detectChanges();
@@ -1743,15 +1777,18 @@ loadInquiryList() {
   }
 
   const url = `${environment.apiUrl}/Inquiry`;
-  
-  this.http.get<any[]>(url).subscribe({
+
+  this.http.get<any[]>(url, {
+    headers: {
+      Authorization: `Bearer ${this.token}`
+    }
+  }).subscribe({
     next: (res) => {
-      this.inquiryList = res; 
-      this.showInquiryDropdown = true; 
-      
-      // CDR: UI ko turant refresh karne ke liye taaki list foran dikhe
-      this.cdr.detectChanges(); 
-      
+      this.inquiryList = res;
+      this.showInquiryDropdown = true;
+
+      this.cdr.detectChanges();
+
       console.log(res, "Inquiry data loaded successfully");
     },
     error: (err) => {

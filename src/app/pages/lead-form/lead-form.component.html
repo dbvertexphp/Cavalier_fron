@@ -257,36 +257,29 @@
       🔍
     </span>
 
-   
-    </div>
-</div>
- <div *ngIf="filteredHODSuggestions.length > 0" 
-         style="position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; display: flex !important; align-items: center !important; justify-content: center !important; z-index: 999999 !important; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);">
+    <div *ngIf="filteredHODSuggestions.length > 0"
+         class="absolute left-0 top-full z-[100] w-full bg-white border border-gray-300 shadow-xl rounded-b-md overflow-hidden animate-in fade-in slide-in-from-top-1 duration-200">
       
-      <div style="background: white; width: 350px; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); overflow: hidden; border: 1px solid #e2e8f0;">
-        
-        <div style="background: #1e293b; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;">
-          <span style="color: white; font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">Select HOD</span>
-          <button (click)="filteredHODSuggestions = []" style="color: white; font-size: 20px; line-height: 1; border: none; background: transparent; cursor: pointer;">&times;</button>
-        </div>
-
-        <div style="max-height: 300px; overflow-y: auto;">
-          <div *ngFor="let hodName of filteredHODSuggestions"
-               (click)="selectHOD(hodName)" 
-               style="padding: 12px 20px; border-bottom: 1px solid #f1f5f9; cursor: pointer; display: flex; align-items: center; transition: background 0.2s;"
-               onmouseover="this.style.backgroundColor='#fef2f2'; this.style.color='#dc2626'"
-               onmouseout="this.style.backgroundColor='transparent'; this.style.color='inherit'">
-            
-            <div style="width: 8px; height: 8px; border-radius: 50%; background: #ef4444; margin-right: 12px;"></div>
-            <span style="font-size: 13px; font-weight: 500;">{{ hodName }}</span>
-          </div>
-        </div>
-
-        <div style="padding: 8px; background: #f8fafc; text-align: center; border-top: 1px solid #f1f5f9;">
-          <span style="font-size: 9px; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Cavalier Logistics CRM</span>
+      <div class="max-h-52 overflow-y-auto">
+        <div *ngFor="let hodName of filteredHODSuggestions"
+             (click)="selectHOD(hodName)" 
+             class="px-3 py-2.5 hover:bg-red-50 cursor-pointer border-b border-gray-50 last:border-0 flex items-center gap-2 group">
+          
+          <div class="w-1.5 h-1.5 rounded-full bg-gray-300 group-hover:bg-red-500 transition-colors"></div>
+          
+          <span class="text-[12px] text-gray-700 font-medium group-hover:text-red-700">
+            {{ hodName }}
+          </span>
         </div>
       </div>
+
+      <div class="bg-gray-50 py-1 px-2 text-right border-t border-gray-100">
+        <span class="text-[9px] text-gray-400 font-bold uppercase tracking-tighter">Cavalier Logistics</span>
+      </div>
     </div>
+    </div>
+</div>
+
   <div class="flex items-center">
     <label class="w-28 font-bold text-gray-600 text-[12px]">Lead Owner</label>
     <div class="flex-1 flex border border-gray-300 relative">                
@@ -819,14 +812,14 @@ class="divide-x divide-gray-200 hover:bg-gray-50">
           <td class="p-3">
 
             <div class="flex justify-center gap-3">
-
-              <button
-                title="Edit" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Edit')"
-                class="text-blue-600 hover:text-blue-800">
-
-                📝
-
-              </button>
+<button
+  title="Edit" 
+  *ngIf="CheckPermissionService.hasPermission(PermissionID, 'Edit')"
+  (click)="onEditLead(lead.id)" 
+  class="text-blue-600 hover:text-blue-800"
+>
+  📝
+</button>
 
               <button
                 (click)="onDeleteLead(lead.id)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Delete')"
@@ -1064,26 +1057,27 @@ class="divide-x divide-gray-200 hover:bg-gray-50">
       {{ leadForm.get('expectedValidity')?.errors?.['zod'] }}
     </div>
 
-    <label class="font-bold text-gray-600">Lead Source</label>
-    <select formControlName="source" class="border border-gray-300 p-2 w-full">
-      <option value="">Select Source</option>
-      <option value="Website">Website</option>
-      <option value="Referral">Referral</option>
-    </select>
-
+  <label class="font-bold text-gray-600">Lead Source</label>
+<select formControlName="source" class="border border-gray-300 p-2 w-full">
+  <option value="">Select Source</option>
+  <option *ngFor="let source of leadSources" [value]="source.id">
+    {{ source.name }}
+  </option>
+</select>
     <!-- Zod Error -->
     <div *ngIf="leadForm.get('source')?.errors?.['zod']"
          class="text-red-600 text-xs mt-[-10px]">
       {{ leadForm.get('source')?.errors?.['zod'] }}
     </div>
 
-    <label class="font-bold text-gray-600">Sales Stage</label>
-    <select formControlName="salesStage" class="border border-gray-300 p-2 w-full">
-      <option value="Inquiry Received">Inquiry Received</option>
-      <option value="Qualified">Qualified</option>
-      <option value="Proposal Sent">Proposal Sent</option>
-      <option value="Sales Closed">Sales Closed</option>
-    </select>
+ <label class="font-bold text-gray-600">Sales Stage</label>
+<select formControlName="salesStage" class="border border-gray-300 p-2 w-full">
+  <option value="">Select Sales Stage</option>
+  
+  <option *ngFor="let stage of salesStages" [value]="stage.id">
+    {{ stage.name }}
+  </option>
+</select>
 
     <div *ngIf="leadForm.get('salesStage')?.invalid && leadForm.get('salesStage')?.touched"
          class="text-red-600 text-xs mt-[-10px]">
@@ -1111,9 +1105,9 @@ class="divide-x divide-gray-200 hover:bg-gray-50">
   >
     <option value="" disabled selected class="text-gray-400">Select Branch</option>
     
-    <option *ngFor="let b of branches" [value]="b.name" class="text-gray-900">
-      {{ b.branchName }}
-    </option>
+   <option *ngFor="let b of branches" [value]="b.id">
+  {{ b.branchName }}
+</option>
   </select>
 </div>
     <div *ngIf="leadForm.get('branch')?.invalid && leadForm.get('branch')?.touched"

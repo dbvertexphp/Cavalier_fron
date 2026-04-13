@@ -540,11 +540,13 @@ onInquirySearchInput() {
 }
 
 // 3. Selection Logic
+// 3. Selection Logic - UPDATED & IMPROVED
 selectInquiry(inq: any) {
-  alert("Selected Inquiry: " + inq.inquiryNo + " - " + (inq.customerName || ''));
-
-  this.quotation.referenceByInquiry = inq.inquiryNo;
+  
+  // Basic fields set karo (dropdown ke liye)
+  this.quotation.referenceByInquiry = inq.inquiryNo || '';
   this.quotation.customerName = inq.customerName || '';
+
   this.showInquiryDropdown = false;
   this.cdr.detectChanges();
 
@@ -554,26 +556,62 @@ selectInquiry(inq: any) {
     return;
   }
 
-  // ✅ Correct URL using Query String
+  // Full Inquiry Details fetch karo
   const url = `${environment.apiUrl}/Inquiry/by-no?inquiryNo=${inquiryNo}`;
 
   this.http.get<any>(url).subscribe({
     next: (fullData) => {
       console.log("✅ Full Inquiry Data Received:", fullData);
-      
 
-      // Optional: Fill more fields
-      // this.quotation.customerName = fullData.customerName;
-      // this.quotation.branchName = fullData.branchName;
+      // ====================== AUTO FILL START ======================
+      
+      // Important Fields from Inquiry → Quotation
+      this.quotation.transportMode     = fullData.transportMode || '';
+      this.quotation.transportType     = fullData.transportType || '';
+      this.quotation.shipmentType      = fullData.shipmentType || '';
+      this.quotation.movement          = fullData.movementType || fullData.movement || '';   // movementType ya movement
+      this.quotation.incoterm          = fullData.incoterm || fullData.incoTerms || '';
+      this.quotation.description       = fullData.description || '';
+      this.quotation.pickupAddress     = fullData.pickupAddress || '';
+      this.quotation.placeOfDelivery   = fullData.placeOfDelivery || '';
+      this.quotation.podFinalDest      = fullData.finalDestination || '';   // finalDestination → podFinalDest
+      this.quotation.location          = fullData.location || '';
+
+      // Weight & Package Details
+      this.quotation.numOfPackages     = fullData.noOfPkgs || 0;
+      this.quotation.grossWeight       = fullData.grossWeightKg || 0;
+      this.quotation.netWeight         = fullData.netWeight || 0;
+      this.quotation.chrgWeight        = fullData.chargeableWeight || 0;
+      this.quotation.volumeWeight      = fullData.volumeWeight || 0;
+
+      // IDs (agar dropdowns ya foreign keys hain)
+      this.quotation.originPOL         = fullData.originId || '';           // ya origin name
+      this.quotation.portOfLoading     = fullData.portOfLoadingId || '';
+      this.quotation.portOfDischarge   = fullData.portOfDischargeId || '';
+      this.quotation.commodity         = fullData.commodityId || '';
+
+      // Boolean / Other fields
+      this.quotation.isServiceRequired = fullData.isServiceRequired ?? true;
+
+      // Sales & Pricing related (agar chahiye)
+      // this.quotation.salesCoor      = fullData.salesCoordinator || '';
+      // this.quotation.pricingBy      = fullData.pricingDoneBy || '';
+      // this.quotation.qtnDoneBy      = fullData.qtnDoneBy || '';
+
+      // ====================== AUTO FILL END ======================
 
       this.cdr.detectChanges();
+
+      console.log("✅ Quotation auto-filled successfully from Inquiry!");
     },
+
     error: (err) => {
-      console.error("❌ Error:", err);
+      console.error("❌ Error fetching full inquiry:", err);
+      
       if (err.status === 404) {
         alert(`Inquiry not found: ${inquiryNo}`);
       } else {
-        alert("Failed to load inquiry details. Please check console.");
+        alert("Failed to load complete inquiry details. Please check console.");
       }
     }
   });

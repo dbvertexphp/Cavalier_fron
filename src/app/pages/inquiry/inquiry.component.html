@@ -1431,14 +1431,21 @@
 
               <div class="flex items-center gap-2 mt-2">
                 <label class="w-26 font-bold text-gray-700">Sales Coor.</label>
-                <select
-                  [(ngModel)]="quotation.salesCoordinator"
-                  name="salesCoordinator"
-                  class="flex-1 border p-1.5 outline-none text-[12px]"
-                >
-                  <option value="">--Select--</option>
-                  <option value="Sales 1">Sales User 1</option>
-                </select>
+           <select 
+  [(ngModel)]="quotation.salesCoordinator" 
+  name="salesCoordinator"
+  class="flex-1 border p-1.5 outline-none text-[12px]">
+  
+  <option value="">-- Select Sales Coordinator --</option>
+  
+  <option 
+    *ngFor="let sc of getsalescordinate" 
+    [value]="sc.id">   <!-- ID as value (backend mein yahi save hoga) -->
+    
+    {{ sc.firstName }} {{ sc.lastName }}
+  </option>
+  
+</select>
               </div>
               <div class="flex items-center">
                 <label class="w-40 font-bold text-gray-700"

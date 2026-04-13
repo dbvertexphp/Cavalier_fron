@@ -16,7 +16,7 @@ import { moveItemInArray, transferArrayItem, CdkDragDrop } from '@angular/cdk/dr
 import { DragDropModule } from '@angular/cdk/drag-drop'; // Ye import ensure karein
 import { Subscription } from 'rxjs';
 import { BranchService } from '../../services/branch.service';
-
+import { UserService } from '../../services/user.service';
 @Component({
   selector: 'app-inquiry',
   standalone: true,
@@ -26,6 +26,7 @@ import { BranchService } from '../../services/branch.service';
 })
   export class InquiryComponent implements OnInit {
     @ViewChild('cargoDateInput') cargoDateInput!: ElementRef<HTMLInputElement>;
+    getsalescordinate: any[] = [];
     isDeliveryEnabled:boolean=false;
     portsOfDischarge: any[] = [];        // API se aane wala full list
 filteredPortsOfDischarge: any[] = [];
@@ -66,6 +67,7 @@ isDocumentModalOpen = false;
 openDocumentModal() {
   this.isDocumentModalOpen = true;
 }
+
 
 closeDocumentModal() {
   this.isDocumentModalOpen = false;
@@ -254,11 +256,12 @@ organizations: any[] = [];
   searchDone: boolean = false; // Shuru mein false rahega
   uploadedDocuments: any[] = [];
     // Ye line add karein
-    constructor(private http: HttpClient, private router: Router,private cdr: ChangeDetectorRef,private branchservice:BranchService ) {}
+    constructor(private http: HttpClient, private router: Router,private cdr: ChangeDetectorRef,private branchservice:BranchService,public userServices:UserService) {}
 
     ngOnInit() {
       console.log("Direct API call trigger ho rahi hai...");
     this.loadBranchess();
+    this.getsales();
       this.getbranch();
       this.loadQuotations();
       this.portOfLoading();
@@ -296,6 +299,20 @@ this.quotation.shipmentType = 'Ready';
   setTodayDate() {
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
     this.quotation.cargoStatusDate = today;
+}
+getsales(): void {
+  // Teri API call
+  this.userServices.getUsers('onlyuserdata').subscribe({
+    next: (data: any) => {
+      // API se aane wala data leadOwners mein assign kar diya
+      this.getsalescordinate = data; 
+      console.log('Lead Owners loaded:', this.getsalescordinate);
+          this.cdr.detectChanges(); 
+    },
+    error: (err) => {
+      console.error('Error loading users:', err);
+    }
+  });
 }
 portOfLoading() {
   this.http.get<any[]>(`${environment.apiUrl}/PortOfLoading`).subscribe({
@@ -2144,7 +2161,11 @@ loadLeadByLeadNo(leadNo: string) {
       if (leadData.location) this.quotation.location = leadData.location;
       if (leadData.branch) this.quotation.branchName = leadData.branch;
       if (leadData.type) this.quotation.type = leadData.type;
-
+if (leadData.salesCoordinator) {
+        // Lead se "25" jaise ID aa raha hai
+        this.quotation.salesCoordinator = leadData.salesCoordinator.toString(); 
+        // .toString() isliye taaki type match ho (agar sc.id number hai toh bhi safe rahe)
+      }
       this.cdr.detectChanges();
     },
     error: (err) => {

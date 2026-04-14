@@ -1842,10 +1842,10 @@
               <div class="flex items-center gap-2">
                 <label class="w-40 font-bold text-gray-700">Gross Weight</label>
                 <div class="flex flex-1">
-                <input
+               <input
   type="number"
   [(ngModel)]="quotation.grossWeightKg"
-  (ngModelChange)="calculateNetWeight()"
+  (ngModelChange)="calculateVolumeWeightLogic()"
   name="grossWeightKg"
   class="w-full border p-2 outline-none"
 />

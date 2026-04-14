@@ -1,8 +1,6 @@
 
-
-
-
 import { ChangeDetectorRef, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
+ 
 
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http'; 
@@ -167,11 +165,35 @@ calculateNetWeight() {
   // Console mein check karne ke liye
   console.log("Gross:", gross, "Volume:", volume, "Net:", this.quotation.netWeight);
 }
+calculateChargeableWeight() {
+  const gross = Number(this.quotation.grossWeightKg) || 0;
+  const volume = Number(this.quotation.volumeWeight) || 0;
 
+  // Jo bhi bada hoga (Math.max), wo chargeableWeight mein jayega
+  const higherWeight = Math.max(gross, volume);
+
+  // Result ko 2 decimal points tak set karein
+  this.quotation.chargeableWeight = parseFloat(higherWeight.toFixed(2));
+}
 // Volume weight badalne par CBM aur Net Weight dono update hone chahiye
 calculateVolumeWeightLogic() {
-  this.calculateCBM();    // Purana CBM logic
-  this.calculateNetWeight(); // Naya Net Weight logic
+  // Numbers mein convert karna zaroori hai
+  const gross = Number(this.quotation.grossWeightKg) || 0;
+  const volume = Number(this.quotation.volumeWeight) || 0;
+
+  // 1. CBM Calculation (Volume / 167)
+  const calculatedCbm = volume / 167;
+  this.quotation.cbm = parseFloat(calculatedCbm.toFixed(3));
+
+  // 2. Net Weight Calculation (Volume - Gross)
+  const netResult = volume - gross;
+  this.quotation.netWeight = parseFloat(netResult.toFixed(2));
+
+  // 3. Chargeable Weight Calculation (Higher of Gross or Volume)
+  const higherWeight = Math.max(gross, volume);
+  this.quotation.chargeableWeight = parseFloat(higherWeight.toFixed(2));
+
+  console.log("Calculated -> CBM:", this.quotation.cbm, "Net:", this.quotation.netWeight, "Chrg:", this.quotation.chargeableWeight);
 }
 columnFieldMap: any = {
   'ID': 'id',
@@ -965,6 +987,7 @@ saveDimensions() {
   this.quotation.volumeWeight = this.getTotalVolumeWeight();
   this.calculateCBM();
   this.calculateNetWeight();
+  this.calculateVolumeWeightLogic();
   this.closeDimModal();
 }
 

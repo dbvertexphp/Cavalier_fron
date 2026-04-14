@@ -105,23 +105,21 @@ onInvoiceFileSelected(event: any, index: number) {
 // InquiryComponent.ts mein ye add karein
 // 1. Single row jo bahar dikhti hai
 dimRow: any = { box: 1, l: 0, w: 0, h: 0, unit: 'CMS' };
-
-// 2. Modal ke liye rows
 dimRows: any[] = [];
 
-// Ye function Main Page aur Modal dono ke liye calculation karega
+// 1. Is function mein end mein CBM call add kiya hai
 calculateVolumeWeight() {
-  // Pehle check karo agar Modal mein data hai toh wahan se total lo
   if (this.dimRows && this.dimRows.length > 0) {
     this.quotation.volumeWeight = this.getTotalVolumeWeight();
   } else {
-    // Agar modal khali hai, toh sirf bahar wale single dimRow se calculate karo
     const weight = this.calculateSingleVolumeWeight(this.dimRow);
     this.quotation.volumeWeight = parseFloat(weight.toFixed(2));
   }
+  
+  // VIMP: Volume weight nikalne ke baad CBM ko calculate karna zaroori hai
+  this.calculateCBM(); 
 }
 
-// Har ek single box ka weight nikalne ka formula
 calculateSingleVolumeWeight(dim: any): number {
   if (!dim.l || !dim.w || !dim.h || dim.l <= 0 || dim.w <= 0 || dim.h <= 0) {
     return 0;
@@ -133,75 +131,48 @@ calculateSingleVolumeWeight(dim: any): number {
   return (dim.box || 1) * (volumeCm3 / 6000);
 }
 
-// Saari rows ka total sum
 getTotalVolumeWeight(): number {
   let total = 0;
-  // Agar modal mein rows hain toh unhe calculate karo
   if (this.dimRows && this.dimRows.length > 0) {
     this.dimRows.forEach(dim => {
       total += this.calculateSingleVolumeWeight(dim);
     });
   } else {
-    // Warna sirf bahar wali single row ka batao
     total = this.calculateSingleVolumeWeight(this.dimRow);
   }
   return parseFloat(total.toFixed(2));
 }
-// Single dimension row ka volume weight calculate kare
-// dimRow: any = { 
-//   box: 1, 
-//   l: 0, 
-//   w: 0, 
-//   h: 0 
-// };
-// calculateSingleVolumeWeight(dim: any): number {
-//   if (!dim.l || !dim.w || !dim.h || dim.l <= 0 || dim.w <= 0 || dim.h <= 0) {
-//     return 0;
-//   }
 
-//   let volumeCm3 = dim.l * dim.w * dim.h;
+// 2. CBM Calculation logic
+calculateCBM() {
+  if (this.quotation.volumeWeight) {
+    // Formula as per your requirement: Volume Weight / 167
+    const calculatedCbm = this.quotation.volumeWeight / 167;
+    this.quotation.cbm = parseFloat(calculatedCbm.toFixed(3));
+  } else {
+    this.quotation.cbm = 0;
+  }
+}
+calculateNetWeight() {
+  // Number() ensures ki hum string nahi, number minus kar rahe hain
+  const gross = Number(this.quotation.grossWeightKg) || 0;
+  const volume = Number(this.quotation.volumeWeight) || 0;
+  
+  // Minus karne ke baad sirf 2 decimal tak limit karo
+  const result = gross - volume;
+  
+  // toFixed(2) se 4 digit wali problem khatam ho jayegi
+  this.quotation.netWeight = parseFloat(result.toFixed(2));
 
-//   if (dim.unit === 'INCH') {
-//     volumeCm3 = volumeCm3 * 16.387;   // convert inch³ to cm³
-//   }
+  // Console mein check karne ke liye
+  console.log("Gross:", gross, "Volume:", volume, "Net:", this.quotation.netWeight);
+}
 
-//   return (dim.box || 1) * (volumeCm3 / 6000);
-// }
-// calculateVolumeWeight() {
-//   const box = Number(this.dimRow.box) || 1;
-//   const l = Number(this.dimRow.l) || 0;
-//   const w = Number(this.dimRow.w) || 0;
-//   const h = Number(this.dimRow.h) || 0;
-
-//   if (l === 0 || w === 0 || h === 0) {
-//     this.quotation.volumeWeight = 0;
-//     return;
-//   }
-
-//   // Sirf yeh formula (unit ignore kiya)
-//   const volume = (box * l * w * h) / 6000;
-//   this.quotation.volumeWeight = parseFloat(volume.toFixed(2));
-// }
-
-// Total Volume Weight (saare rows ka sum)
-// getTotalVolumeWeight(): number {
-//   if (!this.dimRows || this.dimRows.length === 0) return 0;
-
-//   let total = 0;
-//   this.dimRows.forEach(dim => {
-//     total += this.calculateVolumeWeight(dim);
-//   });
-
-//   return parseFloat(total.toFixed(2));   // 2 decimal tak
-// }
-
-// Chargeable Weight (Max of Gross Weight aur Volume Weight)
-// getChargeableWeight(): number {
-//   const gross = Number(this.quotation.grossWeightKg) || 0;
-//   const vol   = this.getTotalVolumeWeight();
-//   return Math.max(gross, vol);
-// }
-    // Labels ko backend properties se map karo (Apne model ke hisaab se check kar lena)
+// Volume weight badalne par CBM aur Net Weight dono update hone chahiye
+calculateVolumeWeightLogic() {
+  this.calculateCBM();    // Purana CBM logic
+  this.calculateNetWeight(); // Naya Net Weight logic
+}
 columnFieldMap: any = {
   'ID': 'id',
   'Inquiry No': 'inquiryNo',
@@ -992,7 +963,8 @@ saveDimensions() {
   
   // Modal save hote hi total weight ko field mein daal do
   this.quotation.volumeWeight = this.getTotalVolumeWeight();
-  
+  this.calculateCBM();
+  this.calculateNetWeight();
   this.closeDimModal();
 }
 

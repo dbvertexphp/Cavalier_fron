@@ -1,8 +1,10 @@
+import { Permission } from './../employee/employee.component';
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { CheckPermissionService } from '../../services/check-permission.service';
 @Component({
   selector: 'app-origin',
   standalone: true,
@@ -11,14 +13,14 @@ import { environment } from '../../../environments/environment';
   styleUrl: './origin.component.css'
 })
 export class OriginComponent implements OnInit {
-  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
+  constructor(private http: HttpClient, private cdr: ChangeDetectorRef,public CheckPermissionService:CheckPermissionService) {}
   private apiUrl = environment.apiUrl + '/Origin';
 
   isModalOpen = false;
   isEditMode = false;
   showPopup = false;
   roleIdToDelete: number | null = null;
-  
+  PermissionID:any;
   rolesList: any[] = [];
   newRole = { id: 0, name: '', status: true };
 
@@ -26,6 +28,7 @@ export class OriginComponent implements OnInit {
 
 
   ngOnInit(): void {
+    this.PermissionID = Number(localStorage.getItem('permissionID'));
     this.fetchOrigins();
   }
 

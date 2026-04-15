@@ -1,3 +1,4 @@
+import { Permission } from './../employee/employee.component';
 import { CheckPermissionService } from './../../services/check-permission.service';
 
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
@@ -30,7 +31,6 @@ export class QuotationFormComponent implements OnInit {
   PermissionID:any;
   currentPage: number = 1;
   pageSize: number = 10;
-  
   searchDone: boolean = false;
   isFormOpen = false;
  private apiEndpoint = `${environment.apiUrl}/Quotations`;

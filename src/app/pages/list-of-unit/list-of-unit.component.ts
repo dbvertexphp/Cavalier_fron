@@ -19,6 +19,7 @@ export class ListOfUnitComponent implements OnInit {
   isModalOpen = false;
   isEditMode = false;
   showPopup = false;
+  
   unitToDeleteId: number | null = null;
 
   // FIX: Initialization me unitName use karein

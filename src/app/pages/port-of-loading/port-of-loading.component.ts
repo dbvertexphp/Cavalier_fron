@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { CheckPermissionService } from '../../services/check-permission.service';
 @Component({
   selector: 'app-port-of-loading',
   standalone: true,
@@ -16,15 +17,17 @@ export class PortOfLoadingComponent implements OnInit {
   isModalOpen = false;
   isEditMode = false;
   showPopup = false;
+   PermissionID:any;
   selectedId: number | null = null;
   
   rolesList: any[] = []; 
   newRole = { id: 0, name: '', status: true };
 
   // ChangeDetectorRef inject kiya gaya hai
-  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
+  constructor(private http: HttpClient, private cdr: ChangeDetectorRef,public CheckPermissionService:CheckPermissionService) {}
 
   ngOnInit(): void {
+    this.PermissionID = Number(localStorage.getItem('permissionID'));
     this.fetchPorts();
   }
 

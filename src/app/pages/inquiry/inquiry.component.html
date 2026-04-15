@@ -885,7 +885,7 @@
         </div>
 
         <button
-          (click)="toggleForm()"
+          (click)="toggleForm()"  *ngIf="CheckPermissionService.hasPermission(PermissionID,'Add');"
           class="bg-green-600 hover:bg-green-700 px-5 py-1.5 text-[12px] font-bold shadow-sm flex items-center gap-2 transition-all"
         >
           <svg
@@ -939,7 +939,7 @@
             </tr>
           </thead>
 
-          <tbody class="bg-white">
+          <tbody class="bg-white"  *ngIf="CheckPermissionService.hasPermission(PermissionID,'View');">
             <tr
               *ngFor="let q of paginatedInquiries"
               class="hover:bg-gray-50 border-b text-gray-700"
@@ -986,13 +986,13 @@
                 class="p-4 sticky right-0 bg-white border-l text-center shadow-[-5px_0_10px_rgba(0,0,0,0.02)]"
               >
                 <button
-                  (click)="editQuotation(q)"
+                  (click)="editQuotation(q)"  *ngIf="CheckPermissionService.hasPermission(PermissionID,'Edit');"
                   class="text-blue-600 mr-3 font-bold uppercase hover:underline text-[11px]"
                 >
                   Edit
                 </button>
                 <button
-                  (click)="deleteQuotation(q.id)"
+                  (click)="deleteQuotation(q.id)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Delete');"
                   class="text-red-600 font-bold uppercase hover:underline text-[11px]"
                 >
                   Delete

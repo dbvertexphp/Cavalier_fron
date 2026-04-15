@@ -5,6 +5,7 @@ import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http'
 import { environment } from '../../../environments/environment';
 import { CdkDragDrop, moveItemInArray, DragDropModule } from '@angular/cdk/drag-drop';
 import { NgSelectModule } from '@ng-select/ng-select';
+import { CheckPermissionService } from '../../services/check-permission.service';
 @Component({
   selector: 'app-port-setup',
   standalone: true,
@@ -16,6 +17,7 @@ countries: string[] = [];
 cities: string[] = [];
 countrySearch = '';
 citySearch = '';
+PermissionID:any;
 selectedCountry = 'Peru';
   private apiUrl = environment.apiUrl + '/PortSetup';
 
@@ -40,9 +42,10 @@ selectedCountry = 'Peru';
   searchFunction = '';
   quickSearch = '';
 
-  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
+  constructor(private http: HttpClient, private cdr: ChangeDetectorRef,public CheckPermissionService:CheckPermissionService) {}
 
   ngOnInit(): void {
+     this.PermissionID = Number(localStorage.getItem('permissionID'));
     this.loadCountries();
     this.fetchPorts();
   }

@@ -234,7 +234,7 @@ selectBranch(branch: any) {
 }
 
   goToDirectory(){
-    alert('fdfdf');
+    alert('Coming Soon Please wait a while moment!');
   }
 
   private buildNav(permissions: any[]): NavItem[] {

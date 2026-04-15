@@ -336,7 +336,7 @@
       </div>
     </div>
 
-    <button (click)="openForm()"
+    <button (click)="openForm()" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Add');"
       class="bg-green-600 hover:bg-green-700 px-6 py-2 text-[14px] font-bold shadow-md flex items-center gap-2 rounded transition-all">
       <span class="text-xl">+</span> ADD NEW ORGANIZATION
     </button>
@@ -363,7 +363,7 @@
         </tr>
       </thead>
 
-      <tbody class="bg-white divide-y divide-gray-200">
+      <tbody class="bg-white divide-y divide-gray-200" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View');">
         <tr *ngFor="let org of paginatedOrganizations" class="hover:bg-blue-50 transition-colors text-gray-800">
           
           <td class="p-5 text-center text-gray-300 no-export">⠿</td>
@@ -386,8 +386,8 @@
           </td>
 
           <td class="p-5 sticky right-0 bg-white border-l text-center shadow-sm">
-            <button (click)="editOrg(org)" class="text-blue-600 mr-4 font-bold hover:underline no-export">EDIT</button>
-            <button (click)="deleteOrg(org.id)" class="text-red-600 font-bold hover:underline no-export">DELETE</button>
+            <button (click)="editOrg(org)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Edit');" class="text-blue-600 mr-4 font-bold hover:underline no-export">EDIT</button>
+            <button (click)="deleteOrg(org.id)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Delete');" class="text-red-600 font-bold hover:underline no-export">DELETE</button>
           </td>
         </tr>
 

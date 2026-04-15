@@ -1,8 +1,10 @@
+import { Permission } from './../employee/employee.component';
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { CheckPermissionService } from '../../services/check-permission.service';
 @Component({
   selector: 'app-company-service',
   standalone: true,
@@ -16,13 +18,14 @@ export class CompanyServiceComponent implements OnInit {
   currentServiceId: number | null = null;
   newServiceName: string = ''; 
   services: any[] = []; 
-  
+  PermissionID:any;
   private apiUrl = environment.apiUrl + '/CompanyService';
 
   // CDR inject kiya gaya hai
-  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
+  constructor(private http: HttpClient, private cdr: ChangeDetectorRef,public CheckPermissionService: CheckPermissionService) {}
 
   ngOnInit(): void {
+    this.PermissionID = Number(localStorage.getItem('permissionID'));
     this.fetchServices();
   }
 

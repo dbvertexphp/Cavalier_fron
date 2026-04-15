@@ -1,8 +1,10 @@
+import { Permission } from './../employee/employee.component';
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { CheckPermissionService } from '../../services/check-permission.service';
 
 @Component({
   selector: 'app-shipment-type',
@@ -17,10 +19,12 @@ export class ShipmentTypeComponent implements OnInit {
   isModalOpen = false;
   isEditMode = false;
   currentId: number | null = null;
+PermissionID:any;
+  constructor(private http: HttpClient,public CheckPermissionService:CheckPermissionService) {}
 
-  constructor(private http: HttpClient) {}
-
-  ngOnInit() { this.getData(); }
+  ngOnInit() { 
+    this.PermissionID = Number(localStorage.getItem('permissionID'));
+    this.getData(); }
 
   getData() {
     this.http.get<any[]>(this.apiUrl).subscribe({

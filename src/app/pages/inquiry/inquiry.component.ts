@@ -10,6 +10,7 @@ import { environment } from '../../../environments/environment';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import * as XLSX from 'xlsx';
+import { CheckPermissionService } from '../../services/check-permission.service';
 import { moveItemInArray, transferArrayItem, CdkDragDrop } from '@angular/cdk/drag-drop';
 import { DragDropModule } from '@angular/cdk/drag-drop'; // Ye import ensure karein
 import { Subscription } from 'rxjs';
@@ -25,6 +26,7 @@ import { UserService } from '../../services/user.service';
   export class InquiryComponent implements OnInit {
     @ViewChild('cargoDateInput') cargoDateInput!: ElementRef<HTMLInputElement>;
     getsalescordinate: any[] = [];
+    PermissionID:any;
     isDeliveryEnabled:boolean=false;
     portsOfDischarge: any[] = [];        // API se aane wala full list
 filteredPortsOfDischarge: any[] = [];
@@ -244,14 +246,16 @@ organizations: any[] = [];
   showOriginDropdown: boolean = false;
 
   allInquiryNumbers: string[] = [];
+  
   coordinators: any[] = [];
   branchesList: any[] = [];
   searchDone: boolean = false; // Shuru mein false rahega
   uploadedDocuments: any[] = [];
     // Ye line add karein
-    constructor(private http: HttpClient, private router: Router,private cdr: ChangeDetectorRef,private branchservice:BranchService,public userServices:UserService) {}
+    constructor(private http: HttpClient, private router: Router,private cdr: ChangeDetectorRef,private branchservice:BranchService,public userServices:UserService,public CheckPermissionService:CheckPermissionService) {}
 
     ngOnInit() {
+      this.PermissionID = Number(localStorage.getItem('permissionID'));
       console.log("Direct API call trigger ho rahi hai...");
     this.loadBranchess();
     this.getsales();

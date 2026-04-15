@@ -19,7 +19,7 @@ export class RolePermisionsComponent implements OnInit {
   // ===============================
 
   userId: string | null = null;
-
+isLoading:boolean=true;
   selectedEmployee: any = null;
 
   rolesList: any[] = [];
@@ -278,17 +278,55 @@ applyRolePermissionsToUI(apiData: any[]) {
   // ===============================
   // PERMISSIONS
   // ===============================
+getPermissionDisplayName(perm: any): string {
+  if (!perm) return 'N/A';
 
-  loadPermissions() {
-
-    this.http.get<any[]>(`${environment.apiUrl}/Permissions/list`)
-    .subscribe(res => {
-
-      this.permissionsList = res.filter(p => p.subMenu);
-
-    });
-
+  // Priority 1: Agar subMenu hai aur empty nahi hai → sirf subMenu dikhao
+  if (perm.subMenu && perm.subMenu.toString().trim() !== '') {
+    return perm.subMenu.trim();
   }
+
+  // Priority 2: Warna menu dikhao (jaise Organization, Branch, Settings)
+  if (perm.menu && perm.menu.toString().trim() !== '') {
+    return perm.menu.trim();
+  }
+
+  return 'Unnamed';
+}
+  loadPermissions() {
+    this.isLoading = true;
+  this.http.get<any[]>(`${environment.apiUrl}/Permissions/list`).subscribe({
+    next: (res) => {
+      
+      this.permissionsList = res.filter(p => {
+        // Basic validation
+        if (!p || !p.menu || p.menu.toString().trim() === '') {
+          return false;
+        }
+        this.isLoading = false;
+        // Exclude unwanted items
+        const excluded = ['dashboard', 'port of loading', 'port of discharge'];
+        
+        const menuLower = p.menu.toString().toLowerCase().trim();
+        const subMenuLower = p.subMenu ? p.subMenu.toString().toLowerCase().trim() : '';
+
+        // Agar excluded list mein hai toh mat dikhao
+        if (excluded.includes(menuLower) || excluded.includes(subMenuLower)) {
+          return false;
+        }
+        this.cdr.detectChanges(); // Force UI update after data load
+        return true;
+      });
+
+      console.log('✅ Final Permissions List after filter:', this.permissionsList.length, 'items');
+      console.log(this.permissionsList); // Debugging ke liye
+    },
+    error: (err) => {
+      this.isLoading = false;
+      console.error('❌ Error loading permissions:', err);
+    }
+  });
+}
 
   // ===============================
   // BRANCH TOGGLE

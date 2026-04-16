@@ -762,18 +762,31 @@ Cancel
 
     <div class="bg-white p-3 border border-gray-200">
       <label class="text-gray-700 font-bold block mb-1 uppercase">Location</label>
-      <select name="location" [(ngModel)]="quotation.location" class="w-full border p-2 mb-2 outline-none">
-        <option value="DELHI">DELHI</option>
-      </select>
+<input 
+  type="text" 
+  name="location"
+  [(ngModel)]="quotation.location" 
+  class="w-full border p-2 mb-2 outline-none"
+  placeholder="Enter Location" />
       
       <label class="text-gray-700 font-bold block mb-1 uppercase">Pricing By</label>
       <input name="pricingBy" [(ngModel)]="quotation.pricingBy" class="w-full border p-2 mb-2 outline-none">
       
-      <label class="text-gray-700 font-bold block mb-1 uppercase">Sales Coor.</label>
-      <select name="salesCoordinator" [(ngModel)]="quotation.salesCoor" class="w-full border p-2 outline-none">
-        <option value="">--Select--</option>
-        <option value="Coordinator 1">Coordinator 1</option>
-      </select>
+   <label class="text-gray-700 font-bold block mb-1 uppercase">Sales Coor.</label>
+<select 
+  [(ngModel)]="quotation.salesCoordinator" 
+  name="salesCoordinator"
+  class="flex-1 border p-1.5 outline-none text-[12px]">
+  
+  <option value="">-- Select Sales Coordinator --</option>
+  
+  <option 
+    *ngFor="let sc of getsalescordinate" 
+    [ngValue]="sc.id">     <!-- [value] → [ngValue] kar do -->
+    
+    {{ sc.firstName }} {{ sc.lastName }}
+  </option>
+</select>
     </div>
   </div>
 </div>
@@ -843,22 +856,39 @@ Cancel
       <div class="space-y-3">
         <div class="flex items-center">
           <label class="w-40 font-bold text-gray-700">Shipment Type</label>
-          <select name="shipmentType" [(ngModel)]="quotation.shipmentType" class="flex-1 border p-2 outline-none">
-            <option value="International">International</option>
-          </select>
+         <select
+                  [(ngModel)]="quotation.shipmentType"
+                  name="shipmentType"
+                  class="flex-1 border p-2 outline-none"
+                >
+                  <option value="" disabled>-- Select Shipment Type --</option>
+
+                  <option
+                    *ngFor="let type of shipmentTypes"
+                    [value]="type.id"
+                  >
+                    {{ type.name }}
+                  </option>
+                </select>
         </div>
 
         <div class="flex flex-col gap-4">
           <div class="flex items-center">
             <label class="w-40 font-bold text-gray-700">Commodity</label>
-            <select name="commodity" [(ngModel)]="quotation.commodity" class="flex-1 border p-2 outline-none">
-              <option value="" disabled selected>Select Commodity</option>
-              <option value="Hazard">Hazard</option>
-              <option value="Non-Hazard">Non-Hazard</option>
-              <option value="Perishable">Perishable</option>
-              <option value="General">General</option>
-              <option value="Temperature Controlled">Temperature Controlled</option>
-            </select>
+           <select
+  [(ngModel)]="quotation.commodity"
+  name="commodity"
+  class="flex-1 border p-2 outline-none">
+
+  <option value="" disabled>Select Commodity</option>
+
+  <option
+    *ngFor="let type of commodityTypes"
+    [ngValue]="type.id">           <!-- ← [value] ko [ngValue] kar do -->
+    
+    {{ type.name }}
+  </option>
+</select>
           </div>
 
           <div *ngIf="quotation.commodity === 'Hazard'" class="flex items-center animate-in fade-in slide-in-from-top-2 duration-300">
@@ -923,7 +953,7 @@ Cancel
         <div class="flex items-center gap-2">
           <label class="w-40 font-bold text-gray-700">Dimensions</label>
           <div class="flex flex-1 items-center gap-1">
-            <input type="number" name="dimL" [(ngModel)]="quotation.dimL" placeholder="BOX" class="w-full border p-2 outline-none text-center">
+            <input type="number" name="dimL" [(ngModel)]="quotation.dimBox" placeholder="BOX" class="w-full border p-2 outline-none text-center">
             
             <input type="number" name="dimL" [(ngModel)]="quotation.dimL" placeholder="L" class="w-full border p-2 outline-none text-center">
              <span class="text-gray-400 font-bold">x</span>
@@ -987,7 +1017,7 @@ Cancel
         <div class="flex items-center gap-2">
           <label class="w-40 font-bold text-gray-700">Volume Weight</label>
           <div class="flex flex-1">
-            <input type="number" name="chargeableWeightKg" [(ngModel)]="quotation.chargeableWeightKg" class="w-full border p-2 outline-none">
+            <input type="number"  name="chargeableWeightKg" [(ngModel)]="quotation.chargeableWeightKg" class="w-full border p-2 outline-none">
             <div class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1">
               <select name="volumeWeightUnit" [(ngModel)]="quotation.volumeWeightUnit" class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
                 <option value="KGS">KGS</option><option value="CBM">CBM</option>
@@ -1024,12 +1054,21 @@ Cancel
   </div>
   <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-10 bg-white">
     <div class="space-y-3">
-      <div class="flex items-center">
-        <label class="w-40 font-bold text-red-700">Movement</label>
-        <select name="movementType" [(ngModel)]="quotation.movement" class="flex-1 border p-2 border-red-300 outline-none">
-          <option>Door-to-Door</option>
-        </select>
+       <div class="flex items-center">
+        <label class="w-40 font-bold text-gray-700">IncoTerms</label>
+        <select
+                  [(ngModel)]="quotation.incoterm"
+                  (change)="onIncotermChange($event)"
+                  name="incoterm"
+                  class="flex-1 border p-2 outline-none"
+                >
+                  <option value="" disabled>-- Select IncoTerm --</option>
+                  <option *ngFor="let term of incoTerms" [value]="term.name">
+                    {{ term.name }}
+                  </option>
+                </select>
       </div>
+      
       <div class="flex items-center">
         <label class="w-40 font-bold text-gray-700">Carrier Name</label>
         <input name="awbIssuedBy" [(ngModel)]="quotation.awbIssuedBy" class="flex-1 border p-2 outline-none">
@@ -1062,10 +1101,19 @@ Cancel
 
     <div class="space-y-3">
       <div class="flex items-center">
-        <label class="w-40 font-bold text-gray-700">IncoTerms</label>
-        <select name="incoterm" [(ngModel)]="quotation.incoTerms" class="flex-1 border p-2 outline-none">
-          <option>EXW</option>
-        </select>
+       <label class="w-40 font-bold text-red-700">Movement</label>
+<select
+  [(ngModel)]="quotation.movementType" 
+  name="movementType"
+  class="flex-1 border p-2 outline-none">
+  
+  <option value="" disabled>-- Select Movement Type --</option>
+  <option
+    *ngFor="let move of movementTypes"
+    [value]="move.name">                   <!-- string value -->
+    {{ move.name }}
+  </option>
+</select>
       </div>
       <div class="flex items-center">
         <label class="w-40 font-bold text-gray-700">Carrier / Agent</label>
@@ -1077,172 +1125,77 @@ Cancel
     <div class="flex flex-1 border border-gray-300 rounded-md overflow-hidden focus-within:border-blue-500">
         
         <!-- Currency Dropdown with Symbol -->
-        <select 
-            name="currency"
-            [(ngModel)]="quotation.currency" 
-            class="border-r p-3 outline-none bg-gray-50 text-gray-700 w-56 max-h-60 overflow-y-auto">
-            
-            <option value="">Select Currency</option>
-            
-            <!-- Major & Commonly Used Currencies (Recommended pehle) -->
-            <option value="INR">₹ INR - Indian Rupee</option>
-            <option value="USD">$ USD - United States Dollar</option>
-            <option value="EUR">€ EUR - Euro</option>
-            <option value="GBP">£ GBP - British Pound Sterling</option>
-            <option value="AED">د.إ AED - UAE Dirham</option>
-            <option value="SGD">$ SGD - Singapore Dollar</option>
-            <option value="CAD">$ CAD - Canadian Dollar</option>
-            <option value="AUD">$ AUD - Australian Dollar</option>
-            <option value="JPY">¥ JPY - Japanese Yen</option>
-            <option value="CNY">¥ CNY - Chinese Yuan</option>
-            <option value="CHF">CHF - Swiss Franc</option>
-            
-            <!-- Rest of the World Currencies (Alphabetical order) -->
-            <option value="AFN">؋ AFN - Afghan Afghani</option>
-            <option value="ALL">Lek ALL - Albanian Lek</option>
-            <option value="AMD">֏ AMD - Armenian Dram</option>
-            <option value="ANG">ƒ ANG - Netherlands Antillean Guilder</option>
-            <option value="AOA">Kz AOA - Angolan Kwanza</option>
-            <option value="ARS">$ ARS - Argentine Peso</option>
-            <option value="AWG">ƒ AWG - Aruban Florin</option>
-            <option value="AZN">₼ AZN - Azerbaijani Manat</option>
-            <option value="BAM">KM BAM - Bosnia-Herzegovina Convertible Mark</option>
-            <option value="BBD">$ BBD - Barbadian Dollar</option>
-            <option value="BDT">৳ BDT - Bangladeshi Taka</option>
-            <option value="BGN">лв BGN - Bulgarian Lev</option>
-            <option value="BHD">.د.ب BHD - Bahraini Dinar</option>
-            <option value="BIF">FBu BIF - Burundian Franc</option>
-            <option value="BMD">$ BMD - Bermudian Dollar</option>
-            <option value="BND">$ BND - Brunei Dollar</option>
-            <option value="BOB">Bs. BOB - Bolivian Boliviano</option>
-            <option value="BRL">R$ BRL - Brazilian Real</option>
-            <option value="BSD">$ BSD - Bahamian Dollar</option>
-            <option value="BTN">Nu. BTN - Bhutanese Ngultrum</option>
-            <option value="BWP">P BWP - Botswana Pula</option>
-            <option value="BYN">Br BYN - Belarusian Ruble</option>
-            <option value="BZD">$ BZD - Belize Dollar</option>
-            <option value="CDF">FC CDF - Congolese Franc</option>
-            <option value="CLP">$ CLP - Chilean Peso</option>
-            <option value="COP">$ COP - Colombian Peso</option>
-            <option value="CRC">₡ CRC - Costa Rican Colón</option>
-            <option value="CUP">$ CUP - Cuban Peso</option>
-            <option value="CVE">Esc CVE - Cape Verdean Escudo</option>
-            <option value="CZK">Kč CZK - Czech Koruna</option>
-            <option value="DJF">Fdj DJF - Djiboutian Franc</option>
-            <option value="DKK">kr DKK - Danish Krone</option>
-            <option value="DOP">$ DOP - Dominican Peso</option>
-            <option value="DZD">د.ج DZD - Algerian Dinar</option>
-            <option value="EGP">E£ EGP - Egyptian Pound</option>
-            <option value="ERN">Nfk ERN - Eritrean Nakfa</option>
-            <option value="ETB">Br ETB - Ethiopian Birr</option>
-            <option value="FJD">$ FJD - Fijian Dollar</option>
-            <option value="FKP">£ FKP - Falkland Islands Pound</option>
-            <option value="GEL">₾ GEL - Georgian Lari</option>
-            <option value="GHS">₵ GHS - Ghanaian Cedi</option>
-            <option value="GIP">£ GIP - Gibraltar Pound</option>
-            <option value="GMD">D GMD - Gambian Dalasi</option>
-            <option value="GNF">FG GNF - Guinean Franc</option>
-            <option value="GTQ">Q GTQ - Guatemalan Quetzal</option>
-            <option value="GYD">$ GYD - Guyanaese Dollar</option>
-            <option value="HKD">$ HKD - Hong Kong Dollar</option>
-            <option value="HNL">L HNL - Honduran Lempira</option>
-            <option value="HRK">kn HRK - Croatian Kuna</option>
-            <option value="HTG">G HTG - Haitian Gourde</option>
-            <option value="HUF">Ft HUF - Hungarian Forint</option>
-            <option value="IDR">Rp IDR - Indonesian Rupiah</option>
-            <option value="ILS">₪ ILS - Israeli New Shekel</option>
-            <option value="IQD">ع.د IQD - Iraqi Dinar</option>
-            <option value="IRR">﷼ IRR - Iranian Rial</option>
-            <option value="ISK">kr ISK - Icelandic Króna</option>
-            <option value="JMD">$ JMD - Jamaican Dollar</option>
-            <option value="JOD">د.ا JOD - Jordanian Dinar</option>
-            <option value="KES">Sh KES - Kenyan Shilling</option>
-            <option value="KGS">с KGS - Kyrgyzstani Som</option>
-            <option value="KHR">៛ KHR - Cambodian Riel</option>
-            <option value="KMF">CF KMF - Comorian Franc</option>
-            <option value="KPW">₩ KPW - North Korean Won</option>
-            <option value="KRW">₩ KRW - South Korean Won</option>
-            <option value="KWD">د.ك KWD - Kuwaiti Dinar</option>
-            <option value="KYD">$ KYD - Cayman Islands Dollar</option>
-            <option value="KZT">₸ KZT - Kazakhstani Tenge</option>
-            <option value="LAK">₭ LAK - Lao Kip</option>
-            <option value="LBP">ل.ل LBP - Lebanese Pound</option>
-            <option value="LKR">Rs LKR - Sri Lankan Rupee</option>
-            <option value="LRD">$ LRD - Liberian Dollar</option>
-            <option value="LSL">L LSL - Lesotho Loti</option>
-            <option value="LYD">ل.د LYD - Libyan Dinar</option>
-            <option value="MAD">د.م. MAD - Moroccan Dirham</option>
-            <option value="MDL">L MDL - Moldovan Leu</option>
-            <option value="MGA">Ar MGA - Malagasy Ariary</option>
-            <option value="MKD">ден MKD - Macedonian Denar</option>
-            <option value="MMK">K MMK - Myanmar Kyat</option>
-            <option value="MNT">₮ MNT - Mongolian Tugrik</option>
-            <option value="MOP">P MOP - Macanese Pataca</option>
-            <option value="MRU">UM MRU - Mauritanian Ouguiya</option>
-            <option value="MUR">₨ MUR - Mauritian Rupee</option>
-            <option value="MVR">Rf MVR - Maldivian Rufiyaa</option>
-            <option value="MWK">MK MWK - Malawian Kwacha</option>
-            <option value="MXN">$ MXN - Mexican Peso</option>
-            <option value="MYR">RM MYR - Malaysian Ringgit</option>
-            <option value="MZN">MT MZN - Mozambican Metical</option>
-            <option value="NAD">$ NAD - Namibian Dollar</option>
-            <option value="NGN">₦ NGN - Nigerian Naira</option>
-            <option value="NIO">C$ NIO - Nicaraguan Córdoba</option>
-            <option value="NOK">kr NOK - Norwegian Krone</option>
-            <option value="NPR">₨ NPR - Nepalese Rupee</option>
-            <option value="NZD">$ NZD - New Zealand Dollar</option>
-            <option value="OMR">ر.ع. OMR - Omani Rial</option>
-            <option value="PAB">B/. PAB - Panamanian Balboa</option>
-            <option value="PEN">S/. PEN - Peruvian Sol</option>
-            <option value="PGK">K PGK - Papua New Guinean Kina</option>
-            <option value="PHP">₱ PHP - Philippine Peso</option>
-            <option value="PKR">₨ PKR - Pakistani Rupee</option>
-            <option value="PLN">zł PLN - Polish Zloty</option>
-            <option value="PYG">₲ PYG - Paraguayan Guarani</option>
-            <option value="QAR">ر.ق QAR - Qatari Rial</option>
-            <option value="RON">lei RON - Romanian Leu</option>
-            <option value="RSD">дин. RSD - Serbian Dinar</option>
-            <option value="RUB">₽ RUB - Russian Ruble</option>
-            <option value="RWF">FRw RWF - Rwandan Franc</option>
-            <option value="SAR">﷼ SAR - Saudi Riyal</option>
-            <option value="SBD">$ SBD - Solomon Islands Dollar</option>
-            <option value="SCR">₨ SCR - Seychellois Rupee</option>
-            <option value="SDG">ج.س. SDG - Sudanese Pound</option>
-            <option value="SEK">kr SEK - Swedish Krona</option>
-            <option value="SHP">£ SHP - Saint Helena Pound</option>
-            <option value="SLE">Le SLE - Sierra Leonean Leone</option>
-            <option value="SOS">Sh SOS - Somali Shilling</option>
-            <option value="SRD">$ SRD - Surinamese Dollar</option>
-            <option value="SSP">£ SSP - South Sudanese Pound</option>
-            <option value="STN">Db STN - São Tomé & Príncipe Dobra</option>
-            <option value="SYP">£ SYP - Syrian Pound</option>
-            <option value="SZL">E SZL - Swazi Lilangeni</option>
-            <option value="THB">฿ THB - Thai Baht</option>
-            <option value="TJS">ЅМ TJS - Tajikistani Somoni</option>
-            <option value="TMT">m TMT - Turkmenistani Manat</option>
-            <option value="TND">د.ت TND - Tunisian Dinar</option>
-            <option value="TOP">T$ TOP - Tongan Paʻanga</option>
-            <option value="TRY">₺ TRY - Turkish Lira</option>
-            <option value="TTD">$ TTD - Trinidad & Tobago Dollar</option>
-            <option value="TWD">$ TWD - New Taiwan Dollar</option>
-            <option value="TZS">Sh TZS - Tanzanian Shilling</option>
-            <option value="UAH">₴ UAH - Ukrainian Hryvnia</option>
-            <option value="UGX">Sh UGX - Ugandan Shilling</option>
-            <option value="UYU">$ UYU - Uruguayan Peso</option>
-            <option value="UZS">сўм UZS - Uzbekistani Som</option>
-            <option value="VES">Bs. VES - Venezuelan Bolívar Soberano</option>
-            <option value="VND">₫ VND - Vietnamese Dong</option>
-            <option value="VUV">VT VUV - Vanuatu Vatu</option>
-            <option value="WST">T WST - Samoan Tala</option>
-            <option value="XAF">FCFA XAF - Central African CFA Franc</option>
-            <option value="XCD">$ XCD - East Caribbean Dollar</option>
-            <option value="XOF">CFA XOF - West African CFA Franc</option>
-            <option value="XPF">₣ XPF - CFP Franc</option>
-            <option value="YER">﷼ YER - Yemeni Rial</option>
-            <option value="ZAR">R ZAR - South African Rand</option>
-            <option value="ZMW">ZK ZMW - Zambian Kwacha</option>
-            <option value="ZWL">$ ZWL - Zimbabwean Dollar</option>
-        </select>
+        <select
+                    name="currency"
+                    [(ngModel)]="quotation.currency"
+                    class="border-r p-2 outline-none bg-gray-50 text-gray-700 w-52"
+                  >
+                    <option value="">Select Currency</option>
+
+                    <!-- Major Currencies (Recommended first) -->
+                    <option value="₹ INR - Indian Rupee">₹ INR - Indian Rupee</option>
+                    <option value="$ USD - United States Dollar">$ USD - United States Dollar</option>
+                    <option value="€ EUR - Euro">€ EUR - Euro</option>
+                    <option value="£ GBP - British Pound Sterling">£ GBP - British Pound Sterling</option>
+                    <option value="د.إ AED - UAE Dirham">د.إ AED - UAE Dirham</option>
+                    <option value="$ SGD - Singapore Dollar">$ SGD - Singapore Dollar</option>
+                    <option value="$ CAD - Canadian Dollar">$ CAD - Canadian Dollar</option>
+                    <option value="$ AUD - Australian Dollar">$ AUD - Australian Dollar</option>
+                    <option value="¥ JPY - Japanese Yen">¥ JPY - Japanese Yen</option>
+                    <option value="¥ CNY - Chinese Yuan">¥ CNY - Chinese Yuan</option>
+
+                    <!-- Other Currencies (scrollable) -->
+                    <option value="؋ AFN - Afghan Afghani">؋ AFN - Afghan Afghani</option>
+<option value="$ ARS - Argentine Peso">$ ARS - Argentine Peso</option>
+<option value="R$ BRL - Brazilian Real">R$ BRL - Brazilian Real</option>
+<option value="CHF - Swiss Franc">CHF - Swiss Franc</option>
+<option value="$ HKD - Hong Kong Dollar">$ HKD - Hong Kong Dollar</option>
+<option value="Rp IDR - Indonesian Rupiah">Rp IDR - Indonesian Rupiah</option>
+<option value="₩ KRW - South Korean Won">₩ KRW - South Korean Won</option>
+<option value="$ MXN - Mexican Peso">$ MXN - Mexican Peso</option>
+<option value="RM MYR - Malaysian Ringgit">RM MYR - Malaysian Ringgit</option>
+<option value="kr NOK - Norwegian Krone">kr NOK - Norwegian Krone</option>
+<option value="$ NZD - New Zealand Dollar">$ NZD - New Zealand Dollar</option>
+<option value="₱ PHP - Philippine Peso">₱ PHP - Philippine Peso</option>
+<option value="₨ PKR - Pakistani Rupee">₨ PKR - Pakistani Rupee</option>
+<option value="₽ RUB - Russian Ruble">₽ RUB - Russian Ruble</option>
+<option value="﷼ SAR - Saudi Riyal">﷼ SAR - Saudi Riyal</option>
+<option value="kr SEK - Swedish Krona">kr SEK - Swedish Krona</option>
+<option value="฿ THB - Thai Baht">฿ THB - Thai Baht</option>
+<option value="₺ TRY - Turkish Lira">₺ TRY - Turkish Lira</option>
+<option value="R ZAR - South African Rand">R ZAR - South African Rand</option>
+
+<!-- Ab baaki currencies bhi same format mein -->
+
+<option value="A$ AUD - Australian Dollar">A$ AUD - Australian Dollar</option>
+<option value="R$ BRL - Brazilian Real">R$ BRL - Brazilian Real</option>
+<option value="CA$ CAD - Canadian Dollar">CA$ CAD - Canadian Dollar</option>
+<option value="¥ CNY - Chinese Yuan">¥ CNY - Chinese Yuan</option>
+<option value="€ EUR - Euro">€ EUR - Euro</option>
+<option value="£ GBP - British Pound Sterling">£ GBP - British Pound Sterling</option>
+<option value="₹ INR - Indian Rupee">₹ INR - Indian Rupee</option>
+<option value="¥ JPY - Japanese Yen">¥ JPY - Japanese Yen</option>
+<option value="₩ KRW - South Korean Won">₩ KRW - South Korean Won</option>
+<option value="RM MYR - Malaysian Ringgit">RM MYR - Malaysian Ringgit</option>
+<option value="$ USD - US Dollar">$ USD - US Dollar</option>
+<option value="AED - United Arab Emirates Dirham">AED - United Arab Emirates Dirham</option>
+<option value="BDT - Bangladeshi Taka">BDT - Bangladeshi Taka</option>
+<option value="EGP - Egyptian Pound">EGP - Egyptian Pound</option>
+<option value="GHS - Ghanaian Cedi">GHS - Ghanaian Cedi</option>
+<option value="IDR - Indonesian Rupiah">IDR - Indonesian Rupiah</option>
+<option value="KES - Kenyan Shilling">KES - Kenyan Shilling</option>
+<option value="LKR - Sri Lankan Rupee">LKR - Sri Lankan Rupee</option>
+<option value="MAD - Moroccan Dirham">MAD - Moroccan Dirham</option>
+<option value="NGN - Nigerian Naira">NGN - Nigerian Naira</option>
+<option value="PHP - Philippine Peso">PHP - Philippine Peso</option>
+<option value="PKR - Pakistani Rupee">PKR - Pakistani Rupee</option>
+<option value="RUB - Russian Ruble">RUB - Russian Ruble</option>
+<option value="SAR - Saudi Riyal">SAR - Saudi Riyal</option>
+<option value="SGD - Singapore Dollar">SGD - Singapore Dollar</option>
+<option value="TRY - Turkish Lira">TRY - Turkish Lira</option>
+<option value="ZAR - South African Rand">ZAR - South African Rand</option>
+                    <!-- Agar aur chahiye toh pehle wale message se copy kar sakte ho -->
+                  </select>
 
         <!-- Amount Input -->
         <input 

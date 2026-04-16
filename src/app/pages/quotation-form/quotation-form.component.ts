@@ -7,7 +7,7 @@ import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-
+import { UserService } from '../../services/user.service';
 import {
 CdkDragDrop,
 moveItemInArray,
@@ -28,14 +28,20 @@ import { Subscription } from 'rxjs';
 })
 export class QuotationFormComponent implements OnInit {
   token:string='';
+  getsalescordinate: any[] = [];
+    shipmentTypes: any[] = [];
+    commodityTypes: any[] = [];
   PermissionID:any;
   currentPage: number = 1;
   pageSize: number = 10;
   searchDone: boolean = false;
   isFormOpen = false;
+   movementTypes: any[] = [];
+  isPickupEnabled: boolean = false; 
  private apiEndpoint = `${environment.apiUrl}/Quotations`;
 // -- Dropdown Control Variables --
 companyServices:any[]=[]
+isDeliveryEnabled:boolean=false;
   showDropdown = false;
   organizations: any[] = [];
   filteredOrganizations: any[] = [];
@@ -47,6 +53,7 @@ companyServices:any[]=[]
   allInquiries: any[] = [];
 filteredInquiries: any[] = [];
 services: any[] = [];
+  incoTerms: any[] = [];
 private serviceApiUrl = environment.apiUrl + '/CompanyService';
 showInquiryDropdown: boolean = false;
   // --- Search & Advanced Filter Logic (Fixes 'filters' errors) ---
@@ -225,7 +232,7 @@ quotedByList: string[] = []; // Suggestions ke liye
 organizationList: string[] = [];
   quotationNoList: string[] = [];
 quotationss: any = this.resetQuotationModel();
-  constructor(private http: HttpClient, private router: Router, private cdr: ChangeDetectorRef,public CheckPermissionService:CheckPermissionService) {
+  constructor(private http: HttpClient, private router: Router, private cdr: ChangeDetectorRef,public CheckPermissionService:CheckPermissionService,public userServices:UserService) {
     this.initTableRows();
   }
   showColumnModal = false;
@@ -248,7 +255,11 @@ closeColumnModal(){
 }
 sortOrders:any = {};
   ngOnInit() {
-
+    this.getCommodityTypes();
+    this.getIncoTerms();
+    this.getMovementTypes();
+    this.getShipmentTypes();
+this.getsales();
   this.gettoken();
 
     this.loadBranchess();
@@ -345,6 +356,15 @@ console.error("Save error",err);
 });
 
 }
+getMovementTypes() {
+    // Hits: https://localhost:xxxx/api/MovementTypes
+    this.http.get<any[]>(`${environment.apiUrl}/MovementTypes`).subscribe({
+      next: (data) => {
+        this.movementTypes = data;
+      },
+      error: (err) => console.error('Error fetching Movement Types:', err)
+    });
+  }
 
 loadColumnSettings(){
 
@@ -522,7 +542,50 @@ sortColumn(column:string){
 
   this.cdr.detectChanges();
 }
+ onIncotermChange(event: any) {
+  const selectedIncoterm = event.target.value?.toUpperCase().trim();
 
+  if (!selectedIncoterm) return;
+
+  this.quotation.incoterm = selectedIncoterm;
+
+  console.log(`Incoterm changed to: ${selectedIncoterm}`);
+  if(selectedIncoterm === 'DDP' || selectedIncoterm === 'DDU' || selectedIncoterm === 'DAP'){ 
+    this.isDeliveryEnabled = true;
+  } 
+  else {
+    this.isDeliveryEnabled = false;
+    this.quotation.deliveryAddress = '';
+  }
+
+
+  // 🔥 Updated Logic as per your requirement
+  switch (selectedIncoterm) {
+    
+    // PORT TO PORT
+    case 'FOB':
+    
+      this.quotation.movementType = 'PORT TO PORT';
+      this.isPickupEnabled = false;
+      this.quotation.pickupAddress='';
+      break;
+
+    // DOOR TO PORT
+    case 'EXWORK':
+      
+      this.quotation.movementType = 'DOOR TO PORT';
+      this.isPickupEnabled = true;
+      break;
+
+    // DOOR TO DOOR (Default for everything else)
+    default:
+      this.quotation.movementType = 'DOOR TO DOOR';
+      this.isPickupEnabled = false;
+      this.quotation.pickupAddress='';
+  }
+
+  console.log(`→ Movement Type Auto Selected: ${this.quotation.movementType}`);
+}
   // 2. Search Logic
 onInquirySearchInput() {
   if (this.quotation.referenceByInquiry && this.quotation.referenceByInquiry.length > 0) {
@@ -543,82 +606,155 @@ onInquirySearchInput() {
 // 3. Selection Logic - UPDATED & IMPROVED
 selectInquiry(inq: any) {
   
-  // Basic fields set karo (dropdown ke liye)
+  if (!inq || !inq.inquiryNo) {
+    console.error("Invalid inquiry data");
+    return;
+  }
+
+  // Basic fields
   this.quotation.referenceByInquiry = inq.inquiryNo || '';
   this.quotation.customerName = inq.customerName || '';
+  this.quotation.organization = inq.customerName || '';   // Mostly customer hi organization hota hai
 
   this.showInquiryDropdown = false;
   this.cdr.detectChanges();
 
   const inquiryNo = inq.inquiryNo?.trim();
-  if (!inquiryNo) {
-    console.error("InquiryNo is missing");
-    return;
-  }
+  if (!inquiryNo) return;
 
-  // Full Inquiry Details fetch karo
   const url = `${environment.apiUrl}/Inquiry/by-no?inquiryNo=${inquiryNo}`;
 
   this.http.get<any>(url).subscribe({
     next: (fullData) => {
-      console.log("✅ Full Inquiry Data Received:", fullData);
+      console.log("✅ Full Inquiry Data:", fullData);
 
-      // ====================== AUTO FILL START ======================
-      
-      // Important Fields from Inquiry → Quotation
+      // ====================== IMPROVED AUTO FILL ======================
+
       this.quotation.transportMode     = fullData.transportMode || '';
       this.quotation.transportType     = fullData.transportType || '';
       this.quotation.shipmentType      = fullData.shipmentType || '';
-      this.quotation.movement          = fullData.movementType || fullData.movement || '';   // movementType ya movement
-      this.quotation.incoterm          = fullData.incoterm || fullData.incoTerms || '';
+      
+      // Movement
+      // ====================== MOVEMENT FIX ======================
+this.quotation.movementType = fullData.movementType 
+  ? fullData.movementType.trim() 
+  : '';
+
+// Agar movementType field na ho toh movement se bhi try karo (backup)
+if (!this.quotation.movementType && fullData.movement) {
+  this.quotation.movementType = fullData.movement.trim();
+}
+
+console.log("Movement Type Set To:", this.quotation.movementType); // Debug ke liye
+
+      // Incoterm (dono possible names handle kiye)
+      this.quotation.incoterm          = fullData.incoterm || fullData.incoTerms || fullData.incoterm || '';
+
       this.quotation.description       = fullData.description || '';
       this.quotation.pickupAddress     = fullData.pickupAddress || '';
       this.quotation.placeOfDelivery   = fullData.placeOfDelivery || '';
-      this.quotation.podFinalDest      = fullData.finalDestination || '';   // finalDestination → podFinalDest
+      this.quotation.podFinalDest      = fullData.finalDestination || '';
       this.quotation.location          = fullData.location || '';
-
-      // Weight & Package Details
-      this.quotation.numOfPackages     = fullData.noOfPkgs || 0;
-      this.quotation.grossWeight       = fullData.grossWeightKg || 0;
+this.quotation.currency = (fullData.cargoCurrency || '').trim();
+this.quotation.cargoValue = fullData.cargoValue || '';
+this.quotation.chargeableWeightKg=fullData.volumeWeight || '';
+      // Weight & Packages
+      this.quotation.noOfPkgs          = fullData.noOfPkgs || 0;
+      this.quotation.grossWeightKg     = fullData.grossWeightKg || 0;
       this.quotation.netWeight         = fullData.netWeight || 0;
-      this.quotation.chrgWeight        = fullData.chargeableWeight || 0;
+      this.quotation.chargeableWeight  = fullData.chargeableWeight || 0;
       this.quotation.volumeWeight      = fullData.volumeWeight || 0;
 
-      // IDs (agar dropdowns ya foreign keys hain)
-      this.quotation.originPOL         = fullData.originId || '';           // ya origin name
-      this.quotation.portOfLoading     = fullData.portOfLoadingId || '';
-      this.quotation.portOfDischarge   = fullData.portOfDischargeId || '';
-      this.quotation.commodity         = fullData.commodityId || '';
+      // Important IDs / Names
+      this.quotation.originPOL         = fullData.originName || '';           // Origin
+      this.quotation.portOfLoading     = fullData.portOfLoadingName || '';    // POL
+      this.quotation.portOfDischarge   = fullData.portOfDischargeName || '';  // POD
+      this.quotation.commodity = fullData.commodityId 
+  ? Number(fullData.commodityId)     // String ko Number mein convert (safe)
+  : null;
 
-      // Boolean / Other fields
-      this.quotation.isServiceRequired = fullData.isServiceRequired ?? true;
+      // Business & Other
+      this.quotation.businessDimensions = fullData.businessDimensions || '';
+      this.quotation.isServiceRequired  = fullData.isServiceRequired ?? true;
+      this.quotation.partyRole          = fullData.partyRole || '';
 
-      // Sales & Pricing related (agar chahiye)
-      // this.quotation.salesCoor      = fullData.salesCoordinator || '';
-      // this.quotation.pricingBy      = fullData.pricingDoneBy || '';
-      // this.quotation.qtnDoneBy      = fullData.qtnDoneBy || '';
+      // Sales Related
+      // Sales Related section mein yeh line change kar do
+this.quotation.salesCoordinator = fullData.salesCoordinator 
+  ? Number(fullData.salesCoordinator)     // String ko Number mein convert karo
+  : null;
+      this.quotation.pricingBy         = fullData.pricingDoneBy || '';
+      this.quotation.qtnDoneBy         = fullData.qtnDoneBy || '';
 
-      // ====================== AUTO FILL END ======================
+      // Cargo Status
+      this.quotation.cargoStatus       = fullData.cargoStatus || 'Pending';
 
+      // Extra fields jo aapke form mein hain
+      this.quotation.placeOfReceipt    = fullData.placeOfReceipt || '';
+      this.quotation.transitDest       = fullData.transitDest || '';
+      this.quotation.transitDays       = fullData.transitDays || '';
+// ====================== DIMENSIONS AUTOFILL ======================
+if (fullData.dimensions && fullData.dimensions.length > 0) {
+
+  const dims = fullData.dimensions;
+
+  if (dims.length === 1) {
+    // Sirf ek dimension hai → Main inputs mein fill karo
+    const d = dims[0];
+    
+    this.quotation.dimBox = d.box || 0;   // agar BOX field hai
+    this.quotation.dimL   = d.l || 0;
+    this.quotation.dimW   = d.w || 0;
+    this.quotation.dimH   = d.h || 0;
+    
+    // Unit ko bhi set kar sakte ho agar quotation model mein hai
+    this.quotation.dimUnit = d.unit || 'CMS';
+
+    console.log("✅ Single Dimension autofilled in main inputs");
+  } 
+  else if (dims.length > 1) {
+    // Multiple dimensions hain → Modal ke dimRows mein load karo
+    this.dimRows = dims.map((d: any) => ({
+      box: d.box || null,
+      l:   d.l || null,
+      w:   d.w || null,
+      h:   d.h || null,
+      unit: d.unit || 'CMS'
+    }));
+
+    console.log("✅ Multiple Dimensions loaded in modal (", dims.length, "rows)");
+  }
+} 
+else {
+  // No dimensions → Default empty row
+  this.dimRows = [{ box: null, l: null, w: null, h: null, unit: 'CMS' }];
+}
       this.cdr.detectChanges();
 
-      console.log("✅ Quotation auto-filled successfully from Inquiry!");
+      console.log("✅ Quotation Auto-filled successfully from Inquiry!");
     },
 
     error: (err) => {
       console.error("❌ Error fetching full inquiry:", err);
-      
       if (err.status === 404) {
         alert(`Inquiry not found: ${inquiryNo}`);
       } else {
-        alert("Failed to load complete inquiry details. Please check console.");
+        alert("Failed to load inquiry details. Please check console.");
       }
     }
   });
 }
   // --- Lead API Call ---
  // --- Lead API Call ---
- 
+  getCommodityTypes() {
+     // Hits: https://localhost:xxxx/api/CommodityType
+     this.http.get<any[]>(`${environment.apiUrl}/CommodityType`).subscribe({
+       next: (data) => {
+         this.commodityTypes = data;
+       },
+       error: (err) => console.error('Error fetching Commodities:', err)
+     });
+   }
 fetchLeads() {
     // 2. URL ko environment se access karein
     const url = `${environment.apiUrl}/Leads`;
@@ -628,7 +764,15 @@ fetchLeads() {
       console.log(data)
     });
   }
-
+getShipmentTypes() {
+    // This hits: https://localhost:xxxx/api/ShipmentTypes
+    this.http.get<any[]>(`${environment.apiUrl}/ShipmentTypes`).subscribe({
+      next: (data) => {
+        this.shipmentTypes = data;
+      },
+      error: (err) => console.error('Error fetching Shipment Types:', err)
+    });
+  }
 // --- Lead Search Logic (FIXED) ---
 onLeadSearchInput() {
   // 'leadSearchTerm' ki jagah ab 'quotation.lead' use kar rahe hain
@@ -1094,7 +1238,7 @@ resetQuotationModel() {
     cargoStatus: '',
     location: '',
     pricingBy: '',
-    salesCoor: '',
+    salesCoordinator: '',
     lead: '',
     businessDimensions: '',
     transportMode: '',
@@ -1115,6 +1259,7 @@ resetQuotationModel() {
     volumeWeightUnit: 'CBM',
     isServiceRequired: true,
     movement: '',
+    movementType:'',
     awbIssuedBy: '',
     transitDest: '',
     placeOfReceipt: '',
@@ -1385,6 +1530,20 @@ onDocumentClick(event: MouseEvent) {
 }
 
 // 1. PDF DOWNLOAD LOGIC
+getsales(): void {
+  // Teri API call
+  this.userServices.getUsers('onlyuserdata').subscribe({
+    next: (data: any) => {
+      // API se aane wala data leadOwners mein assign kar diya
+      this.getsalescordinate = data; 
+      console.log('Lead Owners loaded:', this.getsalescordinate);
+          this.cdr.detectChanges(); 
+    },
+    error: (err) => {
+      console.error('Error loading users:', err);
+    }
+  });
+}
 downloadInquiriesPDF() {
   this.isExportOpen = false;
 
@@ -1871,7 +2030,14 @@ branchList: any[] = [];
       b.branchName?.toLowerCase().includes(search)
     );
   }
-
+getIncoTerms() {
+    this.http.get<any[]>(`${environment.apiUrl}/IncoTerms`).subscribe({
+      next: (data) => {
+        this.incoTerms = data;
+      },
+      error: (err) => console.error('Error fetching IncoTerms:', err)
+    });
+  }
   toggleBranchModal() { this.isBranchModalOpen = !this.isBranchModalOpen; }
   toggleBranchSelection(branch: any) { branch.isSelected = !branch.isSelected; }
   

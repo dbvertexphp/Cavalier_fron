@@ -30,6 +30,7 @@ import { UserService } from '../../services/user.service';
     isDeliveryEnabled:boolean=false;
     portsOfDischarge: any[] = [];        // API se aane wala full list
 filteredPortsOfDischarge: any[] = [];
+originsaveid:number=0;
 showPortOfDischargeDropdown: boolean = false;
 portsOfLoading: any[] = [];               // Full list from API
 filteredPortsOfLoading: any[] = [];
@@ -568,6 +569,7 @@ onOriginSearchInput() {
 
   // --- Selection Logic ---
   selectOrigin(origin: any) {
+    this.originsaveid=origin.id;
     this.inquiry.origin = origin.name; // Ya jo bhi field origin ka naam ho (e.g., org.name)
     this.showOriginDropdown = false;
   }
@@ -826,7 +828,8 @@ const payload = {
    HazardDocPath: this.quotation.hazardDocPath || null,
    weightUnit: this.quotation.GrossweightUnit || 'KGS',
   // id: Number(this.quotation.id) || 0,
-  
+  cargocurrency:this.quotation.currency || 'INR',
+  cargoValue: this.quotation.cargoValue.toString() || 0,
   // Foreign Key IDs - Hardcoded to 3 or null
   lineOfBusinessId: this.quotation.lineOfBusinessId ? Number(this.quotation.lineOfBusinessId) : null,
   lineOfBusinessName: this.quotation.lineOfBusinessName || null,
@@ -836,7 +839,7 @@ const payload = {
   
   
   // Port and Origin IDs - Agar value valid nahi hai, toh null bhejein
-  originId: !isNaN(Number(this.quotation.originId)) && Number(this.quotation.originId) > 0 ? Number(this.quotation.originId) : null,
+  originId: this.originsaveid,
   portOfLoadingId: !isNaN(Number(this.quotation.portOfLoadingId)) && Number(this.quotation.portOfLoadingId) > 0 ? Number(this.quotation.portOfLoadingId) : null,
   portOfDischargeId: !isNaN(Number(this.quotation.portOfDischargeId)) && Number(this.quotation.portOfDischargeId) > 0 ? Number(this.quotation.portOfDischargeId) : null,
   
@@ -1057,7 +1060,7 @@ openDimModal() {
         shipmentType: 'International',
         lineOfBusinessId: null,
         commodityId: 1,
-        originId: 2, // Matches originid2 request
+        
         portOfLoadingId: 1, // Matches pol1 request
         portOfDischargeId: 1, // Matches pod1 request
         noOfPkgs: 1, 

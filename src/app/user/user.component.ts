@@ -5,6 +5,7 @@ import { UserService } from '../services/user.service';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { CheckPermissionService } from '../services/check-permission.service';
 @Component({
   selector: 'app-user',
   standalone: true,
@@ -20,11 +21,13 @@ export class UserComponent implements OnInit {
   selectedUser: any = null; 
   selectedUsers: any[] = []; 
   newEmployeeID:any=0;
+   PermissionID:any;
+  
 
-  constructor(private userService: UserService, private router: Router) {}
+  constructor(private userService: UserService, private router: Router,public CheckPermissionService:CheckPermissionService) {}
 
   ngOnInit(): void {
-    
+    this.PermissionID = Number(localStorage.getItem('permissionID'));
     this.loadUsers(); 
   }
 

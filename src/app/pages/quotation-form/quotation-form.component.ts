@@ -542,79 +542,124 @@ onInquirySearchInput() {
 // 3. Selection Logic
 // 3. Selection Logic - UPDATED & IMPROVED
 selectInquiry(inq: any) {
+  console.log("Full Inquiry Mapping:", inq);
+
+  // --- 1. Line of Business (LOB) & Business Dimension FIX ---
+  if (inq.lineOfBusiness) {
+    const foundLOB = this.companyServices.find(s => 
+      s.serviceName.trim().toLowerCase() === inq.lineOfBusiness.trim().toLowerCase()
+    );
+    this.quotation.lineOfBusiness = foundLOB ? foundLOB.serviceName : inq.lineOfBusiness;
+  } else if (inq.businessDimensions) { 
+    const foundLOB = this.companyServices.find(s => 
+      s.serviceName.trim().toLowerCase() === inq.businessDimensions.trim().toLowerCase()
+    );
+    this.quotation.lineOfBusiness = foundLOB ? foundLOB.serviceName : inq.businessDimensions;
+  }
+  this.quotation.businessDimensions = inq.businessDimensions || '';
+
+  // --- 2. HEADER DETAILS (Location, Pricing, Sales Coor) ---
+  this.quotation.organization = inq.customerName || '';
+  this.quotation.organizationAddress = inq.customerAddress || inq.address || '';
+  this.quotation.validFrom = new Date().toISOString().split('T')[0];
+  this.quotation.validTill = inq.createdDate ? inq.createdDate.split('T')[0] : '';
+  this.quotation.usability = 'Single';
+  this.quotation.version = "1.0";
   
-  // Basic fields set karo (dropdown ke liye)
-  this.quotation.referenceByInquiry = inq.inquiryNo || '';
-  this.quotation.customerName = inq.customerName || '';
-
-  this.showInquiryDropdown = false;
-  this.cdr.detectChanges();
-
-  const inquiryNo = inq.inquiryNo?.trim();
-  if (!inquiryNo) {
-    console.error("InquiryNo is missing");
-    return;
+  this.quotation.location = inq.location ? inq.location.toUpperCase() : 'DELHI';
+  this.quotation.pricingBy = inq.pricingBy || inq.pricingDoneBy || '';
+  this.quotation.salesCoor = inq.salesCoor || inq.salesCoordinator || '';
+  
+  this.quotation.cargoStatus = 'Ready By';
+  if (inq.cargoStatusDate) {
+    this.quotation.cargoReadyDate = inq.cargoStatusDate.split('T')[0];
   }
 
-  // Full Inquiry Details fetch karo
-  const url = `${environment.apiUrl}/Inquiry/by-no?inquiryNo=${inquiryNo}`;
+  // --- 3. CARGO DETAILS ---
+  this.quotation.transportMode = inq.transportMode || '';
+  
+  // Transport Type & Shipment Type Fix
+  if (inq.transportType) {
+    const tType = inq.transportType.trim().toLowerCase();
+    this.quotation.transportType = tType === 'import' ? 'Import' : 'Export';
+  } else {
+    this.quotation.transportType = 'Export';
+  }
 
-  this.http.get<any>(url).subscribe({
-    next: (fullData) => {
-      console.log("✅ Full Inquiry Data Received:", fullData);
+  if (inq.shipmentType) {
+    const sType = inq.shipmentType.trim().toLowerCase();
+    this.quotation.shipmentType = sType === 'international' ? 'International' : inq.shipmentType;
+  } else {
+    this.quotation.shipmentType = 'International';
+  }
 
-      // ====================== AUTO FILL START ======================
-      
-      // Important Fields from Inquiry → Quotation
-      this.quotation.transportMode     = fullData.transportMode || '';
-      this.quotation.transportType     = fullData.transportType || '';
-      this.quotation.shipmentType      = fullData.shipmentType || '';
-      this.quotation.movement          = fullData.movementType || fullData.movement || '';   // movementType ya movement
-      this.quotation.incoterm          = fullData.incoterm || fullData.incoTerms || '';
-      this.quotation.description       = fullData.description || '';
-      this.quotation.pickupAddress     = fullData.pickupAddress || '';
-      this.quotation.placeOfDelivery   = fullData.placeOfDelivery || '';
-      this.quotation.podFinalDest      = fullData.finalDestination || '';   // finalDestination → podFinalDest
-      this.quotation.location          = fullData.location || '';
+  this.quotation.commodity = inq.commodity || 'General';
+  this.quotation.description = inq.description || '';
 
-      // Weight & Package Details
-      this.quotation.numOfPackages     = fullData.noOfPkgs || 0;
-      this.quotation.grossWeight       = fullData.grossWeightKg || 0;
-      this.quotation.netWeight         = fullData.netWeight || 0;
-      this.quotation.chrgWeight        = fullData.chargeableWeight || 0;
-      this.quotation.volumeWeight      = fullData.volumeWeight || 0;
+  // Weights & Packages
+  this.quotation.grossWeightKg = inq.grossWeightKg || 0;
+  this.quotation.grossWeightUnit = inq.grossWeightUnit || 'KGS';
+  this.quotation.netWeight = inq.netWeight || 0;
+  this.quotation.netWeightUnit = inq.netWeightUnit || 'KGS';
+  this.quotation.chargeableWeight = inq.chargeableWeight || 0;
+  this.quotation.chargeableWeightUnit = inq.chargeableWeightUnit || 'KGS';
+  this.quotation.chargeableWeightKg = inq.volumeWeight || 0; 
+  this.quotation.volumeWeightUnit = 'KGS';
+  this.quotation.noOfPkgs = inq.noOfPkgs || 0;
+  this.quotation.pkgUnit = inq.noOfPkgsUnit || 'PKGS';
 
-      // IDs (agar dropdowns ya foreign keys hain)
-      this.quotation.originPOL         = fullData.originId || '';           // ya origin name
-      this.quotation.portOfLoading     = fullData.portOfLoadingId || '';
-      this.quotation.portOfDischarge   = fullData.portOfDischargeId || '';
-      this.quotation.commodity         = fullData.commodityId || '';
+  // --- 4. FORWARDING & MOVEMENT (Carrier Name Fix Here) ---
+  this.quotation.serviceForwarding = true; 
+  this.quotation.movement = inq.movementType || inq.movement || 'Door-to-Door';
+  
+  // Carrier Name / AwbIssuedBy Fix - Multiple keys check kar raha hoon
+  this.quotation.awbIssuedBy = inq.awbIssuedBy || inq.carrierName || inq.carrier || inq.airlineName || '';
+  
+  this.quotation.transitDest = inq.transitDest || '';
+  this.quotation.transitDays = inq.transitDays || '';
+  this.quotation.placeOfReceipt = inq.placeOfReceipt || '';
+  this.quotation.originPOL = inq.origin || inq.originPOL || '';
+  this.quotation.portOfLoading = inq.portOfLoading || '';
+  
+  this.quotation.incoTerms = inq.incoTerms || inq.incoterm || 'EXW';
+  this.quotation.carrierAgent = inq.carrierAgent || inq.agent || '';
+  this.quotation.currency = inq.currency || 'USD';
+  this.quotation.cargoValue = inq.cargoValue || 0;
+  
+  this.quotation.placeOfDelivery = inq.placeOfDelivery || '';
+  this.quotation.portOfDischarge = inq.portOfDischarge || '';
+  this.quotation.podFinalDest = inq.podFinalDest || inq.finalDestination || '';
 
-      // Boolean / Other fields
-      this.quotation.isServiceRequired = fullData.isServiceRequired ?? true;
+  // --- 5. ADDRESSES ---
+  this.quotation.pickupOrg = inq.pickupOrg || inq.pickupOrganization || inq.customerName || '';
+  this.quotation.pickupAddress = inq.pickupAddress || '';
+  this.quotation.deliveryOrg = inq.deliveryOrg || inq.deliveryOrganization || '';
+  this.quotation.deliveryAddress = inq.deliveryAddress || '';
 
-      // Sales & Pricing related (agar chahiye)
-      // this.quotation.salesCoor      = fullData.salesCoordinator || '';
-      // this.quotation.pricingBy      = fullData.pricingDoneBy || '';
-      // this.quotation.qtnDoneBy      = fullData.qtnDoneBy || '';
+  // --- 6. DIMENSIONS ---
+  if (inq.dimensions && inq.dimensions.length > 0) {
+    this.dimRows = inq.dimensions.map((d: any) => ({
+      box: d.noOfPkgs || 1,
+      l: d.length || 0,
+      w: d.width || 0,
+      h: d.height || 0,
+      unit: d.unit || 'CMS'
+    }));
+    this.quotation.dimL = this.dimRows[0].l;
+    this.quotation.dimW = this.dimRows[0].w;
+    this.quotation.dimH = this.dimRows[0].h;
+    this.quotation.dimBox = this.dimRows[0].box;
+  }
 
-      // ====================== AUTO FILL END ======================
-
-      this.cdr.detectChanges();
-
-      console.log("✅ Quotation auto-filled successfully from Inquiry!");
-    },
-
-    error: (err) => {
-      console.error("❌ Error fetching full inquiry:", err);
-      
-      if (err.status === 404) {
-        alert(`Inquiry not found: ${inquiryNo}`);
-      } else {
-        alert("Failed to load complete inquiry details. Please check console.");
-      }
+  // --- 7. REFRESH UI ---
+  this.showInquiryDropdown = false;
+  
+  setTimeout(() => {
+    this.cdr.detectChanges();
+    if (this.onHeaderLOBChange) {
+      this.onHeaderLOBChange();
     }
-  });
+  }, 150);
 }
   // --- Lead API Call ---
  // --- Lead API Call ---
@@ -1713,10 +1758,17 @@ toggleLOBPopup() {
   } else {
     this.lobSub?.unsubscribe();
 
-    // Maan lete hain endpoint /LinesOfBusiness hai (ya jo bhi aapka correct endpoint ho)
-    this.lobSub = this.http.get<any[]>(`${environment.apiUrl}/Quotations`).subscribe({
+    // 1. Token nikalna (Local Storage ya jahan bhi aapne save kiya ho)
+    const token = localStorage.getItem('cavalier_token'); 
+
+    // 2. Headers create karna
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+
+    // 3. Request mein headers pass karna
+    this.lobSub = this.http.get<any[]>(`${environment.apiUrl}/Quotations`, { headers }).subscribe({
       next: (res) => {
-        // Response se string array nikalna
         this.allLOBs = res.map(item => item.name || item.lineOfBusiness || item); 
         this.showLOBPopup = true;
         this.cdr.detectChanges(); 
@@ -1895,4 +1947,5 @@ branchList: any[] = [];
   // Reset search text if you want it to behave like a picker
   // this.branchSearchText = ''; 
 }
+
   }

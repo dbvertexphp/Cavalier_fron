@@ -101,7 +101,9 @@
         </div>
     </div>
 </div>
- <div class="flex items-center relative"> <label class="w-28 font-bold text-gray-600 text-[12px]">Services</label>
+<div class="flex items-center relative"> 
+  <label class="w-28 font-bold text-gray-600 text-[12px]">Services</label>
+  
   <div class="flex-1 flex border border-gray-300">
     <input 
       type="text" 
@@ -123,15 +125,44 @@
   </datalist>
 
   <div *ngIf="showLOBPopup" 
-       class="absolute top-full left-28 right-0 mt-1 bg-white border border-gray-300 shadow-lg z-[999] max-h-60 overflow-y-auto rounded-sm">
-    <ul>
-      <li *ngFor="let lob of allLOBs" 
-          (click)="selectLOBFromPopup(lob)"
-          class="p-2 text-[12px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 last:border-none">
-        {{ lob }}
-      </li>
-      <li *ngIf="allLOBs.length === 0" class="p-2 text-[12px] text-gray-400 text-center">No services found</li>
-    </ul>
+       class="fixed inset-0 z-[3000] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    
+    <div class="bg-white w-full max-w-md shadow-2xl rounded-sm border-t-4 border-red-600 animate-in zoom-in duration-200">
+        
+        <div class="flex justify-between items-center p-3 border-b bg-gray-50">
+            <h3 class="text-[12px] font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
+                🏢 Select Services
+            </h3>
+            <button (click)="toggleLOBPopup()" 
+                    class="text-gray-400 hover:text-red-500 text-2xl font-bold leading-none">&times;</button>
+        </div>
+
+        <div class="max-h-80 overflow-y-auto p-1 custom-scrollbar">
+            <ul class="list-none p-0 m-0">
+                <li *ngFor="let lob of allLOBs" 
+                    (click)="selectLOBFromPopup(lob)"
+                    class="flex items-center gap-3 p-3 hover:bg-red-50 border-b border-gray-50 last:border-none cursor-pointer transition-colors">
+                    
+                    <div class="flex flex-col">
+                        <span class="text-[12px] text-gray-800 font-medium uppercase">
+                            {{lob }}
+                        </span>
+                    </div>
+                </li>
+
+                <li *ngIf="allLOBs.length === 0" class="p-8 text-center text-gray-400 text-[11px] italic">
+                    No services found.
+                </li>
+            </ul>
+        </div>
+
+        <div class="p-3 border-t bg-gray-50 flex justify-end gap-2">
+            <button (click)="toggleLOBPopup()" 
+                    class="px-6 py-1.5 text-[11px] font-bold text-gray-500 hover:bg-gray-200 rounded-sm uppercase transition-all">
+                Cancel
+            </button>
+        </div>
+    </div>
   </div>
 </div>
 <div class="flex items-center relative"> <label class="w-28 font-bold text-gray-600">Quotation No.</label>
@@ -716,12 +747,12 @@ Cancel
       <!--<select name="lineOfBusiness" [(ngModel)]="quotation.lineOfBusiness" class="w-full border p-2 outline-none">
         <select name="lineOfBusiness" [(ngModel)]="quotation.lineOfBusiness" (change)="onHeaderLOBChange()" class="w-full border p-2 outline-none">
          </div>-->
-    <label class="text-gray-700 font-bold mt-3 block mb-1 uppercase">Lines Of Business</label>
-    <select name="lineOfBusiness" [(ngModel)]="quotation.lineOfBusiness" (change)="onHeaderLOBChange()" class="w-full border p-2 outline-none">
-    <option value="" disabled selected>Select Business Line</option>
-    <option *ngFor="let s of companyServices" [value]="s.serviceName">
-      {{ s.serviceName }}
-    </option>
+   <label class="text-gray-700 font-bold mt-3 block mb-1 uppercase">Lines Of Business</label>
+<select name="lineOfBusiness" [(ngModel)]="quotation.lineOfBusiness" (change)="onHeaderLOBChange()" class="w-full border p-2 outline-none">
+  <option value="" disabled selected>Select Business Line</option>
+  <option *ngFor="let s of companyServices" [value]="s.serviceName">
+    {{ s.serviceName }}
+  </option>
 </select>
 </div>
 

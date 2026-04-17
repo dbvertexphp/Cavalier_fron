@@ -14,7 +14,7 @@
       </div>
     </div>
 
-    <button (click)="openModal()"
+    <button (click)="openModal()" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Add');"
       class="bg-[#654E51] text-white px-4 py-2 rounded-lg shadow-md">
       + Add Port
     </button>
@@ -36,7 +36,7 @@
           </tr>
         </thead>
 
-        <tbody class="divide-y">
+        <tbody class="divide-y" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View');">
 
           <tr *ngIf="allPorts.length === 0">
             <td colspan="6" class="text-center py-10 text-gray-400">
@@ -67,8 +67,8 @@
             </td>
 
             <td class="px-6 py-3 text-center">
-              <button (click)="editPort(port)" class="text-blue-600 mr-2">Edit</button>
-              <button (click)="deletePort(port.id)" class="text-red-600">Delete</button>
+              <button (click)="editPort(port)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Edit');" class="text-blue-600 mr-2">Edit</button>
+              <button (click)="deletePort(port.id)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Delete');" class="text-red-600">Delete</button>
             </td>
 
           </tr>

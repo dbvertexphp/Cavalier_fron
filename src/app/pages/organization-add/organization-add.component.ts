@@ -1,3 +1,4 @@
+import { Permission } from './../employee/employee.component';
 import { ChangeDetectorRef, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -10,6 +11,7 @@ import html2canvas from 'html2canvas';
 import * as XLSX from 'xlsx';
 import { moveItemInArray, transferArrayItem, CdkDragDrop } from '@angular/cdk/drag-drop';
 import { DragDropModule } from '@angular/cdk/drag-drop'; // 👈 Ye zaroori hai // Ye import ensure kar lena
+import { CheckPermissionService } from '../../services/check-permission.service';
 
 @Component({
   selector: 'app-organization-add',
@@ -24,6 +26,7 @@ selectedLineOfBusiness: any[] = [];        // Multiple select ke liye array
 showLobDropdown: boolean = false;
   isEditMode: boolean = false;
   hasSavedOrg: boolean = false;
+  PermissionID:any;
 selectedBranchIndex: number = -1;
 @ViewChild('lobDropdownContainer', { static: false }) lobDropdownContainer!: ElementRef;
 searchFilters: any = {
@@ -379,7 +382,7 @@ landmark: string = '';
 //   branches :any [] =[];
 //   selectedBranch: any = null
 
-  constructor(private location: Location, private http: HttpClient,private cdr: ChangeDetectorRef,private router:Router,private elementRef: ElementRef) {}
+  constructor(private location: Location, private http: HttpClient,private cdr: ChangeDetectorRef,private router:Router,private elementRef: ElementRef,public CheckPermissionService: CheckPermissionService) {}
 @HostListener('document:click', ['$event'])
 onDocumentClick(event: MouseEvent) {
   if (this.lobDropdownContainer && 
@@ -398,6 +401,7 @@ this.organizationsList = [];
     if (state && state.isFormOpen === true) {
       this.isFormOpen = true;
     }
+    this.PermissionID = Number(localStorage.getItem('permissionID'));
   this.loaddepartment();
   this.loadestination();
   this.loadColumnSettings();

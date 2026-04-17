@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { CheckPermissionService } from '../../services/check-permission.service';
 
 @Component({
   selector: 'app-party-role',
@@ -17,7 +18,7 @@ export class PartyRoleComponent implements OnInit {
   isModalOpen = false;
   isEditMode = false;
   rolesList: any[] = [];
-
+PermissionID:any;
   newRole = {
     id: 0,
     name: '',
@@ -28,11 +29,12 @@ export class PartyRoleComponent implements OnInit {
   roleIdToDelete: number | null = null;
 
   // ChangeDetectorRef ko inject kiya gaya hai
-  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
+  constructor(private http: HttpClient, private cdr: ChangeDetectorRef,public CheckPermissionService:CheckPermissionService) {}
 
   ngOnInit(): void {
-  this.fetchRoles();
-}
+    this.PermissionID = Number(localStorage.getItem('permissionID'));
+    this.fetchRoles();
+  }
 
   // 1. GET ALL ROLES
   fetchRoles() {

@@ -10,6 +10,7 @@ import { environment } from '../../../environments/environment';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import * as XLSX from 'xlsx';
+import { CheckPermissionService } from '../../services/check-permission.service';
 import { moveItemInArray, transferArrayItem, CdkDragDrop } from '@angular/cdk/drag-drop';
 import { DragDropModule } from '@angular/cdk/drag-drop'; // Ye import ensure karein
 import { Subscription } from 'rxjs';
@@ -25,9 +26,11 @@ import { UserService } from '../../services/user.service';
   export class InquiryComponent implements OnInit {
     @ViewChild('cargoDateInput') cargoDateInput!: ElementRef<HTMLInputElement>;
     getsalescordinate: any[] = [];
+    PermissionID:any;
     isDeliveryEnabled:boolean=false;
     portsOfDischarge: any[] = [];        // API se aane wala full list
 filteredPortsOfDischarge: any[] = [];
+originsaveid:number=0;
 showPortOfDischargeDropdown: boolean = false;
 portsOfLoading: any[] = [];               // Full list from API
 filteredPortsOfLoading: any[] = [];
@@ -244,14 +247,16 @@ organizations: any[] = [];
   showOriginDropdown: boolean = false;
 
   allInquiryNumbers: string[] = [];
+  
   coordinators: any[] = [];
   branchesList: any[] = [];
   searchDone: boolean = false; // Shuru mein false rahega
   uploadedDocuments: any[] = [];
     // Ye line add karein
-    constructor(private http: HttpClient, private router: Router,private cdr: ChangeDetectorRef,private branchservice:BranchService,public userServices:UserService) {}
+    constructor(private http: HttpClient, private router: Router,private cdr: ChangeDetectorRef,private branchservice:BranchService,public userServices:UserService,public CheckPermissionService:CheckPermissionService) {}
 
     ngOnInit() {
+      this.PermissionID = Number(localStorage.getItem('permissionID'));
       console.log("Direct API call trigger ho rahi hai...");
     this.loadBranchess();
     this.getsales();
@@ -564,6 +569,7 @@ onOriginSearchInput() {
 
   // --- Selection Logic ---
   selectOrigin(origin: any) {
+    this.originsaveid=origin.id;
     this.inquiry.origin = origin.name; // Ya jo bhi field origin ka naam ho (e.g., org.name)
     this.showOriginDropdown = false;
   }
@@ -822,7 +828,8 @@ const payload = {
    HazardDocPath: this.quotation.hazardDocPath || null,
    weightUnit: this.quotation.GrossweightUnit || 'KGS',
   // id: Number(this.quotation.id) || 0,
-  
+  cargocurrency:this.quotation.currency || 'INR',
+  cargoValue: this.quotation.cargoValue.toString() || 0,
   // Foreign Key IDs - Hardcoded to 3 or null
   lineOfBusinessId: this.quotation.lineOfBusinessId ? Number(this.quotation.lineOfBusinessId) : null,
   lineOfBusinessName: this.quotation.lineOfBusinessName || null,
@@ -832,7 +839,7 @@ const payload = {
   
   
   // Port and Origin IDs - Agar value valid nahi hai, toh null bhejein
-  originId: !isNaN(Number(this.quotation.originId)) && Number(this.quotation.originId) > 0 ? Number(this.quotation.originId) : null,
+  originId: this.originsaveid,
   portOfLoadingId: !isNaN(Number(this.quotation.portOfLoadingId)) && Number(this.quotation.portOfLoadingId) > 0 ? Number(this.quotation.portOfLoadingId) : null,
   portOfDischargeId: !isNaN(Number(this.quotation.portOfDischargeId)) && Number(this.quotation.portOfDischargeId) > 0 ? Number(this.quotation.portOfDischargeId) : null,
   
@@ -1053,7 +1060,7 @@ openDimModal() {
         shipmentType: 'International',
         lineOfBusinessId: null,
         commodityId: 1,
-        originId: 2, // Matches originid2 request
+        
         portOfLoadingId: 1, // Matches pol1 request
         portOfDischargeId: 1, // Matches pod1 request
         noOfPkgs: 1, 

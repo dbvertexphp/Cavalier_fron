@@ -885,7 +885,7 @@
         </div>
 
         <button
-          (click)="toggleForm()"
+          (click)="toggleForm()"  *ngIf="CheckPermissionService.hasPermission(PermissionID,'Add');"
           class="bg-green-600 hover:bg-green-700 px-5 py-1.5 text-[12px] font-bold shadow-sm flex items-center gap-2 transition-all"
         >
           <svg
@@ -939,7 +939,7 @@
             </tr>
           </thead>
 
-          <tbody class="bg-white">
+          <tbody class="bg-white"  *ngIf="CheckPermissionService.hasPermission(PermissionID,'View');">
             <tr
               *ngFor="let q of paginatedInquiries"
               class="hover:bg-gray-50 border-b text-gray-700"
@@ -986,13 +986,13 @@
                 class="p-4 sticky right-0 bg-white border-l text-center shadow-[-5px_0_10px_rgba(0,0,0,0.02)]"
               >
                 <button
-                  (click)="editQuotation(q)"
+                  (click)="editQuotation(q)"  *ngIf="CheckPermissionService.hasPermission(PermissionID,'Edit');"
                   class="text-blue-600 mr-3 font-bold uppercase hover:underline text-[11px]"
                 >
                   Edit
                 </button>
                 <button
-                  (click)="deleteQuotation(q.id)"
+                  (click)="deleteQuotation(q.id)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Delete');"
                   class="text-red-600 font-bold uppercase hover:underline text-[11px]"
                 >
                   Delete
@@ -2459,37 +2459,67 @@
                     <option value="">Select Currency</option>
 
                     <!-- Major Currencies (Recommended first) -->
-                    <option value="INR">₹ INR - Indian Rupee</option>
-                    <option value="USD">$ USD - United States Dollar</option>
-                    <option value="EUR">€ EUR - Euro</option>
-                    <option value="GBP">£ GBP - British Pound Sterling</option>
-                    <option value="AED">د.إ AED - UAE Dirham</option>
-                    <option value="SGD">$ SGD - Singapore Dollar</option>
-                    <option value="CAD">$ CAD - Canadian Dollar</option>
-                    <option value="AUD">$ AUD - Australian Dollar</option>
-                    <option value="JPY">¥ JPY - Japanese Yen</option>
-                    <option value="CNY">¥ CNY - Chinese Yuan</option>
+                    <option value="₹ INR - Indian Rupee">₹ INR - Indian Rupee</option>
+                    <option value="$ USD - United States Dollar">$ USD - United States Dollar</option>
+                    <option value="€ EUR - Euro">€ EUR - Euro</option>
+                    <option value="£ GBP - British Pound Sterling">£ GBP - British Pound Sterling</option>
+                    <option value="د.إ AED - UAE Dirham">د.إ AED - UAE Dirham</option>
+                    <option value="$ SGD - Singapore Dollar">$ SGD - Singapore Dollar</option>
+                    <option value="$ CAD - Canadian Dollar">$ CAD - Canadian Dollar</option>
+                    <option value="$ AUD - Australian Dollar">$ AUD - Australian Dollar</option>
+                    <option value="¥ JPY - Japanese Yen">¥ JPY - Japanese Yen</option>
+                    <option value="¥ CNY - Chinese Yuan">¥ CNY - Chinese Yuan</option>
 
                     <!-- Other Currencies (scrollable) -->
-                    <option value="AFN">؋ AFN - Afghan Afghani</option>
-                    <option value="ARS">$ ARS - Argentine Peso</option>
-                    <option value="BRL">R$ BRL - Brazilian Real</option>
-                    <option value="CHF">CHF - Swiss Franc</option>
-                    <option value="HKD">$ HKD - Hong Kong Dollar</option>
-                    <option value="IDR">Rp IDR - Indonesian Rupiah</option>
-                    <option value="KRW">₩ KRW - South Korean Won</option>
-                    <option value="MXN">$ MXN - Mexican Peso</option>
-                    <option value="MYR">RM MYR - Malaysian Ringgit</option>
-                    <option value="NOK">kr NOK - Norwegian Krone</option>
-                    <option value="NZD">$ NZD - New Zealand Dollar</option>
-                    <option value="PHP">₱ PHP - Philippine Peso</option>
-                    <option value="PKR">₨ PKR - Pakistani Rupee</option>
-                    <option value="RUB">₽ RUB - Russian Ruble</option>
-                    <option value="SAR">﷼ SAR - Saudi Riyal</option>
-                    <option value="SEK">kr SEK - Swedish Krona</option>
-                    <option value="THB">฿ THB - Thai Baht</option>
-                    <option value="TRY">₺ TRY - Turkish Lira</option>
-                    <option value="ZAR">R ZAR - South African Rand</option>
+                    <option value="؋ AFN - Afghan Afghani">؋ AFN - Afghan Afghani</option>
+<option value="$ ARS - Argentine Peso">$ ARS - Argentine Peso</option>
+<option value="R$ BRL - Brazilian Real">R$ BRL - Brazilian Real</option>
+<option value="CHF - Swiss Franc">CHF - Swiss Franc</option>
+<option value="$ HKD - Hong Kong Dollar">$ HKD - Hong Kong Dollar</option>
+<option value="Rp IDR - Indonesian Rupiah">Rp IDR - Indonesian Rupiah</option>
+<option value="₩ KRW - South Korean Won">₩ KRW - South Korean Won</option>
+<option value="$ MXN - Mexican Peso">$ MXN - Mexican Peso</option>
+<option value="RM MYR - Malaysian Ringgit">RM MYR - Malaysian Ringgit</option>
+<option value="kr NOK - Norwegian Krone">kr NOK - Norwegian Krone</option>
+<option value="$ NZD - New Zealand Dollar">$ NZD - New Zealand Dollar</option>
+<option value="₱ PHP - Philippine Peso">₱ PHP - Philippine Peso</option>
+<option value="₨ PKR - Pakistani Rupee">₨ PKR - Pakistani Rupee</option>
+<option value="₽ RUB - Russian Ruble">₽ RUB - Russian Ruble</option>
+<option value="﷼ SAR - Saudi Riyal">﷼ SAR - Saudi Riyal</option>
+<option value="kr SEK - Swedish Krona">kr SEK - Swedish Krona</option>
+<option value="฿ THB - Thai Baht">฿ THB - Thai Baht</option>
+<option value="₺ TRY - Turkish Lira">₺ TRY - Turkish Lira</option>
+<option value="R ZAR - South African Rand">R ZAR - South African Rand</option>
+
+<!-- Ab baaki currencies bhi same format mein -->
+
+<option value="A$ AUD - Australian Dollar">A$ AUD - Australian Dollar</option>
+<option value="R$ BRL - Brazilian Real">R$ BRL - Brazilian Real</option>
+<option value="CA$ CAD - Canadian Dollar">CA$ CAD - Canadian Dollar</option>
+<option value="¥ CNY - Chinese Yuan">¥ CNY - Chinese Yuan</option>
+<option value="€ EUR - Euro">€ EUR - Euro</option>
+<option value="£ GBP - British Pound Sterling">£ GBP - British Pound Sterling</option>
+<option value="₹ INR - Indian Rupee">₹ INR - Indian Rupee</option>
+<option value="¥ JPY - Japanese Yen">¥ JPY - Japanese Yen</option>
+<option value="₩ KRW - South Korean Won">₩ KRW - South Korean Won</option>
+<option value="RM MYR - Malaysian Ringgit">RM MYR - Malaysian Ringgit</option>
+<option value="$ USD - US Dollar">$ USD - US Dollar</option>
+<option value="AED - United Arab Emirates Dirham">AED - United Arab Emirates Dirham</option>
+<option value="BDT - Bangladeshi Taka">BDT - Bangladeshi Taka</option>
+<option value="EGP - Egyptian Pound">EGP - Egyptian Pound</option>
+<option value="GHS - Ghanaian Cedi">GHS - Ghanaian Cedi</option>
+<option value="IDR - Indonesian Rupiah">IDR - Indonesian Rupiah</option>
+<option value="KES - Kenyan Shilling">KES - Kenyan Shilling</option>
+<option value="LKR - Sri Lankan Rupee">LKR - Sri Lankan Rupee</option>
+<option value="MAD - Moroccan Dirham">MAD - Moroccan Dirham</option>
+<option value="NGN - Nigerian Naira">NGN - Nigerian Naira</option>
+<option value="PHP - Philippine Peso">PHP - Philippine Peso</option>
+<option value="PKR - Pakistani Rupee">PKR - Pakistani Rupee</option>
+<option value="RUB - Russian Ruble">RUB - Russian Ruble</option>
+<option value="SAR - Saudi Riyal">SAR - Saudi Riyal</option>
+<option value="SGD - Singapore Dollar">SGD - Singapore Dollar</option>
+<option value="TRY - Turkish Lira">TRY - Turkish Lira</option>
+<option value="ZAR - South African Rand">ZAR - South African Rand</option>
                     <!-- Agar aur chahiye toh pehle wale message se copy kar sakte ho -->
                   </select>
 

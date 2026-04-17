@@ -1,8 +1,10 @@
+import { Permission } from './../employee/employee.component';
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { CheckPermissionService } from '../../services/check-permission.service';
 
 @Component({
   selector: 'app-tranport-mode',
@@ -16,15 +18,16 @@ export class TranportModeComponent implements OnInit {
 
   transportModes: any[] = [];
   newName: string = '';
-  
+  PermissionID:any;
   // Modal states
   isModalOpen: boolean = false;
   isEditMode: boolean = false;
   currentId: number | null = null;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient,public CheckPermissionService:CheckPermissionService) {}
 
   ngOnInit(): void {
+    this.PermissionID = Number(localStorage.getItem('permissionID'));
     this.getData();
   }
 

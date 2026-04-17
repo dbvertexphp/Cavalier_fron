@@ -1,8 +1,11 @@
+import { Permission } from './../employee/employee.component';
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { CheckPermissionService } from '../../services/check-permission.service';
+
 @Component({
   selector: 'app-company-service',
   standalone: true,
@@ -16,22 +19,29 @@ export class CompanyServiceComponent implements OnInit {
   currentServiceId: number | null = null;
   newServiceName: string = ''; 
   services: any[] = []; 
-  
+  PermissionID:any;
   private apiUrl = environment.apiUrl + '/CompanyService';
 
-  // CDR inject kiya gaya hai
-  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
+  constructor(
+    private http: HttpClient,
+    private cdr: ChangeDetectorRef,
+    public CheckPermissionService: CheckPermissionService
+  ) {}
 
   ngOnInit(): void {
+    this.PermissionID = Number(localStorage.getItem('permissionID'));
     this.fetchServices();
   }
 
-  // 1. Get Data
+  // ✅ FETCH + isActive FIX
   fetchServices() {
     this.http.get<any[]>(this.apiUrl).subscribe({
       next: (res) => {
-        this.services = res;
-        this.cdr.detectChanges(); // UI Update
+        this.services = res.map(s => ({
+          ...s,
+          isActive: s.isActive ?? true
+        }));
+        this.cdr.detectChanges();
       },
       error: (err) => console.error('Error fetching services', err)
     });
@@ -50,7 +60,6 @@ export class CompanyServiceComponent implements OnInit {
     this.cdr.detectChanges();
   }
   
-  // 2. Save Logic
   saveService() { 
     if (this.newServiceName.trim()) {
       const upperName = this.newServiceName.trim().toUpperCase();
@@ -77,7 +86,6 @@ export class CompanyServiceComponent implements OnInit {
     this.cdr.detectChanges();
   }
   
-  // 3. Delete
   deleteService(id: number) {
     if(confirm('Are you sure you want to delete this service?')) {
       this.http.delete(`${this.apiUrl}/${id}`).subscribe({
@@ -96,5 +104,13 @@ export class CompanyServiceComponent implements OnInit {
     this.newServiceName = service.serviceName;
     this.isModalOpen = true;
     this.cdr.detectChanges();
+  }
+
+  // ✅ TOGGLE
+  toggleStatus(service: any) {
+    service.isActive = !service.isActive;
+
+    // Optional API
+    // this.http.put(`${this.apiUrl}/status/${service.id}`, { isActive: service.isActive }).subscribe();
   }
 }

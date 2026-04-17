@@ -34,7 +34,7 @@
         <span class="font-bold">Freelancing</span>
       </button>
 
-      <button (click)="addUser()"
+      <button (click)="addUser()" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Add');"
         class="flex items-center gap-2 px-6 py-2 text-white bg-[#654E51] hover:opacity-90 rounded-lg shadow-md transition-all active:scale-95 whitespace-nowrap">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
@@ -103,7 +103,7 @@
           </tr>
         </thead>
 
-        <tbody class="divide-y divide-gray-200">
+        <tbody class="divide-y divide-gray-200" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View');">
           <tr *ngFor="let u of users" class="hover:bg-blue-50/20 transition-colors group">
             <td class="p-4 border-r">
               <p class="font-black text-indigo-700 text-xs">
@@ -207,7 +207,7 @@
             <td
               class="p-4 text-center sticky right-0 bg-white group-hover:bg-blue-50 z-10 shadow-[-5px_0_10px_rgba(0,0,0,0.05)] border-l">
               <div class="flex justify-center gap-2">
-                <button (click)="modifyUser(u)"
+                <button (click)="modifyUser(u)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Edit');"
                   class="p-2 text-amber-600 hover:bg-amber-100 rounded-lg transition border border-amber-200"
                   title="Edit User">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
@@ -216,7 +216,7 @@
                       d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
                 </button>
-                <button (click)="deleteUser(u.id)"
+                <button (click)="deleteUser(u.id)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Delete');"
                   class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition border border-red-200"
                   title="Delete User">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"

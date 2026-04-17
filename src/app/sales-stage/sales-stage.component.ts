@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
+import { CheckPermissionService } from '../services/check-permission.service';
 
 @Component({
   selector: 'app-sales-stage',
@@ -16,12 +17,13 @@ export class SalesStageComponent implements OnInit {
   salesStages: any[] = [];
   stageName: string = '';
   isModalOpen = false;
+  PermissionID:any;
   isEditMode = false;
   currentId: number | null = null;
 
-  constructor(private http: HttpClient,private cdr: ChangeDetectorRef) {}
+  constructor(private http: HttpClient,private cdr: ChangeDetectorRef,public CheckPermissionService:CheckPermissionService) {}
 
-  ngOnInit() { this.getData(); }
+  ngOnInit() { this.PermissionID = Number(localStorage.getItem('permissionID')); this.getData(); }
 
   getData() {
     this.http.get<any[]>(this.apiUrl).subscribe(res => this.salesStages = res);

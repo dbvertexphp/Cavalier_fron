@@ -228,35 +228,73 @@
                     <th class="p-5 text-center">D</th>
                   </tr>
                 </thead>
-                <tbody class="divide-y divide-stone-100">
-                  <tr *ngFor="let perm of permissionsList" class="group hover:bg-white transition-all">
-                    <td class="p-5">
-                      <div class="flex items-center gap-3">
-                        <input type="checkbox" [checked]="selectedPermissionIds.includes(perm.permissionID)" (change)="togglePermission(perm.permissionID)" 
-                          class="w-5 h-5 rounded-lg text-[#654E51] border-stone-200 focus:ring-0 cursor-pointer" />
-                        <div>
-                          <p class="font-black text-stone-700 text-xs uppercase tracking-tight">{{ perm.subMenu }}</p>
-                          <p class="text-[8px] font-bold text-stone-300 italic uppercase">Ref#{{ perm.permissionID }}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td class="p-5 text-center">
-              <input type="checkbox" 
-                     [checked]="selectedPermissionIds.includes(perm.permissionID + '_a')" 
-                     (change)="toggleAdd(perm.permissionID)" 
-                     class="w-4 h-4 rounded-full text-green-500 border-stone-200" />
-            </td>
-                    <td class="p-5 text-center">
-                      <input type="checkbox" [checked]="selectedPermissionIds.includes(perm.permissionID + '_v')" (change)="toggleView(perm.permissionID)" class="w-4 h-4 rounded-full text-blue-500 border-stone-200" />
-                    </td>
-                    <td class="p-5 text-center">
-                      <input type="checkbox" [checked]="selectedPermissionIds.includes(perm.permissionID + '_e')" (change)="toggleEdit(perm.permissionID)" class="w-4 h-4 rounded-full text-amber-500 border-stone-200" />
-                    </td>
-                    <td class="p-5 text-center">
-                      <input type="checkbox" [checked]="selectedPermissionIds.includes(perm.permissionID + '_d')" (change)="toggleDelete(perm.permissionID)" class="w-4 h-4 rounded-full text-rose-500 border-stone-200" />
-                    </td>
-                  </tr>
-                </tbody>
+               <!-- Permissions Table Body -->
+<tbody class="divide-y divide-stone-100">
+  
+  <!-- LOADING STATE -->
+  <tr *ngIf="isLoading">
+    <td colspan="5" class="p-12">
+      <div class="flex flex-col items-center justify-center gap-3">
+        <div class="w-8 h-8 border-4 border-stone-200 border-t-[#654E51] rounded-full animate-spin"></div>
+        <p class="text-stone-500 text-sm font-medium">Loading Permissions...</p>
+        <p class="text-stone-400 text-xs">Please wait while we fetch all permissions</p>
+      </div>
+    </td>
+  </tr>
+
+  <!-- ACTUAL DATA -->
+  <ng-container *ngIf="!isLoading">
+    <tr *ngFor="let perm of permissionsList" 
+        class="group hover:bg-white transition-all">
+      
+      <td class="p-5">
+        <div class="flex items-center gap-3">
+          <input type="checkbox" 
+                 [checked]="selectedPermissionIds.includes(perm.permissionID)" 
+                 (change)="togglePermission(perm.permissionID)" 
+                 class="w-5 h-5 rounded-lg text-[#654E51] border-stone-200 focus:ring-0 cursor-pointer" />
+          <div>
+            <p class="font-black text-stone-700 text-xs uppercase tracking-tight">
+              {{ getPermissionDisplayName(perm) }}
+            </p>
+            <p class="text-[8px] font-bold text-stone-300 italic uppercase">
+              Ref#{{ perm.permissionID }}
+            </p>
+          </div>
+        </div>
+      </td>
+
+      <td class="p-5 text-center">
+        <input type="checkbox" 
+               [checked]="selectedPermissionIds.includes(perm.permissionID + '_a')" 
+               (change)="toggleAdd(perm.permissionID)" 
+               class="w-4 h-4 rounded-full text-green-500 border-stone-200" />
+      </td>
+
+      <td class="p-5 text-center">
+        <input type="checkbox" 
+               [checked]="selectedPermissionIds.includes(perm.permissionID + '_v')" 
+               (change)="toggleView(perm.permissionID)" 
+               class="w-4 h-4 rounded-full text-blue-500 border-stone-200" />
+      </td>
+
+      <td class="p-5 text-center">
+        <input type="checkbox" 
+               [checked]="selectedPermissionIds.includes(perm.permissionID + '_e')" 
+               (change)="toggleEdit(perm.permissionID)" 
+               class="w-4 h-4 rounded-full text-amber-500 border-stone-200" />
+      </td>
+
+      <td class="p-5 text-center">
+        <input type="checkbox" 
+               [checked]="selectedPermissionIds.includes(perm.permissionID + '_d')" 
+               (change)="toggleDelete(perm.permissionID)" 
+               class="w-4 h-4 rounded-full text-rose-500 border-stone-200" />
+      </td>
+    </tr>
+  </ng-container>
+
+</tbody>
               </table>
             </div>
           </div>

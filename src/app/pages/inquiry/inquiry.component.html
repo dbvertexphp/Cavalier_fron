@@ -1694,17 +1694,15 @@
 
                 <select
                   [(ngModel)]="quotation.TransportMode"
+                  (change)="onTransportModeChange()"
                   name="transportMode"
                   class="flex-1 border p-2 outline-none"
                 >
                   <option value="" disabled>-- Select Mode --</option>
 
-                  <option
-                    *ngFor="let mode of transportModes"
-                    [value]="mode.id"
-                  >
-                    {{ mode.name }}
-                  </option>
+                 <option *ngFor="let mode of transportModes" [value]="mode.id">
+  {{ mode.name }}
+</option>
                 </select>
               </div>
               <div class="flex items-center">
@@ -1962,6 +1960,7 @@
 
                 <select
                   [(ngModel)]="quotation.TransportType"
+                 
                   name="transportType"
                   class="flex-1 border p-2 outline-none"
                 >

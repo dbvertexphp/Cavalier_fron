@@ -36,6 +36,7 @@ export class QuotationFormComponent implements OnInit {
   pageSize: number = 10;
   searchDone: boolean = false;
   isFormOpen = false;
+  transportModes: any[] = [];
    movementTypes: any[] = [];
   isPickupEnabled: boolean = false; 
  private apiEndpoint = `${environment.apiUrl}/Quotations`;
@@ -255,6 +256,7 @@ closeColumnModal(){
 }
 sortOrders:any = {};
   ngOnInit() {
+    this.getTransportModes();
     this.getCommodityTypes();
     this.getIncoTerms();
     this.getMovementTypes();
@@ -630,13 +632,36 @@ selectInquiry(inq: any) {
 
       // ====================== IMPROVED AUTO FILL ======================
 
-      this.quotation.transportMode     = fullData.transportMode || '';
-      if (fullData.transportType === 'Air' || fullData.transportType === 'Sea') {
-  this.quotation.transportMode = fullData.transportType;
+     // ====================== TRANSPORT FIX ======================
 
-  // dummy logic (adjust based on your case)
-  this.quotation.transportType = 'Export';
+// 1. Transport Mode (Air / Sea / Road / etc.)
+// ====================== TRANSPORT MODE (Dropdown with ID) ======================
+
+// ====================== TRANSPORT MODE & TYPE (Capital T) ======================
+
+// 1. Transport Mode
+if (fullData.transportMode) {
+  console.log(fullData.transportMode);
+  this.quotation.TransportMode = fullData.transportMode.toUpperCase().trim();   // "Air" set hoga
+  console.log(`✅ Transport Mode set to: ${this.quotation.TransportMode.toUpperCase()}`);
+} 
+else {
+  this.quotation.TransportMode = '';
 }
+
+// 2. Transport Type (Export / Import)
+if (fullData.transportType) {
+  this.quotation.transportType = fullData.transportType.trim();   // "Export" set hoga
+} 
+else if (fullData.transportMode === 'AIR' || fullData.transportMode === 'SEA') {
+  this.quotation.transportType = 'Export';
+} 
+else {
+  this.quotation.transportType = '';
+}
+
+console.log("Transport Mode (Final):", this.quotation.TransportMode.toUpperCase());
+console.log("Transport Type (Final):", this.quotation.transportType);
       this.quotation.shipmentType      = fullData.shipmentType || '';
       
       // Movement
@@ -1518,6 +1543,17 @@ clearFilters() {
   // 3. Table ka data reset karne ke liye Initial Call
   this.fetchInitialQuotations(); 
 }
+getTransportModes() {
+    // Using environment.apiUrl + your controller route
+    const url = `${environment.apiUrl}/TransportModes`;
+    
+    this.http.get<any[]>(url).subscribe({
+      next: (data) => {
+        this.transportModes = data;
+      },
+      error: (err) => console.error('API Error:', err)
+    });
+  }
 
 // Ek simple function jo bina filter ke saara data laye
 fetchInitialQuotations() {

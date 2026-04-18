@@ -1774,6 +1774,45 @@ allCitySearch(type: string) {
   });
 }
 
+saveAgent() {
+  const payload = {
+    organisationId: this.selectedOrgId || 1,
+    lineOfBusinessId: this.agentLineOfBusiness,     // string "18" bhi chalega (backend int? lega)
+    branchName: this.agentBranchName?.trim() || '',
+    isDefault: this.agentIsDefault,
+    isDeactive: this.agentIsDeactive,
+
+    address: this.agentAddress?.trim() || '',
+    area: this.agentArea?.trim() || '',
+    landmark: this.agentLandmark?.trim() || '',
+    country: this.agentCountry?.trim() || '',
+    state: this.agentState?.trim() || '',
+    city: this.agentCity?.trim() || '',
+    postalCode: this.agentPostalCode?.trim() || '',
+
+    telephone: this.agentTelephone?.trim() || '',
+    fax: this.agentFax?.trim() || '',
+    website: this.agentWebsite?.trim() || '',
+    email: this.agentEmail?.trim() || '',
+
+    contacts: this.agentContacts || []
+  };
+
+  console.log("Sending Payload:", payload);   // Debug ke liye
+
+  this.http.post(`${environment.apiUrl}/OrganisationAgent/SaveAgent`, payload)
+    .subscribe({
+      next: (res) => {
+        console.log("✅ Success:", res);
+        alert("Agent saved successfully!");
+      },
+      error: (err) => {
+        console.error("❌ Full Error:", err);
+        alert("Failed to save. Check console.");
+      }
+    });
+}
+
 // Item select karne par
 selectCity(item: any) {
   this.searchFilters.city = item.cityName;

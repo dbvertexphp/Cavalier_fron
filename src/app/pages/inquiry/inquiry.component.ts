@@ -84,6 +84,9 @@ openInvoiceModal() {
 closeInvoiceModal() {
   this.isInvoiceModalOpen = false;
 }
+// test(){
+//   alert(this.quotation.TransportType);
+// }
 
 // add/remove
 addInvoiceDoc() {
@@ -406,9 +409,9 @@ onShipmentTypeChange() {
     });
   }
   onLOBChange(event: any) {
+    // alert('lob changed'+this.quotation.lineOfBusinessId);
   const selectedId = event.target.value;
 
-  // Selected service find karo
   const selectedService = this.companyServices.find(s => s.id == selectedId);
 
   if (!selectedService || !selectedService.serviceName) {
@@ -419,27 +422,30 @@ onShipmentTypeChange() {
   const fullName = selectedService.serviceName.trim();
   this.quotation.lineOfBusinessName = fullName;
 
-  // 🔥 Pure Dynamic Logic - Koi hard-coded if condition nahi
-  const parts = fullName.split(/[\s\-]+/);   // space aur hyphen dono se split
+  const parts = fullName.split(/[\s\-]+/);
 
-  if (parts.length >= 2) {
-    // Pehla word → Transport Mode
-    this.quotation.TransportMode = parts[0];
+  if (parts.length >= 1) {
+    const modeName = parts[0]; // AIR
 
-    // Aakhri word → Transport Type
-    let lastWord = parts[parts.length - 1];
+    // 🔥 Yaha main fix hai
+    const modeObj = this.transportModes.find(
+      m => m.name.toLowerCase() === modeName.toLowerCase()
+    );
 
-    // Capitalize first letter (Import → Import, export → Export)
-    this.quotation.TransportType = lastWord.charAt(0).toUpperCase() + lastWord.slice(1).toLowerCase();
-  } 
-  else if (parts.length === 1) {
-    // Agar sirf ek word hai
-    this.quotation.TransportMode = parts[0];
-    this.quotation.TransportType = '';        // ya 'Domestic' rakh sakte ho
+    if (modeObj) {
+      this.quotation.TransportMode = modeObj.id; // ✅ ID set hoga
+    } else {
+      console.warn("Mode not found:", modeName);
+    }
+
+    if (parts.length >= 2) {
+      let lastWord = parts[parts.length - 1];
+      this.quotation.TransportType =
+        lastWord.charAt(0).toUpperCase() + lastWord.slice(1).toLowerCase();
+    }
   }
 
-  console.log(`✅ LOB Selected: ${fullName}`);
-  console.log(`Auto Filled → Transport Mode: ${this.quotation.TransportMode} | Transport Type: ${this.quotation.TransportType}`);
+  console.log(`Auto Filled → Mode ID: ${this.quotation.TransportMode}`);
 }
     getIncoTerms() {
     this.http.get<any[]>(`${environment.apiUrl}/IncoTerms`).subscribe({
@@ -823,7 +829,7 @@ const payload = {
     leadNo: this.inquiry.leadNo,
     origin: this.inquiry.origin,
     TransportMode: this.quotation.transportMode,
-    TransportType: this.quotation.transportMode,
+    TransportType: this.quotation.TransportType,
     
    HazardDocPath: this.quotation.hazardDocPath || null,
    weightUnit: this.quotation.GrossweightUnit || 'KGS',
@@ -835,7 +841,7 @@ const payload = {
   lineOfBusinessName: this.quotation.lineOfBusinessName || null,
   
   // YAHAN HEE HARDCODE KIYA HAI:
-  commodityId: 15, // <--- Hardcoded value 3
+  commodityId: this.quotation.commodity, // <--- Hardcoded value 3
   
   
   // Port and Origin IDs - Agar value valid nahi hai, toh null bhejein
@@ -984,6 +990,9 @@ removeDimRow(i: number) {
   if (this.dimRows.length > 1) {
     this.dimRows.splice(i, 1);
   }
+}
+onTransportModeChange(){
+  alert(this.quotation.TransportMode)
 }
 
 // 4. Save button par calculation trigger karna

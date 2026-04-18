@@ -872,8 +872,17 @@ Cancel
     <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
       <div class="flex items-center">
         <label class="w-40 font-bold text-gray-700">Transport Mode</label>
-        <input type="text" name="transportMode" [(ngModel)]="quotation.transportMode" class="flex-1 border p-2 outline-none" placeholder="e.g. Air/Sea">
-      </div>
+<select
+  [(ngModel)]="quotation.transportMode" 
+  name="transportMode"
+  class="flex-1 border p-2 outline-none"
+>
+  <option value="" disabled>-- Select Mode --</option>
+  <option *ngFor="let mode of transportModes" [value]="mode.name">
+    {{ mode.name }}
+  </option>
+</select> 
+                  </div>
       <div class="flex items-center">
         <label class="w-40 font-bold text-gray-700">Transport Type</label>
         <select name="transportType" [(ngModel)]="quotation.transportType" class="flex-1 border p-2 outline-none">

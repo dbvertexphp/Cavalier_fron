@@ -77,6 +77,7 @@ import { ReportingManagerComponent } from './pages/reporting-manager/reporting-m
 import { SalesProcessComponent } from './pages/sales-process/sales-process.component';
 import { LeadSourceComponent } from './lead-source/lead-source.component';
 import { SalesStageComponent } from './sales-stage/sales-stage.component';
+import { PriceComponent } from './pages/price/price.component';
 
 export const routes: Routes = [
 
@@ -181,6 +182,8 @@ export const routes: Routes = [
         component:ShipperComponent   }, 
           { path: 'Consignee',                          //list of unit
         component:ConsigneeComponent   }, 
+           { path: 'Price',                          //list of unit
+        component:PriceComponent   }, 
     
       {
         path: 'port-of-loading',

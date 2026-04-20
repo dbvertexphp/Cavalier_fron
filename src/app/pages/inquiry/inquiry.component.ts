@@ -2323,5 +2323,17 @@ services = [
     console.log('Final Cost Data:', this.costRows);
     this.showCostTable = false; // Table close karke wapas form par
   }
-  
+showRowModal = false;
+selectedInquiryId: any = null;
+
+// Double click par call hone wala function
+handleRowDblClick(id: any) {
+  this.selectedInquiryId = id;
+  this.showRowModal = true;
+}
+
+closeRowModal() {
+  this.showRowModal = false;
+  this.selectedInquiryId = null;
+}  
 }

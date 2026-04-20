@@ -2040,5 +2040,20 @@ onDefaultChange(currentIndex: number) {
   // this.branchSearchText = ''; 
 }
   
+showOrgModal = false;
+// selectedOrgId: any = null;
+selectedOrgData: any = null;
 
+// Double click handle karne ke liye
+handleOrgDblClick(org: any) {
+  this.selectedOrgId = org.id;
+  this.selectedOrgData = org;
+  this.showOrgModal = true;
+}
+
+closeOrgModal() {
+  this.showOrgModal = false;
+  this.selectedOrgId = null;
+  this.selectedOrgData = null;
+}
 } 

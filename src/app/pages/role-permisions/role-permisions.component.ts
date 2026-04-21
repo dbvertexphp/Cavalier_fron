@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { environment } from '../../../environments/environment';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-//gfgfg
+
 @Component({
   selector: 'app-role-permisions',
   standalone: true,
@@ -19,7 +19,7 @@ export class RolePermisionsComponent implements OnInit {
   // ===============================
 
   userId: string | null = null;
-isLoading:boolean=true;
+  isLoading: boolean = true;
   selectedEmployee: any = null;
 
   rolesList: any[] = [];
@@ -56,136 +56,103 @@ isLoading:boolean=true;
   // ===============================
 
   ngOnInit(): void {
-
     this.userId = this.route.snapshot.paramMap.get('id');
-
     this.loadBranches();
     this.loadRoles();
     this.loadPermissions();
 
     if (this.userId) {
-
       this.fetchUserDetails(this.userId);
-
-     
-
     }
-
   }
-loadUserPermissions() {
 
-  if (!this.userId) return;
+  loadUserPermissions() {
+    if (!this.userId) return;
 
-  this.http.get<any>(
-    `${environment.apiUrl}/action-permission/getuserpermission?userId=${this.userId}`
-  ).subscribe({
+    this.http.get<any>(
+      `${environment.apiUrl}/action-permission/getuserpermission?userId=${this.userId}`
+    ).subscribe({
+      next: (res) => {
+        this.branchPermissions = {};
+        res.permissions.forEach((p: any) => {
+          const branchId = p.branchId;
+          if (!this.branchPermissions[branchId]) {
+            this.branchPermissions[branchId] = [];
+          }
 
-    next: (res) => {
+          // base permission
+          this.branchPermissions[branchId].push(p.permissionId);
 
-      this.branchPermissions = {};
+          // actions
+          if (p.actions.includes("Add")) {
+            this.branchPermissions[branchId].push(p.permissionId + "_a");
+          }
+          if (p.actions.includes("View")) {
+            this.branchPermissions[branchId].push(p.permissionId + "_v");
+          }
+          if (p.actions.includes("Edit")) {
+            this.branchPermissions[branchId].push(p.permissionId + "_e");
+          }
+          if (p.actions.includes("Delete")) {
+            this.branchPermissions[branchId].push(p.permissionId + "_d");
+          }
+        });
 
-      res.permissions.forEach((p: any) => {
-
-        const branchId = p.branchId;
-
-        if (!this.branchPermissions[branchId]) {
-          this.branchPermissions[branchId] = [];
+        // 🔥 Fix: Branch data load hone ke baad UI array ko update karna zaroori hai
+        if (this.selectedBranchPermission) {
+           const currentId = this.selectedBranchPermission.id;
+           if (this.branchPermissions[currentId]) {
+             this.selectedPermissionIds = [...this.branchPermissions[currentId]];
+           }
+        } else {
+           const firstBranchId = Object.keys(this.branchPermissions)[0];
+           if (firstBranchId) {
+             const branch = this.branchesList.find(b => b.id == firstBranchId);
+             if (branch) {
+               this.selectedBranchPermission = branch;
+               this.selectedPermissionIds = [...this.branchPermissions[Number(firstBranchId)]];
+             }
+           }
         }
-
-        // base permission
-        this.branchPermissions[branchId].push(p.permissionId);
-
-        // actions
-        if (p.actions.includes("Add")) {
-          this.branchPermissions[branchId].push(p.permissionId + "_a");
-        }
-        if (p.actions.includes("View")) {
-          this.branchPermissions[branchId].push(p.permissionId + "_v");
-        }
-
-        if (p.actions.includes("Edit")) {
-          this.branchPermissions[branchId].push(p.permissionId + "_e");
-        }
-
-        if (p.actions.includes("Delete")) {
-          this.branchPermissions[branchId].push(p.permissionId + "_d");
-        }
-
-      });
-
-      // 🔥 first branch auto select
-      const firstBranchId = Object.keys(this.branchPermissions)[0];
-
-      if (firstBranchId) {
-
-        const branch = this.branchesList.find(b => b.id == firstBranchId);
-
-        if (branch) {
-          this.selectedBranchPermission = branch;
-          const branchIdNum = Number(firstBranchId);
-
-this.selectedPermissionIds = [...this.branchPermissions[branchIdNum]];
-        }
-
+        this.cdr.detectChanges();
       }
+    });
+  }
 
-    }
-
-  });
-
-}
   // ===============================
   // LOAD BRANCHES
   // ===============================
 
- loadBranches() {
-  this.http.get<any[]>(`${environment.apiUrl}/Branch/list`)
-  .subscribe({
-
-    next: (res) => {
-
-      this.branchesList = res.map(b => ({
-        id: b.id,
-        name: b.branchName,
-        isDefault: false
-      }));
-
-      // 🔥 YAHI ADD KAR
-      this.loadUserPermissions();
-
-    }
-
-  });
-}
+  loadBranches() {
+    this.http.get<any[]>(`${environment.apiUrl}/Branch/list`)
+    .subscribe({
+      next: (res) => {
+        this.branchesList = res.map(b => ({
+          id: b.id,
+          name: b.branchName,
+          isDefault: false
+        }));
+        this.loadUserPermissions();
+      }
+    });
+  }
 
   // ===============================
   // USER DETAILS
   // ===============================
 
   fetchUserDetails(id: string) {
-
     this.http.get<any>(`${environment.apiUrl}/User/${id}`)
     .subscribe({
-
       next: (emp) => {
-
         this.selectedEmployee = emp;
-
         this.selectedEmployeeEmail = emp.email;
-
         this.selectedRole = emp.roleId ?? null;
-
         this.selectedEmployeePassword = emp.password ?? null;
-
         this.isAccountActive = emp.status !== false;
-
-        this.selectedBranchIds =
-          emp.userBranches?.map((b: any) => b.branch.id) || [];
-
+        this.selectedBranchIds = emp.userBranches?.map((b: any) => b.branch.id) || [];
       }
-
     });
-
   }
 
   // ===============================
@@ -193,166 +160,152 @@ this.selectedPermissionIds = [...this.branchPermissions[branchIdNum]];
   // ===============================
 
   loadRoles() {
-
     this.http.get<any[]>(`${environment.apiUrl}/User/roles`)
     .subscribe(res => this.rolesList = res);
-
-  }
-onRoleChange(roleId: any) {
-  if (roleId === null || roleId === undefined || roleId === 'null') {
-    this.resetPermissionsUI(); // Manual/Null pe clear karo
-    return;
   }
 
-  const numericRoleId = Number(roleId);
-  if (isNaN(numericRoleId)) return;
-
-  console.log("Fetching permissions for Role ID:", numericRoleId);
-
-  this.http.get<any[]>(`${environment.apiUrl}/role-permission/by-role/${numericRoleId}`)
-    .subscribe({
-      next: (res) => {
-        console.log("API Response Success:", res);
-        this.applyRolePermissionsToUI(res);
-      },
-      error: (err) => {
-        // 🔥 YAHAN HAI FIX: Jab 404 (No Permissions) aaye, toh UI clear kar do
-        console.warn("No permissions for this role or API error:", err);
-        this.resetPermissionsUI(); 
-      }
-    });
-}
-
-// Ek helper function bana lo reset karne ke liye
-resetPermissionsUI() {
-  if (this.selectedBranchPermission) {
-    const branchId = this.selectedBranchPermission.id;
-    this.branchPermissions[branchId] = []; // Branch ka data khali karo
-  }
-  this.selectedPermissionIds = []; // UI ke checkboxes khali karo
-  this.cdr.detectChanges(); // Force Refresh
-  console.log("UI Reset: Permissions Cleared");
-}
-
-applyRolePermissionsToUI(apiData: any[]) {
-  // 1. Agar branch select nahi hai toh pehli branch uthao
-  if (!this.selectedBranchPermission) {
-    if (this.selectedBranchIds.length > 0) {
-      const firstBranchId = this.selectedBranchIds[0];
-      this.selectedBranchPermission = this.branchesList.find(b => b.id === Number(firstBranchId));
-    } else {
-      alert("Pehle left side se Branch select karo bhai!");
+  onRoleChange(roleId: any) {
+    if (roleId === null || roleId === undefined || roleId === 'null') {
+      this.resetPermissionsUI();
       return;
     }
+
+    const numericRoleId = Number(roleId);
+    if (isNaN(numericRoleId)) return;
+
+    this.http.get<any[]>(`${environment.apiUrl}/role-permission/by-role/${numericRoleId}`)
+      .subscribe({
+        next: (res) => {
+          this.applyRolePermissionsToUI(res);
+        },
+        error: (err) => {
+          this.resetPermissionsUI(); 
+        }
+      });
   }
 
-  const branchId = this.selectedBranchPermission.id;
+  resetPermissionsUI() {
+    if (this.selectedBranchPermission) {
+      const branchId = this.selectedBranchPermission.id;
+      this.branchPermissions[branchId] = [];
+    }
+    this.selectedPermissionIds = [];
+    this.cdr.detectChanges();
+  }
 
-  // 🔥 STEP 1: Pehle empty array declare karo (Taki agar apiData empty ho toh UI reset ho jaye)
-  const newPermissions: any[] = [];
-
-  // 🔥 STEP 2: Agar API se data aaya hai tabhi loop chalao
-  if (apiData && apiData.length > 0) {
-    apiData.forEach(p => {
-      newPermissions.push(p.permissionId);
-      if (p.actions && Array.isArray(p.actions)) {
-        if (p.actions.includes("Add"))   newPermissions.push(p.permissionId + "_a");
-        if (p.actions.includes("View"))   newPermissions.push(p.permissionId + "_v");
-        if (p.actions.includes("Edit"))   newPermissions.push(p.permissionId + "_e");
-        if (p.actions.includes("Delete")) newPermissions.push(p.permissionId + "_d");
+  applyRolePermissionsToUI(apiData: any[]) {
+    if (!this.selectedBranchPermission) {
+      if (this.selectedBranchIds.length > 0) {
+        const firstBranchId = this.selectedBranchIds[0];
+        this.selectedBranchPermission = this.branchesList.find(b => b.id === Number(firstBranchId));
+      } else {
+        alert("Pehle left side se Branch select karo bhai!");
+        return;
       }
-    });
+    }
+
+    const branchId = this.selectedBranchPermission.id;
+    const newPermissions: any[] = [];
+
+    if (apiData && apiData.length > 0) {
+      apiData.forEach(p => {
+        newPermissions.push(p.permissionId);
+        if (p.actions && Array.isArray(p.actions)) {
+          if (p.actions.includes("Add"))   newPermissions.push(p.permissionId + "_a");
+          if (p.actions.includes("View"))   newPermissions.push(p.permissionId + "_v");
+          if (p.actions.includes("Edit"))   newPermissions.push(p.permissionId + "_e");
+          if (p.actions.includes("Delete")) newPermissions.push(p.permissionId + "_d");
+        }
+      });
+    }
+
+    this.branchPermissions[branchId] = [...newPermissions];
+    this.selectedPermissionIds = [...newPermissions];
+    this.cdr.detectChanges(); 
   }
 
-  // 🔥 STEP 3: Sabse important - Is branch ka data update karo (Empty ho ya filled)
-  this.branchPermissions[branchId] = [...newPermissions];
-
-  // 🔥 STEP 4: UI ko batana ki data change ho gaya hai
-  this.selectedPermissionIds = [...newPermissions];
-
-  // 🔥 STEP 5: Force Angular to detect changes
-  this.cdr.detectChanges(); 
-
-  console.log("UI Updated! Current Data:", this.selectedPermissionIds);
-}
   // ===============================
   // PERMISSIONS
   // ===============================
-getPermissionDisplayName(perm: any): string {
-  if (!perm) return 'N/A';
 
-  // Priority 1: Agar subMenu hai aur empty nahi hai → sirf subMenu dikhao
-  if (perm.subMenu && perm.subMenu.toString().trim() !== '') {
-    return perm.subMenu.trim();
+  getPermissionDisplayName(perm: any): string {
+    if (!perm) return 'N/A';
+    if (perm.subMenu && perm.subMenu.toString().trim() !== '') {
+      return perm.subMenu.trim();
+    }
+    if (perm.menu && perm.menu.toString().trim() !== '') {
+      return perm.menu.trim();
+    }
+    return 'Unnamed';
   }
 
-  // Priority 2: Warna menu dikhao (jaise Organization, Branch, Settings)
-  if (perm.menu && perm.menu.toString().trim() !== '') {
-    return perm.menu.trim();
-  }
-
-  return 'Unnamed';
-}
   loadPermissions() {
     this.isLoading = true;
-  this.http.get<any[]>(`${environment.apiUrl}/Permissions/list`).subscribe({
-    next: (res) => {
-      
-      this.permissionsList = res.filter(p => {
-        // Basic validation
-        if (!p || !p.menu || p.menu.toString().trim() === '') {
-          return false;
-        }
+    this.http.get<any[]>(`${environment.apiUrl}/Permissions/list`).subscribe({
+      next: (res) => {
+        this.permissionsList = res.filter(p => {
+          if (!p || !p.menu || p.menu.toString().trim() === '') {
+            return false;
+          }
+          this.isLoading = false;
+          const excluded = ['dashboard', 'port of loading', 'port of discharge'];
+          const menuLower = p.menu.toString().toLowerCase().trim();
+          const subMenuLower = p.subMenu ? p.subMenu.toString().toLowerCase().trim() : '';
+          if (excluded.includes(menuLower) || excluded.includes(subMenuLower)) {
+            return false;
+          }
+          this.cdr.detectChanges();
+          return true;
+        });
+      },
+      error: (err) => {
         this.isLoading = false;
-        // Exclude unwanted items
-        const excluded = ['dashboard', 'port of loading', 'port of discharge'];
-        
-        const menuLower = p.menu.toString().toLowerCase().trim();
-        const subMenuLower = p.subMenu ? p.subMenu.toString().toLowerCase().trim() : '';
-
-        // Agar excluded list mein hai toh mat dikhao
-        if (excluded.includes(menuLower) || excluded.includes(subMenuLower)) {
-          return false;
-        }
-        this.cdr.detectChanges(); // Force UI update after data load
-        return true;
-      });
-
-      console.log('✅ Final Permissions List after filter:', this.permissionsList.length, 'items');
-      console.log(this.permissionsList); // Debugging ke liye
-    },
-    error: (err) => {
-      this.isLoading = false;
-      console.error('❌ Error loading permissions:', err);
-    }
-  });
-}
+      }
+    });
+  }
 
   // ===============================
   // BRANCH TOGGLE
   // ===============================
 
   toggleBranch(id: number) {
-
     if (this.selectedBranchIds.includes(id)) {
-
-      this.selectedBranchIds =
-        this.selectedBranchIds.filter(x => x !== id);
-
+      this.selectedBranchIds = this.selectedBranchIds.filter(x => x !== id);
     } else {
-
       this.selectedBranchIds.push(id);
-
     }
-
   }
 
   // ===============================
-  // PERMISSION TOGGLES
+  // PERMISSION TOGGLES (MODIFIED FOR ALL)
   // ===============================
 
-  togglePermission(id: any) {
-    this.toggleLogic(id);
+  togglePermission(permID: any) {
+    const suffixes = ['_a', '_v', '_e', '_d'];
+    const subPerms = suffixes.map(s => permID + s);
+    const allChecked = subPerms.every(id => this.selectedPermissionIds.includes(id));
+
+    if (allChecked) {
+      if(this.selectedPermissionIds.includes(permID)) this.toggleLogic(permID);
+      suffixes.forEach(s => {
+        if(this.selectedPermissionIds.includes(permID + s)) {
+          this.toggleLogic(permID + s);
+        }
+      });
+    } else {
+      if(!this.selectedPermissionIds.includes(permID)) this.toggleLogic(permID);
+      suffixes.forEach(s => {
+        if(!this.selectedPermissionIds.includes(permID + s)) {
+          this.toggleLogic(permID + s);
+        }
+      });
+    }
+  }
+
+  isModuleFullyChecked(permID: any): boolean {
+    const suffixes = ['_a', '_v', '_e', '_d'];
+    // Saare actions checked hone chahiye tabhi "All" wala tick hoga
+    return suffixes.every(s => this.selectedPermissionIds.includes(permID + s));
   }
 
   toggleView(id: any) {
@@ -366,209 +319,133 @@ getPermissionDisplayName(perm: any): string {
   toggleDelete(id: any) {
     this.toggleLogic(id + "_d");
   }
+
   toggleAdd(id: any) {
-  this.toggleLogic(id + "_a");
-}
+    this.toggleLogic(id + "_a");
+  }
 
- private toggleLogic(key: any) {
-
-  // agar branch select nahi hai to first selected branch use karo
-  if (!this.selectedBranchPermission) {
-
-    if (this.selectedBranchIds.length === 0) {
-      alert("Please select a branch first");
-      return;
+  private toggleLogic(key: any) {
+    if (!this.selectedBranchPermission) {
+      if (this.selectedBranchIds.length === 0) {
+        alert("Please select a branch first");
+        return;
+      }
+      const firstBranch = this.branchesList.find(b => b.id === this.selectedBranchIds[0]);
+      this.selectedBranchPermission = firstBranch;
     }
 
-    const firstBranch = this.branchesList.find(
-      b => b.id === this.selectedBranchIds[0]
-    );
+    const branchId = this.selectedBranchPermission.id;
+    if (!this.branchPermissions[branchId]) {
+      this.branchPermissions[branchId] = [];
+    }
 
-    this.selectedBranchPermission = firstBranch;
+    const permissions = this.branchPermissions[branchId];
+    const index = permissions.indexOf(key);
+
+    if (index > -1) {
+      permissions.splice(index, 1);
+    } else {
+      permissions.push(key);
+    }
+
+    this.selectedPermissionIds = [...permissions];
+    this.cdr.detectChanges();
   }
-
-  const branchId = this.selectedBranchPermission.id;
-
-  if (!this.branchPermissions[branchId]) {
-    this.branchPermissions[branchId] = [];
-  }
-
-  const permissions = this.branchPermissions[branchId];
-
-  const index = permissions.indexOf(key);
-
-  if (index > -1) {
-    permissions.splice(index, 1);
-  } else {
-    permissions.push(key);
-  }
-
-  this.selectedPermissionIds = [...permissions];
-
-  console.log("Updated BranchPermissions:", this.branchPermissions);
-}
 
   // ===============================
   // SAVE SETTINGS
   // ===============================
 
-saveSettings() {
+  saveSettings() {
+    if (this.isSaving) return;
+    this.isSaving = true;
 
-  if (this.isSaving) return;
-
-  this.isSaving = true;
-
-  const cleanIds = this.selectedPermissionIds.map(item => {
-
-    if (typeof item === "string") {
-      return parseInt(item.split("_")[0], 10);
-    }
-
-    return item;
-
-  });
-
-  const finalPayloadIds = [...new Set(cleanIds)];
-
-  const rolePayload = {
-
-    userId: this.userId,
-
-    roleId: this.selectedRole,
-
-    password: this.selectedEmployeePassword || null,
-
-    isActive: this.isAccountActive,
-
-    branchIds: this.selectedBranchIds,
-
-    permissionIds: finalPayloadIds
-
-  };
-
-  // =============================
-  // BUILD BRANCH PERMISSION DATA
-  // =============================
-
-  const branchPermissionsPayload: any[] = [];
-
-  Object.keys(this.branchPermissions).forEach(branchId => {
-
-    const permissionsArray = this.branchPermissions[Number(branchId)];
-
-    const permissionMap: any = {};
-
-    permissionsArray.forEach((p:any)=>{
-
-      if(typeof p === "number"){
-
-        if(!permissionMap[p]){
-          permissionMap[p] = [];
-        }
-
+    const cleanIds = this.selectedPermissionIds.map(item => {
+      if (typeof item === "string") {
+        return parseInt(item.split("_")[0], 10);
       }
-
-      if(typeof p === "string"){
-
-        const parts = p.split("_");
-
-        const permId = parseInt(parts[0]);
-        const action = parts[1];
-
-        if(!permissionMap[permId]){
-          permissionMap[permId] = [];
-        }
-
-        if(action === "v") permissionMap[permId].push("View");
-        if(action === "a") permissionMap[permId].push("Add");
-        if(action === "e") permissionMap[permId].push("Edit");
-        if(action === "d") permissionMap[permId].push("Delete");
-
-      }
-
+      return item;
     });
 
-    const permissions = Object.keys(permissionMap).map(id => ({
-      permissionId: Number(id),
-      actions: permissionMap[id]
-    }));
+    const finalPayloadIds = [...new Set(cleanIds)];
 
-    branchPermissionsPayload.push({
-      branchId: Number(branchId),
-      permissions: permissions
-    });
+    const rolePayload = {
+      userId: this.userId,
+      roleId: this.selectedRole,
+      password: this.selectedEmployeePassword || null,
+      isAuthenticated: true,
+      isActive: this.isAccountActive,
+      branchIds: this.selectedBranchIds,
+      permissionIds: finalPayloadIds
+    };
 
-  });
+    const branchPermissionsPayload: any[] = [];
 
-  const finalBranchPayload = {
-    userId: Number(this.userId),
-    branchPermissions: branchPermissionsPayload
-  };
+    Object.keys(this.branchPermissions).forEach(branchId => {
+      const permissionsArray = this.branchPermissions[Number(branchId)];
+      const permissionMap: any = {};
 
-  console.log("FINAL BRANCH PAYLOAD", finalBranchPayload);
-
-  // =============================
-  // API CALLS
-  // =============================
-
-  this.http.put(`${environment.apiUrl}/Permissions/assign-role`, rolePayload)
-  .subscribe({
-
-    next: () => {
-
-      // 🔥 IMPORTANT: send branch payload
-      this.http.post(`${environment.apiUrl}/action-permission/save`, finalBranchPayload)
-      .subscribe({
-
-        next: () => {
-
-          console.log("Permissions saved successfully");
-
-          this.isSaving = false;
-
-          this.goBack();
-
-        },
-
-        error: () => {
-
-          this.isSaving = false;
-
-          alert("Role saved but branch permissions failed.");
-
+      permissionsArray.forEach((p: any) => {
+        if (typeof p === "number") {
+          if (!permissionMap[p]) permissionMap[p] = [];
         }
-
+        if (typeof p === "string") {
+          const parts = p.split("_");
+          const permId = parseInt(parts[0]);
+          const action = parts[1];
+          if (!permissionMap[permId]) permissionMap[permId] = [];
+          if (action === "v") permissionMap[permId].push("View");
+          if (action === "a") permissionMap[permId].push("Add");
+          if (action === "e") permissionMap[permId].push("Edit");
+          if (action === "d") permissionMap[permId].push("Delete");
+        }
       });
 
-    },
+      const permissions = Object.keys(permissionMap).map(id => ({
+        permissionId: Number(id),
+        actions: permissionMap[id]
+      }));
 
-    error: () => {
+      branchPermissionsPayload.push({
+        branchId: Number(branchId),
+        permissions: permissions
+      });
+    });
 
-      this.isSaving = false;
+    const finalBranchPayload = {
+      userId: Number(this.userId),
+      branchPermissions: branchPermissionsPayload
+    };
 
-      alert("Failed to update role settings.");
-
-    }
-
-  });
-
-}
+    this.http.put(`${environment.apiUrl}/Permissions/assign-role`, rolePayload)
+    .subscribe({
+      next: () => {
+        this.http.post(`${environment.apiUrl}/action-permission/save`, finalBranchPayload)
+        .subscribe({
+          next: () => {
+            this.isSaving = false;
+            this.goBack();
+          },
+          error: () => {
+            this.isSaving = false;
+            alert("Role saved but branch permissions failed.");
+          }
+        });
+      },
+      error: () => {
+        this.isSaving = false;
+        alert("Failed to update role settings.");
+      }
+    });
+  }
 
   // ===============================
   // PASSWORD GENERATOR
   // ===============================
 
   generateRandomPassword() {
-
-    const chars =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
-
-    this.selectedEmployeePassword =
-      Array(10)
-        .fill(0)
-        .map(() => chars[Math.floor(Math.random() * chars.length)])
-        .join("");
-
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+    this.selectedEmployeePassword = Array(10).fill(0).map(() => chars[Math.floor(Math.random() * chars.length)]).join("");
   }
 
   // ===============================
@@ -576,19 +453,14 @@ saveSettings() {
   // ===============================
 
   openBranchPermission(branch: any) {
-
-  this.selectedBranchPermission = branch;
-
-  const branchId = branch.id;
-
-  if (!this.branchPermissions[branchId]) {
-    this.branchPermissions[branchId] = [];
+    this.selectedBranchPermission = branch;
+    const branchId = branch.id;
+    if (!this.branchPermissions[branchId]) {
+      this.branchPermissions[branchId] = [];
+    }
+    this.selectedPermissionIds = [...this.branchPermissions[branchId]];
+    this.cdr.detectChanges();
   }
-
-  this.selectedPermissionIds = [...this.branchPermissions[branchId]];
-
-  console.log("Branch Selected:", branchId);
-}
 
   // ===============================
   // BACK
@@ -597,5 +469,4 @@ saveSettings() {
   goBack() {
     this.router.navigate(['/dashboard/Employee']);
   }
-
 }

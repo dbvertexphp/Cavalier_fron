@@ -1,4 +1,3 @@
-import { Permission } from './../employee/employee.component';
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -19,7 +18,7 @@ export class CompanyServiceComponent implements OnInit {
   currentServiceId: number | null = null;
   newServiceName: string = ''; 
   services: any[] = []; 
-  PermissionID:any;
+  PermissionID: number = 0;
   private apiUrl = environment.apiUrl + '/CompanyService';
 
   constructor(
@@ -29,19 +28,25 @@ export class CompanyServiceComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.PermissionID = Number(localStorage.getItem('permissionID'));
+    const storedID = localStorage.getItem('permissionID');
+    if (storedID) {
+      this.PermissionID = Number(storedID);
+    }
+    
+    // Direct fetch call bina kisi condition ke, taaki data hamesha dikhe
     this.fetchServices();
   }
 
-  // ✅ FETCH + isActive FIX
   fetchServices() {
     this.http.get<any[]>(this.apiUrl).subscribe({
       next: (res) => {
+        // API response ko services array mein daal rahe hain
         this.services = res.map(s => ({
           ...s,
           isActive: s.isActive ?? true
         }));
-        this.cdr.detectChanges();
+        console.log("Services loaded:", this.services.length);
+        this.cdr.detectChanges(); // UI update force karein
       },
       error: (err) => console.error('Error fetching services', err)
     });
@@ -57,42 +62,40 @@ export class CompanyServiceComponent implements OnInit {
 
   closeModal() { 
     this.isModalOpen = false; 
+    this.newServiceName = '';
     this.cdr.detectChanges();
   }
   
   saveService() { 
-    if (this.newServiceName.trim()) {
-      const upperName = this.newServiceName.trim().toUpperCase();
+    if (!this.newServiceName.trim()) return;
 
-      if (this.isEditMode && this.currentServiceId) {
-        const payload = { id: this.currentServiceId, serviceName: upperName };
-        this.http.put(`${this.apiUrl}/${this.currentServiceId}`, payload).subscribe({
-          next: () => this.handleSuccess(),
-          error: (err) => console.error('Error updating service', err)
-        });
-      } else {
-        const payload = { serviceName: upperName };
-        this.http.post(this.apiUrl, payload).subscribe({
-          next: () => this.handleSuccess(),
-          error: (err) => console.error('Error saving service', err)
-        });
-      }
+    const upperName = this.newServiceName.trim().toUpperCase();
+
+    if (this.isEditMode && this.currentServiceId) {
+      const payload = { id: this.currentServiceId, serviceName: upperName };
+      this.http.put(`${this.apiUrl}/${this.currentServiceId}`, payload).subscribe({
+        next: () => {
+          this.fetchServices(); // Update ke baad fresh load
+          this.closeModal();
+        },
+        error: (err) => console.error('Error updating service', err)
+      });
+    } else {
+      const payload = { serviceName: upperName };
+      this.http.post(this.apiUrl, payload).subscribe({
+        next: () => {
+          this.fetchServices(); // Add ke baad fresh load
+          this.closeModal();
+        },
+        error: (err) => console.error('Error saving service', err)
+      });
     }
   }
 
-  private handleSuccess() {
-    this.fetchServices();
-    this.closeModal();
-    this.cdr.detectChanges();
-  }
-  
   deleteService(id: number) {
     if(confirm('Are you sure you want to delete this service?')) {
       this.http.delete(`${this.apiUrl}/${id}`).subscribe({
-        next: () => {
-          this.fetchServices();
-          this.cdr.detectChanges();
-        },
+        next: () => this.fetchServices(),
         error: (err) => console.error('Error deleting service', err)
       });
     }
@@ -106,11 +109,8 @@ export class CompanyServiceComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
-  // ✅ TOGGLE
   toggleStatus(service: any) {
     service.isActive = !service.isActive;
-
-    // Optional API
-    // this.http.put(`${this.apiUrl}/status/${service.id}`, { isActive: service.isActive }).subscribe();
+    // Note: Yahan server par status update ki API call honi chahiye agar database mein save karna hai
   }
 }

@@ -1,7 +1,7 @@
 import { Permission } from './../employee/employee.component';
 import { CheckPermissionService } from './../../services/check-permission.service';
 
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -27,6 +27,7 @@ import { Subscription } from 'rxjs';
   templateUrl: './quotation-form.component.html',
 })
 export class QuotationFormComponent implements OnInit {
+  @ViewChild('cargoReadyDateInput') cargoReadyDateInput!: ElementRef;
   token:string='';
   getsalescordinate: any[] = [];
     shipmentTypes: any[] = [];
@@ -277,7 +278,39 @@ this.getsales();
     this.fetchCompanyServices()
     this.fetchLOBs();
   }
-  
+  onCargoStatusChange2() {
+  if (this.quotation.cargoStatus === 'Ready') {
+    this.setTodayDate2();
+  } 
+  else if (this.quotation.cargoStatus === 'Ready By') {
+
+    if (!this.quotation.cargoReadyDate) {
+      this.setTodayDate2();
+    }
+
+    setTimeout(() => {
+      const input = this.cargoReadyDateInput?.nativeElement;
+
+      if (input) {
+        input.focus();
+
+        setTimeout(() => {
+          input.click();
+          try {
+            input.showPicker();
+          } catch (e) {
+            console.log("showPicker not supported");
+          }
+        }, 50);
+      }
+    }, 100);
+  }
+}
+setTodayDate2() {
+  const today = new Date().toISOString().split('T')[0];
+  this.quotation.cargoReadyDate = today;
+}
+
 fetchLOBs() {
     this.http.get<any[]>(this.serviceApiUrl).subscribe({
       next: (res) => {
@@ -717,7 +750,17 @@ this.quotation.salesCoordinator = fullData.salesCoordinator
       this.quotation.qtnDoneBy         = fullData.qtnDoneBy || '';
 
       // Cargo Status
-      this.quotation.cargoStatus       = fullData.cargoStatus || 'Pending';
+      this.quotation.cargoStatus       = fullData.cargoStatus || 'Ready';
+      const date = fullData.cargoStatusDate
+  ? fullData.cargoStatusDate.split('T')[0]
+  : null;
+
+// 🔥 force refresh trick
+this.quotation.cargoReadyDate = null;
+
+setTimeout(() => {
+  this.quotation.cargoReadyDate = date;
+}, 0);
 
       // Extra fields jo aapke form mein hain
       this.quotation.placeOfReceipt    = fullData.placeOfReceipt || '';

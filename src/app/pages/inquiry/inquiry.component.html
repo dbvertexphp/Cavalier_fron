@@ -1667,30 +1667,30 @@
 
                 <div class="flex gap-1 items-center">
                   <!-- Date Input -->
-                  <input
-                    #cargoDateInput
-                    type="date"
-                    [(ngModel)]="quotation.cargoStatusDate"
-                    name="cargoStatusDate"
-                    [readonly]="quotation.shipmentType === 'Ready'"
-                    [disabled]="quotation.shipmentType === 'Ready'"
-                    class="border p-1 text-[11px] outline-none w-[140px] bg-white
-             {{
-                      quotation.shipmentType === 'Ready'
-                        ? 'bg-gray-100 text-gray-500 cursor-default'
-                        : 'cursor-pointer border-blue-400 focus:ring-1 focus:ring-blue-300'
-                    }}"
-                  />
+                 <input
+  #cargoDateInput
+  type="date"
+  [(ngModel)]="quotation.cargoStatusDate"
+  name="cargoStatusDate"
+  [readonly]="quotation.cargoStatusType === 'Ready'"
+  [disabled]="quotation.cargoStatusType === 'Ready'"
+  class="border p-1 text-[11px] outline-none w-[140px] bg-white
+  {{
+    quotation.cargoStatusType === 'Ready'
+      ? 'bg-gray-100 text-gray-500 cursor-default'
+      : 'cursor-pointer border-blue-400 focus:ring-1 focus:ring-blue-300'
+  }}"
+/>
 
                   <!-- Select Dropdown -->
-                  <select
-                    [(ngModel)]="quotation.shipmentType"
-                    (change)="onShipmentTypeChange()"
-                    class="border p-1 text-[11px] outline-none flex-1 min-w-0 h-[32px] bg-white"
-                  >
-                    <option value="Ready">Ready</option>
-                    <option value="Ready By">Ready By</option>
-                  </select>
+                 <select
+  [(ngModel)]="quotation.cargoStatusType"
+  (change)="onCargoStatusChange()"
+  class="border p-1 text-[11px] outline-none flex-1 min-w-0 h-[32px] bg-white"
+>
+  <option value="Ready">Ready</option>
+  <option value="Ready By">Ready By</option>
+</select>
                 </div>
               </div>
             </div>

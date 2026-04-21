@@ -411,6 +411,8 @@ onShipmentTypeChange() {
   onLOBChange(event: any) {
     // alert('lob changed'+this.quotation.lineOfBusinessId);
   const selectedId = event.target.value;
+  
+
 
   const selectedService = this.companyServices.find(s => s.id == selectedId);
 
@@ -420,6 +422,7 @@ onShipmentTypeChange() {
   }
 
   const fullName = selectedService.serviceName.trim();
+  
   this.quotation.lineOfBusinessName = fullName;
 
   const parts = fullName.split(/[\s\-]+/);
@@ -850,7 +853,7 @@ const payload = {
   portOfDischargeId: !isNaN(Number(this.quotation.portOfDischargeId)) && Number(this.quotation.portOfDischargeId) > 0 ? Number(this.quotation.portOfDischargeId) : null,
   
   // Default Audit Fields
-  cargoStatus: this.quotation.cargoStatus || 'Pending',
+  cargoStatus: this.quotation.cargoStatusType || 'Ready',
   createdBy: 'admin@cavalierlogistic.in', // Admin email requirement [cite: 2026-02-02]
   qtnId: this.quotation.qtnId || ('QTN-' + Math.floor(1000 + Math.random() * 9000)),
   createdDate: new Date().toISOString(),
@@ -1069,6 +1072,7 @@ openDimModal() {
         shipmentType: 'International',
         lineOfBusinessId: null,
         commodityId: 1,
+        cargoStatusType: 'Ready',
         
         portOfLoadingId: 1, // Matches pol1 request
         portOfDischargeId: 1, // Matches pod1 request
@@ -1623,7 +1627,36 @@ loadInquirySettings() {
     }
   });
 }
+onCargoStatusChange() {
+  if (this.quotation.cargoStatusType === 'Ready') {
+    this.setTodayDate();
+  } 
+  else if (this.quotation.cargoStatusType === 'Ready By') {
 
+    if (!this.quotation.cargoStatusDate) {
+      this.setTodayDate();
+    }
+
+    setTimeout(() => {
+      if (this.cargoDateInput?.nativeElement) {
+        const input = this.cargoDateInput.nativeElement;
+
+        input.focus();
+
+        setTimeout(() => {
+          input.click();
+
+          try {
+            (input as any).showPicker();
+          } catch (e) {
+            console.log("showPicker not supported");
+          }
+        }, 50);
+      }
+    }, 120);
+  }
+   
+}
 dropColumn(event: CdkDragDrop<string[]>) {
   if (event.previousContainer === event.container) {
     moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);

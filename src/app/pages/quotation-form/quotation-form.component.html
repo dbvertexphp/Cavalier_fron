@@ -814,19 +814,31 @@ Cancel
       
       <label class="text-gray-700 font-bold mt-3 block mb-1 uppercase">Cargo Status</label>
       <div class="flex gap-1">
-        <select name="cargoStatus" [(ngModel)]="quotation.cargoStatus" class="border p-2 w-1/2 outline-none">
-          <option value="Ready By">Ready By</option>
-        </select>
-       <input
-  type="date"
-  name="cargoReadyDate"
-  [(ngModel)]="quotation.cargoReadyDate"
-  class="border p-2 w-1/2 outline-none"
-  #cargoReadyDateInput
-  (click)="cargoReadyDateInput.showPicker()"
-  (focus)="cargoReadyDateInput.showPicker()"
-/>
-      </div>
+  <!-- Dropdown -->
+  <select
+    name="cargoStatus"
+    [(ngModel)]="quotation.cargoStatus"
+    (change)="onCargoStatusChange2()"
+    class="border p-2 w-1/2 outline-none"
+  >
+    <option value="Ready">Ready</option>
+    <option value="Ready By">Ready By</option>
+  </select>
+
+  <!-- Date Input -->
+  <input
+    type="date"
+    name="cargoReadyDate"
+    
+    [(ngModel)]="quotation.cargoReadyDate"
+    #cargoReadyDateInput
+    [readonly]="quotation.cargoStatus === 'Ready'"
+  [disabled]="false"
+    (click)="quotation.cargoStatus === 'Ready By' && cargoReadyDateInput.showPicker()"
+    (focus)="quotation.cargoStatus === 'Ready By' && cargoReadyDateInput.showPicker()"
+    class="border p-2 w-1/2 outline-none"
+  />
+</div>
     </div>
 
     <div class="bg-white p-3 border border-gray-200">

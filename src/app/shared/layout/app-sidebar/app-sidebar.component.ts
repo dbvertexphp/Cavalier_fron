@@ -304,11 +304,13 @@ selectBranch(branch: any) {
     if (item.name === 'CRM' && item.subItems) {
       const lead = item.subItems.find(s => s.name.includes('Lead'));
       const inquiry = item.subItems.find(s => s.name.includes('Inquiry'));
+      const price = item.subItems.find(s=>s.name.includes('Price'));
       const quotation = item.subItems.find(s => s.name.includes('Quotation'));
 
       const sortedSubItems: any[] = [];
       if (lead) sortedSubItems.push(lead);
       if (inquiry) sortedSubItems.push(inquiry);
+      if(price) sortedSubItems.push(price);
       if (quotation) sortedSubItems.push(quotation);
 
       item.subItems.forEach(s => {

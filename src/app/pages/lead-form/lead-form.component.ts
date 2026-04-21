@@ -2079,5 +2079,19 @@ branchList: any[] = [];
   // Reset search text if you want it to behave like a picker
   // this.branchSearchText = ''; 
 }
-  
+  // Naye variables
+showRowModal = false;
+// selectedLeadId: any = null;
+
+// Double click handle karne ke liye
+handleRowDblClick(leadId: any) {
+  this.selectedLeadId = leadId;
+  this.showRowModal = true;
+}
+
+// Modal band karne ke liye
+closeRowModal() {
+  this.showRowModal = false;
+  this.selectedLeadId = null;
+}
 }

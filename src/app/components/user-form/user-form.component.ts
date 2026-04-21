@@ -407,11 +407,11 @@ onSubmit() {
   console.log('================ FINAL SUBMIT START ================');
 
   // 1. Zod Validation Check
-  if (!this.validateForm()) {
-    this.userForm.markAllAsTouched();
-    alert('Please fill all input fields correctly.');
-    return;
-  }
+  // if (!this.validateForm()) {
+  //   this.userForm.markAllAsTouched();
+  //   alert('Please fill all input fields correctly.');
+  //   return;
+  // }
 
   // 2. Angular Internal Validation Check
   if (this.userForm.invalid) {

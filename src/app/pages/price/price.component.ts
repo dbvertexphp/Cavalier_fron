@@ -24,9 +24,10 @@ import { Subscription } from 'rxjs';
   selector: 'app-quotation-form',
   standalone: true,
   imports: [CommonModule, RouterModule, FormsModule, HttpClientModule, DragDropModule],
-  templateUrl: './quotation-form.component.html',
+  templateUrl: './price.component.html',
 })
-export class QuotationFormComponent implements OnInit {
+export class PriceComponent {
+
   token:string='';
   getsalescordinate: any[] = [];
     shipmentTypes: any[] = [];

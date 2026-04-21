@@ -866,35 +866,82 @@ saveOrganization() {
     SelectedRoles: this.selectedRoles.join(',')
   };
 
-  // Update ya Save decide karta hai
   const apiUrl = this.isOrgEditMode && this.selectedOrgId 
     ? `${environment.apiUrl}/Organization/update` 
     : `${environment.apiUrl}/Organization/save`;
 
   this.http.post(apiUrl, payload).subscribe({
     next: (res: any) => {
-      const finalOrgId = res?.id || res?.data?.id || this.selectedOrgId || 0;
+      const finalOrgId = res?.id || res?.data?.id || res?.Id || this.selectedOrgId || 0;
 
       if (finalOrgId > 0) {
         this.selectedOrgId = finalOrgId;
 
-        // Branches save/update karo
-        if (this.branchList.length > 0) {
-          this.saveAllLocalBranches(finalOrgId);
-        }
+        // 🔥🔥🔥 AGENT DATA SAVE KARNA HAI YAHAN 🔥🔥🔥
+        this.saveAgentWithOrganisation(finalOrgId);
 
         alert(this.isOrgEditMode 
           ? "✅ Organization Updated Successfully!" 
-          : "✅ Organization Created Successfully!");
+          : "✅ Organization + Agent Saved Successfully!");
       }
-      window.location.reload();
-      
+      // window.location.reload();   // Comment kar do agar nahi chahiye
     },
     error: (err) => {
       console.error("Organization Save/Update Error:", err);
       alert(this.isOrgEditMode ? "❌ Failed to Update Organization" : "❌ Failed to Save Organization");
     }
   });
+}
+// ==================== SAVE AGENT WITH ORGANISATION ID ====================
+saveAgentWithOrganisation(orgId: number) {
+
+  if (!this.agentBranchName?.trim()) {
+    console.warn("⚠️ Agent Branch Name is empty, skipping agent save");
+    return;
+  }
+
+  const agentPayload = {
+    organisationId: orgId,                    // ← Dynamic OrganisationId
+    lineOfBusinessId: this.agentLineOfBusiness,
+    branchName: this.agentBranchName.trim(),
+    isDefault: this.agentIsDefault,
+    isDeactive: this.agentIsDeactive,
+
+    address: this.agentAddress?.trim() || '',
+    area: this.agentArea?.trim() || '',
+    landmark: this.agentLandmark?.trim() || '',
+    country: this.agentCountry?.trim() || '',
+    state: this.agentState?.trim() || '',
+    city: this.agentCity?.trim() || '',
+    postalCode: this.agentPostalCode?.trim() || '',
+
+    telephone: this.agentTelephone?.trim() || '',
+    fax: this.agentFax?.trim() || '',
+    website: this.agentWebsite?.trim() || '',
+    email: this.agentEmail?.trim() || '',
+
+    contacts: this.agentContacts.map(contact => ({
+      contactName: contact.contactName?.trim() || '',
+      designationId: contact.designationId || '',
+      departmentId: contact.departmentId || '',
+      mobile: contact.mobile?.trim() || '',
+      whatsapp: contact.whatsapp?.trim() || '',
+      email: contact.email?.trim() || ''
+    }))
+  };
+
+  console.log("🔥 Sending Agent Payload with OrgId:", agentPayload);
+
+  this.http.post(`${environment.apiUrl}/OrganisationAgent/SaveAgent`, agentPayload)
+    .subscribe({
+      next: (res) => {
+        console.log("✅ Agent + Contacts Saved Successfully!", res);
+      },
+      error: (err) => {
+        console.error("❌ Failed to save Agent:", err);
+        // alert("Organization saved but Agent save failed!"); // optional
+      }
+    });
 }
 editOrg(org: any) {
   console.log('Editing Organization:', org);

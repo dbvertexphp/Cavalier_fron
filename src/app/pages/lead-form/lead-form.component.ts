@@ -571,6 +571,7 @@ onDeleteLead(id: any) {
   }
 
   selectOrganization(org: any): void {
+    
     this.leadForm.patchValue({
       organization: org.orgName,
       organizationId: org.id

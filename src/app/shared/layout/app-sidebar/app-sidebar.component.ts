@@ -304,7 +304,7 @@ selectBranch(branch: any) {
     if (item.name === 'CRM' && item.subItems) {
       const lead = item.subItems.find(s => s.name.includes('Lead'));
       const inquiry = item.subItems.find(s => s.name.includes('Inquiry'));
-      const price = item.subItems.find(s=>s.name.includes('Price'));
+      const price = item.subItems.find(s=>s.name.includes('Pricing'));
       const quotation = item.subItems.find(s => s.name.includes('Quotation'));
 
       const sortedSubItems: any[] = [];

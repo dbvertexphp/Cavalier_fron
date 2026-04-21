@@ -406,20 +406,17 @@ createExperienceGroup(): FormGroup {
 onSubmit() {
   console.log('================ FINAL SUBMIT START ================');
 
-  // 1. Zod Validation Check
-  // if (!this.validateForm()) {
-  //   this.userForm.markAllAsTouched();
-  //   alert('Please fill all input fields correctly.');
-  //   return;
-  // }
-
-  // 2. Angular Internal Validation Check
+  // 1. Angular Internal Validation Check (Activated)
   if (this.userForm.invalid) {
-    this.userForm.markAllAsTouched();
-    alert('some important feilds are left.');
+    // Ye line screen par saare red errors show kar degi
+    this.userForm.markAllAsTouched(); 
+    
+    // English warning alert
+    alert('Please fill all mandatory fields correctly before submitting.'); 
     return;
   }
 
+  // Baki aapka code bilkul same hai...
   const raw = this.userForm.getRawValue();
 
   // ================= BRANCH FORM LOGIC =================
@@ -441,25 +438,21 @@ onSubmit() {
 
   } else {
     // ================= USER FORM LOGIC (EDIT + REGISTER) =================
-    
-    // BACKEND COMPATIBILITY LOGIC (Bina aapka structure chhede)
     let formattedDob = raw.dob;
     if (raw.dob && raw.dob.includes('-')) {
       const parts = raw.dob.split('-');
       if (parts.length === 3 && parts[0].length === 2) { 
-        // DD-MM-YYYY -> YYYY-MM-DD (Backend compatibility)
         formattedDob = `${parts[2]}-${parts[1]}-${parts[0]}`;
       }
     }
 
     const finalPayload = {
       ...raw,
-      dob: formattedDob, // Yahan updated dob chali jayegi
+      dob: formattedDob, 
       id: this.isEditMode ? this.id : 0, 
       EmergencyRelation: raw.emergencyRelationship || raw.EmergencyRelation
     };
 
-    // Logic: Agar edit hai toh update call, warna register
     const apiCall = this.isEditMode 
       ? this.userService.updateUser(finalPayload) 
       : this.userService.registerUser(finalPayload);
@@ -467,7 +460,6 @@ onSubmit() {
     apiCall.subscribe({
       next: (res: any) => {
         console.log(this.isEditMode ? 'Update Success' : 'Register Success', res);
-        alert(res);
         const currentId = this.isEditMode ? this.id : (res.id || res.userId || res.data?.id);
 
         if (currentId) {

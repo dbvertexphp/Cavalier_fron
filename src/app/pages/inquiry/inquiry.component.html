@@ -2901,7 +2901,7 @@
                           <td
                             class="p-3 md:p-4 text-orange-600 font-black text-sm uppercase italic"
                           >
-                            {{ quotation.cargoStatus || "Pending" }}
+                            {{ quotation.cargoStatusType || "Pending" }}
                           </td>
                         </tr>
                         <tr>
@@ -3045,8 +3045,8 @@
                           </td>
                           <td class="p-3 md:p-4 text-gray-800 text-sm">
                             {{
-                              quotation.incoTerm ||
-                                quotation.incoTermName ||
+                              showincoterms ||
+                                
                                 "N/A"
                             }}
                           </td>

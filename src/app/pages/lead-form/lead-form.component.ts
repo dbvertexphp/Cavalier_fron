@@ -31,7 +31,7 @@ leadSources: any[] = [];     // Lead Source ke liye
 salesStages: any[] = [];
 isEditMode: boolean = false;
 selectedLeadId: number | null = null;
-
+OrganisationId: any;
 salesProcesses: any[] = [];
 leadOwners: any[] = [];
 salesCoordinators: any[] = [];
@@ -571,7 +571,7 @@ onDeleteLead(id: any) {
   }
 
   selectOrganization(org: any): void {
-    
+    this.OrganisationId = org.id; // Organization ID store kar lo (agar zarurat ho toh)
     this.leadForm.patchValue({
       organization: org.orgName,
       organizationId: org.id
@@ -744,7 +744,8 @@ onSave() {
     hod: rawValue.hod,
     location: rawValue.location,
     area: rawValue.area,
-    organizationName: rawValue.organization
+    organizationName: rawValue.organization,
+    organizationId: this.OrganisationId || rawValue.organizationId, // Dropdown se select karne par ID mil jayegi, warna form value se
   };
 
   const token = localStorage.getItem('cavalier_token');
@@ -816,6 +817,7 @@ onOrgSearchForFilters(event: Event): void {
 selectOrgForFilters(org: any): void {
   // 1. --- CHANGED: Direct control access for faster update ---
   this.searchForm.controls['organizationName'].setValue(org.orgName);
+  console.log("Selected Organization for Filter:", org.orgName);
 
   // 2. Dropdown suggestions ko khali karein
   this.filteredOrganizations = [];

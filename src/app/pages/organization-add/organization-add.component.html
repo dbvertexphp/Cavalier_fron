@@ -685,10 +685,11 @@
 
   </div>
 </div>
-  <label class="flex items-center gap-2 text-sm font-semibold">
+<label class="flex items-center gap-2 text-sm font-semibold">
   <input type="checkbox" 
-         class="accent-[#4a3f3f]"
-        >
+         [(ngModel)]="isDefault" 
+         [disabled]="!isEditMode"
+         class="accent-[#4a3f3f]">
   Set as Default
 </label>
   

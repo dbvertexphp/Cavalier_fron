@@ -1150,6 +1150,7 @@
       </div>
     </div>
   </div>
+
 </div>
 <div *ngIf="activeTab === 'agent'" class="animate-in fade-in duration-500">
   <div class="flex-1 p-6 space-y-4 max-w-5xl">
@@ -1166,34 +1167,56 @@
       </div>
 
       <!-- Line of Business -->
-      <div class="flex items-center gap-2 flex-1">
-        <label class="w-32 font-bold text-gray-700 text-[12px]">Line of Business</label>
-        <select 
-          [(ngModel)]="agentLineOfBusiness" 
-          name="agentLineOfBusiness"
-          class="flex-1 border border-gray-300 p-1.5 outline-none focus:border-[#4a3f3f] text-[12px] bg-white text-black rounded-lg cursor-pointer">
-          
-          <option value="" disabled selected>Select Line of Business</option>
-          <option *ngFor="let item of lineOfBusinessList" [value]="item.id">
-            {{ item.serviceName }} 
-          </option>
-        </select>
+    <div class="flex items-center gap-2 flex-1">
+  <label class="w-32 font-bold text-gray-700 text-[12px]">Line of Business</label>
+  
+  <div class="flex-1 relative" #agentLobDropdownContainer>
+    <div 
+      (click)="toggleAgentLobDropdown($event)"
+      class="min-h-[42px] border border-gray-300 rounded-lg bg-white p-2 flex flex-wrap gap-2 items-center cursor-pointer hover:border-[#4a3f3f]">
 
-        <div class="pointer-events-none -ml-6">
-          <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </div>
+      <div *ngFor="let item of agentSelectedLineOfBusiness; let i = index" 
+           class="bg-[#4a3f3f] text-white text-[12px] px-3 py-1 rounded-full flex items-center gap-1.5">
+        <span>{{ item.serviceName }}</span>
+        <button 
+          (click)="removeAgentLob(i, $event)"
+          class="ml-1 w-4 h-4 flex items-center justify-center text-xs hover:bg-red-600 rounded-full">
+          ✕
+        </button>
       </div>
 
-      <div class="flex gap-4">
+      <span class="text-[12px] text-gray-500 flex-1 ml-1">
+        {{ agentSelectedLineOfBusiness.length === 0 ? 'Select Line of Business' : 'Add more...' }}
+      </span>
+    </div>
+
+    <div *ngIf="showAgentLobDropdown" 
+         class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-xl max-h-60 overflow-y-auto py-1">
+      
+      <div *ngFor="let item of lineOfBusinessList" 
+           (click)="toggleAgentLobSelection(item)"
+           class="px-4 py-3 hover:bg-gray-50 flex items-center gap-3 cursor-pointer border-b last:border-0">
+
+        <input 
+          type="checkbox"
+          [checked]="isAgentLobSelected(item)"
+          (click)="$event.stopPropagation()" 
+          class="w-4 h-4 accent-[#4a3f3f] cursor-pointer">
+
+        <span class="text-[13px]">{{ item.serviceName }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+      <!-- <div class="flex gap-4">
         <label class="flex items-center gap-2 text-sm font-semibold">
           <input type="checkbox" [(ngModel)]="agentIsDefault" class="accent-[#4a3f3f]"> Set as Default
         </label>
         <label class="flex items-center gap-2 text-sm font-semibold">
           <input type="checkbox" [(ngModel)]="agentIsDeactive" class="accent-[#4a3f3f]"> Deactivate
         </label>
-      </div>
+      </div> -->
     </div>
 
     <!-- Address -->
@@ -1211,43 +1234,43 @@
 
     <!-- Country, State, City, Postal -->
     <div class="grid grid-cols-2 gap-6">
-      <div class="flex items-center gap-3">
-        <label class="w-40 text-red-700 font-bold">Country</label>
-        <div class="flex-1 flex flex-col relative">
-          <div class="flex border border-gray-300 rounded overflow-hidden">
-            <input type="text" 
-                   [(ngModel)]="agentCountry" 
-                   (input)="onCountrySearch($event)" 
-                   placeholder="Search Country..."
-                   class="flex-1 p-1.5 outline-none" 
-                   #countryRef="ngModel">
-            <button class="bg-gray-100 px-3 border-l border-gray-300 hover:bg-gray-200">🔍</button>
-          </div>
+     <div class="flex items-center gap-3">
+  <label class="w-40 text-red-700 font-bold">Country</label>
+  <div class="flex-1 flex flex-col relative">
+    <div class="flex border border-gray-300 rounded overflow-hidden">
+      <input type="text" 
+             [(ngModel)]="agentCountry" 
+             (input)="onAgentCountrySearch($event)" 
+             placeholder="Search Country..."
+             class="flex-1 p-1.5 outline-none" 
+             #countryRef="ngModel">
+      <button class="bg-gray-100 px-3 border-l border-gray-300 hover:bg-gray-200">🔍</button>
+    </div>
 
-          <ul *ngIf="filteredCountries.length" 
-              class="absolute z-50 w-full bg-white border border-gray-300 mt-10 rounded shadow-lg max-h-60 overflow-y-auto">
-            <li *ngFor="let item of filteredCountries" 
-                (mousedown)="selectCountry(item.name)" 
-                class="p-2 hover:bg-blue-100 cursor-pointer">
-              {{ item.name | uppercase }}
-            </li>
-          </ul>
-        </div>
-      </div>
+    <ul *ngIf="filteredCountries.length" 
+        class="absolute z-50 w-full bg-white border border-gray-300 mt-10 rounded shadow-lg max-h-60 overflow-y-auto">
+      <li *ngFor="let item of filteredCountries" 
+          (mousedown)="selectAgentCountry(item.name)" 
+          class="p-2 hover:bg-blue-100 cursor-pointer text-sm border-b border-gray-50">
+        {{ item.name | uppercase }}
+      </li>
+    </ul>
+  </div>
+</div>
 
-      <div class="flex items-center gap-3">
-        <label class="w-40">State/Province</label>
-        <div class="flex-1 flex flex-col">
-          <div class="flex border border-gray-300 rounded overflow-hidden">
-            <input type="text" [(ngModel)]="agentState" list="stateOptions"
-              placeholder="Search State..." class="flex-1 p-1.5 outline-none">
-            <button class="bg-gray-100 px-3 border-l border-gray-300 hover:bg-gray-200">🔍</button>
-          </div>
-          <datalist id="stateOptions">
-            <option *ngFor="let state of stateLookupList" [value]="state"></option>
-          </datalist>
-        </div>
-      </div>
+<div class="flex items-center gap-3">
+  <label class="w-40">State/Province</label>
+  <div class="flex-1 flex flex-col">
+    <div class="flex border border-gray-300 rounded overflow-hidden">
+      <input type="text" [(ngModel)]="agentState" list="stateOptions"
+        placeholder="Search State..." class="flex-1 p-1.5 outline-none">
+      <button class="bg-gray-100 px-3 border-l border-gray-300 hover:bg-gray-200">🔍</button>
+    </div>
+    <datalist id="stateOptions">
+      <option *ngFor="let state of stateLookupList" [value]="state"></option>
+    </datalist>
+  </div>
+</div>
     </div>
 
     <div class="grid grid-cols-2 gap-6">
@@ -1301,14 +1324,18 @@
         <div class="space-y-3">
           <div *ngFor="let contact of agentContacts; let i = index" class="grid grid-cols-1 md:grid-cols-6 gap-3 items-center">
             <input [(ngModel)]="contact.contactName" placeholder="Name" class="w-full border p-2 rounded text-sm outline-none">
-            <select [(ngModel)]="contact.designationId" class="w-full border p-2 rounded text-sm bg-white">
-              <option value="Manager">Manager</option>
-              <option value="HOD">HOD</option>
-            </select>
-            <select [(ngModel)]="contact.departmentId" class="w-full border p-2 rounded text-sm bg-white">
-              <option value="Sales">Sales</option>
-              <option value="Marketing">Marketing</option>
-            </select>
+          <select [(ngModel)]="contact.designationId" class="w-full border p-2 rounded text-sm bg-white">
+  <option [ngValue]="null" disabled selected>-- Select Designation --</option>
+  <option *ngFor="let des of designation" [value]="des.id">
+    {{ des.name | uppercase }}
+  </option>
+</select>
+           <select [(ngModel)]="contact.departmentId" class="w-full border p-2 rounded text-sm bg-white">
+  <option [ngValue]="null" disabled selected>Select Department</option>
+  <option *ngFor="let dept of department" [value]="dept.id">
+    {{ dept.name | uppercase }}
+  </option>
+</select>
             <input [(ngModel)]="contact.mobile" maxlength="10" placeholder="Mobile" class="w-full border p-2 rounded text-sm">
             <input [(ngModel)]="contact.whatsapp" maxlength="10" placeholder="Whatsapp" class="w-full border p-2 rounded text-sm">
             <div class="flex items-center gap-3">

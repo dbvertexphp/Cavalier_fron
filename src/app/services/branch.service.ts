@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient,HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
@@ -16,20 +16,25 @@ export class BranchService {
   }
 
   addBranch(data: any): Observable<any> {
-    // Backend required fields mapping
-    const payload = {
-      ...data,
-      companyName: data.companyName || 'Cavalier Logistics',
-      timeZone: data.timeZone || 'Asia/Kolkata',
-      copyDefaultFrom: data.copyDefaultFrom || 'None',
-      isActive: data.isActive ?? true,
-      gstin: data.gstin || '' 
-    };
+  const payload = {
+    ...data,
+    companyName: data.companyName || 'Cavalier Logistics',
+    timeZone: data.timeZone || 'Asia/Kolkata',
+    copyDefaultFrom: data.copyDefaultFrom || 'None',
+    isActive: data.isActive ?? true,
+    gstin: data.gstin || '' 
+  };
 
-    // SQL Identity column ke liye 'id' remove karna zaruri hai
-    const { id, ...finalData } = payload; 
-    return this.http.post(`${this.apiUrl}/create`, finalData);
-  }
+  const { id, ...finalData } = payload;
+
+  const token = localStorage.getItem('cavalier_token');
+
+  const headers = new HttpHeaders({
+    Authorization: `Bearer ${token}`
+  });
+
+  return this.http.post(`${this.apiUrl}/create`, finalData, { headers });
+}
 
   updateBranch(id: number, branchData: any): Observable<any> {
     return this.http.put(`${this.apiUrl}/update/${id}`, branchData);

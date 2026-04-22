@@ -238,9 +238,16 @@ selectBranch(branch: any, index: number) {
   this.fax            = branch.fax || '';
   this.website        = branch.website || '';
   this.email          = branch.email || branch.emailAddress || '';
-
+this.isDefault = branch.isDefault || false;
   // selectBranch method ke andar
-this.selectedLineOfBusiness = branch.lineOfBusinessList || [];   // Agar array aa raha hai
+this.selectedLineOfBusiness = [];
+
+if (branch.lobIdsList && Array.isArray(branch.lobIdsList) && branch.lobIdsList.length > 0) {
+  // Yeh code [18, 1002] ko use karke tumhari master list se asli objects nikalega
+  this.selectedLineOfBusiness = this.lineOfBusinessList.filter(lob => 
+    branch.lobIdsList.includes(lob.id)
+  );
+}   // Agar array aa raha hai
 // ya agar sirf ID aa raha hai toh alag logic likhna padega
 
   this.contacts = [{
@@ -256,6 +263,7 @@ this.selectedLineOfBusiness = branch.lineOfBusinessList || [];   // Agar array a
 }
 public branchList: any[] = []; // Temporary branches yahan rahengi
 public branchName: string = ''; // Input field ke liye
+public isDefault: boolean = false;
 // 1. Dropdown lists (Data Sources)
 private apiUrl = 'https://countriesnow.space/api/v0.1/countries/states';
 public countryMasterList: any[] = [];    // Sabhi countries ki original list
@@ -563,7 +571,7 @@ addCurrentBranchIfValid(): boolean {
     designationId: firstContact.DesignationId ?? null,
     departmentId: firstContact.DepartmentId ?? null,
 
-    isDefault: this.branchList.length === 0 && this.selectedBranchIndex < 0,
+    isDefault: this.branchList.length === 0 ? true : this.isDefault,
     organizationId: this.selectedOrgId || 0
   };
 
@@ -642,19 +650,31 @@ onSaveBranch() {
 // ==================== SAVE ALL BRANCHES (Add + Update) ====================
 // ==================== SAVE ALL BRANCHES (Add + Update) - FIXED ====================
 // ==================== SAVE ALL BRANCHES (Add + Update) ====================
+// ==================== SAVE ALL BRANCHES (Add + Update) ====================
 saveAllLocalBranches(orgId: number) {
   const validBranches = this.branchList.filter(b => b.branchName?.trim());
 
-  validBranches.forEach(branch => {
+  validBranches.forEach((branch) => {
+    
+    // ✅ Har branch ka apna LOB nikalne ka logic
+    let finalLobIds = branch.LobIds || branch.lobIds || null;
+
+    // ✅ Agar loop wali branch wahi hai jo abhi screen par open hai, 
+    // toh screen wala (selectedLineOfBusiness) data lo
+    const actualIndexInList = this.branchList.indexOf(branch);
+    if (actualIndexInList === this.selectedBranchIndex) {
+      finalLobIds = this.selectedLineOfBusiness.length > 0 
+        ? this.selectedLineOfBusiness.map(item => item.id).join(',') 
+        : null;
+    }
+
     const payload = {
       Id: branch.id || 0,
       BranchName: branch.branchName?.trim(),
       OrganizationId: orgId,
 
-      // 🔥 YE CHANGE KARO - Array ko string mein convert karo
-     LobIds: this.selectedLineOfBusiness.length > 0 
-        ? this.selectedLineOfBusiness.map(item => item.id).join(',') 
-        : null,
+      // 🔥 FIX: Ab har branch apna alag LOB save karegi
+      LobIds: finalLobIds,
 
       Address: branch.address?.trim(),
       Area: branch.area?.trim(),
@@ -677,7 +697,7 @@ saveAllLocalBranches(orgId: number) {
       DesignationId: branch.designationId ?? null,
       DepartmentId: branch.departmentId ?? null,
 
-      IsDefault: branch.isDefault || false,
+       isDefault : branch.isDefault || false,
       IsDeactivated: false,
       IsManager: false,
       IsHOD: false,
@@ -692,7 +712,7 @@ saveAllLocalBranches(orgId: number) {
         next: (res) => console.log(`✅ Branch "${branch.branchName}" saved successfully`),
         error: (err) => {
           console.error(`❌ Failed to save branch "${branch.branchName}"`, err);
-          console.log("Full error:", err.error);   // Yeh line add kar lo debugging ke liye
+          console.log("Full error:", err.error);
         }
       });
   });
@@ -846,12 +866,19 @@ loadestination(){
 
 });
 };
-// ==================== UNIVERSAL SAVE / UPDATE ORGANIZATION ====================
-// ==================== SAVE / UPDATE ORGANIZATION ====================
+
 saveOrganization() {
   if (!this.orgName?.trim()) {
     alert("❌ Organization Name is required!");
     return;
+  }
+
+  // 🔥 NAYA LOGIC: Agar branch ka naam likha hai par Save Data click nahi kiya
+  if (this.branchName && this.branchName.trim() !== '') {
+    const isBranchValid = this.addCurrentBranchIfValid();
+    if (!isBranchValid) {
+      return; 
+    }
   }
 
   if (this.branchList.length === 0) {
@@ -877,14 +904,14 @@ saveOrganization() {
       if (finalOrgId > 0) {
         this.selectedOrgId = finalOrgId;
 
-        // 🔥🔥🔥 AGENT DATA SAVE KARNA HAI YAHAN 🔥🔥🔥
+        // AGENT aur BRANCHES save karo
         this.saveAgentWithOrganisation(finalOrgId);
+        this.saveAllLocalBranches(finalOrgId); 
 
         alert(this.isOrgEditMode 
           ? "✅ Organization Updated Successfully!" 
-          : "✅ Organization + Agent Saved Successfully!");
+          : "✅ Organization + Branches Saved Successfully!");
       }
-      // window.location.reload();   // Comment kar do agar nahi chahiye
     },
     error: (err) => {
       console.error("Organization Save/Update Error:", err);
@@ -992,7 +1019,7 @@ getBranchesByOrg(orgId: number) {
       if (res && Array.isArray(res) && res.length > 0) {
         
         this.branchList = res.map((b: any) => ({
-          id: b.id,                          // Sabse important
+          id: b.id,                                  
           branchName: b.branchName || '',
 
           organizationId: b.organizationId,
@@ -1017,11 +1044,10 @@ getBranchesByOrg(orgId: number) {
 
           lobIds: b.lobIds || null,
   
-          // 🔥 FIXED - Proper typing with explicit types
           lobIdsList: b.lobIds 
-            ? b.lobIds.split(',').map((id: string) => parseInt(id.trim(), 10))
-                                 .filter((id: number) => !isNaN(id))
+            ? b.lobIds.split(',').map((id: string) => parseInt(id.trim(), 10)).filter((id: number) => !isNaN(id))
             : [],
+            
           designationId: b.designationId || null,
           departmentId: b.departmentId || null,
 
@@ -1037,13 +1063,25 @@ getBranchesByOrg(orgId: number) {
           department: b.department,
           companyService: b.companyService
         }))
-        // 🔥 YE LINE ADD KI HAI: Default branch ko top par laane ke liye
+        // Default branch ko top (index 0) par laane ke liye
         .sort((a, b) => (b.isDefault === a.isDefault ? 0 : b.isDefault ? 1 : -1));
 
         console.log("✅ branchList ready for sidebar (Sorted by Default):", this.branchList);
+
+        // 🔥 YAHAN NAYA LOGIC LAGA HAI: AUTO-SELECT DEFAULT BRANCH 🔥
+        // Kyunki sort karne ke baad default branch index 0 par aa chuki hai,
+        // hum direct index 0 wali branch ko form mein fill karwa denge.
+        if (this.branchList.length > 0) {
+          this.selectBranch(this.branchList[0], 0);
+        }
+
       } else {
         this.branchList = [];
         console.log("No branches found.");
+        
+        // Agar koi branch nahi hai, toh form ko clear aur disable kar do
+        this.resetBranchFormOnly();
+        this.isEditMode = false;
       }
 
       this.cdr.detectChanges();
@@ -1051,6 +1089,8 @@ getBranchesByOrg(orgId: number) {
     error: (err) => {
       console.error("❌ Error loading branches:", err);
       this.branchList = [];
+      this.resetBranchFormOnly();
+      this.isEditMode = false;
       this.cdr.detectChanges();
     }
   });
@@ -1990,6 +2030,7 @@ selectState(stateName: string) {
   }
 resetBranchFormOnly() {
   this.branchName = '';
+  this.isDefault = false;
   this.address = '';
   this.country = '';
   this.stateProvince = '';
@@ -2042,12 +2083,12 @@ onDefaultChange(currentIndex: number) {
         // API response format handle karna
         const data = Array.isArray(res) ? res : (res.data || res.result || []);
         
-        this.branchList = data.map((b: any) => ({ 
-          ...b, 
-          isSelected: false 
-        }));
+        // this.branchList = data.map((b: any) => ({ 
+        //   ...b, 
+        //   isSelected: false 
+        // }));
 
-        this.filteredBranchSuggestions = [...this.branchList];
+        // this.filteredBranchSuggestions = [...this.branchList];
       },
       error: (err) => {
         console.error("Direct Call Failed! Error details:", err);

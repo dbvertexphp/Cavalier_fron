@@ -640,7 +640,6 @@ onInquirySearchInput() {
 // 3. Selection Logic
 // 3. Selection Logic - UPDATED & IMPROVED
 selectInquiry(inq: any) {
-  
   if (!inq || !inq.inquiryNo) {
     console.error("Invalid inquiry data");
     return;
@@ -649,7 +648,7 @@ selectInquiry(inq: any) {
   // Basic fields
   this.quotation.referenceByInquiry = inq.inquiryNo || '';
   this.quotation.customerName = inq.customerName || '';
-  this.quotation.organization = inq.customerName || '';   // Mostly customer hi organization hota hai
+  this.quotation.organization = inq.customerName || '';
 
   this.showInquiryDropdown = false;
   this.cdr.detectChanges();
@@ -663,207 +662,109 @@ selectInquiry(inq: any) {
     next: (fullData) => {
       console.log("✅ Full Inquiry Data:", fullData);
 
-      // ====================== IMPROVED AUTO FILL ======================
+      // --- Transport & Movement Logic ---
+      if (fullData.transportMode) {
+        const modeFromApi = fullData.transportMode.trim();
+        const matchedMode = this.transportModes?.find(m => 
+          m.name.toLowerCase() === modeFromApi.toLowerCase()
+        );
+        this.quotation.transportMode = matchedMode ? matchedMode.name : modeFromApi;
+      } else {
+        this.quotation.transportMode = '';
+      }
 
-     // ====================== TRANSPORT FIX ======================
+      if (fullData.transportType) {
+        this.quotation.transportType = fullData.transportType.trim();
+      } else if (this.quotation.transportMode?.toUpperCase() === 'AIR' || this.quotation.transportMode?.toUpperCase() === 'SEA') {
+        this.quotation.transportType = 'Export';
+      } else {
+        this.quotation.transportType = '';
+      }
 
-// 1. Transport Mode (Air / Sea / Road / etc.)
-// ====================== TRANSPORT MODE (Dropdown with ID) ======================
+      this.quotation.shipmentType = fullData.shipmentType || '';
+      this.quotation.movementType = fullData.movementType ? fullData.movementType.trim() : (fullData.movement ? fullData.movement.trim() : '');
 
-// ====================== TRANSPORT MODE & TYPE (Capital T) ======================
+      // --- Weight, Packages & CBM AUTO-FILL ---
+      this.quotation.noOfPkgs = fullData.noOfPkgs || 0;
+      this.quotation.grossWeightKg = fullData.grossWeightKg || 0;
+      this.quotation.netWeight = fullData.netWeight || 0;
+      this.quotation.chargeableWeight = fullData.chargeableWeight || 0;
+      this.quotation.volumeWeight = fullData.volumeWeight || 0;
+      this.quotation.chargeableWeightKg = fullData.volumeWeight || '';
 
-// 1. Transport Mode
-if (fullData.transportMode) {
-  console.log(fullData.transportMode);
-  this.quotation.TransportMode = fullData.transportMode.toUpperCase().trim();   // "Air" set hoga
-  console.log(`✅ Transport Mode set to: ${this.quotation.TransportMode.toUpperCase()}`);
-} 
-else {
-  this.quotation.TransportMode = '';
-}
-
-// 2. Transport Type (Export / Import)
-if (fullData.transportType) {
-  this.quotation.transportType = fullData.transportType.trim();   // "Export" set hoga
-} 
-else if (fullData.transportMode === 'AIR' || fullData.transportMode === 'SEA') {
-  this.quotation.transportType = 'Export';
-} 
-else {
-  this.quotation.transportType = '';
-}
-
-console.log("Transport Mode (Final):", this.quotation.TransportMode.toUpperCase());
-console.log("Transport Type (Final):", this.quotation.transportType);
-      this.quotation.shipmentType      = fullData.shipmentType || '';
+      // 🔥 CBM WEIGHT CALCULATION LOGIC
+      // Pehle check karega API mein value hai kya, agar nahi hai toh formula use karega
+      const apiCbm = fullData.cbm || fullData.cbmWeight || fullData.totalCbm;
       
-      // Movement
-      // ====================== MOVEMENT FIX ======================
-this.quotation.movementType = fullData.movementType 
-  ? fullData.movementType.trim() 
-  : '';
+      if (apiCbm) {
+        this.quotation.cbm = apiCbm;
+      } else if (this.quotation.volumeWeight) {
+        // Aapka formula: Volume Weight / 167
+        const calculatedCbm = this.quotation.volumeWeight / 167;
+        this.quotation.cbm = parseFloat(calculatedCbm.toFixed(3));
+      } else {
+        this.quotation.cbm = 0;
+      }
 
-// Agar movementType field na ho toh movement se bhi try karo (backup)
-if (!this.quotation.movementType && fullData.movement) {
-  this.quotation.movementType = fullData.movement.trim();
-}
+      this.quotation.cbmUnit = fullData.cbmUnit || 'CBM';
 
-console.log("Movement Type Set To:", this.quotation.movementType); // Debug ke liye
+      // --- Remaining Fields ---
+      this.quotation.incoterm = fullData.incoterm || fullData.incoTerms || '';
+      this.quotation.description = fullData.description || '';
+      this.quotation.pickupAddress = fullData.pickupAddress || '';
+      this.quotation.placeOfDelivery = fullData.placeOfDelivery || '';
+      this.quotation.podFinalDest = fullData.finalDestination || '';
+      this.quotation.location = fullData.location || '';
+      this.quotation.currency = (fullData.cargoCurrency || '').trim();
+      this.quotation.cargoValue = fullData.cargoValue || '';
 
-      // Incoterm (dono possible names handle kiye)
-      this.quotation.incoterm          = fullData.incoterm || fullData.incoTerms || fullData.incoterm || '';
+      // IDs & Names
+      this.quotation.originPOL = fullData.originName || '';
+      this.quotation.portOfLoading = fullData.portOfLoadingName || '';
+      this.quotation.portOfDischarge = fullData.portOfDischargeName || '';
+      this.quotation.commodity = fullData.commodityId ? Number(fullData.commodityId) : null;
+      this.quotation.lineOfBusiness = fullData.lineOfBusinessId || '';
 
-      this.quotation.description       = fullData.description || '';
-      this.quotation.pickupAddress     = fullData.pickupAddress || '';
-      this.quotation.placeOfDelivery   = fullData.placeOfDelivery || '';
-      this.quotation.podFinalDest      = fullData.finalDestination || '';
-      this.quotation.location          = fullData.location || '';
-this.quotation.currency = (fullData.cargoCurrency || '').trim();
-this.quotation.cargoValue = fullData.cargoValue || '';
-this.quotation.chargeableWeightKg=fullData.volumeWeight || '';
-      // Weight & Packages
-      this.quotation.noOfPkgs          = fullData.noOfPkgs || 0;
-      this.quotation.grossWeightKg     = fullData.grossWeightKg || 0;
-      this.quotation.netWeight         = fullData.netWeight || 0;
-      this.quotation.chargeableWeight  = fullData.chargeableWeight || 0;
-      this.quotation.volumeWeight      = fullData.volumeWeight || 0;
+      // Sales & Status
+      this.quotation.salesCoordinator = fullData.salesCoordinator ? Number(fullData.salesCoordinator) : null;
+      this.quotation.pricingBy = fullData.pricingDoneBy || '';
+      this.quotation.qtnDoneBy = fullData.qtnDoneBy || '';
+      this.quotation.cargoStatus = fullData.cargoStatus || 'Ready';
 
-      // Important IDs / Names
-      this.quotation.originPOL         = fullData.originName || '';           // Origin
-      this.quotation.portOfLoading     = fullData.portOfLoadingName || '';    // POL
-      this.quotation.portOfDischarge   = fullData.portOfDischargeName || '';  // POD
-      this.quotation.commodity = fullData.commodityId 
-  ? Number(fullData.commodityId)     // String ko Number mein convert (safe)
-  : null;
+      const statusDate = fullData.cargoStatusDate ? fullData.cargoStatusDate.split('T')[0] : null;
+      this.quotation.cargoReadyDate = null;
+      setTimeout(() => { this.quotation.cargoReadyDate = statusDate; }, 0);
 
-      // Business & Other
-      this.quotation.businessDimensions = fullData.businessDimensions || '';
-      this.quotation.isServiceRequired  = fullData.isServiceRequired ?? true;
-      this.quotation.partyRole          = fullData.partyRole || '';
+      this.quotation.validTill = fullData.validTill || '';
+      this.quotation.version = fullData.version || '';
 
-      // Sales Related
-      // Sales Related section mein yeh line change kar do
-this.quotation.salesCoordinator = fullData.salesCoordinator 
-  ? Number(fullData.salesCoordinator)     // String ko Number mein convert karo
-  : null;
-      this.quotation.pricingBy         = fullData.pricingDoneBy || '';
-      this.quotation.qtnDoneBy         = fullData.qtnDoneBy || '';
+      // --- Dimensions Autofill ---
+      if (fullData?.dimensions?.length > 0) {
+        const dims = fullData.dimensions;
+        const mainDim = dims.find((d: any) => d.id === 0) || dims[0];
+        if (mainDim) {
+          this.quotation.dimBox = mainDim.box ?? 0;
+          this.quotation.dimL = mainDim.l ?? 0;
+          this.quotation.dimW = mainDim.w ?? 0;
+          this.quotation.dimH = mainDim.h ?? 0;
+          this.quotation.dimUnit = mainDim.unit ?? 'CMS';
+        }
+        this.dimRows = dims.filter((d: any) => d.id !== 0).map((d: any) => ({
+          box: d.box ?? null, l: d.l ?? null, w: d.w ?? null, h: d.h ?? null, unit: d.unit ?? 'CMS'
+        }));
+      } else {
+        this.dimRows = [{ box: null, l: null, w: null, h: null, unit: 'CMS' }];
+      }
 
-      // Cargo Status
-      this.quotation.cargoStatus       = fullData.cargoStatus || 'Ready';
-      const date = fullData.cargoStatusDate
-  ? fullData.cargoStatusDate.split('T')[0]
-  : null;
-
-// 🔥 force refresh trick
-this.quotation.cargoReadyDate = null;
-
-setTimeout(() => {
-  this.quotation.cargoReadyDate = date;
-}, 0);
-
-      // Extra fields jo aapke form mein hain
-      this.quotation.placeOfReceipt    = fullData.placeOfReceipt || '';
-      this.quotation.transitDest       = fullData.transitDest || '';
-      this.quotation.transitDays       = fullData.transitDays || '';
-      if (fullData) {
-
-  // ----------------------------
-  // DIRECT MAPPING (NO CHANGES)
-  // ----------------------------
-
-  this.quotation.validTill = fullData.validTill || '';
-
-  this.quotation.version = fullData.version || '';
-
-  this.quotation.cargoStatus = fullData.cargoStatus || '';
-
-  this.quotation.cargoReadyDate = fullData.cargoReadyDate || '';
-
-  console.log("✅ Raw DB values loaded directly");
-}
-// ====================== DIMENSIONS AUTOFILL ======================
-if (fullData?.dimensions?.length > 0) {
-
-  const dims = fullData.dimensions;
-
-  // ----------------------------
-  // 1. FIRST (ID = 0 OR FIRST ITEM) → MAIN INPUT
-  // ----------------------------
-  const mainDim = dims.find((d: any) => d.id === 0) || dims[0];
-
-  if (mainDim) {
-    this.quotation.dimBox  = mainDim.box ?? 0;
-    this.quotation.dimL    = mainDim.l ?? 0;
-    this.quotation.dimW    = mainDim.w ?? 0;
-    this.quotation.dimH    = mainDim.h ?? 0;
-    this.quotation.dimUnit = mainDim.unit ?? 'CMS';
-
-    console.log("✅ Main dimension (ID 0) filled in inputs");
-  }
-
-  // ----------------------------
-  // 2. REST ALL → MODAL
-  // ----------------------------
-  this.dimRows = dims
-    .filter((d: any) => d.id !== 0)
-    .map((d: any) => ({
-      box: d.box ?? null,
-      l: d.l ?? null,
-      w: d.w ?? null,
-      h: d.h ?? null,
-      unit: d.unit ?? 'CMS'
-    }));
-
-  // agar sirf 1 hi tha aur wo id=0 tha
-  if (this.dimRows.length === 0) {
-    this.dimRows = [{
-      box: null,
-      l: null,
-      w: null,
-      h: null,
-      unit: 'CMS'
-    }];
-  }
-
-  console.log("✅ Modal dimensions loaded:", this.dimRows.length);
-
-} else {
-
-  // ----------------------------
-  // NO DATA CASE
-  // ----------------------------
-  this.quotation.dimBox = null;
-  this.quotation.dimL = null;
-  this.quotation.dimW = null;
-  this.quotation.dimH = null;
-  this.quotation.dimUnit = 'CMS';
-
-  this.dimRows = [{
-    box: null,
-    l: null,
-    w: null,
-    h: null,
-    unit: 'CMS'
-  }];
-
-  console.log("⚠️ No dimensions found");
-}
       this.cdr.detectChanges();
-
-      console.log("✅ Quotation Auto-filled successfully from Inquiry!");
+      console.log("✅ Quotation Auto-filled & CBM Calculated successfully!");
     },
-
     error: (err) => {
       console.error("❌ Error fetching full inquiry:", err);
-      if (err.status === 404) {
-        alert(`Inquiry not found: ${inquiryNo}`);
-      } else {
-        alert("Failed to load inquiry details. Please check console.");
-      }
+      alert("Failed to load inquiry details.");
     }
   });
-}
+} 
   // --- Lead API Call ---
  // --- Lead API Call ---
   getCommodityTypes() {

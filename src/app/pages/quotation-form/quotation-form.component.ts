@@ -709,6 +709,7 @@ selectInquiry(inq: any) {
       this.quotation.cbmUnit = fullData.cbmUnit || 'CBM';
 
       // --- Remaining Fields ---
+      this.quotation.businessDimensions = fullData.businessDimensions || fullData.businessDim || fullData.commodityName || '';
       this.quotation.incoterm = fullData.incoterm || fullData.incoTerms || '';
       this.quotation.description = fullData.description || '';
       this.quotation.pickupAddress = fullData.pickupAddress || '';

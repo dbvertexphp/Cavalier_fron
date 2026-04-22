@@ -53,6 +53,7 @@ export class UserFormComponent implements OnInit {
       this.isBranchForm = nav.extras.state['isBranch'] || false;
       this.id = this.initialData?.id || null;
     }
+    
   }
 
 ngOnInit(): void {

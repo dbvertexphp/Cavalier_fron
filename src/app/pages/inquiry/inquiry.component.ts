@@ -113,32 +113,40 @@ onInvoiceFileSelected(event: any, index: number) {
 dimRow: any = { box: 1, l: 0, w: 0, h: 0, unit: 'CMS' };
 dimRows: any[] = [];
 
-// 1. Is function mein end mein CBM call add kiya hai
+// Component initialize hote hi dimRow ko array mein daal dein
+// ngOnInit() {
+//   this.dimRows = [this.dimRow]; 
+// }
+
 calculateVolumeWeight() {
-  if (this.dimRows && this.dimRows.length > 0) {
-    this.quotation.volumeWeight = this.getTotalVolumeWeight();
-  } else {
-    const weight = this.calculateSingleVolumeWeight(this.dimRow);
-    this.quotation.volumeWeight = parseFloat(weight.toFixed(2));
-  }
+  // 1. Pehle weight aur CBM calculate karein (Purana logic)
+  const weight = this.calculateSingleVolumeWeight(this.dimRow);
+  this.quotation.volumeWeight = parseFloat(weight.toFixed(2));
+  this.calculateCBM();
+
+  // 2. AUTO-SAVE LOGIC (Bina Apply Button ke Preview aur Payload update karega)
+  // Hum current single row ko array mein dalenge aur filters trigger karenge
+  this.dimRows = [{ ...this.dimRow }];
   
-  // VIMP: Volume weight nikalne ke baad CBM ko calculate karna zaroori hai
-  this.calculateCBM(); 
+  // 3. Wahi logic jo aapne Save Button (Apply) par likha hai:
+  this.appliedDimensions = this.dimRows.filter(d => d.l > 0 && d.w > 0 && d.h > 0);
+  
+  this.calculateNetWeight();
+  this.calculateVolumeWeightLogic();
+  this.syncFinalData(); // Yeh function hi payload/preview ko finalize karta hai
+}
+// Ye function banaye jo modal ke button se bhi chale aur bahar se bhi
+syncFinalData() {
+  // Yahan woh logic likhein jo aapke database ya main form ko update karta hai
+  // Example: 
+  this.quotation.dimensions = JSON.parse(JSON.stringify(this.dimRows));
+  console.log("Data Auto-Synced!");
 }
 
-calculateSingleVolumeWeight(dim: any): number {
-  if (!dim.l || !dim.w || !dim.h || dim.l <= 0 || dim.w <= 0 || dim.h <= 0) {
-    return 0;
-  }
-  let volumeCm3 = dim.l * dim.w * dim.h;
-  if (dim.unit === 'INCH') {
-    volumeCm3 = volumeCm3 * 16.387;
-  }
-  return (dim.box || 1) * (volumeCm3 / 6000);
-}
-
+// Ye function modal ke 'Apply' button ki zaroorat khatam kar dega
 getTotalVolumeWeight(): number {
   let total = 0;
+  //  let total = 0;
   if (this.dimRows && this.dimRows.length > 0) {
     this.dimRows.forEach(dim => {
       total += this.calculateSingleVolumeWeight(dim);
@@ -147,7 +155,38 @@ getTotalVolumeWeight(): number {
     total = this.calculateSingleVolumeWeight(this.dimRow);
   }
   return parseFloat(total.toFixed(2));
+  // Agar modal mein multiple rows hain toh loop chalega
+  // Agar sirf bahar input bhara hai toh bhi ye dimRows[0] se utha lega
+  this.dimRows.forEach(dim => {
+    total += this.calculateSingleVolumeWeight(dim);
+  });
+  return total;
 }
+
+calculateSingleVolumeWeight(dim: any): number {
+  if (!dim.l || !dim.w || !dim.h || dim.l <= 0 || dim.w <= 0 || dim.h <= 0) {
+    return 0;
+  }
+  
+  let volumeCm3 = dim.l * dim.w * dim.h;
+  if (dim.unit === 'INCH') {
+    volumeCm3 = volumeCm3 * 16.387; // Inch to CM3 conversion
+  }
+  
+  // (L * W * H / 6000) * Number of Boxes
+  return (dim.box || 1) * (volumeCm3 / 6000);
+}
+// getTotalVolumeWeight(): number {
+  // let total = 0;
+  // if (this.dimRows && this.dimRows.length > 0) {
+  //   this.dimRows.forEach(dim => {
+  //     total += this.calculateSingleVolumeWeight(dim);
+  //   });
+  // } else {
+  //   total = this.calculateSingleVolumeWeight(this.dimRow);
+  // }
+  // return parseFloat(total.toFixed(2));
+// }
 
 // 2. CBM Calculation logic
 calculateCBM() {
@@ -285,6 +324,10 @@ this.portdischarge();
 this.getIncoTerms();
 this.getMovementTypes();
 this.getCommodityTypes();
+
+  if (this.dimRows.length === 0) {
+    this.dimRows = [this.dimRow];
+  }
 this.quotation.shipmentType = 'Ready';
     
     
@@ -1009,6 +1052,7 @@ saveDimensions() {
   this.calculateCBM();
   this.calculateNetWeight();
   this.calculateVolumeWeightLogic();
+  this.syncFinalData();
   this.closeDimModal();
 }
 

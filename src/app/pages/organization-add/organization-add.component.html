@@ -350,7 +350,7 @@
 </div>
 
       <div class="overflow-x-auto" #tableToExport id="printable-table">
-     <div class="relative">
+   <div class="relative">
   <table class="w-full border-collapse">
     <thead>
       <tr class="bg-gray-200 text-gray-700 uppercase text-[13px] border-b-2 border-gray-300">
@@ -364,7 +364,7 @@
 
     <tbody class="bg-white divide-y divide-gray-200" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View');">
       <tr *ngFor="let org of paginatedOrganizations" 
-          (dblclick)="handleOrgDblClick(org)"
+          (dblclick)="editOrg(org)"
           class="hover:bg-blue-50 transition-colors text-gray-800 cursor-pointer">
         
         <td class="p-5 text-center text-gray-300 no-export">⠿</td>
@@ -391,51 +391,8 @@
           <button (click)="deleteOrg(org.id)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Delete');" class="text-red-600 font-bold hover:underline no-export">DELETE</button>
         </td>
       </tr>
-      </tbody>
+    </tbody>
   </table>
-
-  <div *ngIf="showOrgModal" class="fixed inset-0 z-[1000] flex items-center justify-center">
-    <div (click)="closeOrgModal()" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
-
-    <div class="relative bg-white rounded-2xl shadow-2xl w-80 overflow-hidden transform transition-all border border-gray-100 animate-in zoom-in duration-200">
-      <div class="bg-gradient-to-r from-blue-700 to-blue-500 p-4 shadow-md">
-        <h3 class="text-white font-bold text-center tracking-widest text-[12px]">ORGANIZATION ACTIONS</h3>
-      </div>
-
-      <div class="p-5">
-        <p class="text-sm text-gray-500 text-center mb-5 leading-relaxed">
-          Take Action On ID: <span class="font-bold text-gray-900">{{selectedOrgId}}</span>
-        </p>
-        
-        <div class="space-y-3">
-          <button *ngIf="CheckPermissionService.hasPermission(PermissionID, 'Edit')"
-                  (click)="editOrg(selectedOrgData); closeOrgModal()"
-                  class="w-full flex items-center justify-between p-3.5 rounded-xl hover:bg-blue-50 text-blue-700 font-bold border border-gray-100 hover:border-blue-200 transition-all group">
-            <div class="flex items-center gap-3">
-              <span class="text-xl">🏢</span>
-              <span>Edit Records</span>
-            </div>
-            <span class="group-hover:translate-x-1 transition-transform text-blue-400">→</span>
-          </button>
-
-          <button *ngIf="CheckPermissionService.hasPermission(PermissionID, 'Delete')"
-                  (click)="deleteOrg(selectedOrgId); closeOrgModal()"
-                  class="w-full flex items-center justify-between p-3.5 rounded-xl hover:bg-red-50 text-red-600 font-bold border border-gray-100 hover:border-red-200 transition-all group">
-            <div class="flex items-center gap-3">
-              <span class="text-xl">🗑️</span>
-              <span>Remove Records</span>
-            </div>
-            <span class="group-hover:translate-x-1 transition-transform text-red-300">→</span>
-          </button>
-        </div>
-      </div>
-
-      <button (click)="closeOrgModal()" 
-              class="w-full p-4 text-gray-400 hover:text-gray-700 text-[11px] font-bold bg-gray-50 border-t transition-colors uppercase tracking-widest">
-        Close Menu
-      </button>
-    </div>
-  </div>
 </div>
         <div class="flex justify-between items-center bg-white p-4 border-t border-gray-200 mt-2 shadow-sm rounded-b-lg no-export" *ngIf="organizations.length > 0">
       <div class="text-[12px] text-gray-600 font-medium">
@@ -729,6 +686,46 @@
         </div>
       </div>
 
+<div class="space-y-4 p-4 bg-white rounded-lg">
+  
+  <div class="flex items-center gap-3">
+    <label class="w-40 font-bold text-gray-700">Postal Code*</label>
+    <div class="flex-1">
+      <input type="text" 
+             [(ngModel)]="postalCode" 
+             (ngModelChange)="onPostalCodeChange($event)"
+             (input)="postalCode = $event.target.value.toUpperCase()" 
+             [readonly]="!isEditMode" 
+             [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'" 
+             name="postalCode"
+             placeholder="Enter Pincode/Zip Code"
+             class="w-full border border-gray-300 p-2 outline-none rounded shadow-sm">
+      <p class="text-[10px] text-gray-400 mt-1">International zip codes are supported</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 gap-6">
+    <div class="flex items-center gap-3">
+      <label class="w-40 text-red-700 font-bold">Country</label>
+      <input type="text" [(ngModel)]="country" name="country" readonly class="flex-1 p-2 bg-[#f3f4f6] border rounded outline-none text-gray-600">
+    </div>
+
+    <div class="flex items-center gap-3">
+      <label class="w-40 text-red-700 font-bold">State/Province</label>
+      <input type="text" [(ngModel)]="stateProvince" name="stateProvince" class="flex-1 p-2 border rounded outline-none">
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 gap-6">
+    <div class="flex items-center gap-3">
+      <label class="w-40 text-red-700 font-bold">City</label>
+      <input type="text" [(ngModel)]="city" name="city" class="flex-1 p-2 border rounded outline-none">
+    </div>
+  </div>
+
+</div>
+
+      <!-- 
 <div class="grid grid-cols-2 gap-6">
 <div class="flex items-center gap-3">
   <label class="w-40 text-red-700 font-bold">Country</label>
@@ -846,7 +843,7 @@
           <input type="text" [(ngModel)]="postalCode" (input)="postalCode = $event.target.value.toUpperCase()" [readonly]="!isEditMode" [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'" name="postalCode"
             class="flex-1 border border-gray-300 p-1.5 outline-none">
         </div>
-      </div>
+      </div> -->
 
       <div class="grid grid-cols-2 gap-6">
         <div class="flex items-center gap-3">

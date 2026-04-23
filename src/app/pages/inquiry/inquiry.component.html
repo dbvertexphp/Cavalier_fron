@@ -587,7 +587,7 @@
                 <p
                   class="text-xs text-gray-400 uppercase tracking-widest font-bold"
                 >
-                  Cavalier Logistics3
+                  Cavalier Logistics
                 </p>
                 <button
                   (click)="showCoordinatorPopup = false"
@@ -909,131 +909,58 @@
 
     <div class="p-0 overflow-x-auto">
       <div class="p-0 overflow-x-auto">
-       <div class="relative">
- <div class="relative">
-  <table class="w-full border-collapse border border-gray-200 whitespace-nowrap">
-    <thead>
-      <tr class="bg-gray-50 text-gray-600 uppercase text-[11px] border-b"
-          cdkDropList cdkDropListOrientation="horizontal"
-          [cdkDropListData]="selectedColumns"
-          (cdkDropListDropped)="dropColumn($any($event))">
-        
-        <th *ngFor="let col of selectedColumns" cdkDrag
-            class="p-4 text-left font-bold cursor-move hover:bg-gray-100 border-r border-gray-200 last:border-r-0">
-          <div class="flex items-center gap-2">
-            <span class="text-gray-300">⋮⋮</span>
-            {{ col }}
-          </div>
-        </th>
+      <div class="relative">
+  <div class="relative">
+    <table class="w-full border-collapse border border-gray-200 whitespace-nowrap">
+      <thead>
+        <tr class="bg-gray-50 text-gray-600 uppercase text-[11px] border-b"
+            cdkDropList cdkDropListOrientation="horizontal"
+            [cdkDropListData]="selectedColumns"
+            (cdkDropListDropped)="dropColumn($any($event))">
+          
+          <th *ngFor="let col of selectedColumns" cdkDrag
+              class="p-4 text-left font-bold cursor-move hover:bg-gray-100 border-r border-gray-200 last:border-r-0">
+            <div class="flex items-center gap-2">
+              <span class="text-gray-300">⋮⋮</span>
+              {{ col }}
+            </div>
+          </th>
 
-        <th class="p-4 text-center font-bold sticky right-0 bg-gray-50 border-l shadow-sm no-export">
-          Action
-        </th>
-      </tr>
-    </thead>
+          <th class="p-4 text-center font-bold sticky right-0 bg-gray-50 border-l shadow-sm no-export">
+            Action
+          </th>
+        </tr>
+      </thead>
 
-    <tbody class="bg-white" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
-      <tr *ngFor="let q of paginatedInquiries" 
-          (dblclick)="handleRowDblClick(q.id)"
-          class="hover:bg-gray-50 border-b text-gray-700 cursor-pointer transition-colors">
-        
-        <td *ngFor="let col of selectedColumns" class="p-4">
-          <ng-container [ngSwitch]="col">
-            <span *ngSwitchCase="'Inquiry Id.'" class="font-bold text-gray-900">{{ q.id }}</span>
-            <span *ngSwitchCase="'Inquiry No.'" class="font-bold text-blue-600">{{ q.inquiryNo }}</span>
-            <span *ngSwitchCase="'Date'" class="font-medium">{{ q.receivedDate | date: "dd-MMM-yyyy" }}</span>
-            <span *ngSwitchCase="'Status'">
-              <span [ngClass]="{'bg-yellow-100 text-yellow-800': q.id > 0, 'bg-green-100 text-green-800': q.id === 0}"
-                    class="px-3 py-1 rounded text-[11px] font-bold uppercase">
-                {{ q.cargoStatus }}
+      <tbody class="bg-white" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
+        <tr *ngFor="let q of paginatedInquiries" 
+            (dblclick)="editQuotation(q)"
+            class="hover:bg-gray-50 border-b text-gray-700 cursor-pointer transition-colors">
+          
+          <td *ngFor="let col of selectedColumns" class="p-4">
+            <ng-container [ngSwitch]="col">
+              <span *ngSwitchCase="'Inquiry Id.'" class="font-bold text-gray-900">{{ q.id }}</span>
+              <span *ngSwitchCase="'Inquiry No.'" class="font-bold text-blue-600">{{ q.inquiryNo }}</span>
+              <span *ngSwitchCase="'Date'" class="font-medium">{{ q.receivedDate | date: "dd-MMM-yyyy" }}</span>
+              <span *ngSwitchCase="'Status'">
+                <span [ngClass]="{'bg-yellow-100 text-yellow-800': q.id > 0, 'bg-green-100 text-green-800': q.id === 0}"
+                      class="px-3 py-1 rounded text-[11px] font-bold uppercase">
+                  {{ q.cargoStatus }}
+                </span>
               </span>
-            </span>
-            <span *ngSwitchDefault class="uppercase font-medium">{{ q[columnFieldMap[col]] || "-" }}</span>
-          </ng-container>
-        </td>
+              <span *ngSwitchDefault class="uppercase font-medium">{{ q[columnFieldMap[col]] || "-" }}</span>
+            </ng-container>
+          </td>
 
-        <td class="p-4 sticky right-0 bg-white border-l text-center shadow-[-5px_0_10px_rgba(0,0,0,0.02)]">
-          <button (click)="editQuotation(q)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Edit')"
-                  class="text-blue-600 mr-3 font-bold uppercase hover:underline text-[11px]">Edit</button>
-          <button (click)="deleteQuotation(q.id)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Delete')"
-                  class="text-red-600 font-bold uppercase hover:underline text-[11px]">Delete</button>
-        </td>
-      </tr>
-      
+          <td class="p-4 sticky right-0 bg-white border-l text-center shadow-[-5px_0_10px_rgba(0,0,0,0.02)]">
+            <button (click)="editQuotation(q)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Edit')"
+                    class="text-blue-600 mr-3 font-bold uppercase hover:underline text-[11px]">Edit</button>
+            <button (click)="deleteQuotation(q.id)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Delete')"
+                    class="text-red-600 font-bold uppercase hover:underline text-[11px]">Delete</button>
+          </td>
+        </tr>
       </tbody>
-  </table>
-
-  <div *ngIf="showRowModal" class="fixed inset-0 z-[1000] flex items-center justify-center">
-    <div (click)="closeRowModal()" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
-
-    <div class="relative bg-white rounded-2xl shadow-2xl w-80 overflow-hidden transform transition-all border border-gray-100">
-      <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-4">
-        <h3 class="text-white font-bold text-center tracking-wide">QUICK ACTIONS</h3>
-      </div>
-
-      <div class="p-4">
-        <p class="text-sm text-gray-500 text-center mb-4 leading-relaxed">
-          Take Action On ID: <span class="font-bold text-gray-900">{{selectedInquiryId}}</span>
-        </p>
-        
-        <div class="space-y-2">
-          <button *ngIf="CheckPermissionService.hasPermission(PermissionID, 'Edit')"
-                  (click)="editQuotation({id: selectedInquiryId}); closeRowModal()"
-                  class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-blue-50 text-blue-700 font-semibold border border-gray-100 hover:border-blue-200 transition-all group">
-            <div class="flex items-center gap-2"><span>📝</span><span>Edit Record</span></div>
-            <span class="group-hover:translate-x-1 transition-transform text-blue-400">→</span>
-          </button>
-
-          <button *ngIf="CheckPermissionService.hasPermission(PermissionID, 'Delete')"
-                  (click)="deleteQuotation(selectedInquiryId); closeRowModal()"
-                  class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-red-50 text-red-600 font-semibold border border-gray-100 hover:border-red-200 transition-all group">
-            <div class="flex items-center gap-2"><span>🗑️</span><span>Delete Record</span></div>
-            <span class="group-hover:translate-x-1 transition-transform text-red-300">→</span>
-          </button>
-        </div>
-      </div>
-
-      <button (click)="closeRowModal()" class="w-full p-3 text-gray-400 hover:text-gray-600 text-xs font-medium bg-gray-50 border-t">
-        Dismiss
-      </button>
-    </div>
-  </div>
-</div>
-
-  <div *ngIf="showRowModal" class="fixed inset-0 z-[1000] flex items-center justify-center">
-    <div (click)="closeRowModal()" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
-
-    <div class="relative bg-white rounded-2xl shadow-2xl w-80 overflow-hidden transform transition-all border border-gray-100">
-      <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-4">
-        <h3 class="text-white font-bold text-center tracking-wide">QUICK ACTIONS</h3>
-      </div>
-
-      <div class="p-4">
-        <p class="text-sm text-gray-500 text-center mb-4 leading-relaxed">
-          Take Action On ID: <span class="font-bold text-gray-900">{{selectedInquiryId}}</span>
-        </p>
-        
-        <div class="space-y-2">
-          <button *ngIf="CheckPermissionService.hasPermission(PermissionID, 'Edit')"
-                  (click)="editQuotation({id: selectedInquiryId}); closeRowModal()"
-                  class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-blue-50 text-blue-700 font-semibold border border-gray-100 hover:border-blue-200 transition-all group">
-            <div class="flex items-center gap-2"><span>📝</span><span>Edit Record</span></div>
-            <span class="group-hover:translate-x-1 transition-transform text-blue-400">→</span>
-          </button>
-
-          <button *ngIf="CheckPermissionService.hasPermission(PermissionID, 'Delete')"
-                  (click)="deleteQuotation(selectedInquiryId); closeRowModal()"
-                  class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-red-50 text-red-600 font-semibold border border-gray-100 hover:border-red-200 transition-all group">
-            <div class="flex items-center gap-2"><span>🗑️</span><span>Delete Record</span></div>
-            <span class="group-hover:translate-x-1 transition-transform text-red-300">→</span>
-          </button>
-        </div>
-      </div>
-
-      <button (click)="closeRowModal()" class="w-full p-3 text-gray-400 hover:text-gray-600 text-xs font-medium bg-gray-50 border-t">
-        Dismiss
-      </button>
-    </div>
+    </table>
   </div>
 </div>
       </div>

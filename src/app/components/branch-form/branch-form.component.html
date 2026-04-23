@@ -41,48 +41,48 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 p-4 border border-yellow-100 rounded-lg bg-yellow-50/10">
-    <div class="space-y-1">
-  <label class="text-xs font-bold uppercase text-gray-500">GST Category*</label>
-  <select formControlName="gstCategory" class="w-full p-2.5 border rounded-lg bg-white outline-none">
-    <option value="">Select Category</option>
-    <option value="Registered">Registered</option>
-    <option value="Unregistered">Unregistered</option>
-  </select>
-  <span class="text-red-500 text-xs" *ngIf="getError('gstCategory')">{{ getError('gstCategory') }}</span>
+   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 p-4 border border-yellow-100 rounded-lg bg-yellow-50/10">
+  <div class="space-y-1">
+    <label class="text-xs font-bold uppercase text-gray-500">GST Category*</label>
+    <select formControlName="gstCategory" class="w-full p-2.5 border rounded-lg bg-white outline-none">
+      <option value="">Select Category</option>
+      <option value="Registered">Registered</option>
+      <option value="Unregistered">Unregistered</option>
+    </select>
+    <span class="text-red-500 text-xs" *ngIf="getError('gstCategory')">{{ getError('gstCategory') }}</span>
+  </div>
+
+  <div class="space-y-1" *ngIf="branchForm.get('gstCategory')?.value === 'Registered'">
+    <label class="text-xs font-bold uppercase text-gray-500">GSTIN*</label>
+    <input type="text" formControlName="gstin" class="w-full p-2.5 border rounded-lg shadow-sm bg-white uppercase">
+    <span class="text-red-500 text-xs" *ngIf="getError('gstin')">{{ getError('gstin') }}</span>
+  </div>
 </div>
-<div class="space-y-1" *ngIf="branchForm.get('gstCategory')?.value === 'Registered'">
-  <label class="text-xs font-bold uppercase text-gray-500">GSTIN*</label>
-  <input type="text" formControlName="gstin" class="w-full p-2.5 border rounded-lg shadow-sm bg-white uppercase">
-  <span class="text-red-500 text-xs" *ngIf="getError('gstin')">{{ getError('gstin') }}</span>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+  <div class="space-y-1">
+    <label class="text-[10px] font-bold uppercase text-gray-400">Postal Code*</label>
+    <input type="text" formControlName="postalCode" placeholder="Enter 6 digit code" class="w-full p-2 border rounded shadow-sm text-sm bg-blue-50/30">
+    <span class="text-red-500 text-xs" *ngIf="getError('postalCode')">{{ getError('getError') }}</span>
+  </div>
+
+  <div class="space-y-1">
+    <label class="text-[10px] font-bold uppercase text-gray-400">City*</label>
+    <input type="text" formControlName="city" class="w-full p-2 border rounded shadow-sm text-sm bg-blue-50/30">
+    <span class="text-red-500 text-xs" *ngIf="getError('city')">{{ getError('city') }}</span>
+  </div>
+
+  <div class="space-y-1">
+    <label class="text-[10px] font-bold uppercase text-gray-400">State*</label>
+    <input type="text" formControlName="state" class="w-full p-2 border rounded shadow-sm text-sm bg-blue-50/30">
+    <span class="text-red-500 text-xs" *ngIf="getError('state')">{{ getError('state') }}</span>
+  </div>
+
+  <div class="space-y-1">
+    <label class="text-[10px] font-bold uppercase text-gray-400">Contact No*</label>
+    <input type="text" formControlName="contactNo" class="w-full p-2 border rounded shadow-sm text-sm">
+    <span class="text-red-500 text-xs" *ngIf="getError('contactNo')">{{ getError('contactNo') }}</span>
+  </div>
 </div>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-      <div class="space-y-1">
-        <label class="text-[10px] font-bold uppercase text-gray-400">City*</label>
-        <input type="text" formControlName="city" class="w-full p-2 border rounded shadow-sm text-sm bg-blue-50/30">
-        <span class="text-red-500 text-xs" *ngIf="getError('city')">{{ getError('city') }}</span>
-      </div>
-
-      <div class="space-y-1">
-        <label class="text-[10px] font-bold uppercase text-gray-400">State*</label>
-        <input type="text" formControlName="state" class="w-full p-2 border rounded shadow-sm text-sm bg-blue-50/30">
-        <span class="text-red-500 text-xs" *ngIf="getError('state')">{{ getError('state') }}</span>
-      </div>
-
-      <div class="space-y-1">
-        <label class="text-[10px] font-bold uppercase text-gray-400">Postal Code*</label>
-        <input type="text" formControlName="postalCode" class="w-full p-2 border rounded shadow-sm text-sm bg-blue-50/30">
-        <span class="text-red-500 text-xs" *ngIf="getError('postalCode')">{{ getError('postalCode') }}</span>
-      </div>
-
-      <div class="space-y-1">
-        <label class="text-[10px] font-bold uppercase text-gray-400">Contact No*</label>
-        <input type="text" formControlName="contactNo" class="w-full p-2 border rounded shadow-sm text-sm">
-        <span class="text-red-500 text-xs" *ngIf="getError('contactNo')">{{ getError('contactNo') }}</span>
-      </div>
-    </div>
 
     <div class="flex justify-end gap-4 pt-6 border-t mt-4">
       <button type="button" (click)="cancel()" class="px-8 py-2.5 bg-gray-100 text-gray-700 font-bold rounded-lg hover:bg-gray-200 transition">

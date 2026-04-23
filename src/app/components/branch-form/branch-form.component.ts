@@ -11,6 +11,7 @@ import { BranchService } from '../../services/branch.service';
   templateUrl: './branch-form.component.html'
 })
 export class BranchFormComponent implements OnInit {
+  
   branchForm: FormGroup;
   isEdit: boolean = false;
   loading: boolean = false;
@@ -51,7 +52,14 @@ export class BranchFormComponent implements OnInit {
     });
 
     this.setupAddressAutoSummary();
-    this.manageGstValidation(); // Naya logic yahan call ho raha hai
+    this.manageGstValidation(); 
+
+    // Pincode auto-fill logic
+    this.branchForm.get('postalCode')?.valueChanges.subscribe(value => {
+      if (value && value.length === 6) {
+        this.fetchLocationDetails(value);
+      }
+    });
   }
 
   ngOnInit(): void {
@@ -62,18 +70,21 @@ export class BranchFormComponent implements OnInit {
     }
   }
 
-  // GSTIN Field aur Validation manage karne ke liye
-  private manageGstValidation() {
-    this.branchForm.get('gstCategory')?.valueChanges.subscribe(value => {
-      const gstinControl = this.branchForm.get('gstin');
-      if (value === 'Registered') {
-        gstinControl?.setValidators([Validators.required]);
-      } else {
-        gstinControl?.clearValidators();
-        gstinControl?.setValue(''); // Unregistered hone par value reset ho jayegi
-      }
-      gstinControl?.updateValueAndValidity();
-    });
+  // Naya method Pincode se data fetch karne ke liye
+  private fetchLocationDetails(pincode: string) {
+    fetch(`https://api.postalpincode.in/pincode/${pincode}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data[0].Status === 'Success') {
+          const postOffice = data[0].PostOffice[0];
+          this.branchForm.patchValue({
+            city: postOffice.Block,
+            district: postOffice.District,
+            state: postOffice.State
+          });
+        }
+      })
+      .catch(error => console.error('Pincode API Error:', error));
   }
 
   private setupAddressAutoSummary() {
@@ -97,6 +108,10 @@ export class BranchFormComponent implements OnInit {
     this.loading = true;
     const formData = this.branchForm.getRawValue();
 
+    if (formData.gstCategory === 'Unregistered') {
+      formData.gstin = "N/A"; 
+    }
+
     const request = this.isEdit 
       ? this.branchService.updateBranch(formData.id, formData)
       : this.branchService.addBranch(formData);
@@ -119,7 +134,6 @@ export class BranchFormComponent implements OnInit {
     this.router.navigate(['/dashboard/branch']);
   }
 
-  // Helper for HTML to show validation messages
   getError(field: string) {
     const control = this.branchForm.get(field);
     if (!control || !control.touched || control.valid) return null;
@@ -129,5 +143,17 @@ export class BranchFormComponent implements OnInit {
     if (control.errors?.['email']) return 'Invalid email address';
     return null;
   }
-  
+
+  private manageGstValidation() {
+    this.branchForm.get('gstCategory')?.valueChanges.subscribe(value => {
+      const gstinControl = this.branchForm.get('gstin');
+      if (value === 'Registered') {
+        gstinControl?.setValidators([Validators.required]);
+      } else {
+        gstinControl?.clearValidators();
+        gstinControl?.setValue(null); 
+      }
+      gstinControl?.updateValueAndValidity();
+    });
+  }
 }

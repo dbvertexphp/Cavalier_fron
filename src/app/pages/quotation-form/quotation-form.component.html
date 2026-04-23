@@ -495,86 +495,42 @@
     </div>
     <div class="p-0 overflow-x-auto">
       <div class="relative">
-        <table class="w-full border-collapse text-[13px]">
-          <thead>
-            <tr class="bg-gray-50 text-gray-500 uppercase text-[11px] border-b">
-              <th *ngFor="let col of selectedColumns" class="p-4 text-left font-bold">
-                {{ col }}
-              </th>
-              <th class="p-4 text-center font-bold sticky right-0 bg-gray-50 border-l">
-                Action
-              </th>
-            </tr>
-          </thead>
+  <table class="w-full border-collapse text-[13px]">
+    <thead>
+      <tr class="bg-gray-50 text-gray-500 uppercase text-[11px] border-b">
+        <th *ngFor="let col of selectedColumns" class="p-4 text-left font-bold">
+          {{ col }}
+        </th>
+        <th class="p-4 text-center font-bold sticky right-0 bg-gray-50 border-l">
+          Action
+        </th>
+      </tr>
+    </thead>
 
-          <tbody *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
-            <tr *ngFor="let q of paginatedQuotations" (dblclick)="handleRowDblClick(q)"
-              class="hover:bg-gray-50 border-b text-gray-700 cursor-pointer transition-colors">
+    <tbody *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
+      <tr *ngFor="let q of paginatedQuotations" 
+          (dblclick)="editQuotation(q)"
+          class="hover:bg-gray-50 border-b text-gray-700 cursor-pointer transition-colors">
 
-              <td *ngFor="let col of selectedColumns" class="p-4">
-                {{ q[col] }}
-              </td>
+        <td *ngFor="let col of selectedColumns" class="p-4">
+          {{ q[col] }}
+        </td>
 
-              <td class="p-4 sticky right-0 bg-white border-l text-center">
-                <button (click)="editQuotation(q)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Edit')"
-                  class="text-blue-600 mr-3 font-bold uppercase hover:underline">
-                  Edit
-                </button>
-                <button (click)="deleteQuotation(q.id)"
-                  *ngIf="CheckPermissionService.hasPermission(PermissionID,'Delete')"
-                  class="text-red-600 font-bold uppercase hover:underline">
-                  Delete
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div *ngIf="showRowModal" class="fixed inset-0 z-[1000] flex items-center justify-center">
-          <div (click)="closeRowModal()" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity">
-          </div>
-
-          <div
-            class="relative bg-white rounded-2xl shadow-2xl w-80 overflow-hidden transform transition-all border border-gray-100 animate-in zoom-in duration-200">
-            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-4">
-              <h3 class="text-white font-bold text-center tracking-widest text-[12px]">QUICK ACTIONS</h3>
-            </div>
-
-            <div class="p-5">
-              <p class="text-sm text-gray-500 text-center mb-5 leading-relaxed">
-                Take Action On ID: <span class="font-bold text-gray-900">{{selectedQuotationId}}</span>
-              </p>
-
-              <div class="space-y-3">
-                <button *ngIf="CheckPermissionService.hasPermission(PermissionID, 'Edit')"
-                  (click)="editQuotation(selectedQuotationData); closeRowModal()"
-                  class="w-full flex items-center justify-between p-3.5 rounded-xl hover:bg-blue-50 text-blue-700 font-bold border border-gray-100 hover:border-blue-200 transition-all group">
-                  <div class="flex items-center gap-3">
-                    <span class="text-xl">📝</span>
-                    <span>Edit Record</span>
-                  </div>
-                  <span class="group-hover:translate-x-1 transition-transform text-blue-400">→</span>
-                </button>
-
-                <button *ngIf="CheckPermissionService.hasPermission(PermissionID, 'Delete')"
-                  (click)="deleteQuotation(selectedQuotationId); closeRowModal()"
-                  class="w-full flex items-center justify-between p-3.5 rounded-xl hover:bg-red-50 text-red-600 font-bold border border-gray-100 hover:border-red-200 transition-all group">
-                  <div class="flex items-center gap-3">
-                    <span class="text-xl">🗑️</span>
-                    <span>Delete Record</span>
-                  </div>
-                  <span class="group-hover:translate-x-1 transition-transform text-red-300">→</span>
-                </button>
-              </div>
-            </div>
-
-            <button (click)="closeRowModal()"
-              class="w-full p-4 text-gray-400 hover:text-gray-700 text-xs font-bold bg-gray-50 border-t hover:bg-gray-100 transition-colors uppercase tracking-widest">
-              Dismiss
-            </button>
-          </div>
-        </div>
-      </div>
+        <td class="p-4 sticky right-0 bg-white border-l text-center">
+          <button (click)="editQuotation(q)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Edit')"
+            class="text-blue-600 mr-3 font-bold uppercase hover:underline">
+            Edit
+          </button>
+          <button (click)="deleteQuotation(q.id)"
+            *ngIf="CheckPermissionService.hasPermission(PermissionID,'Delete')"
+            class="text-red-600 font-bold uppercase hover:underline">
+            Delete
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
       <div class="flex flex-col items-center mt-6 gap-3"
         *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
 

@@ -51,6 +51,7 @@ export class BranchFormComponent implements OnInit {
     });
 
     this.setupAddressAutoSummary();
+    this.manageGstValidation(); // Naya logic yahan call ho raha hai
   }
 
   ngOnInit(): void {
@@ -59,6 +60,20 @@ export class BranchFormComponent implements OnInit {
       this.isEdit = true;
       this.branchForm.patchValue(state.data);
     }
+  }
+
+  // GSTIN Field aur Validation manage karne ke liye
+  private manageGstValidation() {
+    this.branchForm.get('gstCategory')?.valueChanges.subscribe(value => {
+      const gstinControl = this.branchForm.get('gstin');
+      if (value === 'Registered') {
+        gstinControl?.setValidators([Validators.required]);
+      } else {
+        gstinControl?.clearValidators();
+        gstinControl?.setValue(''); // Unregistered hone par value reset ho jayegi
+      }
+      gstinControl?.updateValueAndValidity();
+    });
   }
 
   private setupAddressAutoSummary() {
@@ -114,4 +129,5 @@ export class BranchFormComponent implements OnInit {
     if (control.errors?.['email']) return 'Invalid email address';
     return null;
   }
+  
 }

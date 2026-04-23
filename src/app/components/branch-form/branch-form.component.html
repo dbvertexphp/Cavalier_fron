@@ -42,21 +42,20 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 p-4 border border-yellow-100 rounded-lg bg-yellow-50/10">
-      <div class="space-y-1">
-        <label class="text-xs font-bold uppercase text-gray-500">GST Category*</label>
-        <select formControlName="gstCategory" class="w-full p-2.5 border rounded-lg bg-white outline-none">
-          <option value="">Select Category</option>
-          <option value="Registered">Registered</option>
-          <option value="Unregistered">Unregistered</option>
-        </select>
-        <span class="text-red-500 text-xs" *ngIf="getError('gstCategory')">{{ getError('gstCategory') }}</span>
-      </div>
-
-      <div class="space-y-1">
-        <label class="text-xs font-bold uppercase text-gray-500">GSTIN*</label>
-        <input type="text" formControlName="gstin" class="w-full p-2.5 border rounded-lg shadow-sm bg-white uppercase">
-        <span class="text-red-500 text-xs" *ngIf="getError('gstin')">{{ getError('gstin') }}</span>
-      </div>
+    <div class="space-y-1">
+  <label class="text-xs font-bold uppercase text-gray-500">GST Category*</label>
+  <select formControlName="gstCategory" class="w-full p-2.5 border rounded-lg bg-white outline-none">
+    <option value="">Select Category</option>
+    <option value="Registered">Registered</option>
+    <option value="Unregistered">Unregistered</option>
+  </select>
+  <span class="text-red-500 text-xs" *ngIf="getError('gstCategory')">{{ getError('gstCategory') }}</span>
+</div>
+<div class="space-y-1" *ngIf="branchForm.get('gstCategory')?.value === 'Registered'">
+  <label class="text-xs font-bold uppercase text-gray-500">GSTIN*</label>
+  <input type="text" formControlName="gstin" class="w-full p-2.5 border rounded-lg shadow-sm bg-white uppercase">
+  <span class="text-red-500 text-xs" *ngIf="getError('gstin')">{{ getError('gstin') }}</span>
+</div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">

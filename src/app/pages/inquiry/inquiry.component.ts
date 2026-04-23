@@ -27,6 +27,8 @@ import { UserService } from '../../services/user.service';
     @ViewChild('cargoDateInput') cargoDateInput!: ElementRef<HTMLInputElement>;
     getsalescordinate: any[] = [];
     PermissionID:any;
+    showincoterms:string="";
+    organizationIds:number=0;
     isDeliveryEnabled:boolean=false;
     portsOfDischarge: any[] = [];        // API se aane wala full list
 filteredPortsOfDischarge: any[] = [];
@@ -511,7 +513,7 @@ onShipmentTypeChange() {
 }
  onIncotermChange(event: any) {
   const selectedIncoterm = event.target.value?.toUpperCase().trim();
-
+     this.showincoterms=selectedIncoterm;
   if (!selectedIncoterm) return;
 
   this.quotation.incoterm = selectedIncoterm;
@@ -1952,8 +1954,10 @@ isPreviewMode = false;
 toggleReview() {
   if (!this.inquiry.organization) {
     alert("firstly save org");
+    
     return;
   }
+  console.log('testing of ids', this.organizationIds);
   this.isPreviewMode = true;
   
 }
@@ -2244,6 +2248,9 @@ loadLeadByLeadNo(leadNo: string) {
       if (leadData.organizationName) {
         this.inquiry.organization = leadData.organizationName;
         this.quotation.organizationName = leadData.organizationName;
+      }
+      if (leadData.organisationId) {
+        this.organizationIds = leadData.organisationId;
       }
 
       if (leadData.location) this.quotation.location = leadData.location;

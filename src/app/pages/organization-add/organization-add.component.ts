@@ -21,6 +21,9 @@ import { CheckPermissionService } from '../../services/check-permission.service'
   styleUrl: './organization-add.component.css',
 })
 export class OrganizationAddComponent implements OnInit {
+  agentSelectedLineOfBusiness: any[] = [];
+  showAgentLobDropdown: boolean = false;
+
   lineOfBusinessList: any[] = [];
 selectedLineOfBusiness: any[] = [];        // Multiple select ke liye array
 showLobDropdown: boolean = false;
@@ -28,6 +31,7 @@ showLobDropdown: boolean = false;
   hasSavedOrg: boolean = false;
   PermissionID:any;
 selectedBranchIndex: number = -1;
+@ViewChild('agentLobDropdownContainer', { static: false }) agentLobDropdownContainer!: ElementRef;
 @ViewChild('lobDropdownContainer', { static: false }) lobDropdownContainer!: ElementRef;
 searchFilters: any = {
   orgCode: '',
@@ -63,7 +67,50 @@ toggleLobSelection(item: any) {
   }
   this.cdr.detectChanges();
 }
+@HostListener('document:click', ['$event'])
+onDocumentClick(event: MouseEvent) {
+  // General Tab LOB close logic
+  if (this.lobDropdownContainer && !this.lobDropdownContainer.nativeElement.contains(event.target as Node)) {
+    this.showLobDropdown = false;
+    this.cdr.detectChanges();
+  }
+  
+  // Agent Tab LOB close logic (NEW)
+  if (this.agentLobDropdownContainer && !this.agentLobDropdownContainer.nativeElement.contains(event.target as Node)) {
+    this.showAgentLobDropdown = false;
+    this.cdr.detectChanges();
+  }
+  
+  if (!(event.target as HTMLElement).closest('.relative')) {
+    this.isExportOpen = false;
+    this.organizationsList = [];
+  }
+}
+// ==================== AGENT LOB METHODS ====================
+toggleAgentLobDropdown(event: Event) {
+  event.stopPropagation();
+  this.showAgentLobDropdown = !this.showAgentLobDropdown;
+}
 
+isAgentLobSelected(item: any): boolean {
+  return this.agentSelectedLineOfBusiness.some(sel => sel.id === item.id);
+}
+
+toggleAgentLobSelection(item: any) {
+  const index = this.agentSelectedLineOfBusiness.findIndex(sel => sel.id === item.id);
+  if (index > -1) {
+    this.agentSelectedLineOfBusiness.splice(index, 1);
+  } else {
+    this.agentSelectedLineOfBusiness.push(item);
+  }
+  this.cdr.detectChanges();
+}
+
+removeAgentLob(index: number, event: Event) {
+  event.stopPropagation();
+  this.agentSelectedLineOfBusiness.splice(index, 1);
+  this.cdr.detectChanges();
+}
 // Already hai tumhare code mein
 removeLob(index: number, event: Event) {
   event.stopPropagation();
@@ -391,18 +438,8 @@ landmark: string = '';
 //   selectedBranch: any = null
 
   constructor(private location: Location, private http: HttpClient,private cdr: ChangeDetectorRef,private router:Router,private elementRef: ElementRef,public CheckPermissionService: CheckPermissionService) {}
-@HostListener('document:click', ['$event'])
-onDocumentClick(event: MouseEvent) {
-  if (this.lobDropdownContainer && 
-      !this.lobDropdownContainer.nativeElement.contains(event.target as Node)) {
-    this.showLobDropdown = false;
-    this.cdr.detectChanges();
-  }
-   if (!(event.target as HTMLElement).closest('.relative')) {
-      this.isExportOpen = false;
-this.organizationsList = [];
-    }
-}
+
+
  ngOnInit() {
   const state = history.state;           // ya this.router.lastSuccessfulNavigation?.extras?.state
 
@@ -646,6 +683,47 @@ saveOrg() {
  
 onSaveBranch() {
   this.addCurrentBranchIfValid(); // sirf valid branch add hogi
+}
+// ==================== AGENT COUNTRY & STATE LOGIC ====================
+
+// 1. Agent Country Search
+onAgentCountrySearch(event: any) {
+  const val = (event.target.value || '').toUpperCase().trim();
+  event.target.value = val; // Input box mein uppercase dikhe
+
+  if (val.length >= 3) {
+    this.filteredCountries = this.countryMasterList.filter(item =>
+      item.name.toLowerCase().includes(val.toLowerCase())
+    );
+  } else {
+    this.filteredCountries = [];
+  }
+}
+
+// 2. Agent Country Select
+selectAgentCountry(countryName: string) {
+  this.agentCountry = countryName;  // Yahan agentCountry update hoga!
+  this.filteredCountries = [];      // Dropdown band karein
+  this.onAgentCountrySelectionChange(); // States load karein
+  this.cdr.detectChanges();
+}
+
+// 3. Agent State Load Logic
+onAgentCountrySelectionChange() {
+  this.agentState = ''; // Purana state clear karo
+  
+  // Agent ki country ke hisaab se states dhoondo
+  const selectedObj = this.countryMasterList.find(c => 
+    c.name.toLowerCase() === this.agentCountry.trim().toLowerCase()
+  );
+
+  if (selectedObj && selectedObj.states) {
+    this.stateLookupList = selectedObj.states.map((s: any) => s.name);
+  } else {
+    this.stateLookupList = [];
+  }
+  
+  this.cdr.detectChanges();
 }
 // ==================== SAVE ALL BRANCHES (Add + Update) ====================
 // ==================== SAVE ALL BRANCHES (Add + Update) - FIXED ====================
@@ -929,7 +1007,12 @@ saveAgentWithOrganisation(orgId: number) {
 
   const agentPayload = {
     organisationId: orgId,                    // ← Dynamic OrganisationId
-    lineOfBusinessId: this.agentLineOfBusiness,
+    
+    // 🔥 UPDATE: Array se IDs nikaal kar comma se join karna
+    lineOfBusinessId: this.agentSelectedLineOfBusiness && this.agentSelectedLineOfBusiness.length > 0 
+      ? this.agentSelectedLineOfBusiness.map(item => item.id).join(',') 
+      : "",
+      
     branchName: this.agentBranchName.trim(),
     isDefault: this.agentIsDefault,
     isDeactive: this.agentIsDeactive,
@@ -1010,20 +1093,22 @@ editOrg(org: any) {
 getBranchesByOrg(orgId: number) {
   const url = `${environment.apiUrl}/OrgBranch/GetByOrg/${orgId}`;
 
-  console.log("Fetching branches from URL:", url);
+  console.log("Fetching branches and agents from URL:", url);
 
-  this.http.get<any[]>(url).subscribe({
+  // Type any kar diya taaki response object ko read kar sakein
+  this.http.get<any>(url).subscribe({
     next: (res) => {
-      console.log("✅ Raw branches received from API:", res);
+      console.log("✅ Raw response received from API:", res);
 
-      if (res && Array.isArray(res) && res.length > 0) {
+      // ==========================================
+      // 1. BRANCHES WALA LOGIC (As it is)
+      // ==========================================
+      if (res && res.branches && Array.isArray(res.branches) && res.branches.length > 0) {
         
-        this.branchList = res.map((b: any) => ({
+        this.branchList = res.branches.map((b: any) => ({
           id: b.id,                                  
           branchName: b.branchName || '',
-
           organizationId: b.organizationId,
-
           address: b.address || '',
           area: b.area || '',
           landmark: b.landmark || '',
@@ -1031,46 +1116,36 @@ getBranchesByOrg(orgId: number) {
           stateProvince: b.stateProvince || '',
           city: b.city || '',
           postalCode: b.postalCode || '',
-
           telephone: b.telephone || '',
           fax: b.fax || '',
           website: b.webSite || b.website || '',
           email: b.emailAddress || b.email || '',
-
           contactName: b.contactName || '',
           mobile: b.mobile || '',
           whatsapp: b.whatsapp || '',
           emailId: b.emailId || b.emailAddress || '',
-
           lobIds: b.lobIds || null,
-  
           lobIdsList: b.lobIds 
             ? b.lobIds.split(',').map((id: string) => parseInt(id.trim(), 10)).filter((id: number) => !isNaN(id))
             : [],
-            
           designationId: b.designationId || null,
           departmentId: b.departmentId || null,
-
           isDefault: b.isDefault || false,
           isDeactivated: b.isDeactivated || false,
           isManager: b.isManager || false,
           isHOD: b.isHOD || false,
           isSales: b.isSales || false,
           isMarketing: b.isMarketing || false,
-
           organization: b.organization,
           designation: b.designation,
           department: b.department,
           companyService: b.companyService
         }))
         // Default branch ko top (index 0) par laane ke liye
-        .sort((a, b) => (b.isDefault === a.isDefault ? 0 : b.isDefault ? 1 : -1));
+        .sort((a: any, b: any) => (b.isDefault === a.isDefault ? 0 : b.isDefault ? 1 : -1));
 
-        console.log("✅ branchList ready for sidebar (Sorted by Default):", this.branchList);
+        console.log("✅ branchList ready for sidebar:", this.branchList);
 
-        // 🔥 YAHAN NAYA LOGIC LAGA HAI: AUTO-SELECT DEFAULT BRANCH 🔥
-        // Kyunki sort karne ke baad default branch index 0 par aa chuki hai,
-        // hum direct index 0 wali branch ko form mein fill karwa denge.
         if (this.branchList.length > 0) {
           this.selectBranch(this.branchList[0], 0);
         }
@@ -1078,22 +1153,102 @@ getBranchesByOrg(orgId: number) {
       } else {
         this.branchList = [];
         console.log("No branches found.");
-        
-        // Agar koi branch nahi hai, toh form ko clear aur disable kar do
         this.resetBranchFormOnly();
         this.isEditMode = false;
+      }
+
+      // ==========================================
+      // 2. AGENTS WALA LOGIC (Naya Logic)
+      // ==========================================
+      if (res && res.agents && Array.isArray(res.agents) && res.agents.length > 0) {
+        console.log("✅ Agents received from API:", res.agents);
+        
+        // Pura list save karne ke liye (Agar future me use ho)
+        
+
+        // Pehle agent ka data utha kar form fields me bind kar rahe hain
+        const agent = res.agents[0];
+        
+        this.agentBranchName = agent.branchName || '';
+        this.agentAddress = agent.address || '';
+        this.agentArea = agent.area || '';
+        this.agentLandmark = agent.landmark || '';
+        this.agentCountry = agent.country || '';
+        this.agentState = agent.state || '';
+        this.agentCity = agent.city || '';
+        this.agentPostalCode = agent.postalCode || '';
+        this.agentTelephone = agent.telephone || '';
+        this.agentFax = agent.fax || '';
+        this.agentWebsite = agent.website || '';
+        this.agentEmail = agent.email || '';
+        
+        // Contact Details Map Karna
+        if (agent.agentContacts && agent.agentContacts.length > 0) {
+            this.agentContacts = agent.agentContacts.map((c: any) => ({
+                contactName: c.contactName || '',
+                designationId: c.designationId || null,
+                departmentId: c.departmentId || null,
+                mobile: c.mobile || '',
+                whatsapp: c.whatsapp || '',
+                email: c.email || ''
+            }));
+        } else {
+            // Agar contact nahi aaya toh ek khali row bana do HTML table ke liye
+            this.agentContacts = [{
+                contactName: '', designationId: null, departmentId: null, mobile: '', whatsapp: '', email: ''
+            }];
+        }
+
+        // Line Of Business Id string ko dropdown objects me convert karna
+        if (agent.lineOfBusinessId) {
+            const lobIds = agent.lineOfBusinessId.split(',').map((id: string) => id.trim());
+            
+            // `this.lineOfBusinessList` aapki master list honi chahiye jisme se map hoga
+            if (this.lineOfBusinessList && this.lineOfBusinessList.length > 0) {
+                 this.agentSelectedLineOfBusiness = this.lineOfBusinessList.filter((lob: any) => 
+                     lobIds.includes(lob.id.toString())
+                 );
+            }
+        } else {
+             this.agentSelectedLineOfBusiness = [];
+        }
+
+      } else {
+         // Agar API se Agent nahi mila toh variables clear kar do
+         this.resetAgentFormOnly(); 
       }
 
       this.cdr.detectChanges();
     },
     error: (err) => {
-      console.error("❌ Error loading branches:", err);
+      console.error("❌ Error loading branches & agents:", err);
       this.branchList = [];
       this.resetBranchFormOnly();
+      this.resetAgentFormOnly();
       this.isEditMode = false;
       this.cdr.detectChanges();
     }
   });
+}
+
+// ⬇️ Ye helper function add kar lena taaki reset karna aasan ho
+resetAgentFormOnly() {
+    this.agentBranchName = '';
+    this.agentAddress = '';
+    this.agentArea = '';
+    this.agentLandmark = '';
+    this.agentCountry = '';
+    this.agentState = '';
+    this.agentCity = '';
+    this.agentPostalCode = '';
+    this.agentTelephone = '';
+    this.agentFax = '';
+    this.agentWebsite = '';
+    this.agentEmail = '';
+    this.agentSelectedLineOfBusiness = [];
+    this.agentContacts = [{
+        contactName: '', designationId: null, departmentId: null, mobile: '', whatsapp: '', email: ''
+    }];
 }
 isExportOpen = false;
 
@@ -1864,7 +2019,12 @@ allCitySearch(type: string) {
 saveAgent() {
   const payload = {
     organisationId: this.selectedOrgId || 1,
-    lineOfBusinessId: this.agentLineOfBusiness,     // string "18" bhi chalega (backend int? lega)
+    
+    // 🔥 UPDATE: Array se IDs nikaal kar comma se join karna
+    lineOfBusinessId: this.agentSelectedLineOfBusiness && this.agentSelectedLineOfBusiness.length > 0 
+      ? this.agentSelectedLineOfBusiness.map(item => item.id).join(',') 
+      : "",
+      
     branchName: this.agentBranchName?.trim() || '',
     isDefault: this.agentIsDefault,
     isDeactive: this.agentIsDeactive,
@@ -1882,7 +2042,15 @@ saveAgent() {
     website: this.agentWebsite?.trim() || '',
     email: this.agentEmail?.trim() || '',
 
-    contacts: this.agentContacts || []
+    // 🔥 UPDATE: Contacts ko properly map kiya hai taaki safe rahe
+    contacts: this.agentContacts.map(contact => ({
+      contactName: contact.contactName?.trim() || '',
+      designationId: contact.designationId || '',
+      departmentId: contact.departmentId || '',
+      mobile: contact.mobile?.trim() || '',
+      whatsapp: contact.whatsapp?.trim() || '',
+      email: contact.email?.trim() || ''
+    }))
   };
 
   console.log("Sending Payload:", payload);   // Debug ke liye

@@ -2315,4 +2315,48 @@ closeOrgModal() {
   this.selectedOrgId = null;
   this.selectedOrgData = null;
 }
+// Variables class mein define honge
+
+onPostalCodeChange(value: string) {
+  if (!value || value.length < 3) return;
+
+  // 1. Agar India ka pincode hai (6 Digits)
+  if (/^\d{6}$/.test(value)) {
+    this.fetchIndiaData(value);
+  } 
+  // 2. Global search ke liye (Zip codes can be alphanumeric)
+  else if (value.length >= 3) {
+    this.fetchGlobalData(value);
+  }
+}
+
+// India Specific Fetch
+private fetchIndiaData(pincode: string) {
+  fetch(`https://api.postalpincode.in/pincode/${pincode}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data[0].Status === 'Success') {
+        const res = data[0].PostOffice[0];
+        this.city = res.Block.toUpperCase();
+        this.stateProvince = res.State.toUpperCase();
+        this.country = 'INDIA';
+      }
+    }).catch(err => console.log(err));
+}
+
+// Global Fetch (Zippopotam - Supports US, FR, DE, GB, etc.)
+private fetchGlobalData(zip: string) {
+  // Defaulting to 'US' for international lookup if not India
+  // Aap isse dynamic bhi kar sakte hain agar aapke paas country code list hai
+  const countryCode = 'us'; 
+  fetch(`https://api.zippopotam.us/${countryCode}/${zip}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.places && data.places.length > 0) {
+        this.city = data.places[0]['place name'].toUpperCase();
+        this.stateProvince = data.places[0]['state'].toUpperCase();
+        this.country = 'UNITED STATES';
+      }
+    }).catch(err => console.log(err));
+}
 } 

@@ -143,11 +143,13 @@ initForm() {
     });
   } else {
     this.userForm = this.fb.group({
-      employeeCode: [''], // Sirf ek baar yahan rehne diya
-      firstName: [''],
+      employeeCode: [''],
+      // 1. FirstName - Required
+      firstName: ['', [Validators.required]],
       middleName: [''],
       lastName: [''],
-      dob: [''],
+      // 2. Date of Birth - Required
+      dob: ['', [Validators.required]],
       gender: ['Male'],
       maritalStatus: ['Single'],
       bloodGroup: [''],
@@ -159,17 +161,25 @@ initForm() {
       branchId: [null],
       roleId: [null],
       licenceType: [''],
-      dateOfJoining: [''],
+      
+      // 3. Date of Joining - Required
+      dateOfJoining: ['', [Validators.required]],
+      
       ctc_Monthly: [0],
       salaryAccountNo: [''],
-      email: [''],
-      mobile: [''],
+      // 4. Email - Required + Format
+      email: ['', [Validators.required, Validators.email]],
+      // 5. Mobile - Required + 10 Digits
+      mobile: ['', [Validators.required, Validators.pattern("^[0-9]{10}$")]],
       telephone: [''],
-      paN_No: [''],
-      aadhaarNo: [''],
+      
+      // 6. PAN No - Required + 10 Characters
+      paN_No: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(10)]],
+      // 7. Aadhaar No - Required + 12 Digits
+      aadhaarNo: ['', [Validators.required, Validators.minLength(12), Validators.maxLength(12)]],
+      
       ipAdress: [''],
       permissionIds: [[]],
-      
       presHouseNo: [''],
       presBuilding: [''],
       presFloor: [''],
@@ -182,7 +192,6 @@ initForm() {
       presState: [''],
       presPincode: [''],
       presCountry: ['India'],
-
       educations: this.fb.array([]),
       experiences: this.fb.array([this.createExperienceGroup()]),
       tenthId: [null],
@@ -190,25 +199,21 @@ initForm() {
       tenthYear: [''],
       tenthPercentage: [''],
       tenthMarksheet: [null],
-
       twelfthId: [null],
       twelfthName: ['12th'],
       twelfthYear: [''],
       twelfthPercentage: [''],
       twelfthMarksheet: [null],
-
       graduationId: [null],
       graduationName: ['Graduation'],
       graduationYear: [''],
       graduationPercentage: [''],
       graduationMarksheet: [null],
-
       postGraduationId: [null],
       postGraduationName: ['Post Graduation'],
       postGraduationYear: [''],
       postGraduationPercentage: [''],
       postGraduationMarksheet: [null],
-
       permHouseNo: [''],
       permBuilding: [''],
       permFloor: [''],
@@ -221,7 +226,6 @@ initForm() {
       permState: [''],
       permPincode: [''],
       permCountry: ['India'],
-
       accountHolderName: [''],
       bankName: [''],
       ifscCode: [''],
@@ -233,10 +237,12 @@ initForm() {
       profilePicturePath: [''],
       signature: [''],
       reportTo: [''],
+      
+      // Emergency fields ab khali chhod sakte hain (Optional)
       emergencyName: [''],
       EmergencyRelation: [''],
-      
       emergencyContactNo: [''],
+      
       mfaRegistration: [false],
       fieldVisit: [false],
       alwaysBccmyself: [false],
@@ -251,7 +257,6 @@ initForm() {
       hodId: [null], 
       teamId: [null],
       exitDate:[null],
-      
       address: [''],
       city: [''],
       state: [''],
@@ -407,21 +412,29 @@ createExperienceGroup(): FormGroup {
 onSubmit() {
   console.log('================ FINAL SUBMIT START ================');
 
-  // 1. Angular Internal Validation Check (Activated)
+  // 1. Angular Internal Validation Check
+  console.log('Form Validity Status:', this.userForm.valid);
   if (this.userForm.invalid) {
-    // Ye line screen par saare red errors show kar degi
-    this.userForm.markAllAsTouched(); 
+    console.warn('Form is INVALID. Errors:', this.userForm.errors);
+    // Detail mein check karne ke liye ki kaunsa field invalid hai
+    Object.keys(this.userForm.controls).forEach(key => {
+      const controlErrors = this.userForm.get(key)?.errors;
+      if (controlErrors != null) {
+        console.log('Field Key:', key, 'Errors:', controlErrors);
+      }
+    });
     
-    // English warning alert
+    this.userForm.markAllAsTouched(); 
     alert('Please fill all mandatory fields correctly before submitting.'); 
     return;
   }
 
-  // Baki aapka code bilkul same hai...
   const raw = this.userForm.getRawValue();
+  console.log('Raw Form Value:', raw);
 
   // ================= BRANCH FORM LOGIC =================
   if (this.isBranchForm) {
+    console.log('Processing: BRANCH FORM');
     const branchData = new FormData();
     Object.keys(raw).forEach(key => {
         if (raw[key] !== null && raw[key] !== undefined) {
@@ -429,16 +442,24 @@ onSubmit() {
         }
     });
 
+    console.log('Sending Branch FormData...');
     this.branchService.addBranch(branchData).subscribe({
-      next: () => {
+      next: (res) => {
+        console.log('Branch API Success Response:', res);
         alert('Branch Saved Successfully');
         this.router.navigate(['/dashboard/branch']);
       },
-      error: err => console.error('Branch API Error:', err)
+      error: err => {
+        console.error('Branch API Error Object:', err);
+        console.error('Error Status:', err.status);
+      }
     });
 
   } else {
     // ================= USER FORM LOGIC (EDIT + REGISTER) =================
+    console.log('Processing: USER/EMPLOYEE FORM');
+    console.log('Mode:', this.isEditMode ? 'EDIT' : 'REGISTER');
+
     let formattedDob = raw.dob;
     if (raw.dob && raw.dob.includes('-')) {
       const parts = raw.dob.split('-');
@@ -446,6 +467,7 @@ onSubmit() {
         formattedDob = `${parts[2]}-${parts[1]}-${parts[0]}`;
       }
     }
+    console.log('Formatted DOB:', formattedDob);
 
     const finalPayload = {
       ...raw,
@@ -454,31 +476,48 @@ onSubmit() {
       EmergencyRelation: raw.emergencyRelationship || raw.EmergencyRelation
     };
 
+    console.log('FINAL PAYLOAD TO API:', finalPayload);
+
     const apiCall = this.isEditMode 
       ? this.userService.updateUser(finalPayload) 
       : this.userService.registerUser(finalPayload);
 
     apiCall.subscribe({
       next: (res: any) => {
-        console.log(this.isEditMode ? 'Update Success' : 'Register Success', res);
+        console.log('User API Success. Response:', res);
+        
         const currentId = this.isEditMode ? this.id : (res.id || res.userId || res.data?.id);
+        console.log('Extracted ID for Sub-records:', currentId);
 
         if (currentId) {
+          console.log('Saving Education and Experience for ID:', currentId);
           this.saveEducation(currentId); 
           this.saveExperience(currentId);
           alert(this.isEditMode ? 'User Updated Successfully' : 'User Saved Successfully');
         } else {
+          console.warn('User Saved, but ID was not found in response!');
           alert('User Saved, but ID not received for sub-records');
         }
 
         this.router.navigate(['/dashboard/Employee']);
       },
       error: err => {
-        console.error('API Error:', err);
-        alert('Please Check Field properly');
+        console.error('--- API ERROR DETECTED ---');
+        console.error('Status:', err.status); // Yahan 500 dikhayega
+        console.error('Full Error Body:', err.error); 
+        console.error('Headers:', err.headers);
+        alert('Please Check Field properly (API 500 Error)');
       }
     });
   }
+  const finalPayload = {
+  ...raw,
+  // Agar raw.dateOfJoining '15-04-2026' jaisa aa raha hai, toh use yahan fix karein
+  dateOfJoining: raw.dateOfJoining.includes('-') && raw.dateOfJoining.split('-')[0].length === 2 
+                 ? raw.dateOfJoining.split('-').reverse().join('-') 
+                 : raw.dateOfJoining,
+  // ... other fields
+};
 }
 
 // 3. saveEducation ko UserId receive karne ke liye update kijiye
@@ -750,41 +789,50 @@ populateForm(data: any) {
 // 1. Jab user keyboard se type kare (DD-MM-YYYY format)
 onDateInput(event: any, controlName: string = 'dob'): void {
   const input = event.target as HTMLInputElement;
-  let value = input.value.replace(/\D/g, ''); // Sirf numbers rakho
+  let value = input.value.replace(/\D/g, ''); // Sirf numbers
 
   if (value.length > 8) value = value.substring(0, 8);
 
-  let formatted = '';
-  if (value.length > 4) {
-    formatted = `${value.substring(0, 2)}-${value.substring(2, 4)}-${value.substring(4, 8)}`;
-  } else if (value.length > 2) {
-    formatted = `${value.substring(0, 2)}-${value.substring(2, 4)}`;
+  let displayValue = '';
+  let backendValue = '';
+
+  if (value.length === 8) {
+    // Display: DD-MM-YYYY
+    displayValue = `${value.substring(0, 2)}-${value.substring(2, 4)}-${value.substring(4, 8)}`;
+    // Backend: YYYY-MM-DD
+    backendValue = `${value.substring(4, 8)}-${value.substring(2, 4)}-${value.substring(0, 2)}`;
+    
+    input.value = displayValue;
+    this.userForm.get(controlName)?.setValue(backendValue, { emitEvent: false });
   } else {
-    formatted = value;
+    // Typing ke waqt display format manage karein
+    if (value.length > 4) {
+      displayValue = `${value.substring(0, 2)}-${value.substring(2, 4)}-${value.substring(4, 8)}`;
+    } else if (value.length > 2) {
+      displayValue = `${value.substring(0, 2)}-${value.substring(2, 4)}`;
+    } else {
+      displayValue = value;
+    }
+    input.value = displayValue;
   }
-
-  // Text field mein formatted value dikhao
-  input.value = formatted;
-
-  // Form control mein value set karo
-  this.userForm.get(controlName)?.setValue(formatted, { emitEvent: false });
 }
 
-// 2. Jab Calendar se date select kare
 onCalendarChange(event: any, controlName: string = 'dob'): void {
   const dateInput = event.target as HTMLInputElement;
   if (!dateInput.value) return;
 
-  const [year, month, day] = dateInput.value.split('-');
-  const formattedDate = `${day}-${month}-${year}`;
+  // Browser calendar hamesha YYYY-MM-DD deta hai
+  const selectedDate = dateInput.value; 
+  const [year, month, day] = selectedDate.split('-');
+  const displayFormat = `${day}-${month}-${year}`;
 
-  // Form control update karo
-  this.userForm.get(controlName)?.setValue(formattedDate);
+  // Form Control mein standard format rakhein (taaki backend 400 na de)
+  this.userForm.get(controlName)?.setValue(selectedDate);
 
-  // Visible text input ko bhi update kar do (important!)
+  // Screen par user ko DD-MM-YYYY dikhane ke liye text input update karein
   const textInput = dateInput.parentElement?.querySelector('input[type="text"]') as HTMLInputElement;
   if (textInput) {
-    textInput.value = formattedDate;
+    textInput.value = displayFormat;
   }
 }
 syncAddress(event: any) {

@@ -247,6 +247,9 @@ deleteSelectedBranch() {
 
    
 }
+AllSearch(){
+this.getOrgList();
+}
 // Button click ka logic
 // Button click ka sahi logic
 onActionButtonClick() {
@@ -450,7 +453,7 @@ landmark: string = '';
   this.loaddepartment();
   this.loadestination();
   this.loadColumnSettings();
-    this.getOrgList();
+    
 //     this.fetchNextBranch();
 this.loadCountriesFromApi();
 this.getLineOfBusiness();
@@ -1971,7 +1974,7 @@ allOrgSearch(type: string) {
         this.activeDropdown = type; 
         
         this.organizationsList = data.map((item: any) => ({
-          orgId: item.id || item.organizationId,
+          orgId: item.organizationId || item.organizationId,
           orgName: item.orgName
         }));
       }

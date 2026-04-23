@@ -269,7 +269,7 @@ this.getsales();
 
       this.PermissionID = Number(localStorage.getItem('permissionID'));
     this.loadColumnSettings();
-    this.loadQuotations();
+    
     this.fetchOrganizations();
     this.fetchLeads();
     this.getNextQuotationNumber();
@@ -309,6 +309,10 @@ this.getsales();
 setTodayDate2() {
   const today = new Date().toISOString().split('T')[0];
   this.quotation.cargoReadyDate = today;
+}
+AllSearch(){
+this.loadQuotations();
+this.cdr.detectChanges();
 }
 
 fetchLOBs() {
@@ -891,6 +895,7 @@ selectOrganization(org: any) {
   this.http.get<any[]>(this.apiEndpoint, httpOptions).subscribe({
     next: (res) => { 
       this.quotations = res; 
+      this.cdr.detectChanges(); // Ensure UI updates after data load
       console.log("Quotations Data:", this.quotations);
     },
     error: (err) => {

@@ -99,7 +99,7 @@ this.loadColumnSettings();
       });
 
     this.loadOrganizations();
-    this.loadLeads();
+    
     this.initSearchForm();
     this.loadLeadSuggestions();
     this.getReportingManagers(); // Isse call karna mat bhulna!
@@ -184,7 +184,9 @@ onOrganizationFocus() {
     // Optionally show all or keep typing based
   }
 }
-
+AllLeadSearch(){
+this.loadLeads();
+}
   // NEW button function
   navigateToNewOrg(event?: MouseEvent) {
     if (event) {
@@ -459,6 +461,7 @@ initSearchForm() {
         this.currentPage = 1;
 
         this.updatePagination();
+        this.cdr.detectChanges(); // Ensure UI updates after data load
         console.log('Leads loaded:', res);
 
         // Next Lead Number calculate

@@ -28,6 +28,7 @@ import { UserService } from '../../services/user.service';
     getsalescordinate: any[] = [];
     PermissionID:any;
     showincoterms:string="";
+    selectcommodityvalue:string="";
     organizationIds:number=0;
     isDeliveryEnabled:boolean=false;
     portsOfDischarge: any[] = [];        // API se aane wala full list
@@ -70,42 +71,60 @@ isDocumentModalOpen = false;
 openDocumentModal() {
   this.isDocumentModalOpen = true;
 }
+onCommodityChange(event: any) {
+  // Yeh aapko ID dega (jo value="" mein set hai)
+  const selectedId = event.target.value; 
 
+  // Yeh aapko exact wo TEXT dega jo user ko dropdown mein dikh raha hai
+  const selectedText = event.target.options[event.target.selectedIndex].text;
+  this.selectcommodityvalue=selectedText;
+  console.log("Selected ID:", selectedId);
+  console.log("Selected Name/Text:", selectedText);
+}
 
 closeDocumentModal() {
   this.isDocumentModalOpen = false;
 }
-isInvoiceModalOpen = false;
-invoiceDocuments: any[] = [];
+// Variables
+  isInvoiceModalOpen: boolean = false;
+  invoices: any[] = []; // Yeh array aapke invoices ko store karega
 
-// modal
-openInvoiceModal() {
-  this.isInvoiceModalOpen = true;
-}
+  // Modal Open/Close Functions
+  openInvoiceModal() {
+    this.isInvoiceModalOpen = true;
+  }
 
-closeInvoiceModal() {
-  this.isInvoiceModalOpen = false;
-}
+  closeInvoiceModal() {
+    this.isInvoiceModalOpen = false;
+  }
+
+  // Add New Invoice Row
+  addInvoice() {
+    this.invoices.push({ name: '', file: null });
+  }
+
+  // Remove Invoice Row
+  removeInvoice(index: number) {
+    this.invoices.splice(index, 1);
+  }
+
+  // Handle File Selection
+  onInvoiceFileSelected(event: any, index: number) {
+    const file = event.target.files[0];
+    if (file) {
+      this.invoices[index].file = file;
+      console.log('Invoice File Selected:', file.name);
+    }
+  }
 // test(){
 //   alert(this.quotation.TransportType);
 // }
 
 // add/remove
-addInvoiceDoc() {
-  this.invoiceDocuments.push({ name: '', file: null });
-}
 
-removeInvoiceDoc(index: number) {
-  this.invoiceDocuments.splice(index, 1);
-}
 
 // file select
-onInvoiceFileSelected(event: any, index: number) {
-  const file = event.target.files[0];
-  if (file) {
-    this.invoiceDocuments[index].file = file;
-  }
-}
+
 // ================== VOLUME WEIGHT CALCULATION ==================
 // ================== VOLUME WEIGHT CALCULATION ==================
 // InquiryComponent.ts mein ye add karein
@@ -197,6 +216,10 @@ calculateCBM() {
   } else {
     this.quotation.cbm = 0;
   }
+}
+AllSearch(){
+  this.onSearch();
+  this.cdr.detectChanges();
 }
 calculateNetWeight() {
   // Number() ensures ki hum string nahi, number minus kar rahe hain
@@ -302,8 +325,7 @@ organizations: any[] = [];
     ngOnInit() {
       this.PermissionID = Number(localStorage.getItem('permissionID'));
       console.log("Direct API call trigger ho rahi hai...");
-    this.loadBranchess();
-    this.getsales();
+   this.getsales();
       this.getbranch();
       this.loadQuotations();
       this.portOfLoading();
@@ -312,7 +334,7 @@ organizations: any[] = [];
       this.fetchLeads();
       this.fetchOrigins();
       this.loadDropdownData();
-    this.onSearch();
+    
     this.loadInquiryNumbers();
     this.loadCoordinators();
     this.loadBranches();

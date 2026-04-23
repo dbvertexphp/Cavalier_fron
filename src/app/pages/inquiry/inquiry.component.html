@@ -827,6 +827,13 @@
             >
               Search
             </button>
+            <button
+              (click)="AllSearch()"
+              class="bg-[#4a3f3f] text-white px-8 py-1.5 font-bold shadow-md uppercase text-[11px] hover:bg-black transition-all"
+            >
+              All Search
+            </button>
+            
           </div>
         </div>
       </div>
@@ -1751,6 +1758,7 @@
 
                   <select
                     [(ngModel)]="quotation.commodity"
+                    (change)="onCommodityChange($event)"
                     name="commodity"
                     class="flex-1 border p-2 outline-none"
                   >
@@ -1768,9 +1776,9 @@
                 <!-- Hazard Section -->
                 <div
                   *ngIf="
-                    quotation.commodity === 'Hazard' ||
-                    quotation.commodity === 'HAZARD' ||
-                    quotation.commodity === 'Hazardous'
+                    selectcommodityvalue === 'Hazard' ||
+                    selectcommodityvalue === 'HAZARD' ||
+                    selectcommodityvalue === 'Hazardous'
                   "
                   class="flex flex-col gap-3"
                 >
@@ -2458,7 +2466,70 @@
                   </button>
                 </div>
               </div>
+<div
+  *ngIf="isInvoiceModalOpen"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+>
+  <div class="bg-white w-full max-w-lg rounded-lg p-4">
+    <div class="flex justify-between items-center mb-3">
+      <h2 class="text-lg font-bold">Upload Invoice Documents</h2>
+      <button
+        (click)="closeInvoiceModal()"
+        class="text-red-500 text-xl font-bold"
+      >
+        X
+      </button>
+    </div>
 
+    <button
+      (click)="addInvoice()"
+      class="bg-blue-500 text-white px-4 py-2 rounded mb-3"
+    >
+      + Add Invoice
+    </button>
+
+    <div
+      *ngFor="let inv of invoices; let i = index"
+      class="flex items-center gap-2 border p-2 rounded mb-2"
+    >
+      <input
+        type="text"
+        [(ngModel)]="inv.name"
+        placeholder="Invoice Name/No."
+        class="border p-2 flex-1"
+      />
+
+      <input
+        type="file"
+        (change)="onInvoiceFileSelected($event, i)"
+        class="flex-1 border p-1 text-sm"
+      />
+
+      <button
+        (click)="removeInvoice(i)"
+        class="bg-red-600 text-white px-2 py-1 rounded"
+      >
+        X
+      </button>
+    </div>
+
+    <div class="flex justify-end mt-4 gap-2">
+      <button
+        (click)="closeInvoiceModal()"
+        class="bg-gray-400 text-white px-4 py-2 rounded"
+      >
+        Cancel
+      </button>
+
+      <button
+        (click)="closeInvoiceModal()"
+        class="bg-green-500 text-white px-4 py-2 rounded"
+      >
+        Save
+      </button>
+    </div>
+  </div>
+</div>
               <!-- Cargo Value - Naya Added -->
               <div class="flex items-center">
                 <label class="w-40 font-bold text-gray-700">Cargo Value</label>

@@ -32,6 +32,7 @@ export class RolePermisionsComponent implements OnInit {
   selectedPermissionIds: any[] = [];
 
   branchPermissions: { [branchId: number]: any[] } = {};
+  branchRoles: { [branchId: number]: number | null } = {};
   isPasswordVisible: boolean = false;
   selectedEmployeeEmail = '';
   selectedEmployeePassword = '';
@@ -66,7 +67,7 @@ export class RolePermisionsComponent implements OnInit {
     }
   }
 
-  loadUserPermissions() {
+ loadUserPermissions() {
     if (!this.userId) return;
 
     this.http.get<any>(
@@ -74,8 +75,19 @@ export class RolePermisionsComponent implements OnInit {
     ).subscribe({
       next: (res) => {
         this.branchPermissions = {};
+        
+        // Loop chal raha hai API data par
         res.permissions.forEach((p: any) => {
           const branchId = p.branchId;
+
+          // 🔥 MAIN FIX: API se jo roleId aa raha hai, usko branchRoles me save kar do
+          // Jisse HTML me ngModel isko automatically detect karke select kar lega
+          if (p.roleId && p.roleId !== 0) {
+            this.branchRoles[branchId] = p.roleId;
+          } else {
+            this.branchRoles[branchId] = null; // Agar role nahi hai toh null
+          }
+
           if (!this.branchPermissions[branchId]) {
             this.branchPermissions[branchId] = [];
           }
@@ -98,7 +110,7 @@ export class RolePermisionsComponent implements OnInit {
           }
         });
 
-        // 🔥 Fix: Branch data load hone ke baad UI array ko update karna zaroori hai
+        // 🔥 UI Update logic (same as before)
         if (this.selectedBranchPermission) {
            const currentId = this.selectedBranchPermission.id;
            if (this.branchPermissions[currentId]) {
@@ -114,7 +126,9 @@ export class RolePermisionsComponent implements OnInit {
              }
            }
         }
-        this.cdr.detectChanges();
+        
+        // Yeh line Angular ko batati hai ki data change hua hai, UI update karo
+        this.cdr.detectChanges(); 
       }
     });
   }
@@ -163,9 +177,23 @@ export class RolePermisionsComponent implements OnInit {
     this.http.get<any[]>(`${environment.apiUrl}/User/roles`)
     .subscribe(res => this.rolesList = res);
   }
+// ===============================
+  // ROLES CHANGE LOGIC
+  // ===============================
 
   onRoleChange(roleId: any) {
-    if (roleId === null || roleId === undefined || roleId === 'null') {
+    console.log('User selected role:', roleId);
+    
+    // Check current branch
+    const branchId = this.selectedBranchPermission?.id;
+
+    if (!branchId) {
+      console.error("Koi branch select nahi hui hai!");
+      return;
+    }
+
+    if (roleId === null || roleId === undefined || roleId === 'null' || roleId === '') {
+      this.branchRoles[branchId] = null;
       this.resetPermissionsUI();
       return;
     }
@@ -173,13 +201,21 @@ export class RolePermisionsComponent implements OnInit {
     const numericRoleId = Number(roleId);
     if (isNaN(numericRoleId)) return;
 
+    // 🔥 MAIN FIX: Yahan exact branch ID pe role ID save ho rahi hai
+    this.branchRoles[branchId] = numericRoleId;
+    
+   
+
+    // API Call to fetch permissions for the selected role
     this.http.get<any[]>(`${environment.apiUrl}/role-permission/by-role/${numericRoleId}`)
       .subscribe({
         next: (res) => {
           this.applyRolePermissionsToUI(res);
+          this.cdr.detectChanges();
         },
         error: (err) => {
           this.resetPermissionsUI(); 
+          this.cdr.detectChanges();
         }
       });
   }
@@ -356,6 +392,10 @@ export class RolePermisionsComponent implements OnInit {
   // SAVE SETTINGS
   // ===============================
 
+ // ===============================
+  // SAVE SETTINGS
+  // ===============================
+
   saveSettings() {
     if (this.isSaving) return;
     this.isSaving = true;
@@ -406,8 +446,10 @@ export class RolePermisionsComponent implements OnInit {
         actions: permissionMap[id]
       }));
 
+      // Yahan branchId aur permissions ke sath roleId bhi add ho raha hai
       branchPermissionsPayload.push({
         branchId: Number(branchId),
+        roleId: this.branchRoles[Number(branchId)] || null, // Ye rha extra Role ID
         permissions: permissions
       });
     });
@@ -416,6 +458,14 @@ export class RolePermisionsComponent implements OnInit {
       userId: Number(this.userId),
       branchPermissions: branchPermissionsPayload
     };
+
+    // 🔴 ========================================== 🔴
+    // CONSOLE LOG: Yahan aapko Branch ID, Role ID aur Permissions sab dikhega
+    console.log("============= FINAL SAVE DATA =============");
+    console.log("👉 Har Branch ka Data (Branch ID + Role ID + Permissions):");
+    console.log(JSON.stringify(finalBranchPayload.branchPermissions, null, 2));
+    console.log("===========================================");
+    // 🔴 ========================================== 🔴
 
     this.http.put(`${environment.apiUrl}/Permissions/assign-role`, rolePayload)
     .subscribe({

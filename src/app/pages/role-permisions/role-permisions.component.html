@@ -175,7 +175,7 @@
             </div>
           </section>
 
-          <section>
+          <!-- <section>
             <h4 class="text-[11px] font-black text-[#654E51] uppercase tracking-[0.25em] mb-6 flex items-center gap-2">
               <span class="w-2 h-2 bg-[#654E51] rounded-full"></span>
               Policy Assignment
@@ -189,7 +189,7 @@
   <option [value]="null">Manual Configuration</option>
   <option *ngFor="let role of rolesList" [value]="role.id">{{ role.name }}</option>
 </select>
-          </section>
+          </section> -->
         </div>
 
         <div class="flex flex-col">
@@ -207,11 +207,21 @@
   </p>
 
   <div class="flex items-center gap-3">
-
     <span class="px-3 py-1 bg-blue-600 text-white text-xs rounded-lg font-bold">
       {{ selectedBranchPermission.name }}
     </span>
+  </div>
 
+  <div class="mt-4">
+    <select 
+  *ngIf="selectedBranchPermission"
+  [(ngModel)]="branchRoles[selectedBranchPermission.id]" 
+  (ngModelChange)="onRoleChange($event)" 
+  class="w-full border-2 border-stone-100 p-4 rounded-2xl text-sm font-bold bg-white focus:border-[#654E51] outline-none shadow-sm cursor-pointer appearance-none">
+  
+  <option [value]="null">Select Role</option>
+  <option *ngFor="let role of rolesList" [value]="role.id">{{ role.name }}</option>
+</select>
   </div>
 
 </div>

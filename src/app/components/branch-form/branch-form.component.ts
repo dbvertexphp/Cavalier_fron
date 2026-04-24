@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -11,15 +11,19 @@ import { BranchService } from '../../services/branch.service';
   templateUrl: './branch-form.component.html'
 })
 export class BranchFormComponent implements OnInit {
-  
+  // showSuccess: boolean = false;
+showError: boolean = false;
+  loading: boolean = false; // Pehle se hoga
+  showSuccess: boolean = false; // <--- Ye line add karo
   branchForm: FormGroup;
   isEdit: boolean = false;
-  loading: boolean = false;
+  // loading: boolean = false;
 
   constructor(
     private fb: FormBuilder,
     private branchService: BranchService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {
     this.branchForm = this.fb.group({
       id: [0],
@@ -99,7 +103,13 @@ export class BranchFormComponent implements OnInit {
     });
   }
 
-  saveDetails() {
+  // 1. Pehle constructor mein ChangeDetectorRef inject kar lena (agar nahi kiya hai)
+// constructor(private cdr: ChangeDetectorRef, ...) { }
+// Variables declare kar lena:
+// showSuccess: boolean = false;
+// showError: boolean = false;
+
+saveDetails() {
     if (this.branchForm.invalid) {
       this.branchForm.markAllAsTouched();
       return;
@@ -119,16 +129,30 @@ export class BranchFormComponent implements OnInit {
     request.subscribe({
       next: () => {
         this.loading = false;
-        alert(this.isEdit ? 'Branch updated successfully!' : 'Branch registered successfully!');
-        this.router.navigate(['/dashboard/branch']);
+        this.showSuccess = true; 
+        this.cdr.detectChanges(); 
       },
       error: (err) => {
         this.loading = false;
         console.error('API Error:', err);
-        alert('Action Failed: ' + (err.error?.message || 'Server Error.'));
+        
+        // Alert ki jagah ab Error Popup show hoga
+        this.showError = true; 
+        
+        this.cdr.detectChanges();
       }
     });
-  }
+}
+
+handleSuccessClose() {
+    this.showSuccess = false;
+    this.router.navigate(['/dashboard/branch']);
+}
+
+handleErrorClose() {
+    this.showError = false;
+    this.cdr.detectChanges();
+}
 
   cancel() {
     this.router.navigate(['/dashboard/branch']);

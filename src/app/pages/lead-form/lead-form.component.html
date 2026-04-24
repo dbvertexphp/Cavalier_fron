@@ -788,7 +788,12 @@ class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
           class="divide-x divide-gray-200 hover:bg-gray-50 cursor-pointer transition-colors">
         
         <td *ngFor="let col of selectedColumns" class="p-3">
-          {{ lead[columnFieldMap[col]] }}
+          <ng-container *ngIf="col.toLowerCase().includes('date') || col === 'Expected Validity' || col === 'Created At'; else regularValue">
+            {{ lead[columnFieldMap[col]] | date:'dd-MM-yyyy' }}
+          </ng-container>
+          <ng-template #regularValue>
+            {{ lead[columnFieldMap[col]] }}
+          </ng-template>
         </td>
 
         <td class="p-3">

@@ -1220,7 +1220,7 @@ openDimModal() {
         customerName: '', 
         branchName: 'MAIN', 
         receivedDate: new Date().toISOString().split('T')[0], 
-        location: 'DELHI', 
+        location: '', 
         transportMode: 'Air', 
         shipmentType: 'International',
         lineOfBusinessId: null,

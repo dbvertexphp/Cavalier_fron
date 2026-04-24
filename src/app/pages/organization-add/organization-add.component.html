@@ -692,9 +692,9 @@
       </div>
 
 <div class="space-y-4 p-4 bg-white rounded-lg">
-  
   <div class="flex items-center gap-3">
-    <label class="w-40 font-bold text-gray-700">Postal Code*</label>
+  <label class="w-40 font-bold text-gray-700">Postal Code*</label>
+  <div class="flex-1 flex gap-2">
     <div class="flex-1">
       <input type="text" 
              [(ngModel)]="postalCode" 
@@ -707,12 +707,18 @@
              class="w-full border border-gray-300 p-2 outline-none rounded shadow-sm">
       <p class="text-[10px] text-gray-400 mt-1">International zip codes are supported</p>
     </div>
+    
+    <button type="button" 
+            class="bg-[#4a3f3f] text-white px-4 py-2 rounded-md shadow-sm font-bold h-fit hover:opacity-90 transition-all border border-gray-600">
+      Find
+    </button>
   </div>
+</div>
 
   <div class="grid grid-cols-2 gap-6">
     <div class="flex items-center gap-3">
       <label class="w-40 text-red-700 font-bold">Country</label>
-      <input type="text" [(ngModel)]="country" name="country" readonly class="flex-1 p-2 bg-[#f3f4f6] border rounded outline-none text-gray-600">
+      <input type="text" [(ngModel)]="country" name="country"  class="flex-1 p-2 bg-[#f3f4f6] border rounded outline-none text-gray-600">
     </div>
 
     <div class="flex items-center gap-3">

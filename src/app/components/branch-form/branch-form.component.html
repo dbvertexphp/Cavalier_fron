@@ -1,97 +1,138 @@
-<div class="max-w-6xl mx-auto mt-6 bg-white p-8 rounded-xl shadow-lg border border-gray-100 font-sans">
-  <div class="flex justify-between items-center mb-8 border-b pb-4">
-    <h2 class="text-2xl font-bold text-blue-900">{{ isEdit ? 'Modify Branch' : 'New Branch Registration' }}</h2>
-    <span class="text-sm text-gray-500 font-medium">* Required Fields</span>
+<div class="relative min-h-[400px]">
+  
+  <div *ngIf="loading" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/60 backdrop-blur-[2px] rounded-xl transition-all duration-300">
+    <div class="relative">
+      <div class="w-16 h-16 border-4 border-gray-200 border-t-[#4a3f3f] rounded-full animate-spin"></div>
+      <div class="absolute inset-0 w-16 h-16 border-4 border-transparent border-b-[#4a3f3f]/30 rounded-full animate-pulse"></div>
+    </div>
+    <p class="mt-4 text-[#4a3f3f] font-bold tracking-widest animate-pulse text-sm uppercase">Processing...</p>
   </div>
 
-  <form [formGroup]="branchForm" (ngSubmit)="saveDetails()">
+  <div *ngIf="showSuccess" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center transform transition-all animate-in zoom-in-95 duration-300 border-t-8 border-[#4a3f3f]">
+      <div class="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+        <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+        </svg>
+      </div>
+      <h3 class="text-2xl font-black text-[#4a3f3f] mb-2 uppercase tracking-tight">Success!</h3>
+      <p class="text-gray-600 font-medium mb-1">Branch Saved Successfully</p>
+      <p class="text-gray-400 text-sm mb-8">Thank you for the registration.</p>
+      <button (click)="handleSuccessClose()" 
+              class="w-full py-3 bg-[#4a3f3f] text-white font-bold rounded-xl shadow-lg hover:opacity-90 active:scale-95 transition-all uppercase tracking-widest">
+        Continue
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="showError" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center transform transition-all animate-in zoom-in-95 duration-300 border-t-8 border-red-600">
+      <div class="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+        <svg class="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </div>
+      <h3 class="text-2xl font-black text-red-600 mb-2 uppercase tracking-tight">Failed!</h3>
+      <p class="text-gray-600 font-medium mb-1">Registration Failed</p>
+      <p class="text-gray-400 text-sm mb-8">Sorry for the inconvenience. Please try again.</p>
+      <button (click)="handleErrorClose()" 
+              class="w-full py-3 bg-[#4a3f3f] text-white font-bold rounded-xl shadow-lg hover:opacity-90 active:scale-95 transition-all uppercase tracking-widest">
+        Try Again
+      </button>
+    </div>
+  </div>
+
+  <div class="max-w-6xl mx-auto mt-6 bg-white p-8 rounded-xl shadow-lg border border-gray-100 font-sans" 
+       [class.opacity-40]="loading || showSuccess || showError"
+       [class.pointer-events-none]="loading || showSuccess || showError">
     
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-      <div class="space-y-1">
-        <label class="text-xs font-bold uppercase text-gray-500">Company Name*</label>
-        <input type="text" formControlName="companyName" readonly
-          class="w-full p-2.5 border rounded-lg bg-gray-100 cursor-not-allowed focus:ring-0 outline-none shadow-sm" />
-        <span class="text-red-500 text-xs" *ngIf="getError('companyName')">{{ getError('companyName') }}</span>
-      </div>
-
-      <div class="space-y-1">
-        <label class="text-xs font-bold uppercase text-gray-500">Company Alias</label>
-        <input type="text" formControlName="companyAlias" class="w-full p-2.5 border rounded-lg outline-none shadow-sm">
-        <span class="text-red-500 text-xs" *ngIf="getError('companyAlias')">{{ getError('companyAlias') }}</span>
-      </div>
+    <div class="flex justify-between items-center mb-8 border-b pb-4">
+      <h2 class="text-2xl font-bold text-blue-900">{{ isEdit ? 'Modify Branch' : 'New Branch Registration' }}</h2>
+      <span class="text-sm text-gray-500 font-medium">* Required Fields</span>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 bg-blue-50/20 p-4 rounded-lg">
-      <div class="space-y-1">
-        <label class="text-xs font-bold uppercase text-gray-500">Branch Name*</label>
-        <input type="text" formControlName="branchName" class="w-full p-2.5 border rounded-lg bg-white shadow-sm">
-        <span class="text-red-500 text-xs" *ngIf="getError('branchName')">{{ getError('branchName') }}</span>
+    <form [formGroup]="branchForm" (ngSubmit)="saveDetails()">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div class="space-y-1">
+          <label class="text-xs font-bold uppercase text-gray-500">Company Name*</label>
+          <input type="text" formControlName="companyName" readonly
+            class="w-full p-2.5 border rounded-lg bg-gray-100 cursor-not-allowed focus:ring-0 outline-none shadow-sm" />
+          <span class="text-red-500 text-xs" *ngIf="getError('companyName')">{{ getError('companyName') }}</span>
+        </div>
+        <div class="space-y-1">
+          <label class="text-xs font-bold uppercase text-gray-500">Company Alias</label>
+          <input type="text" formControlName="companyAlias" class="w-full p-2.5 border rounded-lg outline-none shadow-sm">
+          <span class="text-red-500 text-xs" *ngIf="getError('companyAlias')">{{ getError('companyAlias') }}</span>
+        </div>
       </div>
 
-      <div class="space-y-1">
-        <label class="text-xs font-bold uppercase text-gray-500">Branch Code*</label>
-        <input type="text" formControlName="branchCode" class="w-full p-2.5 border rounded-lg bg-white shadow-sm uppercase">
-        <span class="text-red-500 text-xs" *ngIf="getError('branchCode')">{{ getError('branchCode') }}</span>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 bg-blue-50/20 p-4 rounded-lg">
+        <div class="space-y-1">
+          <label class="text-xs font-bold uppercase text-gray-500">Branch Name*</label>
+          <input type="text" formControlName="branchName" class="w-full p-2.5 border rounded-lg bg-white shadow-sm">
+          <span class="text-red-500 text-xs" *ngIf="getError('branchName')">{{ getError('branchName') }}</span>
+        </div>
+        <div class="space-y-1">
+          <label class="text-xs font-bold uppercase text-gray-500">Branch Code*</label>
+          <input type="text" formControlName="branchCode" class="w-full p-2.5 border rounded-lg bg-white shadow-sm uppercase">
+          <span class="text-red-500 text-xs" *ngIf="getError('branchCode')">{{ getError('branchCode') }}</span>
+        </div>
+        <div class="space-y-1">
+          <label class="text-xs font-bold uppercase text-gray-500">Official Email*</label>
+          <input type="email" formControlName="email" class="w-full p-2.5 border rounded-lg bg-white shadow-sm">
+          <span class="text-red-500 text-xs" *ngIf="getError('email')">{{ getError('email') }}</span>
+        </div>
       </div>
 
-      <div class="space-y-1">
-        <label class="text-xs font-bold uppercase text-gray-500">Official Email*</label>
-        <input type="email" formControlName="email" class="w-full p-2.5 border rounded-lg bg-white shadow-sm">
-        <span class="text-red-500 text-xs" *ngIf="getError('email')">{{ getError('email') }}</span>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 p-4 border border-yellow-100 rounded-lg bg-yellow-50/10">
+        <div class="space-y-1">
+          <label class="text-xs font-bold uppercase text-gray-500">GST Category*</label>
+          <select formControlName="gstCategory" class="w-full p-2.5 border rounded-lg bg-white outline-none">
+            <option value="">Select Category</option>
+            <option value="Registered">Registered</option>
+            <option value="Unregistered">Unregistered</option>
+          </select>
+          <span class="text-red-500 text-xs" *ngIf="getError('gstCategory')">{{ getError('gstCategory') }}</span>
+        </div>
+        <div class="space-y-1" *ngIf="branchForm.get('gstCategory')?.value === 'Registered'">
+          <label class="text-xs font-bold uppercase text-gray-500">GSTIN*</label>
+          <input type="text" formControlName="gstin" class="w-full p-2.5 border rounded-lg shadow-sm bg-white uppercase">
+          <span class="text-red-500 text-xs" *ngIf="getError('gstin')">{{ getError('gstin') }}</span>
+        </div>
       </div>
-    </div>
 
-   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 p-4 border border-yellow-100 rounded-lg bg-yellow-50/10">
-  <div class="space-y-1">
-    <label class="text-xs font-bold uppercase text-gray-500">GST Category*</label>
-    <select formControlName="gstCategory" class="w-full p-2.5 border rounded-lg bg-white outline-none">
-      <option value="">Select Category</option>
-      <option value="Registered">Registered</option>
-      <option value="Unregistered">Unregistered</option>
-    </select>
-    <span class="text-red-500 text-xs" *ngIf="getError('gstCategory')">{{ getError('gstCategory') }}</span>
-  </div>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold uppercase text-gray-400">Postal Code*</label>
+          <input type="text" formControlName="postalCode" placeholder="Enter 6 digit code" class="w-full p-2 border rounded shadow-sm text-sm bg-blue-50/30">
+          <span class="text-red-500 text-xs" *ngIf="getError('postalCode')">{{ getError('getError') }}</span>
+        </div>
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold uppercase text-gray-400">City*</label>
+          <input type="text" formControlName="city" class="w-full p-2 border rounded shadow-sm text-sm bg-blue-50/30">
+          <span class="text-red-500 text-xs" *ngIf="getError('city')">{{ getError('city') }}</span>
+        </div>
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold uppercase text-gray-400">State*</label>
+          <input type="text" formControlName="state" class="w-full p-2 border rounded shadow-sm text-sm bg-blue-50/30">
+          <span class="text-red-500 text-xs" *ngIf="getError('state')">{{ getError('state') }}</span>
+        </div>
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold uppercase text-gray-400">Contact No*</label>
+          <input type="text" formControlName="contactNo" class="w-full p-2 border rounded shadow-sm text-sm">
+          <span class="text-red-500 text-xs" *ngIf="getError('contactNo')">{{ getError('contactNo') }}</span>
+        </div>
+      </div>
 
-  <div class="space-y-1" *ngIf="branchForm.get('gstCategory')?.value === 'Registered'">
-    <label class="text-xs font-bold uppercase text-gray-500">GSTIN*</label>
-    <input type="text" formControlName="gstin" class="w-full p-2.5 border rounded-lg shadow-sm bg-white uppercase">
-    <span class="text-red-500 text-xs" *ngIf="getError('gstin')">{{ getError('gstin') }}</span>
+      <div class="flex justify-end gap-4 pt-6 border-t mt-4">
+        <button type="button" (click)="cancel()" class="px-8 py-2.5 bg-gray-100 text-gray-700 font-bold rounded-lg hover:bg-gray-200 transition">
+          Cancel
+        </button>
+        <button type="submit" [disabled]="loading" 
+          class="px-8 py-2.5 bg-blue-700 text-white font-bold rounded-lg hover:bg-blue-800 disabled:opacity-50 shadow-md transition-all active:scale-95">
+          {{ loading ? 'Saving...' : (isEdit ? 'Update Branch' : 'Register Branch') }}
+        </button>
+      </div>
+    </form>
   </div>
-</div>
-<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-  <div class="space-y-1">
-    <label class="text-[10px] font-bold uppercase text-gray-400">Postal Code*</label>
-    <input type="text" formControlName="postalCode" placeholder="Enter 6 digit code" class="w-full p-2 border rounded shadow-sm text-sm bg-blue-50/30">
-    <span class="text-red-500 text-xs" *ngIf="getError('postalCode')">{{ getError('getError') }}</span>
-  </div>
-
-  <div class="space-y-1">
-    <label class="text-[10px] font-bold uppercase text-gray-400">City*</label>
-    <input type="text" formControlName="city" class="w-full p-2 border rounded shadow-sm text-sm bg-blue-50/30">
-    <span class="text-red-500 text-xs" *ngIf="getError('city')">{{ getError('city') }}</span>
-  </div>
-
-  <div class="space-y-1">
-    <label class="text-[10px] font-bold uppercase text-gray-400">State*</label>
-    <input type="text" formControlName="state" class="w-full p-2 border rounded shadow-sm text-sm bg-blue-50/30">
-    <span class="text-red-500 text-xs" *ngIf="getError('state')">{{ getError('state') }}</span>
-  </div>
-
-  <div class="space-y-1">
-    <label class="text-[10px] font-bold uppercase text-gray-400">Contact No*</label>
-    <input type="text" formControlName="contactNo" class="w-full p-2 border rounded shadow-sm text-sm">
-    <span class="text-red-500 text-xs" *ngIf="getError('contactNo')">{{ getError('contactNo') }}</span>
-  </div>
-</div>
-
-    <div class="flex justify-end gap-4 pt-6 border-t mt-4">
-      <button type="button" (click)="cancel()" class="px-8 py-2.5 bg-gray-100 text-gray-700 font-bold rounded-lg hover:bg-gray-200 transition">
-        Cancel
-      </button>
-      <button type="submit" [disabled]="loading" 
-        class="px-8 py-2.5 bg-blue-700 text-white font-bold rounded-lg hover:bg-blue-800 disabled:opacity-50 shadow-md transition-all active:scale-95">
-        {{ loading ? 'Saving...' : (isEdit ? 'Update Branch' : 'Register Branch') }}
-      </button>
-    </div>
-  </form>
 </div>

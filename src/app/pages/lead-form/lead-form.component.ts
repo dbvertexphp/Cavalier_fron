@@ -211,6 +211,8 @@ getSalesCoordinators() {
   this.http.get<any[]>(`${environment.apiUrl}/SalesCoordinators`).subscribe({
     next: (res) => {
       this.salesCoordinators = res;
+      console.log('API Response:', res); // Check karo array hai ya object
+  this.salesCoordinators = res;
     },
     error: (err) => console.error('Sales Coordinator load karne mein error:', err)
   });

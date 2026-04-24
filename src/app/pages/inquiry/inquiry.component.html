@@ -934,6 +934,12 @@
           </th>
 
           <th class="p-4 text-center font-bold sticky right-0 bg-gray-50 border-l shadow-sm no-export">
+            Commodity Document
+          </th>
+          <th class="p-4 text-center font-bold sticky right-0 bg-gray-50 border-l shadow-sm no-export">
+            Package/invoice Document
+          </th>
+          <th class="p-4 text-center font-bold sticky right-0 bg-gray-50 border-l shadow-sm no-export">
             Action
           </th>
         </tr>
@@ -958,7 +964,12 @@
               <span *ngSwitchDefault class="uppercase font-medium">{{ q[columnFieldMap[col]] || "-" }}</span>
             </ng-container>
           </td>
-
+<td>
+  rere
+</td>
+<td>
+  rere
+</td>
           <td class="p-4 sticky right-0 bg-white border-l text-center shadow-[-5px_0_10px_rgba(0,0,0,0.02)]">
             <button (click)="editQuotation(q)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Edit')"
                     class="text-blue-600 mr-3 font-bold uppercase hover:underline text-[11px]">Edit</button>
@@ -1710,85 +1721,185 @@
                   class="flex flex-col gap-3"
                 >
                   <!-- Add Button -->
-                  <button
-                    (click)="openDocumentModal()"
-                    class="bg-red-500 text-white px-4 py-2 rounded"
-                  >
-                    Manage Documents
-                  </button>
+                 <div class="flex justify-center w-full">
+  <button
+    (click)="openDocumentModal()"
+    class="flex items-center gap-1.5 bg-[#4a3f3f] hover:bg-[#382f2f] text-white px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 shadow-sm focus:ring-2 focus:ring-[#4a3f3f]/50 active:scale-95"
+  >
+    <svg 
+      xmlns="http://www.w3.org/2000/svg" 
+      class="h-4 w-4" 
+      fill="none" 
+      viewBox="0 0 24 24" 
+      stroke="currentColor"
+    >
+      <path 
+        stroke-linecap="round" 
+        stroke-linejoin="round" 
+        stroke-width="2" 
+        d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" 
+      />
+    </svg>
+    Manage Documents
+  </button>
+</div>
 
                   <!-- Dynamic Document Fields -->
                 </div>
               </div>
 
-              <div
-                *ngIf="isDocumentModalOpen"
-                class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      <div
+  *ngIf="isDocumentModalOpen"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm transition-opacity"
+>
+  <div class="bg-white w-[90vw] max-w-3xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    
+    <div class="flex justify-between items-center px-6 py-4 border-b border-gray-100 bg-gray-50">
+      <div class="flex items-center gap-3">
+        <div class="p-2 bg-[#4a3f3f]/10 rounded-lg text-[#4a3f3f]">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-xl font-bold text-gray-800">Upload Commodity Documents</h2>
+          <p class="text-sm text-gray-500 mt-1">Add and manage packaging lists, e-way bills, etc.</p>
+        </div>
+      </div>
+      <button
+        (click)="closeDocumentModal()"
+        class="text-gray-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-full transition-colors focus:outline-none"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="p-6 overflow-y-auto flex-1 bg-white">
+      
+      <div class="mb-6 flex justify-between items-center">
+        <h3 class="text-md font-semibold text-gray-700">Commodity Document List</h3>
+        <button
+          (click)="addDocument()"
+          class="flex items-center gap-2 bg-[#4a3f3f] hover:bg-[#382f2f] text-white px-4 py-2.5 rounded-lg font-medium transition-colors shadow-sm focus:ring-4 focus:ring-[#4a3f3f]/30"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+          </svg>
+          Add Document
+        </button>
+      </div>
+
+      <div *ngIf="documents.length === 0" class="text-center py-10 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+        <p class="text-gray-500 font-medium">No commodity documents added yet.</p>
+        <p class="text-sm text-gray-400 mt-1">Click the button above to start adding files.</p>
+      </div>
+
+      <div class="space-y-4">
+        <div
+          *ngFor="let doc of documents; let i = index"
+          class="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-gray-50/50 border border-gray-200 p-4 rounded-xl hover:shadow-md transition-shadow"
+        >
+          <div class="w-full sm:w-1/3">
+            <label class="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Document Type/Name</label>
+            <input
+              type="text"
+              [(ngModel)]="doc.name"
+              placeholder="e.g., E-Way Bill"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#4a3f3f]/50 focus:border-[#4a3f3f] outline-none transition-all bg-white"
+            />
+          </div>
+
+          <div class="w-full sm:w-flex-1 flex-1">
+            <label class="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Select File</label>
+            <input
+              type="file"
+              (change)="onFileSelecteds($event, i)"
+              accept="image/*,application/pdf"
+              class="w-full text-sm text-gray-500 border border-gray-300 rounded-lg bg-white
+                     file:mr-4 file:py-2.5 file:px-4 
+                     file:border-0 file:text-sm file:font-semibold 
+                     file:bg-[#4a3f3f]/10 file:text-[#4a3f3f] 
+                     hover:file:bg-[#4a3f3f]/20 transition-all cursor-pointer"
+            />
+            
+            <div *ngIf="doc.fileName" class="mt-2 flex items-center">
+              <button 
+                (click)="openDocumentPreview(doc)"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#4a3f3f]/5 hover:bg-[#4a3f3f]/10 border border-[#4a3f3f]/20 text-[#4a3f3f] text-xs font-medium rounded-md transition-all cursor-pointer shadow-sm"
               >
-                <div class="bg-white w-full max-w-lg rounded-lg p-4">
-                  <!-- Header -->
-                  <div class="flex justify-between items-center mb-3">
-                    <h2 class="text-lg font-bold">Upload Documents</h2>
-                    <button
-                      (click)="closeDocumentModal()"
-                      class="text-red-500 text-xl"
-                    >
-                      X
-                    </button>
-                  </div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                View: {{ doc.fileName | slice:0:15 }}{{ doc.fileName.length > 15 ? '...' : '' }}
+              </button>
+            </div>
+          </div>
 
-                  <!-- Add Button -->
-                  <button
-                    (click)="addDocument()"
-                    class="bg-red-500 text-white px-4 py-2 rounded mb-3"
-                  >
-                    + Add Document
-                  </button>
+          <div class="w-full sm:w-auto flex justify-end sm:mt-5">
+            <button
+              (click)="removeDocument(i)"
+              class="text-gray-400 hover:text-red-600 hover:bg-red-50 p-2.5 rounded-lg transition-colors focus:outline-none"
+              title="Remove Document"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-                  <!-- Dynamic Fields -->
-                  <div
-                    *ngFor="let doc of documents; let i = index"
-                    class="flex items-center gap-2 border p-2 rounded mb-2"
-                  >
-                    <input
-                      type="text"
-                      [(ngModel)]="doc.name"
-                      placeholder="Document Name"
-                      class="border p-2 flex-1"
-                    />
+    <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 rounded-b-2xl">
+      <button
+        (click)="closeDocumentModal()"
+        class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-4 focus:ring-gray-100 transition-all"
+      >
+        Cancel
+      </button>
+      <button
+        (click)="saveDocuments()"
+        class="px-6 py-2.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:ring-4 focus:ring-green-200 transition-all shadow-sm"
+      >
+        Save Documents
+      </button>
+    </div>
+    
+  </div>
+</div>
 
-                    <input
-                      type="file"
-                      (change)="onFileSelecteds($event, i)"
-                      class="flex-1 border p-1 text-sm"
-                    />
+<div
+  *ngIf="isPreviewModalOpen"
+  class="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-md transition-opacity p-4"
+>
+  <div class="bg-white w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col h-[85vh]">
+    
+    <div class="flex justify-between items-center px-4 py-3 border-b bg-gray-50 rounded-t-2xl">
+      <h3 class="font-bold text-gray-800 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        Document Preview
+      </h3>
+      <button (click)="closePreviewModal()" class="text-gray-500 hover:text-red-500 p-1.5 rounded-full hover:bg-red-50 bg-white border border-gray-200 transition-all">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
 
-                    <button
-                      (click)="removeDocument(i)"
-                      class="bg-red-600 text-white px-2 py-1 rounded"
-                    >
-                      X
-                    </button>
-                  </div>
-
-                  <!-- Footer -->
-                  <div class="flex justify-end mt-4 gap-2">
-                    <button
-                      (click)="closeDocumentModal()"
-                      class="bg-gray-400 text-white px-4 py-2 rounded"
-                    >
-                      Cancel
-                    </button>
-
-                    <button
-                      (click)="closeDocumentModal()"
-                      class="bg-green-500 text-white px-4 py-2 rounded"
-                    >
-                      Save
-                    </button>
-                  </div>
-                </div>
-              </div>
+    <div class="flex-1 bg-gray-200 p-2 overflow-hidden rounded-b-2xl">
+      <iframe 
+        *ngIf="currentPreviewUrl" 
+        [src]="currentPreviewUrl" 
+        class="w-full h-full rounded-xl border border-gray-300 shadow-inner bg-white"
+      ></iframe>
+    </div>
+  </div>
+</div>
 
               <div class="flex items-center gap-2">
                 <label class="w-40 font-bold text-gray-700">Gross Weight</label>
@@ -2369,91 +2480,152 @@
               </div>
 
               <!-- Package/Invoice List -->
-              <div class="flex flex-col gap-4">
-                <div class="flex items-center">
-                  <label class="w-40 font-bold text-gray-700"
-                    >Package/Invoice List</label
-                  >
-                  <select
-                    [(ngModel)]="quotation.invoiceList"
-                    class="flex-1 border p-2 outline-none"
-                  >
-                    <option value="" disabled>-- Select Status --</option>
-                    <option value="Available">Available</option>
-                    <option value="Not Available">Not Available</option>
-                  </select>
-                </div>
+              <div class="flex flex-col gap-4 bg-gray-50/30 p-4 border border-gray-200 rounded-xl mb-4">
+  
+  <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+    <label class="w-full sm:w-48 font-semibold text-sm text-gray-700 tracking-wide">
+      Package/Invoice List
+    </label>
+    
+    <div class="flex-1">
+      <select
+        [(ngModel)]="quotation.invoiceList"
+        class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-gray-700 bg-white focus:ring-2 focus:ring-[#4a3f3f]/50 focus:border-[#4a3f3f] outline-none transition-all cursor-pointer shadow-sm hover:border-gray-400"
+      >
+        <option value="" disabled>-- Select Status --</option>
+        <option value="Available">Available</option>
+        <option value="Not Available">Not Available</option>
+      </select>
+    </div>
+  </div>
 
-                <div *ngIf="quotation.invoiceList === 'Available'" class="mt-2">
-                  <button
-                    (click)="openInvoiceModal()"
-                    class="bg-blue-500 text-white px-4 py-2 rounded"
-                  >
-                    Manage Invoice Documents
-                  </button>
-                </div>
-              </div>
+  <div *ngIf="quotation.invoiceList === 'Available'" class="flex sm:ml-[13rem] mt-1">
+    <button
+      (click)="openInvoiceModal()"
+      class="flex items-center justify-center gap-2 w-full sm:w-auto bg-[#4a3f3f] hover:bg-[#382f2f] text-white px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 shadow-sm focus:ring-2 focus:ring-[#4a3f3f]/50 active:scale-95"
+    >
+      <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        class="h-4 w-4" 
+        fill="none" 
+        viewBox="0 0 24 24" 
+        stroke="currentColor"
+      >
+        <path 
+          stroke-linecap="round" 
+          stroke-linejoin="round" 
+          stroke-width="2" 
+          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" 
+        />
+      </svg>
+      Manage Invoice Documents
+    </button>
+  </div>
+
+</div>
 <div
   *ngIf="isInvoiceModalOpen"
-  class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm transition-opacity"
 >
-  <div class="bg-white w-full max-w-lg rounded-lg p-4">
-    <div class="flex justify-between items-center mb-3">
-      <h2 class="text-lg font-bold">Upload Invoice Documents</h2>
-      <button
-        (click)="closeInvoiceModal()"
-        class="text-red-500 text-xl font-bold"
-      >
-        X
+  <div class="bg-white w-[90vw] max-w-3xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    
+    <div class="flex justify-between items-center px-6 py-4 border-b border-gray-100 bg-gray-50">
+      <div>
+        <h2 class="text-xl font-bold text-gray-800">Upload Invoice Documents</h2>
+        <p class="text-sm text-gray-500 mt-1">Add and manage your invoice files securely.</p>
+      </div>
+      <button (click)="closeInvoiceModal()" class="text-gray-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-full transition-colors focus:outline-none">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
       </button>
     </div>
 
-    <button
-      (click)="addInvoice()"
-      class="bg-blue-500 text-white px-4 py-2 rounded mb-3"
-    >
-      + Add Invoice
-    </button>
+    <div class="p-6 overflow-y-auto flex-1 bg-white">
+      <div class="mb-6 flex justify-between items-center">
+        <h3 class="text-md font-semibold text-gray-700">Invoice List</h3>
+        <button (click)="addInvoice()" class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-lg font-medium transition-colors shadow-sm focus:ring-4 focus:ring-indigo-100">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+          </svg>
+          Add Invoice
+        </button>
+      </div>
 
-    <div
-      *ngFor="let inv of invoices; let i = index"
-      class="flex items-center gap-2 border p-2 rounded mb-2"
-    >
-      <input
-        type="text"
-        [(ngModel)]="inv.name"
-        placeholder="Invoice Name/No."
-        class="border p-2 flex-1"
-      />
+      <div *ngIf="invoices.length === 0" class="text-center py-10 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+        <p class="text-gray-500 font-medium">No invoices added yet.</p>
+      </div>
 
-      <input
-        type="file"
-        (change)="onInvoiceFileSelected($event, i)"
-        class="flex-1 border p-1 text-sm"
-      />
+      <div class="space-y-4">
+        <div *ngFor="let inv of invoices; let i = index" class="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-gray-50/50 border border-gray-200 p-4 rounded-xl hover:shadow-md transition-shadow">
+          
+          <div class="w-full sm:w-1/3">
+            <label class="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Invoice Name / No.</label>
+            <input type="text" [(ngModel)]="inv.name" placeholder="e.g., INV-2026-001" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white" />
+          </div>
 
-      <button
-        (click)="removeInvoice(i)"
-        class="bg-red-600 text-white px-2 py-1 rounded"
-      >
-        X
+          <div class="w-full sm:w-flex-1 flex-1">
+            <label class="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Select File</label>
+            <input type="file" (change)="onInvoiceFileSelected($event, i)" accept="image/*,application/pdf" class="w-full text-sm text-gray-500 border border-gray-300 rounded-lg bg-white file:mr-4 file:py-2 file:px-4 file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition-all cursor-pointer" />
+            
+            <div *ngIf="inv.fileName" class="mt-2 flex items-center">
+              <button 
+                (click)="openDocumentPreview(inv)"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 text-xs font-medium rounded-md transition-all cursor-pointer shadow-sm"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                View: {{ inv.fileName | slice:0:15 }}{{ inv.fileName.length > 15 ? '...' : '' }}
+              </button>
+            </div>
+          </div>
+
+          <div class="w-full sm:w-auto flex justify-end sm:mt-5">
+            <button (click)="removeInvoice(i)" class="text-gray-400 hover:text-red-600 hover:bg-red-50 p-2.5 rounded-lg transition-colors focus:outline-none" title="Remove Invoice">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 rounded-b-2xl">
+      <button (click)="closeInvoiceModal()" class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all">Cancel</button>
+      <button (click)="closeInvoiceModal()" class="px-6 py-2.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 shadow-sm transition-all">Save Invoices</button>
+    </div>
+  </div>
+</div>
+
+<div
+  *ngIf="isPreviewModalOpen"
+  class="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-md transition-opacity p-4"
+>
+  <div class="bg-white w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col h-[85vh]">
+    
+    <div class="flex justify-between items-center px-4 py-3 border-b bg-gray-50 rounded-t-2xl">
+      <h3 class="font-bold text-gray-800 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        Document Preview
+      </h3>
+      <button (click)="closePreviewModal()" class="text-gray-500 hover:text-red-500 p-1.5 rounded-full hover:bg-red-50 bg-white border border-gray-200 transition-all">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
       </button>
     </div>
 
-    <div class="flex justify-end mt-4 gap-2">
-      <button
-        (click)="closeInvoiceModal()"
-        class="bg-gray-400 text-white px-4 py-2 rounded"
-      >
-        Cancel
-      </button>
-
-      <button
-        (click)="closeInvoiceModal()"
-        class="bg-green-500 text-white px-4 py-2 rounded"
-      >
-        Save
-      </button>
+    <div class="flex-1 bg-gray-200 p-2 overflow-hidden rounded-b-2xl">
+      <iframe 
+        *ngIf="currentPreviewUrl" 
+        [src]="currentPreviewUrl" 
+        class="w-full h-full rounded-xl border border-gray-300 shadow-inner bg-white"
+      ></iframe>
     </div>
   </div>
 </div>

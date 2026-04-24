@@ -16,6 +16,7 @@ import { DragDropModule } from '@angular/cdk/drag-drop'; // Ye import ensure kar
 import { Subscription } from 'rxjs';
 import { BranchService } from '../../services/branch.service';
 import { UserService } from '../../services/user.service';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 @Component({
   selector: 'app-inquiry',
   standalone: true,
@@ -27,6 +28,13 @@ import { UserService } from '../../services/user.service';
     @ViewChild('cargoDateInput') cargoDateInput!: ElementRef<HTMLInputElement>;
     getsalescordinate: any[] = [];
     PermissionID:any;
+    invoices: any[] = [];
+  isInvoiceModalOpen = false;
+documents: any[] = [];
+  isDocumentModalOpen = false;
+  // Preview ke liye nayi variables
+  isPreviewModalOpen = false;
+  currentPreviewUrl: SafeResourceUrl | null = null;
     showincoterms:string="";
     selectcommodityvalue:string="";
     organizationIds:number=0;
@@ -42,32 +50,45 @@ showPortOfLoadingDropdown: boolean = false;
 isPickupEnabled: boolean = false; 
     selectedLeadData: any = null;
     transportModes: any[] = [];
+
     incoTerms: any[] = [];
     shipmentTypes: any[] = [];
     movementTypes: any[] = [];
     commodityTypes: any[] = [];
     quotationcheck: any = { TransportMode: '',
     shipmentType: '',incoterm: '',movementType: '',commodity: ''};
-    documents: any[] = [];
+    
 public ports: any[] = [];
 addDocument() {
-  this.documents.push({
-    name: '',
-    file: null
-  });
-}
+    this.documents.push({ 
+      name: '', 
+      file: null, 
+      fileName: '', 
+      previewUrl: null 
+    });
+  }
 
 removeDocument(index: number) {
   this.documents.splice(index, 1);
 }
 onFileSelecteds(event: any, index: number) {
-  const file = event.target.files[0];
-  if (file) {
-    this.documents[index].file = file;
+    const file = event.target.files[0];
+    
+    if (file) {
+      this.documents[index].file = file;
+      this.documents[index].fileName = file.name; // Naam UI (Chhote badge) par dikhane ke liye
+      
+      // Local file ka temporary URL banana preview ke liye
+      const objectUrl = URL.createObjectURL(file);
+      
+      // Angular ko batana ki ye iframe me dikhane ke liye safe hai
+      this.documents[index].previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
+    }
   }
-}
-isDocumentModalOpen = false;
 
+openCommodityModal() {
+    this.isDocumentModalOpen = true;
+  }
 openDocumentModal() {
   this.isDocumentModalOpen = true;
 }
@@ -85,9 +106,7 @@ onCommodityChange(event: any) {
 closeDocumentModal() {
   this.isDocumentModalOpen = false;
 }
-// Variables
-  isInvoiceModalOpen: boolean = false;
-  invoices: any[] = []; // Yeh array aapke invoices ko store karega
+
 
   // Modal Open/Close Functions
   openInvoiceModal() {
@@ -99,21 +118,60 @@ closeDocumentModal() {
   }
 
   // Add New Invoice Row
-  addInvoice() {
-    this.invoices.push({ name: '', file: null });
+addInvoice() {
+    this.invoices.push({ name: '', file: null, fileName: '', previewUrl: null });
   }
-
-  // Remove Invoice Row
-  removeInvoice(index: number) {
+removeInvoice(index: number) {
     this.invoices.splice(index, 1);
   }
+openDocumentPreview(doc: any) {
+    if (doc.previewUrl) {
+      this.currentPreviewUrl = doc.previewUrl;
+      this.isPreviewModalOpen = true;
+    }
+  }
+  closePreviewModal() {
+    this.isPreviewModalOpen = false;
+    this.currentPreviewUrl = null;
+  }
 
+  // Pehle wala modal open/close functions
+  // Save button click hone par console me data dikhane ke liye
+  saveDocuments() {
+    console.log("=== 📦 Commodity Documents List ===");
+    
+    // Check agar array khali hai
+    if (this.documents.length === 0) {
+      console.log("Koi document add nahi kiya gaya hai.");
+    } else {
+      // Har ek document ko loop karke console me dikhana
+      this.documents.forEach((doc, index) => {
+        console.log(`\n--- Document ${index + 1} ---`);
+        console.log("Document Name/Type :", doc.name || 'Name not entered');
+        console.log("Original File Name :", doc.fileName || 'No file selected');
+        console.log("Actual File Object :", doc.file); // Yeh actual file hai (Image/PDF) jo backend me jayegi
+      });
+      
+      // Poora array ek sath dekhne ke liye
+      console.log("\nFull Array Data:", this.documents);
+    }
+
+    // Console me print hone ke baad modal close kar do
+    this.closeDocumentModal();
+  }
   // Handle File Selection
   onInvoiceFileSelected(event: any, index: number) {
     const file = event.target.files[0];
+    
     if (file) {
       this.invoices[index].file = file;
-      console.log('Invoice File Selected:', file.name);
+      this.invoices[index].fileName = file.name; // Naam UI par dikhane ke liye
+      
+      // Local file ka URL banana preview ke liye
+      const objectUrl = URL.createObjectURL(file);
+      
+      // Angular ko batana padega ki ye URL safe hai iframe me dikhane ke liye
+      this.invoices[index].previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
     }
   }
 // test(){
@@ -320,7 +378,7 @@ organizations: any[] = [];
   searchDone: boolean = false; // Shuru mein false rahega
   uploadedDocuments: any[] = [];
     // Ye line add karein
-    constructor(private http: HttpClient, private router: Router,private cdr: ChangeDetectorRef,private branchservice:BranchService,public userServices:UserService,public CheckPermissionService:CheckPermissionService) {}
+    constructor(private http: HttpClient, private router: Router,private cdr: ChangeDetectorRef,private branchservice:BranchService,public userServices:UserService,public CheckPermissionService:CheckPermissionService,private sanitizer: DomSanitizer) {}
 
     ngOnInit() {
       this.PermissionID = Number(localStorage.getItem('permissionID'));
@@ -875,99 +933,126 @@ getFormattedInquiryNo(): string {
   // 4️⃣ Final Format
   return `CAV/INQ/${initials}/${formattedNumber}/${fy}`;
 }
-    saveQuotation() {
-      // if (!this.quotation.customerName) {
-      //   alert("Customer Name is required!");
-      //   return;
-      // }
-      if (!this.inquiry.organization) { // Zaroori check
+
+saveQuotation() {
+  // Basic validation
+  if (!this.inquiry.organization) { 
     alert("Organization Name is required!");
     return;
   }
 
-      
+  // 1. JSON Payload Taiyaar Karna (Saare numbers ko safey Number() me convert kiya hai)
 
-     
 const payload = {
-  ...this.quotation, 
-  inquiryNo: this.inquiry.inquiryNo,
-    customerName: this.inquiry.organization,
-    // Organization Name map karein
-    organization: this.inquiry.organization,
-    shipmentType: this.quotation.shipmentType,
-    // Baki fields (example)
-    leadNo: this.inquiry.leadNo,
-    origin: this.inquiry.origin,
-    TransportMode: this.quotation.transportMode,
-    TransportType: this.quotation.TransportType,
-    
-   HazardDocPath: this.quotation.hazardDocPath || null,
-   weightUnit: this.quotation.GrossweightUnit || 'KGS',
-  // id: Number(this.quotation.id) || 0,
-  cargocurrency:this.quotation.currency || 'INR',
-  cargoValue: this.quotation.cargoValue.toString() || 0,
-  // Foreign Key IDs - Hardcoded to 3 or null
-  lineOfBusinessId: this.quotation.lineOfBusinessId ? Number(this.quotation.lineOfBusinessId) : null,
-  lineOfBusinessName: this.quotation.lineOfBusinessName || null,
-  
-  // YAHAN HEE HARDCODE KIYA HAI:
-  commodityId: this.quotation.commodity, // <--- Hardcoded value 3
-  
-  
-  // Port and Origin IDs - Agar value valid nahi hai, toh null bhejein
-  originId: this.originsaveid,
-  portOfLoadingId: !isNaN(Number(this.quotation.portOfLoadingId)) && Number(this.quotation.portOfLoadingId) > 0 ? Number(this.quotation.portOfLoadingId) : null,
-  portOfDischargeId: !isNaN(Number(this.quotation.portOfDischargeId)) && Number(this.quotation.portOfDischargeId) > 0 ? Number(this.quotation.portOfDischargeId) : null,
-  
-  // Default Audit Fields
-  cargoStatus: this.quotation.cargoStatusType || 'Ready',
-  createdBy: 'admin@cavalierlogistic.in', // Admin email requirement [cite: 2026-02-02]
-  qtnId: this.quotation.qtnId || ('QTN-' + Math.floor(1000 + Math.random() * 9000)),
-  createdDate: new Date().toISOString(),
-  dimensions: this.appliedDimensions
+  ...this.quotation, 
+  inquiryNo: this.inquiry.inquiryNo,
+    customerName: this.inquiry.organization,
+    // Organization Name map karein
+    organization: this.inquiry.organization,
+    shipmentType: this.quotation.shipmentType,
+    // Baki fields (example)
+    leadNo: this.inquiry.leadNo,
+    origin: this.inquiry.origin,
+    TransportMode: this.quotation.transportMode,
+    TransportType: this.quotation.TransportType,
+    
+   HazardDocPath: this.quotation.hazardDocPath || null,
+   weightUnit: this.quotation.GrossweightUnit || 'KGS',
+  // id: Number(this.quotation.id) || 0,
+  cargocurrency:this.quotation.currency || 'INR',
+  cargoValue: this.quotation.cargoValue.toString() || 0,
+  // Foreign Key IDs - Hardcoded to 3 or null
+  lineOfBusinessId: this.quotation.lineOfBusinessId ? Number(this.quotation.lineOfBusinessId) : null,
+  lineOfBusinessName: this.quotation.lineOfBusinessName || null,
+  
+  // YAHAN HEE HARDCODE KIYA HAI:
+  commodityId: this.quotation.commodity, // <--- Hardcoded value 3
+  
+  
+  // Port and Origin IDs - Agar value valid nahi hai, toh null bhejein
+  originId: this.originsaveid,
+  portOfLoadingId: !isNaN(Number(this.quotation.portOfLoadingId)) && Number(this.quotation.portOfLoadingId) > 0 ? Number(this.quotation.portOfLoadingId) : null,
+  portOfDischargeId: !isNaN(Number(this.quotation.portOfDischargeId)) && Number(this.quotation.portOfDischargeId) > 0 ? Number(this.quotation.portOfDischargeId) : null,
+  
+  // Default Audit Fields
+  cargoStatus: this.quotation.cargoStatusType || 'Ready',
+  createdBy: 'admin@cavalierlogistic.in', // Admin email requirement [cite: 2026-02-02]
+  qtnId: this.quotation.qtnId || ('QTN-' + Math.floor(1000 + Math.random() * 9000)),
+  createdDate: new Date().toISOString(),
+  dimensions: this.appliedDimensions
 };
 
-      console.log("Final Payload for Backend:", payload);
+  console.log("JSON Payload before FormData:", payload);
 
-     const token = localStorage.getItem('cavalier_token');
+  // 2. FormData Create Karna (Files bhejne ke liye zaroori hai)
+  const formData = new FormData();
+  
+  // JSON object ko string banakar formData me daal do
+  formData.append('inquiryData', JSON.stringify(payload));
 
-const httpOptions = {
-  headers: {
-    Authorization: `Bearer ${token}`,
-    'Content-Type': 'application/json'
+  // 3. Sirf COMMODITY Documents File(s) append karna (Jaisa tumne kaha "only commodity")
+  if (this.documents && this.documents.length > 0) {
+    this.documents.forEach((doc) => {
+      if (doc.file) {
+        formData.append('commodityFiles', doc.file); // Actual Image ya PDF
+        formData.append('documentNames', doc.name || doc.fileName); // Naam
+      }
+    });
   }
-};
-
-const action = this.quotation.id > 0 
-  ? this.http.put(`${this.apiUrl}/${this.quotation.id}`, payload, httpOptions)
-  : this.http.post(this.apiUrl, payload, httpOptions);
-
-action.subscribe({
-  next: () => {
-    alert("Success: Saved in CavalierDB!");
-    this.isFormOpen = false;
-
-    this.loadQuotations();
-    this.toggleForm();
-    this.getNextInquiryNumber();
-    this.cdr.detectChanges();
-  },
-  error: (err) => {
-    console.error("Post Error Details:", err);
-
-    if (err.status === 0) {
-      alert("Connection Refused: Make sure Visual Studio Backend is running.");
-    } 
-    else if (err.status === 401) {
-      alert("Unauthorized! Token invalid ya expire ho gaya. Login again.");
-    }
-    else {
-      const errMsg = err.error?.message || "Verify if Master IDs exist in DB.";
-      alert("Failed to save: " + errMsg);
-    }
+  if (this.invoices && this.invoices.length > 0) {
+    this.invoices.forEach((inv) => {
+      if (inv.file) {
+        formData.append('invoiceFiles', inv.file);
+        formData.append('invoiceNames', inv.name || inv.fileName);
+      }
+    });
   }
-});
+
+  // 4. API Request ke Headers set karna
+  const token = localStorage.getItem('cavalier_token');
+  const httpOptions = {
+    headers: {
+      Authorization: `Bearer ${token}`
+      // ❌ DHYAN DEIN: Yahan se 'Content-Type': 'application/json' HATA DIYA HAI ❌
+      // Browser FormData ko automatically multipart/form-data set karta hai.
     }
+  };
+
+  // 5. Backend Call (PUT ya POST)
+  const action = this.quotation.id > 0 
+    ? this.http.put(`${this.apiUrl}/${this.quotation.id}`, formData, httpOptions)
+    : this.http.post(this.apiUrl, formData, httpOptions);
+
+  action.subscribe({
+    next: () => {
+      alert("Success: Saved in CavalierDB with Commodity Documents!");
+      this.isFormOpen = false;
+      
+      // Save hone ke baad purane documents list se hata do
+      this.documents = []; 
+      this.invoices = [];
+
+      this.loadQuotations();
+      this.toggleForm();
+      this.getNextInquiryNumber();
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error("Post Error Details:", err);
+
+      if (err.status === 0) {
+        alert("Connection Refused: Make sure Visual Studio Backend is running.");
+      } 
+      else if (err.status === 401) {
+        alert("Unauthorized! Token invalid ya expire ho gaya. Login again.");
+      }
+      else {
+        const errMsg = err.error?.message || "Verify if Master IDs exist in DB.";
+        alert("Failed to save: " + errMsg);
+      }
+    }
+  });
+}
     
 
     toggleForm() {

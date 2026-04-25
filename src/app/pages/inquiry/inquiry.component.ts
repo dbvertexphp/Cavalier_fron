@@ -2200,7 +2200,17 @@ getLabel(list: any[], id: any): string {
 
   return found ? (found.serviceName || found.commodityName || found.name || found.portName || found.text) : id;
 }
+navigateToNewOrg(event?: MouseEvent) {
+    if (event) {
+      event.stopImmediatePropagation();
+    }
 
+     // NEW click karte hi dropdown band
+
+    this.router.navigate(['/dashboard/organization-add'], {
+      state: { isFormOpen: true }
+    });
+  }
 // 5. Helper for simple strings
 getSimpleLabel(val: any): string {
   return val ? val : 'N/A';

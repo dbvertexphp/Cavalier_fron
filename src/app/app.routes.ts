@@ -78,6 +78,8 @@ import { SalesProcessComponent } from './pages/sales-process/sales-process.compo
 import { LeadSourceComponent } from './lead-source/lead-source.component';
 import { SalesStageComponent } from './sales-stage/sales-stage.component';
 import { PriceComponent } from './pages/price/price.component';
+import { authGuard } from './auth.guard';
+import { loginGuard } from './guards/login.guard';
 
 export const routes: Routes = [
 
@@ -85,250 +87,301 @@ export const routes: Routes = [
   {
     path: '',
     component: LoginComponent,
+    canActivate: [loginGuard],
     title: 'Welcome to Cavalier | Login'
   },
   {
     path: 'dashboard',
     component: AppLayoutComponent,
-
+canActivate: [authGuard],
     children: [
       {
         path: '',
         component: EcommerceComponent,
+        canActivate: [authGuard],
         pathMatch: 'full',
         title: 'Cavalier Logistics Dashboard',
       },
       {
         path: 'salecrm/qoutation',
-        component: QuotationFormComponent
+        component: QuotationFormComponent,
+        canActivate: [authGuard],
       },
       {
         path: 'salescrm/lead',
-        component: LeadFormComponent
+        component: LeadFormComponent,
+        canActivate: [authGuard],
       },
       {
         path: 'salescrm/inquiry',
-        component: InquiryComponent
+        component: InquiryComponent,
+        canActivate: [authGuard],
       },
       {
         path: 'transport-mode',
-        component: TranportModeComponent
+        component: TranportModeComponent,
+        canActivate: [authGuard],
       },
       {
         path: 'shipment-type',
-        component: ShipmentTypeComponent
+        component: ShipmentTypeComponent,
+        canActivate: [authGuard],
       },
         {
           path: 'incoterms',
-          component: IncoTermComponent
+          component: IncoTermComponent,
+          canActivate: [authGuard],
         },
         {
           path: 'movement-type',
-          component: MovementTypeComponent
+          component: MovementTypeComponent,
+          canActivate: [authGuard],
         },
         {
           path: 'lead-owners',
-          component: LeadOwnerComponent
+          component: LeadOwnerComponent,
+          canActivate: [authGuard],
         },
         {
           path: 'Lead-Source',
-          component: LeadSourceComponent
+          component: LeadSourceComponent,
+          canActivate: [authGuard],
         },
         {
           path: 'sales-stage',
-          component: SalesStageComponent
+          component: SalesStageComponent,
+          canActivate: [authGuard],
         },
         {
           path: 'sales-coordinators',
-          component: SalesCoordinatorComponent
+          component: SalesCoordinatorComponent,
+          canActivate: [authGuard],
         },
         {
           path: 'reporting-manager',
-          component: ReportingManagerComponent
+          component: ReportingManagerComponent,
+          canActivate: [authGuard],
         },
       {
         path: 'sale-process',
-        component: SalesProcessComponent
+        component: SalesProcessComponent,
+        canActivate: [authGuard],
       },
       {
         path: 'roles',
-        component: RolesComponent
+        component: RolesComponent,
+        canActivate: [authGuard],
       },
       {
         path: 'cargotype',
-        component: CargoTypeComponent         //cargo type
+        component: CargoTypeComponent ,
+        canActivate: [authGuard],        //cargo type
       },
       {
         path: 'commoditytype',
-        component: CommodityTypeComponent          //CommodityType
+        component: CommodityTypeComponent,
+        canActivate: [authGuard],          //CommodityType
       },
       {
         path: 'partyrole',
-        component: PartyRoleComponent          //Party role
+        component: PartyRoleComponent,
+        canActivate: [authGuard],         //Party role
       },
       {
         path: 'origin',
-        component: OriginComponent          //Origin
+        component: OriginComponent,
+        canActivate: [authGuard],         //Origin
       },
                { path: 'port-of-loading', 
-        component: PortOfLoadingComponent   },      //Port Setup
+        component: PortOfLoadingComponent ,canActivate: [authGuard],  },      //Port Setup
        { path: 'port-of-discharge', 
-        component: PortOfDischargeComponent   }, 
+        component: PortOfDischargeComponent,canActivate: [authGuard],   }, 
          { path: 'list-of-units',                          //list of unit
-        component: ListOfUnitComponent   }, 
+        component: ListOfUnitComponent,canActivate: [authGuard],   }, 
             { path: 'Employee',                          //list of unit
-        component: EmployeeComponent   }, 
+        component: EmployeeComponent,canActivate: [authGuard],   }, 
           { path: 'shipper',                          //list of unit
-        component:ShipperComponent   }, 
+        component:ShipperComponent,canActivate: [authGuard],   }, 
           { path: 'Consignee',                          //list of unit
-        component:ConsigneeComponent   }, 
+        component:ConsigneeComponent,canActivate: [authGuard],  }, 
            { path: 'Price',                          //list of unit
-        component:PriceComponent   }, 
+        component:PriceComponent,canActivate: [authGuard],   }, 
     
       {
         path: 'port-of-loading',
-        component: PortOfLoadingComponent
+        component: PortOfLoadingComponent,
+        canActivate: [authGuard],
       },      //Port Setup
       {
         path: 'port-of-discharge',
-        component: PortOfDischargeComponent
+        component: PortOfDischargeComponent,
+        canActivate: [authGuard],
       },
       {
         path: 'company-service',
-        component: CompanyServiceComponent
+        component: CompanyServiceComponent,
+        canActivate: [authGuard],
       },
       {
         path: 'hod',
         component: HodComponent,
+        canActivate: [authGuard],
   
       },
       {
         path: 'teams',
         component: TeamsComponent,
+        canActivate: [authGuard],
     
       },
       {
         path: 'departments',
-        component: DepartmentsComponent
+        component: DepartmentsComponent,
+        canActivate: [authGuard],
       },
       {
         path: 'designations',
-        component: DesignationsComponent
+        component: DesignationsComponent,
+        canActivate: [authGuard],
 
       },
       {
         path: 'permissions',
-        component: PermissionComponent
+        component: PermissionComponent,
+        canActivate: [authGuard],
 
       },
       { 
        path: 'salary-table', 
-       component: SalaryTableComponent 
+       component: SalaryTableComponent ,
+       canActivate: [authGuard],
       },
       { 
       path: 'leave-application', 
-      component: LeaveApplicationComponent 
+      component: LeaveApplicationComponent ,
+      canActivate: [authGuard],
       },
       {
         path: 'storage-utilization',
         component: StorageWidgetComponent,
+        canActivate: [authGuard],
         title: 'Storage Utilization | Cavalier'
       },
       {
         path: 'port-setup', // ✅ Sidebar path se match karta hai
-        component: PortSetupComponent   // ✅ Direct component use ho raha hai
+        component: PortSetupComponent ,
+        canActivate: [authGuard],  // ✅ Direct component use ho raha hai
       },
        {
         path: 'organization-add',
-        component: OrganizationAddComponent
+        component: OrganizationAddComponent,
+        canActivate: [authGuard],
       },
       {
         path: 'branch',
         component: BranchComponent,
+        canActivate: [authGuard],
         title: 'Branch Management'
       },
       {
         path: 'company-details',
-        component: CompanyDetailsComponent
+        component: CompanyDetailsComponent,
+        canActivate: [authGuard],
       },
       {
         path: 'registrations',
-        component: RegistrationsComponent
+        component: RegistrationsComponent,
+        canActivate: [authGuard],
       },
       {
         path: 'branch-form',
-        component: BranchFormComponent, // Yahan BranchFormComponent use karein UserForm ki jagah
+        component: BranchFormComponent,
+        canActivate: [authGuard], // Yahan BranchFormComponent use karein UserForm ki jagah
         title: 'Branch Registration'
       },
       {
         path: 'hr/employee-master',
         component: UserComponent,
+        canActivate: [authGuard],
         title: 'Employee Masters'
       },
       {
           path: 'rolePermision',
         component: RolePermisionsComponent,
+        canActivate: [authGuard],
        
       },
       {
         path: 'register-user',
         component: UserFormComponent,
+        canActivate: [authGuard],
         title: 'Register New Employee'
       },
 
       {
         path: 'profile',
         component: ProfileComponent,
+        canActivate: [authGuard],
         title: 'Profile'
       },
       {
         path: 'employee/list',
         component: EmployeeListComponent,
+        canActivate: [authGuard],
         title: 'Employee List'
       },
       {
         path: 'employee/add',
         component: EmployeeAddComponent,
+        canActivate: [authGuard],
         title: 'Add Employee'
       },
       {
         path: 'employee/edit',
         component: EmployeeEditComponent,
+        canActivate: [authGuard],
         title: 'Edit Employee'
       },
       {
         path: 'attendance/list',
         component: AttendanceListComponent,
+        canActivate: [authGuard],
         title: 'Attendance List'
       },
       {
         path: 'attendance/add',
         component: AttendanceAddComponent,
+        canActivate: [authGuard],
         title: 'Add Attendance'
       },
       { 
         path: 'attendance/edit/:id', 
         component: AttendanceEditComponent, 
+        canActivate: [authGuard],
         title: 'Edit Attendance' 
       },
       {
         path: 'shift/list',
         component: ShiftManagementComponent,
+        canActivate: [authGuard],
         title: 'Shift List'
       },
       {
         path: 'logs/activity',
         component: ActivityComponent,
+        canActivate: [authGuard],
         title: 'Activity Logs'
       },
       {
         path: 'logs/email',
         component: EmailComponent,
+        canActivate: [authGuard],
         title: 'Email Logs'
       },
       {
         path: 'logs/sms',
         component: SmsComponent,
+        canActivate: [authGuard],
         title: 'SMS Logs'
       },
 
@@ -340,6 +393,7 @@ export const routes: Routes = [
   {
     path: 'branchdashboard',
     component: BranchDashboardComponent,
+    canActivate: [authGuard],
     title: 'Branch Administrator Dashboard'
   },
 

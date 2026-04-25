@@ -945,39 +945,58 @@
         </tr>
       </thead>
 
-      <tbody class="bg-white" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
-        <tr *ngFor="let q of paginatedInquiries" 
-            (dblclick)="editQuotation(q)"
-            class="hover:bg-gray-50 border-b text-gray-700 cursor-pointer transition-colors">
+    <tbody class="bg-white" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
+  
+  <ng-container *ngIf="paginatedInquiries && paginatedInquiries.length > 0; else noData">
+    <tr *ngFor="let q of paginatedInquiries" 
+        (dblclick)="editQuotation(q)"
+        class="hover:bg-gray-50 border-b text-gray-700 cursor-pointer transition-colors">
+      
+      <td *ngFor="let col of selectedColumns" class="p-4">
+        <ng-container [ngSwitch]="col">
+          <span *ngSwitchCase="'Inquiry Id.'" class="font-bold text-gray-900">{{ q.id }}</span>
+          <span *ngSwitchCase="'Inquiry No.'" class="font-bold text-blue-600">{{ q.inquiryNo }}</span>
+          <span *ngSwitchCase="'Date'" class="font-medium">{{ q.receivedDate | date: "dd-MMM-yyyy" }}</span>
+          <span *ngSwitchCase="'Status'">
+            <span [ngClass]="{'bg-yellow-100 text-yellow-800': q.id > 0, 'bg-green-100 text-green-800': q.id === 0}"
+                  class="px-3 py-1 rounded text-[11px] font-bold uppercase">
+              {{ q.cargoStatus }}
+            </span>
+          </span>
+          <span *ngSwitchDefault class="uppercase font-medium">{{ q[columnFieldMap[col]] || "-" }}</span>
+        </ng-container>
+      </td>
+      <td>rere</td>
+      <td>rere</td>
+      <td class="p-4 sticky right-0 bg-white border-l text-center shadow-[-5px_0_10px_rgba(0,0,0,0.02)]">
+        <button (click)="editQuotation(q)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Edit')"
+                class="text-blue-600 mr-3 font-bold uppercase hover:underline text-[11px]">Edit</button>
+        <button (click)="deleteQuotation(q.id)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Delete')"
+                class="text-red-600 font-bold uppercase hover:underline text-[11px]">Delete</button>
+      </td>
+    </tr>
+  </ng-container>
+
+  <ng-template #noData>
+    <tr>
+      <td [attr.colspan]="selectedColumns.length + 3" class="p-12 text-center">
+        <div class="flex flex-col items-center justify-center">
           
-          <td *ngFor="let col of selectedColumns" class="p-4">
-            <ng-container [ngSwitch]="col">
-              <span *ngSwitchCase="'Inquiry Id.'" class="font-bold text-gray-900">{{ q.id }}</span>
-              <span *ngSwitchCase="'Inquiry No.'" class="font-bold text-blue-600">{{ q.inquiryNo }}</span>
-              <span *ngSwitchCase="'Date'" class="font-medium">{{ q.receivedDate | date: "dd-MMM-yyyy" }}</span>
-              <span *ngSwitchCase="'Status'">
-                <span [ngClass]="{'bg-yellow-100 text-yellow-800': q.id > 0, 'bg-green-100 text-green-800': q.id === 0}"
-                      class="px-3 py-1 rounded text-[11px] font-bold uppercase">
-                  {{ q.cargoStatus }}
-                </span>
-              </span>
-              <span *ngSwitchDefault class="uppercase font-medium">{{ q[columnFieldMap[col]] || "-" }}</span>
-            </ng-container>
-          </td>
-<td>
-  rere
-</td>
-<td>
-  rere
-</td>
-          <td class="p-4 sticky right-0 bg-white border-l text-center shadow-[-5px_0_10px_rgba(0,0,0,0.02)]">
-            <button (click)="editQuotation(q)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Edit')"
-                    class="text-blue-600 mr-3 font-bold uppercase hover:underline text-[11px]">Edit</button>
-            <button (click)="deleteQuotation(q.id)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Delete')"
-                    class="text-red-600 font-bold uppercase hover:underline text-[11px]">Delete</button>
-          </td>
-        </tr>
-      </tbody>
+          <div class="bg-gray-50 p-4 rounded-full mb-3">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" class="w-16 h-16 text-gray-400">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 13.5h3.86a2.25 2.25 0 0 1 2.012 1.244l.258.513a2.25 2.25 0 0 0 2.013 1.244h3.218a2.25 2.25 0 0 0 2.013-1.244l.258-.513a2.25 2.25 0 0 1 2.013-1.244h3.859m-19.5.338V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 0 0-2.15-1.588H6.911a2.25 2.25 0 0 0-2.15 1.588L2.35 13.177a2.25 2.25 0 0 0-.1.661Z" />
+            </svg>
+          </div>
+          
+          <h3 class="text-lg font-bold text-gray-700">No Inquiries Found</h3>
+          <p class="text-sm text-gray-500 mt-1">There is no data available to show in this table right now.</p>
+        
+        </div>
+      </td>
+    </tr>
+  </ng-template>
+
+</tbody>
     </table>
   </div>
 </div>
@@ -1576,7 +1595,7 @@
                   </div>
 
                   <button
-                    (click)="neworg()"
+                    (click)="navigateToNewOrg()"
                     class="bg-green-800 text-white text-[9px] px-2 font-bold hover:bg-black uppercase"
                   >
                     New

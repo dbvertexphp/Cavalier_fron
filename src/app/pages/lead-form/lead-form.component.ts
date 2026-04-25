@@ -728,7 +728,7 @@ onSave() {
         control.setErrors({ zod: errors[field as keyof typeof errors]?.[0] });
       }
     });
-    alert("Please fix validation errors");
+    alert("Please Fix the error input fields!");
     return;
   }
   console.log('Validated Form Value:', rawValue);

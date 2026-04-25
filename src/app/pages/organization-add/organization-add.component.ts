@@ -159,25 +159,32 @@ validateCurrentBranch(): boolean {
 
   return true;   // Sab theek hai
 }
-onNewBranch() {
 
-  // 🔥 Pehle check karo ki current branch valid hai ya nahi
-  if (this.selectedBranchIndex >= 0) {
+onNewBranch() {
+  // 🔥 1. BULLETPROOF LOCK: Agar list mein ek bhi branch hai ya form edit mode mein hai
+  // Toh sabse pehle current form ki STRICT VALIDATION check hogi.
+  if (this.branchList.length > 0 || this.isEditMode) {
+    
+    // Tumhara apna function jo check karega: Branch, Country, State, City, Dept, Designation
     const isCurrentValid = this.validateCurrentBranch();
+
     if (!isCurrentValid) {
-      return;   // Agar invalid hai toh New nahi allow karenge
+      return; // ❌ Agar koi bhi field khali hai, toh yahi se wapas! Naya blank form nahi aayega.
     }
+
+    // Agar sab completely fill hai, toh usko array mein update/save kar lo
+    this.addCurrentBranchIfValid();
   }
 
-  // Agar valid hai ya koi branch selected nahi hai, tab naya branch create karo
-  this.isEditMode = true;
+  // 🔥 2. NAYA KHALI FORM BANANE KI PROCESS (Yeh tabhi chalega jab upar sab PASS hoga)
+  this.isEditMode = true; // Readonly hata dega
   this.selectedBranchIndex = -1;
+  this.resetBranchFormOnly(); // Form screen ko ekdum fresh/khali karega
 
-  this.resetBranchFormOnly();
-
+  // Ekdum naya khali object (Fields clear rakhi hain)
   const newBlankBranch = {
     id: 0,
-    branchName: 'Default',
+    branchName: 'Default Branch', // Khali rakha hai
     address: '',
     country: '',
     stateProvince: '',
@@ -190,20 +197,22 @@ onNewBranch() {
     website: '',
     email: '',
     lineOfBusiness: null,
+    
     isDefault: this.branchList.length === 0,
     organizationId: this.selectedOrgId || 0,
-    designationId: 0,
-    departmentId: 0,
+    designationId: null, // Department & Designation Null rakho
+    departmentId: null,
     contactName: '',
     mobile: '',
     whatsapp: '',
     emailId: ''
   };
 
+  // Naya form array me daala
   this.branchList.push(newBlankBranch);
-
-  const newIndex = this.branchList.length - 1;
-  this.selectedBranchIndex = newIndex;
+  
+  // Naye form ko automatically focus/select kar liya
+  this.selectedBranchIndex = this.branchList.length - 1; 
 
   this.cdr.detectChanges();
 }
@@ -253,17 +262,7 @@ this.getOrgList();
 // Button click ka logic
 // Button click ka sahi logic
 onActionButtonClick() {
-  if (this.hasSavedOrg) {
-    // Update ke baad "New" button dikhta hai
-    this.onNewBranch();
-  } else {
-    // Pehli organization save nahi hui
-    if (this.isEditMode) {
-      this.onCancel();
-    } else {
-      this.onNewBranch();
-    }
-  }
+  this.onNewBranch();
 }
 onCancel() {
   this.isEditMode = false;
@@ -535,7 +534,9 @@ getOrgList() {
   });
 }
 
-
+// goBack(){
+//   this.location.back();
+// }
   addContactRow() {
     this.contactList.push({
       name: '', designation: '', department: '', mobile: '', whatsapp: '', email: ''
@@ -581,6 +582,14 @@ addCurrentBranchIfValid(): boolean {
     return false;
   }
 
+  // 🔥 EXCLUSIVE DEFAULT LOGIC (Yeh raha tumhara solution) 🔥
+  // Agar user is branch ko Default set kar raha hai, toh array mein maujood baaki sabhi branches se default hata do
+  if (this.isDefault) {
+    this.branchList.forEach(branch => {
+      branch.isDefault = false;
+    });
+  }
+
   const branchData = {
     // Purana ID preserve karo
     id: this.selectedBranchIndex >= 0 ? this.branchList[this.selectedBranchIndex].id : 0,
@@ -598,10 +607,13 @@ addCurrentBranchIfValid(): boolean {
     website: this.website || '',
     email: this.email || '',
 
-    // 🔥 IMPORTANT CHANGE: LobId ki jagah LobIds bhejo aur array ko string mein convert karo
-   LobIds: this.selectedLineOfBusiness.length > 0 
-        ? this.selectedLineOfBusiness.map(item => item.id).join(',') 
-        : null,
+    // API ke liye Comma separated string
+    LobIds: this.selectedLineOfBusiness.length > 0 
+         ? this.selectedLineOfBusiness.map(item => item.id).join(',') 
+         : null,
+
+    // UI/Sidebar par wapas dikhane ke liye Array
+    lobIdsList: this.selectedLineOfBusiness.map(item => item.id),
 
     contactName: firstContact.contactName || '',
     mobile: firstContact.mobile || '',
@@ -611,6 +623,7 @@ addCurrentBranchIfValid(): boolean {
     designationId: firstContact.DesignationId ?? null,
     departmentId: firstContact.DepartmentId ?? null,
 
+    // Agar pehli branch add ho rahi hai toh by-default true hogi, warna tumhara checkbox decide karega
     isDefault: this.branchList.length === 0 ? true : this.isDefault,
     organizationId: this.selectedOrgId || 0
   };
@@ -621,11 +634,9 @@ addCurrentBranchIfValid(): boolean {
       ...this.branchList[this.selectedBranchIndex], 
       ...branchData 
     };
-    console.log("✅ Existing Branch Updated | Index:", this.selectedBranchIndex, "| ID:", branchData.id);
   } else {
     // New branch
     this.branchList.push(branchData);
-    console.log("✅ New Branch Added");
   }
 
   this.cdr.detectChanges();
@@ -664,7 +675,18 @@ toggleRole(role: string) {
 setActiveTab(tabName: string) {
   this.activeTab = tabName;
 }
-
+// Yeh check karega ki koi aur branch default hai ya nahi
+checkOtherDefaultExists(): boolean {
+  if (!this.branchList || this.branchList.length === 0) {
+    return false;
+  }
+  
+  // Array mein check karega ki kisi branch ka isDefault true toh nahi hai
+  // (Current khuli hui branch ko chhod kar)
+  return this.branchList.some((branch, index) => 
+    branch.isDefault === true && index !== this.selectedBranchIndex
+  );
+}
 // HTML mein condition check karne ke liye helper
 isShipperSelected(): boolean {
   return this.selectedRoles.includes('shipper');
@@ -733,69 +755,84 @@ onAgentCountrySelectionChange() {
 // ==================== SAVE ALL BRANCHES (Add + Update) ====================
 // ==================== SAVE ALL BRANCHES (Add + Update) ====================
 saveAllLocalBranches(orgId: number) {
+  // 1. Sirf valid branches lo jinka naam bhara hua hai
   const validBranches = this.branchList.filter(b => b.branchName?.trim());
 
-  validBranches.forEach((branch) => {
-    
-    // ✅ Har branch ka apna LOB nikalne ka logic
-    let finalLobIds = branch.LobIds || branch.lobIds || null;
+  if (validBranches.length === 0) {
+    console.log("No branches to save.");
+    return;
+  }
 
-    // ✅ Agar loop wali branch wahi hai jo abhi screen par open hai, 
+  // 2. forEach ki jagah map() use karke Array of Objects (Payload Array) banao
+  const payloadArray = validBranches.map((branch) => {
+    
+    // Har branch ka apna LOB nikalne ka logic
+    let finalLobIds = branch.LobIds || branch.lobIds || "";
+
+    // Agar loop wali branch wahi hai jo abhi screen par open hai, 
     // toh screen wala (selectedLineOfBusiness) data lo
     const actualIndexInList = this.branchList.indexOf(branch);
     if (actualIndexInList === this.selectedBranchIndex) {
       finalLobIds = this.selectedLineOfBusiness.length > 0 
         ? this.selectedLineOfBusiness.map(item => item.id).join(',') 
-        : null;
+        : "";
     }
 
-    const payload = {
+    return {
       Id: branch.id || 0,
-      BranchName: branch.branchName?.trim(),
+      BranchName: branch.branchName?.trim() || "",
       OrganizationId: orgId,
 
-      // 🔥 FIX: Ab har branch apna alag LOB save karegi
+      // 🔥 Ab har branch apna alag LOB save karegi
       LobIds: finalLobIds,
 
-      Address: branch.address?.trim(),
-      Area: branch.area?.trim(),
-      Landmark: branch.landmark?.trim(),
-      Country: branch.country?.trim(),
-      StateProvince: branch.stateProvince?.trim(),
-      City: branch.city?.trim(),
-      PostalCode: branch.postalCode?.trim(),
+      Address: branch.address?.trim() || "",
+      Area: branch.area?.trim() || "",
+      Landmark: branch.landmark?.trim() || "",
+      Country: branch.country?.trim() || "",
+      StateProvince: branch.stateProvince?.trim() || "",
+      City: branch.city?.trim() || "",
+      PostalCode: branch.postalCode?.trim() || "",
 
-      Telephone: branch.telephone?.trim(),
-      Fax: branch.fax?.trim(),
-      WebSite: branch.website?.trim(),
-      EmailAddress: branch.email?.trim() || branch.emailAddress?.trim(),
-      EmailId: branch.emailId?.trim() || branch.email?.trim(),
+      Telephone: branch.telephone?.trim() || "",
+      Fax: branch.fax?.trim() || "",
+      WebSite: branch.website?.trim() || "",
+      EmailAddress: branch.email?.trim() || branch.emailAddress?.trim() || "",
+      EmailId: branch.emailId?.trim() || branch.email?.trim() || "",
 
-      ContactName: branch.contactName?.trim(),
-      Mobile: branch.mobile?.trim(),
-      Whatsapp: branch.whatsapp?.trim(),
+      ContactName: branch.contactName?.trim() || "",
+      Mobile: branch.mobile?.trim() || "",
+      Whatsapp: branch.whatsapp?.trim() || "",
 
-      DesignationId: branch.designationId ?? null,
-      DepartmentId: branch.departmentId ?? null,
+      // 🔥 .NET 400 error se bachne ke liye null ko 0 mein convert karna zaroori hai
+      DesignationId: branch.designationId || 0,
+      DepartmentId: branch.departmentId || 0,
 
-       isDefault : branch.isDefault || false,
+      IsDefault: branch.isDefault || false,
       IsDeactivated: false,
       IsManager: false,
       IsHOD: false,
       IsSales: false,
       IsMarketing: false
     };
+  });
 
-    console.log(`→ Saving Branch: "${branch.branchName}" | LobIds = ${payload.LobIds}`);
+  console.log(`→ Saving ${payloadArray.length} Branches as Array:`, payloadArray);
 
-    this.http.post(`${environment.apiUrl}/OrgBranch/SaveBranch`, payload)
-      .subscribe({
-        next: (res) => console.log(`✅ Branch "${branch.branchName}" saved successfully`),
-        error: (err) => {
-          console.error(`❌ Failed to save branch "${branch.branchName}"`, err);
-          console.log("Full error:", err.error);
-        }
-      });
+  // 3. EK HI API CALL mein poora array bhejo
+  this.http.post(`${environment.apiUrl}/OrgBranch/SaveBranches/${orgId}`, payloadArray).subscribe({
+    next: (res) => {
+      console.log(`✅ All branches saved successfully`);
+      
+      // Success hone par yahan redirect karein
+      // (Aap chahein toh Angular Router use kar sakte hain: this.router.navigate(['/dashboard/organization-add']); )
+      window.location.href = "/dashboard/organization-add";
+    },
+    error: (err) => {
+      console.error(`❌ Failed to save branches`, err);
+      console.log("Full error:", err.error);
+      alert("Failed to save branches. Please check console.");
+    }
   });
 }
 // Ek chota sa helper function saare fields khali karne ke liye
@@ -993,6 +1030,7 @@ saveOrganization() {
           ? "✅ Organization Updated Successfully!" 
           : "✅ Organization + Branches Saved Successfully!");
       }
+     
     },
     error: (err) => {
       console.error("Organization Save/Update Error:", err);
@@ -1389,10 +1427,19 @@ async downloadPDF() {
 }
   isFormOpen: boolean = false; 
 
-  openForm() {
+ openForm() {
   this.isFormOpen = true;
   
- 
+  // Sab kuch fresh start ke liye reset kar do
+  this.isOrgEditMode = false;
+  this.selectedOrgId = null;
+  this.isEditMode = false; // 👈 Yeh sabse important hai!
+  this.branchList = [];
+  this.selectedBranchIndex = -1;
+  
+  this.resetFormFields();
+  this.resetBranchFormOnly();
+  this.resetAgentFormOnly();
 }
 
   closeForm() {
@@ -2214,6 +2261,11 @@ resetBranchFormOnly() {
   this.website = '';
   this.email = '';
   this.lineOfBusiness = null;
+
+  // 🔥 YEH LINE SABSE IMPORTANT HAI 🔥
+  // Naya form khulte hi purani branch ka Line of Business ekdum clear kar dega
+  this.selectedLineOfBusiness = [];
+  this.showLobDropdown = false; // Safety ke liye dropdown ko bhi band kar dega
 
   this.contacts = [{
     contactName: '',

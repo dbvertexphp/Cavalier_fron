@@ -367,36 +367,59 @@
       </tr>
     </thead>
 
-    <tbody class="bg-white divide-y divide-gray-200" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View');">
-      <tr *ngFor="let org of paginatedOrganizations" 
-          (dblclick)="editOrg(org)"
-          class="hover:bg-blue-50 transition-colors text-gray-800 cursor-pointer">
+   <tbody class="bg-white divide-y divide-gray-200" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
+  
+  <ng-container *ngIf="paginatedOrganizations && paginatedOrganizations.length > 0; else noData">
+    <tr *ngFor="let org of paginatedOrganizations" 
+        (dblclick)="editOrg(org)"
+        class="hover:bg-blue-50 transition-colors text-gray-800 cursor-pointer">
+      
+      <td class="p-5 text-center text-gray-300 no-export">⠿</td>
+
+      <td *ngFor="let col of selectedColumns" class="p-5">
+        <ng-container [ngSwitch]="col">
+          <span *ngSwitchCase="'Org ID'" class="font-bold text-blue-700 uppercase">{{org.id}}</span>
+          <span *ngSwitchCase="'Org Name'" class="font-bold text-blue-700 uppercase">{{org.orgName}}</span>
+          
+          <span *ngSwitchCase="'Type'">
+            <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-[12px] font-bold uppercase">
+              {{org.selectedRoles}}
+            </span>
+          </span>
+
+          <span *ngSwitchDefault class="font-medium text-gray-700">
+            {{ org[columnFieldMap[col]] || '-' }}
+          </span>
+        </ng-container>
+      </td>
+
+      <td class="p-5 sticky right-0 bg-white border-l text-center shadow-sm">
+        <button (click)="editOrg(org)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Edit')" class="text-blue-600 mr-4 font-bold hover:underline no-export">EDIT</button>
+        <button (click)="deleteOrg(org.id)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Delete')" class="text-red-600 font-bold hover:underline no-export">DELETE</button>
+      </td>
+    </tr>
+  </ng-container>
+
+  <ng-template #noData>
+    <tr>
+      <td [attr.colspan]="selectedColumns.length + 2" class="p-12 text-center">
+        <div class="flex flex-col items-center justify-center">
+          
+          <div class="bg-blue-50 p-4 rounded-full mb-3">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" class="w-16 h-16 text-blue-400">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
+            </svg>
+          </div>
+          
+          <h3 class="text-lg font-bold text-gray-700">No Organizations Found</h3>
+          <p class="text-sm text-gray-500 mt-1">There are no organizations available to display right now.</p>
         
-        <td class="p-5 text-center text-gray-300 no-export">⠿</td>
+        </div>
+      </td>
+    </tr>
+  </ng-template>
 
-        <td *ngFor="let col of selectedColumns" class="p-5">
-          <ng-container [ngSwitch]="col">
-            <span *ngSwitchCase="'Org ID'" class="font-bold text-blue-700 uppercase">{{org.id}}</span>
-            <span *ngSwitchCase="'Org Name'" class="font-bold text-blue-700 uppercase">{{org.orgName}}</span>
-            
-            <span *ngSwitchCase="'Type'">
-              <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-[12px] font-bold uppercase">
-                {{org.selectedRoles}}
-              </span>
-            </span>
-
-            <span *ngSwitchDefault class="font-medium text-gray-700">
-              {{ org[columnFieldMap[col]] || '-' }}
-            </span>
-          </ng-container>
-        </td>
-
-        <td class="p-5 sticky right-0 bg-white border-l text-center shadow-sm">
-          <button (click)="editOrg(org)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Edit');" class="text-blue-600 mr-4 font-bold hover:underline no-export">EDIT</button>
-          <button (click)="deleteOrg(org.id)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Delete');" class="text-red-600 font-bold hover:underline no-export">DELETE</button>
-        </td>
-      </tr>
-    </tbody>
+</tbody>
   </table>
 </div>
         <div class="flex justify-between items-center bg-white p-4 border-t border-gray-200 mt-2 shadow-sm rounded-b-lg no-export" *ngIf="organizations.length > 0">
@@ -650,7 +673,7 @@
 <label class="flex items-center gap-2 text-sm font-semibold">
   <input type="checkbox" 
          [(ngModel)]="isDefault" 
-         [disabled]="!isEditMode"
+         [disabled]="!isEditMode || checkOtherDefaultExists()"
          class="accent-[#4a3f3f]">
   Set as Default
 </label>
@@ -1371,7 +1394,17 @@
 
         <div class="mt-6 flex justify-end gap-3 border-t pt-4">
           <button (click)="closeForm()"
-            class="px-6 py-2 border border-gray-400 font-bold text-gray-600 hover:bg-gray-100 uppercase text-[11px]">Cancel</button>
+            class="px-6 py-2 border border-gray-400 font-bold text-gray-600 hover:bg-gray-100 uppercase text-[11px]">
+            Cancel
+          </button>
+          <!-- <button type="button" 
+          (click)="goBack()" 
+          class="flex items-center gap-2 text-gray-600 hover:text-black font-bold uppercase text-[11px] transition-colors">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+    </svg>
+    Back
+  </button> -->
         <button 
   (click)="saveOrganization()"
   class="bg-[#4a3f3f] text-white px-10 py-2 font-bold shadow-md hover:bg-black uppercase text-[11px] tracking-wider">

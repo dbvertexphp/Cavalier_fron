@@ -799,6 +799,17 @@ getShipmentTypes() {
       error: (err) => console.error('Error fetching Shipment Types:', err)
     });
   }
+  navigateToNewOrg(event?: MouseEvent) {
+    if (event) {
+      event.stopImmediatePropagation();
+    }
+
+      // NEW click karte hi dropdown band
+
+    this.router.navigate(['/dashboard/organization-add'], {
+      state: { isFormOpen: true }
+    });
+  }
 // --- Lead Search Logic (FIXED) ---
 onLeadSearchInput() {
   // 'leadSearchTerm' ki jagah ab 'quotation.lead' use kar rahe hain

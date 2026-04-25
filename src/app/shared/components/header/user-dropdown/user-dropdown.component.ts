@@ -33,6 +33,7 @@ export class UserDropdownComponent implements OnInit {
     localStorage.removeItem('adminlogin');
     localStorage.removeItem('userRole');
     localStorage.removeItem('session_expiry_time');
+    localStorage.removeItem('cavalier_token');
     localStorage.removeItem('userName'); // Safai ke liye ye bhi remove kar sakte hain
     this.router.navigate(['/']);
   }

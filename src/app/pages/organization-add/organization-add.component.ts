@@ -1584,11 +1584,14 @@ getApiSuggestions(field: string, query: string) {
   });
 }
 // 👈 Ye selection function bhi add kar lena
+// 1. Suggestion select karne ka function
 selectOrgCodeSuggestion(item: any) {
-  // Database ki ID ko hi model mein daal rahe hain
-  this.searchFilters.orgCode = item.id; 
-  this.filteredOrgCodes = []; // List turant band
-  this.cdr.detectChanges();
+  // Agar aapko URL mein 'CAV/ORG/0004' bhejna hai, toh organizationId use karo
+  this.searchFilters.orgCode = item.organizationId || item.id; 
+  
+  this.filteredOrgCodes = []; 
+  this.onSearch(); // API call trigger
+  this.cdr.detectChanges();
 }
 
 // 👈 Ye function bhi add kar lena selection ke liye
@@ -1625,52 +1628,57 @@ selectCitySuggestion(item: any) {
   this.cdr.detectChanges();
 }
 onSearch() {
-  let finalFilters: any = {};
+  let finalFilters: any = {};
 
-  // 1. Payload ready karo
-  Object.entries(this.searchFilters).forEach(([key, value]) => {
-    if (value !== '' && value !== null && value !== undefined && value !== 'Any') {
-      finalFilters[key] = value;
-    }
-  });
+  Object.entries(this.searchFilters).forEach(([key, value]) => {
+    if (value !== '' && value !== null && value !== undefined && value !== 'Any') {
+      finalFilters[key] = value;
+    }
+  });
 
-  // 2. Priority Logic: Agar ID hai toh baaki filter ignore
-  if (finalFilters.orgCode) {
-    finalFilters = { id: finalFilters.orgCode };
-  }
+  if (finalFilters.orgCode) {
+    finalFilters = { id: finalFilters.orgCode };
+  }
 
-  // Check: Agar kuch bhi nahi bhara
-  if (Object.keys(finalFilters).length === 0) {
-    alert("Bhai, kam se kam ek filter to bharo!");
-    return;
-  }
+  if (Object.keys(finalFilters).length === 0) {
+    alert("Bhai, kam se kam ek filter to bharo!");
+    return;
+  }
 
-  this.http.get<any[]>(`${environment.apiUrl}/Organization/search`, { params: finalFilters })
-    .subscribe({
-      next: (response) => {
-        let resData = response || [];
+  this.http.get<any[]>(`${environment.apiUrl}/Organization/search`, { params: finalFilters })
+    .subscribe({
+      next: (response) => {
+        let resData = response || [];
 
-        // 3. Filter Logic
-        if (finalFilters.id) {
-          const searchId = finalFilters.id.toString().trim();
-          this.organizations = resData.filter(org => 
-            org.id.toString() === searchId
-          );
-        } else {
-          this.organizations = resData;
-        }
+        if (finalFilters.id) {
+          const searchVal = finalFilters.id.toString().trim();
+          
+          this.organizations = resData.filter(org => 
+            (org.id && org.id.toString() === searchVal) || 
+            (org.organizationId && org.organizationId.toString() === searchVal)
+          );
+        } 
+        // 🔥 Naya logic yahan add kiya hai:
+        else if (this.searchFilters.orgGroup) {
+          const selectedGroup = this.searchFilters.orgGroup; // 'Local' ya 'International'
+          
+          this.organizations = resData.filter(org => 
+            // Note: 'orgGroup' wo key honi chahiye jo API se aa rahi hai
+            org.orgGroup === selectedGroup || org.groupType === selectedGroup
+          );
+        }
+        else {
+          this.organizations = resData;
+        }
 
-        // 🔥 CHANGE DETECTOR: Angular ko force karo UI update karne ke liye
-        this.cdr.detectChanges(); 
-        
-        console.log("✅ Data updated on UI:", this.organizations.length, "records");
-      },
-      error: (err) => {
-        console.error("❌ Search failed:", err);
-        // Error ke waqt bhi detect changes karna safe rehta hai agar loader stop karna ho
-        this.cdr.detectChanges();
-      }
-    });
+        this.cdr.detectChanges(); 
+        console.log("✅ Data updated:", this.organizations);
+      },
+      error: (err) => {
+        console.error("❌ Search failed:", err);
+        this.cdr.detectChanges();
+      }
+    });
 }
 resetFilters() {
   this.searchFilters = {

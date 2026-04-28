@@ -85,7 +85,7 @@
     </div>
   </div>
 </div>
-        <div class="flex items-center mb-1">
+        <!-- <div class="flex items-center mb-1">
   <label class="w-28 font-bold text-gray-600">Org Type</label>
   <select [(ngModel)]="searchFilters.orgType" 
           class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
@@ -94,7 +94,7 @@
     <option value="Vendor">Vendor</option>
     <option value="Agent">Agent</option>
   </select>
-</div>
+</div> -->
         </div>
 
       <div class="space-y-2">
@@ -138,15 +138,16 @@
     
   </div>
 </div>
-<div class="flex items-center mb-1">
+<!-- <div class="flex items-center mb-1">
   <label class="w-24 font-bold text-gray-600">Org Group</label>
   <select [(ngModel)]="searchFilters.orgGroup" 
+          (change)="onSearch()" 
           class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
     <option value="">(Any Group)</option>
     <option value="Local">Local</option>
     <option value="International">International</option>
   </select>
-</div>
+</div> -->
  <div class="flex items-center mb-1">
   <label class="w-24 font-bold text-gray-600">Status</label>
   <select [(ngModel)]="searchFilters.status" 

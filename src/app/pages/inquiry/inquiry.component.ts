@@ -1467,71 +1467,74 @@ onSearch() {
   if (filtersToSend.salesCoordinator === 'null' || !filtersToSend.salesCoordinator) {
     filtersToSend.salesCoordinator = ""; 
   }
-  if (filtersToSend.branchName === 'null' || !filtersToSend.branchName) {
+
+  // 🔥 BRANCH LOGIC: Agar branch modal se selected hai toh wahi bhejni hai
+  // Agar branchName null ya empty hai toh "" bhej rahe hain
+  if (this.branchSearchText && this.branchSearchText !== "") {
+    filtersToSend.branchName = this.branchSearchText;
+  } else if (filtersToSend.branchName === 'null' || !filtersToSend.branchName) {
     filtersToSend.branchName = "";
   }
 
   // 2. First API Call (Strict Search)
+  const token = localStorage.getItem('cavalier_token');
 
+  const httpOptions = {
+    headers: new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    })
+  };
 
-const token = localStorage.getItem('cavalier_token');
+  this.http.post<any[]>(`${environment.apiUrl}/Inquiry/Search`, filtersToSend, httpOptions)
+    .subscribe({
+      next: (response) => {
+        if (response && response.length > 0) {
+          // Case 1: Exact data mil gaya
+          this.quotations = response;
+          console.log("Strict Search Result with Branch:", response);
+          this.cdr.detectChanges();
+        } 
+        else if (filtersToSend.inquiryNo) {
+          console.log("No exact match, trying with Inquiry No only...");
+          
+          const fallbackFilters = { inquiryNo: filtersToSend.inquiryNo };
 
-const httpOptions = {
-  headers: new HttpHeaders({
-    Authorization: `Bearer ${token}`,
-    'Content-Type': 'application/json'
-  })
-};
+          // ✅ FALLBACK API CALL
+          this.http.post<any[]>(`${environment.apiUrl}/Inquiry/Search`, fallbackFilters, httpOptions)
+            .subscribe({
+              next: (fallbackRes) => {
+                this.quotations = fallbackRes;
 
-this.http.post<any[]>(`${environment.apiUrl}/Inquiry/Search`, filtersToSend, httpOptions)
-  .subscribe({
-    next: (response) => {
-      if (response && response.length > 0) {
-        // Case 1: Exact data mil gaya
-        this.quotations = response;
-        console.log("Strict Search Result:", response);
-        this.cdr.detectChanges();
-      } 
-      else if (filtersToSend.inquiryNo) {
-        console.log("No exact match, trying with Inquiry No only...");
-        
-        const fallbackFilters = { inquiryNo: filtersToSend.inquiryNo };
+                if (fallbackRes.length > 0) {
+                  console.log("Match found with Inquiry No fallback!");
+                }
 
-        // ✅ YAHAN BHI TOKEN LAGANA HAI
-        this.http.post<any[]>(`${environment.apiUrl}/Inquiry/Search`, fallbackFilters, httpOptions)
-          .subscribe({
-            next: (fallbackRes) => {
-              this.quotations = fallbackRes;
-
-              if (fallbackRes.length > 0) {
-                console.log("Match found with Inquiry No fallback!");
+                this.cdr.detectChanges();
+              },
+              error: () => {
+                this.quotations = [];
+                this.cdr.detectChanges();
               }
+            });
+        } 
+        else {
+          this.quotations = [];
+          this.cdr.detectChanges();
+        }
+      },
+      error: (err) => {
+        console.error("Search failed:", err);
 
-              this.cdr.detectChanges();
-            },
-            error: () => {
-              this.quotations = [];
-              this.cdr.detectChanges();
-            }
-          });
-      } 
-      else {
-        this.quotations = [];
+        if (err.status === 401) {
+          alert("Unauthorized! Token expired, login again.");
+        } else {
+          alert("Server error while searching!");
+        }
+
         this.cdr.detectChanges();
       }
-    },
-    error: (err) => {
-      console.error("Search failed:", err);
-
-      if (err.status === 401) {
-        alert("Unauthorized! Token expired, login again.");
-      } else {
-        alert("Server error while searching!");
-      }
-
-      this.cdr.detectChanges();
-    }
-  });
+    });
 }
 // --- Variables ---
 isExportOpen = false;

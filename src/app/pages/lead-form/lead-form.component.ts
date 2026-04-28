@@ -638,6 +638,7 @@ onLeadNoSearch(event: Event): void {
 
   // leads array mein se search karo
   this.filteredLeads = this.leads.filter(lead =>
+    
     lead.leadNo.toLowerCase().includes(value)
   );
 }
@@ -994,16 +995,17 @@ filterTableBySalesProcess(process: string) {
 // Component ke upar define karein
 // Search Filters ka main object
 leadSearchFilters = {
-  date: null,
+  date: "",
   organizationName: '',
   type: 'Any',
   leadNo: '',
   salesProcess: '',
   salesStage: '',
-  leadOwner: 'Any',
-  hod:'',
-  team:'',
+  branch: '',
+  leadOwner: 'Any',hod: '',
+  team: '',
   reportingManager: '',
+  status: 'Any'
 
 };
 // Dropdown lists for suggestions
@@ -1065,19 +1067,22 @@ setLeadQuickDate(type: string) {
     default: targetDate = today; // Today
   }
 
-  // Formatting to YYYY-MM-DD
   const year = targetDate.getFullYear();
   const month = String(targetDate.getMonth() + 1).padStart(2, '0');
   const day = String(targetDate.getDate()).padStart(2, '0');
   const formattedDate = `${year}-${month}-${day}`;
 
-  // Aapke leadForm mein value patch karega
-  this.leadForm.patchValue({
-    date: formattedDate
-  });
+  // 1. Form mein value set karo
+  this.leadForm.patchValue({ date: formattedDate });
 
-  this.showCustomPicker = false; // Menu band
-  this.cdr.detectChanges();      // UI refresh
+  // 2. 🔥 Filters object ko bhi update karo taaki search function ise utha sake
+  this.leadSearchFilters.date = formattedDate;
+
+  this.showCustomPicker = false; 
+  this.cdr.detectChanges();      
+
+  // 3. 🔥 Click karte hi search trigger karo
+  this.onLeadSearch();
 }
 
 
@@ -1244,65 +1249,90 @@ selectStatus(status: string): void {
 }
 // 2. Main Search Button Function
 onLeadSearch() {
+  // 1. Pehle search Input lo
   const searchInput = this.leadSearchFilters.leadNo?.toString().trim();
+  
+  // 2. Date ko Form se uthao
+  let searchDate = this.leadForm.get('date')?.value || this.leadSearchFilters.date || ""; 
+
+  // --- 🔥 Logic: Agar Date "Aaj" ki hai, toh use empty kar do ---
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  const todayFormatted = `${year}-${month}-${day}`; 
+
+  if (searchDate === todayFormatted) {
+    console.log("📅 Today's date detected, sending empty to show all data.");
+    searchDate = ""; 
+  }
+
   let filtersToSend: any = {};
 
-  // 🔥 MAGIC LOGIC: Agar Lead No likha hai, toh baaki filters ko saaf kar do
   if (searchInput && searchInput !== "") {
-    // Sirf Lead No bhejo (PascalCase mein taaki Backend accept kare)
+    // 🎯 Priority Search: Agar LeadNo hai toh baaki sab empty
     filtersToSend = {
       LeadNo: searchInput,
       OrganizationName: '',
       Type: '',
       LeadOwner: '',
       SalesStage: '',
-      SalesProcess: ''
+      SalesProcess: '',
+      HOD: '',
+      Team: '',
+      Branch: '', // 🔥 Added
+      ReportingManager: '',
+      Status: '',
+      Date: '' 
     };
     console.log("🎯 Hard Searching for Lead No only:", searchInput);
   } else {
-    // Agar Lead No khali hai, tab normal filters chalne do
+    // 🔍 Multi-Filter Search
     filtersToSend = {
       LeadNo: '',
       OrganizationName: this.leadSearchFilters.organizationName || "",
       Type: this.leadSearchFilters.type === 'Any' ? "" : this.leadSearchFilters.type,
       LeadOwner: this.leadSearchFilters.leadOwner === 'Any' ? "" : this.leadSearchFilters.leadOwner,
       SalesStage: this.leadSearchFilters.salesStage || "",
-      SalesProcess: this.leadSearchFilters.salesProcess || ""
+      SalesProcess: this.leadSearchFilters.salesProcess || "",
+      HOD: this.leadSearchFilters.hod || "",
+      Team: this.leadSearchFilters.team || "",
+      Branch: this.leadSearchFilters.branch || "", // 🔥 Branch Filter Added
+      ReportingManager: this.leadSearchFilters.reportingManager || "",
+      Status: this.leadSearchFilters.status === 'Any' ? "" : this.leadSearchFilters.status,
+      Date: searchDate 
     };
-    console.log("🔍 Normal Filter Search Triggered");
+    console.log("🔍 Normal Filter Search Triggered with Branch:", this.leadSearchFilters.branch);
   }
 
-  // API Call (Make sure environment.apiUrl correct ho)
+  // --- API Call ---
   this.http.post<any[]>(`${environment.apiUrl}/Leads/Search`, filtersToSend)
     .subscribe({
       next: (response) => {
-        let results = response || [];
-
-        // 🎯 Sorting: Match milte hi Index 0 (Top) par!
+        let results = response ? [...response] : [];
+        
+        // Sorting logic
         if (searchInput && results.length > 0) {
-          results.sort((a, b) => {
-            // Backend se LeadNo ya leadNo jo bhi aaye handle karein
+          results.sort((a: any, b: any) => {
             const valA = (a.leadNo || a.LeadNo || "").toString().trim();
             const valB = (b.leadNo || b.LeadNo || "").toString().trim();
-
-            if (valA === searchInput) return -1; // Exact match top par
+            if (valA === searchInput) return -1;
             if (valB === searchInput) return 1;
             return 0;
           });
         }
-
-        this.leads = [...results];
-        this.cdr.detectChanges();
         
-        console.log("✅ Data on table:", this.leads);
-
+        this.leads = results;
+        this.paginatedLeads = [...results]; 
+        setTimeout(() => { this.cdr.detectChanges(); }, 0);
+        
         if (this.leads.length === 0) {
           alert("No data found In db.");
         }
       },
       error: (err) => {
         console.error("❌ API Error:", err);
-        alert("Search failed! Check if API is running.");
+        alert("Search failed!");
       }
     });
 }
@@ -1364,7 +1394,7 @@ selectLeadSalesStage(stage: string): void {
 resetLeadFilters() {
   this.leadSearchFilters = {
     leadNo: '',
-    date: null,
+    date: "",
     organizationName: '',
     type: 'Any',
     leadOwner: 'Any',
@@ -1372,7 +1402,9 @@ resetLeadFilters() {
     salesStage: '',
     hod:'',
     team:'',
-    reportingManager:''
+    reportingManager:'',
+    status:'Any',
+    branch:''
   };
 
   const resetPayload = {
@@ -1648,7 +1680,7 @@ private hodIconSub?: Subscription;
 
 // 1. 🔍 Icon par click karne wala logic
 oniconHODSearch() {
-  // 1. Toggle Close Logic (Single Click Close)
+  // 1. Toggle Close Logic
   if (this.iconHODList && this.iconHODList.length > 0) {
     this.iconHODList = [];
     this.cdr.detectChanges(); 
@@ -1657,25 +1689,36 @@ oniconHODSearch() {
 
   this.hodIconSub?.unsubscribe();
 
-  // API Call se pehle Loader ya initial check ke liye detectChanges call karo
+  // 2. Token nikaalein (Vahi key use karein jo login pe set ki thi)
+  const token = localStorage.getItem('cavalier_token'); 
+
+  // 3. Authorization Header banayein
+  const headers = {
+    'Authorization': `Bearer ${token}`
+  };
+
   this.cdr.detectChanges(); 
 
-  this.hodIconSub = this.http.get<any[]>(`${environment.apiUrl}/Hod`).subscribe({
+  // 4. API call mein headers object pass karein
+  this.hodIconSub = this.http.get<any[]>(`${environment.apiUrl}/Leads`, { headers }).subscribe({
     next: (res) => {
       if (res && res.length > 0) {
-        const uniqueHODs = [...new Set(res.map(item => item.name || item.hodName || item))]
+        // HOD property ka naam check kar lena (item.hod ya item.hodName)
+        const uniqueHODs = [...new Set(res.map(item => item.hod || item.hodName || item.name || item))]
           .filter(name => name && typeof name === 'string' && name.trim() !== "");
 
-        // Data assign karne ke turant baad detectChanges()
         this.iconHODList = uniqueHODs;
         
-        // Sabse important line: Isse Angular ko pata chalega ki Modal render karna hai
         this.cdr.markForCheck(); 
         this.cdr.detectChanges(); 
       }
     },
     error: (err) => {
       console.error("HOD API Error:", err);
+      // Agar 401 aaye matlab token expire ho gaya hai
+      if (err.status === 401) {
+        console.warn("Unauthorized! Token invalid or expired.");
+      }
       this.iconHODList = [];
       this.cdr.detectChanges();
     }
@@ -1697,7 +1740,7 @@ private loIconSub?: Subscription;
 
 // 1. UNIQUE Function name: onLeadOwnerIconClick
 onLeadOwnerIconClick() {
-  // Toggle Logic
+  // 1. Toggle Logic
   if (this.loIconList.length > 0) {
     this.loIconList = [];
     this.cdr.detectChanges(); 
@@ -1706,24 +1749,34 @@ onLeadOwnerIconClick() {
 
   this.loIconSub?.unsubscribe();
 
-  // Loader state ke liye trigger
+  // 2. LocalStorage se token nikaalein
+  const token = localStorage.getItem('cavalier_token'); 
+
+  // 3. Headers taiyar karein
+  const headers = {
+    'Authorization': `Bearer ${token}`
+  };
+
   this.cdr.detectChanges(); 
 
-  this.loIconSub = this.http.get<any[]>(`${environment.apiUrl}/LeadOwners`).subscribe({
+  // 4. API call mein headers pass karein
+  this.loIconSub = this.http.get<any[]>(`${environment.apiUrl}/Leads`, { headers }).subscribe({
     next: (res) => {
       if (res && res.length > 0) {
-        const uniqueOwners = [...new Set(res.map(item => item.name || item.fullName || item.leadOwner || item))]
+        const uniqueOwners = [...new Set(res.map(item => item.name || item.firstName || item.leadOwner || item))]
           .filter(name => name && typeof name === 'string' && name.trim() !== "");
 
         this.loIconList = uniqueOwners;
 
-        // Forced Update: Isse popup turant dikhega
         this.cdr.markForCheck();
         this.cdr.detectChanges();
       }
     },
     error: (err) => {
       console.error("Lead Owner API Error:", err);
+      if(err.status === 401) {
+        alert("Session expired! Please login again.");
+      }
       this.loIconList = [];
       this.cdr.detectChanges();
     }
@@ -1773,7 +1826,7 @@ onLeadNoIconClick() {
   });
 
   // 3. API Call
-  this.loIconSub = this.http.get<any[]>(`${environment.apiUrl}/Inquiry`, { headers }).subscribe({
+  this.loIconSub = this.http.get<any[]>(`${environment.apiUrl}/Leads`, { headers }).subscribe({
     next: (res) => {
       if (res && res.length > 0) {
         // Unique Inquiry/Lead Numbers nikalna
@@ -1862,7 +1915,7 @@ private rmIconSub?: Subscription;
 
 // 1. UNIQUE Function: onManagerIconClick
 onManagerIconClick() {
-  // Toggle Logic: Agar list pehle se khuli hai toh band kar do
+  // 1. Toggle Logic
   if (this.rmIconList.length > 0) {
     this.rmIconList = [];
     this.cdr.detectChanges();
@@ -1871,29 +1924,43 @@ onManagerIconClick() {
 
   this.rmIconSub?.unsubscribe();
 
-  // API Call to /ReportingManagers
-  this.rmIconSub = this.http.get<any[]>(`${environment.apiUrl}/ReportingManagers`).subscribe({
+  // 2. Token nikaalein (Ensure karein ki key 'cavalier_token' hi hai)
+  const token = localStorage.getItem('cavalier_token');
+
+  // 3. Authorization Header banayein
+  const headers = {
+    'Authorization': `Bearer ${token}`
+  };
+
+  // Loader state ya change detection trigger karein
+  this.cdr.detectChanges();
+
+  // 4. API call mein headers pass karein
+  this.rmIconSub = this.http.get<any[]>(`${environment.apiUrl}/Leads`, { headers }).subscribe({
     next: (res) => {
       if (res && res.length > 0) {
-        // Unique Managers nikalna (Check property: name, managerName ya direct string)
-        const uniqueManagers = [...new Set(res.map(item => item.name || item.managerName || item))]
+        // Unique Managers nikalna
+        // Property name 'reportingManager' check kar lena jo API se aa raha ho
+        const uniqueManagers = [...new Set(res.map(item => item.reportingManager))]
           .filter(val => val && typeof val === 'string' && val.trim() !== "");
 
         this.rmIconList = uniqueManagers;
 
-        // Force UI update for instant popup
-        setTimeout(() => {
-          this.cdr.detectChanges();
-        }, 0);
+        // Force UI update
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       }
     },
     error: (err) => {
       console.error("Manager API Error:", err);
+      if (err.status === 401) {
+        console.warn("Unauthorized: Token expire ho gaya hai.");
+      }
       this.rmIconList = [];
       this.cdr.detectChanges();
     }
   });
-}
+}    
 
 // 2. UNIQUE Selection function: selectRmFromIcon
 selectRmFromIcon(manager: string) {
@@ -2056,35 +2123,58 @@ branchList: any[] = [];
   }
 
   // Baki logic (Search, Toggle, Confirm) wahi rahega jo pehle tha...
-  onBranchSearch() {
-    const search = this.branchSearchText.toLowerCase().trim();
-    this.filteredBranchSuggestions = this.branchList.filter(b => 
-      b.branchName?.toLowerCase().includes(search)
-    );
+onBranchSearch() {
+  const search = this.branchSearchText.toLowerCase().trim();
+
+  // 🔥 Agar user text clear kar de, toh filter bhi clear ho jaye
+  if (!search) {
+    this.leadSearchFilters.branch = '';
   }
 
+  this.filteredBranchSuggestions = this.branchList.filter(b => 
+    b.branchName?.toLowerCase().includes(search)
+  );
+}
   toggleBranchModal() { this.isBranchModalOpen = !this.isBranchModalOpen; }
   toggleBranchSelection(branch: any) { branch.isSelected = !branch.isSelected; }
   
-  confirmSelection() {
-    this.isBranchModalOpen = false;
-    const selected = this.branchList.filter(b => b.isSelected);
-    console.log("Final Selected Branches:", selected);
+confirmSelection() {
+  this.isBranchModalOpen = false;
+  
+  // 1. Saari branches aur selected branches ka count lo
+  const totalBranches = this.branchList.length;
+  const selected = this.branchList.filter(b => b.isSelected);
+  const selectedCount = selected.length;
+
+  // 2. Logic: Agar saari select hain ya ek bhi select nahi hai, toh Branch empty bhejo (Show All)
+  if (selectedCount === totalBranches || selectedCount === 0) {
+    this.leadSearchFilters.branch = ""; 
+    this.branchSearchText = ""; // Ya "All Branches" likh sakte ho
+  } else {
+    // Specific branches selected hain
+    this.leadSearchFilters.branch = selected.map(b => b.branchName).join(', ');
+    this.branchSearchText = this.leadSearchFilters.branch;
   }
-  selectBranchFromDropdown(branch: any) {
+
+  console.log("Payload Branch Value:", this.leadSearchFilters.branch);
+  this.onLeadSearch();
+}
+
+selectBranchFromDropdown(branch: any) {
   // Input field mein naam set kar do
   this.branchSearchText = branch.branchName;
   
   // Is branch ko toggle/select karo (jaise modal karta hai)
   this.toggleBranchSelection(branch);
   
+  // 🔥 Payload ke liye single selection set karna
+  this.leadSearchFilters.branch = branch.branchName;
+
   // Selection ke baad dropdown ko hide karne ke liye
-  // Aap filter list ko reset ya text clear logic handle kar sakte hain
-  // Filhal length 0 kar dete hain taaki dropdown chala jaye
   this.filteredBranchSuggestions = []; 
   
-  // Reset search text if you want it to behave like a picker
-  // this.branchSearchText = ''; 
+  // 🔥 Search trigger karo
+  this.onLeadSearch();
 }
   // Naye variables
 showRowModal = false;

@@ -15,6 +15,7 @@ import { employeeSchema } from './employee.schema';
   templateUrl: './user-form.component.html'
 })
 export class UserFormComponent implements OnInit {
+  employeeData: any;
   userlist:any=[];
   todayDate: string = new Date().toISOString().split('T')[0];
   permissions: any[] = [];
@@ -57,6 +58,10 @@ export class UserFormComponent implements OnInit {
   }
 
 ngOnInit(): void {
+  this.employeeData = history.state.employeeData;
+    
+    // Log it to the console
+    console.log('Employee Data received:', this.employeeData);
   this.getuser();
   console.log('this is userlist',this.userlist);
     this.userService.getDepartments().subscribe(res => this.departments = res);
@@ -579,7 +584,7 @@ async saveEducation(userId: any) {
 
   onCancel() {
     this.router.navigate([
-      this.isBranchForm ? '/dashboard/branch' : '/dashboard/hr/employee-master'
+      this.isBranchForm ? '/dashboard/branch' : '/dashboard/Employee'
     ]);
   }
 //   saveEducation() {

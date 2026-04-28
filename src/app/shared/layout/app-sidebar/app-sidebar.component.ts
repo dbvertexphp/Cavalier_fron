@@ -33,6 +33,7 @@ type NavItem = {
   templateUrl: './app-sidebar.component.html',
 })
 export class AppSidebarComponent implements OnInit, OnDestroy {
+  isMasterRole: boolean = false;
   branches: any[] = [];
   showBranchPopup = false;
   loadings: boolean = true;
@@ -66,6 +67,7 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
 branchId:number | null = null;
 
   ngOnInit() {
+    this.checkUserRole();
     this.CheckPermissionService.loadPermissions().subscribe((perm:any)=>{
 
     console.log("Permissions:",perm);
@@ -120,7 +122,20 @@ loadBranches() {
         }
       });
   }
-
+checkUserRole() {
+    // 1. LocalStorage se token get karo (agar key ka naam kuch aur hai, toh change kar lena)
+    const token = localStorage.getItem('cavalier_token'); 
+    
+    if (token) {
+      const userRole= localStorage.getItem('userRole'); // Assuming you store user role in localStorage
+      if (userRole === 'Master') {
+        this.isMasterRole = true;
+      }
+      else{
+        this.isMasterRole = false;
+      }
+    }
+  }
   toggleBranchPopup() {
     this.showBranchPopup = !this.showBranchPopup;
   }

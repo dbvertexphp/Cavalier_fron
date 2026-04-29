@@ -39,7 +39,8 @@ export class QuotationFormComponent implements OnInit {
   isFormOpen = false;
   transportModes: any[] = [];
    movementTypes: any[] = [];
-  isPickupEnabled: boolean = false; 
+  isPickupEnabled: boolean = false;
+  selectedBranchIds: number[] = []; 
  private apiEndpoint = `${environment.apiUrl}/Quotations`;
 // -- Dropdown Control Variables --
 companyServices:any[]=[]
@@ -1337,7 +1338,15 @@ lineOfBusinessList: string[] = [];
 filteredLOBs: string[] = []; // Ye UI mein dikhega
 
 loadSearchSuggestions() {
-  this.http.get<any[]>(`${environment.apiUrl}/Quotations`)
+  // --- Authorization Logic Start ---
+  const token = localStorage.getItem('cavalier_token');
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  });
+  // --- Authorization Logic End ---
+
+  this.http.get<any[]>(`${environment.apiUrl}/Quotations`, { headers })
     .subscribe({
       next: (data) => {
         if (Array.isArray(data)) {
@@ -1424,15 +1433,32 @@ onQuotedByType() {
   } 
 }
 onSearch() {
-  let filtersToSend: any = { ...this.searchFilters };
+  // --- Authorization Logic Start ---
+  const token = localStorage.getItem('cavalier_token');
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  });
+  // --- Authorization Logic End ---
+
+  // 🔥 Selected Branches collect karo backend ke liye
+  this.selectedBranchIds = this.branchList
+    .filter(b => b.isSelected)
+    .map(b => b.id || b.branchId);
+
+  let filtersToSend: any = { 
+    ...this.searchFilters,
+    selectedBranchIds: this.selectedBranchIds // Branch IDs add kar di
+  };
 
   // 🔥 MAGIC LOGIC: Agar Quotation No likha hai, toh baaki filters ko saaf kar do
   const searchInput = this.searchFilters.quotationNo?.toString().trim();
 
   if (searchInput && searchInput !== "") {
-    // Sirf Quotation No bhejo, baaki sab empty taaki backend sirf isse search kare
+    // Sirf Quotation No aur Selected Branches bhejo
     filtersToSend = {
       quotationNo: searchInput,
+      selectedBranchIds: this.selectedBranchIds, // Branch filter yahan bhi rahega
       lineOfBusiness: '',
       organization: '',
       salesCoor: '',
@@ -1441,7 +1467,7 @@ onSearch() {
       showMode: '',
       status: ''
     };
-    console.log("🎯 Hard Searching for Quotation No only:", searchInput);
+    console.log("🎯 Hard Searching for Quotation No only (with branches):", searchInput);
   } else {
     // Agar Quo No khali hai, tab normal filters chalne do
     filtersToSend.salesCoor = this.searchFilters.quotedBy || "";
@@ -1452,7 +1478,8 @@ onSearch() {
     if (!filtersToSend.validFrom) filtersToSend.validFrom = null;
   }
 
-  this.http.post<any[]>(`${this.apiEndpoint}/Search`, filtersToSend)
+  // Yahan headers pass kar diye hain
+  this.http.post<any[]>(`${this.apiEndpoint}/Search`, filtersToSend, { headers })
     .subscribe({
       next: (response) => {
         // Agar data aaya, toh wahi dikhao
@@ -1468,7 +1495,7 @@ onSearch() {
         }
 
         this.cdr.detectChanges();
-        console.log("✅ Data on table:", this.quotations);
+        console.log("✅ Data on table filtered by branches:", this.quotations);
       },
       error: (err) => {
         console.error("❌ API Error:", err);
@@ -1870,27 +1897,46 @@ this.searchFilters.validFrom = formattedDate as any;
 
   // 1. Icon click par popup toggle (Same Logic + CDR)
   togglePopup() {
-    if (this.showPopup) {
-      this.showPopup = false;
-      this.cdr.detectChanges(); // UI update for closing
-    } else {
-      // Purani subscription agar koi pending ho toh cancel kar dein
-      this.quotationSub?.unsubscribe();
+  if (this.showPopup) {
+    this.showPopup = false;
+    this.cdr.detectChanges(); // UI update for closing
+  } else {
+    // Purani subscription agar koi pending ho toh cancel kar dein
+    this.quotationSub?.unsubscribe();
 
-      this.quotationSub = this.http.get<any[]>(`${environment.apiUrl}/Quotations`).subscribe({
-        next: (res) => {
-          this.allQuotationNos = res.map(q => q.quotationNo);
-          this.showPopup = true;
-          // CDR: Data aate hi UI ko force update karega
-          this.cdr.detectChanges(); 
-        },
-        error: (err) => {
-          console.error("Error fetching all quotations", err);
-          this.cdr.detectChanges();
-        }
-      });
-    }
+    // --- Authorization Logic Start ---
+    const token = localStorage.getItem('cavalier_token');
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+    // --- Authorization Logic End ---
+
+    // Headers ko request mein add kiya
+    this.quotationSub = this.http.get<any[]>(`${environment.apiUrl}/Quotations`, { headers }).subscribe({
+      next: (res) => {
+        console.log("✅ Quotation API Response:", res);
+
+        // Map karke sirf quotationNo nikalna aur kachra (null/objects) saaf karna
+        this.allQuotationNos = res
+          .map(q => q.quotationNo)
+          .filter(val => val && typeof val !== 'object' && val.toString() !== '[object Object]');
+
+        // Unique values rakhne ke liye (Duplicate hatane ke liye)
+        this.allQuotationNos = [...new Set(this.allQuotationNos)];
+
+        this.showPopup = true;
+        
+        // CDR: Data aate hi UI ko force update karega
+        this.cdr.detectChanges(); 
+      },
+      error: (err) => {
+        console.error("❌ Error fetching all quotations", err);
+        this.cdr.detectChanges();
+      }
+    });
   }
+}
 
   // 2. Popup se select karne par (Same Logic + CDR)
   selectFromPopup(val: string) {
@@ -1921,16 +1967,39 @@ toggleLOBPopup() {
   } else {
     this.lobSub?.unsubscribe();
 
-    // Maan lete hain endpoint /LinesOfBusiness hai (ya jo bhi aapka correct endpoint ho)
-    this.lobSub = this.http.get<any[]>(`${environment.apiUrl}/Quotations`).subscribe({
+    const token = localStorage.getItem('cavalier_token');
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+
+    this.lobSub = this.http.get<any[]>(`${environment.apiUrl}/Quotations`, { headers }).subscribe({
       next: (res) => {
-        // Response se string array nikalna
-        this.allLOBs = res.map(item => item.name || item.lineOfBusiness || item); 
+        console.log("✅ Raw Data Check:", res);
+
+        // 1. Pehle data extract karo aur check karo ki null/object toh nahi aa raha
+        const cleanedList = res.map(item => {
+          // Agar item khud object hai, toh uska lob nikaalo
+          const lobValue = item?.lineOfBusiness || item?.name;
+          
+          // Agar lobValue fir bhi object hai ya null hai, toh string "N/A" ya empty do
+          if (typeof lobValue === 'object' || !lobValue) {
+            return null; 
+          }
+          return lobValue.toString().trim();
+        });
+
+        // 2. 🔥 MAGIC FILTER: Null values ko hatao, duplicates hatao aur sirf asli string rakho
+        this.allLOBs = [...new Set(cleanedList)]
+          .filter(val => val !== null && val !== '' && val !== '[object Object]');
+
+        console.log("📂 Final Cleaned LOBs:", this.allLOBs);
+
         this.showLOBPopup = true;
         this.cdr.detectChanges(); 
       },
       error: (err) => {
-        console.error("Error fetching LOBs", err);
+        console.error("❌ Error:", err);
         this.cdr.detectChanges();
       }
     });
@@ -1958,16 +2027,37 @@ toggleQuotedByPopup() {
   } else {
     this.quotedBySub?.unsubscribe();
 
-    // API Call (Maan lete hain endpoint /SalesCoordinators hai, aap apna endpoint check kar lena)
-    this.quotedBySub = this.http.get<any[]>(`${environment.apiUrl}/Quotations`).subscribe({
+    // --- Authorization Logic Start ---
+    const token = localStorage.getItem('cavalier_token');
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+    // --- Authorization Logic End ---
+
+    // API Call mein headers pass kar diye hain
+    this.quotedBySub = this.http.get<any[]>(`${environment.apiUrl}/Quotations`, { headers }).subscribe({
       next: (res) => {
-        // API response se sales coordinator ka naam nikal rahe hain
-        this.allSalesCoors = res.map(item => item.salesCoor || item.userName || item); 
+        console.log("✅ QuotedBy API Response:", res);
+
+        // 1. Map karke names nikalna aur null/object values ko filter karna
+        const cleanedCoors = res.map(item => {
+          const val = item.salesCoor || item.userName || item;
+          // Agar value khud ek object hai toh use ignore kar dena
+          return (val && typeof val !== 'object') ? val.toString().trim() : null;
+        });
+
+        // 2. Duplicates hatana aur "[object Object]" wali galti ko saaf karna
+        this.allSalesCoors = [...new Set(cleanedCoors)]
+          .filter(val => val !== null && val !== '' && val !== '[object Object]');
+
+        console.log("📂 Final SalesCoors List:", this.allSalesCoors);
+
         this.showQuotedByPopup = true;
         this.cdr.detectChanges(); // UI Update
       },
       error: (err) => {
-        console.error("Error fetching SalesCoors", err);
+        console.error("❌ Error fetching SalesCoors", err);
         this.cdr.detectChanges();
       }
     });
@@ -2090,25 +2180,33 @@ getIncoTerms() {
   toggleBranchModal() { this.isBranchModalOpen = !this.isBranchModalOpen; }
   toggleBranchSelection(branch: any) { branch.isSelected = !branch.isSelected; }
   
-  confirmSelection() {
-    this.isBranchModalOpen = false;
-    const selected = this.branchList.filter(b => b.isSelected);
-    console.log("Final Selected Branches:", selected);
+ confirmSelection() {
+  this.isBranchModalOpen = false;
+
+  // 1. Pehle selected branches ki list nikaalo
+  const selected = this.branchList.filter(b => b.isSelected);
+  console.log("Final Selected Branches:", selected);
+
+  // 2. 🔥 Input field (branchSearchText) mein saare selected names comma se join karke daal do
+  if (selected.length > 0) {
+    this.branchSearchText = selected.map(b => b.branchName).join(', ');
+  } else {
+    this.branchSearchText = '';
   }
-  selectBranchFromDropdown(branch: any) {
-  // Input field mein naam set kar do
-  this.branchSearchText = branch.branchName;
+
+  // 3. Search function call karo (Jo humne pehle update kiya tha payload ke liye)
+  this.onSearch(); 
+}
+
+selectBranchFromDropdown(branch: any) {
+  // 1. Is branch ko select mark karo (agar pehle se nahi hai)
+  branch.isSelected = true;
   
-  // Is branch ko toggle/select karo (jaise modal karta hai)
-  this.toggleBranchSelection(branch);
-  
-  // Selection ke baad dropdown ko hide karne ke liye
-  // Aap filter list ko reset ya text clear logic handle kar sakte hain
-  // Filhal length 0 kar dete hain taaki dropdown chala jaye
+  // 2. Dropdown ko hide karne ke liye list clear karo
   this.filteredBranchSuggestions = []; 
-  
-  // Reset search text if you want it to behave like a picker
-  // this.branchSearchText = ''; 
+
+  // 3. Confirm selection wala logic chala do taaki input box update ho jaye aur search ho jaye
+  this.confirmSelection();
 }
 showRowModal = false;
 selectedQuotationId: any = null;

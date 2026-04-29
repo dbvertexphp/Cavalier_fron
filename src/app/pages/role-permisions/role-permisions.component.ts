@@ -194,6 +194,7 @@ export class RolePermisionsComponent implements OnInit {
 
     if (roleId === null || roleId === undefined || roleId === 'null' || roleId === '') {
       this.branchRoles[branchId] = null;
+      this.selectedRole = null;
       this.resetPermissionsUI();
       return;
     }
@@ -203,6 +204,7 @@ export class RolePermisionsComponent implements OnInit {
 
     // 🔥 MAIN FIX: Yahan exact branch ID pe role ID save ho rahi hai
     this.branchRoles[branchId] = numericRoleId;
+    this.selectedRole = numericRoleId;
     
    
 
@@ -408,10 +410,14 @@ export class RolePermisionsComponent implements OnInit {
     });
 
     const finalPayloadIds = [...new Set(cleanIds)];
+    let finalRoleId = this.selectedRole; 
+  if (this.selectedBranchPermission && this.branchRoles[this.selectedBranchPermission.id]) {
+     finalRoleId = this.branchRoles[this.selectedBranchPermission.id];
+  }
 
     const rolePayload = {
       userId: this.userId,
-      roleId: this.selectedRole,
+      roleId: finalRoleId,
       password: this.selectedEmployeePassword || null,
       isAuthenticated: true,
       isActive: this.isAccountActive,

@@ -77,6 +77,7 @@ loadUsers(userType: string = 'all') {
 
   // ✅ Updated to accept a specific user object from the table
   modifyUser(user?: any) {
+    console.log(user);
     if (user) {
       // Pura user object 'state' mein bhej rahe hain
       this.router.navigate(['/dashboard/register-user'], { 

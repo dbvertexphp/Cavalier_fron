@@ -304,9 +304,21 @@ actionChange(permissionId: number, action: string, event: any) {
   }
 
   editEmployee(emp: Employee): void {
-    this.router.navigate(['/dashboard/register-user'], { 
-      state: { employeeData: emp } 
-    });
+    console.log('this is all data',emp);
+     if (emp) {
+      // Pura user object 'state' mein bhej rahe hain
+      this.router.navigate(['/dashboard/register-user'], { 
+        state: { 
+          data: emp, 
+          isEdit: true 
+        } 
+      });
+    } else {
+      alert("Please select a user from the table to modify.");
+    }
+
+    // Original logic kept for compatibility
+   
   }
 
   openRoleModal(emp: Employee): void {

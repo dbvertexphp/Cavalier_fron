@@ -2,7 +2,7 @@ import { Permission } from './../employee/employee.component';
 import { ChangeDetectorRef, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { HttpClient, HttpClientModule } from '@angular/common/http'; 
+import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http'; 
 import { environment } from '../../../environments/environment';
 import { any } from '@amcharts/amcharts5/.internal/core/util/Array';
 import { Router } from '@angular/router';
@@ -2297,72 +2297,135 @@ onDefaultChange(currentIndex: number) {
     // this.selectedBranchIndex = 0;
   }
   this.cdr.detectChanges();
-}
-
-// branchList: any[] = [];           
-  filteredBranchSuggestions: any[] = []; 
+}// Variables 
+  // branchList: any[] = [];           
+ filteredBranchSuggestions: any[] = []; 
   isBranchModalOpen: boolean = false;
   branchSearchText: string = '';
+  loading: boolean = false;
+  showOrgModal: boolean = false;
+  selectedOrgData: any = null;
+
+  // 1. Load Branches from API
   loadBranchess() {
-    // Yahan apna pura URL direct daal do (Environment se ya hardcoded check karne ke liye)
-  const fullUrl = `${environment.apiUrl}/branch/list`;// <-- BHAI YAHAN APNA PURA URL DAAL DE
+    const fullUrl = `${environment.apiUrl}/branch/list`;
+    console.log("🚀 Loading branches from:", fullUrl);
 
     this.http.get(fullUrl).subscribe({
       next: (res: any) => {
-        console.log("API Success Response:", res);
-
-        // API response format handle karna
         const data = Array.isArray(res) ? res : (res.data || res.result || []);
-        
-        // this.branchList = data.map((b: any) => ({ 
-        //   ...b, 
-        //   isSelected: false 
-        // }));
-
-        // this.filteredBranchSuggestions = [...this.branchList];
+        this.branchList = data.map((b: any) => ({ 
+          ...b, 
+          isSelected: false 
+        }));
+        this.filteredBranchSuggestions = [...this.branchList];
+        console.log("✅ Branches Loaded Successfully:", this.branchList);
       },
-      error: (err) => {
-        console.error("Direct Call Failed! Error details:", err);
-      }
+      error: (err) => console.error("❌ Branch Load Failed!", err)
     });
   }
 
-  // Baki logic (Search, Toggle, Confirm) wahi rahega jo pehle tha...
+  // 2. Search/Filter in Branch Dropdown/Modal
   onBranchSearch() {
     const search = this.branchSearchText.toLowerCase().trim();
+    console.log("🔍 Typing branch search:", search);
+
+    if (!search) {
+      this.filteredBranchSuggestions = [...this.branchList];
+      return;
+    }
     this.filteredBranchSuggestions = this.branchList.filter(b => 
-      b.branchName?.toLowerCase().includes(search)
+      b.branchName?.toLowerCase().includes(search) || 
+      b.branchCode?.toLowerCase().includes(search)
     );
   }
 
-  toggleBranchModal() { this.isBranchModalOpen = !this.isBranchModalOpen; }
-  toggleBranchSelection(branch: any) { branch.isSelected = !branch.isSelected; }
-  
-  confirmSelection() {
-    this.isBranchModalOpen = false;
-    const selected = this.branchList.filter(b => b.isSelected);
-    console.log("Final Selected Branches:", selected);
+  toggleBranchModal() { 
+    this.isBranchModalOpen = !this.isBranchModalOpen; 
+    console.log("📦 Branch Modal Status:", this.isBranchModalOpen);
+    if(this.isBranchModalOpen) {
+      this.filteredBranchSuggestions = [...this.branchList];
+    }
   }
-  selectBranchFromDropdown(branch: any) {
-  // Input field mein naam set kar do
-  this.branchSearchText = branch.branchName;
-  
-  // Is branch ko toggle/select karo (jaise modal karta hai)
-  this.toggleBranchSelection(branch);
-  
-  // Selection ke baad dropdown ko hide karne ke liye
-  // Aap filter list ko reset ya text clear logic handle kar sakte hain
-  // Filhal length 0 kar dete hain taaki dropdown chala jaye
-  this.filteredBranchSuggestions = []; 
-  
-  // Reset search text if you want it to behave like a picker
-  // this.branchSearchText = ''; 
-}
-  
-showOrgModal = false;
-// selectedOrgId: any = null;
-selectedOrgData: any = null;
 
+  toggleBranchSelection(branch: any) { 
+    branch.isSelected = !branch.isSelected; 
+    console.log(`Toggle: ${branch.branchName} is now ${branch.isSelected ? 'Selected' : 'Unselected'}`);
+  }
+
+  selectBranchFromDropdown(branch: any) {
+    console.log("🎯 Selected from dropdown:", branch.branchName);
+    branch.isSelected = true;
+    
+    // 🔥 Yahan comma logic: Jitni select hain, sabka naam input mein dikhao
+    const selectedNames = this.branchList.filter(b => b.isSelected).map(b => b.branchName);
+    this.branchSearchText = selectedNames.join(', ');
+
+    this.filteredBranchSuggestions = []; 
+    this.onSearchWithBranches(); 
+  }
+
+  // 3. Confirm Selection Button
+  confirmSelection() {
+    console.log("🆗 Confirming Branch Selection...");
+    
+    // 🔥 Input box ko selected branches ke naam se bhar do
+    const selectedNames = this.branchList.filter(b => b.isSelected).map(b => b.branchName);
+    if (selectedNames.length > 0) {
+      this.branchSearchText = selectedNames.join(', ');
+    }
+
+    this.isBranchModalOpen = false;
+    this.onSearchWithBranches();
+  }
+
+  // 4. MAIN SEARCH LOGIC - Calling your new Backend Endpoint
+  onSearchWithBranches() {
+    this.loading = true;
+    const url = `${environment.apiUrl}/Organization/search-by-branches`;
+
+    const token = localStorage.getItem('cavalier_token');
+    
+    const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+    });
+
+    // Hum IDs bhej rahe hain filter ke liye
+    const selectedIds = this.branchList
+      .filter(b => b.isSelected)
+      .map(b => b.id); 
+
+    const searchDto = {
+      SelectedBranchIds: selectedIds,
+      OrgName: "", // <--- Isko empty rakho taaki Branch filter sahi chale
+      Status: "Active"
+    };
+
+    console.log("📤 Sending Payload:", searchDto);
+
+    this.http.post(url, searchDto, { headers }).subscribe({
+      next: (res: any) => {
+        console.log("📥 Backend Response Received:", res);
+        
+        this.organizations = Array.isArray(res) ? res : [];
+        
+        if (this.hasOwnProperty('currentPage')) {
+            (this as any).currentPage = 1;
+        }
+
+        this.organizations = [...this.organizations];
+
+        console.log("📊 Table Updated, Count:", this.organizations.length);
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error("❌ API Search Failed!", err);
+        this.loading = false;
+        this.organizations = []; 
+      }
+    });
+  }
 // Double click handle karne ke liye
 handleOrgDblClick(org: any) {
   this.selectedOrgId = org.id;

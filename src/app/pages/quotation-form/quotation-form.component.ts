@@ -39,7 +39,8 @@ export class QuotationFormComponent implements OnInit {
   isFormOpen = false;
   transportModes: any[] = [];
    movementTypes: any[] = [];
-  isPickupEnabled: boolean = false; 
+  isPickupEnabled: boolean = false;
+  selectedBranchIds: number[] = []; 
  private apiEndpoint = `${environment.apiUrl}/Quotations`;
 // -- Dropdown Control Variables --
 companyServices:any[]=[]
@@ -1440,15 +1441,24 @@ onSearch() {
   });
   // --- Authorization Logic End ---
 
-  let filtersToSend: any = { ...this.searchFilters };
+  // 🔥 Selected Branches collect karo backend ke liye
+  this.selectedBranchIds = this.branchList
+    .filter(b => b.isSelected)
+    .map(b => b.id || b.branchId);
+
+  let filtersToSend: any = { 
+    ...this.searchFilters,
+    selectedBranchIds: this.selectedBranchIds // Branch IDs add kar di
+  };
 
   // 🔥 MAGIC LOGIC: Agar Quotation No likha hai, toh baaki filters ko saaf kar do
   const searchInput = this.searchFilters.quotationNo?.toString().trim();
 
   if (searchInput && searchInput !== "") {
-    // Sirf Quotation No bhejo, baaki sab empty taaki backend sirf isse search kare
+    // Sirf Quotation No aur Selected Branches bhejo
     filtersToSend = {
       quotationNo: searchInput,
+      selectedBranchIds: this.selectedBranchIds, // Branch filter yahan bhi rahega
       lineOfBusiness: '',
       organization: '',
       salesCoor: '',
@@ -1457,7 +1467,7 @@ onSearch() {
       showMode: '',
       status: ''
     };
-    console.log("🎯 Hard Searching for Quotation No only:", searchInput);
+    console.log("🎯 Hard Searching for Quotation No only (with branches):", searchInput);
   } else {
     // Agar Quo No khali hai, tab normal filters chalne do
     filtersToSend.salesCoor = this.searchFilters.quotedBy || "";
@@ -1485,7 +1495,7 @@ onSearch() {
         }
 
         this.cdr.detectChanges();
-        console.log("✅ Data on table:", this.quotations);
+        console.log("✅ Data on table filtered by branches:", this.quotations);
       },
       error: (err) => {
         console.error("❌ API Error:", err);
@@ -2170,25 +2180,33 @@ getIncoTerms() {
   toggleBranchModal() { this.isBranchModalOpen = !this.isBranchModalOpen; }
   toggleBranchSelection(branch: any) { branch.isSelected = !branch.isSelected; }
   
-  confirmSelection() {
-    this.isBranchModalOpen = false;
-    const selected = this.branchList.filter(b => b.isSelected);
-    console.log("Final Selected Branches:", selected);
+ confirmSelection() {
+  this.isBranchModalOpen = false;
+
+  // 1. Pehle selected branches ki list nikaalo
+  const selected = this.branchList.filter(b => b.isSelected);
+  console.log("Final Selected Branches:", selected);
+
+  // 2. 🔥 Input field (branchSearchText) mein saare selected names comma se join karke daal do
+  if (selected.length > 0) {
+    this.branchSearchText = selected.map(b => b.branchName).join(', ');
+  } else {
+    this.branchSearchText = '';
   }
-  selectBranchFromDropdown(branch: any) {
-  // Input field mein naam set kar do
-  this.branchSearchText = branch.branchName;
+
+  // 3. Search function call karo (Jo humne pehle update kiya tha payload ke liye)
+  this.onSearch(); 
+}
+
+selectBranchFromDropdown(branch: any) {
+  // 1. Is branch ko select mark karo (agar pehle se nahi hai)
+  branch.isSelected = true;
   
-  // Is branch ko toggle/select karo (jaise modal karta hai)
-  this.toggleBranchSelection(branch);
-  
-  // Selection ke baad dropdown ko hide karne ke liye
-  // Aap filter list ko reset ya text clear logic handle kar sakte hain
-  // Filhal length 0 kar dete hain taaki dropdown chala jaye
+  // 2. Dropdown ko hide karne ke liye list clear karo
   this.filteredBranchSuggestions = []; 
-  
-  // Reset search text if you want it to behave like a picker
-  // this.branchSearchText = ''; 
+
+  // 3. Confirm selection wala logic chala do taaki input box update ho jaye aur search ho jaye
+  this.confirmSelection();
 }
 showRowModal = false;
 selectedQuotationId: any = null;

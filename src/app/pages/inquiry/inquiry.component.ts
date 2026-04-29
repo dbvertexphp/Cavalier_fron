@@ -392,9 +392,9 @@ organizations: any[] = [];
       this.fetchLeads();
       this.fetchOrigins();
       this.loadDropdownData();
-    
+    this.loadAllLeadss();
     this.loadInquiryNumbers();
-    this.loadCoordinators();
+    this.loadCoordinators(); 
     this.loadBranches();
     this.loadInquirySettings();
     this.fetchCompanyServices();
@@ -404,7 +404,8 @@ this.portdischarge();
 this.getIncoTerms();
 this.getMovementTypes();
 this.getCommodityTypes();
-
+console.log("🚀 Page Loading...");
+  this.loadBranchess();
   if (this.dimRows.length === 0) {
     this.dimRows = [this.dimRow];
   }
@@ -1458,9 +1459,10 @@ onSearch() {
   console.log("Search button clicked!");
   this.searchDone = true;
   
-  const filtersToSend = { ...this.searchFilters };
+  // 1. Ek naya object banao taaki original filters disturb na hon
+  const filtersToSend: any = { ...this.searchFilters };
 
-  // 1. Cleaning logic
+  // 2. Cleaning logic
   if (filtersToSend.transportMode === 'Any') filtersToSend.transportMode = '';
   if (filtersToSend.cargoStatus === '(Any)') filtersToSend.cargoStatus = '';
   
@@ -1468,17 +1470,22 @@ onSearch() {
     filtersToSend.salesCoordinator = ""; 
   }
 
-  // 🔥 BRANCH LOGIC: Agar branch modal se selected hai toh wahi bhejni hai
-  // Agar branchName null ya empty hai toh "" bhej rahe hain
+  // 🔥 FIXED BRANCH LOGIC:
+  // Backend ko 'int?' chahiye, isliye hum string "" nahi bhej sakte.
   if (this.branchSearchText && this.branchSearchText !== "") {
-    filtersToSend.branchName = this.branchSearchText;
-  } else if (filtersToSend.branchName === 'null' || !filtersToSend.branchName) {
-    filtersToSend.branchName = "";
+    // Ensure karo ki branchId number hi jaye (parseInt ya Number use karke)
+    const bId = Number(this.searchFilters.branchId);
+    filtersToSend.branchId = isNaN(bId) ? null : bId; 
+    delete filtersToSend.branchName; 
+  } else {
+    // Agar branch selected nahi hai, toh use null bhejo, "" nahi
+    filtersToSend.branchId = null;
   }
 
-  // 2. First API Call (Strict Search)
-  const token = localStorage.getItem('cavalier_token');
+  console.log("📡 Final Payload with Branch ID:", filtersToSend);
 
+  // 3. API Call
+  const token = localStorage.getItem('cavalier_token');
   const httpOptions = {
     headers: new HttpHeaders({
       Authorization: `Bearer ${token}`,
@@ -1490,26 +1497,20 @@ onSearch() {
     .subscribe({
       next: (response) => {
         if (response && response.length > 0) {
-          // Case 1: Exact data mil gaya
           this.quotations = response;
-          console.log("Strict Search Result with Branch:", response);
+          console.log("Strict Search Result Success:", response);
           this.cdr.detectChanges();
         } 
         else if (filtersToSend.inquiryNo) {
-          console.log("No exact match, trying with Inquiry No only...");
-          
-          const fallbackFilters = { inquiryNo: filtersToSend.inquiryNo };
-
-          // ✅ FALLBACK API CALL
+          // Fallback logic
+          const fallbackFilters = { 
+            inquiryNo: filtersToSend.inquiryNo,
+            branchId: filtersToSend.branchId // Fallback mein bhi branchId bhej do agar zaroorat ho
+          };
           this.http.post<any[]>(`${environment.apiUrl}/Inquiry/Search`, fallbackFilters, httpOptions)
             .subscribe({
               next: (fallbackRes) => {
                 this.quotations = fallbackRes;
-
-                if (fallbackRes.length > 0) {
-                  console.log("Match found with Inquiry No fallback!");
-                }
-
                 this.cdr.detectChanges();
               },
               error: () => {
@@ -1524,14 +1525,15 @@ onSearch() {
         }
       },
       error: (err) => {
-        console.error("Search failed:", err);
-
+        console.error("Search failed details:", err);
+        if (err.status === 400) {
+          console.log("Validation Errors:", err.error.errors); // Isse exact field pata chalegi console mein
+        }
         if (err.status === 401) {
           alert("Unauthorized! Token expired, login again.");
         } else {
           alert("Server error while searching!");
         }
-
         this.cdr.detectChanges();
       }
     });
@@ -2394,65 +2396,129 @@ if (leadData.salesCoordinator) {
   });
 }
 branchList: any[] = [];           
-  filteredBranchSuggestions: any[] = []; 
-  isBranchModalOpen: boolean = false;
-  branchSearchText: string = '';
-  loadBranchess() {
-    // Yahan apna pura URL direct daal do (Environment se ya hardcoded check karne ke liye)
-  const fullUrl = `${environment.apiUrl}/branch/list`;// <-- BHAI YAHAN APNA PURA URL DAAL DE
+filteredBranchSuggestions: any[] = []; 
+isBranchModalOpen: boolean = false;
+branchSearchText: string = '';  // Main Input ke liye
+modalSearchText: string = '';   // Modal ke andar search ke liye
 
-    this.http.get(fullUrl).subscribe({
-      next: (res: any) => {
-        console.log("API Success Response:", res);
 
-        // API response format handle karna
-        const data = Array.isArray(res) ? res : (res.data || res.result || []);
-        
-        this.branchList = data.map((b: any) => ({ 
-          ...b, 
-          isSelected: false 
-        }));
+loadBranchess() {
+  const fullUrl = `${environment.apiUrl}/branch/list`;
+  console.log("📡 Calling API:", fullUrl);
 
-        this.filteredBranchSuggestions = [...this.branchList];
-      },
-      error: (err) => {
-        console.error("Direct Call Failed! Error details:", err);
+  this.http.get(fullUrl).subscribe({
+    next: (res: any) => {
+      console.log("✅ API Raw Response:", res);
+
+      // Data formats handle karna
+      const data = Array.isArray(res) ? res : (res.data || res.result || []);
+      console.log("📊 Extracted Data Array:", data);
+
+      if (data.length === 0) {
+        console.warn("⚠️ Warning: API returned empty array!");
       }
-    });
-  }
 
-  // Baki logic (Search, Toggle, Confirm) wahi rahega jo pehle tha...
-  onBranchSearch() {
-    const search = this.branchSearchText.toLowerCase().trim();
-    this.filteredBranchSuggestions = this.branchList.filter(b => 
-      b.branchName?.toLowerCase().includes(search)
-    );
-  }
+      this.branchList = data.map((b: any) => ({ 
+        ...b, 
+        isSelected: false 
+      }));
 
-  toggleBranchModal() { this.isBranchModalOpen = !this.isBranchModalOpen; }
-  toggleBranchSelection(branch: any) { branch.isSelected = !branch.isSelected; }
-  
-  confirmSelection() {
-    this.isBranchModalOpen = false;
-    const selected = this.branchList.filter(b => b.isSelected);
-    console.log("Final Selected Branches:", selected);
-  }
-  selectBranchFromDropdown(branch: any) {
-  // Input field mein naam set kar do
-  this.branchSearchText = branch.branchName;
-  
-  // Is branch ko toggle/select karo (jaise modal karta hai)
-  this.toggleBranchSelection(branch);
-  
-  // Selection ke baad dropdown ko hide karne ke liye
-  // Aap filter list ko reset ya text clear logic handle kar sakte hain
-  // Filhal length 0 kar dete hain taaki dropdown chala jaye
-  this.filteredBranchSuggestions = []; 
-  
-  // Reset search text if you want it to behave like a picker
-  // this.branchSearchText = ''; 
+      this.filteredBranchSuggestions = [...this.branchList];
+      console.log("📋 branchList mapped & ready:", this.branchList);
+    },
+    error: (err) => {
+      console.error("❌ API Load Failed!", err);
+    }
+  });
 }
- // Component.ts mein
+
+// Main Input ki search (Dropdown ke liye)
+onBranchSearch() {
+  const search = this.branchSearchText.toLowerCase().trim();
+  console.log("🔍 Main Input Search Text:", search);
+
+  if (!search) {
+    this.filteredBranchSuggestions = [...this.branchList];
+    console.log("🔄 Search empty, reset list to:", this.filteredBranchSuggestions.length);
+    return;
+  }
+
+  this.filteredBranchSuggestions = this.branchList.filter(b => 
+    b.branchName?.toLowerCase().includes(search) || 
+    b.branchCode?.toLowerCase().includes(search)
+  );
+
+  console.log("🎯 Main Search Results Found:", this.filteredBranchSuggestions.length);
+}
+
+// Modal ke andar ki search
+onModalSearch() {
+  const search = this.modalSearchText.toLowerCase().trim();
+  console.log("🔍 Modal Search Text:", search);
+
+  if (!search) {
+    this.filteredBranchSuggestions = [...this.branchList];
+    console.log("🔄 Modal Search empty, showing all:", this.filteredBranchSuggestions.length);
+    return;
+  }
+
+  this.filteredBranchSuggestions = this.branchList.filter(b => 
+    b.branchName?.toLowerCase().includes(search) || 
+    b.branchCode?.toLowerCase().includes(search)
+  );
+
+  console.log("🎯 Modal Search Results Found:", this.filteredBranchSuggestions.length);
+}
+
+toggleBranchModal() { 
+  this.isBranchModalOpen = !this.isBranchModalOpen; 
+  console.log("📦 Modal Status:", this.isBranchModalOpen ? "OPENED" : "CLOSED");
+
+  if (this.isBranchModalOpen) {
+    this.modalSearchText = ''; 
+    this.filteredBranchSuggestions = [...this.branchList]; 
+    console.log("💎 Data available for Modal:", this.filteredBranchSuggestions.length);
+    
+    if (this.filteredBranchSuggestions.length === 0) {
+      console.error("🚨 Error: branchList is empty when opening modal!");
+    }
+  }
+}
+
+toggleBranchSelection(branch: any) { 
+  branch.isSelected = !branch.isSelected; 
+  console.log(`✅ Toggled Branch: ${branch.branchName} | Selected: ${branch.isSelected}`);
+}
+
+confirmSelection() {
+  console.log("🆗 Confirming Selection...");
+  const selectedBranches = this.branchList.filter(b => b.isSelected);
+  console.log("📍 Branches found with isSelected=true:", selectedBranches);
+
+  if (selectedBranches.length > 0) {
+    // 1. Sabse important: searchFilters mein ID daalo (Yahi pichli baar miss ho raha tha)
+    this.searchFilters.branchId = selectedBranches[0].branchId || selectedBranches[0].id;
+    
+    // 2. Input box mein Name dikhao
+    const selectedNames = selectedBranches.map(b => b.branchName);
+    this.branchSearchText = selectedNames.join(', ');
+  } else {
+    this.searchFilters.branchId = '';
+    this.branchSearchText = '';
+  }
+
+  console.log("📝 Input field updated to:", this.branchSearchText);
+  console.log("🆔 Branch ID saved in filters:", this.searchFilters.branchId);
+
+  this.isBranchModalOpen = false;
+}
+
+selectBranchFromDropdown(branch: any) {
+  console.log("🖱️ Direct dropdown selection:", branch.branchName);
+  branch.isSelected = true;
+  this.confirmSelection(); 
+  this.filteredBranchSuggestions = []; 
+}
 showCostTable: boolean = false;
 
 toggleTable(value: boolean) {

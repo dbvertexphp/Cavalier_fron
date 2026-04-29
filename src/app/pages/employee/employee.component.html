@@ -474,76 +474,64 @@
 
 
                       
-                      <!--EXPERIENCE--> 
-                      <div class="md:col-span-3 bg-white p-4 rounded-lg border shadow-sm">
-                        <h4 class="text-[11px] font-black text-[#4a3f3f] uppercase mb-4 tracking-wider">
-                          Experience Details
-                        </h4>
+                    <div class="md:col-span-3 bg-white p-4 rounded-lg border shadow-sm">
+  <h4 class="text-[11px] font-black text-[#4a3f3f] uppercase mb-4 tracking-wider">
+    Experience Details
+  </h4>
 
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-y-5 gap-x-6">
-                          <div class="space-y-1">
-                            <label
-                              class="block text-gray-500 text-[10px] font-bold uppercase tracking-tight">Organization</label>
-                            <p class="font-semibold text-[13px] text-gray-800">
-                              {{
-                              selectedEmployee?.experiences?.[0]
-                              ?.organizationName || "---"
-                              }}
-                            </p>
-                          </div>
+  <div *ngFor="let exp of selectedEmployee?.experiences; let i = index" class="mb-6 last:mb-0 border-b border-gray-100 last:border-0 pb-4 last:pb-0">
+    
+    <h5 class="text-blue-600 text-[10px] font-bold mb-3 uppercase">Experience {{ i + 1 }}</h5>
 
-                          <div class="space-y-1">
-                            <label
-                              class="block text-gray-500 text-[10px] font-bold uppercase tracking-tight">Designation</label>
-                            <p class="font-semibold text-[13px] text-gray-800">
-                              {{
-                              selectedEmployee?.experiences?.[0]
-                              ?.designation || "---"
-                              }}
-                            </p>
-                          </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-y-5 gap-x-6">
+      
+      <div class="space-y-1">
+        <label class="block text-gray-500 text-[10px] font-bold uppercase tracking-tight">Organization</label>
+        <p class="font-semibold text-[13px] text-gray-800">
+          {{ exp?.organizationName || "---" }}
+        </p>
+      </div>
 
-                          <div class="space-y-1">
-                            <label class="block text-gray-500 text-[10px] font-bold uppercase tracking-tight">Years of
-                              Experience</label>
-                            <p class="font-semibold text-[13px] text-gray-800">
-                              {{
-                              selectedEmployee?.experiences?.[0]
-                              ?.totalYears || "---"
-                              }}
-                            </p>
-                          </div>
+      <div class="space-y-1">
+        <label class="block text-gray-500 text-[10px] font-bold uppercase tracking-tight">Designation</label>
+        <p class="font-semibold text-[13px] text-gray-800">
+          {{ exp?.designation || "---" }}
+        </p>
+      </div>
 
-                          <div class="space-y-1">
-                            <label class="block text-gray-500 text-[10px] font-bold uppercase tracking-tight">Annual
-                              Salary (CTC)</label>
-                            <p class="font-semibold text-[13px] text-gray-800">
-                              {{
-                              selectedEmployee?.experiences?.[0]
-                              ?.annualSalary || "---"
-                              }}
-                            </p>
-                          </div>
+      <div class="space-y-1">
+        <label class="block text-gray-500 text-[10px] font-bold uppercase tracking-tight">Years of Experience</label>
+        <p class="font-semibold text-[13px] text-gray-800">
+          {{ exp?.yearsOfExperience || "---" }}
+        </p>
+      </div>
 
-                          <div class="space-y-1">
-                            <label class="block text-gray-500 text-[10px] font-bold uppercase tracking-tight">Date of
-                              Exit</label>
-                            <p class="font-semibold text-[13px] text-gray-800">
-                              {{
-                              (selectedEmployee?.experiences?.[0]?.dateOfExit
-                              | date: "dd-MM-yyyy") || "---"
-                              }}
-                            </p>
-                          </div>
+      <div class="space-y-1">
+        <label class="block text-gray-500 text-[10px] font-bold uppercase tracking-tight">Annual Salary (CTC)</label>
+        <p class="font-semibold text-[13px] text-gray-800">
+          {{ exp?.annualSalary || "---" }}
+        </p>
+      </div>
 
-                          <div class="col-span-2 md:col-span-4 flex items-center gap-2 mt-2 border-t pt-3">
-                            <input type="checkbox" [checked]="
-                                selectedEmployee?.experiences?.[0]?.isVerified
-                              " disabled class="w-4 h-4 rounded border-gray-300 accent-blue-600" />
-                            <label class="text-[10px] font-bold text-gray-600 uppercase">Verification Complete</label>
-                          </div>
-                        </div>
-                      </div>
+      <div class="space-y-1">
+        <label class="block text-gray-500 text-[10px] font-bold uppercase tracking-tight">Date of Exit</label>
+        <p class="font-semibold text-[13px] text-gray-800">
+          {{ (exp?.dateOfExit | date: "dd-MM-yyyy") || "---" }}
+        </p>
+      </div>
+
+      <div class="col-span-2 md:col-span-4 flex items-center gap-2 mt-2 border-t border-gray-100 pt-3">
+        <input type="checkbox" [checked]="exp?.verificationComplete" disabled class="w-4 h-4 rounded border-gray-300 accent-blue-600" />
+        <label class="text-[10px] font-bold text-gray-600 uppercase">Verification Complete</label>
+      </div>
+
+    </div>
+  </div>
+  
+  <div *ngIf="!selectedEmployee?.experiences || selectedEmployee?.experiences?.length === 0" class="text-center text-gray-500 text-xs py-4">
+    No experience details added yet.
+  </div>
+</div>
                       
                       
 
@@ -782,125 +770,79 @@
 
                       <!-- EDUCATION -->
                       <div class="md:col-span-3 bg-white p-4 rounded-lg border shadow-sm mb-4">
-                        <h4 class="text-[10px] font-black text-indigo-700 uppercase mb-3">
-                          Education Details
-                        </h4>
-                        <div class="overflow-x-auto">
-                          <table class="w-full text-left text-sm">
-                            <thead>
-                              <tr class="text-gray-500 border-b">
-                                <th class="pb-2">Level</th>
-                                <th class="pb-2">Year</th>
-                                <th class="pb-2">Percentage</th>
-                                <th class="pb-2">Marksheet</th>
-                              </tr>
-                            </thead>
-                            <tbody class="text-slate-700">
-                              <tr class="border-b last:border-0">
-                                <td class="py-2 font-medium">10th</td>
-                                <td>
-                                  {{ selectedEmployee?.tenthYear || "---" }}
-                                </td>
-                                <td>
-                                  {{
-                                  selectedEmployee?.tenthPercentage
-                                  ? selectedEmployee?.tenthPercentage + "%"
-                                  : "---"
-                                  }}
-                                </td>
-                                <td>
-                                  <a *ngIf="selectedEmployee?.tenthDoc" [href]="selectedEmployee?.tenthDoc"
-                                    target="_blank" class="text-blue-600 hover:underline text-xs">View File</a>
-                                </td>
-                              </tr>
-                              <tr class="border-b last:border-0">
-                                <td class="py-2 font-medium">12th</td>
-                                <td>
-                                  {{ selectedEmployee?.twelfthYear || "---" }}
-                                </td>
-                                <td>
-                                  {{
-                                  selectedEmployee?.twelfthPercentage
-                                  ? selectedEmployee?.twelfthPercentage +
-                                  "%"
-                                  : "---"
-                                  }}
-                                </td>
-                                <td>
-                                  <a *ngIf="selectedEmployee?.twelfthDoc" [href]="selectedEmployee?.twelfthDoc"
-                                    target="_blank" class="text-blue-600 hover:underline text-xs">View File</a>
-                                </td>
-                              </tr>
-                              <tr class="border-b last:border-0">
-                                <td class="py-2 font-medium">Graduation</td>
-                                <td>
-                                  {{
-                                  selectedEmployee?.graduationYear || "---"
-                                  }}
-                                </td>
-                                <td>
-                                  {{
-                                  selectedEmployee?.graduationPercentage
-                                  ? selectedEmployee?.graduationPercentage +
-                                  "%"
-                                  : "---"
-                                  }}
-                                </td>
-                                <td>
-                                  <a *ngIf="selectedEmployee?.graduationDoc" [href]="selectedEmployee?.graduationDoc"
-                                    target="_blank" class="text-blue-600 hover:underline text-xs">View File</a>
-                                </td>
-                              </tr>
-                              <tr *ngIf="selectedEmployee?.pgPercentage" class="border-b last:border-0">
-                                <td class="py-2 font-medium">
-                                  Post Graduation
-                                </td>
-                                <td>{{ selectedEmployee?.pgYear || "---" }}</td>
-                                <td>
-                                  {{ selectedEmployee?.pgPercentage + "%" }}
-                                </td>
-                                <td>
-                                  <a *ngIf="selectedEmployee?.pgDoc" [href]="selectedEmployee?.pgDoc" target="_blank"
-                                    class="text-blue-600 hover:underline text-xs">View File</a>
-                                </td>
-                              </tr>
-                            </tbody>
-               
-                          </table>
-                        </div>
-                      </div>
+  <h4 class="text-[10px] font-black text-indigo-700 uppercase mb-3">
+    Education Details
+  </h4>
+  
+  <div class="overflow-x-auto">
+    <table class="w-full text-left text-sm">
+      <thead>
+        <tr class="text-gray-500 border-b">
+          <th class="pb-2">Level</th>
+          <th class="pb-2">Year</th>
+          <th class="pb-2">Percentage</th>
+          <th class="pb-2">Marksheet</th>
+        </tr>
+      </thead>
+      <tbody class="text-slate-700">
+        
+        <tr *ngFor="let edu of selectedEmployee?.addMoreEducations" class="border-b last:border-0 hover:bg-gray-50 transition-colors">
+          <td class="py-2 font-medium">{{ edu.educationName || '---' }}</td>
+          <td>{{ edu.passingYear || '---' }}</td>
+          <td>{{ edu.percentage ? edu.percentage + '%' : '---' }}</td>
+          <td>
+            <a *ngIf="edu.marksheetPath" 
+               [href]="baseUrl + edu.marksheetPath" 
+               target="_blank" 
+               class="text-blue-600 hover:underline text-xs font-semibold">
+              View File
+            </a>
+            <span *ngIf="!edu.marksheetPath" class="text-gray-400 text-xs">No File</span>
+          </td>
+        </tr>
 
-                      <div class="md:col-span-3 bg-white p-4 rounded-lg border shadow-sm mb-4">
-                        <h4 class="text-[10px] font-black text-slate-700 uppercase mb-3">
-                          Uploaded Marksheets
-                        </h4>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                          <div *ngFor="
-                              let doc of [
-                                'tenthDoc',
-                                'twelfthDoc',
-                                'graduationDoc',
-                                'pgDoc',
-                              ]
-                            " class="relative group">
-                            <div *ngIf="selectedEmployee?.[doc]"
-                              class="h-32 w-full bg-gray-100 rounded border overflow-hidden">
-                              <img [src]="selectedEmployee?.[doc]"
-                                class="h-full w-full object-cover group-hover:scale-110 transition-transform duration-300" />
-                              <div
-                                class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                                <button (click)="openPreview(selectedEmployee?.[doc])"
-                                  class="bg-white text-xs px-2 py-1 rounded shadow">
-                                  View Large
-                                </button>
-                              </div>
-                            </div>
-                            <p class="text-[9px] text-center mt-1 text-gray-500 uppercase">
-                              {{ doc.replace("Doc", "") }} Certificate
-                            </p>
-                          </div>
-                        </div>
-                      </div>
+        <tr *ngIf="!selectedEmployee?.addMoreEducations || selectedEmployee?.addMoreEducations?.length === 0">
+          <td colspan="4" class="py-4 text-center text-gray-500 text-xs">No education details found.</td>
+        </tr>
+        
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="md:col-span-3 bg-white p-4 rounded-lg border shadow-sm mb-4">
+  <h4 class="text-[10px] font-black text-slate-700 uppercase mb-3">
+    Uploaded Marksheets
+  </h4>
+  
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <ng-container *ngFor="let edu of selectedEmployee?.addMoreEducations">
+      
+      <div *ngIf="edu.marksheetPath" class="relative group">
+        <div class="h-32 w-full bg-gray-100 rounded border overflow-hidden shadow-sm">
+          <img [src]="baseUrl + edu.marksheetPath" 
+               class="h-full w-full object-cover group-hover:scale-110 transition-transform duration-300" 
+               alt="{{ edu.educationName }} Marksheet"/>
+               
+          <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+            <button (click)="openPreview(baseUrl + edu.marksheetPath)" 
+                    class="bg-white text-xs px-3 py-1.5 rounded font-bold shadow-lg hover:bg-gray-100 transition-colors">
+              View Large
+            </button>
+          </div>
+        </div>
+        <p class="text-[10px] font-bold text-center mt-2 text-gray-600 uppercase tracking-wide">
+          {{ edu.educationName }}
+        </p>
+      </div>
+
+    </ng-container>
+    
+    <div *ngIf="!selectedEmployee?.addMoreEducations || selectedEmployee?.addMoreEducations?.length === 0" class="col-span-full text-center text-gray-500 text-xs py-2">
+      No marksheets uploaded yet.
+    </div>
+  </div>
+</div>
 
                       <div class="md:col-span-3 bg-red-50 p-4 rounded-lg border border-red-100">
                         <h4 class="text-[10px] font-black text-red-700 uppercase mb-3">

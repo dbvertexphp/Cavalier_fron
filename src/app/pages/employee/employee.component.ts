@@ -162,6 +162,7 @@ export interface Permission {
   styleUrl: './employee.component.css',
 })
 export class EmployeeComponent implements OnInit {
+   baseUrl = environment.apiUrl.replace('/api', '');
   permissionsList: Permission[] = [];
 PermissionID:any;
   searchText: string = '';
@@ -304,7 +305,7 @@ actionChange(permissionId: number, action: string, event: any) {
   }
 
   editEmployee(emp: Employee): void {
-    console.log('this is all data',emp);
+    console.log('this is all data',emp)
      if (emp) {
       // Pura user object 'state' mein bhej rahe hain
       this.router.navigate(['/dashboard/register-user'], { 
@@ -411,7 +412,7 @@ this.selectedRole = emp.roleId ?? null;    this.isAccountActive = emp.isActive !
   
   this.selectedEmployee = { ...emp }; // Data set kiya
   this.isViewModalOpen = true;        // Modal khola
-
+console.log('check now this selectedemployee', this.selectedEmployee);
   if (emp.id) {
     this.getEducationDetails(emp.id.toString());
     this.getExperienceDetails(emp.id.toString()) // API call mari

@@ -753,76 +753,76 @@
 
   <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4 items-center">
     <input formControlName="tenthName" placeholder="10th" class="border p-2 rounded bg-gray-50" readonly>
+    <input formControlName="tenthYear" placeholder="YYYY" maxlength="4" (keypress)="onlyNumbers($event)" class="border p-2 rounded">
+    <input formControlName="tenthPercentage" placeholder="%" maxlength="2" (keypress)="onlyNumbers($event)" class="border p-2 rounded">
     <div class="flex flex-col">
-      <label class="font-bold text-sm mb-1 uppercase text-gray-600">10th Year</label>
-      <input 
-        type="text"
-        formControlName="tenthYear" 
-        placeholder="YYYY" 
-        maxlength="4"
-        (keypress)="onlyNumbers($event)"
-        class="border p-2 rounded focus:border-blue-500 outline-none"
-      >
-      <div *ngIf="userForm.get('tenthYear')?.touched && userForm.get('tenthYear')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
-        {{ userForm.get('tenthYear')?.errors?.['zod'] }}
+      <input type="file" (change)="onFileSelect($event,'tenthMarksheet')" class="border p-2 rounded text-xs">
+      <div *ngIf="userForm.get('tenthMarksheetPath')?.value" class="mt-1">
+        <span (click)="openImageModal(baseUrl + userForm.get('tenthMarksheetPath')?.value)" class="text-blue-600 underline text-xs cursor-pointer font-bold hover:text-blue-800">
+          👁️ View Marksheet
+        </span>
       </div>
     </div>
-    <input formControlName="tenthPercentage" placeholder="10th %" maxlength="2" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="border p-2 rounded">
-    <input type="file" (change)="onFileSelect($event,'tenthMarksheet')" class="border p-2 rounded">
   </div>
 
   <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4 items-center">
     <input formControlName="twelfthName" placeholder="12th" class="border p-2 rounded bg-gray-50" readonly>
+    <input formControlName="twelfthYear" placeholder="YYYY" maxlength="4" (keypress)="onlyNumbers($event)" class="border p-2 rounded">
+    <input formControlName="twelfthPercentage" placeholder="%" maxlength="2" (keypress)="onlyNumbers($event)" class="border p-2 rounded">
     <div class="flex flex-col">
-      <input formControlName="twelfthYear" placeholder="12th Year" class="border p-2 rounded" maxlength="4" (keypress)="onlyNumbers($event)">
-      <div *ngIf="userForm.get('twelfthYear')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
-        {{ userForm.get('twelfthYear')?.errors?.['zod'] }}
+      <input type="file" (change)="onFileSelect($event,'twelfthMarksheet')" class="border p-2 rounded text-xs">
+      <div *ngIf="userForm.get('twelfthMarksheetPath')?.value" class="mt-1">
+        <span (click)="openImageModal(baseUrl + userForm.get('twelfthMarksheetPath')?.value)" class="text-blue-600 underline text-xs cursor-pointer font-bold hover:text-blue-800">
+          👁️ View Marksheet
+        </span>
       </div>
     </div>
-    <input formControlName="twelfthPercentage" placeholder="12th %" maxlength="2" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="border p-2 rounded">
-    <input type="file" (change)="onFileSelect($event,'twelfthMarksheet')" class="border p-2 rounded">
   </div>
 
   <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4 items-center">
     <input formControlName="graduationName" placeholder="Graduation" class="border p-2 rounded bg-gray-50" readonly>
+    <input formControlName="graduationYear" placeholder="YYYY" maxlength="4" (keypress)="onlyNumbers($event)" class="border p-2 rounded">
+    <input formControlName="graduationPercentage" placeholder="%" maxlength="2" (keypress)="onlyNumbers($event)" class="border p-2 rounded">
     <div class="flex flex-col">
-      <input formControlName="graduationYear" placeholder="Graduation Year" class="border p-2 rounded" maxlength="4" (keypress)="onlyNumbers($event)">
-      <div *ngIf="userForm.get('graduationYear')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
-        {{ userForm.get('graduationYear')?.errors?.['zod'] }}
+      <input type="file" (change)="onFileSelect($event,'graduationMarksheet')" class="border p-2 rounded text-xs">
+      <div *ngIf="userForm.get('graduationMarksheetPath')?.value" class="mt-1">
+        <span (click)="openImageModal(baseUrl + userForm.get('graduationMarksheetPath')?.value)" class="text-blue-600 underline text-xs cursor-pointer font-bold hover:text-blue-800">
+          👁️ View Marksheet
+        </span>
       </div>
     </div>
-    <input formControlName="graduationPercentage" placeholder="Graduation %" maxlength="2" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="border p-2 rounded">
-    <input type="file" (change)="onFileSelect($event,'graduationMarksheet')" class="border p-2 rounded">
   </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6 items-center">
+  <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4 items-center">
     <input formControlName="postGraduationName" placeholder="Post Graduation" class="border p-2 rounded bg-gray-50" readonly>
+    <input formControlName="postGraduationYear" placeholder="YYYY" maxlength="4" (keypress)="onlyNumbers($event)" class="border p-2 rounded">
+    <input formControlName="postGraduationPercentage" placeholder="%" maxlength="2" (keypress)="onlyNumbers($event)" class="border p-2 rounded">
     <div class="flex flex-col">
-      <input formControlName="postGraduationYear" placeholder="PG Year" class="border p-2 rounded" maxlength="4" (keypress)="onlyNumbers($event)">
-      <div *ngIf="userForm.get('postGraduationYear')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
-        {{ userForm.get('postGraduationYear')?.errors?.['zod'] }}
+      <input type="file" (change)="onFileSelect($event,'postGraduationMarksheet')" class="border p-2 rounded text-xs">
+      <div *ngIf="userForm.get('postGraduationMarksheetPath')?.value" class="mt-1">
+        <span (click)="openImageModal(baseUrl + userForm.get('postGraduationMarksheetPath')?.value)" class="text-blue-600 underline text-xs cursor-pointer font-bold hover:text-blue-800">
+          👁️ View Marksheet
+        </span>
       </div>
     </div>
-    <input formControlName="postGraduationPercentage" placeholder="PG %" maxlength="2" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="border p-2 rounded">
-    <input type="file" (change)="onFileSelect($event,'postGraduationMarksheet')" class="border p-2 rounded">
   </div>
 
   <div formArrayName="educations">
     <div *ngFor="let edu of educations.controls; let i = index" [formGroupName]="i" class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4 items-center">
-      <input formControlName="educationName" placeholder="Other Education Name" class="border p-2 rounded">
-      <input formControlName="year" placeholder="Passing Year" class="border p-2 rounded" maxlength="4" (keypress)="onlyNumbers($event)">
-      <input formControlName="percentage" placeholder="Percentage %" maxlength="2" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="border p-2 rounded">
-      <input type="file" (change)="onFileSelect($event, 'marksheet', i)" class="border p-2 rounded">
-      <div class="flex justify-between items-center">
-        <button type="button" (click)="removeEducation(i)" class="text-red-500 text-xs font-bold hover:underline">Remove</button>
+      <input formControlName="educationName" placeholder="Degree Name" class="border p-2 rounded">
+      <input formControlName="year" placeholder="YYYY" maxlength="4" (keypress)="onlyNumbers($event)" class="border p-2 rounded">
+      <input formControlName="percentage" placeholder="%" maxlength="2" (keypress)="onlyNumbers($event)" class="border p-2 rounded">
+      
+      <div class="flex flex-col">
+        <input type="file" (change)="onFileSelect($event, 'marksheet', i)" class="border p-2 rounded text-xs">
+        <div *ngIf="edu.get('marksheetPath')?.value" class="mt-1">
+          <span (click)="openImageModal(baseUrl + edu.get('marksheetPath')?.value)" class="text-blue-600 underline text-xs cursor-pointer font-bold hover:text-blue-800">
+            👁️ View Marksheet
+          </span>
+        </div>
       </div>
-    </div>
-  </div>
-
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-    <div>
-      <label class="text-sm font-semibold">Profile Picture</label>
-      <input type="file" (change)="onFileSelect($event,'profilePicture')" class="w-full border p-2 rounded">
+      
+      <button type="button" (click)="removeEducation(i)" class="text-red-500 text-xs font-bold hover:underline text-left">Remove</button>
     </div>
   </div>
 </div>
@@ -869,42 +869,77 @@
   <div class="border-t pt-6 mt-8">
     <h3 class="text-lg font-bold text-gray-700 mb-4 uppercase tracking-wider border-l-4 border-blue-600 pl-3">Documentation Upload</h3>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 bg-gray-50 p-6 rounded-lg border border-gray-200">
-      <div class="flex flex-col space-y-2">
-        <label class="font-bold text-gray-600 uppercase text-xs">Offer Letter</label>
-        <input type="file" (change)="onFileSelect($event, 'offerLetter')" class="border p-2 rounded bg-white text-xs file:bg-blue-50 file:border-0 file:rounded file:px-2 file:py-1 file:text-blue-700 hover:file:bg-blue-100">
-        <div *ngIf="userForm.get('offerLetter')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
-          {{ userForm.get('offerLetter')?.errors?.['zod'] }}
-        </div>
-      </div>
-      <div class="flex flex-col space-y-2">
-        <label class="font-bold text-gray-600 uppercase text-xs">Appointment Letter</label>
-        <input type="file" (change)="onFileSelect($event, 'appointmentLetter')" class="border p-2 rounded bg-white text-xs file:bg-blue-50 file:border-0 file:rounded file:px-2 file:py-1 file:text-blue-700 hover:file:bg-blue-100">
-        <div *ngIf="userForm.get('appointmentLetter')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
-          {{ userForm.get('appointmentLetter')?.errors?.['zod'] }}
-        </div>
-      </div>
-      <div class="flex flex-col space-y-2">
-        <label class="font-bold text-gray-600 uppercase text-xs">Invitation Letter</label>
-        <input type="file" (change)="onFileSelect($event, 'invitationLetter')" class="border p-2 rounded bg-white text-xs file:bg-blue-50 file:border-0 file:rounded file:px-2 file:py-1 file:text-blue-700 hover:file:bg-blue-100">
-        <div *ngIf="userForm.get('invitationLetter')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
-          {{ userForm.get('invitationLetter')?.errors?.['zod'] }}
-        </div>
-      </div>
-      <div class="flex flex-col space-y-2">
-        <label class="font-bold text-gray-600 uppercase text-xs">Relieving Letter</label>
-        <input type="file" (change)="onFileSelect($event, 'relievingLetter')" class="border p-2 rounded bg-white text-xs file:bg-blue-50 file:border-0 file:rounded file:px-2 file:py-1 file:text-blue-700 hover:file:bg-blue-100">
-        <div *ngIf="userForm.get('relievingLetter')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
-          {{ userForm.get('relievingLetter')?.errors?.['zod'] }}
-        </div>
-      </div>
-      <div class="flex flex-col space-y-2">
-        <label class="font-bold text-gray-600 uppercase text-xs">Full and Final Letter</label>
-        <input type="file" (change)="onFileSelect($event, 'fullAndFinalLetter')" class="border p-2 rounded bg-white text-xs file:bg-blue-50 file:border-0 file:rounded file:px-2 file:py-1 file:text-blue-700 hover:file:bg-blue-100">
-        <div *ngIf="userForm.get('fullAndFinalLetter')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
-          {{ userForm.get('fullAndFinalLetter')?.errors?.['zod'] }}
-        </div>
-      </div>
+    <div class="flex flex-col space-y-2">
+    <label class="font-bold text-gray-600 uppercase text-xs">Offer Letter</label>
+    <input type="file" (change)="onFileSelect($event, 'offerLetter')" class="border p-2 rounded bg-white text-xs file:bg-blue-50 file:border-0 file:rounded file:px-2 file:py-1 file:text-blue-700 hover:file:bg-blue-100">
+    <div *ngIf="userForm.get('offerLetter')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
+      {{ userForm.get('offerLetter')?.errors?.['zod'] }}
     </div>
+    <div *ngIf="userForm.get('offerLetterPath')?.value" class="mt-1">
+      <img [src]="userForm.get('offerLetterPath')?.value" 
+           (click)="openImageModal(userForm.get('offerLetterPath')?.value)"
+           class="h-16 w-16 object-cover border border-gray-300 rounded shadow-sm cursor-pointer hover:opacity-75 transition-opacity" 
+           alt="Offer Letter preview" title="Click to view full image">
+    </div>
+  </div>
+
+  <div class="flex flex-col space-y-2">
+    <label class="font-bold text-gray-600 uppercase text-xs">Appointment Letter</label>
+    <input type="file" (change)="onFileSelect($event, 'appointmentLetter')" class="border p-2 rounded bg-white text-xs file:bg-blue-50 file:border-0 file:rounded file:px-2 file:py-1 file:text-blue-700 hover:file:bg-blue-100">
+    <div *ngIf="userForm.get('appointmentLetter')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
+      {{ userForm.get('appointmentLetter')?.errors?.['zod'] }}
+    </div>
+    <div *ngIf="userForm.get('appointmentLetterPath')?.value" class="mt-1">
+      <img [src]="userForm.get('appointmentLetterPath')?.value" 
+           (click)="openImageModal(userForm.get('appointmentLetterPath')?.value)"
+           class="h-16 w-16 object-cover border border-gray-300 rounded shadow-sm cursor-pointer hover:opacity-75 transition-opacity" 
+           alt="Appointment Letter preview" title="Click to view full image">
+    </div>
+  </div>
+
+  <div class="flex flex-col space-y-2">
+    <label class="font-bold text-gray-600 uppercase text-xs">Invitation Letter</label>
+    <input type="file" (change)="onFileSelect($event, 'invitationLetter')" class="border p-2 rounded bg-white text-xs file:bg-blue-50 file:border-0 file:rounded file:px-2 file:py-1 file:text-blue-700 hover:file:bg-blue-100">
+    <div *ngIf="userForm.get('invitationLetter')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
+      {{ userForm.get('invitationLetter')?.errors?.['zod'] }}
+    </div>
+    <div *ngIf="userForm.get('invitationLetterPath')?.value" class="mt-1">
+      <img [src]="userForm.get('invitationLetterPath')?.value" 
+           (click)="openImageModal(userForm.get('invitationLetterPath')?.value)"
+           class="h-16 w-16 object-cover border border-gray-300 rounded shadow-sm cursor-pointer hover:opacity-75 transition-opacity" 
+           alt="Invitation Letter preview" title="Click to view full image">
+    </div>
+  </div>
+
+  <div class="flex flex-col space-y-2">
+    <label class="font-bold text-gray-600 uppercase text-xs">Relieving Letter</label>
+    <input type="file" (change)="onFileSelect($event, 'relievingLetter')" class="border p-2 rounded bg-white text-xs file:bg-blue-50 file:border-0 file:rounded file:px-2 file:py-1 file:text-blue-700 hover:file:bg-blue-100">
+    <div *ngIf="userForm.get('relievingLetter')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
+      {{ userForm.get('relievingLetter')?.errors?.['zod'] }}
+    </div>
+    <div *ngIf="userForm.get('relievingLetterPath')?.value" class="mt-1">
+      <img [src]="userForm.get('relievingLetterPath')?.value" 
+           (click)="openImageModal(userForm.get('relievingLetterPath')?.value)"
+           class="h-16 w-16 object-cover border border-gray-300 rounded shadow-sm cursor-pointer hover:opacity-75 transition-opacity" 
+           alt="Relieving Letter preview" title="Click to view full image">
+    </div>
+  </div>
+
+  <div class="flex flex-col space-y-2">
+    <label class="font-bold text-gray-600 uppercase text-xs">Full and Final Letter</label>
+    <input type="file" (change)="onFileSelect($event, 'fullAndFinalLetter')" class="border p-2 rounded bg-white text-xs file:bg-blue-50 file:border-0 file:rounded file:px-2 file:py-1 file:text-blue-700 hover:file:bg-blue-100">
+    <div *ngIf="userForm.get('fullAndFinalLetter')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
+      {{ userForm.get('fullAndFinalLetter')?.errors?.['zod'] }}
+    </div>
+    <div *ngIf="userForm.get('fullAndFinalLetterPath')?.value" class="mt-1">
+      <img [src]="userForm.get('fullAndFinalLetterPath')?.value" 
+           (click)="openImageModal(userForm.get('fullAndFinalLetterPath')?.value)"
+           class="h-16 w-16 object-cover border border-gray-300 rounded shadow-sm cursor-pointer hover:opacity-75 transition-opacity" 
+           alt="Full and Final Letter preview" title="Click to view full image">
+    </div>
+  </div>
+    </div>
+    
   </div>
 </div>
     <div class="flex justify-end gap-3 pt-6 border-t">
@@ -917,3 +952,22 @@
     </div>
   </form>
 </div>
+<div *ngIf="isImageModalOpen" class="fixed inset-0 z-[200] flex items-center justify-center bg-black bg-opacity-80 p-4 transition-opacity">
+  <div class="relative bg-white rounded-lg shadow-2xl max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+    
+    <button (click)="closeImageModal()" class="absolute top-3 right-3 bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold shadow-lg z-10 transition-colors">
+      ✕
+    </button>
+    
+    <div class="p-2 overflow-auto flex justify-center items-center bg-gray-100">
+      <img [src]="selectedImageUrl" class="max-w-full max-h-[85vh] object-contain rounded" alt="Document Full Preview">
+    </div>
+
+  </div>
+</div>
+<!-- <button 
+  type="button" 
+  (click)="logEducationData()"
+  class="px-4 py-2 bg-purple-600 text-white rounded font-bold hover:bg-purple-700 transition shadow-md mr-2">
+  Print Education in Console
+</button> -->

@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule, FormArray, FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -7,7 +7,7 @@ import { BranchService } from '../../services/branch.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { employeeSchema } from './employee.schema';
-
+import { firstValueFrom } from 'rxjs';
 @Component({
   selector: 'app-user-form',
   standalone: true,
@@ -15,11 +15,16 @@ import { employeeSchema } from './employee.schema';
   templateUrl: './user-form.component.html'
 })
 export class UserFormComponent implements OnInit {
+  @ViewChild('deptInput') deptInput!: ElementRef;
+  @ViewChild('desigInput') desigInput!: ElementRef;
+  isImageModalOpen = false;
+selectedImageUrl = '';
   employeeData: any;
   userlist:any=[];
   todayDate: string = new Date().toISOString().split('T')[0];
   permissions: any[] = [];
   selectedPermissionIds: number[] = [];
+
   showPassword = false;
   userForm!: FormGroup;
   isEditMode = false;
@@ -27,7 +32,7 @@ export class UserFormComponent implements OnInit {
   id: number | null = null;
   initialData: any;
   isLoading = false; // Fixed: Added missing property from image_2a47c4
-
+public baseUrl: string ='';
   departments: any[] = [];
   designations: any[] = [];
   roles: any[] = [];
@@ -47,6 +52,7 @@ export class UserFormComponent implements OnInit {
     private http: HttpClient,
     private cdr: ChangeDetectorRef
   ) {
+    this.baseUrl = environment.apiUrl.replace('/api', '');
     const nav = this.router.getCurrentNavigation();
     if (nav?.extras.state) {
       this.initialData = nav.extras.state['data'];
@@ -58,10 +64,8 @@ export class UserFormComponent implements OnInit {
   }
 
 ngOnInit(): void {
-  this.employeeData = history.state.employeeData;
-    
-    // Log it to the console
-    console.log('Employee Data received:', this.employeeData);
+  console.log(this.initialData);
+ 
   this.getuser();
   console.log('this is userlist',this.userlist);
     this.userService.getDepartments().subscribe(res => this.departments = res);
@@ -126,7 +130,17 @@ ngOnInit(): void {
       permissionIds: current
     });
   }
+openImageModal(url: string | null | undefined) {
+  if (url) {
+    this.selectedImageUrl = url;
+    this.isImageModalOpen = true;
+  }
+}
 
+closeImageModal() {
+  this.isImageModalOpen = false;
+  this.selectedImageUrl = '';
+}
 initForm() {
   if (this.isBranchForm) {
     this.userForm = this.fb.group({
@@ -149,11 +163,9 @@ initForm() {
   } else {
     this.userForm = this.fb.group({
       employeeCode: [''],
-      // 1. FirstName - Required
       firstName: ['', [Validators.required]],
       middleName: [''],
       lastName: [''],
-      // 2. Date of Birth - Required
       dob: ['', [Validators.required]],
       gender: ['Male'],
       maritalStatus: ['Single'],
@@ -166,120 +178,85 @@ initForm() {
       branchId: [null],
       roleId: [null],
       licenceType: [''],
-      
-      // 3. Date of Joining - Required
       dateOfJoining: ['', [Validators.required]],
-      
       ctc_Monthly: [0],
       salaryAccountNo: [''],
-      // 4. Email - Required + Format
       email: ['', [Validators.required, Validators.email]],
-      // 5. Mobile - Required + 10 Digits
       mobile: ['', [Validators.required, Validators.pattern("^[0-9]{10}$")]],
       telephone: [''],
-      
-      // 6. PAN No - Required + 10 Characters
       paN_No: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(10)]],
-      // 7. Aadhaar No - Required + 12 Digits
       aadhaarNo: ['', [Validators.required, Validators.minLength(12), Validators.maxLength(12)]],
-      
       ipAdress: [''],
       permissionIds: [[]],
-      presHouseNo: [''],
-      presBuilding: [''],
-      presFloor: [''],
-      presBlock: [''],
-      presStreet: [''],
-      presLandmark: [''],
-      presArea: [''],
-      presCity: [''],
-      presDistrict: [''],
-      presState: [''],
-      presPincode: [''],
-      presCountry: ['India'],
+      
+      // Address Fields
+      presHouseNo: [''], presBuilding: [''], presFloor: [''], presBlock: [''], presStreet: [''], presLandmark: [''], presArea: [''], presCity: [''], presDistrict: [''], presState: [''], presPincode: [''], presCountry: ['India'],
+      permHouseNo: [''], permBuilding: [''], permFloor: [''], permBlock: [''], permStreet: [''], permLandmark: [''], permArea: [''], permCity: [''], permDistrict: [''], permState: [''], permPincode: [''], permCountry: ['India'],
+      
       educations: this.fb.array([]),
       experiences: this.fb.array([this.createExperienceGroup()]),
+      
+      // --- Education Static Fields (Updated with Paths) ---
       tenthId: [null],
       tenthName: ['10th'],
       tenthYear: [''],
       tenthPercentage: [''],
       tenthMarksheet: [null],
+      tenthMarksheetPath: [''],
+
       twelfthId: [null],
       twelfthName: ['12th'],
       twelfthYear: [''],
       twelfthPercentage: [''],
       twelfthMarksheet: [null],
+      twelfthMarksheetPath: [''],
+
       graduationId: [null],
       graduationName: ['Graduation'],
       graduationYear: [''],
       graduationPercentage: [''],
       graduationMarksheet: [null],
+      graduationMarksheetPath: [''],
+
       postGraduationId: [null],
       postGraduationName: ['Post Graduation'],
       postGraduationYear: [''],
       postGraduationPercentage: [''],
       postGraduationMarksheet: [null],
-      permHouseNo: [''],
-      permBuilding: [''],
-      permFloor: [''],
-      permBlock: [''],
-      permStreet: [''],
-      permLandmark: [''],
-      permArea: [''],
-      permCity: [''],
-      permDistrict: [''],
-      permState: [''],
-      permPincode: [''],
-      permCountry: ['India'],
-      accountHolderName: [''],
-      bankName: [''],
-      ifscCode: [''],
-      accountType: [''],
-      accountNumber: [''],
-      bankBranchName: [''],
-      profileSelect: [''],
-      profilePicture: [null],
-      profilePicturePath: [''],
-      signature: [''],
-      reportTo: [''],
+      postGraduationMarksheetPath: [''],
+      // ---------------------------------------------------
+
+      accountHolderName: [''], bankName: [''], ifscCode: [''], accountType: [''], accountNumber: [''], bankBranchName: [''],
+      profileSelect: [''], profilePicture: [null], profilePicturePath: [''], signature: [''], reportTo: [''],
       
-      // Emergency fields ab khali chhod sakte hain (Optional)
-      emergencyName: [''],
-      EmergencyRelation: [''],
-      emergencyContactNo: [''],
+      emergencyName: [''], EmergencyRelation: [''], emergencyContactNo: [''],
+      mfaRegistration: [false], fieldVisit: [false], alwaysBccmyself: [false],
       
-      mfaRegistration: [false],
-      fieldVisit: [false],
-      alwaysBccmyself: [false],
-      invitationLetter: [null],
-      offerLetter: [null],
-      appointmentLetter: [null],
-      relievingLetter: [null],
-      fullAndFinalLetter: [null],
-      invitationLetterPath: [''],
-      simIssued: [false],
-      status: [true],
-      hodId: [null], 
-      teamId: [null],
-      exitDate:[null],
-      address: [''],
-      city: [''],
-      state: [''],
-      postalCode: ['']
+      // Documents
+      invitationLetter: [null], offerLetter: [null], appointmentLetter: [null], relievingLetter: [null], fullAndFinalLetter: [null],
+      invitationLetterPath: [''], offerLetterPath: [''], appointmentLetterPath: [''], relievingLetterPath: [''], fullAndFinalLetterPath: [''],
+      
+      simIssued: [false], status: [true], hodId: [null], teamId: [null], exitDate: [null],
+      address: [''], city: [''], state: [''], postalCode: ['']
     });
   }
 }
 
+// ============= DYNAMIC EDUCATION METHODS (Updated) =============
+createEducationGroup(): FormGroup {
+  return this.fb.group({
+    id: [null],
+    educationName: [''],
+    year: [''],
+    percentage: [''],
+    marksheet: [null],
+    marksheetPath: [''] // Added path variable
+  });
+}
+
   // ============= DYNAMIC EDUCATION METHODS =============
   
-  createEducationGroup(): FormGroup {
-    return this.fb.group({
-      educationName: [''],
-      year: [''],
-      percentage: [''],
-      marksheet: [null]
-    });
-  }
+  
 
   get educations() {
     return this.userForm.get('educations') as FormArray;
@@ -452,7 +429,7 @@ onSubmit() {
       next: (res) => {
         console.log('Branch API Success Response:', res);
         alert('Branch Saved Successfully');
-        this.router.navigate(['/dashboard/branch']);
+        // this.router.navigate(['/dashboard/branch']);
       },
       error: err => {
         console.error('Branch API Error Object:', err);
@@ -487,8 +464,8 @@ onSubmit() {
       ? this.userService.updateUser(finalPayload) 
       : this.userService.registerUser(finalPayload);
 
-    apiCall.subscribe({
-      next: (res: any) => {
+   apiCall.subscribe({
+      next: async (res: any) => {
         console.log('User API Success. Response:', res);
         
         const currentId = this.isEditMode ? this.id : (res.id || res.userId || res.data?.id);
@@ -496,21 +473,38 @@ onSubmit() {
 
         if (currentId) {
           console.log('Saving Education and Experience for ID:', currentId);
-          this.saveEducation(currentId); 
-          this.saveExperience(currentId);
+          
+          // 1. Pehle Education Save Karo (Safer way)
+          try {
+            console.log('⏳ Starting saveEducation...');
+            await this.saveEducation(currentId); 
+            console.log('✅ saveEducation completed successfully.');
+          } catch (eduError) {
+            console.error('❌ saveEducation mein error aayi, par aage ka code chalega:', eduError);
+          }
+
+          // 2. Phir Experience Save Karo (Ye 100% chalega ab)
+          try {
+            console.log('⏳ Starting saveExperience...');
+            await this.saveExperience(currentId);
+            console.log('✅ saveExperience completed successfully.');
+          } catch (expError) {
+            console.error('❌ saveExperience mein error aayi:', expError);
+          }
+          
           alert(this.isEditMode ? 'User Updated Successfully' : 'User Saved Successfully');
         } else {
           console.warn('User Saved, but ID was not found in response!');
           alert('User Saved, but ID not received for sub-records');
         }
 
-        this.router.navigate(['/dashboard/Employee']);
+        // Sab save hone ke baad page navigate karein
+        // this.router.navigate(['/dashboard/Employee']);
       },
       error: err => {
         console.error('--- API ERROR DETECTED ---');
-        console.error('Status:', err.status); // Yahan 500 dikhayega
+        console.error('Status:', err.status); 
         console.error('Full Error Body:', err.error); 
-        console.error('Headers:', err.headers);
         alert('Please Check Field properly (API 500 Error)');
       }
     });
@@ -529,50 +523,99 @@ onSubmit() {
 async saveEducation(userId: any) {
   const raw = this.userForm.getRawValue();
 
-  // 1. Saare records ko ek array mein prepare karein backend DTO ke names ke hisaab se
-  const records = [
-    { name: raw.tenthName, year: raw.tenthYear, pct: raw.tenthPercentage, file: raw.tenthMarksheet },
-    { name: raw.twelfthName, year: raw.twelfthYear, pct: raw.twelfthPercentage, file: raw.twelfthMarksheet },
-    { name: raw.graduationName, year: raw.graduationYear, pct: raw.graduationPercentage, file: raw.graduationMarksheet },
-    { name: raw.postGraduationName, year: raw.postGraduationYear, pct: raw.postGraduationPercentage, file: raw.postGraduationMarksheet }
-  ];
+  // 1. Ek khali array banayenge jisme saare education objects push karenge
+  const educationArray: any[] = [];
 
-  // Dynamic fields (FormArray) ko bhi add karein
-  raw.educations?.forEach((edu: any) => {
-    records.push({
-      name: edu.educationName,
-      year: edu.year,
-      pct: edu.percentage,
-      file: edu.marksheet
+  // --- STATIC FIELDS CHECK ---
+  if (raw.tenthYear || raw.tenthPercentage || raw.tenthMarksheet) {
+    educationArray.push({
+      userId: userId,
+      educationName: raw.tenthName || '10th',
+      passingYear: raw.tenthYear,
+      percentage: raw.tenthPercentage,
+      marksheetFile: raw.tenthMarksheet
     });
+  }
+
+  if (raw.twelfthYear || raw.twelfthPercentage || raw.twelfthMarksheet) {
+    educationArray.push({
+      userId: userId,
+      educationName: raw.twelfthName || '12th',
+      passingYear: raw.twelfthYear,
+      percentage: raw.twelfthPercentage,
+      marksheetFile: raw.twelfthMarksheet
+    });
+  }
+
+  if (raw.graduationYear || raw.graduationPercentage || raw.graduationMarksheet) {
+    educationArray.push({
+      userId: userId,
+      educationName: raw.graduationName || 'Graduation',
+      passingYear: raw.graduationYear,
+      percentage: raw.graduationPercentage,
+      marksheetFile: raw.graduationMarksheet
+    });
+  }
+
+  if (raw.postGraduationYear || raw.postGraduationPercentage || raw.postGraduationMarksheet) {
+    educationArray.push({
+      userId: userId,
+      educationName: raw.postGraduationName || 'Post Graduation',
+      passingYear: raw.postGraduationYear,
+      percentage: raw.postGraduationPercentage,
+      marksheetFile: raw.postGraduationMarksheet
+    });
+  }
+
+  // --- DYNAMIC FIELDS (ADD MORE) CHECK ---
+  if (raw.educations && raw.educations.length > 0) {
+    raw.educations.forEach((edu: any) => {
+      if (edu.year || edu.percentage || edu.marksheet) {
+        educationArray.push({
+          userId: userId,
+          educationName: edu.educationName,
+          passingYear: edu.year,
+          percentage: edu.percentage,
+          marksheetFile: edu.marksheet
+        });
+      }
+    });
+  }
+
+  // Console me print karke dekh lo array kaisa bana hai
+  console.log('📚 Final Education Array Object:', educationArray);
+
+  if (educationArray.length === 0) {
+    console.log('No education details to save.');
+    return;
+  }
+
+  // 2. FormData banayenge List of Objects bhejne ke liye
+  const formData = new FormData();
+
+  // Backend API me list receive karne ke liye index based append karna hota hai
+  educationArray.forEach((edu, index) => {
+    // Agar API ka model parameter name 'educations' hai:
+    formData.append(`educations[${index}].UserId`, edu.userId.toString());
+    formData.append(`educations[${index}].EducationName`, edu.educationName || '');
+    formData.append(`educations[${index}].PassingYear`, edu.passingYear || '');
+    formData.append(`educations[${index}].Percentage`, edu.percentage || '');
+
+    // Image/File append kar rahe hain
+    if (edu.marksheetFile instanceof File) {
+      formData.append(`educations[${index}].MarksheetFile`, edu.marksheetFile);
+    }
   });
 
-  // 2. Loop chala kar har ek record ke liye API hit karein
-  for (const item of records) {
-    // Sirf tab bhejenge jab data bhara ho (Qualification mandatory hai)
-    if (item.name && (item.year || item.pct || item.file)) {
-      const formData = new FormData();
-      
-      // ✅ EXACT MATCH WITH YOUR EducationUploadDto
-      formData.append('UserId', userId.toString());
-      formData.append('EducationName', item.name); // DTO: EducationName
-      formData.append('PassingYear', item.year || ''); // DTO: PassingYear
-      formData.append('Percentage', item.pct || '');  // DTO: Percentage
-      
-      if (item.file instanceof File) {
-        formData.append('MarksheetFile', item.file); // DTO: MarksheetFile
-      }
-
-     try {
-  // ✅ Hardcoded URL ko environment variable se replace kiya
-  await this.http.post(`${environment.apiUrl}/UserEducation/add`, formData).toPromise();
-  console.log(`✅ ${item.name} saved successfully`);
-} catch (err) {
-  console.error(`❌ Error saving ${item.name}:`, err);
-}
-    }
+  // 3. Alag API par call maarna (Single API call for all educations)
+  try {
+    // Note: API ka endpoint '/add-multiple' ya jo bhi aapne list ke liye banaya ho wo dalna
+    const res = await this.http.post(`${environment.apiUrl}/User/add-multiple-education`, formData).toPromise();
+    console.log('✅ All Education details saved successfully in one go!', res);
+  } catch (err) {
+    console.error('❌ Error saving education details:', err);
   }
-} 
+}
   generatePassword() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%';
     let password = '';
@@ -639,32 +682,7 @@ getuser(){
 
   });
 };
-async saveExperience(userId: any) {
-  const raw = this.userForm.getRawValue();
-  const experienceArray = raw.experiences || [];
 
-  for (const exp of experienceArray) {
-    // Sirf tab bhejenge jab kam se kam Organization Name bhara ho
-    if (exp.organizationName) {
-      const payload = {
-        userId: parseInt(userId),
-        organizationName: exp.organizationName,
-        designation: exp.designation,
-        yearsOfExperience: exp.totalYears, // Form mein 'totalYears' hai, DTO mein 'YearsOfExperience'
-        annualSalary: parseFloat(exp.annualSalary) || 0,
-        dateOfExit: exp.exitDate ? new Date(exp.exitDate).toISOString() : null,
-        verificationComplete: exp.verification || false
-      };
-
-      try {
-        await this.http.post(`${environment.apiUrl}/Experience/add`, payload).toPromise();
-        console.log(`✅ Experience with ${exp.organizationName} saved`);
-      } catch (err) {
-        console.error(`❌ Error saving experience:`, err);
-      }
-    }
-  }
-}
 validateForm(): boolean {
   const rawData = this.userForm.getRawValue();
   const validation = employeeSchema.safeParse(rawData);
@@ -697,57 +715,155 @@ onlyNumbers(event: any) {
     event.preventDefault(); // Agar number nahi hai toh type hi nahi hoga
   }
 }
+async saveExperience(userId: any) {
+  console.log('➡️ saveExperience function call hua! UserId:', userId);
+
+  const raw = this.userForm.getRawValue();
+  const experienceArray = raw.experiences || [];
+  
+  const payloadArray: any[] = [];
+
+  for (const exp of experienceArray) {
+    if (exp.organizationName && exp.organizationName.toString().trim() !== '') {
+      
+      // ==========================================
+      // 👇 DATE FIX LOGIC (For Invalid Time Error)
+      // ==========================================
+      let finalExitDate = null;
+      if (exp.exitDate) {
+        try {
+          // Agar date DD-MM-YYYY format me hai (length 2 dash ke pehle)
+          if (exp.exitDate.includes('-') && exp.exitDate.split('-')[0].length === 2) {
+            const parts = exp.exitDate.split('-');
+            // YYYY-MM-DD me convert karo (parts[2]=YYYY, parts[1]=MM, parts[0]=DD)
+            const validDateString = `${parts[2]}-${parts[1]}-${parts[0]}`; 
+            finalExitDate = new Date(validDateString).toISOString();
+          } 
+          // Agar date pehle se hi sahi format me hai
+          else {
+            finalExitDate = new Date(exp.exitDate).toISOString();
+          }
+        } catch (e) {
+          console.warn("⚠️ Exit Date parse nahi ho payi, null set kar rahe hain:", exp.exitDate);
+          finalExitDate = null;
+        }
+      }
+      // ==========================================
+
+      payloadArray.push({
+        userId: parseInt(userId),
+        organizationName: exp.organizationName,
+        designation: exp.designation || "",
+        yearsOfExperience: exp.totalYears ? exp.totalYears.toString() : "", 
+        annualSalary: parseFloat(exp.annualSalary) || 0,
+        dateOfExit: finalExitDate, // Nayi theek ki hui date yahan assign ki
+        verificationComplete: exp.verification || false
+      });
+    }
+  }
+
+  if (payloadArray.length === 0) {
+    console.log('🛑 No experience details to save.');
+    return;
+  }
+
+  try {
+    console.log(`🚀 Sending Experience Data to API...`, payloadArray);
+    
+    const res = await firstValueFrom(
+      this.http.post(`${environment.apiUrl}/User/add-multiple-experience`, payloadArray)
+    );
+    
+    console.log(`✅ All Experiences saved successfully in one go!`, res);
+  } catch (err) {
+    console.error(`❌ Error saving experiences:`, err);
+  }
+}
 populateForm(data: any) {
   if (!data) return;
 
   // 1. Basic Fields Patch
   this.userForm.patchValue({
     ...data,
+    bankBranchName: data.branchNameBank,
+    employeeCode: data.empCode || data.employeeCode,
+    ctc_Monthly: data.ctC_Monthly || data.ctc_Monthly,
     dob: data.dob ? data.dob.split('T')[0] : '',
     dateOfJoining: data.dateOfJoining ? data.dateOfJoining.split('T')[0] : '',
     exitDate: data.exitDate ? data.exitDate.split('T')[0] : null,
+    department: data.department,
+    designation: data.designation,
+    offerLetterPath: data.offerLetterPath || '',
+    appointmentLetterPath: data.appointmentLetterPath || '',
+    invitationLetterPath: data.invitationLetterPath || '',
+    relievingLetterPath: data.relievingLetterPath || '',
+    fullAndFinalLetterPath: data.fullAndFinalLetterPath || '',
     // Backend se aane wale different naming conventions ko handle kiya
     EmergencyRelation: data.emergencyRelation || data.EmergencyRelation || data.emergencyRelationship
   });
 
-  // 2. Populate Education (Static Fields + FormArray)
-  if (data.educations && Array.isArray(data.educations)) {
+  setTimeout(() => {
+    if (data.department) {
+      // '==' use kiya hai taaki string "12" aur number 12 dono match ho jayein
+      const dept = this.departments.find(d => d.id == data.department);
+      if (dept && this.deptInput) {
+        this.deptInput.nativeElement.value = dept.name; // UI par Naam dikhao
+      } else {
+        console.warn('Department Name not found for ID:', data.department);
+      }
+    }
+
+    if (data.designation) {
+      const des = this.designations.find(d => d.id == data.designation);
+      if (des && this.desigInput) {
+        this.desigInput.nativeElement.value = des.name; // UI par Naam dikhao
+      } else {
+        console.warn('Designation Name not found for ID:', data.designation);
+      }
+    }
+  }, 1000);
+
+  // 2. Populate Education (Backend Array = addMoreEducations)
+  if (data.addMoreEducations && Array.isArray(data.addMoreEducations)) {
     
     // --- STATIC FIELDS POPULATION ---
-    // Backend array se data filter karke static controls mein patch kar rahe hain
-    const tenth = data.educations.find((e: any) => e.educationName === '10th');
+    const tenth = data.addMoreEducations.find((e: any) => e.educationName === '10th');
     if (tenth) {
       this.userForm.patchValue({
         tenthId: tenth.id,
         tenthYear: tenth.passingYear || tenth.year,
-        tenthPercentage: tenth.percentage
+        tenthPercentage: tenth.percentage,
+        tenthMarksheetPath: tenth.marksheetPath || ''
       });
     }
 
-    const twelfth = data.educations.find((e: any) => e.educationName === '12th');
+    const twelfth = data.addMoreEducations.find((e: any) => e.educationName === '12th');
     if (twelfth) {
       this.userForm.patchValue({
         twelfthId: twelfth.id,
         twelfthYear: twelfth.passingYear || twelfth.year,
-        twelfthPercentage: twelfth.percentage
+        twelfthPercentage: twelfth.percentage,
+        twelfthMarksheetPath: twelfth.marksheetPath || ''
       });
     }
 
-    const grad = data.educations.find((e: any) => e.educationName === 'Graduation');
+    const grad = data.addMoreEducations.find((e: any) => e.educationName === 'Graduation');
     if (grad) {
       this.userForm.patchValue({
         graduationId: grad.id,
         graduationYear: grad.passingYear || grad.year,
-        graduationPercentage: grad.percentage
+        graduationPercentage: grad.percentage,
+        graduationMarksheetPath: grad.marksheetPath || ''
       });
     }
 
-    const pg = data.educations.find((e: any) => e.educationName === 'Post Graduation');
+    const pg = data.addMoreEducations.find((e: any) => e.educationName === 'Post Graduation');
     if (pg) {
       this.userForm.patchValue({
         postGraduationId: pg.id,
         postGraduationYear: pg.passingYear || pg.year,
-        postGraduationPercentage: pg.percentage
+        postGraduationPercentage: pg.percentage,
+        postGraduationMarksheetPath: pg.marksheetPath || ''
       });
     }
 
@@ -755,7 +871,7 @@ populateForm(data: any) {
     this.educations.clear(); // Purani khali rows hatayin
     
     // Wo educations jo static list mein nahi hain, unhe 'Add More' wale array mein dalenge
-    const otherEdus = data.educations.filter((e: any) => 
+    const otherEdus = data.addMoreEducations.filter((e: any) => 
       !['10th', '12th', 'Graduation', 'Post Graduation'].includes(e.educationName)
     );
 
@@ -765,27 +881,39 @@ populateForm(data: any) {
         educationName: [edu.educationName || ''],
         year: [edu.year || edu.passingYear || ''],
         percentage: [edu.percentage || ''],
-        marksheet: [null]
+        marksheet: [null],
+        marksheetPath: [edu.marksheetPath || '']
       }));
     });
   }
 
   // 3. Populate Experience FormArray
-  if (data.experiences && Array.isArray(data.experiences)) {
-    this.experiences.clear(); 
-    data.experiences.forEach((exp: any) => {
+  // ==================================================
+  // 3. Populate Experience FormArray (Updated for new API)
+  // ==================================================
+  if (data.addAnotherExperiences && Array.isArray(data.addAnotherExperiences)) {
+    this.experiences.clear(); // Purani khali row hata do
+    
+    data.addAnotherExperiences.forEach((exp: any) => {
       this.experiences.push(this.fb.group({
-        id: [exp.id || null], // Experience ID mapping
+        id: [exp.id || null], // Edit ke liye ID zaroori hai
         organizationName: [exp.organizationName || ''],
         designation: [exp.designation || ''],
         annualSalary: [exp.annualSalary || ''],
-        joiningDate: [exp.joiningDate ? exp.joiningDate.split('T')[0] : ''],
-        exitDate: [exp.exitDate ? exp.exitDate.split('T')[0] : ''],
-        totalYears: [exp.totalYears || exp.yearsOfExperience || ''],
-        verification: [exp.verification || false],
-        documents: this.fb.array([]) // Nested documents population yahan add ho sakti hai
+        joiningDate: [''], // Ye field backend se nahi aa rahi, toh khali rakha hai
+        // Date format "2000-06-21T00:00:00" se "2000-06-21" nikalne ke liye:
+        exitDate: [exp.dateOfExit ? exp.dateOfExit.split('T')[0] : ''],
+        // Nayi keys ki mapping
+        totalYears: [exp.yearsOfExperience || ''],
+        verification: [exp.verificationComplete || false],
+        documents: this.fb.array([]) 
       }));
     });
+  } else {
+    // Agar user naya hai ya koi experience nahi hai, toh ek khali row dikhao
+    if (this.experiences.length === 0) {
+      this.addExperience(); 
+    }
   }
 }
 // 1. Jab user type kare (Auto Dash insertion)
@@ -839,6 +967,65 @@ onCalendarChange(event: any, controlName: string = 'dob'): void {
   if (textInput) {
     textInput.value = displayFormat;
   }
+}
+logEducationData() {
+  const raw = this.userForm.getRawValue();
+
+  // 1. Static Educations ko ek array mein daalo
+  const allEducations = [
+    {
+      level: '10th',
+      name: raw.tenthName,
+      year: raw.tenthYear,
+      percentage: raw.tenthPercentage,
+      marksheetFile: raw.tenthMarksheet // Yahan File object ya URL aayega
+    },
+    {
+      level: '12th',
+      name: raw.twelfthName,
+      year: raw.twelfthYear,
+      percentage: raw.twelfthPercentage,
+      marksheetFile: raw.twelfthMarksheet
+    },
+    {
+      level: 'Graduation',
+      name: raw.graduationName,
+      year: raw.graduationYear,
+      percentage: raw.graduationPercentage,
+      marksheetFile: raw.graduationMarksheet
+    },
+    {
+      level: 'Post Graduation',
+      name: raw.postGraduationName,
+      year: raw.postGraduationYear,
+      percentage: raw.postGraduationPercentage,
+      marksheetFile: raw.postGraduationMarksheet
+    }
+  ];
+
+  // 2. Dynamic (Add More) wale educations ko bhi isme push kar do
+  if (raw.educations && raw.educations.length > 0) {
+    raw.educations.forEach((edu: any, index: number) => {
+      allEducations.push({
+        level: `Other Education ${index + 1}`,
+        name: edu.educationName,
+        year: edu.year,
+        percentage: edu.percentage,
+        marksheetFile: edu.marksheet
+      });
+    });
+  }
+
+  // 3. Khali entries hata do (jisme kuch bhi fill nahi kiya)
+  const filteredEducations = allEducations.filter(e => e.year || e.percentage || e.marksheetFile);
+
+  console.log('📚 ================= COMPLETE EDUCATION DATA ================= 📚');
+  
+  // Ye table format mein saaf saaf dikhayega
+  console.table(filteredEducations);
+  
+  // Ye detailed object dega jisme aap marksheet ke File Object ko expand karke dekh sakte ho
+  console.log('🔍 Detailed Objects (Click to expand image/file details):', filteredEducations);
 }
 syncAddress(event: any) {
   if (event.target.checked) {

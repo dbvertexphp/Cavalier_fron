@@ -162,6 +162,9 @@ export interface Permission {
   styleUrl: './employee.component.css',
 })
 export class EmployeeComponent implements OnInit {
+  totalRecords: number = 0;
+  isLoading: boolean = false;
+loadingProgress: number = 0;
    baseUrl = environment.apiUrl.replace('/api', '');
   permissionsList: Permission[] = [];
 PermissionID:any;
@@ -284,18 +287,9 @@ actionChange(permissionId: number, action: string, event: any) {
   }
 
   search(): void {
-    const term = this.searchText.toLowerCase().trim();
-    if (!term) {
-      this.filteredEmployees = [...this.employees];
-      return;
-    }
-    this.filteredEmployees = this.employees.filter(emp => 
-      emp.firstName.toLowerCase().includes(term) ||
-      emp.lastName.toLowerCase().includes(term) ||
-      emp.empCode.toLowerCase().includes(term) ||
-      emp.email.toLowerCase().includes(term)
-    );
-  }
+  this.currentPage = 1;
+  this.getAllUsers(this.currentPage); // Search bar ka text API mein jayega
+}
 
   deleteEmployee(id: string): void {
     if (confirm('Do you want to delete this employee?')) {
@@ -454,15 +448,34 @@ openPreview(imageUrl: string | undefined): void {
       alert('Document image not available');
     }
   }
-getAllUsers(): void {
-  const url = `${environment.apiUrl}/User/adminlist?user_type=all`;
+getAllUsers(page: number = 1): void {
+  // 1. Loading start karo
+  this.isLoading = true;
+  this.loadingProgress = 0;
+
+  // 2. Fake progress timer set karo (Har 200ms me 10-25% badhega)
+  const interval = setInterval(() => {
+    if (this.loadingProgress < 90) {
+      // Random value add kar rahe hain taki natural lage (jaise 25, 48, 70...)
+      this.loadingProgress += Math.floor(Math.random() * 20) + 10; 
+      if (this.loadingProgress > 90) this.loadingProgress = 90; // 90 pe rok do
+      this.cdr.detectChanges();
+    }
+  }, 200);
+
+  const url = `${environment.apiUrl}/User/adminlist?user_type=all&pageNumber=${page}&pageSize=${this.pageSize}&search=${this.searchText}`;
   const baseUrl = environment.apiUrl.replace('/api', '');
 
-  this.http.get<Employee[]>(url).subscribe({
-    next: (res: Employee[]) => {
-      console.log("🔥 USER LIST API RESPONSE:", res);
-      // ✅ Type casting (as Employee) use karke error solve hoga
-      this.employees = res.map(emp => ({
+  this.http.get<any>(url).subscribe({
+    next: (res: any) => {
+      // 3. Data aate hi timer roko aur progress 100% kar do
+      clearInterval(interval);
+      this.loadingProgress = 100;
+      this.cdr.detectChanges();
+
+      this.totalRecords = res.totalRecords;
+
+      this.employees = res.users.map((emp: any) => ({
         ...emp,
         profilePicture: emp.profilePicture ? `${baseUrl}${emp.profilePicture}` : '',
         offerLetterPath: emp.offerLetterPath ? `${baseUrl}${emp.offerLetterPath}` : '',
@@ -471,13 +484,23 @@ getAllUsers(): void {
         relievingLetterPath: emp.relievingLetterPath ? `${baseUrl}${emp.relievingLetterPath}` : '',
         fullAndFinalLetterPath: emp.fullAndFinalLetterPath ? `${baseUrl}${emp.fullAndFinalLetterPath}` : '',
         educationMarksheets: emp.educationMarksheets ? `${baseUrl}${emp.educationMarksheets}` : ''
-      } as Employee)); // 👈 Ye 'as Employee' add karna zaroori hai
+      } as Employee));
 
-      console.log("✅ Processed Employees:", this.employees);
       this.filteredEmployees = [...this.employees];
-      this.cdr.detectChanges();
+      this.currentPage = page;
+
+      // 4. 100% fill hone ke baad thoda sa delay (300ms) dekar table dikhao (achha UI effect)
+      setTimeout(() => {
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      }, 300);
     },
-    error: (err) => console.error("❌ API ERROR:", err)
+    error: (err) => {
+      // Error aane par bhi loading hata do
+      clearInterval(interval);
+      this.isLoading = false;
+      console.error("❌ API ERROR:", err);
+    }
   });
 }
   // Inside export class EmployeeComponent { ... }
@@ -734,23 +757,24 @@ protected readonly Math = Math;
 
 // Table mein "filteredEmployees" ki jagah isko loop karna
 get paginatedEmployees(): Employee[] {
-  const startIndex = (this.currentPage - 1) * this.pageSize;
-  return this.filteredEmployees.slice(startIndex, startIndex + this.pageSize);
+  // Ab slice karne ki zarurat nahi hai, API se automatically 10 hi aayenge
+  return this.filteredEmployees; 
 }
 
 get totalPages(): number {
-  return Math.ceil(this.filteredEmployees.length / this.pageSize) || 1;
+  return Math.ceil(this.totalRecords / this.pageSize) || 1;
 }
 
 setPage(page: number) {
   if (page < 1 || page > this.totalPages) return;
-  this.currentPage = page;
-  this.cdr.detectChanges(); // UI refresh ke liye
+  // Local list change karne ke bajaye ab API call hogi
+  this.getAllUsers(page); 
 }
 
+// 6. Page size dropdown change function update karein
 onPageSizeChange() {
   this.currentPage = 1;
-  this.cdr.detectChanges();
+  this.getAllUsers(this.currentPage);
 }
 // Is line ko check karein:
 navigateToAccess(emp: any): void {  // <--- 'number' ki jagah 'any' likh dein

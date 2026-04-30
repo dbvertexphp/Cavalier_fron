@@ -60,34 +60,25 @@ PermissionID:any;
   //     error: (err) => console.error("Error loading users for count:", err)
   //   });
   // }
-  loadDepartments() {
-  // Pehle users fetch karenge count ke liye
-  this.userService.getUsers().subscribe({
-    next: (users: any[]) => {
-      const usersList = users || [];
-      
-      // Phir departments fetch karenge
-      this.userService.getDepartments().subscribe({
-        next: (res: any[]) => {
-          if (Array.isArray(res)) {
-            this.departments = res.map((d: any) => {
-              const deptId = d.id || d.Id || 0;
-              const originalName = d.name || d.Name || 'Unknown'; // Pehle name nikala
-              
-              return {
-                id: deptId, 
-                name: originalName.toUpperCase(), // Yahan UPPERCASE kar diya
-                // Yahan filter karke count nikal rahe hain
-                count: usersList.filter((u: any) => u.departmentId === deptId).length
-              };
-            });
-            this.cdr.detectChanges();
-          }
-        },
-        error: (err) => console.error("Error loading departments:", err)
-      });
+ loadDepartments() {
+  // Ab directly departments fetch kar rahe hain
+  this.userService.getDepartments().subscribe({
+    next: (res: any[]) => {
+      if (Array.isArray(res)) {
+        this.departments = res.map((d: any) => {
+          const deptId = d.id || d.Id || 0;
+          const originalName = d.name || d.Name || 'Unknown'; // Pehle name nikala
+          
+          return {
+            id: deptId, 
+            name: originalName.toUpperCase(), // Same logic: Yahan UPPERCASE kar diya
+            count: 0 // Users hata diye hain, toh default count 0 rahega
+          };
+        });
+        this.cdr.detectChanges();
+      }
     },
-    error: (err) => console.error("Error loading users for count:", err)
+    error: (err) => console.error("Error loading departments:", err)
   });
 }
 

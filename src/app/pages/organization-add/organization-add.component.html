@@ -445,6 +445,7 @@
   
   <ng-container *ngIf="paginatedOrganizations && paginatedOrganizations.length > 0; else noData">
     <tr *ngFor="let org of paginatedOrganizations" 
+    [class.row-blink]="org.id === highlightedOrgId"
         (dblclick)="editOrg(org)"
         class="hover:bg-blue-50 transition-colors text-gray-800 cursor-pointer">
       

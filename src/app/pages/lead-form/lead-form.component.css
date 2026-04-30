@@ -17,3 +17,19 @@
 .cdk-drag-animating {
   transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
 }
+.row-blink {
+  /* 1s duration, 3 times repeat (Total 3 seconds) */
+  animation: blink-bg 1s ease-in-out 3; 
+  
+  /* Blue border focus ke liye */
+  border: 2px solid #2563eb !important; 
+  
+  /* Transition taaki border smooth dikhe */
+  transition: border 0.3s ease;
+}
+
+@keyframes blink-bg {
+  0% { background-color: #ffffff; }
+  50% { background-color: #dbeafe; } /* Light Blue color */
+  100% { background-color: #ffffff; }
+}

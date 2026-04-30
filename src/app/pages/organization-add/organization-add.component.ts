@@ -12,7 +12,7 @@ import * as XLSX from 'xlsx';
 import { moveItemInArray, transferArrayItem, CdkDragDrop } from '@angular/cdk/drag-drop';
 import { DragDropModule } from '@angular/cdk/drag-drop'; // 👈 Ye zaroori hai // Ye import ensure kar lena
 import { CheckPermissionService } from '../../services/check-permission.service';
-
+import { ActivatedRoute } from '@angular/router';
 @Component({
   selector: 'app-organization-add',
   standalone: true,
@@ -23,7 +23,7 @@ import { CheckPermissionService } from '../../services/check-permission.service'
 export class OrganizationAddComponent implements OnInit {
   agentSelectedLineOfBusiness: any[] = [];
   showAgentLobDropdown: boolean = false;
-
+highlightedOrgId: number | null = null;
   lineOfBusinessList: any[] = [];
 selectedLineOfBusiness: any[] = [];        // Multiple select ke liye array
 showLobDropdown: boolean = false;
@@ -439,10 +439,16 @@ landmark: string = '';
 //   branches :any [] =[];
 //   selectedBranch: any = null
 
-  constructor(private location: Location, private http: HttpClient,private cdr: ChangeDetectorRef,private router:Router,private elementRef: ElementRef,public CheckPermissionService: CheckPermissionService) {}
+  constructor(private location: Location, private http: HttpClient,private cdr: ChangeDetectorRef,private router:Router,private elementRef: ElementRef,public CheckPermissionService: CheckPermissionService,private route: ActivatedRoute,) {}
 
 
  ngOnInit() {
+  this.route.queryParams.subscribe(params => {
+    if (params['highlightId']) {
+      this.getOrgList();
+      this.highlightedOrgId = +params['highlightId']; // String to Number
+    }
+  });
   const state = history.state;           // ya this.router.lastSuccessfulNavigation?.extras?.state
 
     if (state && state.isFormOpen === true) {
@@ -510,26 +516,30 @@ agentremoveContact(index: number) {
 }
 getOrgList() {
   const url = `${environment.apiUrl}/Organization/list`;
-  
   this.http.get(url).subscribe({
-    next: (data: any) => { 
-      this.organizations = data; 
-
-      // --- Naya logic bina existing code chhode ---
-      if (data && Array.isArray(data)) {
-        // Purani organizations se unique branches nikaalo
-        const uniqueNames = [...new Set(data.map(org => org.branchName).filter(n => n))];
+    next: (data: any) => {
+      this.organizations = data;
+      
+      // Check if we need to highlight a specific row
+      if (this.highlightedOrgId) {
+        // 1. Find the index of the org in the main array
+        const index = this.organizations.findIndex(o => o.id === this.highlightedOrgId);
         
-        // Inhe branches array mein bhar do taaki refresh par na jayein
-        this.branches = uniqueNames.map(name => ({ id: 0, name: name, isDefault: false }));
-        
-        // Ab next branch fetch karo taaki suggestion bhi isi list mein jud jaye
-
+        // Jab ID match ho jaye
+if (index !== -1) {
+    this.currentPage = Math.floor(index / this.pageSize) + 1;
+    
+    // 3 second (3000ms) baad highlightedOrgId ko null kar do
+    // Isse HTML se class 'row-blink' apne aap hat jayegi
+    setTimeout(() => { 
+        this.highlightedOrgId = null; 
+        this.cdr.detectChanges();
+    }, 3000); 
+}
       }
+      
+     
       this.cdr.detectChanges();
-    },
-    error: (err) => {
-      console.error('List fetch error:', err);
     }
   });
 }

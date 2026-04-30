@@ -14,7 +14,7 @@ import { leadSchema } from './lead.schema';
 import { Subscription } from 'rxjs';
 import { HttpHeaders } from '@angular/common/http'; // Top par import check kar lena
 import { UserService } from '../../services/user.service';
-// 'fdfd';
+import { ActivatedRoute } from '@angular/router';
 @Component({
   selector: 'app-lead-form',
   standalone: true,
@@ -47,6 +47,7 @@ isEditMode: boolean = false;
 selectedLeadId: number | null = null;
 OrganisationId: any;
 salesProcesses: any[] = [];
+highlightedLeadId: number | null = null;
 leadOwners: any[] = [];
 salesCoordinators: any[] = [];
 reportingManagers: any[] = [];
@@ -92,10 +93,17 @@ goToPage(page: number) {
     private cdr: ChangeDetectorRef,
     public CheckPermissionService:CheckPermissionService,
     public userServices:UserService,
-    private eRef: ElementRef
+    private eRef: ElementRef,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
+    this.route.queryParams.subscribe(params => {
+    if (params['highlightId']) {
+      this.loadLeads();
+      this.highlightedLeadId = +params['highlightId']; // String to Number
+    }
+  });
     this.loadBranchess()
     this.loadDropdownData()
     this.loadLeadOwners();
@@ -291,6 +299,17 @@ onEditLead(id: any) {
       }
     }
   });
+}
+// Organization name par click hone par alert dikhayega
+onOrgClick(orgId: any, orgName: string) {
+  if (orgId) {
+    // Navigating with query parameter ?highlightId=3049
+    this.router.navigate(['/dashboard/organization-add'], { 
+      queryParams: { highlightId: orgId } 
+    });
+  } else {
+    alert("Bhai, is organization ki koi ID nahi mili.");
+  }
 }
 getBranches() {
   this.http.get<any[]>(`${environment.apiUrl}/branch/list`).subscribe(res => {

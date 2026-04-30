@@ -82,7 +82,23 @@
         </button>
       </div>
     </div>
-    <div class="overflow-x-auto">
+    <div *ngIf="isLoading" class="flex flex-col items-center justify-center py-24 bg-white border-t border-gray-200">
+  <div class="w-1/2 max-w-md bg-gray-200 rounded-full h-4 mb-4 overflow-hidden relative shadow-inner">
+    <!-- Progress Bar Fill -->
+    <div class="bg-blue-600 h-4 rounded-full transition-all duration-300 ease-out flex items-center justify-end pr-2"
+         [style.width]="loadingProgress + '%'">
+      <!-- Shimmer Effect inside progress bar (Optional for premium look) -->
+      <div class="absolute top-0 left-0 bottom-0 right-0 overflow-hidden rounded-full">
+        <div class="w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent animate-[shimmer_1.5s_infinite] -translate-x-full"></div>
+      </div>
+    </div>
+  </div>
+  <p class="text-gray-600 font-bold text-[11px] uppercase tracking-widest flex gap-2 items-center">
+    <span>Fetching Records...</span> 
+    <span class="text-blue-600 font-black text-[13px] w-8">{{ loadingProgress }}%</span>
+  </p>
+</div>
+    <div *ngIf="!isLoading" class="overflow-x-auto transition-opacity duration-500 ease-in-out">
       <table class="w-full border-collapse text-[12px]">
         <thead class="bg-gray-100 text-gray-600 uppercase border-b border-gray-300 font-bold whitespace-nowrap">
           <tr class="divide-x divide-gray-300">
@@ -949,11 +965,13 @@
       </table>
       <div class="flex justify-between items-center bg-white p-4 border-t border-gray-200 shadow-sm rounded-b-lg mt-2" *ngIf="filteredEmployees.length > 0">
   
+ <div class="flex justify-between items-center bg-white p-4 border-t border-gray-200 shadow-sm rounded-b-lg mt-2" *ngIf="totalRecords > 0">
+  
   <div class="flex items-center gap-4 text-sm text-gray-500 font-medium">
     <div>
       Showing <span class="text-gray-900 font-bold">{{ (currentPage - 1) * pageSize + 1 }}</span> 
-      to <span class="text-gray-900 font-bold">{{ Math.min(currentPage * pageSize, filteredEmployees.length) }}</span> 
-      of <span class="text-gray-900 font-bold">{{ filteredEmployees.length }}</span> entries
+      to <span class="text-gray-900 font-bold">{{ Math.min(currentPage * pageSize, totalRecords) }}</span> 
+      of <span class="text-gray-900 font-bold">{{ totalRecords }}</span> entries
     </div>
     
     <select [(ngModel)]="pageSize" (change)="onPageSizeChange()" 
@@ -963,6 +981,7 @@
       <option [ngValue]="50">50 / Page</option>
     </select>
   </div>
+  <!-- ... Next/Prev buttons wahi rahenge ... -->
 
   <div class="flex items-center gap-2">
     <button (click)="setPage(1)" [disabled]="currentPage === 1"

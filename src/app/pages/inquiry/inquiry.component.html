@@ -1,4 +1,3 @@
-
 <div class="p-3 bg-gray-100 min-h-screen font-sans text-[13px]">
   <div
     *ngIf="!isFormOpen"
@@ -16,300 +15,254 @@
     <div class="p-4 bg-white border-b border-gray-200">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-3">
         <div class="space-y-2">
-          <div class="flex items-center">
-            <label class="w-28 font-bold text-gray-600 text-[12px]"
-              >Service Type</label
-            >
+         <div class="flex items-center relative">
+  <label class="w-28 font-bold text-gray-600 text-[12px]">Service Type</label>
 
-            <div class="flex-1 flex border border-gray-300 relative">
-              <input
-                type="text"
-                [(ngModel)]="searchFilters.transportMode"
-                (input)="onServiceType()"
-                list="servicesSuggestions"
-                placeholder="Type service (min 3 chars)..."
-                class="w-full p-1 outline-none text-[12px] rounded-sm bg-white"
-              />
+  <div class="flex-1 flex flex-col relative">
+    <div class="flex border border-gray-300">
+      <input
+        type="text"
+        [(ngModel)]="searchFilters.transportMode"
+        (input)="onServiceType()"
+        placeholder="Type service (min 3 chars)..."
+        class="w-full p-1 outline-none text-[12px] rounded-sm bg-white"
+      />
 
-              <span
-                (click)="toggleServicePopup()"
-                class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-gray-200 transition-colors"
-              >
-                🔍
-              </span>
+      <!-- Mousedown fix for instant modal opening -->
+      <button
+        type="button"
+        (mousedown)="$event.preventDefault(); toggleServicePopup()"
+        class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-gray-200 transition-colors outline-none"
+      >
+        🔍
+      </button>
+    </div>
 
-              <datalist id="servicesSuggestions">
-                <option *ngFor="let s of filteredServices" [value]="s"></option>
-              </datalist>
+    <!-- Custom Dropdown List (Error TS2532 Fixed & Datalist Replacement) -->
+    <div *ngIf="searchFilters.transportMode && searchFilters.transportMode.length >= 3 && filteredServices.length > 0" 
+         class="absolute top-full left-0 right-0 bg-white border border-gray-300 shadow-xl z-[1000] max-h-40 overflow-y-auto rounded-sm mt-0.5">
+      <ul class="list-none p-0 m-0">
+        <li *ngFor="let s of filteredServices" 
+            (click)="searchFilters.transportMode = s; filteredServices = []"
+            class="p-2 text-[12px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 last:border-none uppercase">
+          {{ s }}
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Backdrop (Same as before) -->
+<div
+  *ngIf="showServicePopup && allTransportModes.length > 0"
+  class="fixed inset-0 bg-gray-900/70 backdrop-blur-sm z-[9998] transition-opacity duration-300 ease-out"
+  [ngClass]="{'opacity-100': showServicePopup, 'opacity-0': !showServicePopup}"
+  (click)="showServicePopup = false"
+></div>
+
+<!-- Modal Popup (Same as before) -->
+<div
+  *ngIf="showServicePopup && allTransportModes.length > 0"
+  class="fixed inset-0 flex items-center justify-center z-[9999] p-4 sm:p-6 md:p-10"
+  (click)="$event.stopPropagation()"
+>
+  <div
+    class="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-gray-100 flex flex-col max-h-[90vh] overflow-hidden transform transition-all duration-300 ease-out"
+    [ngClass]="{'opacity-100 scale-100': showServicePopup, 'opacity-0 scale-95': !showServicePopup}"
+  >
+    <div class="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex-shrink-0">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="text-xl font-bold text-gray-950 tracking-tight">Select Transport Mode</h3>
+          <p class="text-xs text-gray-500 mt-1">Choose the best service for your shipment</p>
+        </div>
+        <button
+          (click)="showServicePopup = false"
+          class="w-9 h-9 flex items-center justify-center rounded-full bg-white hover:bg-red-50 text-gray-400 hover:text-red-500 border border-gray-200 hover:border-red-100 transition-all focus:ring-2 focus:ring-red-200 outline-none"
+        >
+          ✕
+        </button>
+      </div>
+
+      <div class="relative">
+        <span class="absolute inset-y-0 left-4 flex items-center text-gray-400">🔍</span>
+        <input
+          type="text"
+          placeholder="Search air, sea, road modes..."
+          class="w-full pl-12 pr-4 py-3 text-sm bg-white border border-gray-200 rounded-2xl outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all placeholder:text-gray-400"
+          (input)="filterTransportModes($event)"
+        />
+      </div>
+    </div>
+
+    <div class="overflow-y-auto bg-white flex-1 min-h-0 custom-scrollbar">
+      <div class="p-3 space-y-1">
+        <div
+          *ngFor="let mode of allTransportModes"
+          (click)="selectServiceFromPopup(mode)"
+          class="group flex items-center justify-between px-4 py-4 rounded-xl hover:bg-blue-50/70 cursor-pointer transition-all border border-transparent hover:border-blue-100"
+        >
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-full bg-blue-100/70 text-blue-600 flex items-center justify-center text-lg font-bold flex-shrink-0">
+              {{ mode.substring(0, 1).toUpperCase() }}
             </div>
+            <span class="text-sm font-semibold text-gray-800 group-hover:text-blue-700 truncate pr-2">
+              {{ mode }}
+            </span>
           </div>
+          <span class="flex-shrink-0 opacity-0 group-hover:opacity-100 text-blue-500 transform translate-x-1 group-hover:translate-x-0 transition-all text-xs font-bold flex items-center gap-1.5 bg-blue-100/70 px-3 py-1.5 rounded-full">
+            Select <span>→</span>
+          </span>
+        </div>
+      </div>
 
-          <div
-            *ngIf="showServicePopup && allTransportModes.length > 0"
-            class="fixed inset-0 bg-gray-900/70 backdrop-blur-sm z-[9998] transition-opacity duration-300 ease-out"
-            [ngClass]="{
-              'opacity-100': showServicePopup,
-              'opacity-0': !showServicePopup,
-            }"
-            (click)="showServicePopup = false"
-          ></div>
+      <div *ngIf="allTransportModes.length === 0" class="py-16 text-center text-gray-500 flex flex-col items-center gap-4">
+        <span class="text-4xl">📭</span>
+        <p class="text-sm font-medium italic">No transport modes found matching your filter.</p>
+      </div>
+    </div>
 
-          <div
-            *ngIf="showServicePopup && allTransportModes.length > 0"
-            class="fixed inset-0 flex items-center justify-center z-[9999] p-4 sm:p-6 md:p-10"
-            (click)="$event.stopPropagation()"
-          >
-            <div
-              class="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-gray-100 flex flex-col max-h-[90vh] overflow-hidden transform transition-all duration-300 ease-out"
-              [ngClass]="{
-                'opacity-100 scale-100': showServicePopup,
-                'opacity-0 scale-95': !showServicePopup,
-              }"
-            >
-              <div
-                class="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex-shrink-0"
-              >
-                <div class="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 class="text-xl font-bold text-gray-950 tracking-tight">
-                      Select Transport Mode
-                    </h3>
-                    <p class="text-xs text-gray-500 mt-1">
-                      Choose the best service for your shipment
-                    </p>
-                  </div>
-                  <button
-                    (click)="showServicePopup = false"
-                    class="w-9 h-9 flex items-center justify-center rounded-full bg-white hover:bg-red-50 text-gray-400 hover:text-red-500 border border-gray-200 hover:border-red-100 transition-all focus:ring-2 focus:ring-red-200 outline-none"
-                  >
-                    ✕
-                  </button>
-                </div>
-
-                <div class="relative">
-                  <span
-                    class="absolute inset-y-0 left-4 flex items-center text-gray-400"
-                  >
-                    🔍
-                  </span>
-                  <input
-                    type="text"
-                    placeholder="Search air, sea, road modes..."
-                    class="w-full pl-12 pr-4 py-3 text-sm bg-white border border-gray-200 rounded-2xl outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all placeholder:text-gray-400"
-                    (input)="filterTransportModes($event)"
-                  />
-                </div>
-              </div>
-
-              <div
-                class="overflow-y-auto bg-white flex-1 min-h-0 custom-scrollbar"
-              >
-                <div class="p-3 space-y-1">
-                  <div
-                    *ngFor="let mode of allTransportModes"
-                    (click)="selectServiceFromPopup(mode)"
-                    class="group flex items-center justify-between px-4 py-4 rounded-xl hover:bg-blue-50/70 cursor-pointer transition-all border border-transparent hover:border-blue-100"
-                  >
-                    <div class="flex items-center gap-4">
-                      <div
-                        class="w-10 h-10 rounded-full bg-blue-100/70 text-blue-600 flex items-center justify-center text-lg font-bold flex-shrink-0"
-                      >
-                        {{ mode.substring(0, 1).toUpperCase() }}
-                      </div>
-                      <span
-                        class="text-sm font-semibold text-gray-800 group-hover:text-blue-700 truncate pr-2"
-                      >
-                        {{ mode }}
-                      </span>
-                    </div>
-
-                    <span
-                      class="flex-shrink-0 opacity-0 group-hover:opacity-100 text-blue-500 transform translate-x-1 group-hover:translate-x-0 transition-all text-xs font-bold flex items-center gap-1.5 bg-blue-100/70 px-3 py-1.5 rounded-full"
-                    >
-                      Select <span>→</span>
-                    </span>
-                  </div>
-                </div>
-
-                <div
-                  *ngIf="allTransportModes.length === 0"
-                  class="py-16 text-center text-gray-500 flex flex-col items-center gap-4"
-                >
-                  <span class="text-4xl">📭</span>
-                  <p class="text-sm font-medium italic">
-                    No transport modes found matching your filter.
-                  </p>
-                  <p class="text-xs text-gray-400">
-                    Try adjusting your search criteria.
-                  </p>
-                </div>
-              </div>
-
-              <div
-                class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex-shrink-0 flex items-center justify-between"
-              >
-                <p
-                  class="text-xs text-gray-400 uppercase tracking-widest font-bold"
-                >
-                  Cavalier Logistics1
-                </p>
-                <button
-                  (click)="showServicePopup = false"
-                  class="px-5 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-100 transition-all focus:ring-2 focus:ring-gray-200 outline-none"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
+    <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex-shrink-0 flex items-center justify-between">
+      <p class="text-xs text-gray-400 uppercase tracking-widest font-bold">Cavalier Logistics</p>
+      <button
+        (click)="showServicePopup = false"
+        class="px-5 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-100 transition-all focus:ring-2 focus:ring-gray-200 outline-none"
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
           <div class="flex items-center relative">
-            <label class="w-28 font-bold text-gray-600 text-[12px]"
-              >Inquiry No.</label
-            >
+  <label class="w-28 font-bold text-gray-600 text-[12px]">Inquiry No.</label>
 
-            <div class="flex-1 flex border border-gray-300">
-              <input
-                type="text"
-                [(ngModel)]="searchFilters.inquiryNo"
-                (input)="onInquiryType()"
-                list="inqNoList"
-                placeholder="Type min 3 chars..."
-                class="w-full p-1 outline-none text-[12px] rounded-sm bg-white"
-              />
+  <div class="flex-1 flex flex-col relative">
+    <div class="flex border border-gray-300 overflow-hidden rounded-sm">
+      <input
+        type="text"
+        [(ngModel)]="searchFilters.inquiryNo"
+        (input)="onInquiryType()"
+        placeholder="Type min 3 chars..."
+        class="w-full p-1 outline-none text-[12px] bg-white"
+        autocomplete="off"
+      />
 
-              <span
-                (click)="toggleInquiryPopup()"
-                class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-gray-200 transition-colors"
-              >
-                🔍
-              </span>
+      <!-- Instant Modal Trigger -->
+      <button
+        type="button"
+        (mousedown)="$event.preventDefault(); toggleInquiryPopup()"
+        class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-gray-200 transition-colors outline-none"
+      >
+        🔍
+      </button>
+    </div>
 
-              <datalist id="inqNoList">
-                <option
-                  *ngFor="let num of filteredInquiryNos"
-                  [value]="num"
-                ></option>
-              </datalist>
-            </div>
-          </div>
+    <!-- Frontend Suggestion Dropdown (TS ke 3-char logic par based) -->
+    <div *ngIf="filteredInquiryNos.length > 0" 
+         class="absolute top-full left-0 right-0 bg-white border border-gray-300 shadow-xl z-[1000] max-h-48 overflow-y-auto rounded-b-md mt-0.5 custom-scrollbar">
+      <ul class="list-none p-0 m-0">
+        <li *ngFor="let num of filteredInquiryNos" 
+            (click)="searchFilters.inquiryNo = num; filteredInquiryNos = []"
+            class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 last:border-none uppercase transition-colors"
+        >
+          {{ num }}
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Backdrop -->
+<div
+  *ngIf="showInquiryPopup"
+  class="fixed inset-0 bg-gray-900/70 backdrop-blur-sm z-[9998] animate-in fade-in duration-300"
+  (click)="showInquiryPopup = false"
+></div>
+
+<!-- Selection Modal Popup -->
+<div
+  *ngIf="showInquiryPopup"
+  class="fixed inset-0 flex items-center justify-center z-[9999] p-4 sm:p-6"
+  (click)="$event.stopPropagation()"
+>
+  <div
+    class="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-gray-100 flex flex-col max-h-[85vh] overflow-hidden transform transition-all animate-in zoom-in duration-200"
+  >
+    <!-- Modal Header -->
+    <div class="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex-shrink-0">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="text-xl font-bold text-gray-950 tracking-tight">Select Inquiry Number</h3>
+          <p class="text-xs text-gray-500 mt-1">Search and select the reference inquiry</p>
+        </div>
+        <button
+          (click)="showInquiryPopup = false"
+          class="w-9 h-9 flex items-center justify-center rounded-full bg-white hover:bg-red-50 text-gray-400 hover:text-red-500 border border-gray-200 hover:border-red-100 transition-all outline-none"
+        >
+          ✕
+        </button>
+      </div>
+
+      <div class="relative">
+        <span class="absolute inset-y-0 left-4 flex items-center text-gray-400">🔍</span>
+        <input
+          type="text"
+          placeholder="Filter inquiries..."
+          class="w-full pl-12 pr-4 py-3 text-sm bg-white border border-gray-200 rounded-2xl outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all placeholder:text-gray-400"
+          (input)="filterInquiryList($event)"
+        />
+      </div>
+    </div>
+
+    <!-- Modal List Body -->
+    <div class="overflow-y-auto bg-white flex-1 min-h-0 custom-scrollbar">
+      <div class="p-3 space-y-1">
+        <div *ngIf="allInquiryNos.length > 0; else emptyState">
           <div
-            *ngIf="showInquiryPopup && allInquiryNos.length > 0"
-            class="fixed inset-0 bg-gray-900/70 backdrop-blur-sm z-[9998] transition-opacity duration-300 ease-out"
-            [ngClass]="{
-              'opacity-100': showInquiryPopup,
-              'opacity-0': !showInquiryPopup,
-            }"
-            (click)="showInquiryPopup = false"
-          ></div>
-
-          <div
-            *ngIf="showInquiryPopup && allInquiryNos.length > 0"
-            class="fixed inset-0 flex items-center justify-center z-[9999] p-4 sm:p-6 md:p-10"
-            (click)="$event.stopPropagation()"
+            *ngFor="let inq of allInquiryNos"
+            (click)="selectInquiryFromPopup(inq); showInquiryPopup = false"
+            class="group flex items-center justify-between px-4 py-4 rounded-xl hover:bg-blue-50/70 cursor-pointer transition-all border border-transparent hover:border-blue-100"
           >
-            <div
-              class="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-gray-100 flex flex-col max-h-[90vh] overflow-hidden transform transition-all duration-300 ease-out"
-              [ngClass]="{
-                'opacity-100 scale-100': showInquiryPopup,
-                'opacity-0 scale-95': !showInquiryPopup,
-              }"
-            >
-              <div
-                class="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex-shrink-0"
-              >
-                <div class="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 class="text-xl font-bold text-gray-950 tracking-tight">
-                      Select Inquiry Number
-                    </h3>
-                    <p class="text-xs text-gray-500 mt-1">
-                      Search and select the reference inquiry
-                    </p>
-                  </div>
-                  <button
-                    (click)="showInquiryPopup = false"
-                    class="w-9 h-9 flex items-center justify-center rounded-full bg-white hover:bg-red-50 text-gray-400 hover:text-red-500 border border-gray-200 hover:border-red-100 transition-all focus:ring-2 focus:ring-red-200 outline-none"
-                  >
-                    ✕
-                  </button>
-                </div>
-
-                <div class="relative">
-                  <span
-                    class="absolute inset-y-0 left-4 flex items-center text-gray-400"
-                  >
-                    🔍
-                  </span>
-                  <input
-                    type="text"
-                    placeholder="Filter inquiries..."
-                    class="w-full pl-12 pr-4 py-3 text-sm bg-white border border-gray-200 rounded-2xl outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all placeholder:text-gray-400"
-                    (input)="filterInquiryList($event)"
-                  />
-                </div>
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 rounded-full bg-blue-100/70 text-blue-600 flex items-center justify-center text-sm font-bold flex-shrink-0 border border-blue-200">
+                #
               </div>
+              <span class="text-sm font-semibold text-gray-800 group-hover:text-blue-700 truncate pr-2 uppercase">
+                {{ inq }}
+              </span>
+            </div>
+            <span class="flex-shrink-0 opacity-0 group-hover:opacity-100 text-blue-500 transform translate-x-1 group-hover:translate-x-0 transition-all text-xs font-bold flex items-center gap-1.5 bg-blue-100/70 px-3 py-1.5 rounded-full">
+              Select <span>→</span>
+            </span>
+          </div>
+        </div>
 
-              <div
-                class="overflow-y-auto bg-white flex-1 min-h-0 custom-scrollbar"
-              >
-                <div class="p-3 space-y-1">
-                  <div
-                    *ngFor="let inq of allInquiryNos"
-                    (click)="selectInquiryFromPopup(inq)"
-                    class="group flex items-center justify-between px-4 py-4 rounded-xl hover:bg-blue-50/70 cursor-pointer transition-all border border-transparent hover:border-blue-100"
-                  >
-                    <div class="flex items-center gap-4">
-                      <div
-                        class="w-10 h-10 rounded-full bg-blue-100/70 text-blue-600 flex items-center justify-center text-sm font-bold flex-shrink-0 border border-blue-200"
-                      >
-                        #
-                      </div>
-                      <span
-                        class="text-sm font-semibold text-gray-800 group-hover:text-blue-700 truncate pr-2"
-                      >
-                        {{ inq }}
-                      </span>
-                    </div>
-
-                    <span
-                      class="flex-shrink-0 opacity-0 group-hover:opacity-100 text-blue-500 transform translate-x-1 group-hover:translate-x-0 transition-all text-xs font-bold flex items-center gap-1.5 bg-blue-100/70 px-3 py-1.5 rounded-full"
-                    >
-                      Select <span>→</span>
-                    </span>
-                  </div>
-                </div>
-
-                <div
-                  *ngIf="allInquiryNos.length === 0"
-                  class="py-16 text-center text-gray-500 flex flex-col items-center gap-4"
-                >
-                  <span class="text-4xl">📄</span>
-                  <p class="text-sm font-medium italic">
-                    No inquiries found matching your search.
-                  </p>
-                  <p class="text-xs text-gray-400">
-                    Please check the inquiry number again.
-                  </p>
-                </div>
-              </div>
-
-              <div
-                class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex-shrink-0 flex items-center justify-between"
-              >
-                <p
-                  class="text-xs text-gray-400 uppercase tracking-widest font-bold"
-                >
-                  Cavalier Logistics2
-                </p>
-                <button
-                  (click)="showInquiryPopup = false"
-                  class="px-5 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-100 transition-all focus:ring-2 focus:ring-gray-200 outline-none"
-                >
-                  Cancel
-                </button>
-              </div>
+        <ng-template #emptyState>
+          <div class="py-16 text-center text-gray-500 flex flex-col items-center gap-4">
+            <span class="text-4xl opacity-50">📄</span>
+            <div>
+              <p class="text-sm font-medium italic text-gray-600">No inquiries found.</p>
+              <p class="text-xs text-gray-400 mt-1">Try a different search term.</p>
             </div>
           </div>
+        </ng-template>
+      </div>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex-shrink-0 flex items-center justify-between">
+      <p class="text-[10px] text-gray-400 uppercase tracking-widest font-black opacity-60">
+        Cavalier Logistics
+      </p>
+      <button
+        (click)="showInquiryPopup = false"
+        class="px-5 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-100 transition-all outline-none"
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
           <!-- <div class="flex items-center relative">
             <label class="w-28 font-bold text-red-700 text-[12px]"
               >Inquiry to</label
@@ -452,152 +405,131 @@
             </div>
           </div>
           <div class="flex items-center relative">
-            <label class="w-24 font-bold text-gray-600 text-[12px]"
-              >Inquiry By</label
-            >
+  <label class="w-24 font-bold text-gray-600 text-[12px]">Inquiry By</label>
 
-            <div class="flex-1 flex border border-gray-300">
-              <input
-                type="text"
-                [(ngModel)]="searchFilters.salesCoordinator"
-                (input)="onCoordinatorType()"
-                list="coordinatorList"
-                placeholder="Type min 3 chars..."
-                class="w-full p-1 outline-none text-[12px] bg-white"
-                autocomplete="off"
-              />
+  <div class="flex-1 flex flex-col relative">
+    <div class="flex border border-gray-300 rounded-sm overflow-hidden">
+      <input
+        type="text"
+        [(ngModel)]="searchFilters.salesCoordinator"
+        (input)="onCoordinatorType()"
+        placeholder="Type min 3 chars..."
+        class="w-full p-1 outline-none text-[12px] bg-white"
+        autocomplete="off"
+      />
 
-              <span
-                (click)="toggleCoordinatorPopup()"
-                class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-gray-200 transition-colors"
-              >
-                🔍
+      <!-- Instant Modal Trigger Button -->
+      <button
+        type="button"
+        (mousedown)="toggleCoordinatorPopup(); $event.preventDefault()"
+        class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-gray-200 transition-colors outline-none"
+      >
+        🔍
+      </button>
+    </div>
+
+    <!-- Custom Dropdown (3 chars ke baad hi activate hoga) -->
+    <div *ngIf="filteredCoordinators && filteredCoordinators.length > 0" 
+         class="absolute top-full left-0 right-0 bg-white border border-gray-300 shadow-xl z-[1000] max-h-48 overflow-y-auto mt-0.5 custom-scrollbar">
+      <ul class="list-none p-0 m-0">
+        <li *ngFor="let name of filteredCoordinators" 
+            (mousedown)="searchFilters.salesCoordinator = name; filteredCoordinators = []"
+            class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 last:border-none uppercase transition-colors"
+        >
+          {{ name }}
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Backdrop -->
+<div
+  *ngIf="showCoordinatorPopup"
+  class="fixed inset-0 bg-gray-900/70 backdrop-blur-sm z-[9998] transition-opacity duration-300"
+  (click)="showCoordinatorPopup = false"
+></div>
+
+<!-- Selection Modal Popup -->
+<div
+  *ngIf="showCoordinatorPopup"
+  class="fixed inset-0 flex items-center justify-center z-[9999] p-4 sm:p-6"
+  (click)="$event.stopPropagation()"
+>
+  <div
+    class="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-gray-100 flex flex-col max-h-[85vh] overflow-hidden transform transition-all duration-300"
+  >
+    <!-- Modal Header -->
+    <div class="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex-shrink-0">
+      <div class="flex justify-between items-center mb-4">
+        <div>
+          <h3 class="text-xl font-bold text-gray-950 tracking-tight">Select Coordinator</h3>
+          <p class="text-xs text-gray-500 mt-1">Assign a coordinator for this task</p>
+        </div>
+        <button
+          (click)="showCoordinatorPopup = false"
+          class="w-9 h-9 flex items-center justify-center rounded-full bg-white hover:bg-red-50 text-gray-400 hover:text-red-500 border border-gray-200 transition-all outline-none"
+        >
+          ✕
+        </button>
+      </div>
+
+      <div class="relative">
+        <span class="absolute inset-y-0 left-4 flex items-center text-gray-400">🔍</span>
+        <input
+          type="text"
+          placeholder="Search coordinator name..."
+          class="w-full pl-12 pr-4 py-3 text-sm bg-white border border-gray-200 rounded-2xl outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all"
+          (input)="filterCoordinatorList($event)"
+        />
+      </div>
+    </div>
+
+    <!-- Modal List Body -->
+    <div class="overflow-y-auto bg-white flex-1 min-h-0 custom-scrollbar">
+      <div class="p-3 space-y-1">
+        <div *ngIf="allCoordinators.length > 0; else noData">
+          <div
+            *ngFor="let coord of allCoordinators"
+            (click)="searchFilters.salesCoordinator = coord; showCoordinatorPopup = false"
+            class="group flex items-center justify-between px-4 py-4 rounded-xl hover:bg-blue-50/70 cursor-pointer transition-all border border-transparent hover:border-blue-100"
+          >
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 rounded-full bg-blue-100/70 text-blue-600 flex items-center justify-center text-sm font-bold flex-shrink-0 border border-blue-200 uppercase">
+                {{ coord.substring(0, 1) }}
+              </div>
+              <span class="text-sm font-semibold text-gray-800 group-hover:text-blue-700 truncate pr-2">
+                {{ coord }}
               </span>
             </div>
-
-            <datalist id="coordinatorList">
-              <option
-                *ngFor="let name of filteredCoordinators"
-                [value]="name"
-              ></option>
-            </datalist>
+            <span class="flex-shrink-0 opacity-0 group-hover:opacity-100 text-blue-500 transform translate-x-1 group-hover:translate-x-0 transition-all text-xs font-bold flex items-center gap-1.5 bg-blue-100/70 px-3 py-1.5 rounded-full">
+              Select <span>→</span>
+            </span>
           </div>
-          <div
-            *ngIf="showCoordinatorPopup && allCoordinators.length > 0"
-            class="fixed inset-0 bg-gray-900/70 backdrop-blur-sm z-[9998] transition-opacity duration-300 ease-out"
-            [ngClass]="{
-              'opacity-100': showCoordinatorPopup,
-              'opacity-0': !showCoordinatorPopup,
-            }"
-            (click)="showCoordinatorPopup = false"
-          ></div>
-
-          <div
-            *ngIf="showCoordinatorPopup && allCoordinators.length > 0"
-            class="fixed inset-0 flex items-center justify-center z-[9999] p-4 sm:p-6 md:p-10"
-            (click)="$event.stopPropagation()"
-          >
-            <div
-              class="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-gray-100 flex flex-col max-h-[90vh] overflow-hidden transform transition-all duration-300 ease-out"
-              [ngClass]="{
-                'opacity-100 scale-100': showCoordinatorPopup,
-                'opacity-0 scale-95': !showCoordinatorPopup,
-              }"
-            >
-              <div
-                class="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex-shrink-0"
-              >
-                <div class="flex justify-between items-center mb-4">
-                  <div>
-                    <h3 class="text-xl font-bold text-gray-950 tracking-tight">
-                      Select Coordinator
-                    </h3>
-                    <p class="text-xs text-gray-500 mt-1">
-                      Assign a coordinator for this task
-                    </p>
-                  </div>
-                  <button
-                    (click)="showCoordinatorPopup = false"
-                    class="w-9 h-9 flex items-center justify-center rounded-full bg-white hover:bg-red-50 text-gray-400 hover:text-red-500 border border-gray-200 hover:border-red-100 transition-all focus:ring-2 focus:ring-red-200 outline-none"
-                  >
-                    ✕
-                  </button>
-                </div>
-
-                <div class="relative">
-                  <span
-                    class="absolute inset-y-0 left-4 flex items-center text-gray-400"
-                  >
-                    🔍
-                  </span>
-                  <input
-                    type="text"
-                    placeholder="Search coordinator name..."
-                    class="w-full pl-12 pr-4 py-3 text-sm bg-white border border-gray-200 rounded-2xl outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all placeholder:text-gray-400"
-                    (input)="filterCoordinatorList($event)"
-                  />
-                </div>
-              </div>
-
-              <div
-                class="overflow-y-auto bg-white flex-1 min-h-0 custom-scrollbar"
-              >
-                <div class="p-3 space-y-1">
-                  <div
-                    *ngFor="let coord of allCoordinators"
-                    (click)="selectCoordinatorFromPopup(coord)"
-                    class="group flex items-center justify-between px-4 py-4 rounded-xl hover:bg-blue-50/70 cursor-pointer transition-all border border-transparent hover:border-blue-100"
-                  >
-                    <div class="flex items-center gap-4">
-                      <div
-                        class="w-10 h-10 rounded-full bg-blue-100/70 text-blue-600 flex items-center justify-center text-sm font-bold flex-shrink-0 border border-blue-200 uppercase"
-                      >
-                        {{ coord.substring(0, 1) }}
-                      </div>
-                      <span
-                        class="text-sm font-semibold text-gray-800 group-hover:text-blue-700 truncate pr-2"
-                      >
-                        {{ coord }}
-                      </span>
-                    </div>
-
-                    <span
-                      class="flex-shrink-0 opacity-0 group-hover:opacity-100 text-blue-500 transform translate-x-1 group-hover:translate-x-0 transition-all text-xs font-bold flex items-center gap-1.5 bg-blue-100/70 px-3 py-1.5 rounded-full"
-                    >
-                      Select <span>→</span>
-                    </span>
-                  </div>
-                </div>
-
-                <div
-                  *ngIf="allCoordinators.length === 0"
-                  class="py-16 text-center text-gray-500 flex flex-col items-center gap-4"
-                >
-                  <span class="text-4xl">👤</span>
-                  <p class="text-sm font-medium italic">
-                    No coordinators found.
-                  </p>
-                  <p class="text-xs text-gray-400">Try a different name.</p>
-                </div>
-              </div>
-
-              <div
-                class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex-shrink-0 flex items-center justify-between"
-              >
-                <p
-                  class="text-xs text-gray-400 uppercase tracking-widest font-bold"
-                >
-                  Cavalier Logistics
-                </p>
-                <button
-                  (click)="showCoordinatorPopup = false"
-                  class="px-5 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-100 transition-all focus:ring-2 focus:ring-gray-200 outline-none"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
+        </div>
+        <ng-template #noData>
+          <div class="py-16 text-center text-gray-500 flex flex-col items-center gap-4">
+            <span class="text-4xl opacity-50">👤</span>
+            <p class="text-sm font-medium italic">No coordinators found.</p>
           </div>
+        </ng-template>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex-shrink-0 flex items-center justify-between">
+      <p class="text-[10px] text-gray-400 uppercase tracking-widest font-black opacity-60">
+        Cavalier Logistics
+      </p>
+      <button
+        (click)="showCoordinatorPopup = false"
+        class="px-5 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-100 transition-all outline-none"
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
           <!-- <div class="flex items-center">
             <label class="w-24 font-bold text-gray-600">Inquiry Status</label>
             <select
@@ -627,187 +559,187 @@
             </div>
           </div> -->
           <div class="flex items-center mb-1">
-  <label class="w-28 font-bold text-gray-600 text-[12px]">Branch</label>
-
-  <div class="flex-1 flex border border-gray-300 relative rounded-sm bg-white shadow-sm focus-within:ring-1 focus-within:ring-red-400">
-    
-    <input 
-      type="text" 
-      [(ngModel)]="branchSearchText" 
-      (input)="onBranchSearch()" 
-      placeholder="Type to search branch..." 
-      class="w-full p-1.5 outline-none text-[12px] bg-white" 
-      autocomplete="off"
-    >
-
-    <span 
-      (click)="toggleBranchModal()" 
-      class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-red-500 hover:text-white transition-all flex items-center justify-center w-9" 
-      title="View All Branches"
-    >
-      🔍
-    </span>
-
-    <ul 
-      *ngIf="branchSearchText.length >= 3 && filteredBranchSuggestions.length > 0 && !isBranchModalOpen" 
-      class="absolute top-full left-0 w-full bg-white border border-gray-300 z-[4000] shadow-xl max-h-60 overflow-y-auto mt-1 rounded-sm list-none p-0"
-    >
-      <li 
-        *ngFor="let b of filteredBranchSuggestions" 
-        (click)="selectBranchFromDropdown(b)" 
-        class="p-2 text-[12px] hover:bg-red-50 cursor-pointer border-b border-gray-100 last:border-none flex justify-between items-center transition-colors"
-      >
-        <div class="flex flex-col">
-          <span class="font-bold text-gray-700 uppercase">{{ b.branchName }}</span>
-          <span class="text-[10px] text-gray-400">{{ b.branchCode }}</span>
-        </div>
-        <span *ngIf="b.isSelected" class="text-red-500 text-[10px] font-bold">SELECTED</span>
-      </li>
-    </ul>
-  </div>
-</div>
-
-<div 
-  *ngIf="isBranchModalOpen" 
-  class="fixed inset-0 z-[3000] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
->
-  <div class="bg-white w-full max-w-md shadow-2xl rounded-sm border-t-4 border-red-600 animate-in zoom-in duration-200">
-    
-    <div class="flex justify-between items-center p-3 border-b bg-gray-50">
-      <h3 class="text-[12px] font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
-        🏢 Select Branches
-      </h3>
-      <button 
-        (click)="toggleBranchModal()" 
-        class="text-gray-400 hover:text-red-500 text-2xl font-bold leading-none"
-      >
-        &times;
-      </button>
-    </div>
-
-    <div class="max-h-80 overflow-y-auto p-1 custom-scrollbar">
-      
-      <div class="p-2 sticky top-0 bg-white">
-        <input 
-          type="text" 
-          [(ngModel)]="modalSearchText" 
-          (input)="onModalSearch()" 
-          placeholder="Filter branches..." 
-          class="w-full p-1 border border-gray-200 text-[11px] outline-none rounded-sm"
-        />
-      </div>
-
-      <ul class="list-none p-0 m-0">
-        <li 
-          *ngFor="let branch of filteredBranchSuggestions" 
-          class="flex items-center gap-3 p-2.5 hover:bg-red-50 border-b border-gray-50 last:border-none cursor-pointer transition-colors" 
-          (click)="toggleBranchSelection(branch)"
-        >
-          <input 
-            type="checkbox" 
-            [checked]="branch.isSelected" 
-            (click)="$event.stopPropagation()" 
-            (change)="toggleBranchSelection(branch)" 
-            class="w-4 h-4 accent-red-600 cursor-pointer"
-          />
-
-          <div class="flex flex-col">
-            <span class="text-[12px] text-gray-800 font-medium uppercase">{{ branch.branchName }}</span>
-            <span *ngIf="branch.branchCode" class="text-[10px] text-gray-400">{{ branch.branchCode }}</span>
-          </div>
-        </li>
-
-        <li *ngIf="filteredBranchSuggestions.length === 0" class="p-5 text-center text-gray-400 text-[11px] italic">
-          No branches found.
-        </li>
-      </ul>
-    </div>
-
-    <div class="p-3 border-t bg-gray-50 flex justify-end gap-2">
-      <button 
-        (click)="toggleBranchModal()" 
-        class="px-4 py-1.5 text-[11px] font-bold text-gray-500 hover:bg-gray-200 rounded-sm uppercase"
-      >
-        Cancel
-      </button>
-      <button 
-        (click)="confirmSelection()" 
-        class="px-6 py-1.5 text-[11px] font-bold bg-red-600 text-white hover:bg-red-700 rounded-sm shadow-md transition-all uppercase"
-      >
-        Confirm Selection
-      </button>
-    </div>
-  </div>
-</div>
-        </div>
-
-        <div class="flex flex-col justify-between pt-1">
-          <div class="space-y-2 pl-4">
-            <div
-              (click)="toggleAdvanceFilter()"
-              class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline flex items-center gap-1"
+            <label class="w-28 font-bold text-gray-600 text-[12px]"
+              >Branch</label
             >
-              Advance Filter
+
+            <div
+              class="flex-1 flex border border-gray-300 relative rounded-sm bg-white shadow-sm focus-within:ring-1 focus-within:ring-red-400"
+            >
+              <input
+                type="text"
+                [(ngModel)]="branchSearchText"
+                (input)="onBranchSearch()"
+                placeholder="Type to search branch..."
+                class="w-full p-1.5 outline-none text-[12px] bg-white"
+                autocomplete="off"
+              />
+
               <span
-                class="text-[10px]"
-                [style.transform]="
-                  isAdvanceFilterVisible ? 'rotate(180deg)' : 'rotate(0deg)'
-                "
+                (click)="toggleBranchModal()"
+                class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-red-500 hover:text-white transition-all flex items-center justify-center w-9"
+                title="View All Branches"
               >
-                ▼
+                🔍
               </span>
-            </div>
 
-            <div
-              *ngIf="isAdvanceFilterVisible"
-              class="transition-all duration-300"
-            >
-              <div class="grid grid-cols-2 gap-4 mt-4"></div>
-            </div>
-            <div
-              (click)="onClear()"
-              class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline"
-            >
-              Clear
-            </div>
-            <div class="relative group">
-              <div
-                class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline"
+              <ul
+                *ngIf="
+                  branchSearchText.length >= 3 &&
+                  filteredBranchSuggestions.length > 0 &&
+                  !isBranchModalOpen
+                "
+                class="absolute top-full left-0 w-full bg-white border border-gray-300 z-[4000] shadow-xl max-h-60 overflow-y-auto mt-1 rounded-sm list-none p-0"
               >
-                Legend
-              </div>
-
-              <div
-                class="absolute hidden group-hover:block bg-white border border-gray-300 p-2 shadow-lg rounded-md z-10 w-40 top-5 left-0"
-              >
-                <div class="flex items-center gap-2 mb-1">
-                  <span class="w-3 h-3 bg-green-500 rounded-full"></span>
-                  <span class="text-[10px] text-gray-700">Green = Success</span>
-                </div>
-                <div class="flex items-center gap-2">
-                  <span class="w-3 h-3 bg-red-500 rounded-full"></span>
-                  <span class="text-[10px] text-gray-700">Red = Failed</span>
-                </div>
-              </div>
+                <li
+                  *ngFor="let b of filteredBranchSuggestions"
+                  (click)="selectBranchFromDropdown(b)"
+                  class="p-2 text-[12px] hover:bg-red-50 cursor-pointer border-b border-gray-100 last:border-none flex justify-between items-center transition-colors"
+                >
+                  <div class="flex flex-col">
+                    <span class="font-bold text-gray-700 uppercase">{{
+                      b.branchName
+                    }}</span>
+                    <span class="text-[10px] text-gray-400">{{
+                      b.branchCode
+                    }}</span>
+                  </div>
+                  <span
+                    *ngIf="b.isSelected"
+                    class="text-red-500 text-[10px] font-bold"
+                    >SELECTED</span
+                  >
+                </li>
+              </ul>
             </div>
           </div>
 
-          <div class="flex justify-end mt-4">
-            <button
-              (click)="onSearch()"
-              class="bg-[#4a3f3f] text-white px-8 py-1.5 font-bold shadow-md uppercase text-[11px] hover:bg-black transition-all"
+          <div
+            *ngIf="isBranchModalOpen"
+            class="fixed inset-0 z-[3000] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+          >
+            <div
+              class="bg-white w-full max-w-md shadow-2xl rounded-sm border-t-4 border-red-600 animate-in zoom-in duration-200"
             >
-              Search
-            </button>
-            <button
-              (click)="AllSearch()"
-              class="bg-[#4a3f3f] text-white px-8 py-1.5 font-bold shadow-md uppercase text-[11px] hover:bg-black transition-all"
-            >
-              All Search
-            </button>
-            
+              <div
+                class="flex justify-between items-center p-3 border-b bg-gray-50"
+              >
+                <h3
+                  class="text-[12px] font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2"
+                >
+                  🏢 Select Branches
+                </h3>
+                <button
+                  (click)="toggleBranchModal()"
+                  class="text-gray-400 hover:text-red-500 text-2xl font-bold leading-none"
+                >
+                  &times;
+                </button>
+              </div>
+
+              <div class="max-h-80 overflow-y-auto p-1 custom-scrollbar">
+                <div class="p-2 sticky top-0 bg-white">
+                  <input
+                    type="text"
+                    [(ngModel)]="modalSearchText"
+                    (input)="onModalSearch()"
+                    placeholder="Filter branches..."
+                    class="w-full p-1 border border-gray-200 text-[11px] outline-none rounded-sm"
+                  />
+                </div>
+
+                <ul class="list-none p-0 m-0">
+                  <li
+                    *ngFor="let branch of filteredBranchSuggestions"
+                    class="flex items-center gap-3 p-2.5 hover:bg-red-50 border-b border-gray-50 last:border-none cursor-pointer transition-colors"
+                    (click)="toggleBranchSelection(branch)"
+                  >
+                    <input
+                      type="checkbox"
+                      [checked]="branch.isSelected"
+                      (click)="$event.stopPropagation()"
+                      (change)="toggleBranchSelection(branch)"
+                      class="w-4 h-4 accent-red-600 cursor-pointer"
+                    />
+
+                    <div class="flex flex-col">
+                      <span
+                        class="text-[12px] text-gray-800 font-medium uppercase"
+                        >{{ branch.branchName }}</span
+                      >
+                      <span
+                        *ngIf="branch.branchCode"
+                        class="text-[10px] text-gray-400"
+                        >{{ branch.branchCode }}</span
+                      >
+                    </div>
+                  </li>
+
+                  <li
+                    *ngIf="filteredBranchSuggestions.length === 0"
+                    class="p-5 text-center text-gray-400 text-[11px] italic"
+                  >
+                    No branches found.
+                  </li>
+                </ul>
+              </div>
+
+              <div class="p-3 border-t bg-gray-50 flex justify-end gap-2">
+                <button
+                  (click)="toggleBranchModal()"
+                  class="px-4 py-1.5 text-[11px] font-bold text-gray-500 hover:bg-gray-200 rounded-sm uppercase"
+                >
+                  Cancel
+                </button>
+                <button
+                  (click)="confirmSelection()"
+                  class="px-6 py-1.5 text-[11px] font-bold bg-red-600 text-white hover:bg-red-700 rounded-sm shadow-md transition-all uppercase"
+                >
+                  Confirm Selection
+                </button>
+              </div>
+            </div>
           </div>
         </div>
+        
+
+        <!-- Main Wrapper (Is par 'relative' hona zaroori hai) -->
+<div class="relative p-4 bg-white border border-gray-200 rounded-sm shadow-sm">
+  
+  <!-- Buttons Container: Fixed at Top Right -->
+  <div class="absolute top-4 right-4 flex items-center gap-3 z-10">
+    <button
+      (click)="onClear()"
+      class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline outline-none"
+    >
+      Clear
+    </button>
+    
+    <button
+      (click)="onSearch()"
+      class="bg-[#4a3f3f] text-white px-5 py-1.5 font-bold shadow-md uppercase text-[10px] hover:bg-black transition-all rounded-sm outline-none"
+    >
+      Search
+    </button>
+    
+    <button
+      (click)="AllSearch()"
+      class="bg-[#4a3f3f] text-white px-5 py-1.5 font-bold shadow-md uppercase text-[10px] hover:bg-black transition-all rounded-sm outline-none"
+    >
+      All Search
+    </button>
+  </div>
+
+  <!-- Grid Code: Added pr-[280px] to prevent overlapping with buttons -->
+  <div class="grid grid-cols-2 gap-x-8 gap-y-3 pt-2 pr-[280px]">
+    
+    <!-- Row 1: Service Type | Date -->
+    <!-- Row 2: Inquiry No   | Inquiry By -->
+    <!-- Row 3: Show         | Branch -->
+    
+    <!-- Tip: Is grid ke andar apna puraana logic (Service Type to Branch) wapas daal de -->
+  </div>
+</div>
       </div>
     </div>
     <div class="bg-[#4a3f3f] p-3 flex justify-between items-center text-white">
@@ -864,7 +796,8 @@
         </div>
 
         <button
-          (click)="toggleForm()"  *ngIf="CheckPermissionService.hasPermission(PermissionID,'Add');"
+          (click)="toggleForm()"
+          *ngIf="CheckPermissionService.hasPermission(PermissionID, 'Add')"
           class="bg-green-600 hover:bg-green-700 px-5 py-1.5 text-[12px] font-bold shadow-sm flex items-center gap-2 transition-all"
         >
           <svg
@@ -888,60 +821,114 @@
 
     <div class="p-0 overflow-x-auto">
       <div class="p-0 overflow-x-auto">
-      <div class="relative">
-  <div class="relative">
-    <table class="w-full border-collapse border border-gray-200 whitespace-nowrap">
-      <thead>
-        <tr class="bg-gray-50 text-gray-600 uppercase text-[11px] border-b"
-            cdkDropList cdkDropListOrientation="horizontal"
-            [cdkDropListData]="selectedColumns"
-            (cdkDropListDropped)="dropColumn($any($event))">
-          
-          <th *ngFor="let col of selectedColumns" cdkDrag
-              class="p-4 text-left font-bold cursor-move hover:bg-gray-100 border-r border-gray-200 last:border-r-0">
-            <div class="flex items-center gap-2">
-              <span class="text-gray-300">⋮⋮</span>
-              {{ col }}
-            </div>
-          </th>
+        <div class="relative">
+          <div class="relative">
+            <table
+              class="w-full border-collapse border border-gray-200 whitespace-nowrap"
+            >
+              <thead>
+                <tr
+                  class="bg-gray-50 text-gray-600 uppercase text-[11px] border-b"
+                  cdkDropList
+                  cdkDropListOrientation="horizontal"
+                  [cdkDropListData]="selectedColumns"
+                  (cdkDropListDropped)="dropColumn($any($event))"
+                >
+                  <th
+                    *ngFor="let col of selectedColumns"
+                    cdkDrag
+                    class="p-4 text-left font-bold cursor-move hover:bg-gray-100 border-r border-gray-200 last:border-r-0"
+                  >
+                    <div class="flex items-center gap-2">
+                      <span class="text-gray-300">⋮⋮</span>
+                      {{ col }}
+                    </div>
+                  </th>
 
-          <th class="p-4 text-center font-bold sticky right-0 bg-gray-50 border-l shadow-sm no-export">
-            Action
-          </th>
-        </tr>
-      </thead>
+                  <th
+                    class="p-4 text-center font-bold sticky right-0 bg-gray-50 border-l shadow-sm no-export"
+                  >
+                    Action
+                  </th>
+                </tr>
+              </thead>
 
-      <tbody class="bg-white" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
-        <tr *ngFor="let q of paginatedInquiries" 
-            (dblclick)="editQuotation(q)"
-            class="hover:bg-gray-50 border-b text-gray-700 cursor-pointer transition-colors">
-          
-          <td *ngFor="let col of selectedColumns" class="p-4">
-            <ng-container [ngSwitch]="col">
-              <span *ngSwitchCase="'Inquiry Id.'" class="font-bold text-gray-900">{{ q.id }}</span>
-              <span *ngSwitchCase="'Inquiry No.'" class="font-bold text-blue-600">{{ q.inquiryNo }}</span>
-              <span *ngSwitchCase="'Date'" class="font-medium">{{ q.receivedDate | date: "dd-MMM-yyyy" }}</span>
-              <span *ngSwitchCase="'Status'">
-                <span [ngClass]="{'bg-yellow-100 text-yellow-800': q.id > 0, 'bg-green-100 text-green-800': q.id === 0}"
-                      class="px-3 py-1 rounded text-[11px] font-bold uppercase">
-                  {{ q.cargoStatus }}
-                </span>
-              </span>
-              <span *ngSwitchDefault class="uppercase font-medium">{{ q[columnFieldMap[col]] || "-" }}</span>
-            </ng-container>
-          </td>
+              <tbody
+                class="bg-white"
+                *ngIf="
+                  CheckPermissionService.hasPermission(PermissionID, 'View')
+                "
+              >
+                <tr
+                  *ngFor="let q of paginatedInquiries"
+                  (dblclick)="editQuotation(q)"
+                  class="hover:bg-gray-50 border-b text-gray-700 cursor-pointer transition-colors"
+                >
+                  <td *ngFor="let col of selectedColumns" class="p-4">
+                    <ng-container [ngSwitch]="col">
+                      <span
+                        *ngSwitchCase="'Inquiry Id.'"
+                        class="font-bold text-gray-900"
+                        >{{ q.id }}</span
+                      >
+                      <span
+                        *ngSwitchCase="'Inquiry No.'"
+                        class="font-bold text-blue-600"
+                        >{{ q.inquiryNo }}</span
+                      >
+                      <span *ngSwitchCase="'Date'" class="font-medium">{{
+                        q.receivedDate | date: "dd-MMM-yyyy"
+                      }}</span>
+                      <span *ngSwitchCase="'Status'">
+                        <span
+                          [ngClass]="{
+                            'bg-yellow-100 text-yellow-800': q.id > 0,
+                            'bg-green-100 text-green-800': q.id === 0,
+                          }"
+                          class="px-3 py-1 rounded text-[11px] font-bold uppercase"
+                        >
+                          {{ q.cargoStatus }}
+                        </span>
+                      </span>
+                      <span *ngSwitchDefault class="uppercase font-medium">{{
+                        q[columnFieldMap[col]] || "-"
+                      }}</span>
+                    </ng-container>
+                  </td>
 
-          <td class="p-4 sticky right-0 bg-white border-l text-center shadow-[-5px_0_10px_rgba(0,0,0,0.02)]">
-            <button (click)="editQuotation(q)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Edit')"
-                    class="text-blue-600 mr-3 font-bold uppercase hover:underline text-[11px]">Edit</button>
-            <button (click)="deleteQuotation(q.id)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Delete')"
-                    class="text-red-600 font-bold uppercase hover:underline text-[11px]">Delete</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
+                  <td
+                    class="p-4 sticky right-0 bg-white border-l text-center shadow-[-5px_0_10px_rgba(0,0,0,0.02)]"
+                  >
+                    <button
+                      (click)="editQuotation(q)"
+                      *ngIf="
+                        CheckPermissionService.hasPermission(
+                          PermissionID,
+                          'Edit'
+                        )
+                      "
+                      class="text-blue-600 mr-3 font-bold uppercase hover:underline text-[11px]"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      (click)="deleteQuotation(q.id)"
+                      *ngIf="
+                        CheckPermissionService.hasPermission(
+                          PermissionID,
+                          'Delete'
+                        )
+                      "
+                      class="text-red-600 font-bold uppercase hover:underline text-[11px]"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
       <div
         class="flex justify-between items-center bg-white p-4 border-t border-gray-200 mt-2 shadow-sm rounded-b-lg no-export"
@@ -1119,7 +1106,7 @@
       </div>
     </div>
   </div>
-<div [hidden]="showCostTable" class="p-4 bg-white shadow-lg rounded-xl">
+ <div *ngIf="!showCostTable && !showMultiCarrierTable" class="p-4 bg-white shadow-lg rounded-xl">
     <div *ngIf="isFormOpen" class="bg-white border border-gray-300 shadow-lg">
       <div
         class="bg-[#4a3f3f] p-2 flex justify-between items-center text-white"
@@ -1148,148 +1135,107 @@
           <div class="grid grid-cols-1 md:grid-cols-4 gap-x-8 gap-y-3">
             <div class="space-y-2">
               <div class="grid grid-cols-2 items-center gap-3">
-                <label class="font-bold text-gray-700 text-[12px]"
-                  >Reference by lead.</label
-                >
+  <label class="font-bold text-gray-700 text-[12px]">Reference by lead.</label>
 
-                <div
-                  class="relative flex border border-gray-300 rounded overflow-hidden"
-                >
-                  <input
-                    [(ngModel)]="inquiry.leadNo"
-                    name="leadNo"
-                    placeholder="Search Lead..."
-                    (input)="onLeadSearchInput()"
-                    class="p-2 bg-white outline-none w-full text-gray-600 text-[12px]"
-                    autocomplete="off"
-                  />
+  <div class="relative flex border border-gray-300 rounded overflow-hidden">
+    <input
+      [(ngModel)]="inquiry.leadNo"
+      name="leadNo"
+      placeholder="Search Lead..."
+      (input)="onLeadSearchInput()"
+      class="p-2 bg-white outline-none w-full text-gray-600 text-[12px]"
+      autocomplete="off"
+    />
 
-                  <span
-                    (click)="loadAllLeadss()"
-                    class="p-2 bg-gray-50 border-l border-gray-200 flex items-center text-gray-400 cursor-pointer hover:bg-gray-200 transition-colors"
-                  >
-                    🔍
-                  </span>
+    <!-- 🔍 SEARCH ICON -->
+    <span
+      (click)="loadAllLeadss()"
+      class="p-2 bg-gray-50 border-l border-gray-200 flex items-center text-gray-400 cursor-pointer hover:bg-gray-200 transition-colors"
+    >
+      🔍
+    </span>
+  </div>
+</div>
 
-                  <ul
-                    *ngIf="showLeadDropdown && filteredLeads.length > 0"
-                    class="absolute top-full left-0 z-10 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto"
-                  >
-                    <li
-                      *ngFor="let lead of filteredLeads"
-                      (click)="selectLead(lead)"
-                      class="p-2 hover:bg-gray-100 cursor-pointer text-[12px] border-b"
-                    >
-                      {{ lead.leadNo }}
-                    </li>
-                  </ul>
-                </div>
-              </div>
+<!-- 🔹 MODAL OVERLAY & CONTAINER -->
+<div
+  *ngIf="isSearchModalOpen"
+  class="fixed inset-0 bg-slate-900/60 backdrop-blur-[4px] z-[9998] animate-in fade-in duration-300"
+  (click)="isSearchModalOpen = false"
+></div>
 
-              <div
-                *ngIf="showInquiryDropdown && filteredInquiries.length > 0"
-                class="fixed inset-0 bg-slate-900/60 backdrop-blur-[4px] z-[9998] animate-in fade-in duration-300"
-                (click)="showInquiryDropdown = false"
-              ></div>
+<div
+  *ngIf="isSearchModalOpen"
+  (click)="isSearchModalOpen = false"
+  class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/30 backdrop-blur-sm"
+>
+  <!-- 🔥 MAIN MODAL -->
+  <div
+    (click)="$event.stopPropagation()"
+    class="w-[92%] sm:w-[85%] md:w-[450px] max-h-[85vh] flex flex-col bg-white shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-2xl overflow-hidden border border-gray-100 animate-in fade-in zoom-in duration-200"
+  >
+    <!-- 🔹 HEADER -->
+    <div class="px-5 py-4 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 flex-shrink-0 flex flex-col gap-3">
+      <div class="flex justify-between items-center">
+        <h3 class="text-[11px] font-bold text-gray-800 tracking-tight uppercase">
+          Select Reference Lead
+        </h3>
+        <button
+          (click)="isSearchModalOpen = false"
+          class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-50 text-gray-400 hover:text-red-500 transition-all"
+        >
+          ✕
+        </button>
+      </div>
 
-              <div
-                *ngIf="showInquiryDropdown && filteredInquiries.length > 0"
-                (click)="showInquiryDropdown = false"
-                class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/30 backdrop-blur-sm"
-              >
-                <!-- 🔥 MAIN MODAL -->
-                <div
-                  *ngIf="filteredInquiries.length > 0"
-                  (click)="$event.stopPropagation()"
-                  class="w-[92%] sm:w-[85%] md:w-[450px] max-h-[85vh] flex flex-col bg-white shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-2xl overflow-hidden border border-gray-100 animate-in fade-in zoom-in duration-200"
-                >
-                  <!-- 🔹 HEADER -->
-                  <div
-                    class="px-5 py-4 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 flex-shrink-0 flex flex-col gap-3"
-                  >
-                    <div class="flex justify-between items-center">
-                      <h3
-                        class="text-[11px] font-bold text-gray-800 tracking-tight uppercase"
-                      >
-                        Select Reference Lead
-                      </h3>
+      <!-- 🔍 MODAL SEARCH -->
+      <div class="relative group">
+        <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 group-focus-within:text-blue-500 transition-colors">
+          🔍
+        </span>
+        <input
+          type="text"
+          placeholder="Filter by Lead No or Customer..."
+          class="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+          (input)="onLeadSearchInput()"
+        />
+      </div>
+    </div>
 
-                      <button
-                        (click)="showInquiryDropdown = false"
-                        class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-50 text-gray-400 hover:text-red-500 transition-all"
-                      >
-                        ✕
-                      </button>
-                    </div>
+    <!-- 🔹 LIST -->
+    <div class="overflow-y-auto bg-white custom-scrollbar flex-1 min-h-0">
+      <div
+        *ngFor="let inq of filteredInquiries"
+        (click)="selectInquiry(inq)"
+        class="px-5 py-4 hover:bg-blue-50/50 cursor-pointer border-b border-gray-50 last:border-0 flex items-center justify-between group transition-all"
+      >
+        <div class="flex flex-col gap-0.5">
+          <span class="group-hover:text-blue-700 font-bold text-sm text-blue-600">
+            {{ inq.leadNo || inq.inquiryNo }}
+          </span>
+          <span class="text-gray-500 text-[11px] font-medium italic">
+            {{ inq.customerName || "No Customer Name" }}
+          </span>
+        </div>
+        <span class="flex-shrink-0 opacity-0 group-hover:opacity-100 text-blue-400 transform translate-x-[-10px] group-hover:translate-x-0 transition-all text-[10px] font-semibold">
+          Select →
+        </span>
+      </div>
 
-                    <!-- 🔍 SEARCH -->
-                    <div class="relative group">
-                      <span
-                        class="absolute inset-y-0 left-3 flex items-center text-gray-400 group-focus-within:text-blue-500 transition-colors"
-                      >
-                        🔍
-                      </span>
+      <!-- ❌ EMPTY STATE -->
+      <div *ngIf="filteredInquiries.length === 0" class="p-10 text-center text-gray-400 text-xs italic">
+        No reference leads found.
+      </div>
+    </div>
 
-                      <input
-                        type="text"
-                        placeholder="Filter by Lead No or Customer..."
-                        class="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                        (input)="onLeadSearchInput()"
-                      />
-                    </div>
-                  </div>
-
-                  <!-- 🔹 LIST -->
-                  <div
-                    class="overflow-y-auto bg-white custom-scrollbar flex-1 min-h-0"
-                  >
-                    <div
-                      *ngFor="let inq of filteredInquiries"
-                      (click)="selectInquiry(inq)"
-                      class="px-5 py-4 hover:bg-blue-50/50 cursor-pointer border-b border-gray-50 last:border-0 flex items-center justify-between group transition-all"
-                    >
-                      <div class="flex flex-col gap-0.5">
-                        <span
-                          class="group-hover:text-blue-700 font-bold text-sm text-blue-600"
-                        >
-                          {{ inq.leadNo || inq.inquiryNo }}
-                        </span>
-
-                        <span
-                          class="text-gray-500 text-[11px] font-medium italic"
-                        >
-                          {{ inq.customerName || "No Customer Name" }}
-                        </span>
-                      </div>
-
-                      <span
-                        class="flex-shrink-0 opacity-0 group-hover:opacity-100 text-blue-400 transform translate-x-[-10px] group-hover:translate-x-0 transition-all text-[10px] font-semibold"
-                      >
-                        Select →
-                      </span>
-                    </div>
-
-                    <!-- ❌ EMPTY -->
-                    <div
-                      *ngIf="filteredInquiries.length === 0"
-                      class="p-10 text-center text-gray-400 text-xs italic"
-                    >
-                      No reference leads found.
-                    </div>
-                  </div>
-
-                  <!-- 🔹 FOOTER -->
-                  <div
-                    class="py-2.5 bg-gray-50 border-t border-gray-100 text-center flex-shrink-0"
-                  >
-                    <p
-                      class="text-[10px] text-gray-400 uppercase tracking-widest font-bold"
-                    >
-                      Cavalier Logistics
-                    </p>
-                  </div>
-                </div>
-              </div>
+    <!-- 🔹 FOOTER -->
+    <div class="py-2.5 bg-gray-50 border-t border-gray-100 text-center flex-shrink-0">
+      <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">
+        Cavalier Logistics
+      </p>
+    </div>
+  </div>
+</div>
               <div class="grid grid-cols-2 items-center">
                 <label class="font-bold text-gray-700">Branch</label>
                 <select
@@ -1300,10 +1246,7 @@
                   <option value="">--Select--</option>
 
                   <!-- Dynamic options from branchList -->
-                  <option
-                    *ngFor="let branch of branchlist"
-                    [value]="branch.id"
-                  >
+                  <option *ngFor="let branch of branchlist" [value]="branch.id">
                     {{ branch.branchName }}
                   </option>
                 </select>
@@ -1353,21 +1296,19 @@
 
               <div class="flex items-center gap-2 mt-2">
                 <label class="w-26 font-bold text-gray-700">Sales Coor.</label>
-           <select 
-  [(ngModel)]="quotation.salesCoordinator" 
-  name="salesCoordinator"
-  class="flex-1 border p-1.5 outline-none text-[12px]">
-  
-  <option value="">-- Select Sales Coordinator --</option>
-  
-  <option 
-    *ngFor="let sc of getsalescordinate" 
-    [value]="sc.id">   <!-- ID as value (backend mein yahi save hoga) -->
-    
-    {{ sc.firstName }} {{ sc.lastName }}
-  </option>
-  
-</select>
+                <select
+                  [(ngModel)]="quotation.salesCoordinator"
+                  name="salesCoordinator"
+                  class="flex-1 border p-1.5 outline-none text-[12px]"
+                >
+                  <option value="">-- Select Sales Coordinator --</option>
+
+                  <option *ngFor="let sc of getsalescordinate" [value]="sc.id">
+                    <!-- ID as value (backend mein yahi save hoga) -->
+
+                    {{ sc.firstName }} {{ sc.lastName }}
+                  </option>
+                </select>
               </div>
               <div class="flex items-center">
                 <label class="w-40 font-bold text-gray-700"
@@ -1573,30 +1514,30 @@
 
                 <div class="flex gap-1 items-center">
                   <!-- Date Input -->
-                 <input
-  #cargoDateInput
-  type="date"
-  [(ngModel)]="quotation.cargoStatusDate"
-  name="cargoStatusDate"
-  [readonly]="quotation.cargoStatusType === 'Ready'"
-  [disabled]="quotation.cargoStatusType === 'Ready'"
-  class="border p-1 text-[11px] outline-none w-[140px] bg-white
+                  <input
+                    #cargoDateInput
+                    type="date"
+                    [(ngModel)]="quotation.cargoStatusDate"
+                    name="cargoStatusDate"
+                    [readonly]="quotation.cargoStatusType === 'Ready'"
+                    [disabled]="quotation.cargoStatusType === 'Ready'"
+                    class="border p-1 text-[11px] outline-none w-[140px] bg-white
   {{
-    quotation.cargoStatusType === 'Ready'
-      ? 'bg-gray-100 text-gray-500 cursor-default'
-      : 'cursor-pointer border-blue-400 focus:ring-1 focus:ring-blue-300'
-  }}"
-/>
+                      quotation.cargoStatusType === 'Ready'
+                        ? 'bg-gray-100 text-gray-500 cursor-default'
+                        : 'cursor-pointer border-blue-400 focus:ring-1 focus:ring-blue-300'
+                    }}"
+                  />
 
                   <!-- Select Dropdown -->
-                 <select
-  [(ngModel)]="quotation.cargoStatusType"
-  (change)="onCargoStatusChange()"
-  class="border p-1 text-[11px] outline-none flex-1 min-w-0 h-[32px] bg-white"
->
-  <option value="Ready">Ready</option>
-  <option value="Ready By">Ready By</option>
-</select>
+                  <select
+                    [(ngModel)]="quotation.cargoStatusType"
+                    (change)="onCargoStatusChange()"
+                    class="border p-1 text-[11px] outline-none flex-1 min-w-0 h-[32px] bg-white"
+                  >
+                    <option value="Ready">Ready</option>
+                    <option value="Ready By">Ready By</option>
+                  </select>
                 </div>
               </div>
             </div>
@@ -1621,10 +1562,7 @@
                 >
                   <option value="" disabled>-- Select Mode --</option>
 
-                  <option
-                    *ngFor="let mode of transportModes"
-                    [value]="mode.id"
-                  >
+                  <option *ngFor="let mode of transportModes" [value]="mode.id">
                     {{ mode.name }}
                   </option>
                 </select>
@@ -1641,10 +1579,7 @@
                 >
                   <option value="" disabled>-- Select Shipment Type --</option>
 
-                  <option
-                    *ngFor="let type of shipmentTypes"
-                    [value]="type.id"
-                  >
+                  <option *ngFor="let type of shipmentTypes" [value]="type.id">
                     {{ type.name }}
                   </option>
                 </select>
@@ -1765,13 +1700,13 @@
               <div class="flex items-center gap-2">
                 <label class="w-40 font-bold text-gray-700">Gross Weight</label>
                 <div class="flex flex-1">
-               <input
-  type="number"
-  [(ngModel)]="quotation.grossWeightKg"
-  (ngModelChange)="calculateVolumeWeightLogic()"
-  name="grossWeightKg"
-  class="w-full border p-2 outline-none"
-/>
+                  <input
+                    type="number"
+                    [(ngModel)]="quotation.grossWeightKg"
+                    (ngModelChange)="calculateVolumeWeightLogic()"
+                    name="grossWeightKg"
+                    class="w-full border p-2 outline-none"
+                  />
                   <div
                     class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1"
                   >
@@ -1803,13 +1738,13 @@
               <div class="flex items-center gap-2">
                 <label class="w-40 font-bold text-gray-700">Net Weight</label>
                 <div class="flex flex-1">
-                <input
-  type="number"
-  [(ngModel)]="quotation.netWeight"
-  name="netWeight"
-  readonly
-  class="w-full border p-2 outline-none bg-gray-50"
-/>
+                  <input
+                    type="number"
+                    [(ngModel)]="quotation.netWeight"
+                    name="netWeight"
+                    readonly
+                    class="w-full border p-2 outline-none bg-gray-50"
+                  />
                   <div
                     class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1"
                   >
@@ -2229,70 +2164,78 @@
                 </div>
               </div>
 
-          <div class="flex items-center gap-2">
-  <label class="w-40 font-bold text-gray-700">Volume Weight</label>
-  <div class="flex flex-1">
-   <input
-  type="number"
-  [(ngModel)]="quotation.volumeWeight"
-  (ngModelChange)="calculateVolumeWeightLogic()"
-  name="volumeWeight"
-  class="w-full border p-2 outline-none"
-/>
+              <div class="flex items-center gap-2">
+                <label class="w-40 font-bold text-gray-700"
+                  >Volume Weight</label
+                >
+                <div class="flex flex-1">
+                  <input
+                    type="number"
+                    [(ngModel)]="quotation.volumeWeight"
+                    (ngModelChange)="calculateVolumeWeightLogic()"
+                    name="volumeWeight"
+                    class="w-full border p-2 outline-none"
+                  />
 
-    <div class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1">
-      <select
-        [(ngModel)]="quotation.volumeWeightUnit"
-        name="volumeWeightUnit"
-        class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
-      >
-        <option value="KGS">KGS</option>
-        <option value="CBM">CBM</option>
-      </select>
-    </div>
-  </div>
-</div>
+                  <div
+                    class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1"
+                  >
+                    <select
+                      [(ngModel)]="quotation.volumeWeightUnit"
+                      name="volumeWeightUnit"
+                      class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
+                    >
+                      <option value="KGS">KGS</option>
+                      <option value="CBM">CBM</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
 
-<div class="flex items-start mt-2">
-  <label class="w-40 font-bold text-gray-700 mt-2">CBM Weight</label>
-  
-  <div class="flex-1 flex items-center gap-2">
-    <input
-      type="number"
-      [(ngModel)]="quotation.cbm"
-      name="cbm"
-      readonly
-      class="flex-1 border p-2 outline-none bg-gray-50 focus:border-blue-500 h-10 font-medium"
-      placeholder="0.000"
-    />
+              <div class="flex items-start mt-2">
+                <label class="w-40 font-bold text-gray-700 mt-2"
+                  >CBM Weight</label
+                >
 
-    <div class="flex items-center border border-l-0 bg-gray-50 px-2 h-10 cursor-pointer gap-1">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        class="w-3 h-3 text-gray-400"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-        />
-      </svg>
+                <div class="flex-1 flex items-center gap-2">
+                  <input
+                    type="number"
+                    [(ngModel)]="quotation.cbm"
+                    name="cbm"
+                    readonly
+                    class="flex-1 border p-2 outline-none bg-gray-50 focus:border-blue-500 h-10 font-medium"
+                    placeholder="0.000"
+                  />
 
-      <select
-        [(ngModel)]="quotation.cbmUnit"
-        name="cbmUnit"
-        class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
-      >
-        <option value="CBM">CBM</option>
-        <option value="KGS">KGS</option>
-      </select>
-    </div>
-  </div>
-</div>
+                  <div
+                    class="flex items-center border border-l-0 bg-gray-50 px-2 h-10 cursor-pointer gap-1"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="w-3 h-3 text-gray-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      />
+                    </svg>
+
+                    <select
+                      [(ngModel)]="quotation.cbmUnit"
+                      name="cbmUnit"
+                      class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
+                    >
+                      <option value="CBM">CBM</option>
+                      <option value="KGS">KGS</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
               <div class="flex items-start">
                 <label class="w-40 font-bold text-gray-700 mt-2"
                   >Description</label
@@ -2365,70 +2308,70 @@
                   </button>
                 </div>
               </div>
-<div
-  *ngIf="isInvoiceModalOpen"
-  class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
->
-  <div class="bg-white w-full max-w-lg rounded-lg p-4">
-    <div class="flex justify-between items-center mb-3">
-      <h2 class="text-lg font-bold">Upload Invoice Documents</h2>
-      <button
-        (click)="closeInvoiceModal()"
-        class="text-red-500 text-xl font-bold"
-      >
-        X
-      </button>
-    </div>
+              <div
+                *ngIf="isInvoiceModalOpen"
+                class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+              >
+                <div class="bg-white w-full max-w-lg rounded-lg p-4">
+                  <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-lg font-bold">Upload Invoice Documents</h2>
+                    <button
+                      (click)="closeInvoiceModal()"
+                      class="text-red-500 text-xl font-bold"
+                    >
+                      X
+                    </button>
+                  </div>
 
-    <button
-      (click)="addInvoice()"
-      class="bg-blue-500 text-white px-4 py-2 rounded mb-3"
-    >
-      + Add Invoice
-    </button>
+                  <button
+                    (click)="addInvoice()"
+                    class="bg-blue-500 text-white px-4 py-2 rounded mb-3"
+                  >
+                    + Add Invoice
+                  </button>
 
-    <div
-      *ngFor="let inv of invoices; let i = index"
-      class="flex items-center gap-2 border p-2 rounded mb-2"
-    >
-      <input
-        type="text"
-        [(ngModel)]="inv.name"
-        placeholder="Invoice Name/No."
-        class="border p-2 flex-1"
-      />
+                  <div
+                    *ngFor="let inv of invoices; let i = index"
+                    class="flex items-center gap-2 border p-2 rounded mb-2"
+                  >
+                    <input
+                      type="text"
+                      [(ngModel)]="inv.name"
+                      placeholder="Invoice Name/No."
+                      class="border p-2 flex-1"
+                    />
 
-      <input
-        type="file"
-        (change)="onInvoiceFileSelected($event, i)"
-        class="flex-1 border p-1 text-sm"
-      />
+                    <input
+                      type="file"
+                      (change)="onInvoiceFileSelected($event, i)"
+                      class="flex-1 border p-1 text-sm"
+                    />
 
-      <button
-        (click)="removeInvoice(i)"
-        class="bg-red-600 text-white px-2 py-1 rounded"
-      >
-        X
-      </button>
-    </div>
+                    <button
+                      (click)="removeInvoice(i)"
+                      class="bg-red-600 text-white px-2 py-1 rounded"
+                    >
+                      X
+                    </button>
+                  </div>
 
-    <div class="flex justify-end mt-4 gap-2">
-      <button
-        (click)="closeInvoiceModal()"
-        class="bg-gray-400 text-white px-4 py-2 rounded"
-      >
-        Cancel
-      </button>
+                  <div class="flex justify-end mt-4 gap-2">
+                    <button
+                      (click)="closeInvoiceModal()"
+                      class="bg-gray-400 text-white px-4 py-2 rounded"
+                    >
+                      Cancel
+                    </button>
 
-      <button
-        (click)="closeInvoiceModal()"
-        class="bg-green-500 text-white px-4 py-2 rounded"
-      >
-        Save
-      </button>
-    </div>
-  </div>
-</div>
+                    <button
+                      (click)="closeInvoiceModal()"
+                      class="bg-green-500 text-white px-4 py-2 rounded"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
+              </div>
               <!-- Cargo Value - Naya Added -->
               <div class="flex items-center">
                 <label class="w-40 font-bold text-gray-700">Cargo Value</label>
@@ -2445,67 +2388,167 @@
                     <option value="">Select Currency</option>
 
                     <!-- Major Currencies (Recommended first) -->
-                    <option value="₹ INR - Indian Rupee">₹ INR - Indian Rupee</option>
-                    <option value="$ USD - United States Dollar">$ USD - United States Dollar</option>
+                    <option value="₹ INR - Indian Rupee">
+                      ₹ INR - Indian Rupee
+                    </option>
+                    <option value="$ USD - United States Dollar">
+                      $ USD - United States Dollar
+                    </option>
                     <option value="€ EUR - Euro">€ EUR - Euro</option>
-                    <option value="£ GBP - British Pound Sterling">£ GBP - British Pound Sterling</option>
-                    <option value="د.إ AED - UAE Dirham">د.إ AED - UAE Dirham</option>
-                    <option value="$ SGD - Singapore Dollar">$ SGD - Singapore Dollar</option>
-                    <option value="$ CAD - Canadian Dollar">$ CAD - Canadian Dollar</option>
-                    <option value="$ AUD - Australian Dollar">$ AUD - Australian Dollar</option>
-                    <option value="¥ JPY - Japanese Yen">¥ JPY - Japanese Yen</option>
-                    <option value="¥ CNY - Chinese Yuan">¥ CNY - Chinese Yuan</option>
+                    <option value="£ GBP - British Pound Sterling">
+                      £ GBP - British Pound Sterling
+                    </option>
+                    <option value="د.إ AED - UAE Dirham">
+                      د.إ AED - UAE Dirham
+                    </option>
+                    <option value="$ SGD - Singapore Dollar">
+                      $ SGD - Singapore Dollar
+                    </option>
+                    <option value="$ CAD - Canadian Dollar">
+                      $ CAD - Canadian Dollar
+                    </option>
+                    <option value="$ AUD - Australian Dollar">
+                      $ AUD - Australian Dollar
+                    </option>
+                    <option value="¥ JPY - Japanese Yen">
+                      ¥ JPY - Japanese Yen
+                    </option>
+                    <option value="¥ CNY - Chinese Yuan">
+                      ¥ CNY - Chinese Yuan
+                    </option>
 
                     <!-- Other Currencies (scrollable) -->
-                    <option value="؋ AFN - Afghan Afghani">؋ AFN - Afghan Afghani</option>
-<option value="$ ARS - Argentine Peso">$ ARS - Argentine Peso</option>
-<option value="R$ BRL - Brazilian Real">R$ BRL - Brazilian Real</option>
-<option value="CHF - Swiss Franc">CHF - Swiss Franc</option>
-<option value="$ HKD - Hong Kong Dollar">$ HKD - Hong Kong Dollar</option>
-<option value="Rp IDR - Indonesian Rupiah">Rp IDR - Indonesian Rupiah</option>
-<option value="₩ KRW - South Korean Won">₩ KRW - South Korean Won</option>
-<option value="$ MXN - Mexican Peso">$ MXN - Mexican Peso</option>
-<option value="RM MYR - Malaysian Ringgit">RM MYR - Malaysian Ringgit</option>
-<option value="kr NOK - Norwegian Krone">kr NOK - Norwegian Krone</option>
-<option value="$ NZD - New Zealand Dollar">$ NZD - New Zealand Dollar</option>
-<option value="₱ PHP - Philippine Peso">₱ PHP - Philippine Peso</option>
-<option value="₨ PKR - Pakistani Rupee">₨ PKR - Pakistani Rupee</option>
-<option value="₽ RUB - Russian Ruble">₽ RUB - Russian Ruble</option>
-<option value="﷼ SAR - Saudi Riyal">﷼ SAR - Saudi Riyal</option>
-<option value="kr SEK - Swedish Krona">kr SEK - Swedish Krona</option>
-<option value="฿ THB - Thai Baht">฿ THB - Thai Baht</option>
-<option value="₺ TRY - Turkish Lira">₺ TRY - Turkish Lira</option>
-<option value="R ZAR - South African Rand">R ZAR - South African Rand</option>
+                    <option value="؋ AFN - Afghan Afghani">
+                      ؋ AFN - Afghan Afghani
+                    </option>
+                    <option value="$ ARS - Argentine Peso">
+                      $ ARS - Argentine Peso
+                    </option>
+                    <option value="R$ BRL - Brazilian Real">
+                      R$ BRL - Brazilian Real
+                    </option>
+                    <option value="CHF - Swiss Franc">CHF - Swiss Franc</option>
+                    <option value="$ HKD - Hong Kong Dollar">
+                      $ HKD - Hong Kong Dollar
+                    </option>
+                    <option value="Rp IDR - Indonesian Rupiah">
+                      Rp IDR - Indonesian Rupiah
+                    </option>
+                    <option value="₩ KRW - South Korean Won">
+                      ₩ KRW - South Korean Won
+                    </option>
+                    <option value="$ MXN - Mexican Peso">
+                      $ MXN - Mexican Peso
+                    </option>
+                    <option value="RM MYR - Malaysian Ringgit">
+                      RM MYR - Malaysian Ringgit
+                    </option>
+                    <option value="kr NOK - Norwegian Krone">
+                      kr NOK - Norwegian Krone
+                    </option>
+                    <option value="$ NZD - New Zealand Dollar">
+                      $ NZD - New Zealand Dollar
+                    </option>
+                    <option value="₱ PHP - Philippine Peso">
+                      ₱ PHP - Philippine Peso
+                    </option>
+                    <option value="₨ PKR - Pakistani Rupee">
+                      ₨ PKR - Pakistani Rupee
+                    </option>
+                    <option value="₽ RUB - Russian Ruble">
+                      ₽ RUB - Russian Ruble
+                    </option>
+                    <option value="﷼ SAR - Saudi Riyal">
+                      ﷼ SAR - Saudi Riyal
+                    </option>
+                    <option value="kr SEK - Swedish Krona">
+                      kr SEK - Swedish Krona
+                    </option>
+                    <option value="฿ THB - Thai Baht">฿ THB - Thai Baht</option>
+                    <option value="₺ TRY - Turkish Lira">
+                      ₺ TRY - Turkish Lira
+                    </option>
+                    <option value="R ZAR - South African Rand">
+                      R ZAR - South African Rand
+                    </option>
 
-<!-- Ab baaki currencies bhi same format mein -->
+                    <!-- Ab baaki currencies bhi same format mein -->
 
-<option value="A$ AUD - Australian Dollar">A$ AUD - Australian Dollar</option>
-<option value="R$ BRL - Brazilian Real">R$ BRL - Brazilian Real</option>
-<option value="CA$ CAD - Canadian Dollar">CA$ CAD - Canadian Dollar</option>
-<option value="¥ CNY - Chinese Yuan">¥ CNY - Chinese Yuan</option>
-<option value="€ EUR - Euro">€ EUR - Euro</option>
-<option value="£ GBP - British Pound Sterling">£ GBP - British Pound Sterling</option>
-<option value="₹ INR - Indian Rupee">₹ INR - Indian Rupee</option>
-<option value="¥ JPY - Japanese Yen">¥ JPY - Japanese Yen</option>
-<option value="₩ KRW - South Korean Won">₩ KRW - South Korean Won</option>
-<option value="RM MYR - Malaysian Ringgit">RM MYR - Malaysian Ringgit</option>
-<option value="$ USD - US Dollar">$ USD - US Dollar</option>
-<option value="AED - United Arab Emirates Dirham">AED - United Arab Emirates Dirham</option>
-<option value="BDT - Bangladeshi Taka">BDT - Bangladeshi Taka</option>
-<option value="EGP - Egyptian Pound">EGP - Egyptian Pound</option>
-<option value="GHS - Ghanaian Cedi">GHS - Ghanaian Cedi</option>
-<option value="IDR - Indonesian Rupiah">IDR - Indonesian Rupiah</option>
-<option value="KES - Kenyan Shilling">KES - Kenyan Shilling</option>
-<option value="LKR - Sri Lankan Rupee">LKR - Sri Lankan Rupee</option>
-<option value="MAD - Moroccan Dirham">MAD - Moroccan Dirham</option>
-<option value="NGN - Nigerian Naira">NGN - Nigerian Naira</option>
-<option value="PHP - Philippine Peso">PHP - Philippine Peso</option>
-<option value="PKR - Pakistani Rupee">PKR - Pakistani Rupee</option>
-<option value="RUB - Russian Ruble">RUB - Russian Ruble</option>
-<option value="SAR - Saudi Riyal">SAR - Saudi Riyal</option>
-<option value="SGD - Singapore Dollar">SGD - Singapore Dollar</option>
-<option value="TRY - Turkish Lira">TRY - Turkish Lira</option>
-<option value="ZAR - South African Rand">ZAR - South African Rand</option>
+                    <option value="A$ AUD - Australian Dollar">
+                      A$ AUD - Australian Dollar
+                    </option>
+                    <option value="R$ BRL - Brazilian Real">
+                      R$ BRL - Brazilian Real
+                    </option>
+                    <option value="CA$ CAD - Canadian Dollar">
+                      CA$ CAD - Canadian Dollar
+                    </option>
+                    <option value="¥ CNY - Chinese Yuan">
+                      ¥ CNY - Chinese Yuan
+                    </option>
+                    <option value="€ EUR - Euro">€ EUR - Euro</option>
+                    <option value="£ GBP - British Pound Sterling">
+                      £ GBP - British Pound Sterling
+                    </option>
+                    <option value="₹ INR - Indian Rupee">
+                      ₹ INR - Indian Rupee
+                    </option>
+                    <option value="¥ JPY - Japanese Yen">
+                      ¥ JPY - Japanese Yen
+                    </option>
+                    <option value="₩ KRW - South Korean Won">
+                      ₩ KRW - South Korean Won
+                    </option>
+                    <option value="RM MYR - Malaysian Ringgit">
+                      RM MYR - Malaysian Ringgit
+                    </option>
+                    <option value="$ USD - US Dollar">$ USD - US Dollar</option>
+                    <option value="AED - United Arab Emirates Dirham">
+                      AED - United Arab Emirates Dirham
+                    </option>
+                    <option value="BDT - Bangladeshi Taka">
+                      BDT - Bangladeshi Taka
+                    </option>
+                    <option value="EGP - Egyptian Pound">
+                      EGP - Egyptian Pound
+                    </option>
+                    <option value="GHS - Ghanaian Cedi">
+                      GHS - Ghanaian Cedi
+                    </option>
+                    <option value="IDR - Indonesian Rupiah">
+                      IDR - Indonesian Rupiah
+                    </option>
+                    <option value="KES - Kenyan Shilling">
+                      KES - Kenyan Shilling
+                    </option>
+                    <option value="LKR - Sri Lankan Rupee">
+                      LKR - Sri Lankan Rupee
+                    </option>
+                    <option value="MAD - Moroccan Dirham">
+                      MAD - Moroccan Dirham
+                    </option>
+                    <option value="NGN - Nigerian Naira">
+                      NGN - Nigerian Naira
+                    </option>
+                    <option value="PHP - Philippine Peso">
+                      PHP - Philippine Peso
+                    </option>
+                    <option value="PKR - Pakistani Rupee">
+                      PKR - Pakistani Rupee
+                    </option>
+                    <option value="RUB - Russian Ruble">
+                      RUB - Russian Ruble
+                    </option>
+                    <option value="SAR - Saudi Riyal">SAR - Saudi Riyal</option>
+                    <option value="SGD - Singapore Dollar">
+                      SGD - Singapore Dollar
+                    </option>
+                    <option value="TRY - Turkish Lira">
+                      TRY - Turkish Lira
+                    </option>
+                    <option value="ZAR - South African Rand">
+                      ZAR - South African Rand
+                    </option>
                     <!-- Agar aur chahiye toh pehle wale message se copy kar sakte ho -->
                   </select>
 
@@ -2775,31 +2818,42 @@
         placeholder="Enter Organization Name">
     </div> -->
 
-      <div class="p-4 bg-gray-50 border-t flex items-center gap-3">
-    
-    <button type="button" (click)="showCostTable = true" class="bg-blue-600 text-white px-4 py-2 rounded">
-        Single Carrier
-    </button>
+               
+          <div class="p-4 bg-gray-50 border-t flex items-center gap-3">
+                   
+            <button
+              type="button"
+              (click)="showCostTable = true"
+              class="bg-blue-600 text-white px-4 py-2 rounded"
+            >
+                      Single Carrier    
+            </button>
 
-    <button type="button"  class="bg-blue-600 text-white px-4 py-2 rounded me-auto">
-        Multi Carrier
-    </button>
+               
+        <button
+    type="button"
+    (click)="showMultiCarrierTable = true; showCostTable = false"
+    class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors"
+  >
+    Multi Carrier
+  </button> 
 
-    <button
-        (click)="toggleReview()"
-        class="bg-blue-600 text-white px-8 py-2 font-bold shadow-md hover:bg-blue-700 uppercase transition-all"
-    >
-        Review Before Save
-    </button>
+               
+            <button
+              (click)="toggleReview()"
+              class="bg-blue-600 text-white px-8 py-2 font-bold shadow-md hover:bg-blue-700 uppercase transition-all"
+            >
+                      Review Before Save    
+            </button>
 
-    <button
-        (click)="saveQuotation()"
-        class="bg-[#4a3f3f] text-white px-10 py-2 font-bold shadow-md hover:bg-black uppercase transition-all"
-    >
-        {{ quotation.id ? "Update" : "Save" }} Inquiry
-    </button>
-
-</div>
+               
+            <button
+              (click)="saveQuotation()"
+              class="bg-[#4a3f3f] text-white px-10 py-2 font-bold shadow-md hover:bg-black uppercase transition-all"
+            >
+                      {{ quotation.id ? "Update" : "Save" }} Inquiry    
+            </button>
+          </div>
         </div>
         <div class="main-content-area">
           <div
@@ -3014,11 +3068,7 @@
                             Inco-Term
                           </td>
                           <td class="p-3 md:p-4 text-gray-800 text-sm">
-                            {{
-                              showincoterms ||
-                                
-                                "N/A"
-                            }}
+                            {{ showincoterms || "N/A" }}
                           </td>
                         </tr>
                         <tr>
@@ -3075,84 +3125,289 @@
       </div>
     </div>
   </div>
-<div *ngIf="showCostTable" class="p-4 bg-white shadow-lg rounded-xl border border-gray-200 animate-in fade-in duration-300">
-    
+  <div
+    *ngIf="showCostTable"
+    class="p-4 bg-white shadow-lg rounded-xl border border-gray-200 animate-in fade-in duration-300"
+  >
     <div class="flex justify-between items-center mb-4 pb-2 border-b">
-        <h2 class="text-xl font-bold text-gray-700 uppercase tracking-wide">Cost Breakdown</h2>
-        <button (click)="showCostTable = false" class="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
+      <h2 class="text-xl font-bold text-gray-700 uppercase tracking-wide">
+        Cost Breakdown
+      </h2>
+      <button
+        (click)="showCostTable = false"
+        class="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
+      >
+        <span>←</span> Back to Inquiry Form
+      </button>
+    </div>
+
+    <div class="border border-gray-300 shadow-sm rounded-sm overflow-hidden">
+      <div
+        class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px] flex justify-between items-center"
+      >
+        <span>BREAKDOWN DETAILS</span>
+        <button
+          type="button"
+          (click)="addCostRow()"
+          class="bg-green-600 text-white w-5 h-5 rounded-full hover:bg-green-700 shadow-sm flex items-center justify-center text-sm"
+        >
+          +
+        </button>
+      </div>
+
+      <div class="overflow-x-auto bg-white">
+        <table class="w-full border-collapse text-[11px]">
+          <thead class="bg-gray-50 border-b border-gray-300">
+            <tr class="text-gray-600 uppercase">
+              <th class="border p-2 text-left min-w-[100px]">LOB</th>
+              <th class="border p-2 text-left min-w-[150px]">Charge Name</th>
+              <th class="border p-2 text-left min-w-[100px]">Charge Type</th>
+              <th class="border p-2 text-left min-w-[80px]">Basis</th>
+              <th class="border p-2 text-center min-w-[60px]">Cur</th>
+              <th class="border p-2 text-right min-w-[90px]">Rate</th>
+              <th class="border p-2 text-right min-w-[100px]">Ex. Rate</th>
+              <th
+                class="border p-2 text-right min-w-[110px] bg-red-50 text-red-700"
+              >
+                Amount
+              </th>
+              <th class="border p-2 text-center w-[40px] bg-gray-50"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let c of costRows; let i = index"
+              class="hover:bg-gray-50 transition-colors"
+            >
+              <td class="border p-1">
+                <select
+                  [(ngModel)]="c.lob"
+                  [disabled]="true"
+                  class="w-full outline-none bg-transparent p-1"
+                >
+                  <option *ngFor="let s of services" [value]="s.serviceName">
+                    {{ s.serviceName }}
+                  </option>
+                </select>
+              </td>
+              <td class="border p-1">
+                <select
+                  [name]="'ccharge' + i"
+                  [(ngModel)]="c.chargeName"
+                  class="w-full outline-none p-1 bg-transparent"
+                >
+                  <option value="">-- Select --</option>
+                  <option value="Freight Charges">Freight Charges</option>
+                  <option value="Fuel Surcharge">Fuel Surcharge</option>
+                  <option value="Customs Clearance">Customs Clearance</option>
+                  <option value="Documentation Fee">Documentation Fee</option>
+                  <option value="Handling Charges">Handling Charges</option>
+                  <option value="Insurance">Insurance</option>
+                  <option value="Other Charges">Other Charges</option>
+                </select>
+              </td>
+              <td class="border p-1">
+                <select
+                  [name]="'ctype' + i"
+                  [(ngModel)]="c.chargeType"
+                  class="w-full outline-none p-1 bg-transparent"
+                >
+                  <option value="">--Select--</option>
+                  <option value="Prepaid">Prepaid</option>
+                  <option value="Collect">Collect</option>
+                </select>
+              </td>
+              <td class="border p-1">
+                <input
+                  [name]="'cbasis' + i"
+                  [(ngModel)]="c.basis"
+                  placeholder="Basis"
+                  class="w-full outline-none p-1 bg-transparent text-center"
+                />
+              </td>
+              <td class="border p-1">
+                <input
+                  [name]="'ccur' + i"
+                  [(ngModel)]="c.currency"
+                  [attr.list]="'costCurList' + i"
+                  class="w-full outline-none p-1 text-center uppercase font-semibold text-red-600 bg-transparent"
+                />
+                <datalist [id]="'costCurList' + i">
+                  <option *ngFor="let curr of currencies" [value]="curr.value">
+                    {{ curr.label }}
+                  </option>
+                </datalist>
+              </td>
+              <td class="border p-1">
+                <input
+                  type="number"
+                  [name]="'crate' + i"
+                  [(ngModel)]="c.rate"
+                  (input)="calculateCost()"
+                  class="w-full outline-none p-1 text-right bg-transparent"
+                />
+              </td>
+              <td class="border p-1">
+                <input
+                  type="number"
+                  [name]="'cexrate' + i"
+                  [(ngModel)]="c.exchangeRate"
+                  (input)="calculateCost()"
+                  class="w-full outline-none p-1 text-right bg-transparent"
+                />
+              </td>
+              <td
+                class="border p-1 bg-red-50 text-right font-bold text-red-800"
+              >
+                <input
+                  type="number"
+                  [name]="'camount' + i"
+                  [(ngModel)]="c.amount"
+                  readonly
+                  class="w-full outline-none p-1 bg-transparent text-right"
+                />
+              </td>
+              <td class="border p-1 text-center bg-gray-50">
+                <button
+                  type="button"
+                  *ngIf="costRows.length > 1"
+                  (click)="removeCostRow(i)"
+                  class="text-red-400 hover:text-red-600 font-bold"
+                >
+                  ✕
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="mt-6 flex justify-end gap-3">
+      <button
+        (click)="showCostTable = false"
+        class="px-6 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-all font-medium"
+      >
+        Cancel
+      </button>
+      <button
+        (click)="showCostTable = false"
+        class="px-6 py-2 bg-[#4a3f3f] text-white rounded-lg font-bold shadow-md hover:bg-black transition-all"
+      >
+        Apply Cost
+      </button>
+    </div>
+  </div>
+  <!-- MULTI CARRIER BREAKDOWN SECTION (EXACT AS EXCEL IMAGE) -->
+<div *ngIf="showMultiCarrierTable" class="p-4 bg-white shadow-lg rounded-xl border border-gray-200 animate-in fade-in duration-300">
+    
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-4 pb-2 border-b">
+        <h2 class="text-xl font-bold text-gray-700 uppercase tracking-wide">
+            Multi-Carrier Breakdown
+        </h2>
+        <button (click)="showMultiCarrierTable = false" class="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
             <span>←</span> Back to Inquiry Form
         </button>
     </div>
 
+    <!-- Table Container -->
     <div class="border border-gray-300 shadow-sm rounded-sm overflow-hidden">
-        <div class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px] flex justify-between items-center">
-            <span>BREAKDOWN DETAILS</span>
-            <button type="button" (click)="addCostRow()" class="bg-green-600 text-white w-5 h-5 rounded-full hover:bg-green-700 shadow-sm flex items-center justify-center text-sm">
+        
+        <!-- Dark Sub-Header -->
+        <div class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[11px] flex justify-between items-center">
+            <span>FREIGHT CHARGES (CARRIER OPTIONS)</span>
+            <button type="button" (click)="addMultiCarrierRow()"
+                class="bg-green-600 text-white w-5 h-5 rounded-full hover:bg-green-700 shadow-sm flex items-center justify-center text-sm">
                 +
             </button>
         </div>
-        
+
         <div class="overflow-x-auto bg-white">
-            <table class="w-full border-collapse text-[11px]">
-                <thead class="bg-gray-50 border-b border-gray-300">
-                    <tr class="text-gray-600 uppercase">
-                        <th class="border p-2 text-left min-w-[100px]">LOB</th>
-                        <th class="border p-2 text-left min-w-[150px]">Charge Name</th>
-                        <th class="border p-2 text-left min-w-[100px]">Charge Type</th>
-                        <th class="border p-2 text-left min-w-[80px]">Basis</th>
-                        <th class="border p-2 text-center min-w-[60px]">Cur</th>
-                        <th class="border p-2 text-right min-w-[90px]">Rate</th>
-                        <th class="border p-2 text-right min-w-[100px]">Ex. Rate</th>
-                        <th class="border p-2 text-right min-w-[110px] bg-red-50 text-red-700">Amount</th>
-                        <th class="border p-2 text-center w-[40px] bg-gray-50"></th>
+            <table class="w-full border-collapse text-[10px]">
+                <thead class="bg-gray-100 border-b border-gray-300">
+                    <tr class="text-gray-700 uppercase text-center font-bold">
+                        <th class="border p-2 min-w-[100px]">Freight Forwarder</th>
+                        <th class="border p-2 min-w-[100px]">Origin</th>
+                        <th class="border p-2 min-w-[60px]">Currency</th>
+                        <th class="border p-2 min-w-[110px] bg-blue-50">Airfreight +500.0 KGS</th>
+                        <th class="border p-2 min-w-[60px]">FSC/ISS</th>
+                        <th class="border p-2 min-w-[60px]">Airline</th>
+                        <th class="border p-2 min-w-[80px]">Direct/ Indirect</th>
+                        <th class="border p-2 min-w-[80px]">Cut-off</th>
+                        <th class="border p-2 min-w-[130px]">Flight schedule</th>
+                        <th class="border p-2 min-w-[90px]">Ex-works COST</th>
+                        <th class="border p-2 min-w-[70px]">DO</th>
+                        <th class="border p-2 min-w-[70px]">CC fee</th>
+                        <th class="border p-2 min-w-[100px] bg-red-100 text-red-800">Cost (Total)</th>
+                        <th class="border p-2 min-w-[180px]">REMARK</th>
+                        <th class="border p-2 w-[30px] bg-gray-50"></th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr *ngFor="let c of costRows; let i = index" class="hover:bg-gray-50 transition-colors">
+                    <tr *ngFor="let m of multiCarrierRows; let i = index" class="hover:bg-gray-50 transition-colors">
+                        <!-- Freight Forwarder -->
                         <td class="border p-1">
-                            <select [(ngModel)]="c.lob" [disabled]="true" class="w-full outline-none bg-transparent p-1">
-                                <option *ngFor="let s of services" [value]="s.serviceName">{{ s.serviceName }}</option>
+                            <input [(ngModel)]="m.forwarder" class="w-full outline-none p-1 bg-transparent text-center font-bold text-gray-800 uppercase" />
+                        </td>
+                        <!-- Origin -->
+                        <td class="border p-1">
+                            <input [(ngModel)]="m.origin" class="w-full outline-none p-1 bg-transparent text-center text-[9px]" />
+                        </td>
+                        <!-- Currency -->
+                        <td class="border p-1 text-center">
+                            <input [(ngModel)]="m.currency" class="w-full outline-none p-1 bg-transparent text-center font-semibold" />
+                        </td>
+                        <!-- Air Freight +500 KGS -->
+                        <td class="border p-1 bg-blue-50/30 text-right">
+                            <input type="number" [(ngModel)]="m.airFreight" (input)="calculateMultiTotal(i)" class="w-full outline-none p-1 bg-transparent text-right font-bold" />
+                        </td>
+                        <!-- FSC/ISS -->
+                        <td class="border p-1 text-center">
+                            <input [(ngModel)]="m.fsc" class="w-full outline-none p-1 bg-transparent text-center" />
+                        </td>
+                        <!-- Airline -->
+                        <td class="border p-1 text-center">
+                            <input [(ngModel)]="m.airline" class="w-full outline-none p-1 bg-transparent text-center font-bold" />
+                        </td>
+                        <!-- Direct/Indirect -->
+                        <td class="border p-1 text-center">
+                            <select [(ngModel)]="m.type" class="w-full outline-none bg-transparent text-[9px]">
+                                <option value="DIRECT">DIRECT</option>
+                                <option value="INDIRECT">INDIRECT</option>
                             </select>
                         </td>
+                        <!-- Cut-off -->
+                        <td class="border p-1 text-center">
+                            <input [(ngModel)]="m.cutoff" class="w-full outline-none p-1 bg-transparent text-center" />
+                        </td>
+                        <!-- Flight Schedule -->
                         <td class="border p-1">
-                            <select [name]="'ccharge' + i" [(ngModel)]="c.chargeName" class="w-full outline-none p-1 bg-transparent">
-                                <option value="">-- Select --</option>
-                                <option value="Freight Charges">Freight Charges</option>
-                                <option value="Fuel Surcharge">Fuel Surcharge</option>
-                                <option value="Customs Clearance">Customs Clearance</option>
-                                <option value="Documentation Fee">Documentation Fee</option>
-                                <option value="Handling Charges">Handling Charges</option>
-                                <option value="Insurance">Insurance</option>
-                                <option value="Other Charges">Other Charges</option>
-                            </select>
+                            <input [(ngModel)]="m.schedule" class="w-full outline-none p-1 bg-transparent text-[9px]" />
                         </td>
+                        <!-- Ex-works COST -->
+                        <td class="border p-1 text-right">
+                            <input type="number" [(ngModel)]="m.exWorks" (input)="calculateMultiTotal(i)" class="w-full outline-none p-1 bg-transparent text-right" />
+                        </td>
+                        <!-- DO -->
+                        <td class="border p-1 text-right">
+                            <input type="number" [(ngModel)]="m.doCharges" (input)="calculateMultiTotal(i)" class="w-full outline-none p-1 bg-transparent text-right" />
+                        </td>
+                        <!-- CC Fee -->
+                        <td class="border p-1 text-right">
+                            <input type="number" [(ngModel)]="m.ccFee" (input)="calculateMultiTotal(i)" class="w-full outline-none p-1 bg-transparent text-right" />
+                        </td>
+                        <!-- Total Cost (Highlighted) -->
+                        <td class="border p-1 bg-red-100 text-right font-bold text-red-900">
+                            {{ m.totalCost | number:'1.2-2' }}
+                        </td>
+                        <!-- REMARK -->
                         <td class="border p-1">
-                            <select [name]="'ctype' + i" [(ngModel)]="c.chargeType" class="w-full outline-none p-1 bg-transparent">
-                                <option value="">--Select--</option>
-                                <option value="Prepaid">Prepaid</option>
-                                <option value="Collect">Collect</option>
-                            </select>
+                            <textarea [(ngModel)]="m.remark" class="w-full outline-none p-1 bg-transparent text-[8px] leading-tight" rows="2"></textarea>
                         </td>
-                        <td class="border p-1">
-                            <input [name]="'cbasis' + i" [(ngModel)]="c.basis" placeholder="Basis" class="w-full outline-none p-1 bg-transparent text-center">
-                        </td>
-                        <td class="border p-1">
-                            <input [name]="'ccur' + i" [(ngModel)]="c.currency" [attr.list]="'costCurList' + i" class="w-full outline-none p-1 text-center uppercase font-semibold text-red-600 bg-transparent">
-                            <datalist [id]="'costCurList' + i">
-                                <option *ngFor="let curr of currencies" [value]="curr.value">{{curr.label}}</option>
-                            </datalist>
-                        </td>
-                        <td class="border p-1">
-                            <input type="number" [name]="'crate' + i" [(ngModel)]="c.rate" (input)="calculateCost()" class="w-full outline-none p-1 text-right bg-transparent">
-                        </td>
-                        <td class="border p-1">
-                            <input type="number" [name]="'cexrate' + i" [(ngModel)]="c.exchangeRate" (input)="calculateCost()" class="w-full outline-none p-1 text-right bg-transparent">
-                        </td>
-                        <td class="border p-1 bg-red-50 text-right font-bold text-red-800">
-                            <input type="number" [name]="'camount' + i" [(ngModel)]="c.amount" readonly class="w-full outline-none p-1 bg-transparent text-right">
-                        </td>
+                        <!-- Actions -->
                         <td class="border p-1 text-center bg-gray-50">
-                            <button type="button" *ngIf="costRows.length > 1" (click)="removeCostRow(i)" class="text-red-400 hover:text-red-600 font-bold">
+                            <button type="button" *ngIf="multiCarrierRows.length > 1" (click)="removeMultiCarrierRow(i)" class="text-red-400 hover:text-red-600">
                                 ✕
                             </button>
                         </td>
@@ -3162,16 +3417,10 @@
         </div>
     </div>
 
+    <!-- Actions -->
     <div class="mt-6 flex justify-end gap-3">
-        <button (click)="showCostTable = false" 
-                class="px-6 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-all font-medium">
-            Cancel
-        </button>
-        <button (click)="showCostTable = false" 
-                class="px-6 py-2 bg-[#4a3f3f] text-white rounded-lg font-bold shadow-md hover:bg-black transition-all">
-            Apply Cost
-        </button>
+        <button (click)="showMultiCarrierTable = false" class="px-6 py-2 bg-gray-100 text-gray-600 rounded-lg font-medium">Cancel</button>
+        <button (click)="showMultiCarrierTable = false" class="px-6 py-2 bg-[#4a3f3f] text-white rounded-lg font-bold shadow-md">Apply To Form</button>
     </div>
-</div>
-
+</div>`
 </div>

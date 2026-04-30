@@ -1,9 +1,14 @@
 <div class="p-3 bg-gray-100 min-h-screen font-sans text-[13px]">
-  <div *ngIf="!isFormOpen" class="bg-white border border-gray-300 shadow-sm rounded-sm overflow-hidden">
-    <div class="bg-gray-100 p-1.5 border-b border-gray-300 flex gap-4 items-center">
+  <div
+    *ngIf="!isFormOpen"
+    class="bg-white border border-gray-300 shadow-sm rounded-sm overflow-hidden"
+  >
+    <div
+      class="bg-gray-100 p-1.5 border-b border-gray-300 flex gap-4 items-center"
+    >
       <div class="text-[11px] italic text-gray-500">
-        Items in <span class="text-green-600 font-bold">green</span> = Sucess | <span
-          class="text-red-600 font-bold">Red</span> = Faild
+        Items in <span class="text-green-600 font-bold">green</span> = Sucess |
+        <span class="text-red-600 font-bold">Red</span> = Faild
       </div>
     </div>
 
@@ -11,176 +16,326 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-3">
         <div class="space-y-2">
           <div class="flex items-center mb-1">
-            <label class="w-28 font-bold text-gray-600 text-[12px]">Branch</label>
+            <label class="w-28 font-bold text-gray-600 text-[12px]"
+              >Branch</label
+            >
 
             <div
-              class="flex-1 flex border border-gray-300 relative rounded-sm bg-white shadow-sm focus-within:ring-1 focus-within:ring-red-400">
+              class="flex-1 flex border border-gray-300 relative rounded-sm bg-white shadow-sm focus-within:ring-1 focus-within:ring-red-400"
+            >
+              <input
+                type="text"
+                [(ngModel)]="branchSearchText"
+                (input)="onBranchSearch()"
+                placeholder="Type to search branch..."
+                class="w-full p-1.5 outline-none text-[12px] bg-white"
+                autocomplete="off"
+              />
 
-              <input type="text" [(ngModel)]="branchSearchText" (input)="onBranchSearch()"
-                placeholder="Type to search branch..." class="w-full p-1.5 outline-none text-[12px] bg-white"
-                autocomplete="off">
-
-              <span (click)="toggleBranchModal()"
+              <span
+                (click)="toggleBranchModal()"
                 class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-red-500 hover:text-white transition-all flex items-center justify-center w-9"
-                title="View All Branches">
+                title="View All Branches"
+              >
                 🔍
               </span>
 
-              <ul *ngIf="branchSearchText.length >= 3 && filteredBranchSuggestions.length > 0"
-                class="absolute top-full left-0 w-full bg-white border border-gray-300 z-[4000] shadow-xl max-h-60 overflow-y-auto mt-1 rounded-sm list-none p-0">
-
-                <li *ngFor="let b of filteredBranchSuggestions" (click)="selectBranchFromDropdown(b)"
-                  class="p-2 text-[12px] hover:bg-red-50 cursor-pointer border-b border-gray-100 last:border-none flex justify-between items-center transition-colors">
+              <ul
+                *ngIf="
+                  branchSearchText.length >= 3 &&
+                  filteredBranchSuggestions.length > 0
+                "
+                class="absolute top-full left-0 w-full bg-white border border-gray-300 z-[4000] shadow-xl max-h-60 overflow-y-auto mt-1 rounded-sm list-none p-0"
+              >
+                <li
+                  *ngFor="let b of filteredBranchSuggestions"
+                  (click)="selectBranchFromDropdown(b)"
+                  class="p-2 text-[12px] hover:bg-red-50 cursor-pointer border-b border-gray-100 last:border-none flex justify-between items-center transition-colors"
+                >
                   <div class="flex flex-col">
-                    <span class="font-bold text-gray-700 uppercase">{{ b.branchName }}</span>
-                    <span class="text-[10px] text-gray-400">{{ b.branchCode }}</span>
+                    <span class="font-bold text-gray-700 uppercase">{{
+                      b.branchName
+                    }}</span>
+                    <span class="text-[10px] text-gray-400">{{
+                      b.branchCode
+                    }}</span>
                   </div>
-                  <span *ngIf="b.isSelected" class="text-red-500 text-[10px] font-bold">SELECTED</span>
+                  <span
+                    *ngIf="b.isSelected"
+                    class="text-red-500 text-[10px] font-bold"
+                    >SELECTED</span
+                  >
                 </li>
               </ul>
             </div>
           </div>
 
-          <div *ngIf="isBranchModalOpen"
-            class="fixed inset-0 z-[3000] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div
+            *ngIf="isBranchModalOpen"
+            class="fixed inset-0 z-[3000] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+          >
             <div
-              class="bg-white w-full max-w-md shadow-2xl rounded-sm border-t-4 border-red-600 animate-in zoom-in duration-200">
-              <div class="flex justify-between items-center p-3 border-b bg-gray-50">
-                <h3 class="text-[12px] font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
+              class="bg-white w-full max-w-md shadow-2xl rounded-sm border-t-4 border-red-600 animate-in zoom-in duration-200"
+            >
+              <div
+                class="flex justify-between items-center p-3 border-b bg-gray-50"
+              >
+                <h3
+                  class="text-[12px] font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2"
+                >
                   🏢 Select Branches
                 </h3>
-                <button (click)="toggleBranchModal()"
-                  class="text-gray-400 hover:text-red-500 text-2xl font-bold leading-none">&times;</button>
+                <button
+                  (click)="toggleBranchModal()"
+                  class="text-gray-400 hover:text-red-500 text-2xl font-bold leading-none"
+                >
+                  &times;
+                </button>
               </div>
 
               <div class="max-h-80 overflow-y-auto p-1 custom-scrollbar">
                 <div class="p-2 sticky top-0 bg-white">
-                  <input type="text" [(ngModel)]="branchSearchText" (input)="onBranchSearch()"
+                  <input
+                    type="text"
+                    [(ngModel)]="branchSearchText"
+                    (input)="onBranchSearch()"
                     placeholder="Filter branches..."
-                    class="w-full p-1 border border-gray-200 text-[11px] outline-none rounded-sm">
+                    class="w-full p-1 border border-gray-200 text-[11px] outline-none rounded-sm"
+                  />
                 </div>
 
                 <ul class="list-none p-0 m-0">
-                  <li *ngFor="let branch of filteredBranchSuggestions"
+                  <li
+                    *ngFor="let branch of filteredBranchSuggestions"
                     class="flex items-center gap-3 p-2.5 hover:bg-red-50 border-b border-gray-50 last:border-none cursor-pointer transition-colors"
-                    (click)="toggleBranchSelection(branch)">
-
-                    <input type="checkbox" [checked]="branch.isSelected" (click)="$event.stopPropagation()"
-                      (change)="toggleBranchSelection(branch)" class="w-4 h-4 accent-red-600 cursor-pointer">
+                    (click)="toggleBranchSelection(branch)"
+                  >
+                    <input
+                      type="checkbox"
+                      [checked]="branch.isSelected"
+                      (click)="$event.stopPropagation()"
+                      (change)="toggleBranchSelection(branch)"
+                      class="w-4 h-4 accent-red-600 cursor-pointer"
+                    />
 
                     <div class="flex flex-col">
-                      <span class="text-[12px] text-gray-800 font-medium uppercase">{{ branch.branchName }}</span>
-                      <span *ngIf="branch.branchCode" class="text-[10px] text-gray-400">{{ branch.branchCode }}</span>
+                      <span
+                        class="text-[12px] text-gray-800 font-medium uppercase"
+                        >{{ branch.branchName }}</span
+                      >
+                      <span
+                        *ngIf="branch.branchCode"
+                        class="text-[10px] text-gray-400"
+                        >{{ branch.branchCode }}</span
+                      >
                     </div>
                   </li>
 
-                  <li *ngIf="filteredBranchSuggestions.length === 0"
-                    class="p-5 text-center text-gray-400 text-[11px] italic">
+                  <li
+                    *ngIf="filteredBranchSuggestions.length === 0"
+                    class="p-5 text-center text-gray-400 text-[11px] italic"
+                  >
                     No branches found.
                   </li>
                 </ul>
               </div>
 
               <div class="p-3 border-t bg-gray-50 flex justify-end gap-2">
-                <button (click)="toggleBranchModal()"
-                  class="px-4 py-1.5 text-[11px] font-bold text-gray-500 hover:bg-gray-200 rounded-sm uppercase">
+                <button
+                  (click)="toggleBranchModal()"
+                  class="px-4 py-1.5 text-[11px] font-bold text-gray-500 hover:bg-gray-200 rounded-sm uppercase"
+                >
                   Cancel
                 </button>
-                <button (click)="confirmSelection()"
-                  class="px-6 py-1.5 text-[11px] font-bold bg-red-600 text-white hover:bg-red-700 rounded-sm shadow-md transition-all uppercase">
+                <button
+                  (click)="confirmSelection()"
+                  class="px-6 py-1.5 text-[11px] font-bold bg-red-600 text-white hover:bg-red-700 rounded-sm shadow-md transition-all uppercase"
+                >
                   Confirm Selection
                 </button>
               </div>
             </div>
           </div>
           <div class="flex items-center relative">
-            <label class="w-28 font-bold text-gray-600 text-[12px]">Services</label>
+  <label class="w-28 font-bold text-gray-600 text-[12px]">Services</label>
 
-            <div class="flex-1 flex border border-gray-300">
-              <input type="text" [(ngModel)]="searchFilters.lineOfBusiness" (input)="onLOBType()" list="lobDataList"
-                placeholder="Type min 3 chars..." class="w-full p-1 outline-none text-[12px] rounded-sm bg-white">
+  <div class="flex-1 flex flex-col relative">
+    <div class="flex border border-gray-300">
+      <input
+        type="text"
+        [(ngModel)]="searchFilters.lineOfBusiness"
+        (input)="onLOBType()"
+        placeholder="Type min 3 chars..."
+        class="w-full p-1 outline-none text-[12px] rounded-sm bg-white"
+      />
 
-              <span (click)="toggleLOBPopup()"
-                class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-gray-200">
-                🔍
+      <!-- Mousedown fix for instant modal opening -->
+      <button
+        type="button"
+        (mousedown)="$event.preventDefault(); toggleLOBPopup()"
+        class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-gray-200 outline-none"
+      >
+        🔍
+      </button>
+    </div>
+
+    <!-- Custom Dropdown List (Datalist Replacement) -->
+    <div *ngIf="searchFilters.lineOfBusiness && searchFilters.lineOfBusiness.length >= 3 && filteredLOBs.length > 0" 
+         class="absolute top-full left-0 right-0 bg-white border border-gray-300 shadow-xl z-[1000] max-h-40 overflow-y-auto rounded-sm mt-0.5">
+      <ul class="list-none p-0 m-0">
+        <li *ngFor="let lob of filteredLOBs" 
+            (click)="searchFilters.lineOfBusiness = lob; filteredLOBs = []"
+            class="p-2 text-[12px] hover:bg-red-600 hover:text-white cursor-pointer border-b border-gray-50 last:border-none uppercase">
+          {{ lob }}
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Services Modal Popup -->
+  <div
+    *ngIf="showLOBPopup"
+    class="fixed inset-0 z-[3000] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+  >
+    <div
+      class="bg-white w-full max-w-md shadow-2xl rounded-sm border-t-4 border-red-600 animate-in zoom-in duration-200"
+    >
+      <div class="flex justify-between items-center p-3 border-b bg-gray-50">
+        <h3 class="text-[12px] font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
+          🏢 Select Services
+        </h3>
+        <button
+          (click)="toggleLOBPopup()"
+          class="text-gray-400 hover:text-red-500 text-2xl font-bold leading-none"
+        >
+          &times;
+        </button>
+      </div>
+
+      <div class="max-h-80 overflow-y-auto p-1 custom-scrollbar">
+        <ul class="list-none p-0 m-0">
+          <li
+            *ngFor="let lob of allLOBs"
+            (click)="selectLOBFromPopup(lob)"
+            class="flex items-center gap-3 p-3 hover:bg-red-50 border-b border-gray-50 last:border-none cursor-pointer transition-colors"
+          >
+            <div class="flex flex-col">
+              <span class="text-[12px] text-gray-800 font-medium uppercase">
+                {{ lob }}
               </span>
             </div>
+          </li>
 
-            <datalist id="lobDataList">
-              <option *ngFor="let lob of filteredLOBs" [value]="lob"></option>
-            </datalist>
+          <li
+            *ngIf="allLOBs.length === 0"
+            class="p-8 text-center text-gray-400 text-[11px] italic"
+          >
+            No services found.
+          </li>
+        </ul>
+      </div>
 
-            <div *ngIf="showLOBPopup"
-              class="fixed inset-0 z-[3000] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div class="p-3 border-t bg-gray-50 flex justify-end gap-2">
+        <button
+          (click)="toggleLOBPopup()"
+          class="px-6 py-1.5 text-[11px] font-bold text-gray-500 hover:bg-gray-200 rounded-sm uppercase transition-all"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+      <div class="flex items-center relative">
+  <label class="w-28 font-bold text-gray-600 text-[12px]">Quotation No.</label>
 
-              <div
-                class="bg-white w-full max-w-md shadow-2xl rounded-sm border-t-4 border-red-600 animate-in zoom-in duration-200">
+  <div class="flex-1 flex flex-col relative">
+    <div class="flex border border-gray-300">
+      <input
+        type="text"
+        [(ngModel)]="searchFilters.quotationNo"
+        (input)="onQuotationNoType()"
+        placeholder="Type min 3 chars..."
+        class="w-full p-1 outline-none text-[12px] rounded-sm bg-white"
+      />
 
-                <div class="flex justify-between items-center p-3 border-b bg-gray-50">
-                  <h3 class="text-[12px] font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
-                    🏢 Select Services
-                  </h3>
-                  <button (click)="toggleLOBPopup()"
-                    class="text-gray-400 hover:text-red-500 text-2xl font-bold leading-none">&times;</button>
-                </div>
+      <!-- Mousedown fix for instant modal opening -->
+      <button
+        type="button"
+        (mousedown)="$event.preventDefault(); togglePopup()"
+        class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-gray-200 outline-none"
+      >
+        🔍
+      </button>
+    </div>
 
-                <div class="max-h-80 overflow-y-auto p-1 custom-scrollbar">
-                  <ul class="list-none p-0 m-0">
-                    <li *ngFor="let lob of allLOBs" (click)="selectLOBFromPopup(lob)"
-                      class="flex items-center gap-3 p-3 hover:bg-red-50 border-b border-gray-50 last:border-none cursor-pointer transition-colors">
+    <!-- Custom Dropdown List (Datalist ki jagah dropdown logic) -->
+    <div *ngIf="searchFilters.quotationNo && searchFilters.quotationNo.length >= 3 && filteredQuotationNos.length > 0" 
+         class="absolute top-full left-0 right-0 bg-white border border-gray-300 shadow-xl z-[1000] max-h-40 overflow-y-auto rounded-sm mt-0.5">
+      <ul class="list-none p-0 m-0">
+        <li *ngFor="let qNo of filteredQuotationNos" 
+            (click)="searchFilters.quotationNo = qNo; filteredQuotationNos = []"
+            class="p-2 text-[12px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 last:border-none uppercase">
+          {{ qNo }}
+        </li>
+      </ul>
+    </div>
+  </div>
 
-                      <div class="flex flex-col">
-                        <span class="text-[12px] text-gray-800 font-medium uppercase">
-                          {{lob }}
-                        </span>
-                      </div>
-                    </li>
+  <!-- Quotation Modal Popup -->
+  <div
+    *ngIf="showPopup"
+    class="fixed inset-0 z-[3000] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+  >
+    <div
+      class="bg-white w-full max-w-md shadow-2xl rounded-sm border-t-4 border-blue-600 animate-in zoom-in duration-200"
+    >
+      <div class="flex justify-between items-center p-3 border-b bg-gray-50">
+        <h3 class="text-[12px] font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
+          📄 Select Quotation
+        </h3>
+        <button
+          (click)="showPopup = false"
+          class="text-gray-400 hover:text-red-500 text-2xl font-bold leading-none"
+        >
+          &times;
+        </button>
+      </div>
 
-                    <li *ngIf="allLOBs.length === 0" class="p-8 text-center text-gray-400 text-[11px] italic">
-                      No services found.
-                    </li>
-                  </ul>
-                </div>
-
-                <div class="p-3 border-t bg-gray-50 flex justify-end gap-2">
-                  <button (click)="toggleLOBPopup()"
-                    class="px-6 py-1.5 text-[11px] font-bold text-gray-500 hover:bg-gray-200 rounded-sm uppercase transition-all">
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="flex items-center relative"> <label class="w-28 font-bold text-gray-600">Quotation No.</label>
-            <div class="flex-1 flex border border-gray-300">
-              <input type="text" [(ngModel)]="searchFilters.quotationNo" (input)="onQuotationNoType()"
-                list="quotationSuggestions" class="w-full p-1 outline-none text-[12px] rounded-sm"
-                placeholder="Type min 3 chars...">
-
-              <span (click)="togglePopup()"
-                class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-gray-200">
-                🔍
+      <div class="max-h-80 overflow-y-auto p-1 custom-scrollbar">
+        <ul class="list-none p-0 m-0">
+          <li
+            *ngFor="let qNo of allQuotationNos"
+            (click)="selectFromPopup(qNo)"
+            class="flex items-center gap-3 p-3 hover:bg-blue-50 border-b border-gray-50 last:border-none cursor-pointer transition-colors"
+          >
+            <div class="flex flex-col">
+              <span class="text-[12px] text-gray-800 font-medium uppercase">
+                {{ qNo }}
               </span>
             </div>
+          </li>
 
-            <datalist id="quotationSuggestions">
-              <option *ngFor="let qNo of filteredQuotationNos" [value]="qNo"></option>
-            </datalist>
+          <li
+            *ngIf="allQuotationNos.length === 0"
+            class="p-8 text-center text-gray-400 text-[11px] italic"
+          >
+            No quotations found.
+          </li>
+        </ul>
+      </div>
 
-            <div *ngIf="showPopup"
-              class="absolute top-full left-28 right-0 mt-1 bg-white border border-gray-300 shadow-lg z-[999] max-h-60 overflow-y-auto rounded-sm">
-              <div class="flex justify-between items-center p-2 bg-gray-100 border-b sticky top-0">
-                <span class="font-bold text-[11px] text-gray-500 uppercase">Select Quotation</span>
-                <button (click)="showPopup = false" class="text-red-500 font-bold">✕</button>
-              </div>
-              <ul>
-                <li *ngFor="let qNo of allQuotationNos" (click)="selectFromPopup(qNo)"
-                  class="p-2 text-[12px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 last:border-none">
-                  {{ qNo }}
-                </li>
-              </ul>
-            </div>
-          </div>
+      <div class="p-3 border-t bg-gray-50 flex justify-end gap-2">
+        <button
+          (click)="showPopup = false"
+          class="px-6 py-1.5 text-[11px] font-bold text-gray-500 hover:bg-gray-200 rounded-sm uppercase transition-all"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
           <!-- <div class="flex items-center">
             <label class="w-28 font-bold text-gray-600">Quoted To</label>
             <div class="flex-1 flex border border-gray-300">
@@ -197,13 +352,16 @@
           <div class="flex items-center">
             <label class="w-28 font-bold text-gray-600">Show</label>
             <div class="relative flex-1">
-              <select [(ngModel)]="searchFilters.showMode"
-                class="w-full border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white cursor-pointer">
+              <select
+                [(ngModel)]="searchFilters.showMode"
+                class="w-full border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white cursor-pointer"
+              >
                 <option value="Valid">Valid Quotations Only</option>
                 <option value="All">All</option>
               </select>
               <i
-                class="fa fa-filter absolute right-6 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] pointer-events-none"></i>
+                class="fa fa-filter absolute right-6 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] pointer-events-none"
+              ></i>
             </div>
           </div>
         </div>
@@ -211,82 +369,161 @@
         <div class="space-y-2">
           <div class="flex items-center">
             <label class="w-24 font-bold text-gray-600">Date</label>
-            <div class="flex-1 flex border border-gray-300 items-center pr-2 cursor-pointer bg-white relative h-[30px]"
-              (click)="datePicker.showPicker(); showQuotePicker = !showQuotePicker">
-              <input #datePicker type="date" [(ngModel)]="searchFilters.validFrom"
-                class="w-full p-1 outline-none text-[12px] cursor-pointer" (focus)="datePicker.showPicker()"
-                (change)="showQuotePicker = false">
-              <div *ngIf="showQuotePicker" (mouseleave)="showQuotePicker = false"
-                class="absolute top-0 right-full z-[1001] bg-white shadow-xl border border-gray-300 flex flex-col w-[115px] rounded-sm overflow-hidden mr-[-1px]">
-                <div class="bg-gray-100 px-2 py-1 text-[9px] font-bold text-gray-500 uppercase border-b">Quick Select
+            <div
+              class="flex-1 flex border border-gray-300 items-center pr-2 cursor-pointer bg-white relative h-[30px]"
+              (click)="
+                datePicker.showPicker(); showQuotePicker = !showQuotePicker
+              "
+            >
+              <input
+                #datePicker
+                type="date"
+                [(ngModel)]="searchFilters.validFrom"
+                class="w-full p-1 outline-none text-[12px] cursor-pointer"
+                (focus)="datePicker.showPicker()"
+                (change)="showQuotePicker = false"
+              />
+              <div
+                *ngIf="showQuotePicker"
+                (mouseleave)="showQuotePicker = false"
+                class="absolute top-0 right-full z-[1001] bg-white shadow-xl border border-gray-300 flex flex-col w-[115px] rounded-sm overflow-hidden mr-[-1px]"
+              >
+                <div
+                  class="bg-gray-100 px-2 py-1 text-[9px] font-bold text-gray-500 uppercase border-b"
+                >
+                  Quick Select
                 </div>
-                <div (click)="setQuoteQuickDate('today'); $event.stopPropagation()"
-                  class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 transition-colors">
-                  Today</div>
-                <div (click)="setQuoteQuickDate('tomorrow'); $event.stopPropagation()"
-                  class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 text-blue-700 font-semibold transition-colors">
-                  Tomorrow</div>
-                <div (click)="setQuoteQuickDate('yesterday'); $event.stopPropagation()"
-                  class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 transition-colors">
-                  Yesterday</div>
-                <div (click)="setQuoteQuickDate('nextWeek'); $event.stopPropagation()"
-                  class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 transition-colors">
-                  Next Week</div>
-                <div (click)="setQuoteQuickDate('lastWeek'); $event.stopPropagation()"
-                  class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 transition-colors">
-                  Last Week</div>
-                <div (click)="setQuoteQuickDate('nextMonth'); $event.stopPropagation()"
-                  class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 transition-colors">
-                  Next Month</div>
-                <div (click)="setQuoteQuickDate('lastMonth'); $event.stopPropagation()"
-                  class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer transition-colors">Last Month
+                <div
+                  (click)="setQuoteQuickDate('today'); $event.stopPropagation()"
+                  class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 transition-colors"
+                >
+                  Today
+                </div>
+                <div
+                  (click)="
+                    setQuoteQuickDate('tomorrow'); $event.stopPropagation()
+                  "
+                  class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 text-blue-700 font-semibold transition-colors"
+                >
+                  Tomorrow
+                </div>
+                <div
+                  (click)="
+                    setQuoteQuickDate('yesterday'); $event.stopPropagation()
+                  "
+                  class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 transition-colors"
+                >
+                  Yesterday
+                </div>
+                <div
+                  (click)="
+                    setQuoteQuickDate('nextWeek'); $event.stopPropagation()
+                  "
+                  class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 transition-colors"
+                >
+                  Next Week
+                </div>
+                <div
+                  (click)="
+                    setQuoteQuickDate('lastWeek'); $event.stopPropagation()
+                  "
+                  class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 transition-colors"
+                >
+                  Last Week
+                </div>
+                <div
+                  (click)="
+                    setQuoteQuickDate('nextMonth'); $event.stopPropagation()
+                  "
+                  class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 transition-colors"
+                >
+                  Next Month
+                </div>
+                <div
+                  (click)="
+                    setQuoteQuickDate('lastMonth'); $event.stopPropagation()
+                  "
+                  class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer transition-colors"
+                >
+                  Last Month
                 </div>
               </div>
               <span class="text-gray-400 text-[12px]">📅</span>
             </div>
           </div>
 
-          <div class="flex items-center relative"> <label class="w-24 font-bold text-gray-600 text-[12px]">Quoted
-              By</label>
-            <div class="flex-1 flex border border-gray-300">
-              <input type="text" [(ngModel)]="searchFilters.quotedBy" (input)="onQuotedByType()"
-                list="quotedBySuggestions" class="w-full p-1 outline-none text-[12px] rounded-sm bg-white"
-                placeholder="Type min 3 chars...">
+         <!-- 3. QUOTED BY SECTION -->
+<div class="flex items-center relative mt-4">
+  <label class="w-24 font-bold text-gray-600 text-[12px]">Quoted By</label>
+  
+  <div class="flex-1 flex flex-col relative">
+    <div class="flex border border-gray-300">
+      <input
+        type="text"
+        [(ngModel)]="searchFilters.quotedBy"
+        (input)="onQuotedByType()"
+        class="w-full p-1 outline-none text-[12px] rounded-sm bg-white"
+        placeholder="Type min 3 chars..."
+      />
+      <!-- Mousedown fix for instant modal opening -->
+      <button
+        type="button"
+        (mousedown)="$event.preventDefault(); toggleQuotedByPopup()"
+        class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-gray-200 outline-none"
+      >
+        🔍
+      </button>
+    </div>
 
-              <span (click)="toggleQuotedByPopup()"
-                class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-gray-200">
-                🔍
-              </span>
-            </div>
+    <!-- FIXED: Custom Dropdown Logic (Error TS2532 Fixed) -->
+    <div *ngIf="searchFilters.quotedBy && searchFilters.quotedBy.length >= 3 && filteredQuotedBySuggestions.length > 0" 
+         class="absolute top-full left-0 right-0 bg-white border border-gray-300 shadow-xl z-[1000] max-h-40 overflow-y-auto rounded-sm mt-0.5">
+      <ul class="list-none p-0 m-0">
+        <li *ngFor="let item of filteredQuotedBySuggestions" 
+            (click)="searchFilters.quotedBy = item; filteredQuotedBySuggestions = []"
+            class="p-2 text-[12px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 last:border-none uppercase">
+          {{ item }}
+        </li>
+      </ul>
+    </div>
+  </div>
 
-            <datalist id="quotedBySuggestions">
-              <option *ngFor="let item of filteredQuotedBySuggestions" [value]="item"></option>
-            </datalist>
-
-            <div *ngIf="showQuotedByPopup"
-              class="absolute top-full left-24 right-0 mt-1 bg-white border border-gray-300 shadow-lg z-[999] max-h-60 overflow-y-auto rounded-sm">
-              <ul>
-                <li *ngFor="let sc of allSalesCoors" (click)="selectQuotedByFromPopup(sc)"
-                  class="p-2 text-[12px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 last:border-none">
-                  {{ sc }}
-                </li>
-                <li *ngIf="allSalesCoors.length === 0" class="p-2 text-[12px] text-gray-400 text-center italic">
-                  No sales coordinators found
-                </li>
-              </ul>
-            </div>
-          </div>
+  <!-- Modal Popup (Same as before) -->
+  <div *ngIf="showQuotedByPopup" class="fixed inset-0 z-[3000] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div class="bg-white w-full max-w-md shadow-2xl rounded-sm border-t-4 border-blue-600 animate-in zoom-in duration-200">
+      <div class="flex justify-between items-center p-3 border-b bg-gray-50">
+        <h3 class="text-[12px] font-bold text-gray-700 uppercase flex items-center gap-2">👤 Select Quoted By</h3>
+        <button (click)="toggleQuotedByPopup()" class="text-gray-400 hover:text-red-500 text-2xl font-bold">&times;</button>
+      </div>
+      <div class="max-h-80 overflow-y-auto p-1">
+        <ul class="list-none p-0 m-0">
+          <li *ngFor="let sc of allSalesCoors" (click)="selectQuotedByFromPopup(sc)"
+              class="flex items-center p-3 hover:bg-blue-50 border-b border-gray-50 cursor-pointer transition-colors">
+            <span class="text-[12px] text-gray-800 font-medium uppercase">{{ sc }}</span>
+          </li>
+        </ul>
+      </div>
+      <div class="p-3 border-t bg-gray-50 flex justify-end">
+        <button (click)="toggleQuotedByPopup()" class="px-6 py-1.5 text-[11px] font-bold text-gray-500 hover:bg-gray-200 rounded-sm uppercase">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
           <div class="flex items-center">
             <label class="w-24 font-bold text-gray-600">Quatation Status</label>
             <div class="relative flex-1">
-              <select [(ngModel)]="searchFilters.status"
-                class="w-full border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white cursor-pointer appearance-none">
-
+              <select
+                [(ngModel)]="searchFilters.status"
+                class="w-full border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white cursor-pointer appearance-none"
+              >
                 <option value="Pending">Pending</option>
                 <option value="Won">Read By</option>
               </select>
               <i
-                class="fa fa-chevron-down absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] pointer-events-none"></i>
+                class="fa fa-chevron-down absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] pointer-events-none"
+              ></i>
             </div>
           </div>
           <!-- <div class="flex items-center">
@@ -307,17 +544,23 @@
 
         <div class="flex flex-col justify-between pt-1">
           <div class="space-y-2 pl-4">
-            <div (click)="toggleAdvanceFilter()"
-              class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline flex items-center gap-1 my-2">
+            <div
+              (click)="toggleAdvanceFilter()"
+              class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline flex items-center gap-1 my-2"
+            >
               Advance Filter
-              <span [class.rotate-180]="showAdvanceFilter" class="transition-transform duration-200">
-                {{ showAdvanceFilter ? '▲' : '▼' }}
+              <span
+                [class.rotate-180]="showAdvanceFilter"
+                class="transition-transform duration-200"
+              >
+                {{ showAdvanceFilter ? "▲" : "▼" }}
               </span>
             </div>
 
-            <div *ngIf="showAdvanceFilter"
-              class="grid grid-cols-4 gap-4 p-3 bg-gray-50 border border-gray-200 rounded-md shadow-sm">
-
+            <div
+              *ngIf="showAdvanceFilter"
+              class="grid grid-cols-4 gap-4 p-3 bg-gray-50 border border-gray-200 rounded-md shadow-sm"
+            >
               <div class="flex items-center">
                 <label class="w-24 font-bold text-gray-600">Date</label>
               </div>
@@ -329,128 +572,152 @@
               <div class="flex items-center">
                 <label class="w-24 font-bold text-gray-600">Quoted By</label>
               </div>
-
             </div>
 
-            <div (click)="clearFilters()" class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline">
+            <div
+              (click)="clearFilters()"
+              class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline"
+            >
               Clear
             </div>
 
             <div class="relative group inline-block">
-              <div class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline flex items-center gap-1">
+              <div
+                class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline flex items-center gap-1"
+              >
                 <i class="fa fa-info-circle"></i> Legend
               </div>
 
               <div
-                class="absolute left-0 bottom-full mb-2 hidden group-hover:block w-48 bg-white border border-gray-200 shadow-lg rounded-md p-2 z-50 text-[10px]">
-
-                <h4 class="font-bold border-b pb-1 mb-1 text-gray-700">Status Meanings</h4>
+                class="absolute left-0 bottom-full mb-2 hidden group-hover:block w-48 bg-white border border-gray-200 shadow-lg rounded-md p-2 z-50 text-[10px]"
+              >
+                <h4 class="font-bold border-b pb-1 mb-1 text-gray-700">
+                  Status Meanings
+                </h4>
 
                 <div class="flex flex-col gap-1">
                   <div class="flex items-center gap-2">
-                    <span class="w-3 h-3 bg-yellow-400 rounded-full"></span> <span>Pending Quotation</span>
+                    <span class="w-3 h-3 bg-yellow-400 rounded-full"></span>
+                    <span>Pending Quotation</span>
                   </div>
                   <div class="flex items-center gap-2">
-                    <span class="w-3 h-3 bg-green-500 rounded-full"></span> <span>Read By/ Confirmed</span>
+                    <span class="w-3 h-3 bg-green-500 rounded-full"></span>
+                    <span>Read By/ Confirmed</span>
                   </div>
                   <div class="flex items-center gap-2">
-                    <span class="w-3 h-3 bg-red-500 rounded-full"></span> <span> pending/ Cancelled</span>
+                    <span class="w-3 h-3 bg-red-500 rounded-full"></span>
+                    <span> pending/ Cancelled</span>
                   </div>
-                  <hr class="my-1">
+                  <hr class="my-1" />
                   <div class="flex items-center gap-2 text-gray-600">
-                    <i class="fa fa-eye text-blue-500"></i> <span>Viewed by Customer</span>
+                    <i class="fa fa-eye text-blue-500"></i>
+                    <span>Viewed by Customer</span>
                   </div>
                 </div>
               </div>
-
             </div>
-            <div class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline" (click)="openColumnModal()">
+            <div
+              class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline"
+              (click)="openColumnModal()"
+            >
               Customized Columns
             </div>
             <!-- COLUMN CUSTOMIZATION MODAL -->
 
-            <div *ngIf="showColumnModal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-
+            <div
+              *ngIf="showColumnModal"
+              class="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+            >
               <div class="bg-white w-[800px] p-6 rounded shadow-lg">
-
                 <div class="flex justify-between mb-4">
                   <h2 class="font-bold text-lg">Customize Columns</h2>
 
-                  <button (click)="closeColumnModal()" class="text-red-500 font-bold">
+                  <button
+                    (click)="closeColumnModal()"
+                    class="text-red-500 font-bold"
+                  >
                     X
                   </button>
                 </div>
 
                 <div class="flex gap-6 mt-4">
-
                   <!-- AVAILABLE COLUMNS -->
 
                   <div class="w-1/2">
-
                     <h3 class="font-bold text-sm mb-2">Available Columns</h3>
 
-                    <div cdkDropList #availableList="cdkDropList" [cdkDropListData]="availableColumns"
-                      [cdkDropListConnectedTo]="[selectedList]" class="border p-3 max-h-[250px] overflow-y-auto"
-                      (cdkDropListDropped)="drop($event)">
-
-                      <div *ngFor="let col of availableColumns" cdkDrag
-                        class="p-2 border mb-1 bg-gray-100 cursor-move text-xs">
-                        {{col}}
+                    <div
+                      cdkDropList
+                      #availableList="cdkDropList"
+                      [cdkDropListData]="availableColumns"
+                      [cdkDropListConnectedTo]="[selectedList]"
+                      class="border p-3 max-h-[250px] overflow-y-auto"
+                      (cdkDropListDropped)="drop($event)"
+                    >
+                      <div
+                        *ngFor="let col of availableColumns"
+                        cdkDrag
+                        class="p-2 border mb-1 bg-gray-100 cursor-move text-xs"
+                      >
+                        {{ col }}
                       </div>
-
                     </div>
-
                   </div>
-
 
                   <!-- SELECTED COLUMNS -->
 
                   <div class="w-1/2">
-
                     <h3 class="font-bold text-sm mb-2">Selected Columns</h3>
 
-                    <div cdkDropList #selectedList="cdkDropList" [cdkDropListData]="selectedColumns"
-                      [cdkDropListConnectedTo]="[availableList]" class="border p-3 max-h-[250px] overflow-y-auto"
-                      (cdkDropListDropped)="drop($event)">
-
-                      <div *ngFor="let col of selectedColumns" cdkDrag
-                        class="p-2 border mb-1 bg-green-100 cursor-move text-xs">
-                        {{col}}
+                    <div
+                      cdkDropList
+                      #selectedList="cdkDropList"
+                      [cdkDropListData]="selectedColumns"
+                      [cdkDropListConnectedTo]="[availableList]"
+                      class="border p-3 max-h-[250px] overflow-y-auto"
+                      (cdkDropListDropped)="drop($event)"
+                    >
+                      <div
+                        *ngFor="let col of selectedColumns"
+                        cdkDrag
+                        class="p-2 border mb-1 bg-green-100 cursor-move text-xs"
+                      >
+                        {{ col }}
                       </div>
-
                     </div>
-
                   </div>
-
                 </div>
 
                 <div class="flex justify-end gap-3 mt-5">
-
-                  <button (click)="closeColumnModal()" class="px-4 py-2 border text-sm">
+                  <button
+                    (click)="closeColumnModal()"
+                    class="px-4 py-2 border text-sm"
+                  >
                     Cancel
                   </button>
-
-
-
                 </div>
-
               </div>
-
             </div>
           </div>
 
           <div class="flex justify-end mt-4 gap-2">
-            <button (click)="resetFilters()"
-              class="bg-gray-200 text-gray-700 px-6 py-1.5 font-bold shadow-sm uppercase text-[11px] hover:bg-gray-300 transition-all">
+            <button
+              (click)="resetFilters()"
+              class="bg-gray-200 text-gray-700 px-6 py-1.5 font-bold shadow-sm uppercase text-[11px] hover:bg-gray-300 transition-all"
+            >
               Reset
             </button>
 
-            <button (click)="onSearch()"
-              class="bg-[#4a3f3f] text-white px-8 py-1.5 font-bold shadow-md uppercase text-[11px] hover:bg-black transition-all">
+            <button
+              (click)="onSearch()"
+              class="bg-[#4a3f3f] text-white px-8 py-1.5 font-bold shadow-md uppercase text-[11px] hover:bg-black transition-all"
+            >
               Search
             </button>
-            <button (click)="AllSearch()"
-              class="bg-[#4a3f3f] text-white px-8 py-1.5 font-bold shadow-md uppercase text-[11px] hover:bg-black transition-all">
+            <button
+              (click)="AllSearch()"
+              class="bg-[#4a3f3f] text-white px-8 py-1.5 font-bold shadow-md uppercase text-[11px] hover:bg-black transition-all"
+            >
               All Quotations
             </button>
           </div>
@@ -459,85 +726,124 @@
     </div>
 
     <div class="bg-[#4a3f3f] p-3 flex justify-between items-center text-white">
-      <div class="font-bold uppercase text-[12px] tracking-widest px-2">Inquiry Records</div>
+      <div class="font-bold uppercase text-[12px] tracking-widest px-2">
+        Inquiry Records
+      </div>
       <div class="flex gap-2">
         <div class="relative">
-          <button (click)="isExportOpen = !isExportOpen; $event.stopPropagation()"
-            class="bg-blue-600 hover:bg-blue-700 px-4 py-1.5 text-[11px] font-bold flex items-center gap-2 transition-all rounded">
+          <button
+            (click)="isExportOpen = !isExportOpen; $event.stopPropagation()"
+            class="bg-blue-600 hover:bg-blue-700 px-4 py-1.5 text-[11px] font-bold flex items-center gap-2 transition-all rounded"
+          >
             <i class="fas fa-file-export"></i> EXPORT
-            <i class="fas fa-chevron-down text-[9px]" [class.rotate-180]="isExportOpen"></i>
+            <i
+              class="fas fa-chevron-down text-[9px]"
+              [class.rotate-180]="isExportOpen"
+            ></i>
           </button>
 
-          <div *ngIf="isExportOpen"
-            class="absolute right-0 mt-2 w-44 bg-white text-gray-800 rounded shadow-xl z-[999] border border-gray-200 overflow-hidden shadow-2xl">
-            <button (click)="printRecords()"
-              class="w-full text-left px-4 py-2.5 hover:bg-gray-100 flex items-center gap-2 border-b border-gray-100 text-[12px] font-medium">
+          <div
+            *ngIf="isExportOpen"
+            class="absolute right-0 mt-2 w-44 bg-white text-gray-800 rounded shadow-xl z-[999] border border-gray-200 overflow-hidden shadow-2xl"
+          >
+            <button
+              (click)="printRecords()"
+              class="w-full text-left px-4 py-2.5 hover:bg-gray-100 flex items-center gap-2 border-b border-gray-100 text-[12px] font-medium"
+            >
               <i class="fas fa-print text-blue-500"></i> Print Records
             </button>
-            <button (click)="downloadInquiriesPDF()"
-              class="w-full text-left px-4 py-2.5 hover:bg-gray-100 flex items-center gap-2 text-[12px] font-medium">
+            <button
+              (click)="downloadInquiriesPDF()"
+              class="w-full text-left px-4 py-2.5 hover:bg-gray-100 flex items-center gap-2 text-[12px] font-medium"
+            >
               <i class="fas fa-file-pdf text-red-500"></i> Download PDF
             </button>
-            <button type="button" (click)="downloadQuotationsExcel()"
-              class="w-full text-left px-4 py-3 hover:bg-gray-100 flex items-center gap-2 text-[12px] font-medium text-gray-700">
+            <button
+              type="button"
+              (click)="downloadQuotationsExcel()"
+              class="w-full text-left px-4 py-3 hover:bg-gray-100 flex items-center gap-2 text-[12px] font-medium text-gray-700"
+            >
               <i class="fas fa-file-excel text-green-600"></i> Download Excel
             </button>
           </div>
         </div>
 
-        <button (click)="openColumnModal()"
-          class="bg-[#5a4f4f] hover:bg-[#3d3434] border border-gray-500 px-4 py-1.5 text-[11px] font-bold">
+        <button
+          (click)="openColumnModal()"
+          class="bg-[#5a4f4f] hover:bg-[#3d3434] border border-gray-500 px-4 py-1.5 text-[11px] font-bold"
+        >
           <i class="fas fa-columns mr-1"></i> COLUMNS
         </button>
         <!-- <button class="bg-[#5a4f4f] hover:bg-[#3d3434] border border-gray-500 px-4 py-1.5 text-[11px] font-bold" (click)="neworg()">
           <i class="fas fa-building mr-1"></i> NEW ORGANIZATION
         </button> -->
-        <button (click)="toggleForm()" class="bg-green-600 hover:bg-green-700 px-5 py-1.5 text-[11px] font-bold">
+        <button
+          (click)="toggleForm()"
+          class="bg-green-600 hover:bg-green-700 px-5 py-1.5 text-[11px] font-bold"
+        >
           <i class="fas fa-plus mr-1"></i> ADD NEW QUOTATION
         </button>
       </div>
     </div>
     <div class="p-0 overflow-x-auto">
       <div class="relative">
-  <table class="w-full border-collapse text-[13px]">
-    <thead>
-      <tr class="bg-gray-50 text-gray-500 uppercase text-[11px] border-b">
-        <th *ngFor="let col of selectedColumns" class="p-4 text-left font-bold">
-          {{ col }}
-        </th>
-        <th class="p-4 text-center font-bold sticky right-0 bg-gray-50 border-l">
-          Action
-        </th>
-      </tr>
-    </thead>
+        <table class="w-full border-collapse text-[13px]">
+          <thead>
+            <tr class="bg-gray-50 text-gray-500 uppercase text-[11px] border-b">
+              <th
+                *ngFor="let col of selectedColumns"
+                class="p-4 text-left font-bold"
+              >
+                {{ col }}
+              </th>
+              <th
+                class="p-4 text-center font-bold sticky right-0 bg-gray-50 border-l"
+              >
+                Action
+              </th>
+            </tr>
+          </thead>
 
-    <tbody *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
-      <tr *ngFor="let q of paginatedQuotations" 
-          (dblclick)="editQuotation(q)"
-          class="hover:bg-gray-50 border-b text-gray-700 cursor-pointer transition-colors">
+          <tbody
+            *ngIf="CheckPermissionService.hasPermission(PermissionID, 'View')"
+          >
+            <tr
+              *ngFor="let q of paginatedQuotations"
+              (dblclick)="editQuotation(q)"
+              class="hover:bg-gray-50 border-b text-gray-700 cursor-pointer transition-colors"
+            >
+              <td *ngFor="let col of selectedColumns" class="p-4">
+                {{ q[col] }}
+              </td>
 
-        <td *ngFor="let col of selectedColumns" class="p-4">
-          {{ q[col] }}
-        </td>
-
-        <td class="p-4 sticky right-0 bg-white border-l text-center">
-          <button (click)="editQuotation(q)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Edit')"
-            class="text-blue-600 mr-3 font-bold uppercase hover:underline">
-            Edit
-          </button>
-          <button (click)="deleteQuotation(q.id)"
-            *ngIf="CheckPermissionService.hasPermission(PermissionID,'Delete')"
-            class="text-red-600 font-bold uppercase hover:underline">
-            Delete
-          </button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-      <div class="flex flex-col items-center mt-6 gap-3"
-        *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
-
+              <td class="p-4 sticky right-0 bg-white border-l text-center">
+                <button
+                  (click)="editQuotation(q)"
+                  *ngIf="
+                    CheckPermissionService.hasPermission(PermissionID, 'Edit')
+                  "
+                  class="text-blue-600 mr-3 font-bold uppercase hover:underline"
+                >
+                  Edit
+                </button>
+                <button
+                  (click)="deleteQuotation(q.id)"
+                  *ngIf="
+                    CheckPermissionService.hasPermission(PermissionID, 'Delete')
+                  "
+                  class="text-red-600 font-bold uppercase hover:underline"
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div
+        class="flex flex-col items-center mt-6 gap-3"
+        *ngIf="CheckPermissionService.hasPermission(PermissionID, 'View')"
+      >
         <!-- Showing entries -->
         <div class="text-sm text-gray-500">
           Showing
@@ -554,29 +860,40 @@
         </div>
 
         <!-- Pagination Buttons -->
-        <div class="flex items-center gap-1 bg-white border shadow-md rounded-lg px-3 py-2">
-
-          <button (click)="previousPage()" [disabled]="currentPage === 1"
-            class="px-3 py-1 rounded hover:bg-gray-100 disabled:opacity-40">
+        <div
+          class="flex items-center gap-1 bg-white border shadow-md rounded-lg px-3 py-2"
+        >
+          <button
+            (click)="previousPage()"
+            [disabled]="currentPage === 1"
+            class="px-3 py-1 rounded hover:bg-gray-100 disabled:opacity-40"
+          >
             ◀
           </button>
 
-          <ng-container *ngFor="let page of [].constructor(totalPages); let i = index">
-            <button (click)="goToPage(i + 1)" [ngClass]="{
-          'bg-blue-500 text-white': currentPage === (i + 1),
-          'hover:bg-gray-100': currentPage !== (i + 1)
-        }" class="px-3 py-1 rounded text-sm min-w-[36px]">
+          <ng-container
+            *ngFor="let page of [].constructor(totalPages); let i = index"
+          >
+            <button
+              (click)="goToPage(i + 1)"
+              [ngClass]="{
+                'bg-blue-500 text-white': currentPage === i + 1,
+                'hover:bg-gray-100': currentPage !== i + 1,
+              }"
+              class="px-3 py-1 rounded text-sm min-w-[36px]"
+            >
               {{ i + 1 }}
             </button>
           </ng-container>
 
-          <button (click)="nextPage()" [disabled]="currentPage === totalPages"
-            class="px-3 py-1 rounded hover:bg-gray-100 disabled:opacity-40">
+          <button
+            (click)="nextPage()"
+            [disabled]="currentPage === totalPages"
+            class="px-3 py-1 rounded hover:bg-gray-100 disabled:opacity-40"
+          >
             ▶
           </button>
-
         </div>
-
       </div>
     </div>
   </div>
@@ -584,14 +901,22 @@
   <div *ngIf="isFormOpen" class="bg-white border border-gray-300 shadow-lg">
     <div class="bg-[#4a3f3f] p-2 flex justify-between items-center text-white">
       <div class="flex gap-2 px-2">
-        <button (click)="saveQuotation()"
-          class="bg-green-600 hover:bg-green-700 text-white font-bold text-[12px] px-4 py-1.5 uppercase shadow-sm">SAVE</button>
+        <button
+          (click)="saveQuotation()"
+          class="bg-green-600 hover:bg-green-700 text-white font-bold text-[12px] px-4 py-1.5 uppercase shadow-sm"
+        >
+          SAVE
+        </button>
       </div>
       <div class="font-bold uppercase text-[12px] tracking-widest">
-        {{ quotation.id ? 'Edit Quotation' : 'New Quotation Entry' }}
+        {{ quotation.id ? "Edit Quotation" : "New Quotation Entry" }}
       </div>
-      <button (click)="toggleForm()"
-        class="bg-red-500 hover:bg-red-600 px-4 py-1.5 text-[12px] font-bold">CLOSE</button>
+      <button
+        (click)="toggleForm()"
+        class="bg-red-500 hover:bg-red-600 px-4 py-1.5 text-[12px] font-bold"
+      >
+        CLOSE
+      </button>
     </div>
 
     <div class="p-5 space-y-5">
@@ -600,68 +925,125 @@
           <div class="md:col-span-1">
             <div class="grid grid-cols-2 gap-2 mb-3">
               <div>
-                <label class="text-gray-700 font-bold block mb-1 uppercase text-[11px]">Reference by inquiry</label>
+                <label
+                  class="text-gray-700 font-bold block mb-1 uppercase text-[11px]"
+                  >Reference by inquiry</label
+                >
                 <div class="relative">
-                  <input name="referenceByInquiry" [(ngModel)]="quotation.referenceByInquiry"
-                    (input)="onInquirySearchInput()" placeholder="Search Inquiry No..."
-                    class="w-full border p-2 bg-white outline-none pr-7 text-[12px]" autocomplete="off">
+                  <input
+                    name="referenceByInquiry"
+                    [(ngModel)]="quotation.referenceByInquiry"
+                    (input)="onInquirySearchInput()"
+                    placeholder="Search Inquiry No..."
+                    class="w-full border p-2 bg-white outline-none pr-7 text-[12px]"
+                    autocomplete="off"
+                  />
 
-                  <span (click)="loadInquiryList()"
-                    class="absolute right-1 top-2.5 text-gray-400 cursor-pointer p-1 hover:text-blue-500 transition-all">
+                  <span
+                    (click)="loadInquiryList()"
+                    class="absolute right-1 top-2.5 text-gray-400 cursor-pointer p-1 hover:text-blue-500 transition-all"
+                  >
                     🔍
                   </span>
 
-                  <ul *ngIf="showInquiryDropdown && inquiryList.length > 0"
-                    class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-48 overflow-y-auto mt-1">
+                  <ul
+                    *ngIf="showInquiryDropdown && inquiryList.length > 0"
+                    class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-48 overflow-y-auto mt-1"
+                  >
+                    <li
+                      *ngFor="let inq of inquiryList"
+                      (click)="selectInquiry(inq)"
+                      class="p-2 hover:bg-blue-50 cursor-pointer text-[12px] border-b border-gray-100 last:border-0"
+                    >
+                      <div class="font-bold text-blue-700">
+                        {{ inq.inquiryNo }}
+                      </div>
 
-                    <li *ngFor="let inq of inquiryList" (click)="selectInquiry(inq)"
-                      class="p-2 hover:bg-blue-50 cursor-pointer text-[12px] border-b border-gray-100 last:border-0">
-
-                      <div class="font-bold text-blue-700">{{ inq.inquiryNo }}</div>
-
-                      <div *ngIf="inq.customerName" class="text-gray-500 text-[10px]">{{ inq.customerName }}</div>
+                      <div
+                        *ngIf="inq.customerName"
+                        class="text-gray-500 text-[10px]"
+                      >
+                        {{ inq.customerName }}
+                      </div>
                     </li>
                   </ul>
 
-                  <ul *ngIf="showInquiryDropdown && filteredInquiries.length > 0"
-                    class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-48 overflow-y-auto">
-                    <li *ngFor="let inq of filteredInquiries" (click)="selectInquiry(inq)"
-                      class="p-2 hover:bg-blue-50 cursor-pointer text-[12px] border-b border-gray-100">
-                      <div class="font-bold text-blue-700">{{ inq.inquiryNo }}</div>
-                      <div class="text-gray-500 text-[10px]">{{ inq.customerName }}</div>
+                  <ul
+                    *ngIf="showInquiryDropdown && filteredInquiries.length > 0"
+                    class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-48 overflow-y-auto"
+                  >
+                    <li
+                      *ngFor="let inq of filteredInquiries"
+                      (click)="selectInquiry(inq)"
+                      class="p-2 hover:bg-blue-50 cursor-pointer text-[12px] border-b border-gray-100"
+                    >
+                      <div class="font-bold text-blue-700">
+                        {{ inq.inquiryNo }}
+                      </div>
+                      <div class="text-gray-500 text-[10px]">
+                        {{ inq.customerName }}
+                      </div>
                     </li>
                   </ul>
                 </div>
               </div>
 
               <div>
-                <label class="text-gray-700 font-bold block mb-1 uppercase text-[11px]">Quotation No</label>
-                <input type="text" name="quotationNo" [(ngModel)]="quotation.quotationNo" readonly
-                  class="w-full border p-2 bg-gray-100 text-gray-600 outline-none cursor-not-allowed font-semibold rounded-sm">
+                <label
+                  class="text-gray-700 font-bold block mb-1 uppercase text-[11px]"
+                  >Quotation No</label
+                >
+                <input
+                  type="text"
+                  name="quotationNo"
+                  [(ngModel)]="quotation.quotationNo"
+                  readonly
+                  class="w-full border p-2 bg-gray-100 text-gray-600 outline-none cursor-not-allowed font-semibold rounded-sm"
+                />
               </div>
             </div>
-            <label class="text-red-700 font-bold uppercase block mt-3 mb-1">Organization</label>
+            <label class="text-red-700 font-bold uppercase block mt-3 mb-1"
+              >Organization</label
+            >
             <div class="flex items-center relative">
-              <input name="orgSearch" [(ngModel)]="quotation.organization" (input)="onSearchInput()"
-                class="w-full border p-2 border-red-300 outline-none rounded-l-sm" placeholder="Search Organization..">
+              <input
+                name="orgSearch"
+                [(ngModel)]="quotation.organization"
+                (input)="onSearchInput()"
+                class="w-full border p-2 border-red-300 outline-none rounded-l-sm"
+                placeholder="Search Organization.."
+              />
 
-              <button type="button" (click)="navigateToNewOrg()"
-                class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 text-[11px] font-bold shadow-sm border border-green-800 rounded-r-sm uppercase">
+              <button
+                type="button"
+                (click)="navigateToNewOrg()"
+                class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 text-[11px] font-bold shadow-sm border border-green-800 rounded-r-sm uppercase"
+              >
                 NEW
               </button>
 
-              <div *ngIf="showDropdown && filteredOrganizations.length > 0"
-                class="absolute top-full left-0 right-0 bg-white border border-gray-200 shadow-lg z-50 max-h-40 overflow-y-auto rounded-b-sm">
-                <div *ngFor="let org of filteredOrganizations" (click)="selectOrganization(org)"
-                  class="p-2 border-b hover:bg-blue-50 cursor-pointer text-sm">
-                  <div class="font-bold text-gray-800">{{org.orgName}}</div>
-                  <div class="text-xs text-gray-600">{{org.address}}</div>
+              <div
+                *ngIf="showDropdown && filteredOrganizations.length > 0"
+                class="absolute top-full left-0 right-0 bg-white border border-gray-200 shadow-lg z-50 max-h-40 overflow-y-auto rounded-b-sm"
+              >
+                <div
+                  *ngFor="let org of filteredOrganizations"
+                  (click)="selectOrganization(org)"
+                  class="p-2 border-b hover:bg-blue-50 cursor-pointer text-sm"
+                >
+                  <div class="font-bold text-gray-800">{{ org.orgName }}</div>
+                  <div class="text-xs text-gray-600">{{ org.address }}</div>
                 </div>
               </div>
             </div>
-            <textarea name="organizationAddress" [(ngModel)]="quotation.organizationAddress"
-              class="w-full border mt-2 text-[12px] bg-white p-2 text-gray-500 italic" rows="2"
-              placeholder="Organization Address..." readonly></textarea>
+            <textarea
+              name="organizationAddress"
+              [(ngModel)]="quotation.organizationAddress"
+              class="w-full border mt-2 text-[12px] bg-white p-2 text-gray-500 italic"
+              rows="2"
+              placeholder="Organization Address..."
+              readonly
+            ></textarea>
           </div>
 
           <div>
@@ -669,22 +1051,40 @@
               Valid From
             </label>
 
-            <input type="date" name="validFrom" [(ngModel)]="quotation.validFrom" class="w-full border p-2 outline-none"
-              #validFromInput (click)="validFromInput.showPicker()" (focus)="validFromInput.showPicker()" />
+            <input
+              type="date"
+              name="validFrom"
+              [(ngModel)]="quotation.validFrom"
+              class="w-full border p-2 outline-none"
+              #validFromInput
+              (click)="validFromInput.showPicker()"
+              (focus)="validFromInput.showPicker()"
+            />
 
-            <label class="text-[#4a3f3f] font-bold mt-3 block mb-1 uppercase">Usability</label>
-            <select name="usability" [(ngModel)]="quotation.usability" class="w-full border p-2 outline-none">
+            <label class="text-[#4a3f3f] font-bold mt-3 block mb-1 uppercase"
+              >Usability</label
+            >
+            <select
+              name="usability"
+              [(ngModel)]="quotation.usability"
+              class="w-full border p-2 outline-none"
+            >
               <option value="Single">Single</option>
               <option value="Multiple">Multiple</option>
             </select>
 
-
             <!--<select name="lineOfBusiness" [(ngModel)]="quotation.lineOfBusiness" class="w-full border p-2 outline-none">
         <select name="lineOfBusiness" [(ngModel)]="quotation.lineOfBusiness" (change)="onHeaderLOBChange()" class="w-full border p-2 outline-none">
          </div>-->
-            <label class="text-gray-700 font-bold mt-3 block mb-1 uppercase">Lines Of Business</label>
-            <select name="lineOfBusiness" [(ngModel)]="quotation.lineOfBusiness" (change)="onHeaderLOBChange()"
-              class="w-full border p-2 outline-none">
+            <label class="text-gray-700 font-bold mt-3 block mb-1 uppercase"
+              >Lines Of Business</label
+            >
+            <select
+              name="lineOfBusiness"
+              [(ngModel)]="quotation.lineOfBusiness"
+              (change)="onHeaderLOBChange()"
+              class="w-full border p-2 outline-none"
+            >
               <option value="" disabled selected>Select Business Line</option>
               <option *ngFor="let s of companyServices" [value]="s.id">
                 {{ s.serviceName }}
@@ -697,46 +1097,94 @@
               Valid Till
             </label>
 
-            <input type="date" name="validTill" [(ngModel)]="quotation.validTill"
-              class="w-full border p-2 border-red-300 outline-none" #validTillInput
-              (click)="validTillInput.showPicker()" (focus)="validTillInput.showPicker()" />
+            <input
+              type="date"
+              name="validTill"
+              [(ngModel)]="quotation.validTill"
+              class="w-full border p-2 border-red-300 outline-none"
+              #validTillInput
+              (click)="validTillInput.showPicker()"
+              (focus)="validTillInput.showPicker()"
+            />
 
-            <label class="text-gray-700 font-bold mt-3 block mb-1 uppercase">Version</label>
-            <input name="version" [(ngModel)]="quotation.version" class="w-full border p-2 outline-none">
+            <label class="text-gray-700 font-bold mt-3 block mb-1 uppercase"
+              >Version</label
+            >
+            <input
+              name="version"
+              [(ngModel)]="quotation.version"
+              class="w-full border p-2 outline-none"
+            />
 
-            <label class="text-gray-700 font-bold mt-3 block mb-1 uppercase">Cargo Status</label>
+            <label class="text-gray-700 font-bold mt-3 block mb-1 uppercase"
+              >Cargo Status</label
+            >
             <div class="flex gap-1">
               <!-- Dropdown -->
-              <select name="cargoStatus" [(ngModel)]="quotation.cargoStatus" (change)="onCargoStatusChange2()"
-                class="border p-2 w-1/2 outline-none">
+              <select
+                name="cargoStatus"
+                [(ngModel)]="quotation.cargoStatus"
+                (change)="onCargoStatusChange2()"
+                class="border p-2 w-1/2 outline-none"
+              >
                 <option value="Ready">Ready</option>
                 <option value="Ready By">Ready By</option>
               </select>
 
               <!-- Date Input -->
-              <input type="date" name="cargoReadyDate" [(ngModel)]="quotation.cargoReadyDate" #cargoReadyDateInput
-                [readonly]="quotation.cargoStatus === 'Ready'" [disabled]="false"
-                (click)="quotation.cargoStatus === 'Ready By' && cargoReadyDateInput.showPicker()"
-                (focus)="quotation.cargoStatus === 'Ready By' && cargoReadyDateInput.showPicker()"
-                class="border p-2 w-1/2 outline-none" />
+              <input
+                type="date"
+                name="cargoReadyDate"
+                [(ngModel)]="quotation.cargoReadyDate"
+                #cargoReadyDateInput
+                [readonly]="quotation.cargoStatus === 'Ready'"
+                [disabled]="false"
+                (click)="
+                  quotation.cargoStatus === 'Ready By' &&
+                    cargoReadyDateInput.showPicker()
+                "
+                (focus)="
+                  quotation.cargoStatus === 'Ready By' &&
+                    cargoReadyDateInput.showPicker()
+                "
+                class="border p-2 w-1/2 outline-none"
+              />
             </div>
           </div>
 
           <div class="bg-white p-3 border border-gray-200">
-            <label class="text-gray-700 font-bold block mb-1 uppercase">Location</label>
-            <input type="text" name="location" [(ngModel)]="quotation.location"
-              class="w-full border p-2 mb-2 outline-none" placeholder="Enter Location" />
+            <label class="text-gray-700 font-bold block mb-1 uppercase"
+              >Location</label
+            >
+            <input
+              type="text"
+              name="location"
+              [(ngModel)]="quotation.location"
+              class="w-full border p-2 mb-2 outline-none"
+              placeholder="Enter Location"
+            />
 
-            <label class="text-gray-700 font-bold block mb-1 uppercase">Pricing By</label>
-            <input name="pricingBy" [(ngModel)]="quotation.pricingBy" class="w-full border p-2 mb-2 outline-none">
+            <label class="text-gray-700 font-bold block mb-1 uppercase"
+              >Pricing By</label
+            >
+            <input
+              name="pricingBy"
+              [(ngModel)]="quotation.pricingBy"
+              class="w-full border p-2 mb-2 outline-none"
+            />
 
-            <label class="text-gray-700 font-bold block mb-1 uppercase">Sales Coor.</label>
-            <select [(ngModel)]="quotation.salesCoordinator" name="salesCoordinator"
-              class="flex-1 border p-1.5 outline-none text-[12px]">
-
+            <label class="text-gray-700 font-bold block mb-1 uppercase"
+              >Sales Coor.</label
+            >
+            <select
+              [(ngModel)]="quotation.salesCoordinator"
+              name="salesCoordinator"
+              class="flex-1 border p-1.5 outline-none text-[12px]"
+            >
               <option value="">-- Select Sales Coordinator --</option>
 
-              <option *ngFor="let sc of getsalescordinate" [ngValue]="sc.id"> <!-- [value] → [ngValue] kar do -->
+              <option *ngFor="let sc of getsalescordinate" [ngValue]="sc.id">
+                <!-- [value] → [ngValue] kar do -->
 
                 {{ sc.firstName }} {{ sc.lastName }}
               </option>
@@ -747,10 +1195,11 @@
 
       <!--  first phase     -->
       <div class="border border-gray-300 bg-white shadow-sm">
-        <div class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px]">- Cargo Details</div>
+        <div class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px]">
+          - Cargo Details
+        </div>
 
         <div class="p-5 space-y-4">
-
           <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
             <div class="flex items-center relative">
               <!-- <label class="w-40 font-bold text-gray-700">Lead</label>
@@ -758,17 +1207,22 @@
   <input type="text" name="lead" [(ngModel)]="quotation.lead" (input)="onLeadSearchInput()"
          class="flex-1 border p-2 outline-none" placeholder="Search Lead No.."> -->
 
-              <div *ngIf="showLeadDropdown && filteredLeads.length > 0"
-                class="absolute top-full left-40 right-0 bg-white border border-gray-200 shadow-lg z-50 max-h-40 overflow-y-auto rounded-b-sm">
-                <div *ngFor="let lead of filteredLeads" (click)="selectLead(lead)"
-                  class="p-2 border-b hover:bg-blue-50 cursor-pointer text-sm">
-                  <div class="font-bold text-gray-800">{{lead.leadNo}}</div>
-                  <div class="text-xs text-gray-600">{{lead.companyName}}</div>
+              <div
+                *ngIf="showLeadDropdown && filteredLeads.length > 0"
+                class="absolute top-full left-40 right-0 bg-white border border-gray-200 shadow-lg z-50 max-h-40 overflow-y-auto rounded-b-sm"
+              >
+                <div
+                  *ngFor="let lead of filteredLeads"
+                  (click)="selectLead(lead)"
+                  class="p-2 border-b hover:bg-blue-50 cursor-pointer text-sm"
+                >
+                  <div class="font-bold text-gray-800">{{ lead.leadNo }}</div>
+                  <div class="text-xs text-gray-600">
+                    {{ lead.companyName }}
+                  </div>
                 </div>
               </div>
             </div>
-
-
 
             <!-- <div class="flex items-center">
         <label class="w-40 font-bold text-gray-700">Business Dimensions</label>
@@ -776,11 +1230,15 @@
       </div>
     </div> -->
 
-
             <div class="flex items-center">
-              <label class="w-40 font-bold text-gray-700">Business Dimensions</label>
-              <select name="businessDims" [(ngModel)]="quotation.businessDimensions"
-                class="flex-1 border p-2 outline-none">
+              <label class="w-40 font-bold text-gray-700"
+                >Business Dimensions</label
+              >
+              <select
+                name="businessDims"
+                [(ngModel)]="quotation.businessDimensions"
+                class="flex-1 border p-2 outline-none"
+              >
                 <option value="Electronic">Electronic</option>
                 <option value="Mercury">Mercury</option>
                 <option value="Cosmetic">Cosmetic</option>
@@ -789,13 +1247,14 @@
             </div>
           </div>
 
-
-
-
           <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
             <div class="flex items-center">
               <label class="w-40 font-bold text-gray-700">Transport Mode</label>
-              <select [(ngModel)]="quotation.transportMode" name="transportMode" class="flex-1 border p-2 outline-none">
+              <select
+                [(ngModel)]="quotation.transportMode"
+                name="transportMode"
+                class="flex-1 border p-2 outline-none"
+              >
                 <option value="" disabled>-- Select Mode --</option>
                 <option *ngFor="let mode of transportModes" [value]="mode.name">
                   {{ mode.name }}
@@ -804,7 +1263,11 @@
             </div>
             <div class="flex items-center">
               <label class="w-40 font-bold text-gray-700">Transport Type</label>
-              <select name="transportType" [(ngModel)]="quotation.transportType" class="flex-1 border p-2 outline-none">
+              <select
+                name="transportType"
+                [(ngModel)]="quotation.transportType"
+                class="flex-1 border p-2 outline-none"
+              >
                 <option value="Export">Export</option>
                 <option value="Import">Import</option>
               </select>
@@ -814,8 +1277,14 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-12 pt-2">
             <div class="space-y-3">
               <div class="flex items-center">
-                <label class="w-40 font-bold text-gray-700">Shipment Type</label>
-                <select [(ngModel)]="quotation.shipmentType" name="shipmentType" class="flex-1 border p-2 outline-none">
+                <label class="w-40 font-bold text-gray-700"
+                  >Shipment Type</label
+                >
+                <select
+                  [(ngModel)]="quotation.shipmentType"
+                  name="shipmentType"
+                  class="flex-1 border p-2 outline-none"
+                >
                   <option value="" disabled>-- Select Shipment Type --</option>
 
                   <option *ngFor="let type of shipmentTypes" [value]="type.id">
@@ -827,11 +1296,17 @@
               <div class="flex flex-col gap-4">
                 <div class="flex items-center">
                   <label class="w-40 font-bold text-gray-700">Commodity</label>
-                  <select [(ngModel)]="quotation.commodity" name="commodity" class="flex-1 border p-2 outline-none">
-
+                  <select
+                    [(ngModel)]="quotation.commodity"
+                    name="commodity"
+                    class="flex-1 border p-2 outline-none"
+                  >
                     <option value="" disabled>Select Commodity</option>
 
-                    <option *ngFor="let type of commodityTypes" [ngValue]="type.id">
+                    <option
+                      *ngFor="let type of commodityTypes"
+                      [ngValue]="type.id"
+                    >
                       <!-- ← [value] ko [ngValue] kar do -->
 
                       {{ type.name }}
@@ -839,13 +1314,20 @@
                   </select>
                 </div>
 
-                <div *ngIf="quotation.commodity === 'Hazard'"
-                  class="flex items-center animate-in fade-in slide-in-from-top-2 duration-300">
-                  <label class="w-40 font-bold text-gray-700">Upload Document</label>
+                <div
+                  *ngIf="quotation.commodity === 'Hazard'"
+                  class="flex items-center animate-in fade-in slide-in-from-top-2 duration-300"
+                >
+                  <label class="w-40 font-bold text-gray-700"
+                    >Upload Document</label
+                  >
                   <div class="flex-1 flex items-center gap-2">
-
-                    <input type="file" name="hazardDoc" (change)="onFileSelected($event)"
-                      class="flex-1 border p-1 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100">
+                    <input
+                      type="file"
+                      name="hazardDoc"
+                      (change)="onFileSelected($event)"
+                      class="flex-1 border p-1 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
+                    />
                   </div>
                 </div>
               </div>
@@ -853,11 +1335,20 @@
               <div class="flex items-center gap-2">
                 <label class="w-40 font-bold text-gray-700">Gross Weight</label>
                 <div class="flex flex-1">
-                  <input type="number" name="grossWeightKg" [(ngModel)]="quotation.grossWeightKg"
-                    class="w-full border p-2 outline-none">
-                  <div class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1">
-                    <select name="grossWeightUnit" [(ngModel)]="quotation.grossWeightUnit"
-                      class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
+                  <input
+                    type="number"
+                    name="grossWeightKg"
+                    [(ngModel)]="quotation.grossWeightKg"
+                    class="w-full border p-2 outline-none"
+                  />
+                  <div
+                    class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1"
+                  >
+                    <select
+                      name="grossWeightUnit"
+                      [(ngModel)]="quotation.grossWeightUnit"
+                      class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
+                    >
                       <option value="KGS">KGS</option>
                       <option value="LBS">LBS</option>
                     </select>
@@ -868,11 +1359,20 @@
               <div class="flex items-center gap-2">
                 <label class="w-40 font-bold text-gray-700">Net Weight</label>
                 <div class="flex flex-1">
-                  <input type="number" name="netWeight" [(ngModel)]="quotation.netWeight"
-                    class="w-full border p-2 outline-none">
-                  <div class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1">
-                    <select name="netWeightUnit" [(ngModel)]="quotation.netWeightUnit"
-                      class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
+                  <input
+                    type="number"
+                    name="netWeight"
+                    [(ngModel)]="quotation.netWeight"
+                    class="w-full border p-2 outline-none"
+                  />
+                  <div
+                    class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1"
+                  >
+                    <select
+                      name="netWeightUnit"
+                      [(ngModel)]="quotation.netWeightUnit"
+                      class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
+                    >
                       <option value="KGS">KGS</option>
                       <option value="LBS">LBS</option>
                     </select>
@@ -883,11 +1383,20 @@
               <div class="flex items-center gap-2">
                 <label class="w-40 font-bold text-gray-700">Chrg. Weight</label>
                 <div class="flex flex-1">
-                  <input type="number" name="chargeableWeight" [(ngModel)]="quotation.chargeableWeight"
-                    class="w-full border p-2 outline-none">
-                  <div class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1">
-                    <select name="chargeableWeightUnit" [(ngModel)]="quotation.chargeableWeightUnit"
-                      class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
+                  <input
+                    type="number"
+                    name="chargeableWeight"
+                    [(ngModel)]="quotation.chargeableWeight"
+                    class="w-full border p-2 outline-none"
+                  />
+                  <div
+                    class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1"
+                  >
+                    <select
+                      name="chargeableWeightUnit"
+                      [(ngModel)]="quotation.chargeableWeightUnit"
+                      class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
+                    >
                       <option value="KGS">KGS</option>
                       <option value="LBS">LBS</option>
                     </select>
@@ -898,13 +1407,24 @@
 
             <div class="space-y-3">
               <div class="flex items-center gap-2">
-                <label class="w-40 font-bold text-gray-700">Num of Packages</label>
+                <label class="w-40 font-bold text-gray-700"
+                  >Num of Packages</label
+                >
                 <div class="flex flex-1">
-                  <input type="number" name="noOfPkgs" [(ngModel)]="quotation.noOfPkgs"
-                    class="w-full border p-2 outline-none">
-                  <div class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1">
-                    <select name="pkgUnit" [(ngModel)]="quotation.pkgUnit"
-                      class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
+                  <input
+                    type="number"
+                    name="noOfPkgs"
+                    [(ngModel)]="quotation.noOfPkgs"
+                    class="w-full border p-2 outline-none"
+                  />
+                  <div
+                    class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1"
+                  >
+                    <select
+                      name="pkgUnit"
+                      [(ngModel)]="quotation.pkgUnit"
+                      class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
+                    >
                       <option value="PKGS">PKGS</option>
                       <option value="BOXES">BOXES</option>
                     </select>
@@ -915,78 +1435,184 @@
               <div class="flex items-center gap-2">
                 <label class="w-40 font-bold text-gray-700">Dimensions</label>
                 <div class="flex flex-1 items-center gap-1">
-                  <input type="number" name="dimL" [(ngModel)]="quotation.dimBox" placeholder="BOX"
-                    class="w-full border p-2 outline-none text-center">
+                  <input
+                    type="number"
+                    name="dimL"
+                    [(ngModel)]="quotation.dimBox"
+                    placeholder="BOX"
+                    class="w-full border p-2 outline-none text-center"
+                  />
 
-                  <input type="number" name="dimL" [(ngModel)]="quotation.dimL" placeholder="L"
-                    class="w-full border p-2 outline-none text-center">
+                  <input
+                    type="number"
+                    name="dimL"
+                    [(ngModel)]="quotation.dimL"
+                    placeholder="L"
+                    class="w-full border p-2 outline-none text-center"
+                  />
                   <span class="text-gray-400 font-bold">x</span>
-                  <input type="number" name="dimW" [(ngModel)]="quotation.dimW" placeholder="W"
-                    class="w-full border p-2 outline-none text-center">
+                  <input
+                    type="number"
+                    name="dimW"
+                    [(ngModel)]="quotation.dimW"
+                    placeholder="W"
+                    class="w-full border p-2 outline-none text-center"
+                  />
                   <span class="text-gray-400 font-bold">x</span>
-                  <input type="number" name="dimH" [(ngModel)]="quotation.dimH" placeholder="H"
-                    class="w-full border p-2 outline-none text-center">
-                  <button type="button" (click)="openDimModal()"
+                  <input
+                    type="number"
+                    name="dimH"
+                    [(ngModel)]="quotation.dimH"
+                    placeholder="H"
+                    class="w-full border p-2 outline-none text-center"
+                  />
+                  <button
+                    type="button"
+                    (click)="openDimModal()"
                     class="bg-green-600 hover:bg-green-700 text-white p-[5px] h-[30px] flex items-center justify-center transition-colors shadow-inner rounded-sm"
-                    title="Add more dimensions">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
-                      stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
+                    title="Add more dimensions"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="w-4 h-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="3"
+                        d="M12 4v16m8-8H4"
+                      />
                     </svg>
                   </button>
 
-                  <div *ngIf="isDimModalOpen"
-                    class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                  <div
+                    *ngIf="isDimModalOpen"
+                    class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+                  >
                     <div
-                      class="bg-white w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-                      <div class="bg-gray-800 text-white px-6 py-4 flex justify-between items-center">
-                        <h3 class="font-bold text-lg uppercase tracking-wider">Add Multiple Dimensions</h3>
-                        <button type="button" (click)="closeDimModal()"
-                          class="text-white hover:text-red-400 text-2xl">&times;</button>
+                      class="bg-white w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200"
+                    >
+                      <div
+                        class="bg-gray-800 text-white px-6 py-4 flex justify-between items-center"
+                      >
+                        <h3 class="font-bold text-lg uppercase tracking-wider">
+                          Add Multiple Dimensions
+                        </h3>
+                        <button
+                          type="button"
+                          (click)="closeDimModal()"
+                          class="text-white hover:text-red-400 text-2xl"
+                        >
+                          &times;
+                        </button>
                       </div>
 
                       <div class="p-6 max-h-[60vh] overflow-y-auto">
-                        <div *ngFor="let dim of dimRows; let i = index" class="flex items-center gap-2 mb-4 group">
-                          <label class="w-24 font-bold text-gray-700 text-xs uppercase">Dim {{i + 1}}</label>
+                        <div
+                          *ngFor="let dim of dimRows; let i = index"
+                          class="flex items-center gap-2 mb-4 group"
+                        >
+                          <label
+                            class="w-24 font-bold text-gray-700 text-xs uppercase"
+                            >Dim {{ i + 1 }}</label
+                          >
                           <div class="flex flex-1 items-center gap-1">
-                            <input type="number" [name]="'box'+i" [(ngModel)]="dim.box" placeholder="BOX"
-                              class="w-full border p-2 outline-none text-center rounded-sm text-sm">
-                            <input type="number" [name]="'l'+i" [(ngModel)]="dim.l" placeholder="L"
-                              class="w-full border p-2 outline-none text-center rounded-sm text-sm">
-                            <span class="text-gray-400 font-bold text-xs">x</span>
-                            <input type="number" [name]="'w'+i" [(ngModel)]="dim.w" placeholder="W"
-                              class="w-full border p-2 outline-none text-center text-sm">
-                            <span class="text-gray-400 font-bold text-xs">x</span>
-                            <input type="number" [name]="'h'+i" [(ngModel)]="dim.h" placeholder="H"
-                              class="w-full border p-2 outline-none text-center text-sm">
-                            <div class="flex items-center border bg-gray-50 h-[38px] px-2 rounded-sm">
-                              <select [name]="'unit'+i" [(ngModel)]="dim.unit"
-                                class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer appearance-none">
+                            <input
+                              type="number"
+                              [name]="'box' + i"
+                              [(ngModel)]="dim.box"
+                              placeholder="BOX"
+                              class="w-full border p-2 outline-none text-center rounded-sm text-sm"
+                            />
+                            <input
+                              type="number"
+                              [name]="'l' + i"
+                              [(ngModel)]="dim.l"
+                              placeholder="L"
+                              class="w-full border p-2 outline-none text-center rounded-sm text-sm"
+                            />
+                            <span class="text-gray-400 font-bold text-xs"
+                              >x</span
+                            >
+                            <input
+                              type="number"
+                              [name]="'w' + i"
+                              [(ngModel)]="dim.w"
+                              placeholder="W"
+                              class="w-full border p-2 outline-none text-center text-sm"
+                            />
+                            <span class="text-gray-400 font-bold text-xs"
+                              >x</span
+                            >
+                            <input
+                              type="number"
+                              [name]="'h' + i"
+                              [(ngModel)]="dim.h"
+                              placeholder="H"
+                              class="w-full border p-2 outline-none text-center text-sm"
+                            />
+                            <div
+                              class="flex items-center border bg-gray-50 h-[38px] px-2 rounded-sm"
+                            >
+                              <select
+                                [name]="'unit' + i"
+                                [(ngModel)]="dim.unit"
+                                class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer appearance-none"
+                              >
                                 <option value="CMS">CMS</option>
                                 <option value="INCH">INCH</option>
                               </select>
                             </div>
-                            <button type="button" *ngIf="dimRows.length > 1" (click)="removeDimRow(i)"
-                              class="text-red-400 hover:text-red-600 p-2">
-                              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            <button
+                              type="button"
+                              *ngIf="dimRows.length > 1"
+                              (click)="removeDimRow(i)"
+                              class="text-red-400 hover:text-red-600 p-2"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="w-4 h-4"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                />
                               </svg>
                             </button>
                           </div>
                         </div>
-                        <button type="button" (click)="addNewDimRow()"
-                          class="mt-2 text-blue-600 font-bold text-xs flex items-center gap-1 hover:underline">
+                        <button
+                          type="button"
+                          (click)="addNewDimRow()"
+                          class="mt-2 text-blue-600 font-bold text-xs flex items-center gap-1 hover:underline"
+                        >
                           <span class="text-lg">+</span> Add Another Dimension
                         </button>
                       </div>
 
-                      <div class="p-4 bg-gray-50 border-t flex justify-end gap-3">
-                        <button type="button" (click)="closeDimModal()"
-                          class="px-6 py-2 text-gray-600 font-bold text-sm">Cancel</button>
-                        <button type="button" (click)="saveDimensions()"
-                          class="px-8 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 shadow-lg text-sm transition-all">
+                      <div
+                        class="p-4 bg-gray-50 border-t flex justify-end gap-3"
+                      >
+                        <button
+                          type="button"
+                          (click)="closeDimModal()"
+                          class="px-6 py-2 text-gray-600 font-bold text-sm"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          (click)="saveDimensions()"
+                          class="px-8 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 shadow-lg text-sm transition-all"
+                        >
                           Apply Dimensions
                         </button>
                       </div>
@@ -996,63 +1622,96 @@
               </div>
 
               <div class="flex items-center gap-2">
-                <label class="w-40 font-bold text-gray-700">Volume Weight</label>
+                <label class="w-40 font-bold text-gray-700"
+                  >Volume Weight</label
+                >
                 <div class="flex flex-1">
-                  <input type="number" name="chargeableWeightKg" [(ngModel)]="quotation.chargeableWeightKg"
-                    class="w-full border p-2 outline-none">
-                  <div class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1">
-                    <select name="volumeWeightUnit" [(ngModel)]="quotation.volumeWeightUnit"
-                      class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
+                  <input
+                    type="number"
+                    name="chargeableWeightKg"
+                    [(ngModel)]="quotation.chargeableWeightKg"
+                    class="w-full border p-2 outline-none"
+                  />
+                  <div
+                    class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1"
+                  >
+                    <select
+                      name="volumeWeightUnit"
+                      [(ngModel)]="quotation.volumeWeightUnit"
+                      class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
+                    >
                       <option value="KGS">KGS</option>
                       <option value="CBM">CBM</option>
                     </select>
                   </div>
                 </div>
               </div>
-<div class="flex items-start mt-2">
-  <label class="w-40 font-bold text-gray-700 mt-2">CBM Weight</label>
-  
-  <div class="flex-1 flex items-center gap-2">
-    <input
-      type="number"
-      [(ngModel)]="quotation.cbm"
-      name="cbm"
-      readonly
-      class="flex-1 border p-2 outline-none bg-gray-50 focus:border-blue-500 h-10 font-medium"
-      placeholder="0.000"
-    />
+              <div class="flex items-start mt-2">
+                 
+                <label class="w-40 font-bold text-gray-700 mt-2"
+                  >CBM Weight</label
+                >
+                   
+                <div class="flex-1 flex items-center gap-2">
+                     
+                  <input
+                    type="number"
+                    [(ngModel)]="quotation.cbm"
+                    name="cbm"
+                    readonly
+                    class="flex-1 border p-2 outline-none bg-gray-50 focus:border-blue-500 h-10 font-medium"
+                    placeholder="0.000"
+                  />
 
-    <div class="flex items-center border border-l-0 bg-gray-50 px-2 h-10 cursor-pointer gap-1">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        class="w-3 h-3 text-gray-400"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-        />
-      </svg>
+                     
+                  <div
+                    class="flex items-center border border-l-0 bg-gray-50 px-2 h-10 cursor-pointer gap-1"
+                  >
+                         
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="w-3 h-3 text-gray-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                             
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      />
+                           
+                    </svg>
 
-      <select
-        [(ngModel)]="quotation.cbmUnit"
-        name="cbmUnit"
-        class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
-      >
-        <option value="CBM">CBM</option>
-        <option value="KGS">KGS</option>
-      </select>
-    </div>
-  </div>
-</div> 
+                         
+                    <select
+                      [(ngModel)]="quotation.cbmUnit"
+                      name="cbmUnit"
+                      class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
+                    >
+                             
+                      <option value="CBM">CBM</option>
+                             
+                      <option value="KGS">KGS</option>
+                           
+                    </select>
+                       
+                  </div>
+                   
+                </div>
+              </div>
               <div class="flex items-start">
-                <label class="w-40 font-bold text-gray-700 mt-2">Description</label>
-                <textarea name="description" [(ngModel)]="quotation.description"
-                  class="flex-1 border p-2 h-16 outline-none" placeholder="Details..."></textarea>
+                <label class="w-40 font-bold text-gray-700 mt-2"
+                  >Description</label
+                >
+                <textarea
+                  name="description"
+                  [(ngModel)]="quotation.description"
+                  class="flex-1 border p-2 h-16 outline-none"
+                  placeholder="Details..."
+                ></textarea>
               </div>
 
               <!-- <div class="flex items-center">
@@ -1064,24 +1723,34 @@
         </div>
       </div>
 
-
       <!---   seocnd phase -->
 
-
-
       <div class="border border-gray-300">
-        <div class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px] flex justify-between">
+        <div
+          class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px] flex justify-between"
+        >
           <span>+ Forwarding & Movement</span>
-          <label class="text-[12px] font-normal flex items-center gap-1 cursor-pointer">
-            <input type="checkbox" name="serviceForwarding" [(ngModel)]="quotation.serviceForwarding"> Service Required
+          <label
+            class="text-[12px] font-normal flex items-center gap-1 cursor-pointer"
+          >
+            <input
+              type="checkbox"
+              name="serviceForwarding"
+              [(ngModel)]="quotation.serviceForwarding"
+            />
+            Service Required
           </label>
         </div>
         <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-10 bg-white">
           <div class="space-y-3">
             <div class="flex items-center">
               <label class="w-40 font-bold text-gray-700">IncoTerms</label>
-              <select [(ngModel)]="quotation.incoterm" (change)="onIncotermChange($event)" name="incoterm"
-                class="flex-1 border p-2 outline-none">
+              <select
+                [(ngModel)]="quotation.incoterm"
+                (change)="onIncotermChange($event)"
+                name="incoterm"
+                class="flex-1 border p-2 outline-none"
+              >
                 <option value="" disabled>-- Select IncoTerm --</option>
                 <option *ngFor="let term of incoTerms" [value]="term.name">
                   {{ term.name }}
@@ -1091,172 +1760,341 @@
 
             <div class="flex items-center">
               <label class="w-40 font-bold text-gray-700">Carrier Name</label>
-              <input name="awbIssuedBy" [(ngModel)]="quotation.awbIssuedBy" class="flex-1 border p-2 outline-none">
+              <input
+                name="awbIssuedBy"
+                [(ngModel)]="quotation.awbIssuedBy"
+                class="flex-1 border p-2 outline-none"
+              />
             </div>
             <div class="flex items-center">
               <label class="w-40 font-bold text-gray-700">Transit Dest</label>
               <div class="flex flex-1 gap-1">
-                <input name="transitDest" [(ngModel)]="quotation.transitDest" class="flex-1 border p-2 outline-none">
-                <input name="transitDays" [(ngModel)]="quotation.transitDays" placeholder="Days"
-                  class="w-16 border p-2 outline-none">
+                <input
+                  name="transitDest"
+                  [(ngModel)]="quotation.transitDest"
+                  class="flex-1 border p-2 outline-none"
+                />
+                <input
+                  name="transitDays"
+                  [(ngModel)]="quotation.transitDays"
+                  placeholder="Days"
+                  class="w-16 border p-2 outline-none"
+                />
               </div>
             </div>
             <div class="flex items-center text-red-700 font-bold">
               <label class="w-40">Place of Receipt</label>
-              <input name="placeOfReceipt" [(ngModel)]="quotation.placeOfReceipt"
-                class="flex-1 border p-2 border-red-300 outline-none">
+              <input
+                name="placeOfReceipt"
+                [(ngModel)]="quotation.placeOfReceipt"
+                class="flex-1 border p-2 border-red-300 outline-none"
+              />
             </div>
-
 
             <div class="flex items-center text-red-700 font-bold">
               <label class="w-40">Origin</label>
               <div class="flex flex-1 gap-1"></div>
-              <input name="origin" [(ngModel)]="quotation.originPOL"
-                class="ml-10 flex-1 border p-2 border-red-300 outline-none">
+              <input
+                name="origin"
+                [(ngModel)]="quotation.originPOL"
+                class="ml-10 flex-1 border p-2 border-red-300 outline-none"
+              />
 
               <label class="w-40 ml-4">POL</label>
-              <input name="portOfLoading" [(ngModel)]="quotation.portOfLoading"
-                class="w-60 border p-2 border-red-300 outline-none">
+              <input
+                name="portOfLoading"
+                [(ngModel)]="quotation.portOfLoading"
+                class="w-60 border p-2 border-red-300 outline-none"
+              />
             </div>
           </div>
-
-
-
 
           <div class="space-y-3">
             <div class="flex items-center">
               <label class="w-40 font-bold text-red-700">Movement</label>
-              <select [(ngModel)]="quotation.movementType" name="movementType" class="flex-1 border p-2 outline-none">
-
+              <select
+                [(ngModel)]="quotation.movementType"
+                name="movementType"
+                class="flex-1 border p-2 outline-none"
+              >
                 <option value="" disabled>-- Select Movement Type --</option>
-                <option *ngFor="let move of movementTypes" [value]="move.name"> <!-- string value -->
+                <option *ngFor="let move of movementTypes" [value]="move.name">
+                  <!-- string value -->
                   {{ move.name }}
                 </option>
               </select>
             </div>
             <div class="flex items-center">
-              <label class="w-40 font-bold text-gray-700">Carrier / Agent</label>
-              <input name="carrierAgent" [(ngModel)]="quotation.carrierAgent" class="flex-1 border p-2 outline-none">
+              <label class="w-40 font-bold text-gray-700"
+                >Carrier / Agent</label
+              >
+              <input
+                name="carrierAgent"
+                [(ngModel)]="quotation.carrierAgent"
+                class="flex-1 border p-2 outline-none"
+              />
             </div>
             <div class="flex items-center gap-3">
               <label class="w-40 font-bold text-gray-700">Cargo Value</label>
 
-              <div class="flex flex-1 border border-gray-300 rounded-md overflow-hidden focus-within:border-blue-500">
-
+              <div
+                class="flex flex-1 border border-gray-300 rounded-md overflow-hidden focus-within:border-blue-500"
+              >
                 <!-- Currency Dropdown with Symbol -->
-                <select name="currency" [(ngModel)]="quotation.currency"
-                  class="border-r p-2 outline-none bg-gray-50 text-gray-700 w-52">
+                <select
+                  name="currency"
+                  [(ngModel)]="quotation.currency"
+                  class="border-r p-2 outline-none bg-gray-50 text-gray-700 w-52"
+                >
                   <option value="">Select Currency</option>
 
                   <!-- Major Currencies (Recommended first) -->
-                  <option value="₹ INR - Indian Rupee">₹ INR - Indian Rupee</option>
-                  <option value="$ USD - United States Dollar">$ USD - United States Dollar</option>
+                  <option value="₹ INR - Indian Rupee">
+                    ₹ INR - Indian Rupee
+                  </option>
+                  <option value="$ USD - United States Dollar">
+                    $ USD - United States Dollar
+                  </option>
                   <option value="€ EUR - Euro">€ EUR - Euro</option>
-                  <option value="£ GBP - British Pound Sterling">£ GBP - British Pound Sterling</option>
-                  <option value="د.إ AED - UAE Dirham">د.إ AED - UAE Dirham</option>
-                  <option value="$ SGD - Singapore Dollar">$ SGD - Singapore Dollar</option>
-                  <option value="$ CAD - Canadian Dollar">$ CAD - Canadian Dollar</option>
-                  <option value="$ AUD - Australian Dollar">$ AUD - Australian Dollar</option>
-                  <option value="¥ JPY - Japanese Yen">¥ JPY - Japanese Yen</option>
-                  <option value="¥ CNY - Chinese Yuan">¥ CNY - Chinese Yuan</option>
+                  <option value="£ GBP - British Pound Sterling">
+                    £ GBP - British Pound Sterling
+                  </option>
+                  <option value="د.إ AED - UAE Dirham">
+                    د.إ AED - UAE Dirham
+                  </option>
+                  <option value="$ SGD - Singapore Dollar">
+                    $ SGD - Singapore Dollar
+                  </option>
+                  <option value="$ CAD - Canadian Dollar">
+                    $ CAD - Canadian Dollar
+                  </option>
+                  <option value="$ AUD - Australian Dollar">
+                    $ AUD - Australian Dollar
+                  </option>
+                  <option value="¥ JPY - Japanese Yen">
+                    ¥ JPY - Japanese Yen
+                  </option>
+                  <option value="¥ CNY - Chinese Yuan">
+                    ¥ CNY - Chinese Yuan
+                  </option>
 
                   <!-- Other Currencies (scrollable) -->
-                  <option value="؋ AFN - Afghan Afghani">؋ AFN - Afghan Afghani</option>
-                  <option value="$ ARS - Argentine Peso">$ ARS - Argentine Peso</option>
-                  <option value="R$ BRL - Brazilian Real">R$ BRL - Brazilian Real</option>
+                  <option value="؋ AFN - Afghan Afghani">
+                    ؋ AFN - Afghan Afghani
+                  </option>
+                  <option value="$ ARS - Argentine Peso">
+                    $ ARS - Argentine Peso
+                  </option>
+                  <option value="R$ BRL - Brazilian Real">
+                    R$ BRL - Brazilian Real
+                  </option>
                   <option value="CHF - Swiss Franc">CHF - Swiss Franc</option>
-                  <option value="$ HKD - Hong Kong Dollar">$ HKD - Hong Kong Dollar</option>
-                  <option value="Rp IDR - Indonesian Rupiah">Rp IDR - Indonesian Rupiah</option>
-                  <option value="₩ KRW - South Korean Won">₩ KRW - South Korean Won</option>
-                  <option value="$ MXN - Mexican Peso">$ MXN - Mexican Peso</option>
-                  <option value="RM MYR - Malaysian Ringgit">RM MYR - Malaysian Ringgit</option>
-                  <option value="kr NOK - Norwegian Krone">kr NOK - Norwegian Krone</option>
-                  <option value="$ NZD - New Zealand Dollar">$ NZD - New Zealand Dollar</option>
-                  <option value="₱ PHP - Philippine Peso">₱ PHP - Philippine Peso</option>
-                  <option value="₨ PKR - Pakistani Rupee">₨ PKR - Pakistani Rupee</option>
-                  <option value="₽ RUB - Russian Ruble">₽ RUB - Russian Ruble</option>
-                  <option value="﷼ SAR - Saudi Riyal">﷼ SAR - Saudi Riyal</option>
-                  <option value="kr SEK - Swedish Krona">kr SEK - Swedish Krona</option>
+                  <option value="$ HKD - Hong Kong Dollar">
+                    $ HKD - Hong Kong Dollar
+                  </option>
+                  <option value="Rp IDR - Indonesian Rupiah">
+                    Rp IDR - Indonesian Rupiah
+                  </option>
+                  <option value="₩ KRW - South Korean Won">
+                    ₩ KRW - South Korean Won
+                  </option>
+                  <option value="$ MXN - Mexican Peso">
+                    $ MXN - Mexican Peso
+                  </option>
+                  <option value="RM MYR - Malaysian Ringgit">
+                    RM MYR - Malaysian Ringgit
+                  </option>
+                  <option value="kr NOK - Norwegian Krone">
+                    kr NOK - Norwegian Krone
+                  </option>
+                  <option value="$ NZD - New Zealand Dollar">
+                    $ NZD - New Zealand Dollar
+                  </option>
+                  <option value="₱ PHP - Philippine Peso">
+                    ₱ PHP - Philippine Peso
+                  </option>
+                  <option value="₨ PKR - Pakistani Rupee">
+                    ₨ PKR - Pakistani Rupee
+                  </option>
+                  <option value="₽ RUB - Russian Ruble">
+                    ₽ RUB - Russian Ruble
+                  </option>
+                  <option value="﷼ SAR - Saudi Riyal">
+                    ﷼ SAR - Saudi Riyal
+                  </option>
+                  <option value="kr SEK - Swedish Krona">
+                    kr SEK - Swedish Krona
+                  </option>
                   <option value="฿ THB - Thai Baht">฿ THB - Thai Baht</option>
-                  <option value="₺ TRY - Turkish Lira">₺ TRY - Turkish Lira</option>
-                  <option value="R ZAR - South African Rand">R ZAR - South African Rand</option>
+                  <option value="₺ TRY - Turkish Lira">
+                    ₺ TRY - Turkish Lira
+                  </option>
+                  <option value="R ZAR - South African Rand">
+                    R ZAR - South African Rand
+                  </option>
 
                   <!-- Ab baaki currencies bhi same format mein -->
 
-                  <option value="A$ AUD - Australian Dollar">A$ AUD - Australian Dollar</option>
-                  <option value="R$ BRL - Brazilian Real">R$ BRL - Brazilian Real</option>
-                  <option value="CA$ CAD - Canadian Dollar">CA$ CAD - Canadian Dollar</option>
-                  <option value="¥ CNY - Chinese Yuan">¥ CNY - Chinese Yuan</option>
+                  <option value="A$ AUD - Australian Dollar">
+                    A$ AUD - Australian Dollar
+                  </option>
+                  <option value="R$ BRL - Brazilian Real">
+                    R$ BRL - Brazilian Real
+                  </option>
+                  <option value="CA$ CAD - Canadian Dollar">
+                    CA$ CAD - Canadian Dollar
+                  </option>
+                  <option value="¥ CNY - Chinese Yuan">
+                    ¥ CNY - Chinese Yuan
+                  </option>
                   <option value="€ EUR - Euro">€ EUR - Euro</option>
-                  <option value="£ GBP - British Pound Sterling">£ GBP - British Pound Sterling</option>
-                  <option value="₹ INR - Indian Rupee">₹ INR - Indian Rupee</option>
-                  <option value="¥ JPY - Japanese Yen">¥ JPY - Japanese Yen</option>
-                  <option value="₩ KRW - South Korean Won">₩ KRW - South Korean Won</option>
-                  <option value="RM MYR - Malaysian Ringgit">RM MYR - Malaysian Ringgit</option>
+                  <option value="£ GBP - British Pound Sterling">
+                    £ GBP - British Pound Sterling
+                  </option>
+                  <option value="₹ INR - Indian Rupee">
+                    ₹ INR - Indian Rupee
+                  </option>
+                  <option value="¥ JPY - Japanese Yen">
+                    ¥ JPY - Japanese Yen
+                  </option>
+                  <option value="₩ KRW - South Korean Won">
+                    ₩ KRW - South Korean Won
+                  </option>
+                  <option value="RM MYR - Malaysian Ringgit">
+                    RM MYR - Malaysian Ringgit
+                  </option>
                   <option value="$ USD - US Dollar">$ USD - US Dollar</option>
-                  <option value="AED - United Arab Emirates Dirham">AED - United Arab Emirates Dirham</option>
-                  <option value="BDT - Bangladeshi Taka">BDT - Bangladeshi Taka</option>
-                  <option value="EGP - Egyptian Pound">EGP - Egyptian Pound</option>
-                  <option value="GHS - Ghanaian Cedi">GHS - Ghanaian Cedi</option>
-                  <option value="IDR - Indonesian Rupiah">IDR - Indonesian Rupiah</option>
-                  <option value="KES - Kenyan Shilling">KES - Kenyan Shilling</option>
-                  <option value="LKR - Sri Lankan Rupee">LKR - Sri Lankan Rupee</option>
-                  <option value="MAD - Moroccan Dirham">MAD - Moroccan Dirham</option>
-                  <option value="NGN - Nigerian Naira">NGN - Nigerian Naira</option>
-                  <option value="PHP - Philippine Peso">PHP - Philippine Peso</option>
-                  <option value="PKR - Pakistani Rupee">PKR - Pakistani Rupee</option>
-                  <option value="RUB - Russian Ruble">RUB - Russian Ruble</option>
+                  <option value="AED - United Arab Emirates Dirham">
+                    AED - United Arab Emirates Dirham
+                  </option>
+                  <option value="BDT - Bangladeshi Taka">
+                    BDT - Bangladeshi Taka
+                  </option>
+                  <option value="EGP - Egyptian Pound">
+                    EGP - Egyptian Pound
+                  </option>
+                  <option value="GHS - Ghanaian Cedi">
+                    GHS - Ghanaian Cedi
+                  </option>
+                  <option value="IDR - Indonesian Rupiah">
+                    IDR - Indonesian Rupiah
+                  </option>
+                  <option value="KES - Kenyan Shilling">
+                    KES - Kenyan Shilling
+                  </option>
+                  <option value="LKR - Sri Lankan Rupee">
+                    LKR - Sri Lankan Rupee
+                  </option>
+                  <option value="MAD - Moroccan Dirham">
+                    MAD - Moroccan Dirham
+                  </option>
+                  <option value="NGN - Nigerian Naira">
+                    NGN - Nigerian Naira
+                  </option>
+                  <option value="PHP - Philippine Peso">
+                    PHP - Philippine Peso
+                  </option>
+                  <option value="PKR - Pakistani Rupee">
+                    PKR - Pakistani Rupee
+                  </option>
+                  <option value="RUB - Russian Ruble">
+                    RUB - Russian Ruble
+                  </option>
                   <option value="SAR - Saudi Riyal">SAR - Saudi Riyal</option>
-                  <option value="SGD - Singapore Dollar">SGD - Singapore Dollar</option>
+                  <option value="SGD - Singapore Dollar">
+                    SGD - Singapore Dollar
+                  </option>
                   <option value="TRY - Turkish Lira">TRY - Turkish Lira</option>
-                  <option value="ZAR - South African Rand">ZAR - South African Rand</option>
+                  <option value="ZAR - South African Rand">
+                    ZAR - South African Rand
+                  </option>
                   <!-- Agar aur chahiye toh pehle wale message se copy kar sakte ho -->
                 </select>
 
                 <!-- Amount Input -->
-                <input type="number" name="cargoValue" [(ngModel)]="quotation.cargoValue"
-                  class="flex-1 p-3 outline-none text-right" placeholder="0.00" min="0" step="0.01">
+                <input
+                  type="number"
+                  name="cargoValue"
+                  [(ngModel)]="quotation.cargoValue"
+                  class="flex-1 p-3 outline-none text-right"
+                  placeholder="0.00"
+                  min="0"
+                  step="0.01"
+                />
               </div>
             </div>
             <div class="flex items-center text-red-700 font-bold">
               <label class="w-40">Place of Delivery</label>
-              <input name="placeOfDelivery" [(ngModel)]="quotation.placeOfDelivery"
-                class="flex-1 border p-2 border-red-300 outline-none">
+              <input
+                name="placeOfDelivery"
+                [(ngModel)]="quotation.placeOfDelivery"
+                class="flex-1 border p-2 border-red-300 outline-none"
+              />
             </div>
 
             <div class="flex items-center text-red-700 font-bold">
               <label class="w-40">POD </label>
               <div class="flex flex-1 gap-1"></div>
-              <input name="portOfDischarge" [(ngModel)]="quotation.portOfDischarge"
-                class="ml-9 flex-1 border p-2 border-red-300 outline-none">
+              <input
+                name="portOfDischarge"
+                [(ngModel)]="quotation.portOfDischarge"
+                class="ml-9 flex-1 border p-2 border-red-300 outline-none"
+              />
               <label class="w-40 ml-6">Final Dest</label>
-              <input name="finalDestination" [(ngModel)]="quotation.podFinalDest"
-                class="w-60 border p-2 border-red-300 outline-none">
+              <input
+                name="finalDestination"
+                [(ngModel)]="quotation.podFinalDest"
+                class="w-60 border p-2 border-red-300 outline-none"
+              />
             </div>
           </div>
         </div>
         <div class="grid grid-cols-2 gap-6 p-4 bg-gray-50 border-t">
           <div class="border p-3 bg-white shadow-sm">
-            <div class="bg-gray-200 text-[#4a3f3f] px-3 py-1 mb-2 font-bold uppercase text-[11px]">Pickup Address</div>
-            <input name="pickupOrg" placeholder="Organization" [(ngModel)]="quotation.pickupOrg"
-              class="w-full border p-2 mb-2 outline-none">
-            <textarea name="pickupAddress" placeholder="Full Address" [(ngModel)]="quotation.pickupAddress"
-              class="w-full border p-2 h-16 outline-none"></textarea>
+            <div
+              class="bg-gray-200 text-[#4a3f3f] px-3 py-1 mb-2 font-bold uppercase text-[11px]"
+            >
+              Pickup Address
+            </div>
+            <input
+              name="pickupOrg"
+              placeholder="Organization"
+              [(ngModel)]="quotation.pickupOrg"
+              class="w-full border p-2 mb-2 outline-none"
+            />
+            <textarea
+              name="pickupAddress"
+              placeholder="Full Address"
+              [(ngModel)]="quotation.pickupAddress"
+              class="w-full border p-2 h-16 outline-none"
+            ></textarea>
           </div>
           <div class="border p-3 bg-white shadow-sm">
-            <div class="bg-gray-200 text-[#4a3f3f] px-3 py-1 mb-2 font-bold uppercase text-[11px]">Delivery Address
+            <div
+              class="bg-gray-200 text-[#4a3f3f] px-3 py-1 mb-2 font-bold uppercase text-[11px]"
+            >
+              Delivery Address
             </div>
-            <input name="deliveryOrg" placeholder="Organization" [(ngModel)]="quotation.deliveryOrg"
-              class="w-full border p-2 mb-2 outline-none">
-            <textarea name="deliveryAddress" placeholder="Full Address" [(ngModel)]="quotation.deliveryAddress"
-              class="w-full border p-2 h-16 outline-none"></textarea>
+            <input
+              name="deliveryOrg"
+              placeholder="Organization"
+              [(ngModel)]="quotation.deliveryOrg"
+              class="w-full border p-2 mb-2 outline-none"
+            />
+            <textarea
+              name="deliveryAddress"
+              placeholder="Full Address"
+              [(ngModel)]="quotation.deliveryAddress"
+              class="w-full border p-2 h-16 outline-none"
+            ></textarea>
           </div>
         </div>
       </div>
 
-
       <div class="border border-gray-300 shadow-sm rounded-sm mt-4">
-        <div class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px] flex justify-between items-center">
+        <div
+          class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px] flex justify-between items-center"
+        >
           <span>REVENUE</span>
         </div>
 
@@ -1270,29 +2108,42 @@
                 <th class="border p-2 text-left min-w-[80px]">Basis</th>
                 <th class="border p-2 text-center min-w-[60px]">Cur</th>
                 <th class="border p-2 text-right min-w-[90px]">Rate</th>
-                <th class="border p-2 text-right min-w-[120px]">Exchange Rate</th>
-                <th class="border p-2 text-right min-w-[100px] bg-blue-50">Amount</th>
+                <th class="border p-2 text-right min-w-[120px]">
+                  Exchange Rate
+                </th>
+                <th class="border p-2 text-right min-w-[100px] bg-blue-50">
+                  Amount
+                </th>
                 <th class="border p-2 text-center w-[50px] bg-gray-100">
-                  <button type="button" (click)="addRevenueRow()"
-                    class="bg-green-600 text-white w-6 h-6 rounded-full hover:bg-green-700 shadow-sm flex items-center justify-center mx-auto">
+                  <button
+                    type="button"
+                    (click)="addRevenueRow()"
+                    class="bg-green-600 text-white w-6 h-6 rounded-full hover:bg-green-700 shadow-sm flex items-center justify-center mx-auto"
+                  >
                     +
                   </button>
                 </th>
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let r of revenueRows; let i = index" class="hover:bg-gray-50">
+              <tr
+                *ngFor="let r of revenueRows; let i = index"
+                class="hover:bg-gray-50"
+              >
                 <td class="border p-1">
                   <select [(ngModel)]="r.lob" [disabled]="true" ...>
-                    <option *ngFor="let s of services" [value]="s.serviceName">{{ s.serviceName }}</option>
+                    <option *ngFor="let s of services" [value]="s.serviceName">
+                      {{ s.serviceName }}
+                    </option>
                   </select>
-
                 </td>
                 <td class="border p-1">
                   <!-- Charge Name as Dropdown -->
-                  <select [name]="'rcharge' + i" [(ngModel)]="r.chargeName"
-                    class="w-full outline-none p-1 bg-transparent">
-
+                  <select
+                    [name]="'rcharge' + i"
+                    [(ngModel)]="r.chargeName"
+                    class="w-full outline-none p-1 bg-transparent"
+                  >
                     <option value="">-- Select Charge Name --</option>
 
                     <option value="Freight Charges">Freight Charges</option>
@@ -1304,12 +2155,16 @@
                     <option value="Delivery Charges">Delivery Charges</option>
                     <option value="Insurance">Insurance</option>
                     <option value="Inspection Fee">Inspection Fee</option>
-                    <option value="Other Charges">Other Charges</option> <!-- Optional -->
+                    <option value="Other Charges">Other Charges</option>
+                    <!-- Optional -->
                   </select>
                 </td>
                 <td class="border p-1">
-                  <select [name]="'rtype' + i" [(ngModel)]="r.chargeType"
-                    class="w-full outline-none p-1 bg-transparent">
+                  <select
+                    [name]="'rtype' + i"
+                    [(ngModel)]="r.chargeType"
+                    class="w-full outline-none p-1 bg-transparent"
+                  >
                     <option value="">--Select--</option>
                     <option value="Prepaid">Prepaid</option>
                     <option value="Collect">Collect</option>
@@ -1322,38 +2177,68 @@
               <option value="Delivery Charges">Delivery Charges</option>
               <option value="Insurance">Insurance</option>
               <option value="Inspection Fee">Inspection Fee</option> -->
-
                   </select>
                 </td>
                 <td class="border p-1">
-                  <input [name]="'rbasis' + i" [(ngModel)]="r.basis" placeholder="e.g. Per KG"
-                    class="w-full outline-none p-1 bg-transparent text-center">
+                  <input
+                    [name]="'rbasis' + i"
+                    [(ngModel)]="r.basis"
+                    placeholder="e.g. Per KG"
+                    class="w-full outline-none p-1 bg-transparent text-center"
+                  />
                 </td>
                 <td class="border p-1">
-                  <input [name]="'rcur' + i" [(ngModel)]="r.currency" [attr.list]="'revCurList' + i"
+                  <input
+                    [name]="'rcur' + i"
+                    [(ngModel)]="r.currency"
+                    [attr.list]="'revCurList' + i"
                     placeholder="Select Currency"
-                    class="w-full outline-none p-1 text-center uppercase font-semibold text-blue-600">
+                    class="w-full outline-none p-1 text-center uppercase font-semibold text-blue-600"
+                  />
 
                   <datalist [id]="'revCurList' + i">
                     <!-- No "Select Currency" option inside datalist -->
-                    <option *ngFor="let c of currencies" [value]="c.value">{{c.label}}</option>
+                    <option *ngFor="let c of currencies" [value]="c.value">
+                      {{ c.label }}
+                    </option>
                   </datalist>
                 </td>
                 <td class="border p-1">
-                  <input type="number" [name]="'rrate' + i" [(ngModel)]="r.rate" (input)="calculateRevenue()"
-                    class="w-full outline-none p-1 text-right font-medium">
+                  <input
+                    type="number"
+                    [name]="'rrate' + i"
+                    [(ngModel)]="r.rate"
+                    (input)="calculateRevenue()"
+                    class="w-full outline-none p-1 text-right font-medium"
+                  />
                 </td>
                 <td class="border p-1">
-                  <input type="number" [name]="'rexrate' + i" [(ngModel)]="r.exchangeRate" (input)="calculateRevenue()"
-                    class="w-full outline-none p-1 text-right">
+                  <input
+                    type="number"
+                    [name]="'rexrate' + i"
+                    [(ngModel)]="r.exchangeRate"
+                    (input)="calculateRevenue()"
+                    class="w-full outline-none p-1 text-right"
+                  />
                 </td>
-                <td class="border p-1 bg-blue-50 font-bold text-right px-2 text-blue-800">
-                  <input type="number" [name]="'ramount' + i" [(ngModel)]="r.amount" readonly
-                    class="w-full outline-none p-1 bg-transparent text-right">
+                <td
+                  class="border p-1 bg-blue-50 font-bold text-right px-2 text-blue-800"
+                >
+                  <input
+                    type="number"
+                    [name]="'ramount' + i"
+                    [(ngModel)]="r.amount"
+                    readonly
+                    class="w-full outline-none p-1 bg-transparent text-right"
+                  />
                 </td>
                 <td class="border p-1 text-center">
-                  <button type="button" *ngIf="revenueRows.length > 1" (click)="removeRow(i)"
-                    class="text-red-400 hover:text-red-600 transition-colors">
+                  <button
+                    type="button"
+                    *ngIf="revenueRows.length > 1"
+                    (click)="removeRow(i)"
+                    class="text-red-400 hover:text-red-600 transition-colors"
+                  >
                     x
                   </button>
                 </td>
@@ -1364,7 +2249,9 @@
       </div>
 
       <div class="border border-gray-300 shadow-sm rounded-sm mt-6">
-        <div class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px] flex justify-between items-center">
+        <div
+          class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px] flex justify-between items-center"
+        >
           <span>COST</span>
         </div>
 
@@ -1378,28 +2265,41 @@
                 <th class="border p-2 text-left min-w-[80px]">Basis</th>
                 <th class="border p-2 text-center min-w-[60px]">Cur</th>
                 <th class="border p-2 text-right min-w-[90px]">Rate</th>
-                <th class="border p-2 text-right min-w-[120px]">Exchange Rate</th>
-                <th class="border p-2 text-right min-w-[100px] bg-red-50">Amount</th>
+                <th class="border p-2 text-right min-w-[120px]">
+                  Exchange Rate
+                </th>
+                <th class="border p-2 text-right min-w-[100px] bg-red-50">
+                  Amount
+                </th>
                 <th class="border p-2 text-center w-[50px] bg-gray-100">
-                  <button type="button" (click)="addCostRow()"
-                    class="bg-green-600 text-white w-6 h-6 rounded-full hover:bg-green-700 shadow-sm flex items-center justify-center mx-auto">
+                  <button
+                    type="button"
+                    (click)="addCostRow()"
+                    class="bg-green-600 text-white w-6 h-6 rounded-full hover:bg-green-700 shadow-sm flex items-center justify-center mx-auto"
+                  >
                     +
                   </button>
                 </th>
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let c of costRows; let i = index" class="hover:bg-gray-50">
+              <tr
+                *ngFor="let c of costRows; let i = index"
+                class="hover:bg-gray-50"
+              >
                 <td class="border p-1">
                   <select [(ngModel)]="c.lob" [disabled]="true" ...>
-                    <option *ngFor="let s of services" [value]="s.serviceName">{{ s.serviceName }}</option>
+                    <option *ngFor="let s of services" [value]="s.serviceName">
+                      {{ s.serviceName }}
+                    </option>
                   </select>
-
                 </td>
                 <td class="border p-1">
-                  <select [name]="'ccharge' + i" [(ngModel)]="c.chargeName"
-                    class="w-full outline-none p-1 bg-transparent">
-
+                  <select
+                    [name]="'ccharge' + i"
+                    [(ngModel)]="c.chargeName"
+                    class="w-full outline-none p-1 bg-transparent"
+                  >
                     <option value="">-- Select Charge Name --</option>
 
                     <option value="Freight Charges">Freight Charges</option>
@@ -1415,8 +2315,11 @@
                   </select>
                 </td>
                 <td class="border p-1">
-                  <select [name]="'ctype' + i" [(ngModel)]="c.chargeType"
-                    class="w-full outline-none p-1 bg-transparent">
+                  <select
+                    [name]="'ctype' + i"
+                    [(ngModel)]="c.chargeType"
+                    class="w-full outline-none p-1 bg-transparent"
+                  >
                     <option value="">--Select--</option>
                     <option value="Prepaid">Prepaid</option>
                     <option value="Collect">Collect</option>
@@ -1432,32 +2335,67 @@
                   </select>
                 </td>
                 <td class="border p-1">
-                  <input [name]="'cbasis' + i" [(ngModel)]="c.basis" placeholder="Basis"
-                    class="w-full outline-none p-1 bg-transparent text-center">
+                  <input
+                    [name]="'cbasis' + i"
+                    [(ngModel)]="c.basis"
+                    placeholder="Basis"
+                    class="w-full outline-none p-1 bg-transparent text-center"
+                  />
                 </td>
                 <td class="border p-1">
-                  <input [name]="'ccur' + i" [(ngModel)]="c.currency" [attr.list]="'costCurList' + i"
+                  <input
+                    [name]="'ccur' + i"
+                    [(ngModel)]="c.currency"
+                    [attr.list]="'costCurList' + i"
                     placeholder="Select Currency"
-                    class="w-full outline-none p-1 text-center uppercase font-semibold text-red-600">
+                    class="w-full outline-none p-1 text-center uppercase font-semibold text-red-600"
+                  />
                   <datalist [id]="'costCurList' + i">
-                    <option *ngFor="let curr of currencies" [value]="curr.value">{{curr.label}}</option>
+                    <option
+                      *ngFor="let curr of currencies"
+                      [value]="curr.value"
+                    >
+                      {{ curr.label }}
+                    </option>
                   </datalist>
                 </td>
                 <td class="border p-1">
-                  <input type="number" [name]="'crate' + i" [(ngModel)]="c.rate" (input)="calculateCost()"
-                    class="w-full outline-none p-1 text-right">
+                  <input
+                    type="number"
+                    [name]="'crate' + i"
+                    [(ngModel)]="c.rate"
+                    (input)="calculateCost()"
+                    class="w-full outline-none p-1 text-right"
+                  />
                 </td>
                 <td class="border p-1">
-                  <input type="number" [name]="'cexrate' + i" [(ngModel)]="c.exchangeRate" (input)="calculateCost()"
-                    class="w-full outline-none p-1 text-right">
+                  <input
+                    type="number"
+                    [name]="'cexrate' + i"
+                    [(ngModel)]="c.exchangeRate"
+                    (input)="calculateCost()"
+                    class="w-full outline-none p-1 text-right"
+                  />
                 </td>
-                <td class="border p-1 bg-red-50 font-bold text-right px-2 text-red-800">
-                  <input type="number" [name]="'camount' + i" [(ngModel)]="c.amount" readonly placeholder="Amount"
-                    class="w-full outline-none p-1 bg-transparent text-right">
+                <td
+                  class="border p-1 bg-red-50 font-bold text-right px-2 text-red-800"
+                >
+                  <input
+                    type="number"
+                    [name]="'camount' + i"
+                    [(ngModel)]="c.amount"
+                    readonly
+                    placeholder="Amount"
+                    class="w-full outline-none p-1 bg-transparent text-right"
+                  />
                 </td>
                 <td class="border p-1 text-center">
-                  <button type="button" *ngIf="costRows.length > 1" (click)="removeCostRow(i)"
-                    class="text-red-400 hover:text-red-600">
+                  <button
+                    type="button"
+                    *ngIf="costRows.length > 1"
+                    (click)="removeCostRow(i)"
+                    class="text-red-400 hover:text-red-600"
+                  >
                     x
                   </button>
                 </td>
@@ -1467,8 +2405,12 @@
         </div>
       </div>
 
-      <div class="border border-gray-300 shadow-md mt-8 rounded-sm overflow-hidden">
-        <div class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px] flex justify-between items-center">
+      <div
+        class="border border-gray-300 shadow-md mt-8 rounded-sm overflow-hidden"
+      >
+        <div
+          class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px] flex justify-between items-center"
+        >
           <span>Profit & Loss Summary</span>
         </div>
 
@@ -1486,45 +2428,84 @@
             </thead>
             <tbody>
               <tr *ngIf="pnLRows.length === 0">
-                <td colspan="6" class="p-6 text-center text-gray-400 italic bg-gray-50">
-                  No data available. Please add charges in Revenue and Cost sections.
+                <td
+                  colspan="6"
+                  class="p-6 text-center text-gray-400 italic bg-gray-50"
+                >
+                  No data available. Please add charges in Revenue and Cost
+                  sections.
                 </td>
               </tr>
-              <tr *ngFor="let p of pnLRows" class="hover:bg-green-50/50 transition-colors">
-                <td class="border p-2 font-semibold text-gray-400 uppercase">{{ p.lob }}</td>
-                <td class="border p-2 font-bold text-gray-800">{{ p.chargeName }}</td>
+              <tr
+                *ngFor="let p of pnLRows"
+                class="hover:bg-green-50/50 transition-colors"
+              >
+                <td class="border p-2 font-semibold text-gray-400 uppercase">
+                  {{ p.lob }}
+                </td>
+                <td class="border p-2 font-bold text-gray-800">
+                  {{ p.chargeName }}
+                </td>
                 <td class="border p-2 text-right text-blue-700 font-medium">
-                  {{ p.revenue | number:'1.2-2' }}
+                  {{ p.revenue | number: "1.2-2" }}
                 </td>
                 <td class="border p-2 text-right text-red-600 font-medium">
-                  {{ p.cost | number:'1.2-2' }}
+                  {{ p.cost | number: "1.2-2" }}
                 </td>
-                <td class="border p-2 text-right font-bold"
-                  [ngClass]="p.profit >= 0 ? 'text-green-700' : 'text-red-700'">
-                  {{ p.profit | number:'1.2-2' }}
+                <td
+                  class="border p-2 text-right font-bold"
+                  [ngClass]="p.profit >= 0 ? 'text-green-700' : 'text-red-700'"
+                >
+                  {{ p.profit | number: "1.2-2" }}
                 </td>
                 <td class="border p-2 text-center">
-                  <span class="px-2 py-0.5 rounded text-[10px] font-black"
-                    [ngClass]="p.profit >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
-                    {{ p.profitPercent | number:'1.1-1' }}%
+                  <span
+                    class="px-2 py-0.5 rounded text-[10px] font-black"
+                    [ngClass]="
+                      p.profit >= 0
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-red-100 text-red-800'
+                    "
+                  >
+                    {{ p.profitPercent | number: "1.1-1" }}%
                   </span>
                 </td>
               </tr>
             </tbody>
-            <tfoot *ngIf="pnLRows.length > 0" class="bg-gray-800 text-white font-bold border-t-2 border-gray-600">
+            <tfoot
+              *ngIf="pnLRows.length > 0"
+              class="bg-gray-800 text-white font-bold border-t-2 border-gray-600"
+            >
               <tr>
-                <td colspan="2" class="p-2 text-right uppercase tracking-widest text-gray-400">Total Calculation:</td>
-                <td class="p-2 text-right border-l border-gray-600 text-blue-300">
-                  {{ totalRevFinal | number:'1.2-2' }}
+                <td
+                  colspan="2"
+                  class="p-2 text-right uppercase tracking-widest text-gray-400"
+                >
+                  Total Calculation:
                 </td>
-                <td class="p-2 text-right border-l border-gray-600 text-red-300">
-                  {{ totalCostFinal | number:'1.2-2' }}
+                <td
+                  class="p-2 text-right border-l border-gray-600 text-blue-300"
+                >
+                  {{ totalRevFinal | number: "1.2-2" }}
                 </td>
-                <td class="p-2 text-right border-l border-gray-600"
-                  [ngClass]="totalProfitFinal >= 0 ? 'text-green-400' : 'text-red-400'">
-                  {{ totalProfitFinal | number:'1.2-2' }}
+                <td
+                  class="p-2 text-right border-l border-gray-600 text-red-300"
+                >
+                  {{ totalCostFinal | number: "1.2-2" }}
                 </td>
-                <td class="p-2 text-center border-l border-gray-600 text-gray-400">-</td>
+                <td
+                  class="p-2 text-right border-l border-gray-600"
+                  [ngClass]="
+                    totalProfitFinal >= 0 ? 'text-green-400' : 'text-red-400'
+                  "
+                >
+                  {{ totalProfitFinal | number: "1.2-2" }}
+                </td>
+                <td
+                  class="p-2 text-center border-l border-gray-600 text-gray-400"
+                >
+                  -
+                </td>
               </tr>
             </tfoot>
           </table>
@@ -1532,12 +2513,21 @@
       </div>
 
       <div class="p-4 bg-gray-100 border-t flex justify-end gap-3 mt-4">
-        <button type="button" (click)="toggleForm()"
-          class="bg-white border border-gray-400 px-6 py-2 font-bold text-gray-700 hover:bg-gray-200">CANCEL</button>
-        <button type="button" (click)="saveQuotation()"
-          class="bg-[#4a3f3f] text-white px-8 py-2 font-bold shadow-md hover:bg-black uppercase">
-          {{ quotation.id ? 'Update' : 'Save' }} Quotation
+        <button
+          type="button"
+          (click)="toggleForm()"
+          class="bg-white border border-gray-400 px-6 py-2 font-bold text-gray-700 hover:bg-gray-200"
+        >
+          CANCEL
+        </button>
+        <button
+          type="button"
+          (click)="saveQuotation()"
+          class="bg-[#4a3f3f] text-white px-8 py-2 font-bold shadow-md hover:bg-black uppercase"
+        >
+          {{ quotation.id ? "Update" : "Save" }} Quotation
         </button>
       </div>
     </div>
   </div>
+</div>

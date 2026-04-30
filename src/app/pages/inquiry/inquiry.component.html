@@ -921,6 +921,19 @@
               <span *ngSwitchCase="'Inquiry Id.'" class="font-bold text-gray-900">{{ q.id }}</span>
               <span *ngSwitchCase="'Inquiry No.'" class="font-bold text-blue-600">{{ q.inquiryNo }}</span>
               <span *ngSwitchCase="'Date'" class="font-medium">{{ q.receivedDate | date: "dd-MMM-yyyy" }}</span>
+              <!-- Lead Name click par alert -->
+<span *ngSwitchCase="'LeadName'" 
+      class="font-medium cursor-pointer text-blue-600 hover:underline" 
+      (click)="showAlert('Lead ID', q.leadId)">
+  {{ q.leadName || '-' }}
+</span>
+
+<!-- Organisation Name click par alert -->
+<span *ngSwitchCase="'OrganisationName'" 
+      class="font-medium cursor-pointer text-blue-600 hover:underline" 
+      (click)="showAlert('Organisation ID', q.organisationId)">
+  {{ q.organisationName || '-' }}
+</span>
               <span *ngSwitchCase="'Status'">
                 <span [ngClass]="{'bg-yellow-100 text-yellow-800': q.id > 0, 'bg-green-100 text-green-800': q.id === 0}"
                       class="px-3 py-1 rounded text-[11px] font-bold uppercase">

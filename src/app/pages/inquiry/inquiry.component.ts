@@ -28,10 +28,14 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
     @ViewChild('cargoDateInput') cargoDateInput!: ElementRef<HTMLInputElement>;
     getsalescordinate: any[] = [];
     PermissionID:any;
+    LeadId:number=0;
+    OrganisationId:number=0;
     invoices: any[] = [];
   isInvoiceModalOpen = false;
 documents: any[] = [];
   isDocumentModalOpen = false;
+  OrganisationName:string='';
+  LeadName:string='';
   // Preview ke liye nayi variables
   isPreviewModalOpen = false;
   currentPreviewUrl: SafeResourceUrl | null = null;
@@ -335,7 +339,7 @@ columnFieldMap: any = {
   'Sales Person': 'salesPerson'
 };
 
-selectedColumns: string[] = ['ID', 'Inquiry No', 'Date', 'Customer', 'Status'];
+selectedColumns: string[] = ['ID', 'Inquiry No', 'Date', 'Customer', 'Status','LeadName','OrganisationName'];
 availableColumns: string[] = ['Mode', 'Origin', 'Destination', 'Sales Person'];
     isFormOpen = false;
     private apiUrl = `${environment.apiUrl}/Inquiry`;
@@ -762,16 +766,19 @@ selectPortOfDischarge(port: any) {
 }
 
   // --- Selection Logic ---
-  selectLead(lead: any) {
-  if (!lead || !lead.leadNo) {
-    console.warn("Invalid lead selected");
-    return;
-  }
+ selectLead(lead: any) {
+  if (!lead) return;
 
+  // 🔥 Yahan Lead ID console mein dikhega
+  console.log("Selected Lead ID (from list):", lead.id); 
+
+console.log("Selected Lead's Organization ID:", lead.organisationId);
   this.inquiry.leadNo = lead.leadNo;
+ // Agar lead ke sath organization ka naam bhi aata hai toh
   this.showLeadDropdown = false;
-
-  // 🔥 API Call - LeadNo se pura data fetch karo
+console.log("Lead selected, now fetching full details for Lead ID:", this.LeadId);
+console.log("Lead No set to:", this.OrganisationId);
+  // Pura data fetch karne ke liye call
   this.loadLeadByLeadNo(lead.leadNo);
 }
     // --- Fetch Organization List ---
@@ -953,6 +960,11 @@ const payload = {
     shipmentType: this.quotation.shipmentType,
     // Baki fields (example)
     leadNo: this.inquiry.leadNo,
+leadId: this.LeadId,
+
+OrganisationId: this.OrganisationId,
+LeadName: this.LeadName,
+OrganisationName: this.OrganisationName,
     origin: this.inquiry.origin,
     TransportMode: this.quotation.transportMode,
     TransportType: this.quotation.TransportType,
@@ -2340,15 +2352,22 @@ loadAllLeadss() {
 
 // Selection Function
 selectInquiry(inq: any) {
-  if (!inq || !inq.leadNo) {
-    console.warn("Invalid inquiry/lead selected");
+  if (!inq) {
+    console.warn("Invalid lead selected");
     return;
   }
 
+  // 🔥 Yahan Lead ID console mein dikhega
+  console.log("Selected Lead ID (from Modal):", inq);
+ this.LeadId = inq.id;
+  this.OrganisationId = inq.organisationId; 
+  this.OrganisationName = inq.organizationName;
+  this.LeadName = inq.leadNo;
+  console.log("Selected Lead's Organisation ID:", inq.organisationId);
   this.inquiry.leadNo = inq.leadNo || inq.inquiryNo;
   this.showInquiryDropdown = false;
 
-  // 🔥 API Call
+  // Full data load karne ke liye
   this.loadLeadByLeadNo(this.inquiry.leadNo);
 }
 // ================== LOAD FULL LEAD BY LEADNO ==================
@@ -2556,6 +2575,26 @@ services = [
   // --- LOGIC FUNCTIONS ---
 
   // Nayi row add karne ke liye
+  showAlert(type: string, id: any) {
+  // Agar ID null ya undefined hai toh handle karne ke liye
+  const displayId = id ? id : 'N/A';
+
+  if (type === 'Organisation ID') {
+    const orgId = id ? id : 'N/A';
+    this.router.navigate(['/dashboard/organization-add'], { 
+      queryParams: { highlightId: orgId } 
+    });
+  } 
+  else if (type === 'Lead ID') {
+    const leadId = id ? id : 'N/A';
+    this.router.navigate(['/dashboard/salescrm/lead'], { 
+      queryParams: { highlightId: leadId } 
+    });
+  }
+  else {
+    alert('Action performed: ' + type);
+  }
+}
   addCostRow() {
     this.costRows.push({
       lob: 'Standard', // Default value

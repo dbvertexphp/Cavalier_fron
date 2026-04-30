@@ -786,17 +786,29 @@ class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
   
   <ng-container *ngIf="paginatedLeads && paginatedLeads.length > 0; else noData">
     <tr *ngFor="let lead of paginatedLeads" 
+     [class.row-blink]="lead.id === highlightedLeadId"
         (dblclick)="onEditLead(lead.id)"
         class="divide-x divide-gray-200 hover:bg-gray-50 cursor-pointer transition-colors">
       
       <td *ngFor="let col of selectedColumns" class="p-3">
-        <ng-container *ngIf="col.toLowerCase().includes('date') || col === 'Expected Validity' || col === 'Created At'; else regularValue">
-          {{ lead[columnFieldMap[col]] | date:'dd-MM-yyyy' }}
-        </ng-container>
-        <ng-template #regularValue>
-          {{ lead[columnFieldMap[col]] }}
-        </ng-template>
-      </td>
+  <!-- Check if column is Organization -->
+  <ng-container *ngIf="col === 'Organization'; else otherCols">
+    <span (click)="onOrgClick(lead.organisationId, lead.organizationName)" 
+          class="text-blue-600 cursor-pointer hover:underline font-bold">
+      {{ lead[columnFieldMap[col]] }}
+    </span>
+  </ng-container>
+
+  <!-- Baki columns ke liye purana logic -->
+  <ng-template #otherCols>
+    <ng-container *ngIf="col.toLowerCase().includes('date') || col === 'Expected Validity' || col === 'Created At'; else regularValue">
+      {{ lead[columnFieldMap[col]] | date:'dd-MM-yyyy' }}
+    </ng-container>
+    <ng-template #regularValue>
+      {{ lead[columnFieldMap[col]] }}
+    </ng-template>
+  </ng-template>
+</td>
 
       <td class="p-3 text-center">
         <div class="flex justify-center gap-4">

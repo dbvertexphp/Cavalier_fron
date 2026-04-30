@@ -206,6 +206,7 @@ canActivate: [authGuard],
         component:ConsigneeComponent,canActivate: [authGuard],  }, 
            { path: 'Price',                          //list of unit
         component:PriceComponent,canActivate: [authGuard],   }, 
+        
     
       {
         path: 'port-of-loading',

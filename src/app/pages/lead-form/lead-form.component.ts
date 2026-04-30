@@ -27,6 +27,20 @@ import { ActivatedRoute } from '@angular/router';
 export class LeadFormComponent implements OnInit {
 // Aapka data array
 // PAGINATION VARIABLES
+// Modal control variable
+isHODModalOpen: boolean = false;
+
+// Search text for modal input
+modalHODSearchText: string = '';
+
+// Main list of HODs (API se jo aayegi)
+allHODList: string[] = []; 
+
+// Filtered list jo modal mein dikhegi
+allHODListFiltered: string[] = [];
+
+// Dropdown suggestions (input type par jo dikhti hain)
+filteredHODSuggestions: string[] = [];
 leadSources: any[] = [];     // Lead Source ke liye
 salesStages: any[] = [];
 isEditMode: boolean = false;
@@ -60,7 +74,13 @@ allLeads: any[] = [];       // original backup
   teamList: any[] = [];
   organizations: any[] = [];
   filteredOrganizations: any[] = [];
-  filteredHODSuggestions:any[]=[]
+  // Variables for Lead Owner
+isLeadOwnerModalOpen: boolean = false;
+modalOwnerSearchText: string = '';
+allOwnersList: string[] = [];           // API se aane wali main list
+allOwnersFiltered: string[] = [];       // Modal display ke liye
+filteredLeadOwners: string[] = [];
+  // filteredHODSuggestions:any[]=[]
   hodUniqueList:any[]=[]
 goToPage(page: number) {
   this.currentPage = page;
@@ -863,31 +883,15 @@ filterTableByOrganization(orgName: string) {
     this.leads = res; // Main table update ho jayegi
   });
 }
+// Lead No ke liye variables
+isLNModalOpen: boolean = false;
+modalLNSearchText: string = '';
+allLNList: any[] = [];         // API se aane wala sara data
+allLNFiltered: any[] = [];     // Modal mein dikhne wala filtered data
+// filteredLeads: any[] = [];     // Input ke niche dikhne wala dropdown data
 // ... rest of the code
 // // --- ADDED: Method for input event in Lead No search bar ---
-onLeadNoSearchForFilters(event: Event): void {
-  const value = (event.target as HTMLInputElement).value.toLowerCase().trim();
 
-  // 1. Agar input ekdum khali hai, toh table reset karo aur dropdown band
-  if (!value) {
-    this.filteredLeads = [];
-    this.loadLeads(); // Poora table wapas dikhayega
-    return;
-  }
-
-  // 🔥 2. Logic: Agar 3 characters se kam hain, toh suggestions mat dikhao
-  if (value.length < 4) {
-    this.filteredLeads = []; // Dropdown band rakhega
-    return;
-  }
-
-  // 3. Filter dropdown suggestions (Sirf tab chalega jab length >= 3 ho)
-  this.filteredLeads = this.leads.filter(lead =>
-    (lead.leadNo || '').toString().toLowerCase().includes(value)
-  );
-  
-  console.log("Suggestions found for:", value, this.filteredLeads);
-}
 
 // --- Variables ---
 filteredTeams: any[] = []; // Search results ke liye
@@ -1121,61 +1125,17 @@ selectLeadOrg(org: any): void {
 
 
 // Selection logic
-onHODSearchType(event: Event): void {
-  const value = (event.target as HTMLInputElement).value.toLowerCase().trim();
-  
-  // 3 letters condition
-  if (!value || value.length < 3) {
-    this.filteredHODSuggestions = [];
-    return;
-  }
 
-  // Filter directly from the strings array
-  this.filteredHODSuggestions = this.hodUniqueList.filter(hod =>
-    hod.toLowerCase().includes(value)
-  );
-
-  console.log("🎯 HOD Matches Found:", this.filteredHODSuggestions);
-}
 // --- Is function ko class ke andar kahin bhi paste kar dein ---
-selectHOD(hodName: string): void {
-  // 1. Filtered value ko search filter object mein set karein
-  this.leadSearchFilters.hod = hodName; 
 
-  // 2. Dropdown list ko band karne ke liye array khali kar dein
-  this.filteredHODSuggestions = []; 
-
-  // 3. Angular ko batayein ki UI update karni hai
-  this.cdr.detectChanges();
-
-  console.log("HOD Selected:", hodName);
-}
 // --- Variables (Aapke paas pehle se honge, bas check kar lein) ---
-filteredLeadOwners: string[] = []; 
+// filteredLeadOwners: string[] = []; 
 
 // 1. Search Logic for Lead Owner
-onLeadOwnerSearch(event: Event): void {
-  const value = (event.target as HTMLInputElement).value.toLowerCase().trim();
 
-  // 3 letters condition
-  if (!value || value.length < 3) {
-    this.filteredLeadOwners = [];
-    return;
-  }
-
-  // leadOwnerList se filter karein (Jo loadLeadSuggestions mein bhari gayi thi)
-  this.filteredLeadOwners = this.leadOwnerList.filter(owner =>
-    owner.toLowerCase().includes(value)
-  );
-}
 
 // 2. Selection Logic
-selectLeadOwner(ownerName: string): void {
-  this.leadSearchFilters.leadOwner = ownerName; // Object property update
-  this.filteredLeadOwners = [];       
-   // Dropdown band
-  this.cdr.detectChanges();
-}
+
 loadLeadSuggestions() {
   this.http.get<any[]>(`${environment.apiUrl}/Leads`)
     .subscribe({
@@ -1236,12 +1196,7 @@ selectManager(managerName: string): void {
   this.cdr.detectChanges();
 }
 // 1. Dropdown se select karte waqt sirf value set karo, search mat chalao
-selectLeadForFilters(lead: any): void {
-this.leadSearchFilters.leadNo = lead.leadNo; // Check: kya ye sahi set ho raha hai?
-  this.filteredLeads = [];
-  this.cdr.detectChanges();// Dropdown band
-  
-}
+
 filteredStatusSuggestions: string[] = [];
 // Predefined list (Kyunki status aksar fixed hote hain)
 statusList: string[] = ['Inquiry Received', 'Qualified', 'Proposal Sent', 'Sales Closed', 'Lost'];
@@ -1698,35 +1653,31 @@ iconHODList: string[] = [];
 private hodIconSub?: Subscription;
 
 // 1. 🔍 Icon par click karne wala logic
+// 1. Icon Search (Modal Open + API Call with Authorization)
 oniconHODSearch() {
-  // 1. Toggle Close Logic
-  if (this.iconHODList && this.iconHODList.length > 0) {
-    this.iconHODList = [];
-    this.cdr.detectChanges(); 
-    return;
-  }
-
+  // Modal toggle logic
+  this.isHODModalOpen = true;
+  this.modalHODSearchText = '';
+  
+  // Pehle se chal rahi subscription ko unsubscribe karein
   this.hodIconSub?.unsubscribe();
 
-  // 2. Token nikaalein (Vahi key use karein jo login pe set ki thi)
+  // Token nikaalein
   const token = localStorage.getItem('cavalier_token'); 
-
-  // 3. Authorization Header banayein
-  const headers = {
-    'Authorization': `Bearer ${token}`
-  };
+  const headers = { 'Authorization': `Bearer ${token}` };
 
   this.cdr.detectChanges(); 
 
-  // 4. API call mein headers object pass karein
+  // API call
   this.hodIconSub = this.http.get<any[]>(`${environment.apiUrl}/Leads`, { headers }).subscribe({
     next: (res) => {
       if (res && res.length > 0) {
-        // HOD property ka naam check kar lena (item.hod ya item.hodName)
+        // Unique HODs ki list banana
         const uniqueHODs = [...new Set(res.map(item => item.hod || item.hodName || item.name || item))]
           .filter(name => name && typeof name === 'string' && name.trim() !== "");
 
-        this.iconHODList = uniqueHODs;
+        this.allHODList = uniqueHODs;          // Base list store ki
+        this.allHODListFiltered = [...this.allHODList]; // Modal display list set ki
         
         this.cdr.markForCheck(); 
         this.cdr.detectChanges(); 
@@ -1734,16 +1685,62 @@ oniconHODSearch() {
     },
     error: (err) => {
       console.error("HOD API Error:", err);
-      // Agar 401 aaye matlab token expire ho gaya hai
       if (err.status === 401) {
         console.warn("Unauthorized! Token invalid or expired.");
       }
-      this.iconHODList = [];
+      this.allHODList = [];
+      this.allHODListFiltered = [];
       this.cdr.detectChanges();
     }
   });
 }
 
+// 2. Input Search Type (3 Letter Logic for Dropdown)
+onHODSearchType(event: Event): void {
+  const value = (event.target as HTMLInputElement).value.toLowerCase().trim();
+  
+  // 3 letters condition
+  if (!value || value.length < 3) {
+    this.filteredHODSuggestions = [];
+    return;
+  }
+
+  // Filter directly from our main list
+  this.filteredHODSuggestions = this.allHODList.filter(hod =>
+    hod.toLowerCase().includes(value)
+  );
+
+  console.log("🎯 HOD Matches Found:", this.filteredHODSuggestions);
+}
+
+// 3. Selection Logic (Dono Dropdown aur Modal ke liye common)
+selectHOD(hodName: string): void {
+  // Filtered value ko search filter object mein set karein
+  this.leadSearchFilters.hod = hodName; 
+
+  // Sab kuch reset/close karein
+  this.filteredHODSuggestions = []; 
+  this.isHODModalOpen = false;
+  this.modalHODSearchText = '';
+
+  // Angular ko batayein ki UI update karni hai
+  this.cdr.detectChanges();
+
+  console.log("HOD Selected:", hodName);
+}
+
+// 4. Modal Inner Search (Modal ke andar filtering ke liye)
+filterHODModalList() {
+  const query = this.modalHODSearchText.toLowerCase().trim();
+  if (query) {
+    this.allHODListFiltered = this.allHODList.filter(hod => 
+      hod.toLowerCase().includes(query)
+    );
+  } else {
+    this.allHODListFiltered = [...this.allHODList];
+  }
+  this.cdr.detectChanges();
+}
 // 2. Icon wali list se select karne par
 selectHODFromIcon(name: string) {
   this.leadSearchFilters.hod = name;
@@ -1758,34 +1755,33 @@ loIconList: string[] = [];
 private loIconSub?: Subscription;
 
 // 1. UNIQUE Function name: onLeadOwnerIconClick
+// 1. Icon Click (Modal Open + API Call with Bearer Token)
+// 1. Icon Click (Modal Open + API Call with Bearer Token)
 onLeadOwnerIconClick() {
-  // 1. Toggle Logic
-  if (this.loIconList.length > 0) {
-    this.loIconList = [];
-    this.cdr.detectChanges(); 
-    return;
-  }
-
+  // Modal control variables
+  this.isLeadOwnerModalOpen = true;
+  this.modalOwnerSearchText = '';
+  
+  // Purani subscription clean karein
   this.loIconSub?.unsubscribe();
 
-  // 2. LocalStorage se token nikaalein
+  // Token nikaalein (Auth logic)
   const token = localStorage.getItem('cavalier_token'); 
-
-  // 3. Headers taiyar karein
-  const headers = {
-    'Authorization': `Bearer ${token}`
-  };
+  const headers = { 'Authorization': `Bearer ${token}` };
 
   this.cdr.detectChanges(); 
 
-  // 4. API call mein headers pass karein
+  // API Call
   this.loIconSub = this.http.get<any[]>(`${environment.apiUrl}/Leads`, { headers }).subscribe({
     next: (res) => {
       if (res && res.length > 0) {
+        // Unique Lead Owners ki list banana
         const uniqueOwners = [...new Set(res.map(item => item.name || item.firstName || item.leadOwner || item))]
           .filter(name => name && typeof name === 'string' && name.trim() !== "");
 
-        this.loIconList = uniqueOwners;
+        // FIX: 'allOwnersFiltered' use kiya hai jo teri file mein declare hai
+        this.leadOwnerList = uniqueOwners; 
+        this.allOwnersFiltered = [...this.leadOwnerList];
 
         this.cdr.markForCheck();
         this.cdr.detectChanges();
@@ -1796,12 +1792,54 @@ onLeadOwnerIconClick() {
       if(err.status === 401) {
         alert("Session expired! Please login again.");
       }
-      this.loIconList = [];
+      this.leadOwnerList = [];
+      this.allOwnersFiltered = [];
       this.cdr.detectChanges();
     }
   });
 }
 
+// 2. Input Search Type (3 Letter Logic for Dropdown)
+onLeadOwnerSearch(event: Event): void {
+  const value = (event.target as HTMLInputElement).value.toLowerCase().trim();
+
+  // 3 letters se kam par dropdown nahi dikhega
+  if (!value || value.length < 3) {
+    this.filteredLeadOwners = [];
+    return;
+  }
+
+  // leadOwnerList se filter karein
+  this.filteredLeadOwners = this.leadOwnerList.filter(owner =>
+    owner.toLowerCase().includes(value)
+  );
+}
+
+// 3. Selection Logic (Common for Dropdown & Modal)
+selectLeadOwner(ownerName: string): void {
+  this.leadSearchFilters.leadOwner = ownerName; // Filter object update
+  
+  // UI Clean-up
+  this.filteredLeadOwners = [];      // Dropdown band
+  this.isLeadOwnerModalOpen = false; // Modal band
+  this.modalOwnerSearchText = '';    // Modal search clear
+  
+  this.cdr.detectChanges();
+  console.log("Owner Selected:", ownerName);
+}
+
+// 4. Modal Inner Search (Modal ke andar filtering ke liye)
+filterOwnerModalList() {
+  const query = this.modalOwnerSearchText.toLowerCase().trim();
+  if (query) {
+    this.allOwnersFiltered = this.leadOwnerList.filter(owner => 
+      owner.toLowerCase().includes(query)
+    );
+  } else {
+    this.allOwnersFiltered = [...this.leadOwnerList];
+  }
+  this.cdr.detectChanges();
+}
 // Selection logic
 selectLoFromIcon(owner: string) {
   this.leadSearchFilters.leadOwner = owner;
@@ -1820,51 +1858,52 @@ lnIconList: any[] = [];
 private lnIconSub?: Subscription;
 
 onLeadNoIconClick() {
-  // Toggle Logic: Agar pehle se khula hai toh band kar do
-  if (this.lnIconList && this.lnIconList.length > 0) {
-    this.lnIconList = [];
-    this.cdr.detectChanges();
-    return;
-  }
-
-  // 1. Sahi key name use karo
+  this.isLNModalOpen = true; // Modal khulega
+  this.modalLNSearchText = ''; // Search khali rahegi
+  
   const token = localStorage.getItem('cavalier_token'); 
+  const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
-  console.log("Checking Token:", token);
-
-  if (!token) {
-    console.warn("Bhai login token nahi mila!");
-    return;
-  }
-
-  this.loIconSub?.unsubscribe();
-
-  // 2. Headers mein pass karo
-  const headers = new HttpHeaders({
-    'Authorization': `Bearer ${token}`
-  });
-
-  // 3. API Call
-  this.loIconSub = this.http.get<any[]>(`${environment.apiUrl}/Leads`, { headers }).subscribe({
+  this.http.get<any[]>(`${environment.apiUrl}/Leads`, { headers }).subscribe({
     next: (res) => {
       if (res && res.length > 0) {
-        // Unique Inquiry/Lead Numbers nikalna
         const uniqueNos = [...new Set(res.map(item => item.inquiryNo || item.leadNo || item))]
           .filter(val => val && val.toString().trim() !== "");
 
-        this.lnIconList = uniqueNos;
-
-        // Instant UI Update (Single click fix)
-        this.cdr.markForCheck();
+        this.allLNList = uniqueNos; 
+        this.allLNFiltered = [...this.allLNList]; // Modal mein dikhane ke liye
         this.cdr.detectChanges();
       }
     },
     error: (err) => {
-      console.error("Leads API Error:", err);
-      this.lnIconList = [];
+      console.error("Error fetching leads", err);
+      this.allLNList = [];
+      this.allLNFiltered = [];
       this.cdr.detectChanges();
     }
   });
+}
+
+onLeadNoSearchForFilters(event: any): void {
+  const value = (event.target as HTMLInputElement).value.toLowerCase().trim();
+  if (value.length < 3) {
+    this.filteredLeads = [];
+    return;
+  }
+  // Dropdown ke liye filter
+  this.filteredLeads = this.allLNList.filter(ln => 
+    ln.toString().toLowerCase().includes(value)
+  );
+}
+
+selectLeadForFilters(lead: any): void {
+  // Agar object hai toh leadNo lo, varna direct value
+  const val = lead.leadNo ? lead.leadNo : lead;
+  this.leadSearchFilters.leadNo = val;
+  
+  this.isLNModalOpen = false; // Modal band
+  this.filteredLeads = [];    // Dropdown band
+  this.cdr.detectChanges();
 }
 
 // 2. Selection function
@@ -1877,119 +1916,129 @@ selectLeadNoFromIcon(val: any) {
 }
 
 // Search filter error na de isliye
-filterLeadNumbers(event: any) {
-  // Baad mein logic likh sakte ho
+// Function ke andar 'event?' laga do taaki argument optional ho jaye
+filterLeadNumbers(event?: any) {
+  const query = this.modalLNSearchText.toLowerCase().trim();
+  
+  if (query) {
+    this.allLNFiltered = this.allLNList.filter(ln => 
+      ln.toString().toLowerCase().includes(query)
+    );
+  } else {
+    this.allLNFiltered = [...this.allLNList];
+  }
+  this.cdr.detectChanges();
 }
 // Team Icon Popup ke liye UNIQUE variables
 tmIconList: any[] = []; 
 private tmIconSub?: Subscription;
-
+isTeamModalOpen: boolean = false;
+modalTeamSearchText: string = '';
+allTeamsList: any[] = []; // Ye backup list hogi
+tmIconListFiltered: any[] = [];
 // 1. UNIQUE Function: onTeamIconClick
 onTeamIconClick() {
-  // Toggle Logic: Agar list pehle se khuli hai toh band kar do
-  if (this.tmIconList.length > 0) {
-    this.tmIconList = [];
-    this.cdr.detectChanges();
-    return;
-  }
+  this.isTeamModalOpen = true;
+  this.modalTeamSearchText = '';
+  
+  const token = localStorage.getItem('cavalier_token');
+  const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
-  this.tmIconSub?.unsubscribe();
-
-  // API Call to /Teams
-  this.tmIconSub = this.http.get<any[]>(`${environment.apiUrl}/Teams`).subscribe({
+  this.http.get<any[]>(`${environment.apiUrl}/Teams`, { headers }).subscribe({
     next: (res) => {
-      if (res && res.length > 0) {
-        // Unique Team names nikalna (teamName, name ya direct string)
-        const uniqueTeams = [...new Set(res.map(item => item.teamName || item.name || item))]
-          .filter(val => val && val.toString().trim() !== "");
-
-        this.tmIconList = uniqueTeams;
-
-        // Force UI update taaki ek hi click par load ho jaye
-        setTimeout(() => {
-          this.cdr.detectChanges();
-        }, 0);
+      if (res) {
+        // Data format set karna
+        const teams = res.map(t => t.teamName || t.name || t);
+        this.allTeamsList = [...new Set(teams)]; // Unique teams
+        this.tmIconListFiltered = [...this.allTeamsList];
+        this.cdr.detectChanges();
       }
-    },
-    error: (err) => {
-      console.error("Team API Error:", err);
-      this.tmIconList = [];
-      this.cdr.detectChanges();
     }
   });
 }
 
-// 2. UNIQUE Selection function: selectTmFromIcon
+// 3. Modal Filter
+filterTeams(event: any) {
+  const query = this.modalTeamSearchText.toLowerCase().trim();
+  this.tmIconListFiltered = this.allTeamsList.filter(t => 
+    t.toString().toLowerCase().includes(query)
+  );
+  this.cdr.detectChanges();
+}
+
+// 4. Selection
 selectTmFromIcon(team: any) {
   this.leadSearchFilters.team = team;
-  this.tmIconList = []; // Popup close
-  
-  setTimeout(() => {
-    this.cdr.detectChanges();
-  }, 0);
+  this.isTeamModalOpen = false;
+  this.cdr.detectChanges();
 }
+
+// 2. UNIQUE Selection function: selectTmFromIcon
+
 // Reporting Manager Icon Popup ke liye UNIQUE variables
 rmIconList: string[] = []; 
 private rmIconSub?: Subscription;
 
 // 1. UNIQUE Function: onManagerIconClick
-onManagerIconClick() {
-  // 1. Toggle Logic
-  if (this.rmIconList.length > 0) {
-    this.rmIconList = [];
-    this.cdr.detectChanges();
-    return;
-  }
+// Variables
+isManagerModalOpen: boolean = false;
+modalManagerSearchText: string = '';
+allManagersList: any[] = [];
+rmIconListFiltered: any[] = [];
 
+onManagerIconClick() {
+  // Modal Open
+  this.isManagerModalOpen = true;
+  this.modalManagerSearchText = '';
+  
   this.rmIconSub?.unsubscribe();
 
-  // 2. Token nikaalein (Ensure karein ki key 'cavalier_token' hi hai)
   const token = localStorage.getItem('cavalier_token');
+  const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
-  // 3. Authorization Header banayein
-  const headers = {
-    'Authorization': `Bearer ${token}`
-  };
-
-  // Loader state ya change detection trigger karein
-  this.cdr.detectChanges();
-
-  // 4. API call mein headers pass karein
+  // API Call (Wapas tumhare /Leads endpoint par)
   this.rmIconSub = this.http.get<any[]>(`${environment.apiUrl}/Leads`, { headers }).subscribe({
     next: (res) => {
       if (res && res.length > 0) {
-        // Unique Managers nikalna
-        // Property name 'reportingManager' check kar lena jo API se aa raha ho
+        // Unique Managers nikalna (Tumhara Original Logic)
         const uniqueManagers = [...new Set(res.map(item => item.reportingManager))]
           .filter(val => val && typeof val === 'string' && val.trim() !== "");
 
-        this.rmIconList = uniqueManagers;
+        this.allManagersList = uniqueManagers;
+        this.rmIconListFiltered = [...this.allManagersList];
 
-        // Force UI update
         this.cdr.markForCheck();
         this.cdr.detectChanges();
       }
     },
     error: (err) => {
       console.error("Manager API Error:", err);
-      if (err.status === 401) {
-        console.warn("Unauthorized: Token expire ho gaya hai.");
-      }
-      this.rmIconList = [];
+      this.allManagersList = [];
+      this.rmIconListFiltered = [];
+      this.isManagerModalOpen = false;
       this.cdr.detectChanges();
     }
   });
-}    
+}
+
+// Modal filter logic
+filterManagers(event?: any) {
+  const query = this.modalManagerSearchText.toLowerCase().trim();
+  this.rmIconListFiltered = this.allManagersList.filter(m => 
+    m.toString().toLowerCase().includes(query)
+  );
+  this.cdr.detectChanges();
+}
+
+// Select function
+selectRmFromIcon(manager: any) {
+  this.leadSearchFilters.reportingManager = manager;
+  this.isManagerModalOpen = false;
+  this.cdr.detectChanges();
+}
 
 // 2. UNIQUE Selection function: selectRmFromIcon
-selectRmFromIcon(manager: string) {
-  this.leadSearchFilters.reportingManager = manager;
-  this.rmIconList = []; // Popup close
-  
-  setTimeout(() => {
-    this.cdr.detectChanges();
-  }, 0);
-}
+
 // 1. In variables ko aise define karein
 orgList: any[] = [];
 showOrgDropdown: boolean = false;
@@ -2062,12 +2111,8 @@ filterHODs(event: any) {
 filterLeads(event: any) {
   // Baad mein logic likh lena
 }
-filterTeams(event: any) {
-  // Baad mein logic likh lena
-}
-filterManagers(event: any) {
-  // Baad mein logic likh lena
-}
+
+
 filterOrgList(event: any) {
   // Baad mein logic likh lena
 }

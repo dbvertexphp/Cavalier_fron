@@ -404,7 +404,7 @@ selectedColumns: string[] = [
   // Suggestions store karne ke liye arrays
   filteredOrgCodes: any[] = [];
   filteredBranches: any[] = [];
-filteredOrgNames: any[] = [];
+// filteredOrgNames: any[] = [];
 filteredCities: string[] = [];
   activeTab: string = 'general';
   selectedRoles: string[] = [];
@@ -1540,59 +1540,7 @@ async downloadPDF() {
   
 //   console.log('City selected and table refresh called:', this.searchFilters.city);
 // }
-getApiSuggestions(field: string, query: string) {
-  // 1. Min length define karein
-  const minLength = (field === 'orgcode') ? 2 : 4;
 
-  // 2. Strict Check: Agar query chhoti hai toh sab clear karke wahi se laut jao (Return)
-  if (!query || query.trim().length < minLength) {
-    this.filteredOrgCodes = [];
-    this.filteredOrgNames = [];
-    this.filteredCities = [];
-    this.filteredBranches = [];
-    return; // 👈 Ye zaroori hai, taaki niche wali API call na chale
-  }
-
-  let searchParams: any = {};
-  const cleanQuery = query.trim();
-
-  // 3. Mapping: Backend parameter check karein
-  if (field === 'orgcode') {
-    // Agar backend 'id' dhoond raha hai toh id bhejo
-    searchParams.id = cleanQuery; 
-  } else if (field === 'orgname') {
-    searchParams.orgName = cleanQuery;
-  } else if (field === 'city') {
-    searchParams.city = cleanQuery;
-  } else if (field === 'branchname') {
-    searchParams.branchName = cleanQuery;
-  }
-
-  // 4. API Call tabhi hogi jab upar wala filter pass hoga
-  this.http.get<any[]>(`${environment.apiUrl}/Organization/search`, {
-    params: searchParams
-  }).subscribe({
-    next: (res) => {
-      // Pehle list clear karein taaki purana data na dikhe
-      if (field === 'orgcode') {
-        // Sirf wahi dikhao jo search se match kare (Frontend safety filter)
-        this.filteredOrgCodes = res ? res.filter(x => x.id.toString().includes(cleanQuery)) : [];
-      } 
-      else if (field === 'orgname') {
-        this.filteredOrgNames = res || [];
-      } 
-      else if (field === 'city') {
-        const allCities = res.map(item => item.city ? item.city.trim() : item.trim());
-        this.filteredCities = [...new Set(allCities)];
-      }
-      else if (field === 'branchname') {
-        const allBranches = res.map(item => item.branchName ? item.branchName.trim() : item.trim());
-        this.filteredBranches = [...new Set(allBranches)];
-      }
-      this.cdr.detectChanges();
-    }
-  });
-}
 // 👈 Ye selection function bhi add kar lena
 // 1. Suggestion select karne ka function
 selectOrgCodeSuggestion(item: any) {
@@ -2029,38 +1977,83 @@ onCountrySelectionChange() {
 organizationsList: any[] = [];
 activeDropdown: string = ''; 
 
+// Variables declare karein
+// Variables declare karein
+isOrgModalOpen: boolean = false;
+modalOrgSearchText: string = '';
+allOrgList: any[] = []; // Modal ke liye master list
+allOrgFiltered: any[] = []; // Modal filter ke liye
+filteredOrgNames: any[] = []; // Input dropdown suggestions ke liye
+
+// 1. Icon Click - Modal Open (Original API: /Organization/list)
 allOrgSearch(type: string) {
+  this.isOrgModalOpen = true;
+  this.modalOrgSearchText = '';
+  
   const url = `${environment.apiUrl}/Organization/list`;
   this.http.get(url).subscribe({
     next: (res: any) => {
       const data = Array.isArray(res) ? res : res.data;
       if (data) {
-        // Dropdown type pehle set karo (Important!)
-        this.activeDropdown = type; 
-        
-        this.organizationsList = data.map((item: any) => ({
-          orgId: item.organizationId || item.organizationId,
+        // Modal mein dikhane ke liye data map kiya
+        this.allOrgList = data.map((item: any) => ({
+          orgId: item.organizationId,
           orgName: item.orgName
         }));
+        this.allOrgFiltered = [...this.allOrgList];
+        this.cdr.detectChanges();
       }
     },
     error: (err) => console.error("API Error:", err)
   });
 }
 
-// Select karte waqt hum check karenge ki kis dropdown se click hua hai
-selectOrg(org: any) {
-  if (this.activeDropdown === 'name') {
-    this.searchFilters.orgName = org.orgName;
-  } else if (this.activeDropdown === 'id') {
-    // Agar ID wale input ka variable orgCode hai toh wahan fill karo
-    this.searchFilters.orgCode = org.orgId; 
+// 2. Input Suggestion - (Original API: /Organization/search)
+getApiSuggestions(field: string, query: string) {
+  // Min length 3 rakhi hai standard ke liye
+  if (!query || query.trim().length < 3) {
+    this.filteredOrgNames = [];
+    return;
   }
 
-  // Selection ke baad sab clear kar do
-  this.organizationsList = [];
-  this.activeDropdown = '';
+  const cleanQuery = query.trim();
+  let searchParams: any = { orgName: cleanQuery };
+
+  this.http.get<any[]>(`${environment.apiUrl}/Organization/search`, {
+    params: searchParams
+  }).subscribe({
+    next: (res: any) => {
+      // API response handle karna (res ya res.data)
+      const data = Array.isArray(res) ? res : res.data;
+      this.filteredOrgNames = data || [];
+      this.cdr.detectChanges();
+    }
+  });
 }
+
+// 3. Modal Filter Logic (Frontend Search)
+filterOrgModal() {
+  const query = this.modalOrgSearchText.toLowerCase().trim();
+  this.allOrgFiltered = this.allOrgList.filter(org => 
+    org.orgName.toLowerCase().includes(query)
+  );
+  this.cdr.detectChanges();
+}
+
+// 4. Selection Logic
+selectOrg(org: any) {
+  // Input field mein value set karna
+  this.searchFilters.orgName = org.orgName;
+  
+  // Sab clear aur close karna
+  this.isOrgModalOpen = false;
+  this.filteredOrgNames = [];
+  this.allOrgFiltered = [];
+  this.cdr.detectChanges();
+}
+
+// Select karte waqt hum check karenge ki kis dropdown se click hua hai
+
 cityList: any[] = []; // Full list ke liye
 
 // City fetch karne ke liye (Aapke logic ke hisaab se)
@@ -2491,5 +2484,62 @@ private fetchGlobalData(zip: string) {
         this.country = 'UNITED STATES';
       }
     }).catch(err => console.log(err));
+}
+// Variables// Variables
+isOrgIdModalOpen: boolean = false;
+modalOrgIdSearchText: string = '';
+// filteredOrgCodes: any[] = []; 
+
+// 1. Icon Click (Modal Open)
+onOrgIdIconClick() {
+  this.isOrgIdModalOpen = true;
+  this.modalOrgIdSearchText = '';
+  
+  // Modal ke liye master list mangwao
+  this.http.get(`${environment.apiUrl}/Organization/list`).subscribe({
+    next: (res: any) => {
+      const data = Array.isArray(res) ? res : res.data;
+      this.allOrgList = data || [];
+      this.allOrgFiltered = [...this.allOrgList];
+      this.cdr.detectChanges();
+    }
+  });
+}
+
+// 2. Typing Logic (3-Word Search Dropdown)
+getOrgIdSuggestions(query: string) {
+  // Yahan humne 3 word ka check laga diya hai
+  if (!query || query.trim().length < 3) {
+    this.filteredOrgCodes = [];
+    return;
+  }
+
+  const cleanQuery = query.trim();
+  // Backend API for search
+  this.http.get<any[]>(`${environment.apiUrl}/Organization/search`, {
+    params: { id: cleanQuery } 
+  }).subscribe({
+    next: (res: any) => {
+      const data = Array.isArray(res) ? res : res.data;
+      // Suggestions dikhane ke liye data set karein
+      this.filteredOrgCodes = data || [];
+      this.cdr.detectChanges();
+    }
+  });
+}
+
+// 3. Selection from Dropdown
+selectOrgIdSuggestion(item: any) {
+  // Backend se aksar 'id' aata hai search mein
+this.searchFilters.orgCode = item.orgCode || item.code || item.organizationId;
+  this.filteredOrgCodes = []; // Dropdown band
+  this.cdr.detectChanges();
+}
+
+// 4. Selection from Modal
+selectOrgIdFromModal(org: any) {
+  this.searchFilters.orgCode = org.organizationId || org.orgId;
+  this.isOrgIdModalOpen = false; // Modal band
+  this.cdr.detectChanges();
 }
 } 

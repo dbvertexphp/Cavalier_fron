@@ -1312,29 +1312,45 @@ allUniqueInquiryNos: string[] = []; // Master list (Unique)
 filteredInquiryNos: string[] = [];  // Suggestions for UI
 
 loadInquiryNumbers() {
-  this.http.get<any[]>(`${environment.apiUrl}/Inquiry`).subscribe(data => {
-    // 1. Saare inquiryNo nikaal kar null/undefined hatao
-    const rawNumbers = data.map(item => item.inquiryNo).filter(n => n);
+  // 1. Token nikaalna (Local storage se ya jahan aapne save kiya ho)
+  const token = localStorage.getItem('cavalier_token'); 
 
-    // 2. 🔥 Set ka use karke duplicates hatao
-    this.allUniqueInquiryNos = [...new Set(rawNumbers)];
-    console.log("Unique Inquiry Numbers Loaded");
-    console.log(this.allUniqueInquiryNos);
+  // 2. Headers create karna
+  const headers = {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  };
+
+  // 3. Authorized Get Request
+  this.http.get<any[]>(`${environment.apiUrl}/Inquiry`, { headers }).subscribe({
+    next: (data) => {
+      // InquiryNo nikaal kar null/undefined hatao
+      const rawNumbers = data
+        .map(item => item.inquiryNo)
+        .filter(n => n !== null && n !== undefined && n !== '');
+
+      // Duplicates hatao
+      this.allUniqueInquiryNos = [...new Set(rawNumbers)];
+      
+      console.log("Authorized Unique Inquiry Numbers Loaded", this.allUniqueInquiryNos);
+    },
+    error: (err) => {
+      console.error("Authorization failed or API error:", err);
+      // Agar token expire ho jaye toh yahan logic handle kar sakte hain
+    }
   });
 }
 
-// 🔥 Typing ke waqt trigger hone wala function
 onInquiryType() {
-  const query = this.searchFilters.inquiryNo ? this.searchFilters.inquiryNo.trim().toLowerCase() : '';
+  // Query ko authorize/sahi karna (3 words logic)
+  const query = this.searchFilters.inquiryNo ? String(this.searchFilters.inquiryNo).trim().toLowerCase() : '';
 
-  // 3. Logic: 3 letter ke baad suggestions dikhao
   if (query.length >= 3) {
     this.filteredInquiryNos = this.allUniqueInquiryNos.filter(num => 
-      num.toLowerCase().includes(query)
+      num && String(num).toLowerCase().includes(query)
     );
   } else {
-    // 3 se kam par list khali
-    this.filteredInquiryNos = [];
+    this.filteredInquiryNos = []; // 3 se kam par suggestions hide
   }
 }
 // Variables declare karein
@@ -1342,28 +1358,47 @@ allUniqueCoordinators: string[] = []; // Master list (Unique Names)
 filteredCoordinators: string[] = [];  // Suggestions for UI
 
 loadCoordinators() {
-  this.http.get<any[]>(`${environment.apiUrl}/Inquiry`).subscribe({
+  // 1. Authorization Token nikalna
+  const token = localStorage.getItem('cavalier_token');
+
+  // 2. Headers mein token set karna
+  const headers = {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  };
+
+  this.http.get<any[]>(`${environment.apiUrl}/Inquiry`, { headers }).subscribe({
     next: (data) => {
-      // 1. Saare salesCoordinator nikalo aur duplicates hatane ke liye Set use karo
-      const rawCoords = data.map(item => item.salesCoordinator).filter(c => c);
+      // 3. Null check aur string safety ke saath data map karna
+      const rawCoords = data
+        .map(item => item.salesCoordinator)
+        .filter(c => c !== null && c !== undefined && String(c).trim() !== '');
+
+      // 4. Duplicate hatana
       this.allUniqueCoordinators = [...new Set(rawCoords)];
-      console.log("Unique Coordinators Loaded");
+      console.log("Authorized Coordinators Loaded:", this.allUniqueCoordinators.length);
     },
-    error: (err) => console.error("Coordinator load error:", err)
+    error: (err) => {
+      console.error("Coordinator load error (Auth Fail?):", err);
+    }
   });
 }
 
 // 🔥 Typing ke waqt filter karne wala function
 onCoordinatorType() {
-  const query = this.searchFilters.salesCoordinator ? this.searchFilters.salesCoordinator.trim().toLowerCase() : '';
+  // 1. Query ko authorize/validate karna
+  const query = this.searchFilters.salesCoordinator 
+    ? String(this.searchFilters.salesCoordinator).trim().toLowerCase() 
+    : '';
 
-  // 2. Logic: Sirf 3 characters ke baad hi suggestions dikhao
+  // 2. Logic: Exact 3 ya usse zyada characters par hi suggestions aayenge
   if (query.length >= 3) {
     this.filteredCoordinators = this.allUniqueCoordinators.filter(name => 
-      name.toLowerCase().includes(query)
+      name && String(name).toLowerCase().includes(query)
     );
+    console.log("Suggestions Found:", this.filteredCoordinators.length);
   } else {
-    // 3 se kam par list khali rakho
+    // 3. Agar user backspace dabake 3 se kam kar de, toh list turant khali
     this.filteredCoordinators = [];
   }
 }
@@ -2311,11 +2346,13 @@ filterInquiryList(event: any) {
 filterCoordinatorList(event: any) {
   // Baad mein logic likh lena
 }
+isSearchModalOpen: boolean = false;
 loadAllLeadss() {
   // Toggle logic
   if (this.showInquiryDropdown || this.showLeadDropdown) {
     this.showInquiryDropdown = true;
     this.showLeadDropdown = true;
+    this.isSearchModalOpen = true;
     this.cdr.detectChanges();
     return;
   }
@@ -2366,6 +2403,7 @@ selectInquiry(inq: any) {
   console.log("Selected Lead's Organisation ID:", inq.organisationId);
   this.inquiry.leadNo = inq.leadNo || inq.inquiryNo;
   this.showInquiryDropdown = false;
+  this.isSearchModalOpen = false;
 
   // Full data load karne ke liye
   this.loadLeadByLeadNo(this.inquiry.leadNo);
@@ -2538,8 +2576,9 @@ selectBranchFromDropdown(branch: any) {
   this.confirmSelection(); 
   this.filteredBranchSuggestions = []; 
 }
+// isFormOpen: boolean = true;
 showCostTable: boolean = false;
-
+showMultiCarrierTable: boolean = false;
 toggleTable(value: boolean) {
   console.log("Button clicked! Setting showCostTable to:", value);
   this.showCostTable = value;
@@ -2632,6 +2671,46 @@ services = [
     console.log('Final Cost Data:', this.costRows);
     this.showCostTable = false; // Table close karke wapas form par
   }
+  multiCarrierRows: any[] = [
+  { 
+    forwarder: 'CAVALIER', 
+    origin: 'EXWORK FOSHAN', 
+    currency: 'USD', 
+    airFreight: 2.25, 
+    fsc: 'INC.', 
+    airline: 'SQ', 
+    type: 'INDIRECT', 
+    cutoff: '10.02.2026', 
+    schedule: 'AFTER PICKUP, T/T 14 TO 16 DAYS', 
+    exWorks: 220, 
+    doCharges: 1500, // Excel mein DO wala column
+    ccFee: 1122.67, 
+    totalCost: 58756.25, 
+    remark: 'RATE IS VALID FOR GENERAL CARGO +100.0 KGS...' 
+  }
+];
+
+// Calculation update
+calculateMultiTotal(i: number) {
+  const r = this.multiCarrierRows[i];
+  // Note: Total cost logic depends on your business (Airfreight * Weight + others)
+  // Simple sum for now:
+  r.totalCost = (Number(r.airFreight) || 0) + (Number(r.exWorks) || 0) + (Number(r.doCharges) || 0) + (Number(r.ccFee) || 0);
+}
+addMultiCarrierRow() {
+  this.multiCarrierRows.push({ forwarder: '', origin: '', currency: 'USD', airFreight: 0, fsc: 'INC', airline: '', type: 'DIRECT', cutoff: '', schedule: '', exWorks: 0, ccFee: 0, totalCost: 0, remark: '' });
+}
+
+removeMultiCarrierRow(index: number) {
+  this.multiCarrierRows.splice(index, 1);
+}
+
+// calculateMultiTotal(index: number) {
+//   let row = this.multiCarrierRows[index];
+//   // Aap apne calculation logic ke hisaab se ise change kar sakte hain
+//   row.totalCost = (Number(row.airFreight) || 0) + (Number(row.exWorks) || 0) + (Number(row.ccFee) || 0);
+// }
+
 showRowModal = false;
 selectedInquiryId: any = null;
 

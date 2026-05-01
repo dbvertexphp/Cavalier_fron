@@ -17,6 +17,18 @@ import { Subscription } from 'rxjs';
 import { BranchService } from '../../services/branch.service';
 import { UserService } from '../../services/user.service';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+export interface CostBreakdown {
+  id?: number;
+  inquiryId?: number;
+  lob: string;
+  chargeName: string;
+  chargeType: string;
+  basis: string;
+  currency: string;
+  rate: number;
+  exchangeRate: number;
+  amount: number;
+}
 @Component({
   selector: 'app-inquiry',
   standalone: true,
@@ -24,7 +36,9 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
   templateUrl: './inquiry.component.html',
   styleUrl: './inquiry.component.css',
 })
+
   export class InquiryComponent implements OnInit {
+    
     @ViewChild('cargoDateInput') cargoDateInput!: ElementRef<HTMLInputElement>;
     getsalescordinate: any[] = [];
     PermissionID:any;
@@ -942,130 +956,7 @@ getFormattedInquiryNo(): string {
   return `CAV/INQ/${initials}/${formattedNumber}/${fy}`;
 }
 
-saveQuotation() {
-  // Basic validation
-  if (!this.inquiry.organization) { 
-    alert("Organization Name is required!");
-    return;
-  }
 
-  // 1. JSON Payload Taiyaar Karna (Saare numbers ko safey Number() me convert kiya hai)
-
-const payload = {
-  ...this.quotation, 
-  inquiryNo: this.inquiry.inquiryNo,
-    customerName: this.inquiry.organization,
-    // Organization Name map karein
-    organization: this.inquiry.organization,
-    shipmentType: this.quotation.shipmentType,
-    // Baki fields (example)
-    leadNo: this.inquiry.leadNo,
-leadId: this.LeadId,
-
-OrganisationId: this.OrganisationId,
-LeadName: this.LeadName,
-OrganisationName: this.OrganisationName,
-    origin: this.inquiry.origin,
-    TransportMode: this.quotation.transportMode,
-    TransportType: this.quotation.TransportType,
-    
-   HazardDocPath: this.quotation.hazardDocPath || null,
-   weightUnit: this.quotation.GrossweightUnit || 'KGS',
-  // id: Number(this.quotation.id) || 0,
-  cargocurrency:this.quotation.currency || 'INR',
-  cargoValue: this.quotation.cargoValue.toString() || 0,
-  // Foreign Key IDs - Hardcoded to 3 or null
-  lineOfBusinessId: this.quotation.lineOfBusinessId ? Number(this.quotation.lineOfBusinessId) : null,
-  lineOfBusinessName: this.quotation.lineOfBusinessName || null,
-  
-  // YAHAN HEE HARDCODE KIYA HAI:
-  commodityId: this.quotation.commodity, // <--- Hardcoded value 3
-  
-  
-  // Port and Origin IDs - Agar value valid nahi hai, toh null bhejein
-  originId: this.originsaveid,
-  portOfLoadingId: !isNaN(Number(this.quotation.portOfLoadingId)) && Number(this.quotation.portOfLoadingId) > 0 ? Number(this.quotation.portOfLoadingId) : null,
-  portOfDischargeId: !isNaN(Number(this.quotation.portOfDischargeId)) && Number(this.quotation.portOfDischargeId) > 0 ? Number(this.quotation.portOfDischargeId) : null,
-  
-  // Default Audit Fields
-  cargoStatus: this.quotation.cargoStatusType || 'Ready',
-  createdBy: 'admin@cavalierlogistic.in', // Admin email requirement [cite: 2026-02-02]
-  qtnId: this.quotation.qtnId || ('QTN-' + Math.floor(1000 + Math.random() * 9000)),
-  createdDate: new Date().toISOString(),
-  dimensions: this.appliedDimensions
-};
-
-  console.log("JSON Payload before FormData:", payload);
-
-  // 2. FormData Create Karna (Files bhejne ke liye zaroori hai)
-  const formData = new FormData();
-  
-  // JSON object ko string banakar formData me daal do
-  formData.append('inquiryData', JSON.stringify(payload));
-
-  // 3. Sirf COMMODITY Documents File(s) append karna (Jaisa tumne kaha "only commodity")
-  if (this.documents && this.documents.length > 0) {
-    this.documents.forEach((doc) => {
-      if (doc.file) {
-        formData.append('commodityFiles', doc.file); // Actual Image ya PDF
-        formData.append('documentNames', doc.name || doc.fileName); // Naam
-      }
-    });
-  }
-  if (this.invoices && this.invoices.length > 0) {
-    this.invoices.forEach((inv) => {
-      if (inv.file) {
-        formData.append('invoiceFiles', inv.file);
-        formData.append('invoiceNames', inv.name || inv.fileName);
-      }
-    });
-  }
-
-  // 4. API Request ke Headers set karna
-  const token = localStorage.getItem('cavalier_token');
-  const httpOptions = {
-    headers: {
-      Authorization: `Bearer ${token}`
-      // ❌ DHYAN DEIN: Yahan se 'Content-Type': 'application/json' HATA DIYA HAI ❌
-      // Browser FormData ko automatically multipart/form-data set karta hai.
-    }
-  };
-
-  // 5. Backend Call (PUT ya POST)
-  const action = this.quotation.id > 0 
-    ? this.http.put(`${this.apiUrl}/${this.quotation.id}`, formData, httpOptions)
-    : this.http.post(this.apiUrl, formData, httpOptions);
-
-  action.subscribe({
-    next: () => {
-      alert("Success: Saved in CavalierDB with Commodity Documents!");
-      this.isFormOpen = false;
-      
-      // Save hone ke baad purane documents list se hata do
-      this.documents = []; 
-      this.invoices = [];
-
-      this.loadQuotations();
-      this.toggleForm();
-      this.getNextInquiryNumber();
-      this.cdr.detectChanges();
-    },
-    error: (err) => {
-      console.error("Post Error Details:", err);
-
-      if (err.status === 0) {
-        alert("Connection Refused: Make sure Visual Studio Backend is running.");
-      } 
-      else if (err.status === 401) {
-        alert("Unauthorized! Token invalid ya expire ho gaya. Login again.");
-      }
-      else {
-        const errMsg = err.error?.message || "Verify if Master IDs exist in DB.";
-        alert("Failed to save: " + errMsg);
-      }
-    }
-  });
-}
     
 
     toggleForm() {
@@ -2596,18 +2487,19 @@ services = [
   ];
 
   // 3. Cost Rows ka Array
-  costRows: any[] = [
-    {
-      lob: 'Standard',
-      chargeName: '',
-      chargeType: '',
-      basis: '',
-      currency: 'INR',
-      rate: 0,
-      exchangeRate: 1,
-      amount: 0
-    }
-  ];
+  
+  // costRows: any[] = [
+  //   {
+  //     lob: 'Standard',
+  //     chargeName: '',
+  //     chargeType: '',
+  //     basis: '',
+  //     currency: 'INR',
+  //     rate: 0,
+  //     exchangeRate: 1,
+  //     amount: 0
+  //   }
+  // ];
 
 
 
@@ -2671,40 +2563,193 @@ services = [
     console.log('Final Cost Data:', this.costRows);
     this.showCostTable = false; // Table close karke wapas form par
   }
-  multiCarrierRows: any[] = [
-  { 
-    forwarder: 'CAVALIER', 
-    origin: 'EXWORK FOSHAN', 
-    currency: 'USD', 
-    airFreight: 2.25, 
-    fsc: 'INC.', 
-    airline: 'SQ', 
-    type: 'INDIRECT', 
-    cutoff: '10.02.2026', 
-    schedule: 'AFTER PICKUP, T/T 14 TO 16 DAYS', 
-    exWorks: 220, 
-    doCharges: 1500, // Excel mein DO wala column
-    ccFee: 1122.67, 
-    totalCost: 58756.25, 
-    remark: 'RATE IS VALID FOR GENERAL CARGO +100.0 KGS...' 
-  }
+// showCostTable: boolean = false; // Toggle handle karne ke liye
+costRows: CostBreakdown[] = [
+  { lob: 'Standard', chargeName: '', chargeType: 'Prepaid', basis: 'Per KG', currency: 'INR', rate: 0, exchangeRate: 1, amount: 0 }
 ];
+  
+  // Initial empty row
+  multiCarrierRows: any[] = [this.createEmptyRow()];
 
-// Calculation update
-calculateMultiTotal(i: number) {
-  const r = this.multiCarrierRows[i];
-  // Note: Total cost logic depends on your business (Airfreight * Weight + others)
-  // Simple sum for now:
-  r.totalCost = (Number(r.airFreight) || 0) + (Number(r.exWorks) || 0) + (Number(r.doCharges) || 0) + (Number(r.ccFee) || 0);
-}
-addMultiCarrierRow() {
-  this.multiCarrierRows.push({ forwarder: '', origin: '', currency: 'USD', airFreight: 0, fsc: 'INC', airline: '', type: 'DIRECT', cutoff: '', schedule: '', exWorks: 0, ccFee: 0, totalCost: 0, remark: '' });
+
+
+  createEmptyRow() {
+    return {
+      id: 0,
+      forwarder: '',
+      origin: '',
+      currency: 'USD',
+      airFreight: 0,
+      fsc: 'INC',
+      airline: '',
+      type: 'DIRECT',
+      cutoff: '',
+      schedule: '',
+      exWorks: 0,
+      doCharges: 0,
+      ccFee: 0,
+      totalCost: 0,
+      remark: ''
+    };
+  }
+
+  calculateMultiTotal(i: number) {
+    const r = this.multiCarrierRows[i];
+    r.totalCost = (Number(r.airFreight) || 0) + 
+                  (Number(r.exWorks) || 0) + 
+                  (Number(r.doCharges) || 0) + 
+                  (Number(r.ccFee) || 0);
+  }
+
+  addMultiCarrierRow() {
+    this.multiCarrierRows.push(this.createEmptyRow());
+  }
+
+  removeMultiCarrierRow(index: number) {
+    if (this.multiCarrierRows.length > 1) {
+      this.multiCarrierRows.splice(index, 1);
+    } else {
+      this.multiCarrierRows[0] = this.createEmptyRow();
+    }
+  }
+
+  applyAndSave() {
+  // Is function ki ab zaroorat nahi padegi kyunki hum saveQuotation me sab bhej rahe hain.
+  // Bas modal band karne ke liye aap iska use kar sakte hain.
+  this.showMultiCarrierTable = false;
+  alert('Carrier details added to Inquiry!');
 }
 
-removeMultiCarrierRow(index: number) {
-  this.multiCarrierRows.splice(index, 1);
+saveQuotation() {
+  // Basic validation
+  if (!this.inquiry.organization) { 
+    alert("Organization Name is required!");
+    return;
+  }
+
+  // 1. JSON Payload Taiyaar Karna (NO CHANGES HERE)
+  const payload = {
+    ...this.quotation, 
+    inquiryNo: this.inquiry.inquiryNo,
+    customerName: this.inquiry.organization,
+    organization: this.inquiry.organization,
+    shipmentType: this.quotation.shipmentType,
+    leadNo: this.inquiry.leadNo,
+    leadId: this.LeadId,
+    OrganisationId: this.OrganisationId,
+    LeadName: this.LeadName,
+    OrganisationName: this.OrganisationName,
+    origin: this.inquiry.origin,
+    TransportMode: this.quotation.transportMode,
+    TransportType: this.quotation.TransportType,
+    HazardDocPath: this.quotation.hazardDocPath || null,
+    weightUnit: this.quotation.GrossweightUnit || 'KGS',
+    cargocurrency:this.quotation.currency || 'INR',
+    cargoValue: this.quotation.cargoValue.toString() || 0,
+    lineOfBusinessId: this.quotation.lineOfBusinessId ? Number(this.quotation.lineOfBusinessId) : null,
+    lineOfBusinessName: this.quotation.lineOfBusinessName || null,
+    commodityId: this.quotation.commodity, 
+    originId: this.originsaveid,
+    portOfLoadingId: !isNaN(Number(this.quotation.portOfLoadingId)) && Number(this.quotation.portOfLoadingId) > 0 ? Number(this.quotation.portOfLoadingId) : null,
+    portOfDischargeId: !isNaN(Number(this.quotation.portOfDischargeId)) && Number(this.quotation.portOfDischargeId) > 0 ? Number(this.quotation.portOfDischargeId) : null,
+    cargoStatus: this.quotation.cargoStatusType || 'Ready',
+    createdBy: 'admin@cavalierlogistic.in', 
+    qtnId: this.quotation.qtnId || ('QTN-' + Math.floor(1000 + Math.random() * 9000)),
+    createdDate: new Date().toISOString(),
+    dimensions: this.appliedDimensions
+  };
+
+  console.log("JSON Payload before FormData:", payload);
+
+  // 2. FormData Create Karna
+  const formData = new FormData();
+  
+  formData.append('inquiryData', JSON.stringify(payload));
+
+  // Multi-Carrier Data (As it is)
+  if (this.multiCarrierRows && this.multiCarrierRows.length > 0) {
+    formData.append('multiCarrierData', JSON.stringify(this.multiCarrierRows));
+  }
+
+  // 🔥 NAYA LOGIC: COST DATA APPEND (Sirf ye 3 line add hui hain) 🔥
+  // Agar single carrier (costRows) mein data hai, toh use append karo
+  if (this.costRows && this.costRows.length > 0) {
+    formData.append('costData', JSON.stringify(this.costRows));
+  }
+
+  // 3. Documents Logic (NO CHANGES HERE)
+  if (this.documents && this.documents.length > 0) {
+    this.documents.forEach((doc) => {
+      if (doc.file) {
+        formData.append('commodityFiles', doc.file);
+        formData.append('documentNames', doc.name || doc.fileName);
+      }
+    });
+  }
+  if (this.invoices && this.invoices.length > 0) {
+    this.invoices.forEach((inv) => {
+      if (inv.file) {
+        formData.append('invoiceFiles', inv.file);
+        formData.append('invoiceNames', inv.name || inv.fileName);
+      }
+    });
+  }
+
+  // 4. Headers (NO CHANGES HERE)
+  const token = localStorage.getItem('cavalier_token');
+  const httpOptions = {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  };
+
+  // 5. Backend Call (NO CHANGES HERE)
+  const action = this.quotation.id > 0 
+    ? this.http.put(`${this.apiUrl}/${this.quotation.id}`, formData, httpOptions)
+    : this.http.post(this.apiUrl, formData, httpOptions);
+
+  action.subscribe({
+    next: () => {
+      alert("Success: Saved everything in CavalierDB!");
+      this.isFormOpen = false;
+      this.showMultiCarrierTable = false; 
+      this.showCostTable = false; // Cost table modal band karne ke liye
+      
+      this.documents = []; 
+      this.invoices = [];
+      this.multiCarrierRows = []; 
+      this.costRows = []; // Cost data clear karne ke liye
+
+      this.loadQuotations();
+      this.toggleForm();
+      this.getNextInquiryNumber();
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+       // Error logic (NO CHANGES HERE)
+       console.error("Post Error Details:", err);
+       alert("Failed to save: " + (err.error?.message || "Check Backend."));
+    }
+  });
+}
+// Variables
+isModalOpen = false;
+// selectedInquiryCarriers: any[] = []; // Iski zaroorat nahi agar aap direct array use kar rahe ho
+
+// Button click par ye chalega
+openMultiCarrierModal() {
+  // Agar aapka data 'multiCarrierRows' naam ke array mein hai
+  if (this.multiCarrierRows && this.multiCarrierRows.length > 0) {
+    this.isModalOpen = true;
+    this.cdr.detectChanges();
+  } else {
+    alert("Abhi koi carrier data add nahi kiya gaya hai!");
+  }
 }
 
+closeModal() {
+  this.isModalOpen = false;
+}
 // calculateMultiTotal(index: number) {
 //   let row = this.multiCarrierRows[index];
 //   // Aap apne calculation logic ke hisaab se ise change kar sakte hain

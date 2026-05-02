@@ -269,47 +269,68 @@ onCancel() {
   this.selectedBranchIndex = -1;
   // Form reset nahi kar rahe — user chahe to manually New click karega
 }
-// ==================== BRANCH SELECT KARNE PAR FORM FILL HO (UPDATED) ====================
-// ==================== SELECT BRANCH FOR EDIT ====================
-selectBranch(branch: any, index: number) {
-  this.isEditMode = true;
-  this.selectedBranchIndex = index;
 
-  this.branchName     = branch.branchName || '';
-  this.address        = branch.address || '';
-  this.area           = branch.area || '';
-  this.landmark       = branch.landmark || '';
-  this.country        = branch.country || '';
-  this.stateProvince  = branch.stateProvince || '';
-  this.city           = branch.city || '';
-  this.postalCode     = branch.postalCode || '';
-  this.telephone      = branch.telephone || '';
-  this.fax            = branch.fax || '';
-  this.website        = branch.website || '';
-  this.email          = branch.email || branch.emailAddress || '';
-this.isDefault = branch.isDefault || false;
-  // selectBranch method ke andar
-this.selectedLineOfBusiness = [];
+  selectBranch(branch: any, index: number) {
+    this.isEditMode = true;
+    this.selectedBranchIndex = index;
 
-if (branch.lobIdsList && Array.isArray(branch.lobIdsList) && branch.lobIdsList.length > 0) {
-  // Yeh code [18, 1002] ko use karke tumhari master list se asli objects nikalega
-  this.selectedLineOfBusiness = this.lineOfBusinessList.filter(lob => 
-    branch.lobIdsList.includes(lob.id)
-  );
-}   // Agar array aa raha hai
-// ya agar sirf ID aa raha hai toh alag logic likhna padega
+    // --- Branch Autofill ---
+    this.branchName     = branch.branchName || '';
+    this.address        = branch.address || '';
+    this.area           = branch.area || '';
+    this.landmark       = branch.landmark || '';
+    this.country        = branch.country || '';
+    this.stateProvince  = branch.stateProvince || '';
+    this.city           = branch.city || '';
+    this.postalCode     = branch.postalCode || '';
+    this.telephone      = branch.telephone || '';
+    this.fax            = branch.fax || '';
+    this.website        = branch.website || '';
+    this.email          = branch.email || branch.emailAddress || '';
+    this.isDefault      = branch.isDefault || false;
+    
+    this.selectedLineOfBusiness = [];
+    if (branch.lobIdsList && Array.isArray(branch.lobIdsList) && branch.lobIdsList.length > 0) {
+      this.selectedLineOfBusiness = this.lineOfBusinessList.filter(lob => 
+        branch.lobIdsList.includes(lob.id)
+      );
+    }  
 
-  this.contacts = [{
-    contactName: branch.contactName || '',
-    DesignationId: branch.designationId ?? null,
-    DepartmentId: branch.departmentId ?? null,
-    mobile: branch.mobile || '',
-    whatsapp: branch.whatsapp || '',
-    email: branch.emailId || branch.email || ''
-  }];
+    this.contacts = [{
+      contactName: branch.contactName || '',
+      DesignationId: branch.designationId ?? null,
+      DepartmentId: branch.departmentId ?? null,
+      mobile: branch.mobile || '',
+      whatsapp: branch.whatsapp || '',
+      email: branch.emailId || branch.email || ''
+    }];
 
-  this.cdr.detectChanges();
-}
+    // --- 🔥 AGENT AUTOFILL 🔥 ---
+    if (branch.agentData) {
+        this.agentBranchName = branch.agentData.agentBranchName || '';
+        this.agentAddress = branch.agentData.agentAddress || '';
+        this.agentArea = branch.agentData.agentArea || '';
+        this.agentLandmark = branch.agentData.agentLandmark || '';
+        this.agentCountry = branch.agentData.agentCountry || '';
+        this.agentState = branch.agentData.agentState || '';
+        this.agentCity = branch.agentData.agentCity || '';
+        this.agentPostalCode = branch.agentData.agentPostalCode || '';
+        this.agentTelephone = branch.agentData.agentTelephone || '';
+        this.agentFax = branch.agentData.agentFax || '';
+        this.agentWebsite = branch.agentData.agentWebsite || '';
+        this.agentEmail = branch.agentData.agentEmail || '';
+        
+        this.agentSelectedLineOfBusiness = [...(branch.agentData.agentSelectedLineOfBusiness || [])];
+        
+        // Deep copy of contacts array taaki UI update DB data ko affect na kare
+        this.agentContacts = JSON.parse(JSON.stringify(branch.agentData.agentContacts || [{ contactName: '', designationId: null, departmentId: null, mobile: '', whatsapp: '', email: '' }]));
+    } else {
+        // Agar DB mein is branch ka koi agent nahi mila, toh agent form khali kar do
+        this.resetAgentFormOnly();
+    }
+
+    this.cdr.detectChanges();
+  }
 public branchList: any[] = []; // Temporary branches yahan rahengi
 public branchName: string = ''; // Input field ke liye
 public isDefault: boolean = false;
@@ -635,7 +656,23 @@ addCurrentBranchIfValid(): boolean {
 
     // Agar pehli branch add ho rahi hai toh by-default true hogi, warna tumhara checkbox decide karega
     isDefault: this.branchList.length === 0 ? true : this.isDefault,
-    organizationId: this.selectedOrgId || 0
+    organizationId: this.selectedOrgId || 0,
+    agentData: {
+      agentBranchName: this.agentBranchName,
+      agentAddress: this.agentAddress,
+      agentArea: this.agentArea,
+      agentLandmark: this.agentLandmark,
+      agentCountry: this.agentCountry,
+      agentState: this.agentState,
+      agentCity: this.agentCity,
+      agentPostalCode: this.agentPostalCode,
+      agentTelephone: this.agentTelephone,
+      agentFax: this.agentFax,
+      agentWebsite: this.agentWebsite,
+      agentEmail: this.agentEmail,
+      agentSelectedLineOfBusiness: [...this.agentSelectedLineOfBusiness], // Copy
+      agentContacts: JSON.parse(JSON.stringify(this.agentContacts)) // Deep Copy taaki overwrite na ho
+    }
   };
 
   if (this.selectedBranchIndex >= 0) {
@@ -765,86 +802,77 @@ onAgentCountrySelectionChange() {
 // ==================== SAVE ALL BRANCHES (Add + Update) ====================
 // ==================== SAVE ALL BRANCHES (Add + Update) ====================
 saveAllLocalBranches(orgId: number) {
-  // 1. Sirf valid branches lo jinka naam bhara hua hai
-  const validBranches = this.branchList.filter(b => b.branchName?.trim());
+  
+    const validBranches = this.branchList.filter(b => b.branchName?.trim());
+    if (validBranches.length === 0) {
+      console.log("No branches to save.");
+      return;
+    }
 
-  if (validBranches.length === 0) {
-    console.log("No branches to save.");
-    return;
+    const payloadArray = validBranches.map((branch) => {
+      let finalLobIds = branch.LobIds || branch.lobIds || "";
+      const actualIndexInList = this.branchList.indexOf(branch);
+      if (actualIndexInList === this.selectedBranchIndex) {
+        finalLobIds = this.selectedLineOfBusiness.length > 0 
+          ? this.selectedLineOfBusiness.map(item => item.id).join(',') 
+          : "";
+      }
+
+      return {
+        Id: branch.id || 0,
+        BranchName: branch.branchName?.trim() || "",
+        OrganizationId: orgId,
+        LobIds: finalLobIds,
+        Address: branch.address?.trim() || "",
+        Area: branch.area?.trim() || "",
+        Landmark: branch.landmark?.trim() || "",
+        Country: branch.country?.trim() || "",
+        StateProvince: branch.stateProvince?.trim() || "",
+        City: branch.city?.trim() || "",
+        PostalCode: branch.postalCode?.trim() || "",
+        Telephone: branch.telephone?.trim() || "",
+        Fax: branch.fax?.trim() || "",
+        WebSite: branch.website?.trim() || "",
+        EmailAddress: branch.email?.trim() || branch.emailAddress?.trim() || "",
+        EmailId: branch.emailId?.trim() || branch.email?.trim() || "",
+        ContactName: branch.contactName?.trim() || "",
+        Mobile: branch.mobile?.trim() || "",
+        Whatsapp: branch.whatsapp?.trim() || "",
+        DesignationId: branch.designationId || 0,
+        DepartmentId: branch.departmentId || 0,
+        IsDefault: branch.isDefault || false,
+        IsDeactivated: false,
+        IsManager: false,
+        IsHOD: false,
+        IsSales: false,
+        IsMarketing: false
+      };
+    });
+
+    // 1️⃣ Pehle Branches Save hongi
+    this.http.post(`${environment.apiUrl}/OrgBranch/SaveBranches/${orgId}`, payloadArray).subscribe({
+      next: (res) => {
+        console.log(`✅ Branches saved successfully. Fetching new Branch IDs...`);
+        
+        // 2️⃣ Nayi (Real) Branch IDs database se mangwayein
+        this.http.get<any>(`${environment.apiUrl}/OrgBranch/GetByOrg/${orgId}`).subscribe({
+            next: (freshRes) => {
+                const freshBranches = freshRes.branches || []; // Real branches with IDs
+                // 3️⃣ Nayi Branch IDs ke saath Agents ko save karein
+                this.saveAllAgentsForBranches(orgId, freshBranches);
+            },
+            error: (err) => {
+                console.error("Failed to fetch fresh branch IDs", err);
+                
+            }
+        });
+      },
+      error: (err) => {
+        console.error(`❌ Failed to save branches`, err);
+        alert("Failed to save branches. Please check console.");
+      }
+    });
   }
-
-  // 2. forEach ki jagah map() use karke Array of Objects (Payload Array) banao
-  const payloadArray = validBranches.map((branch) => {
-    
-    // Har branch ka apna LOB nikalne ka logic
-    let finalLobIds = branch.LobIds || branch.lobIds || "";
-
-    // Agar loop wali branch wahi hai jo abhi screen par open hai, 
-    // toh screen wala (selectedLineOfBusiness) data lo
-    const actualIndexInList = this.branchList.indexOf(branch);
-    if (actualIndexInList === this.selectedBranchIndex) {
-      finalLobIds = this.selectedLineOfBusiness.length > 0 
-        ? this.selectedLineOfBusiness.map(item => item.id).join(',') 
-        : "";
-    }
-
-    return {
-      Id: branch.id || 0,
-      BranchName: branch.branchName?.trim() || "",
-      OrganizationId: orgId,
-
-      // 🔥 Ab har branch apna alag LOB save karegi
-      LobIds: finalLobIds,
-
-      Address: branch.address?.trim() || "",
-      Area: branch.area?.trim() || "",
-      Landmark: branch.landmark?.trim() || "",
-      Country: branch.country?.trim() || "",
-      StateProvince: branch.stateProvince?.trim() || "",
-      City: branch.city?.trim() || "",
-      PostalCode: branch.postalCode?.trim() || "",
-
-      Telephone: branch.telephone?.trim() || "",
-      Fax: branch.fax?.trim() || "",
-      WebSite: branch.website?.trim() || "",
-      EmailAddress: branch.email?.trim() || branch.emailAddress?.trim() || "",
-      EmailId: branch.emailId?.trim() || branch.email?.trim() || "",
-
-      ContactName: branch.contactName?.trim() || "",
-      Mobile: branch.mobile?.trim() || "",
-      Whatsapp: branch.whatsapp?.trim() || "",
-
-      // 🔥 .NET 400 error se bachne ke liye null ko 0 mein convert karna zaroori hai
-      DesignationId: branch.designationId || 0,
-      DepartmentId: branch.departmentId || 0,
-
-      IsDefault: branch.isDefault || false,
-      IsDeactivated: false,
-      IsManager: false,
-      IsHOD: false,
-      IsSales: false,
-      IsMarketing: false
-    };
-  });
-
-  console.log(`→ Saving ${payloadArray.length} Branches as Array:`, payloadArray);
-
-  // 3. EK HI API CALL mein poora array bhejo
-  this.http.post(`${environment.apiUrl}/OrgBranch/SaveBranches/${orgId}`, payloadArray).subscribe({
-    next: (res) => {
-      console.log(`✅ All branches saved successfully`);
-      
-      // Success hone par yahan redirect karein
-      // (Aap chahein toh Angular Router use kar sakte hain: this.router.navigate(['/dashboard/organization-add']); )
-      window.location.href = "/dashboard/organization-add";
-    },
-    error: (err) => {
-      console.error(`❌ Failed to save branches`, err);
-      console.log("Full error:", err.error);
-      alert("Failed to save branches. Please check console.");
-    }
-  });
-}
 // Ek chota sa helper function saare fields khali karne ke liye
 resetFormFields() {
   this.orgName = '';
@@ -996,114 +1024,132 @@ loadestination(){
 };
 
 saveOrganization() {
-  if (!this.orgName?.trim()) {
-    alert("❌ Organization Name is required!");
-    return;
-  }
+    if (!this.orgName?.trim()) { alert("❌ Organization Name is required!"); return; }
 
-  // 🔥 NAYA LOGIC: Agar branch ka naam likha hai par Save Data click nahi kiya
-  if (this.branchName && this.branchName.trim() !== '') {
-    const isBranchValid = this.addCurrentBranchIfValid();
-    if (!isBranchValid) {
-      return; 
+    if (this.branchName && this.branchName.trim() !== '') {
+      const isBranchValid = this.addCurrentBranchIfValid();
+      if (!isBranchValid) return; 
     }
-  }
+    if (this.branchList.length === 0) { alert("❌ Please add at least one branch!"); return; }
 
-  if (this.branchList.length === 0) {
-    alert("❌ Please add at least one branch!");
-    return;
-  }
+    const payload = { Id: this.selectedOrgId || 0, OrgName: this.orgName.trim(), Alias: this.alias || '', SelectedRoles: this.selectedRoles.join(',') };
+    const apiUrl = this.isOrgEditMode && this.selectedOrgId ? `${environment.apiUrl}/Organization/update` : `${environment.apiUrl}/Organization/save`;
 
-  const payload = {
-    Id: this.selectedOrgId || 0,
-    OrgName: this.orgName.trim(),
-    Alias: this.alias || '',
-    SelectedRoles: this.selectedRoles.join(',')
-  };
+    this.http.post(apiUrl, payload).subscribe({
+      next: (res: any) => {
+        const finalOrgId = res?.id || res?.data?.id || res?.Id || this.selectedOrgId || 0;
+        if (finalOrgId > 0) {
+          this.selectedOrgId = finalOrgId;
+          
+          // 🔥 YAHAN SIRF BRANCH SAVE CALL HOGA, AGENT USKE ANDAR CALL HOGA
+          this.saveAllLocalBranches(finalOrgId); 
 
-  const apiUrl = this.isOrgEditMode && this.selectedOrgId 
-    ? `${environment.apiUrl}/Organization/update` 
-    : `${environment.apiUrl}/Organization/save`;
-
-  this.http.post(apiUrl, payload).subscribe({
-    next: (res: any) => {
-      const finalOrgId = res?.id || res?.data?.id || res?.Id || this.selectedOrgId || 0;
-
-      if (finalOrgId > 0) {
-        this.selectedOrgId = finalOrgId;
-
-        // AGENT aur BRANCHES save karo
-        this.saveAgentWithOrganisation(finalOrgId);
-        this.saveAllLocalBranches(finalOrgId); 
-
-        alert(this.isOrgEditMode 
-          ? "✅ Organization Updated Successfully!" 
-          : "✅ Organization + Branches Saved Successfully!");
-      }
-     
-    },
-    error: (err) => {
-      console.error("Organization Save/Update Error:", err);
-      alert(this.isOrgEditMode ? "❌ Failed to Update Organization" : "❌ Failed to Save Organization");
-    }
-  });
-}
-// ==================== SAVE AGENT WITH ORGANISATION ID ====================
-saveAgentWithOrganisation(orgId: number) {
-
-  if (!this.agentBranchName?.trim()) {
-    console.warn("⚠️ Agent Branch Name is empty, skipping agent save");
-    return;
-  }
-
-  const agentPayload = {
-    organisationId: orgId,                    // ← Dynamic OrganisationId
-    
-    // 🔥 UPDATE: Array se IDs nikaal kar comma se join karna
-    lineOfBusinessId: this.agentSelectedLineOfBusiness && this.agentSelectedLineOfBusiness.length > 0 
-      ? this.agentSelectedLineOfBusiness.map(item => item.id).join(',') 
-      : "",
-      
-    branchName: this.agentBranchName.trim(),
-    isDefault: this.agentIsDefault,
-    isDeactive: this.agentIsDeactive,
-
-    address: this.agentAddress?.trim() || '',
-    area: this.agentArea?.trim() || '',
-    landmark: this.agentLandmark?.trim() || '',
-    country: this.agentCountry?.trim() || '',
-    state: this.agentState?.trim() || '',
-    city: this.agentCity?.trim() || '',
-    postalCode: this.agentPostalCode?.trim() || '',
-
-    telephone: this.agentTelephone?.trim() || '',
-    fax: this.agentFax?.trim() || '',
-    website: this.agentWebsite?.trim() || '',
-    email: this.agentEmail?.trim() || '',
-
-    contacts: this.agentContacts.map(contact => ({
-      contactName: contact.contactName?.trim() || '',
-      designationId: contact.designationId || '',
-      departmentId: contact.departmentId || '',
-      mobile: contact.mobile?.trim() || '',
-      whatsapp: contact.whatsapp?.trim() || '',
-      email: contact.email?.trim() || ''
-    }))
-  };
-
-  console.log("🔥 Sending Agent Payload with OrgId:", agentPayload);
-
-  this.http.post(`${environment.apiUrl}/OrganisationAgent/SaveAgent`, agentPayload)
-    .subscribe({
-      next: (res) => {
-        console.log("✅ Agent + Contacts Saved Successfully!", res);
+          alert(this.isOrgEditMode ? "✅ Organization Updated Successfully!" : "✅ Organization + Branches Saved Successfully!");
+        }
       },
-      error: (err) => {
-        console.error("❌ Failed to save Agent:", err);
-        // alert("Organization saved but Agent save failed!"); // optional
+      error: (err) => alert(this.isOrgEditMode ? "❌ Failed to Update Organization" : "❌ Failed to Save Organization")
+    });
+  }
+// ==================== SAVE AGENT WITH ORGANISATION ID ====================
+ 
+// 🔥 Puraane saveAgentWithOrganisation() ko is naye function se Replace kar do
+// 🔥 ==================== NEW METHOD: SAVE MULTIPLE AGENTS (WITH ARRAY LOG) ====================
+ saveAllAgentsForBranches(orgId: number, freshBranchesFromDB: any[]) {
+    const allAgentsPayloads: any[] = [];
+    let agentsToSaveCount = 0;
+    let agentsSavedCount = 0;
+
+    this.branchList.forEach(localBranch => {
+      if (localBranch.agentData && localBranch.agentData.agentBranchName?.trim()) {
+        
+        // 🔥 MAGIC: Local branch ke naam se Database ki fresh branch ko dhundo taaki REAL ID mil sake
+        const matchedDbBranch = freshBranchesFromDB.find(
+            (dbB: any) => dbB.branchName?.toLowerCase() === localBranch.branchName?.toLowerCase()
+        );
+
+        // Agar mil gayi toh Database ID use karo, warna old ID
+        const realBranchId = matchedDbBranch ? (matchedDbBranch.id || matchedDbBranch.branchId) : localBranch.id;
+
+        const agentPayload = {
+          organisationId: orgId,
+          branchId: realBranchId, // 🔥 AB YAHAN ZERO NAHI, REAL DATABASE ID JAYEGI!
+          
+          lineOfBusinessId: localBranch.agentData.agentSelectedLineOfBusiness && localBranch.agentData.agentSelectedLineOfBusiness.length > 0 
+            ? localBranch.agentData.agentSelectedLineOfBusiness.map((item:any) => item.id).join(',') 
+            : "",
+            
+          branchName: localBranch.agentData.agentBranchName.trim(),
+          address: localBranch.agentData.agentAddress?.trim() || '',
+          area: localBranch.agentData.agentArea?.trim() || '',
+          landmark: localBranch.agentData.agentLandmark?.trim() || '',
+          country: localBranch.agentData.agentCountry?.trim() || '',
+          state: localBranch.agentData.agentState?.trim() || '',
+          city: localBranch.agentData.agentCity?.trim() || '',
+          postalCode: localBranch.agentData.agentPostalCode?.trim() || '',
+          telephone: localBranch.agentData.agentTelephone?.trim() || '',
+          fax: localBranch.agentData.agentFax?.trim() || '',
+          website: localBranch.agentData.agentWebsite?.trim() || '',
+          email: localBranch.agentData.agentEmail?.trim() || '',
+
+         contacts: localBranch.agentData.agentContacts.map((contact:any) => ({
+            contactName: contact.contactName?.trim() || '',
+            
+            // 🔥 FIX: Backend ko strictly string chahiye, isliye .toString() lagaya hai
+            designationId: contact.designationId ? contact.designationId.toString() : "",
+            departmentId: contact.departmentId ? contact.departmentId.toString() : "",
+            
+            mobile: contact.mobile?.trim() || '',
+            whatsapp: contact.whatsapp?.trim() || '',
+            email: contact.email?.trim() || ''
+          }))
+        };
+
+        allAgentsPayloads.push(agentPayload);
       }
     });
-}
+if (allAgentsPayloads.length === 0) {
+        alert("✅ Organization and Branches saved successfully!");
+        window.location.href = "/dashboard/organization-add";
+        return;
+    }
+    const totalAgentsToSave = allAgentsPayloads.length;
+    let agentsSavedSoFar = 0;
+    // if (allAgentsPayloads.length === 0) {
+    //     window.location.href = "/dashboard/organization-add";
+    //     return;
+    // }
+
+    console.log("🚀 ======== SABHI AGENTS KA DATA (WITH REAL BRANCH ID) ======== 🚀");
+    console.table(allAgentsPayloads);
+
+    // Saare agents ko backend par bhej do
+    allAgentsPayloads.forEach(payload => {
+        agentsToSaveCount++;
+        this.http.post(`${environment.apiUrl}/OrganisationAgent/SaveAgent`, payload).subscribe({
+            next: () => {
+                agentsSavedCount++;
+               this.checkAndRedirect(agentsSavedSoFar, totalAgentsToSave);
+            },
+            error: () => {
+               agentsSavedSoFar++; 
+                this.checkAndRedirect(agentsSavedSoFar, totalAgentsToSave);
+            }
+        });
+    });
+  }
+  checkAndRedirect(savedCount: number, totalCount: number) {
+      if (savedCount === totalCount) {
+          alert("✅ Organization, Branches, and Agents Saved Successfully!");
+          
+          // Page Redirect/Reload yahan hoga sabkuch completely finish hone ke baad
+          window.location.href = "/dashboard/organization-add";
+          
+          // Note: Agar aap angular ka smooth reload chahte ho bina page refresh ke,
+          // toh upar wali line hata kar ye 2 line likh dena:
+          // this.isFormOpen = false;
+          // this.getOrgList();
+      }
+  }
 editOrg(org: any) {
   console.log('Editing Organization:', org);
 
@@ -1142,145 +1188,110 @@ editOrg(org: any) {
 // ==================== GET BRANCHES BY ORGANIZATION (FULL MAPPING) ====================
 // ==================== GET BRANCHES BY ORGANIZATION (FULL MAPPING) ====================
 getBranchesByOrg(orgId: number) {
-  const url = `${environment.apiUrl}/OrgBranch/GetByOrg/${orgId}`;
+    const url = `${environment.apiUrl}/OrgBranch/GetByOrg/${orgId}`;
+    this.http.get<any>(url).subscribe({
+      next: (res) => {
+        if (res && res.branches && Array.isArray(res.branches) && res.branches.length > 0) {
+          
+          // 1. Pehle Branches map karo
+          this.branchList = res.branches.map((b: any) => ({
+            id: b.id,                                          
+            branchName: b.branchName || '',
+            organizationId: b.organizationId,
+            address: b.address || '',
+            area: b.area || '',
+            landmark: b.landmark || '',
+            country: b.country || '',
+            stateProvince: b.stateProvince || '',
+            city: b.city || '',
+            postalCode: b.postalCode || '',
+            telephone: b.telephone || '',
+            fax: b.fax || '',
+            website: b.webSite || b.website || '',
+            email: b.emailAddress || b.email || '',
+            contactName: b.contactName || '',
+            mobile: b.mobile || '',
+            whatsapp: b.whatsapp || '',
+            emailId: b.emailId || b.emailAddress || '',
+            lobIds: b.lobIds || null,
+            lobIdsList: b.lobIds ? b.lobIds.split(',').map((id: string) => parseInt(id.trim(), 10)).filter((id: number) => !isNaN(id)) : [],
+            designationId: b.designationId ? Number(b.designationId) : null,
+            departmentId: b.departmentId ? Number(b.departmentId) : null,
+            isDefault: b.isDefault || false,
+            agentData: null // Abhi khali rakho, niche agent ko map karenge
+          })).sort((a: any, b: any) => (b.isDefault === a.isDefault ? 0 : b.isDefault ? 1 : -1));
 
-  console.log("Fetching branches and agents from URL:", url);
+          // 2. 🔥 AGENTS KO UNKI BRANCH KE SATH JODO 🔥
+          if (res.agents && Array.isArray(res.agents)) {
+            res.agents.forEach((agent: any) => {
+                // Agent me jo branchId hai, us se branch dhundo
+                const targetBranch = this.branchList.find((b: any) => b.id === agent.branchId);
+                
+                if (targetBranch) {
+                    let mappedLob: any[] = [];
+                    if (agent.lineOfBusinessId && this.lineOfBusinessList && this.lineOfBusinessList.length > 0) {
+                        const lobIds = agent.lineOfBusinessId.split(',').map((id: string) => id.trim());
+                        mappedLob = this.lineOfBusinessList.filter((lob: any) => lobIds.includes(lob.id.toString()));
+                    }
+                    
+                    let mappedContacts = [{ contactName: '', designationId: null, departmentId: null, mobile: '', whatsapp: '', email: '' }];
+                    
+                    if (agent.agentContacts && agent.agentContacts.length > 0) {
+                        mappedContacts = agent.agentContacts.map((c: any) => ({
+                            contactName: c.contactName || '',
+                            // Dropdown me autofill hone ke liye String ko Number me convert karna zaroori hai!
+                            designationId: c.designationId ? Number(c.designationId) : null,
+                            departmentId: c.departmentId ? Number(c.departmentId) : null,
+                            mobile: c.mobile || '',
+                            whatsapp: c.whatsapp || '',
+                            email: c.email || ''
+                        }));
+                    }
+                    
+                    // Branch ke andar 'agentData' save kar do
+                    targetBranch.agentData = {
+                        agentBranchName: agent.branchName || '',
+                        agentAddress: agent.address || '',
+                        agentArea: agent.area || '',
+                        agentLandmark: agent.landmark || '',
+                        agentCountry: agent.country || '',
+                        agentState: agent.state || '',
+                        agentCity: agent.city || '',
+                        agentPostalCode: agent.postalCode || '',
+                        agentTelephone: agent.telephone || '',
+                        agentFax: agent.fax || '',
+                        agentWebsite: agent.website || '',
+                        agentEmail: agent.email || '',
+                        agentSelectedLineOfBusiness: mappedLob,
+                        agentContacts: mappedContacts
+                    };
+                }
+            });
+          }
 
-  // Type any kar diya taaki response object ko read kar sakein
-  this.http.get<any>(url).subscribe({
-    next: (res) => {
-      console.log("✅ Raw response received from API:", res);
-
-      // ==========================================
-      // 1. BRANCHES WALA LOGIC (As it is)
-      // ==========================================
-      if (res && res.branches && Array.isArray(res.branches) && res.branches.length > 0) {
-        
-        this.branchList = res.branches.map((b: any) => ({
-          id: b.id,                                  
-          branchName: b.branchName || '',
-          organizationId: b.organizationId,
-          address: b.address || '',
-          area: b.area || '',
-          landmark: b.landmark || '',
-          country: b.country || '',
-          stateProvince: b.stateProvince || '',
-          city: b.city || '',
-          postalCode: b.postalCode || '',
-          telephone: b.telephone || '',
-          fax: b.fax || '',
-          website: b.webSite || b.website || '',
-          email: b.emailAddress || b.email || '',
-          contactName: b.contactName || '',
-          mobile: b.mobile || '',
-          whatsapp: b.whatsapp || '',
-          emailId: b.emailId || b.emailAddress || '',
-          lobIds: b.lobIds || null,
-          lobIdsList: b.lobIds 
-            ? b.lobIds.split(',').map((id: string) => parseInt(id.trim(), 10)).filter((id: number) => !isNaN(id))
-            : [],
-          designationId: b.designationId || null,
-          departmentId: b.departmentId || null,
-          isDefault: b.isDefault || false,
-          isDeactivated: b.isDeactivated || false,
-          isManager: b.isManager || false,
-          isHOD: b.isHOD || false,
-          isSales: b.isSales || false,
-          isMarketing: b.isMarketing || false,
-          organization: b.organization,
-          designation: b.designation,
-          department: b.department,
-          companyService: b.companyService
-        }))
-        // Default branch ko top (index 0) par laane ke liye
-        .sort((a: any, b: any) => (b.isDefault === a.isDefault ? 0 : b.isDefault ? 1 : -1));
-
-        console.log("✅ branchList ready for sidebar:", this.branchList);
-
-        if (this.branchList.length > 0) {
-          this.selectBranch(this.branchList[0], 0);
+          // 3. Sab map hone ke baad pehli branch select kar lo (Is-se UI me autofill trigger hoga)
+          if (this.branchList.length > 0) {
+            this.selectBranch(this.branchList[0], 0);
+          }
+          
+        } else {
+          this.branchList = [];
+          this.resetBranchFormOnly();
+          this.resetAgentFormOnly();
+          this.isEditMode = false;
         }
-
-      } else {
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error("Failed to fetch organization data", err);
         this.branchList = [];
-        console.log("No branches found.");
         this.resetBranchFormOnly();
+        this.resetAgentFormOnly();
         this.isEditMode = false;
+        this.cdr.detectChanges();
       }
-
-      // ==========================================
-      // 2. AGENTS WALA LOGIC (Naya Logic)
-      // ==========================================
-      if (res && res.agents && Array.isArray(res.agents) && res.agents.length > 0) {
-        console.log("✅ Agents received from API:", res.agents);
-        
-        // Pura list save karne ke liye (Agar future me use ho)
-        
-
-        // Pehle agent ka data utha kar form fields me bind kar rahe hain
-        const agent = res.agents[0];
-        
-        this.agentBranchName = agent.branchName || '';
-        this.agentAddress = agent.address || '';
-        this.agentArea = agent.area || '';
-        this.agentLandmark = agent.landmark || '';
-        this.agentCountry = agent.country || '';
-        this.agentState = agent.state || '';
-        this.agentCity = agent.city || '';
-        this.agentPostalCode = agent.postalCode || '';
-        this.agentTelephone = agent.telephone || '';
-        this.agentFax = agent.fax || '';
-        this.agentWebsite = agent.website || '';
-        this.agentEmail = agent.email || '';
-        
-        // Contact Details Map Karna
-        if (agent.agentContacts && agent.agentContacts.length > 0) {
-            this.agentContacts = agent.agentContacts.map((c: any) => ({
-                contactName: c.contactName || '',
-                designationId: c.designationId || null,
-                departmentId: c.departmentId || null,
-                mobile: c.mobile || '',
-                whatsapp: c.whatsapp || '',
-                email: c.email || ''
-            }));
-        } else {
-            // Agar contact nahi aaya toh ek khali row bana do HTML table ke liye
-            this.agentContacts = [{
-                contactName: '', designationId: null, departmentId: null, mobile: '', whatsapp: '', email: ''
-            }];
-        }
-
-        // Line Of Business Id string ko dropdown objects me convert karna
-        if (agent.lineOfBusinessId) {
-            const lobIds = agent.lineOfBusinessId.split(',').map((id: string) => id.trim());
-            
-            // `this.lineOfBusinessList` aapki master list honi chahiye jisme se map hoga
-            if (this.lineOfBusinessList && this.lineOfBusinessList.length > 0) {
-                 this.agentSelectedLineOfBusiness = this.lineOfBusinessList.filter((lob: any) => 
-                     lobIds.includes(lob.id.toString())
-                 );
-            }
-        } else {
-             this.agentSelectedLineOfBusiness = [];
-        }
-
-      } else {
-         // Agar API se Agent nahi mila toh variables clear kar do
-         this.resetAgentFormOnly(); 
-      }
-
-      this.cdr.detectChanges();
-    },
-    error: (err) => {
-      console.error("❌ Error loading branches & agents:", err);
-      this.branchList = [];
-      this.resetBranchFormOnly();
-      this.resetAgentFormOnly();
-      this.isEditMode = false;
-      this.cdr.detectChanges();
-    }
-  });
-}
+    });
+  }
 
 // ⬇️ Ye helper function add kar lena taaki reset karna aasan ho
 resetAgentFormOnly() {

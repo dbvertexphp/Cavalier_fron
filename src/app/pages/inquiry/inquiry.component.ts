@@ -43,6 +43,7 @@ export interface CostBreakdown {
     getsalescordinate: any[] = [];
     PermissionID:any;
     LeadId:number=0;
+    originpinCode:any;
     OrganisationId:number=0;
     invoices: any[] = [];
   isInvoiceModalOpen = false;
@@ -52,6 +53,8 @@ documents: any[] = [];
   LeadName:string='';
   // Preview ke liye nayi variables
   isPreviewModalOpen = false;
+  agentDetail: any[] = [];
+  selectedEmails: string[] = [];
   currentPreviewUrl: SafeResourceUrl | null = null;
     showincoterms:string="";
     selectcommodityvalue:string="";
@@ -677,7 +680,7 @@ getShipmentTypes() {
        // --- Fetch Origins List --
   fetchOrigins() {
     // API Path: /api/Origin
-    const url = `${environment.apiUrl}/Origin`;
+    const url = `${environment.apiUrl}/PortSetup`;
     this.http.get<any[]>(url).subscribe(data => {
       this.origins = data;
       console.log(data)
@@ -702,30 +705,76 @@ fetchCompanyServices() {
 onOriginSearchInput() {
   const searchTerm = (this.inquiry.origin || '').toString().trim().toLowerCase();
 
-  // Agar search box khali hai
   if (searchTerm === '') {
     this.showOriginDropdown = false;
     this.filteredOrigins = [];
     return;
   }
 
-  // Filter karo
   this.filteredOrigins = this.origins.filter(org => {
-    const originName = org.name || org.originName || org.OriginName || org.portName || '';
-    return originName.toString().toLowerCase().includes(searchTerm);
+    // API response ke mutabiq 'portName' use karein
+    const originName = org.portName || ''; 
+    return originName.toLowerCase().includes(searchTerm);
   });
 
-  // Dropdown hamesha show karo jab search kar rahe ho
   this.showOriginDropdown = true;
 }
 
 
   // --- Selection Logic ---
-  selectOrigin(origin: any) {
-    this.originsaveid=origin.id;
-    this.inquiry.origin = origin.name; // Ya jo bhi field origin ka naam ho (e.g., org.name)
-    this.showOriginDropdown = false;
+ selectOrigin(origin: any) {
+  // 1. Basic UI aur Selection update
+  this.originsaveid = origin.id;
+  this.originpinCode = origin.pinCode;
+  this.inquiry.origin = origin.portName; 
+  this.showOriginDropdown = false;
+
+  console.log("Selected Origin pinCode:", this.originpinCode);
+
+  // 2. Agar pinCode valid hai toh API call karein
+  if (this.originpinCode) {
+    this.fetchAgentByPostCode(this.originpinCode);
+  } else {
+    this.agentDetail = []; // Clear array if no pincode
+    console.warn("Pincode missing for this origin!");
   }
+}
+fetchAgentByPostCode(postCode: string | number) {
+  const url = `${environment.apiUrl}/OrgBranch/GetByPostCodeAgent/${postCode}`;
+  
+  this.http.get<any[]>(url).subscribe({
+    next: (res) => {
+      this.agentDetail = res; // API ka pura data array mein save
+      
+      // Force change detection agar zarurat ho
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error("Agent fetch fail ho gaya bhai:", err);
+      this.agentDetail = []; // Error aane par array clear
+    }
+  });
+}
+onAgentSelect(event: any, agent: any) {
+  const email = agent.email || agent.Email; // Case sensitivity handle karne ke liye
+
+  if (!email) {
+    console.warn("Email Not Found OF This Agent");
+    return;
+  }
+
+  if (event.target.checked) {
+    // 1. Agar check kiya toh array mein dalo
+    this.selectedEmails.push(email);
+  
+  } else {
+    // 2. Agar uncheck kiya toh array se hatao
+    this.selectedEmails = this.selectedEmails.filter(e => e !== email);
+    
+  }
+
+  // Final array jo aapko send mail ke liye chahiye
+}
     fetchLeads() {
     const url = `${environment.apiUrl}/Leads`;
     this.http.get<any[]>(url).subscribe(data => {

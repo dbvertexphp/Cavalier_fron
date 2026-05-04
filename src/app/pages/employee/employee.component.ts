@@ -590,6 +590,16 @@ toggleRemoteStatus(emp: any) {
     console.error("PDF Error:", error);
   }
 }
+getBranchNames(emp: any): string {
+  if (emp.userBranches && emp.userBranches.length > 0) {
+    // Har ek userBranch object ke andar se branchName extract karke join karna
+    return emp.userBranches
+      .map((ub: any) => ub.branch?.branchName)
+      .filter((name: string) => name) // Agar koi name null ho toh filter ho jaye
+      .join(', ');
+  }
+  return 'N/A';
+}
 // --- EXPORT & PRINT LOGIC START ---
 
   // 1. EXCEL DOWNLOAD (Pura Data interface ke hisaab se)

@@ -465,9 +465,18 @@ landmark: string = '';
 
  ngOnInit() {
   this.route.queryParams.subscribe(params => {
-    if (params['highlightId']) {
+    const highlightId = params['highlightId'];
+    
+    if (highlightId) {
+      this.highlightedOrgId = +highlightId;
+      
+      // Step A: Puri list load karo (takki background mein table dikhe)
       this.getOrgList();
-      this.highlightedOrgId = +params['highlightId']; // String to Number
+
+      // Step B: Direct backend se single record fetch karo Edit mode ke liye
+      this.fetchAndEditOrg(this.highlightedOrgId);
+    } else {
+      this.getOrgList();
     }
   });
   const state = history.state;           // ya this.router.lastSuccessfulNavigation?.extras?.state
@@ -1183,7 +1192,17 @@ editOrg(org: any) {
 
   this.cdr.detectChanges();
 }
-
+fetchAndEditOrg(id: number) {
+  this.http.get(`${environment.apiUrl}/Organization/${id}`).subscribe({
+    next: (data: any) => {
+      // Backend se data aane ke baad editOrg call karo
+      this.editOrg(data);
+    },
+    error: (err) => {
+      console.error('Error fetching organization details', err);
+    }
+  });
+}
 // Ye function alag se niche add kar dena
 // ==================== GET BRANCHES BY ORGANIZATION (FULL MAPPING) ====================
 // ==================== GET BRANCHES BY ORGANIZATION (FULL MAPPING) ====================

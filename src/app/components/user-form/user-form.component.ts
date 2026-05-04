@@ -340,7 +340,16 @@ createExperienceGroup(): FormGroup {
     this.userService.getDepartments().subscribe(res => this.departments = res);
     this.userService.getDesignations().subscribe(res => this.designations = res);
     this.userService.getRoles().subscribe(res => this.roles = res);
-    this.userService.getUsers('onlyuserdata').subscribe(res => this.hods = res);
+    // ngOnInit ya jahan bhi load karna ho
+this.userService.getHodList().subscribe({
+  next: (res) => {
+    this.hods = res; 
+    console.log('HOD List Loaded:', res);
+  },
+  error: (err) => {
+    console.error('HOD load error:', err);
+  }
+});
     this.userService.getTeams().subscribe(res => this.teams = res);
   }
 

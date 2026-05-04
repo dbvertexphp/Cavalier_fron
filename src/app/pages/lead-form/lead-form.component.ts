@@ -99,9 +99,20 @@ goToPage(page: number) {
 
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
-    if (params['highlightId']) {
+    const highlightId = params['highlightId'];
+
+    if (highlightId) {
+      // 1. Highlight ID set karo table ke liye
+      this.highlightedLeadId = +highlightId;
+
+      // 2. Puri list load karo background mein
       this.loadLeads();
-      this.highlightedLeadId = +params['highlightId']; // String to Number
+
+      // 3. 🔥 Form auto-fill aur open karne ke liye function call
+      this.onEditLead(this.highlightedLeadId);
+    } else {
+      // Agar highlightId nahi hai toh sirf list load karo
+      this.loadLeads();
     }
   });
     this.loadBranchess()

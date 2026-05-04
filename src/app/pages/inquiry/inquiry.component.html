@@ -2746,119 +2746,185 @@
                 />
               </div>
               <!-- Button -->
-<!-- SINGLE CARRIER DISPLAY -->
-<!-- SINGLE CARRIER DISPLAY -->
-<div *ngIf="quotation.isDirect && costRows && costRows.length > 0" class="mt-4 mb-10 animate-in fade-in duration-300">
-    <h4 class="text-lg font-black text-[#4a3f3f] uppercase tracking-tighter italic mb-4 border-l-4 border-blue-600 pl-3">
-        <i class="fa fa-calculator mr-2 text-blue-600"></i> Cost Breakdown (Single Carrier)
-    </h4>
+<div class="flex flex-wrap gap-4 mb-6">
+    <!-- MULTI-CARRIER TOGGLE -->
+    <div class="flex items-center space-x-3 p-2 bg-gray-50 rounded-lg border border-gray-200 w-fit shadow-sm hover:shadow-md transition-all">
+        <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" [checked]="showMultiCarrierTable" (change)="openMultiCarrierModal()" class="sr-only peer">
+            <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-[#4a3f3f] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+            <span class="ml-3 text-sm font-bold text-[#4a3f3f] uppercase tracking-wider">Multi-Carrier Breakdown</span>
+        </label>
+    </div>
+<!-- COST BREAKDOWN MODAL -->
+<div *ngIf="showCostTable" class="fixed inset-0 z-[1050] flex items-center justify-center p-4 overflow-hidden">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" (click)="showCostTable = false"></div>
     
-    <div class="overflow-x-auto border-2 border-[#4a3f3f] rounded-sm bg-white shadow-md">
-        <table class="w-full text-left border-separate border-spacing-0">
-            <thead>
-                <tr class="bg-[#4a3f3f] text-white text-[10px] font-black uppercase tracking-wider">
-                    <th class="p-4 border-r border-white/10">LOB</th>
-                    <th class="p-4 border-r border-white/10">Charge Name</th>
-                    <th class="p-4">Type</th>
-                    <th class="p-4">Basis</th>
-                    <th class="p-4 text-center">Currency</th>
-                    <th class="p-4 text-right">Rate</th>
-                    <th class="p-4 text-right">Ex. Rate</th>
-                    <th class="p-4 text-right text-blue-400 bg-black/20">Total Amount</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200">
-                <tr *ngFor="let row of costRows" class="hover:bg-blue-50/30 transition-colors">
-                    <td class="p-4 border-r border-gray-100">
-                        <span class="px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-[9px] font-black uppercase tracking-tight">{{ row.lob }}</span>
-                    </td>
-                    <td class="p-4 border-r border-gray-100">
-                        <span class="text-sm font-bold text-[#4a3f3f]">{{ row.chargeName }}</span>
-                    </td>
-                    <td class="p-4 text-[10px] text-gray-500 font-bold uppercase tracking-widest">{{ row.chargeType }}</td>
-                    <td class="p-4 text-[10px] font-black text-gray-600 uppercase">{{ row.basis }}</td>
-                    <td class="p-4 text-center text-xs font-mono font-bold text-gray-500 uppercase">{{ row.currency }}</td>
-                    <td class="p-4 text-right font-mono text-xs font-bold text-gray-800">{{ row.rate | number:'1.2-2' }}</td>
-                    <td class="p-4 text-right font-mono text-[11px] text-blue-700 font-black italic">{{ row.exchangeRate | number:'1.2-4' }}</td>
-                    <td class="p-4 text-right bg-blue-50/50">
-                        <div class="text-[11px] font-black text-blue-900 tracking-tighter">
-                            {{ row.amount | number:'1.2-2' }}
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+    <div class="relative bg-white w-full max-w-5xl max-h-[85vh] rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in duration-200">
+        <!-- Header -->
+        <div class="bg-blue-700 text-white px-6 py-4 flex items-center justify-between">
+            <h5 class="text-lg font-bold uppercase tracking-widest"><i class="fa fa-calculator mr-2"></i> Cost Breakdown (Single Carrier)</h5>
+            <button (click)="showCostTable = false" class="text-white hover:scale-110 transition-transform"><i class="fa fa-times text-2xl"></i></button>
+        </div>
+
+        <!-- Table Body -->
+        <div class="flex-1 overflow-auto p-4 bg-gray-50">
+            <table class="w-full border-collapse bg-white rounded-lg overflow-hidden shadow-sm">
+                <thead class="bg-gray-100 border-b-2 border-gray-200">
+                    <tr>
+                        <th class="p-3 text-left text-xs font-bold text-gray-600">LOB</th>
+                        <th class="p-3 text-left text-xs font-bold text-gray-600">Charge Name</th>
+                        <th class="p-3 text-left text-xs font-bold text-gray-600">Type</th>
+                        <th class="p-3 text-left text-xs font-bold text-gray-600">Basis</th>
+                        <th class="p-3 text-left text-xs font-bold text-gray-600">Currency</th>
+                        <th class="p-3 text-right text-xs font-bold text-gray-600">Rate</th>
+                        <th class="p-3 text-right text-xs font-bold text-gray-600">Ex. Rate</th>
+                        <th class="p-3 text-right text-xs font-bold text-gray-600 bg-blue-50">Amount</th>
+                        <th class="p-3 text-center text-xs font-bold text-gray-600">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let row of costRows; let i = index" class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                        <td class="p-2"><select [(ngModel)]="row.lob" class="w-full p-1 border rounded text-sm"><option *ngFor="let s of services" [value]="s.serviceName">{{s.serviceName}}</option></select></td>
+                        <td class="p-2"><input [(ngModel)]="row.chargeName" class="w-full p-1 border rounded text-sm" placeholder="e.g. Freight"></td>
+                        <td class="p-2"><input [(ngModel)]="row.chargeType" class="w-full p-1 border rounded text-sm" placeholder="Prepaid"></td>
+                        <td class="p-2"><input [(ngModel)]="row.basis" class="w-full p-1 border rounded text-sm" placeholder="Per KG"></td>
+                        <td class="p-2"><select [(ngModel)]="row.currency" class="w-full p-1 border rounded text-sm"><option *ngFor="let c of currencies" [value]="c.value">{{c.label}}</option></select></td>
+                        <td class="p-2"><input type="number" [(ngModel)]="row.rate" (input)="calculateCost()" class="w-full p-1 border rounded text-sm text-right"></td>
+                        <td class="p-2"><input type="number" [(ngModel)]="row.exchangeRate" (input)="calculateCost()" class="w-full p-1 border rounded text-sm text-right"></td>
+                        <td class="p-2 text-right font-bold text-blue-700 bg-blue-50/30">{{ row.amount | number:'1.2-2' }}</td>
+                        <td class="p-2 text-center">
+                            <button (click)="removeCostRow(i)" class="text-red-500 hover:bg-red-50 p-2 rounded-full"><i class="fa fa-trash"></i></button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <button (click)="addCostRow()" class="mt-4 flex items-center gap-2 text-blue-600 font-bold hover:text-blue-800 transition-colors">
+                <i class="fa fa-plus-circle text-xl"></i> Add Another Row
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <div class="p-4 bg-white border-t flex justify-end gap-3">
+            <button (click)="showCostTable = false" class="px-6 py-2 border rounded-lg font-bold hover:bg-gray-50 uppercase text-xs">Close</button>
+            <button (click)="applyCost()" class="px-8 py-2 bg-blue-700 text-white rounded-lg font-bold shadow-lg hover:bg-blue-800 uppercase text-xs">Apply Costs</button>
+        </div>
     </div>
 </div>
+    <!-- SINGLE CARRIER / COST BREAKDOWN TOGGLE -->
+    <div class="flex items-center space-x-3 p-2 bg-blue-50 rounded-lg border border-blue-200 w-fit shadow-sm hover:shadow-md transition-all">
+        <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" [checked]="showCostTable" (change)="toggleTable(!showCostTable)" class="sr-only peer">
+            <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+            <span class="ml-3 text-sm font-bold text-blue-800 uppercase tracking-wider">Single Carrier Cost</span>
+        </label>
+    </div>
+</div>
+<!-- MODAL CONTAINER -->
+<div *ngIf="isModalOpen" 
+     class="fixed inset-0 z-[1050] flex items-center justify-center p-4 sm:p-6 overflow-hidden transition-all duration-300">
+    
+    <!-- Backdrop (Blur Effect) -->
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" (click)="closeModal()"></div>
 
-<!-- MULTI-CARRIER DISPLAY -->
-<div *ngIf="quotation.isIndirect && multiCarrierRows && multiCarrierRows.length > 0" class="mt-4 mb-10 animate-in fade-in duration-300">
-    <h4 class="text-lg font-black text-[#4a3f3f] uppercase tracking-tighter italic mb-4 border-l-4 border-orange-500 pl-3 flex justify-between items-center">
-        <span><i class="fa fa-ship mr-2 text-orange-500"></i> Multi-Carrier Breakdown</span>
-        <span class="text-[10px] bg-[#4a3f3f] text-white px-2 py-1 rounded not-italic uppercase font-bold tracking-widest">
-            {{ multiCarrierRows.length }} Options
-        </span>
-    </h4>
+    <!-- MODAL CONTENT -->
+    <div class="relative bg-white w-full max-w-[95vw] max-h-[90vh] rounded-xl shadow-2xl flex flex-col overflow-hidden border border-gray-200 animate-in fade-in zoom-in duration-300">
+        
+        <!-- HEADER: Premium Dark Theme -->
+        <div class="bg-[#4a3f3f] text-white px-6 py-4 flex items-center justify-between shadow-md">
+            <div class="flex items-center gap-3">
+                <div class="bg-white/10 p-2 rounded-lg">
+                    <i class="fa fa-ship text-xl text-amber-400"></i>
+                </div>
+                <div>
+                    <h5 class="text-lg font-bold uppercase tracking-wider">Multi-Carrier Breakdown</h5>
+                    <p class="text-[10px] text-gray-300 uppercase italic">Preview Mode - Local Data Only</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <span class="hidden md:inline-block bg-black/20 px-3 py-1 rounded-full text-xs font-semibold border border-white/10">
+                    Total: {{ multiCarrierRows.length }} Entries
+                </span>
+                <button (click)="closeModal()" class="text-white/70 hover:text-white transition-colors text-2xl outline-none">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+        </div>
 
-    <div class="overflow-x-auto border-2 border-[#4a3f3f] rounded-sm bg-white shadow-md">
-        <table class="w-full text-left border-separate border-spacing-0 min-w-[1300px]">
-            <thead>
-                <tr class="bg-[#4a3f3f] text-white text-[10px] font-black uppercase tracking-wider">
-                    <th class="p-4 border-r border-white/10 sticky left-0 bg-[#4a3f3f] z-10">Freight Forwarder</th>
-                    <th class="p-4 text-center border-r border-white/10">Origin</th>
-                    <th class="p-4 text-center">Curr</th>
-                    <th class="p-4 text-right">Airfreight</th>
-                    <th class="p-4 text-center">FSC/ISS</th>
-                    <th class="p-4">Airline</th>
-                    <th class="p-4 text-center">Type</th>
-                    <th class="p-4 text-center">Cut-off / Sch</th>
-                    <th class="p-4 text-right">Local Charges (ExW/DO/CC)</th>
-                    <th class="p-4 text-right text-amber-400 bg-black/20">Grand Total</th>
-                    <th class="p-4">Remarks</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200">
-                <tr *ngFor="let carrier of multiCarrierRows" class="hover:bg-orange-50/30 transition-colors">
-                    <td class="p-4 border-r border-gray-100 sticky left-0 bg-white group-hover:bg-orange-50 font-black text-sm text-[#4a3f3f] shadow-[2px_0_5px_rgba(0,0,0,0.05)]">
-                        {{ carrier.forwarder || '---' }}
-                    </td>
-                    <td class="p-4 text-center border-r border-gray-50 text-xs font-semibold text-gray-700">{{ carrier.origin }}</td>
-                    <td class="p-4 text-center text-xs font-mono font-bold text-gray-500">{{ carrier.currency }}</td>
-                    <td class="p-4 text-right font-black text-gray-800 text-xs">{{ carrier.airFreight | number:'1.2-2' }}</td>
-                    <td class="p-4 text-center text-[10px] font-medium text-gray-600">{{ carrier.fsc }}</td>
-                    <td class="p-4 text-xs italic font-bold text-gray-700">{{ carrier.airline }}</td>
-                    <td class="p-4 text-center">
-                        <span class="px-2 py-0.5 rounded text-[8px] font-black uppercase"
-                              [ngClass]="carrier.type === 'DIRECT' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'">
-                            {{ carrier.type }}
-                        </span>
-                    </td>
-                    <td class="p-4 text-center">
-                        <div class="text-[9px] leading-tight">
-                            <span class="text-gray-400 font-bold uppercase">C:</span> {{ carrier.cutoff }}<br>
-                            <span class="text-gray-400 font-bold uppercase">S:</span> {{ carrier.schedule }}
-                        </div>
-                    </td>
-                    <td class="p-4 text-right">
-                        <div class="text-[10px] text-gray-500 font-bold italic leading-tight">
-                            ExW: {{ carrier.exWorks | number:'1.2-2' }} | 
-                            DO: {{ carrier.doCharges | number:'1.2-2' }} | 
-                            CC: {{ carrier.ccFee | number:'1.2-2' }}
-                        </div>
-                    </td>
-                    <td class="p-4 text-right bg-amber-50/50">
-                        <div class="text-[11px] font-black text-[#4a3f3f] tracking-tighter uppercase">
-                            {{ carrier.currency }} {{ carrier.totalCost | number:'1.2-2' }}
-                        </div>
-                    </td>
-                    <td class="p-4">
-                        <p class="text-[10px] text-gray-400 italic leading-tight max-w-[150px] truncate" [title]="carrier.remark">
-                            {{ carrier.remark || '--' }}
-                        </p>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        <!-- BODY: Scrolleble Table -->
+        <div class="flex-1 overflow-auto bg-gray-50 custom-scrollbar">
+            <div class="inline-block min-w-full align-middle">
+                <table class="min-w-full border-separate border-spacing-0">
+                    <thead>
+                        <tr class="bg-gray-100 shadow-sm">
+                            <!-- Sticky Column: Freight Forwarder -->
+                            <th class="sticky left-0 z-20 bg-gray-100 px-6 py-4 text-left text-xs font-bold text-[#4a3f3f] uppercase tracking-widest border-b border-gray-200 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">
+                                Freight Forwarder
+                            </th>
+                            <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Origin</th>
+                            <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Currency</th>
+                            <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Airfreight (+500)</th>
+                            <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">FSC/ISS</th>
+                            <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Airline</th>
+                            <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Type</th>
+                            <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Cut-off</th>
+                            <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Schedule</th>
+                            <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Ex-works</th>
+                            <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">DO</th>
+                            <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">CC fee</th>
+                            <th class="px-4 py-4 text-center text-xs font-bold text-gray-800 bg-amber-50 uppercase border-b border-amber-200">Total Cost</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase border-b border-gray-200 min-w-[250px]">REMARK</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 bg-white">
+                        <tr *ngFor="let carrier of multiCarrierRows" class="hover:bg-blue-50/50 transition-colors group">
+                            <!-- Sticky Data Column -->
+                            <td class="sticky left-0 z-10 bg-white group-hover:bg-blue-50 transition-colors px-6 py-4 text-sm font-bold text-[#4a3f3f] border-r border-gray-100 shadow-[2px_0_5px_rgba(0,0,0,0.02)]">
+                                {{ carrier.forwarder || '---' }}
+                            </td>
+                            <td class="px-4 py-4 text-center text-sm text-gray-600">{{ carrier.origin }}</td>
+                            <td class="px-4 py-4 text-center text-sm font-mono font-bold text-gray-500">{{ carrier.currency }}</td>
+                            <td class="px-4 py-4 text-center text-sm font-semibold text-gray-900">{{ carrier.airFreight | number }}</td>
+                            <td class="px-4 py-4 text-center text-sm text-gray-600">{{ carrier.fsc }}</td>
+                            <td class="px-4 py-4 text-center text-sm italic text-gray-600">{{ carrier.airline }}</td>
+                            <td class="px-4 py-4 text-center">
+                                <span class="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-tight"
+                                      [ngClass]="carrier.type === 'DIRECT' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'">
+                                    {{ carrier.type }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-4 text-center text-sm text-gray-600">{{ carrier.cutoff }}</td>
+                            <td class="px-4 py-4 text-center text-sm text-gray-600">{{ carrier.schedule }}</td>
+                            <td class="px-4 py-4 text-center text-sm text-gray-600">{{ carrier.exWorks | number }}</td>
+                            <td class="px-4 py-4 text-center text-sm text-gray-600">{{ carrier.doCharges | number }}</td>
+                            <td class="px-4 py-4 text-center text-sm text-gray-600">{{ carrier.ccFee | number }}</td>
+                            <td class="px-4 py-4 text-center text-sm font-black text-[#4a3f3f] bg-amber-50/50 italic">
+                                {{ carrier.totalCost | number }}
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-500 italic">{{ carrier.remark }}</td>
+                        </tr>
+
+                        <!-- Empty State -->
+                        <tr *ngIf="multiCarrierRows.length === 0">
+                            <td colspan="14" class="px-6 py-20 text-center">
+                                <i class="fa fa-inbox text-5xl text-gray-200 mb-4 block"></i>
+                                <span class="text-gray-400 font-medium">No carrier options added to this inquiry yet.</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- FOOTER: Actions -->
+        <div class="bg-gray-50 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4 border-t border-gray-200">
+            <p class="text-xs text-gray-400 italic font-medium">* This data is stored locally and will be saved with the inquiry.</p>
+            <button (click)="closeModal()" 
+                    class="w-full sm:w-auto bg-[#4a3f3f] text-white px-10 py-2.5 rounded-lg font-bold shadow-lg hover:bg-black uppercase tracking-widest transition-all active:scale-95 text-sm">
+                Close Preview
+            </button>
+        </div>
     </div>
 </div>
             </div>
@@ -2883,29 +2949,22 @@
                
           <div class="p-4 bg-gray-50 border-t flex items-center gap-3">
                    
-         
-  
-  <!-- Single Carrier Button: Sirf tab dikhega jab 'Direct' checkbox ticked ho -->
-  <button
-    *ngIf="quotation.isDirect"
-    type="button"
-    (click)="showCostTable = true; showMultiCarrierTable = false"
-    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors shadow-sm font-bold"
-  >
-    Single Carrier
-  </button>
+            <button
+              type="button"
+              (click)="showCostTable = true"
+              class="bg-blue-600 text-white px-4 py-2 rounded"
+            >
+                      Single Carrier    
+            </button>
 
-  <!-- Multi Carrier Button: Sirf tab dikhega jab 'Indirect' checkbox ticked ho -->
-  <button
-    *ngIf="quotation.isIndirect"
+               
+        <button
     type="button"
     (click)="showMultiCarrierTable = true; showCostTable = false"
-    class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors shadow-sm font-bold"
+    class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors"
   >
     Multi Carrier
-  </button>
-
-
+  </button> 
 
                
             <button
@@ -2925,33 +2984,25 @@
           </div>
         </div>
         <div class="main-content-area">
-  <div
-    *ngIf="isPreviewMode"
-    class="fixed inset-0 z-[1050] flex items-center justify-center p-2 md:p-4 bg-black/80 backdrop-blur-sm"
-  >
-    <div
-      class="relative w-full max-w-5xl mx-auto shadow-2xl animate-in fade-in zoom-in duration-200"
-    >
-      <div
-        class="relative flex flex-col w-full bg-gray-50 border-4 border-dashed border-[#4a3f3f] max-h-[92vh] overflow-hidden rounded-sm"
-      >
-        <!-- Header Section -->
-        <div
-          class="sticky top-0 z-50 bg-gray-50 px-4 md:px-6 py-4 border-b-2 border-[#4a3f3f] flex justify-between items-center"
-        >
-          <h3 class="text-lg md:text-2xl font-black text-[#4a3f3f] uppercase tracking-tighter italic flex items-center gap-2">
-            <span>🔍</span> INQUIRY DETAILS
-          </h3>
+          <div
+            *ngIf="isPreviewMode"
+            class="fixed inset-0 z-[1050] flex items-center justify-center p-2 md:p-4 bg-black/80 backdrop-blur-sm"
+          >
+            <div
+              class="relative w-full max-w-4xl mx-auto shadow-2xl animate-in fade-in zoom-in duration-200"
+            >
+              <div
+                class="relative flex flex-col w-full bg-gray-50 border-4 border-dashed border-[#4a3f3f] max-h-[92vh] overflow-hidden rounded-sm"
+              >
+                <div
+                  class="sticky top-0 z-50 bg-gray-50 px-4 md:px-6 py-4 border-b-2 border-[#4a3f3f] flex justify-between items-center"
+                >
+                  <h3
+                    class="text-lg md:text-2xl font-black text-[#4a3f3f] uppercase tracking-tighter italic flex items-center gap-2"
+                  >
+                    <span>🔍</span> INQUIRY DETAILS
+                  </h3>
 
-<<<<<<< HEAD
-          <div class="flex items-center gap-2 md:gap-4">
-            <span class="hidden sm:block bg-[#4a3f3f] text-white px-3 py-1 text-[10px] font-bold uppercase italic tracking-widest">
-              Cavalier Logistics
-            </span>
-            <button (click)="backToEdit()" class="text-[#4a3f3f] hover:text-red-600 transition-all hover:rotate-90 text-3xl font-bold leading-none p-1">
-              &times;
-            </button>
-=======
                   <div class="flex items-center gap-2 md:gap-4">
                     <span
                       class="hidden sm:block bg-[#4a3f3f] text-white px-3 py-1 text-[10px] font-bold uppercase italic tracking-widest"
@@ -3238,242 +3289,8 @@
                 </div>
               </div>
             </div>
->>>>>>> 14685a9e53b8d5cb250a9cadff74c8173038e32c
           </div>
         </div>
-
-        <div class="p-4 md:p-8 overflow-y-auto custom-scrollbar bg-gray-50">
-          
-          <!-- PRIMARY SHIPMENT DETAILS TABLE -->
-          <div class="bg-white border-2 border-gray-200 overflow-hidden shadow-sm">
-            <table class="w-full text-left border-collapse">
-              <tbody class="divide-y divide-gray-200">
-                <tr>
-                  <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase w-1/3">Line of Business</td>
-                  <td class="p-3 md:p-4 text-gray-800 text-sm font-semibold">
-                    {{ quotation.lineOfBusinessName || getLabel(companyServices, quotation.lineOfBusinessId) }}
-                  </td>
-                </tr>
-                <tr>
-                  <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Cargo Status</td>
-                  <td class="p-3 md:p-4 text-orange-600 font-black text-sm uppercase italic">{{ quotation.cargoStatusType || "Pending" }}</td>
-                </tr>
-                <tr>
-                  <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Commodity</td>
-                  <td class="p-3 md:p-4 text-gray-800 text-sm font-medium">
-                    {{ quotation.commodityName || getLabel(commodityTypes, quotation.commodityId) || "General Cargo" }}
-                  </td>
-                </tr>
-                <tr>
-                  <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">No. of Pkgs</td>
-                  <td class="p-3 md:p-4 text-gray-800 text-sm">{{ quotation.noOfPkgs }} {{ quotation.packageUnit || "PKGS" }}</td>
-                </tr>
-                
-                <!-- Dimensions Log -->
-                <tr>
-                  <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">📦 Dimensions Log</td>
-                  <td class="p-3 md:p-4 text-gray-800">
-                    <div class="space-y-1">
-                      <div *ngFor="let data of localInquiryList">
-                        <div *ngIf="data.dimensions && data.dimensions.length > 0; else checkGlobal">
-                          <div *ngFor="let dim of data.dimensions; let i = index" class="text-[10px] md:text-[11px] font-mono border-b border-gray-100 last:border-0 py-1 flex justify-between">
-                            <span class="font-bold text-[#4a3f3f]">BOX {{ i + 1 }}:</span>
-                            <span>{{ dim.l }} x {{ dim.w }} x {{ dim.h }} {{ dim.unit || "CMS" }}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <ng-template #checkGlobal>
-                        <div *ngIf="appliedDimensions && appliedDimensions.length > 0; else noDim">
-                          <div *ngFor="let dim of appliedDimensions; let i = index" class="text-[10px] md:text-[11px] font-mono border-b border-gray-100 last:border-0 py-1 flex justify-between">
-                            <span class="font-bold text-[#4a3f3f]">BOX {{ i + 1 }}:</span>
-                            <span>{{ dim.l }} x {{ dim.w }} x {{ dim.h }} {{ dim.unit || "CMS" }}</span>
-                          </div>
-                        </div>
-                      </ng-template>
-                      <ng-template #noDim>
-                        <span class="text-red-400 italic text-[10px]">No dimensions captured</span>
-                      </ng-template>
-                    </div>
-                  </td>
-                </tr>
-
-                <tr>
-                  <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Gross Weight</td>
-                  <td class="p-3 md:p-4 text-gray-800 text-sm font-bold">{{ quotation.grossWeightKg }} {{ quotation.weightUnit || "KGS" }}</td>
-                </tr>
-                <tr>
-                  <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Volume Weight</td>
-                  <td class="p-3 md:p-4 text-gray-800 text-sm">{{ quotation.volumeWeight }} {{ quotation.volumeUnit || "KGS" }}</td>
-                </tr>
-                <tr>
-                  <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Chg. Weight</td>
-                  <td class="p-3 md:p-4 text-[#4a3f3f] font-black text-base">{{ quotation.chargeableWeight }} {{ quotation.weightUnit || "KGS" }}</td>
-                </tr>
-                <tr>
-                  <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Inco-Term</td>
-                  <td class="p-3 md:p-4 text-gray-800 text-sm">{{ showincoterms || "N/A" }}</td>
-                </tr>
-                <tr>
-                  <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Route</td>
-                  <td class="p-3 md:p-4 text-gray-800 text-xs md:text-sm font-bold flex items-center gap-2">
-                    {{ inquiry.origin }} <span class="text-orange-500">➜</span> {{ quotation.finalDestination }}
-                  </td>
-                </tr>
-                <tr>
-                  <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase border-b-0">Pick-up Address</td>
-                  <td class="p-3 md:p-4 text-gray-800 text-xs italic border-b-0">{{ quotation.pickupAddress || "N/A" }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- COST BREAKDOWN SECTION -->
-      <!-- COST BREAKDOWN (Dikhayega jab Direct selected ho) -->
-<div *ngIf="quotation.isDirect && costRows && costRows.length > 0" class="mt-8">
-  <h4 class="text-lg font-black text-[#4a3f3f] uppercase tracking-tighter italic mb-4 border-l-4 border-orange-500 pl-3">
-    Cost Breakdown
-  </h4>
-  <div class="overflow-x-auto border-2 border-[#4a3f3f] rounded-sm bg-white shadow-sm">
-    <table class="w-full text-left border-collapse">
-      <thead>
-        <tr class="bg-gray-100 text-[#4a3f3f] text-[10px] font-black uppercase tracking-wider border-b-2 border-[#4a3f3f]">
-          <th class="p-3">LOB / Charge Name</th>
-          <th class="p-3">Charge Type</th>
-          <th class="p-3">Basis</th>
-          <th class="p-3">Currency</th>
-          <th class="p-3 text-right">Rate</th>
-          <th class="p-3 text-right text-blue-600">Ex. Rate</th>
-          <th class="p-3 text-right">Total Amount</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-gray-100">
-        <tr *ngFor="let cost of costRows" class="hover:bg-gray-50">
-          <td class="p-3">
-            <span class="block text-[9px] text-orange-500 font-bold uppercase">{{ cost.lob }}</span>
-            <span class="block text-xs font-bold text-gray-800">{{ cost.chargeName }}</span>
-          </td>
-          <td class="p-3 text-[10px] text-gray-500 font-medium uppercase">{{ cost.chargeType }}</td>
-          <td class="p-3 text-[10px] font-semibold text-gray-600 uppercase">{{ cost.basis }}</td>
-          <td class="p-3 text-xs italic font-medium">{{ cost.currency }}</td>
-          <td class="p-3 text-right font-mono text-xs">{{ cost.rate | number:'1.2-2' }}</td>
-          <td class="p-3 text-right font-mono text-[11px] text-blue-700 font-bold">
-            {{ cost.exchangeRate | number:'1.2-4' }}
-          </td>
-          <td class="p-3 text-right font-black text-orange-600 text-sm">
-            {{ cost.amount | number:'1.2-2' }}
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- MULTI-CARRIER COMPARISON SECTION (Dikhayega jab Indirect selected ho) -->
-<div *ngIf="quotation.isIndirect && multiCarrierRows && multiCarrierRows.length > 0" class="mt-10">
-  <h4 class="text-lg font-black text-[#4a3f3f] uppercase tracking-tighter italic mb-4 border-l-4 border-orange-500 pl-3 flex justify-between items-center">
-    <span>Multi-Carrier / Option Comparison</span>
-    <span class="text-[10px] bg-gray-200 px-2 py-1 rounded text-gray-500 not-italic">
-      {{ multiCarrierRows.length }} Options Found
-    </span>
-  </h4>
-
-  <div class="overflow-x-auto border-2 border-[#4a3f3f] rounded-sm bg-white shadow-md">
-    <table class="w-full text-left border-collapse min-w-[1100px]">
-      <thead>
-        <tr class="bg-gray-100 text-[#4a3f3f] text-[10px] font-black uppercase tracking-wider border-b-2 border-[#4a3f3f]">
-          <th class="p-3 border-r border-gray-200">Forwarder / Airline</th>
-          <th class="p-3">Route Details</th>
-          <th class="p-3">Type & Schedule</th>
-          <th class="p-3 text-right">Freight (USD)</th>
-          <th class="p-3 text-right">Local Charges (ExW/DO/CC)</th>
-          <th class="p-3 text-right text-blue-700 bg-blue-50/50">Total Cost</th>
-          <th class="p-3">Remarks</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-gray-200">
-        <tr *ngFor="let carrier of multiCarrierRows; let i = index" class="hover:bg-orange-50/30 transition-colors">
-
-          <!-- Forwarder & Airline -->
-          <td class="p-3 border-r border-gray-100">
-            <div class="flex flex-col">
-              <span class="text-xs font-black text-gray-800 uppercase leading-none">{{ carrier.airline || 'N/A' }}</span>
-              <span class="text-[10px] text-orange-600 font-bold mt-1 uppercase italic">{{ carrier.forwarder || 'Pending' }}</span>
-            </div>
-          </td>
-
-          <!-- Origin -->
-          <td class="p-3">
-            <span class="text-[10px] text-gray-400 block uppercase font-bold">Origin</span>
-            <span class="text-xs font-semibold text-gray-700">{{ carrier.origin || '---' }}</span>
-          </td>
-
-          <!-- Type & Schedule -->
-          <td class="p-3">
-            <div class="flex flex-col gap-1">
-              <div class="flex items-center gap-2">
-                <span class="bg-gray-800 text-white text-[8px] px-1.5 py-0.5 font-bold rounded">{{ carrier.type }}</span>
-                <span class="text-[10px] font-mono text-gray-600">FSC: {{ carrier.fsc }}</span>
-              </div>
-              <div class="text-[9px] text-gray-500 flex flex-col mt-1">
-                <span><b class="text-gray-700">Cutoff:</b> {{ carrier.cutoff || 'TBA' }}</span>
-                <span><b class="text-gray-700">Sch:</b> {{ carrier.schedule || 'TBA' }}</span>
-              </div>
-            </div>
-          </td>
-
-          <!-- Air Freight -->
-          <td class="p-3 text-right">
-            <span class="text-xs font-mono font-bold text-gray-800">
-              {{ carrier.airFreight | number:'1.2-2' }}
-            </span>
-            <div class="text-[9px] text-gray-400 uppercase font-bold">{{ carrier.currency }}</div>
-          </td>
-
-          <!-- Breakdown of Local Charges -->
-          <td class="p-3 text-right">
-            <div class="flex flex-col text-[10px] font-medium text-gray-600">
-              <span>ExW: {{ carrier.exWorks | number:'1.2-2' }}</span>
-              <span>DO: {{ carrier.doCharges | number:'1.2-2' }}</span>
-              <span>CC: {{ carrier.ccFee | number:'1.2-2' }}</span>
-            </div>
-          </td>
-
-          <!-- Total Cost -->
-          <td class="p-3 text-right bg-blue-50/30">
-            <div class="text-[9px] text-blue-500 font-black uppercase leading-none mb-1">Grand Total</div>
-            <div class="text-sm font-black text-[#4a3f3f] tracking-tighter">
-              {{ carrier.currency }} {{ carrier.totalCost | number:'1.2-2' }}
-            </div>
-          </td>
-
-          <!-- Remark -->
-          <td class="p-3">
-            <p class="text-[10px] text-gray-500 leading-tight italic max-w-[150px] break-words">
-              {{ carrier.remark || '--' }}
-            </p>
-          </td>
-
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-          <!-- Final Buttons -->
-          <div class="mt-8 flex flex-col sm:flex-row justify-end gap-3 md:gap-4">
-            <button (click)="backToEdit()" class="order-2 sm:order-1 bg-white border-4 border-orange-500 text-orange-600 px-6 md:px-10 py-2.5 font-black hover:bg-orange-500 hover:text-white transition-all duration-300 uppercase text-xs md:text-sm">
-              Edit Data
-            </button>
-            <button (click)="saveQuotation()" class="order-1 sm:order-2 bg-[#4a3f3f] text-white px-8 md:px-16 py-2.5 font-black shadow-lg hover:bg-black transition-all duration-300 uppercase tracking-widest border-4 border-[#4a3f3f] text-xs md:text-sm">
-              Confirm & Submit
-            </button>
-          </div>
-
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
       </div>
     </div>
   </div>
@@ -3779,7 +3596,6 @@
         Cancel
     </button>
 
-    <!-- Apply button data save karega aur fir table hide karega -->
     <button type="button" 
         (click)="applyAndSave()" 
         class="px-6 py-2 bg-[#4a3f3f] text-white rounded-lg font-bold shadow-md hover:bg-black transition-all">

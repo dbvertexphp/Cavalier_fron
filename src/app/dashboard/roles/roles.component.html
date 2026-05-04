@@ -235,3 +235,22 @@
     </div>
   </div>
 </div>
+<!-- Animation Overlay Layer -->
+<div *ngIf="isAnimating" class="fixed inset-0 z-[100] pointer-events-none flex items-center justify-center">
+  <!-- Role Icon (Starting Point) -->
+  <div id="role-start" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-4 rounded-full shadow-2xl border-2 border-[#654E51]">
+    <i class="fas fa-user-shield text-3xl text-[#654E51]"></i> <!-- FontAwesome use kar sakte ho -->
+    <span class="block text-[10px] font-bold text-center">ROLE</span>
+  </div>
+
+  <!-- Flying Particle (Ye move karega) -->
+  <div id="flying-particle" class="absolute opacity-0 bg-[#654E51] p-3 rounded-full shadow-lg z-[101]">
+    <i class="fas fa-sync-alt text-white animate-spin"></i>
+  </div>
+
+  <!-- User Icon (Destination Point) -->
+  <div id="user-end" class="absolute right-10 top-10 bg-white p-4 rounded-full shadow-2xl border-2 border-green-500">
+    <i class="fas fa-users text-3xl text-green-500"></i>
+    <span class="block text-[10px] font-bold text-center">USERS SYNC</span>
+  </div>
+</div>

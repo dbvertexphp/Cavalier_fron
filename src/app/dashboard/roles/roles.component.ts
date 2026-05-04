@@ -6,7 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { UserService } from '../../services/user.service'; // Path sahi kar lena
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-
+import Swal from 'sweetalert2';
 @Component({
   selector: 'app-roles',
   standalone: true,
@@ -15,6 +15,7 @@ import { environment } from '../../../environments/environment';
   styleUrls: ['./roles.component.css'], // fixed typo: styleUrls
 })
 export class RolesComponent implements OnInit {
+  isAnimating = false;
   isModalOpen = false;
   isLoading = false;
   isEditMode = false; // Edit track karne ke liye
@@ -117,15 +118,16 @@ loadPermissions() {
     }
   });
 }
-  // --- 2. SAVE ROLE (Add or Update) ---
- saveRole() {
+
+
+saveRole() {
   if (!this.newRole.name.trim()) {
     return;
   }
 
   this.isLoading = true;
 
-  // 1. Permission Mapping (Wahi logic jo aapne likha tha)
+  // 1. Permission Mapping Logic
   const permissionMap: any = {};
   this.selectedPermissionIds.forEach((p: any) => {
     const isString = typeof p === 'string';
@@ -140,43 +142,61 @@ loadPermissions() {
     if (actionKey === "e") permissionMap[permId].push("Edit");
     if (actionKey === "d") permissionMap[permId].push("Delete");
     if (actionKey === "a") permissionMap[permId].push("Add");
-    
   });
 
   const finalPermissions = Object.keys(permissionMap).map(id => ({
     permissionId: Number(id),
-    actions: permissionMap[id] // Ye array backend ko jayega [ "View", "Delete" ]
+    actions: permissionMap[id]
   }));
 
-  // 2. Final Payload (Dono Add aur Update ke liye ek hi structure rakho)
   const finalPayload = {
-    id: this.newRole.id, // Add ke time ye 0 hoga, Edit ke time actual ID
+    id: this.newRole.id,
     name: this.newRole.name,
     status: this.newRole.status,
     permissions: finalPermissions
   };
 
-  console.log("🚀 SENDING TO BACKEND:", finalPayload);
-
-  // 3. API Call
+  // 2. API Call
   const request = this.isEditMode
-    ? this.userService.updateRole(finalPayload) // Yahan bhi finalPayload bhejo
+    ? this.userService.updateRole(finalPayload)
     : this.userService.addRole(finalPayload);
 
   request.subscribe({
     next: (res) => {
-      this.loadRoles(); 
-      this.closeModal();
-      alert(res.message);
       this.isLoading = false;
-      
+      this.closeModal();
+      this.loadRoles();
+
+      // 🔥 MAST WALA SWEET ALERT (Professional Style)
+      Swal.fire({
+        title: this.isEditMode ? 'Updated!' : 'Created!',
+        text: 'Role With User permissions synced successfully.',
+        icon: 'success',
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+        background: '#ffffff',
+        iconColor: '#654E51', // Aapka theme color
+        toast: false,
+        customClass: {
+          popup: 'rounded-3xl shadow-2xl border-2 border-[#654E51]'
+        }
+      });
     },
     error: (err) => {
       this.isLoading = false;
-      alert("Error saving role!");
+      
+      Swal.fire({
+        title: 'Error!',
+        text: 'Bhai kuch lafda ho gaya backend me.',
+        icon: 'error',
+        confirmButtonColor: '#654E51',
+        confirmButtonText: 'Theek Hai'
+      });
     }
   });
 }
+
 toggleAdd(id: any) {
   this.toggleLogic(id + "_a");
 }

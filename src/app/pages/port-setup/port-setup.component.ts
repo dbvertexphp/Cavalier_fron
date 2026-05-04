@@ -6,6 +6,7 @@ import { environment } from '../../../environments/environment';
 import { CdkDragDrop, moveItemInArray, DragDropModule } from '@angular/cdk/drag-drop';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { CheckPermissionService } from '../../services/check-permission.service';
+import Swal from 'sweetalert2';
 @Component({
   selector: 'app-port-setup',
   standalone: true,
@@ -33,6 +34,7 @@ selectedCountry = 'Peru';
     cityName: '',
     countryName: '',
     functionName: '',
+   pinCode: 0,
     status: true,
     sortOrder: 0
   };
@@ -104,6 +106,7 @@ filteredCities() {
       cityName: '',
       countryName: '',
       functionName: '',
+      pinCode: 0,
       status: true,
       sortOrder: 0
     };
@@ -123,19 +126,28 @@ filteredCities() {
   }
 
   // 💾 Save
-  savePort() {
-    const headers = this.getHeaders();
+ savePort() {
+  const headers = this.getHeaders();
+  const request = this.isEditMode
+    ? this.http.put(`${this.apiUrl}/${this.newPort.id}`, this.newPort, { headers })
+    : this.http.post(this.apiUrl, this.newPort, { headers });
 
-    const request = this.isEditMode
-      ? this.http.put(`${this.apiUrl}/${this.newPort.id}`, this.newPort, { headers })
-      : this.http.post(this.apiUrl, this.newPort, { headers });
-
-    request.subscribe(() => {
-      alert(this.isEditMode ? "Updated!" : "Saved!");
+  request.subscribe({
+    next: () => {
+      Swal.fire({
+        icon: 'success',
+        title: this.isEditMode ? 'Updated!' : 'Saved!',
+        timer: 1500,
+        showConfirmButton: false
+      });
       this.fetchPorts();
       this.closeModal();
-    });
-  }
+    },
+    error: (err) => {
+      Swal.fire('Error', 'Something went wrong!', 'error');
+    }
+  });
+}
 
   // 🗑 Delete
   deletePort(id: number) {

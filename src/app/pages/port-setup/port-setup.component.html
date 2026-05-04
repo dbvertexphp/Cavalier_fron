@@ -31,6 +31,7 @@
             <th class="px-6 py-3 text-xs font-bold uppercase">Code</th>
             <th class="px-6 py-3 text-xs font-bold uppercase">City</th>
             <th class="px-6 py-3 text-xs font-bold uppercase">Country</th>
+            <th class="px-6 py-3 text-xs font-bold uppercase text-[#654E51]">Pincode</th> <!-- 👈 Naya Header -->
             <th class="px-6 py-3 text-xs font-bold uppercase">Function</th>
             <th class="px-6 py-3 text-xs font-bold text-center">Actions</th>
           </tr>
@@ -61,7 +62,9 @@
             <td class="px-6 py-3">
               {{ port.countryName }}
             </td>
-
+<td class="px-6 py-3">
+  {{ port.pinCode }} <!-- 👈 Table mein pincode dikhao -->
+</td>
             <td class="px-6 py-3">
               {{ port.functionName }}
             </td>
@@ -125,7 +128,14 @@
   [clearable]="true"
   class="w-full">
 </ng-select>
-        
+      <!-- 📮 Pincode Input -->
+<div class="mb-3">
+  <label class="text-xs font-bold text-gray-500 uppercase">Pin Code</label>
+  <input [(ngModel)]="newPort.pinCode" 
+    placeholder="Enter Pin Code"
+    class="w-full border p-2 rounded focus:ring-1 focus:ring-[#654E51] outline-none"
+    type="number"> <!-- Backend mein 'int' hai isliye type number rakho -->
+</div>
 
         <input [(ngModel)]="newPort.functionName"
           placeholder="Function"

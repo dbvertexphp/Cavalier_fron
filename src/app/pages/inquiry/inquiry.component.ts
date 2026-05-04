@@ -604,7 +604,7 @@ onShipmentTypeChange() {
   }
   onServiceTypeChange() {
   console.log(`Service Type Changed → Direct: ${this.quotation.isDirect} | Indirect: ${this.quotation.isIndirect}`);
-
+console.log("Direct:", this.quotation.isDirect, "Indirect:", this.quotation.isIndirect);
   // Optional: Agar dono select nahi karna chahte toh logic laga sakte ho
   // Example: Agar Direct true hai to Indirect false kar do (mutually exclusive)
   // if (this.quotation.isDirect) this.quotation.isIndirect = false;

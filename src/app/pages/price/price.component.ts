@@ -607,8 +607,9 @@ onInquirySearchInput() {
 
 // 3. Selection Logic
 // 3. Selection Logic - UPDATED & IMPROVED
+// costRows: any[] = []; 
+  multiCarrierRows: any[] = [];
 selectInquiry(inq: any) {
-  
   if (!inq || !inq.inquiryNo) {
     console.error("Invalid inquiry data");
     return;
@@ -617,7 +618,7 @@ selectInquiry(inq: any) {
   // Basic fields
   this.quotation.referenceByInquiry = inq.inquiryNo || '';
   this.quotation.customerName = inq.customerName || '';
-  this.quotation.organization = inq.customerName || '';   // Mostly customer hi organization hota hai
+  this.quotation.organization = inq.customerName || '';
 
   this.showInquiryDropdown = false;
   this.cdr.detectChanges();
@@ -631,196 +632,138 @@ selectInquiry(inq: any) {
     next: (fullData) => {
       console.log("✅ Full Inquiry Data:", fullData);
 
-      // ====================== IMPROVED AUTO FILL ======================
+      // 1. Transport Mode
+      if (fullData.transportMode) {
+        this.quotation.TransportMode = fullData.transportMode.toUpperCase().trim();
+      } else {
+        this.quotation.TransportMode = '';
+      }
 
-     // ====================== TRANSPORT FIX ======================
+      // 2. Transport Type
+      if (fullData.transportType) {
+        this.quotation.transportType = fullData.transportType.trim();
+      } else if (fullData.transportMode === 'AIR' || fullData.transportMode === 'SEA') {
+        this.quotation.transportType = 'Export';
+      } else {
+        this.quotation.transportType = '';
+      }
 
-// 1. Transport Mode (Air / Sea / Road / etc.)
-// ====================== TRANSPORT MODE (Dropdown with ID) ======================
+      this.quotation.shipmentType = fullData.shipmentType || '';
 
-// ====================== TRANSPORT MODE & TYPE (Capital T) ======================
-
-// 1. Transport Mode
-if (fullData.transportMode) {
-  console.log(fullData.transportMode);
-  this.quotation.TransportMode = fullData.transportMode.toUpperCase().trim();   // "Air" set hoga
-  console.log(`✅ Transport Mode set to: ${this.quotation.TransportMode.toUpperCase()}`);
-} 
-else {
-  this.quotation.TransportMode = '';
-}
-
-// 2. Transport Type (Export / Import)
-if (fullData.transportType) {
-  this.quotation.transportType = fullData.transportType.trim();   // "Export" set hoga
-} 
-else if (fullData.transportMode === 'AIR' || fullData.transportMode === 'SEA') {
-  this.quotation.transportType = 'Export';
-} 
-else {
-  this.quotation.transportType = '';
-}
-
-console.log("Transport Mode (Final):", this.quotation.TransportMode.toUpperCase());
-console.log("Transport Type (Final):", this.quotation.transportType);
-      this.quotation.shipmentType      = fullData.shipmentType || '';
-      
       // Movement
-      // ====================== MOVEMENT FIX ======================
-this.quotation.movementType = fullData.movementType 
-  ? fullData.movementType.trim() 
-  : '';
+      this.quotation.movementType = fullData.movementType ? fullData.movementType.trim() : '';
+      if (!this.quotation.movementType && fullData.movement) {
+        this.quotation.movementType = fullData.movement.trim();
+      }
 
-// Agar movementType field na ho toh movement se bhi try karo (backup)
-if (!this.quotation.movementType && fullData.movement) {
-  this.quotation.movementType = fullData.movement.trim();
-}
+      this.quotation.incoterm = fullData.incoterm || fullData.incoTerms || '';
+      this.quotation.description = fullData.description || '';
+      this.quotation.pickupAddress = fullData.pickupAddress || '';
+      this.quotation.placeOfDelivery = fullData.placeOfDelivery || '';
+      this.quotation.podFinalDest = fullData.finalDestination || '';
+      this.quotation.location = fullData.location || '';
+      this.quotation.currency = (fullData.cargoCurrency || '').trim();
+      this.quotation.cargoValue = fullData.cargoValue || '';
+      this.quotation.chargeableWeightKg = fullData.volumeWeight || '';
+      this.quotation.noOfPkgs = fullData.noOfPkgs || 0;
+      this.quotation.grossWeightKg = fullData.grossWeightKg || 0;
+      this.quotation.netWeight = fullData.netWeight || 0;
+      this.quotation.chargeableWeight = fullData.chargeableWeight || 0;
+      this.quotation.volumeWeight = fullData.volumeWeight || 0;
 
-console.log("Movement Type Set To:", this.quotation.movementType); // Debug ke liye
+      this.quotation.originPOL = fullData.originName || '';
+      this.quotation.portOfLoading = fullData.portOfLoadingName || '';
+      this.quotation.portOfDischarge = fullData.portOfDischargeName || '';
+      this.quotation.commodity = fullData.commodityId ? Number(fullData.commodityId) : null;
 
-      // Incoterm (dono possible names handle kiye)
-      this.quotation.incoterm          = fullData.incoterm || fullData.incoTerms || fullData.incoterm || '';
-
-      this.quotation.description       = fullData.description || '';
-      this.quotation.pickupAddress     = fullData.pickupAddress || '';
-      this.quotation.placeOfDelivery   = fullData.placeOfDelivery || '';
-      this.quotation.podFinalDest      = fullData.finalDestination || '';
-      this.quotation.location          = fullData.location || '';
-this.quotation.currency = (fullData.cargoCurrency || '').trim();
-this.quotation.cargoValue = fullData.cargoValue || '';
-this.quotation.chargeableWeightKg=fullData.volumeWeight || '';
-      // Weight & Packages
-      this.quotation.noOfPkgs          = fullData.noOfPkgs || 0;
-      this.quotation.grossWeightKg     = fullData.grossWeightKg || 0;
-      this.quotation.netWeight         = fullData.netWeight || 0;
-      this.quotation.chargeableWeight  = fullData.chargeableWeight || 0;
-      this.quotation.volumeWeight      = fullData.volumeWeight || 0;
-
-      // Important IDs / Names
-      this.quotation.originPOL         = fullData.originName || '';           // Origin
-      this.quotation.portOfLoading     = fullData.portOfLoadingName || '';    // POL
-      this.quotation.portOfDischarge   = fullData.portOfDischargeName || '';  // POD
-      this.quotation.commodity = fullData.commodityId 
-  ? Number(fullData.commodityId)     // String ko Number mein convert (safe)
-  : null;
-
-      // Business & Other
       this.quotation.businessDimensions = fullData.businessDimensions || '';
-      this.quotation.isServiceRequired  = fullData.isServiceRequired ?? true;
-      this.quotation.partyRole          = fullData.partyRole || '';
+      this.quotation.isServiceRequired = fullData.isServiceRequired ?? true;
+      this.quotation.partyRole = fullData.partyRole || '';
 
-      // Sales Related
-      // Sales Related section mein yeh line change kar do
-this.quotation.salesCoordinator = fullData.salesCoordinator 
-  ? Number(fullData.salesCoordinator)     // String ko Number mein convert karo
-  : null;
-      this.quotation.pricingBy         = fullData.pricingDoneBy || '';
-      this.quotation.qtnDoneBy         = fullData.qtnDoneBy || '';
+      this.quotation.salesCoordinator = fullData.salesCoordinator ? Number(fullData.salesCoordinator) : null;
+      this.quotation.pricingBy = fullData.pricingDoneBy || '';
+      this.quotation.qtnDoneBy = fullData.qtnDoneBy || '';
+      this.quotation.cargoStatus = fullData.cargoStatus || 'Pending';
+      this.quotation.placeOfReceipt = fullData.placeOfReceipt || '';
+      this.quotation.transitDest = fullData.transitDest || '';
+      this.quotation.transitDays = fullData.transitDays || '';
 
-      // Cargo Status
-      this.quotation.cargoStatus       = fullData.cargoStatus || 'Pending';
-
-      // Extra fields jo aapke form mein hain
-      this.quotation.placeOfReceipt    = fullData.placeOfReceipt || '';
-      this.quotation.transitDest       = fullData.transitDest || '';
-      this.quotation.transitDays       = fullData.transitDays || '';
       if (fullData) {
+        this.quotation.validTill = fullData.validTill || '';
+        this.quotation.version = fullData.version || '';
+        this.quotation.cargoStatus = fullData.cargoStatus || '';
+        this.quotation.cargoReadyDate = fullData.cargoReadyDate || '';
+      }
 
-  // ----------------------------
-  // DIRECT MAPPING (NO CHANGES)
-  // ----------------------------
+      // ====================== DIMENSIONS AUTOFILL ======================
+      if (fullData?.dimensions?.length > 0) {
+        const dims = fullData.dimensions;
+        const mainDim = dims.find((d: any) => d.id === 0) || dims[0];
+        if (mainDim) {
+          this.quotation.dimBox = mainDim.box ?? 0;
+          this.quotation.dimL = mainDim.l ?? 0;
+          this.quotation.dimW = mainDim.w ?? 0;
+          this.quotation.dimH = mainDim.h ?? 0;
+          this.quotation.dimUnit = mainDim.unit ?? 'CMS';
+        }
+        this.dimRows = dims.filter((d: any) => d.id !== 0).map((d: any) => ({
+          box: d.box ?? null,
+          l: d.l ?? null,
+          w: d.w ?? null,
+          h: d.h ?? null,
+          unit: d.unit ?? 'CMS'
+        }));
+        if (this.dimRows.length === 0) {
+          this.dimRows = [{ box: null, l: null, w: null, h: null, unit: 'CMS' }];
+        }
+      } else {
+        this.quotation.dimBox = null;
+        this.quotation.dimL = null;
+        this.quotation.dimW = null;
+        this.quotation.dimH = null;
+        this.quotation.dimUnit = 'CMS';
+        this.dimRows = [{ box: null, l: null, w: null, h: null, unit: 'CMS' }];
+      }
 
-  this.quotation.validTill = fullData.validTill || '';
+      // ====================== NEW: PRICING AUTO-FILL LOGIC ======================
+      const inqIdForPricing = fullData.id;
+      if (inqIdForPricing) {
+        // 1. Single Carrier (CostBreakdown)
+        this.http.get<any[]>(`${environment.apiUrl}/CostBreakdown/GetByInquiry/${inqIdForPricing}`).subscribe({
+          next: (costs) => {
+            this.costRows = costs && costs.length > 0 ? costs : [];
+            // --- AUTO FILL LOGIC ---
+            this.quotation.isDirect = this.costRows.length > 0; 
+            this.cdr.detectChanges();
+          }
+        });
 
-  this.quotation.version = fullData.version || '';
+        // 2. Multi Carrier (Filter from all because by-id endpoint was missing in controller)
+        this.http.get<any[]>(`${environment.apiUrl}/MultiCarrier/get-all`).subscribe({
+          next: (allCarriers) => {
+            const filtered = allCarriers.filter((c: any) => c.inquiryId === inqIdForPricing);
+            this.multiCarrierRows = filtered.length > 0 ? filtered : [];
+            // --- AUTO FILL LOGIC ---
+            this.quotation.isIndirect = this.multiCarrierRows.length > 0;
+            this.cdr.detectChanges();
+          }
+        });
+      }
+      // =========================================================================
 
-  this.quotation.cargoStatus = fullData.cargoStatus || '';
-
-  this.quotation.cargoReadyDate = fullData.cargoReadyDate || '';
-
-  console.log("✅ Raw DB values loaded directly");
-}
-// ====================== DIMENSIONS AUTOFILL ======================
-if (fullData?.dimensions?.length > 0) {
-
-  const dims = fullData.dimensions;
-
-  // ----------------------------
-  // 1. FIRST (ID = 0 OR FIRST ITEM) → MAIN INPUT
-  // ----------------------------
-  const mainDim = dims.find((d: any) => d.id === 0) || dims[0];
-
-  if (mainDim) {
-    this.quotation.dimBox  = mainDim.box ?? 0;
-    this.quotation.dimL    = mainDim.l ?? 0;
-    this.quotation.dimW    = mainDim.w ?? 0;
-    this.quotation.dimH    = mainDim.h ?? 0;
-    this.quotation.dimUnit = mainDim.unit ?? 'CMS';
-
-    console.log("✅ Main dimension (ID 0) filled in inputs");
-  }
-
-  // ----------------------------
-  // 2. REST ALL → MODAL
-  // ----------------------------
-  this.dimRows = dims
-    .filter((d: any) => d.id !== 0)
-    .map((d: any) => ({
-      box: d.box ?? null,
-      l: d.l ?? null,
-      w: d.w ?? null,
-      h: d.h ?? null,
-      unit: d.unit ?? 'CMS'
-    }));
-
-  // agar sirf 1 hi tha aur wo id=0 tha
-  if (this.dimRows.length === 0) {
-    this.dimRows = [{
-      box: null,
-      l: null,
-      w: null,
-      h: null,
-      unit: 'CMS'
-    }];
-  }
-
-  console.log("✅ Modal dimensions loaded:", this.dimRows.length);
-
-} else {
-
-  // ----------------------------
-  // NO DATA CASE
-  // ----------------------------
-  this.quotation.dimBox = null;
-  this.quotation.dimL = null;
-  this.quotation.dimW = null;
-  this.quotation.dimH = null;
-  this.quotation.dimUnit = 'CMS';
-
-  this.dimRows = [{
-    box: null,
-    l: null,
-    w: null,
-    h: null,
-    unit: 'CMS'
-  }];
-
-  console.log("⚠️ No dimensions found");
-}
       this.cdr.detectChanges();
-
-      console.log("✅ Quotation Auto-filled successfully from Inquiry!");
+      console.log("✅ Quotation & Pricing Auto-filled successfully!");
     },
-
     error: (err) => {
       console.error("❌ Error fetching full inquiry:", err);
-      if (err.status === 404) {
-        alert(`Inquiry not found: ${inquiryNo}`);
-      } else {
-        alert("Failed to load inquiry details. Please check console.");
-      }
+      alert("Failed to load inquiry details.");
     }
   });
+}
+
+// Ye function class mein selectInquiry ke niche add kar dena error hatane ke liye
+onServiceTypeChange() {
+  this.cdr.detectChanges();
 }
   // --- Lead API Call ---
  // --- Lead API Call ---

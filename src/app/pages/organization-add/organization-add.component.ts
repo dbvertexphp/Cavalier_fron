@@ -1599,6 +1599,7 @@ selectCitySuggestion(item: any) {
 onSearch() {
   let finalFilters: any = {};
 
+  // 1. Pehle saare filters normal build karo (Same as before)
   Object.entries(this.searchFilters).forEach(([key, value]) => {
     if (value !== '' && value !== null && value !== undefined && value !== 'Any') {
       finalFilters[key] = value;
@@ -1614,40 +1615,56 @@ onSearch() {
     return;
   }
 
-  this.http.get<any[]>(`${environment.apiUrl}/Organization/search`, { params: finalFilters })
-    .subscribe({
-      next: (response) => {
-        let resData = response || [];
+  // --- 🔥 STATUS LOGIC START ---
+  // Agar status filter mangaya hai, toh POST API chalegi
+  if (this.searchFilters.status && this.searchFilters.status !== 'Both') {
+    
+    // Status mapping for POST API
+    if (this.searchFilters.status === 'Active') finalFilters['Status'] = 'active';
+    else if (this.searchFilters.status === 'Deactive') finalFilters['Status'] = 'inactive';
 
-        if (finalFilters.id) {
-          const searchVal = finalFilters.id.toString().trim();
-          
-          this.organizations = resData.filter(org => 
-            (org.id && org.id.toString() === searchVal) || 
-            (org.organizationId && org.organizationId.toString() === searchVal)
-          );
-        } 
-        // 🔥 Naya logic yahan add kiya hai:
-        else if (this.searchFilters.orgGroup) {
-          const selectedGroup = this.searchFilters.orgGroup; // 'Local' ya 'International'
-          
-          this.organizations = resData.filter(org => 
-            // Note: 'orgGroup' wo key honi chahiye jo API se aa rahi hai
-            org.orgGroup === selectedGroup || org.groupType === selectedGroup
-          );
-        }
-        else {
-          this.organizations = resData;
-        }
+    const token = localStorage.getItem('cavalier_token');
+    const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
 
-        this.cdr.detectChanges(); 
-        console.log("✅ Data updated:", this.organizations);
-      },
-      error: (err) => {
-        console.error("❌ Search failed:", err);
-        this.cdr.detectChanges();
-      }
-    });
+    this.http.post<any[]>(`${environment.apiUrl}/Organization/search-by-branches`, finalFilters, { headers })
+      .subscribe({
+        next: (response) => this.processSearchResponse(response, finalFilters),
+        error: (err) => { console.error("❌ POST Search failed:", err); this.cdr.detectChanges(); }
+      });
+
+  } else {
+    // --- 🔥 PURANI GET API (No Change) ---
+    this.http.get<any[]>(`${environment.apiUrl}/Organization/search`, { params: finalFilters })
+      .subscribe({
+        next: (response) => this.processSearchResponse(response, finalFilters),
+        error: (err) => { console.error("❌ GET Search failed:", err); this.cdr.detectChanges(); }
+      });
+  }
+}
+
+// Ye function tera wahi same filtering logic handle karega jo tune bheja tha
+processSearchResponse(response: any[], filters: any) {
+  let resData = response || [];
+
+  if (filters.id) {
+    const searchVal = filters.id.toString().trim();
+    this.organizations = resData.filter(org => 
+      (org.id && org.id.toString() === searchVal) || 
+      (org.organizationId && org.organizationId.toString() === searchVal)
+    );
+  } 
+  else if (this.searchFilters.orgGroup) {
+    const selectedGroup = this.searchFilters.orgGroup; 
+    this.organizations = resData.filter(org => 
+      org.orgGroup === selectedGroup || org.groupType === selectedGroup
+    );
+  }
+  else {
+    this.organizations = resData;
+  }
+
+  this.cdr.detectChanges(); 
+  console.log("✅ Data updated:", this.organizations);
 }
 resetFilters() {
   this.searchFilters = {
@@ -2552,5 +2569,37 @@ selectOrgIdFromModal(org: any) {
   this.searchFilters.orgCode = org.organizationId || org.orgId;
   this.isOrgIdModalOpen = false; // Modal band
   this.cdr.detectChanges();
+}
+toggleOrgStatus(org: any) {
+  // 1. Naya status calculate karo (Agar 1 hai toh 0, aur 0 hai toh 1)
+  const newStatus = org.status === 1 ? 0 : 1;
+  
+  // 2. Token uthao (Cavalier app ke liye)
+  const token = localStorage.getItem('cavalier_token');
+  
+  // 3. Headers set karo
+  const headers = { 
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  };
+
+  // 4. API Call - UpdateStatus endpoint par
+  // Note: Yahan environment.apiUrl check kar lena sahi hai ya nahi
+  this.http.patch(`${environment.apiUrl}/Organization/UpdateStatus/${org.id}`, newStatus, { headers })
+    .subscribe({
+      next: (res: any) => {
+        // UI ko update karo bina refresh kiye
+        org.status = newStatus;
+        
+        // Change Detection trigger karo taaki green/gray color turant badal jaye
+        this.cdr.detectChanges();
+        
+        console.log(`Organization ${org.orgName} is now ${newStatus === 1 ? 'Active' : 'Inactive'}`);
+      },
+      error: (err) => {
+        console.error("Status update failed:", err);
+        alert("Status change karne mein error aaya!");
+      }
+    });
 }
 } 

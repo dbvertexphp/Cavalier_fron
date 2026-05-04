@@ -1254,7 +1254,7 @@ onLeadSearch() {
       SalesProcess: '',
       HOD: '',
       Team: '',
-      Branch: '', // 🔥 Added
+      Branch: '', 
       ReportingManager: '',
       Status: '',
       Date: '' 
@@ -1271,16 +1271,24 @@ onLeadSearch() {
       SalesProcess: this.leadSearchFilters.salesProcess || "",
       HOD: this.leadSearchFilters.hod || "",
       Team: this.leadSearchFilters.team || "",
-      Branch: this.leadSearchFilters.branch || "", // 🔥 Branch Filter Added
+      Branch: this.leadSearchFilters.branch || "", 
       ReportingManager: this.leadSearchFilters.reportingManager || "",
-      Status: this.leadSearchFilters.status === 'Any' ? "" : this.leadSearchFilters.status,
+      
+      // 🔥 FIX: 'Status' (Capital S) backend ke liye hai, 'status' (Small s) tere frontend object ke liye
+      Status: (this.leadSearchFilters.status === 'Any' || !this.leadSearchFilters.status) 
+               ? "" 
+               : this.leadSearchFilters.status.toString().toLowerCase(),
+      
       Date: searchDate 
     };
     console.log("🔍 Normal Filter Search Triggered with Branch:", this.leadSearchFilters.branch);
   }
 
   // --- API Call ---
-  this.http.post<any[]>(`${environment.apiUrl}/Leads/Search`, filtersToSend)
+  const token = localStorage.getItem('cavalier_token');
+  const headers = { 'Authorization': `Bearer ${token}` };
+
+  this.http.post<any[]>(`${environment.apiUrl}/Leads/Search`, filtersToSend, { headers })
     .subscribe({
       next: (response) => {
         let results = response ? [...response] : [];
@@ -2254,5 +2262,36 @@ handleRowDblClick(leadId: any) {
 closeRowModal() {
   this.showRowModal = false;
   this.selectedLeadId = null;
+}
+// LeadFormComponent class ke andar kahi bhi ye function paste kar dein
+toggleLeadStatus(lead: any) {
+  // Logic: Status flip
+  const newStatus = lead.status === 1 ? 0 : 1;
+  const token = localStorage.getItem('cavalier_token');
+
+  const headers = {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  };
+
+  this.http.patch(`${environment.apiUrl}/Leads/UpdateStatus/${lead.id}`, newStatus, { headers })
+    .subscribe({
+      next: (res: any) => {
+        // 3. Pehle data update kar
+        lead.status = newStatus;
+
+        // 4. Forcefully UI refresh kar
+        this.cdr.detectChanges(); 
+        
+        console.log("UI Updated with ChangeDetector!");
+      },
+      error: (err) => {
+        console.error("Error:", err);
+        alert("Status update fail!");
+        
+        // Error ke case mein bhi detect changes chala do taaki UI purane state par rahe
+        this.cdr.detectChanges();
+      }
+    });
 }
 }

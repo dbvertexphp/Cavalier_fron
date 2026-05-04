@@ -1448,44 +1448,49 @@ onSearch() {
 
   let filtersToSend: any = { 
     ...this.searchFilters,
-    selectedBranchIds: this.selectedBranchIds // Branch IDs add kar di
+    selectedBranchIds: this.selectedBranchIds
   };
 
-  // 🔥 MAGIC LOGIC: Agar Quotation No likha hai, toh baaki filters ko saaf kar do
   const searchInput = this.searchFilters.quotationNo?.toString().trim();
 
   if (searchInput && searchInput !== "") {
-    // Sirf Quotation No aur Selected Branches bhejo
     filtersToSend = {
       quotationNo: searchInput,
-      selectedBranchIds: this.selectedBranchIds, // Branch filter yahan bhi rahega
+      selectedBranchIds: this.selectedBranchIds,
       lineOfBusiness: '',
       organization: '',
       salesCoor: '',
       cargoStatus: '',
       validFrom: null,
       showMode: '',
-      status: ''
+      Status: -1 
     };
-    console.log("🎯 Hard Searching for Quotation No only (with branches):", searchInput);
   } else {
-    // Agar Quo No khali hai, tab normal filters chalne do
     filtersToSend.salesCoor = this.searchFilters.quotedBy || "";
     if (filtersToSend.lineOfBusiness === 'Any') filtersToSend.lineOfBusiness = '';
     if (filtersToSend.cargoStatus === 'Any') filtersToSend.cargoStatus = '';
-    if (filtersToSend.status === 'Any') filtersToSend.status = '';
+    
+    // --- Status Logic Fix ---
+    const statusValue: any = this.searchFilters.status; // 'any' lagane se error chali jayegi
+    
+    if (statusValue == null || statusValue == -1 || statusValue == '-1' || statusValue === '' || statusValue === 'Any') {
+        filtersToSend.Status = -1; 
+    } else {
+        filtersToSend.Status = Number(statusValue); 
+    }
+    // ----------------------
+
     if (filtersToSend.showMode === 'all') filtersToSend.showMode = '';
     if (!filtersToSend.validFrom) filtersToSend.validFrom = null;
   }
 
-  // Yahan headers pass kar diye hain
+  delete filtersToSend.status; 
+
   this.http.post<any[]>(`${this.apiEndpoint}/Search`, filtersToSend, { headers })
     .subscribe({
       next: (response) => {
-        // Agar data aaya, toh wahi dikhao
         this.quotations = response || [];
         
-        // Sorting (Just in case multiple results aayein)
         if (searchInput && this.quotations.length > 0) {
           const lowerInput = searchInput.toLowerCase();
           this.quotations.sort((a, b) => {
@@ -1495,7 +1500,7 @@ onSearch() {
         }
 
         this.cdr.detectChanges();
-        console.log("✅ Data on table filtered by branches:", this.quotations);
+        console.log("✅ Data filtered successfully:", this.quotations);
       },
       error: (err) => {
         console.error("❌ API Error:", err);
@@ -2222,5 +2227,30 @@ closeRowModal() {
   this.showRowModal = false;
   this.selectedQuotationId = null;
   this.selectedQuotationData = null;
+}
+toggleStatus(q: any) {
+  const token = localStorage.getItem('cavalier_token');
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  });
+
+  const url = `${environment.apiUrl}/Quotations/ToggleStatus/${q.id}`;
+
+  this.http.patch(url, {}, { headers }).subscribe({
+    next: (res: any) => {
+      // Backend se jo naya status aaya (1 ya 0), usey assign karein
+      q.status = res.newStatus;
+      
+      // Forcefully UI refresh karne ke liye
+      this.cdr.detectChanges(); 
+      
+      console.log('Status updated successfully:', res.newStatus);
+    },
+    error: (err) => {
+      console.error('Error:', err);
+      alert('Status update nahi ho paya!');
+    }
+  });
 }
   }

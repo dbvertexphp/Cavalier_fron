@@ -1457,19 +1457,25 @@ onSearch() {
     filtersToSend.salesCoordinator = ""; 
   }
 
+  // 🔥 NEW STATUS LOGIC:
+  // Agar dropdown "" (Both) hai toh null bhejenge taaki backend filter na kare.
+  // Agar "1" ya "0" hai toh Number mein convert karke bhejenge.
+  if (filtersToSend.status === "" || filtersToSend.status === undefined || filtersToSend.status === null) {
+    filtersToSend.status = null; 
+  } else {
+    filtersToSend.status = Number(filtersToSend.status);
+  }
+
   // 🔥 FIXED BRANCH LOGIC:
-  // Backend ko 'int?' chahiye, isliye hum string "" nahi bhej sakte.
   if (this.branchSearchText && this.branchSearchText !== "") {
-    // Ensure karo ki branchId number hi jaye (parseInt ya Number use karke)
     const bId = Number(this.searchFilters.branchId);
     filtersToSend.branchId = isNaN(bId) ? null : bId; 
     delete filtersToSend.branchName; 
   } else {
-    // Agar branch selected nahi hai, toh use null bhejo, "" nahi
     filtersToSend.branchId = null;
   }
 
-  console.log("📡 Final Payload with Branch ID:", filtersToSend);
+  console.log("📡 Final Payload with Status:", filtersToSend);
 
   // 3. API Call
   const token = localStorage.getItem('cavalier_token');
@@ -1492,9 +1498,10 @@ onSearch() {
           // Fallback logic
           const fallbackFilters = { 
             inquiryNo: filtersToSend.inquiryNo,
-            branchId: filtersToSend.branchId // Fallback mein bhi branchId bhej do agar zaroorat ho
+            branchId: filtersToSend.branchId,
+            status: filtersToSend.status // Fallback mein bhi status bhej rahe hain
           };
-          this.http.post<any[]>(`${environment.apiUrl}/Inquiry/Search`, fallbackFilters, httpOptions)
+          this.http.post<any[]>(`${environment.apiUrl}/api/Inquiry/Search`, fallbackFilters, httpOptions)
             .subscribe({
               next: (fallbackRes) => {
                 this.quotations = fallbackRes;
@@ -1514,7 +1521,7 @@ onSearch() {
       error: (err) => {
         console.error("Search failed details:", err);
         if (err.status === 400) {
-          console.log("Validation Errors:", err.error.errors); // Isse exact field pata chalegi console mein
+          console.log("Validation Errors:", err.error.errors);
         }
         if (err.status === 401) {
           alert("Unauthorized! Token expired, login again.");
@@ -2818,4 +2825,47 @@ closeRowModal() {
   this.showRowModal = false;
   this.selectedInquiryId = null;
 }  
+toggleStatus(q: any) {
+  // 1. Authorization Token
+  const token = localStorage.getItem('cavalier_token');
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  });
+
+  // 2. URL Setup
+  const url = `${environment.apiUrl}/Inquiry/ToggleStatus/${q.id}`;
+
+  // Current state save kar lo (error handle karne ke liye)
+  const previousStatus = q.status;
+
+  // 3. API Call
+  this.http.patch(url, {}, { headers }).subscribe({
+    next: (res: any) => {
+      // Backend (res.newStatus) se sync kar rahe hain
+      q.status = res.newStatus;
+      
+      // UI update trigger
+      this.cdr.detectChanges();
+      
+      console.log(`✅ Status changed for ID ${q.id}:`, res.newStatus);
+    },
+    error: (err) => {
+      console.error("❌ Status update fail:", err);
+      
+      // Error par wapas purani state set karo taaki UI galat na dikhe
+      q.status = previousStatus;
+      
+      alert("Error while change status!");
+      
+      // UI ko revert karne ke liye forcefully update
+      this.cdr.detectChanges();
+    }
+  });
+}
+
+  // 🎯 Alert dikhane ka function (Lead/Org ID ke liye)
+  // showAlert(title: string, id: any) {
+  //   alert(`${title}: ${id || 'N/A'}`);
+  // }
 }

@@ -222,12 +222,13 @@
   </select>
 </div> -->
  <div class="flex items-center mb-1">
-  <label class="w-24 font-bold text-gray-600">Status</label>
+  <label class="w-24 font-bold text-gray-600 text-[12px]">Status</label>
   <select [(ngModel)]="searchFilters.status" 
-          class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
+          (change)="onSearch()"
+          class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white cursor-pointer">
+    <option value="Both">Both</option>
     <option value="Active">Active</option>
     <option value="Deactive">Deactive</option>
-    <option value="Both">Both</option>
   </select>
 </div>
 </div>
@@ -441,7 +442,7 @@
       </tr>
     </thead>
 
-   <tbody class="bg-white divide-y divide-gray-200" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
+    <tbody class="bg-white divide-y divide-gray-200" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
   
   <ng-container *ngIf="paginatedOrganizations && paginatedOrganizations.length > 0; else noData">
     <tr *ngFor="let org of paginatedOrganizations" 
@@ -469,8 +470,22 @@
       </td>
 
       <td class="p-5 sticky right-0 bg-white border-l text-center shadow-sm">
-        <button (click)="editOrg(org)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Edit')" class="text-blue-600 mr-4 font-bold hover:underline no-export">EDIT</button>
-        <button (click)="deleteOrg(org.id)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Delete')" class="text-red-600 font-bold hover:underline no-export">DELETE</button>
+        <div class="flex items-center justify-center gap-3">
+          <!-- 🔥 Leads wala Active/Inactive Toggle Button -->
+          <button [title]="org.status === 1 ? 'Deactivate' : 'Activate'"
+                  (click)="$event.stopPropagation(); toggleOrgStatus(org)"
+                  class="flex items-center gap-2 px-3 py-1.5 rounded-md transition-all font-medium text-sm shadow-sm border no-export"
+                  [ngClass]="org.status === 1 ? 'bg-green-50 text-green-600 border-green-200 hover:bg-green-600 hover:text-white' : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-600 hover:text-white'">
+            <span class="relative flex h-2 w-2">
+              <span *ngIf="org.status === 1" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+              <span [class]="org.status === 1 ? 'bg-green-500' : 'bg-gray-500'" class="relative inline-flex rounded-full h-2 w-2"></span>
+            </span>
+            <span>{{ org.status === 1 ? 'Active' : 'Inactive' }}</span>
+          </button>
+
+          <button (click)="editOrg(org)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Edit')" class="text-blue-600 font-bold hover:underline no-export">EDIT</button>
+          <button (click)="deleteOrg(org.id)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Delete')" class="text-red-600 font-bold hover:underline no-export">DELETE</button>
+        </div>
       </td>
     </tr>
   </ng-container>

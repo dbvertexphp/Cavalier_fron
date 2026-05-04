@@ -469,20 +469,19 @@
   </div>
 </div>
           <div class="flex items-center">
-            <label class="w-24 font-bold text-gray-600">Quatation Status</label>
-            <div class="relative flex-1">
-              <select
-                [(ngModel)]="searchFilters.status"
-                class="w-full border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white cursor-pointer appearance-none"
-              >
-                <option value="Pending">Pending</option>
-                <option value="Won">Read By</option>
-              </select>
-              <i
-                class="fa fa-chevron-down absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] pointer-events-none"
-              ></i>
-            </div>
-          </div>
+  <label class="w-24 font-bold text-gray-600">Quotation Status</label>
+  <div class="relative flex-1">
+    <select
+      [(ngModel)]="searchFilters.status"
+      class="w-full border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white cursor-pointer appearance-none"
+    >
+      <option [value]="-1">Both (Default)</option>
+      <option [value]="1">Active</option>
+      <option [value]="0">Inactive</option>
+    </select>
+    <i class="fa fa-chevron-down absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] pointer-events-none"></i>
+  </div>
+</div>
           <!-- <div class="flex items-center">
             <label class="w-28 font-bold text-gray-600 text-[12px]">Status</label>
 
@@ -744,58 +743,55 @@
     </div>
     <div class="p-0 overflow-x-auto">
       <div class="relative">
-        <table class="w-full border-collapse text-[13px]">
-          <thead>
-            <tr class="bg-gray-50 text-gray-500 uppercase text-[11px] border-b">
-              <th
-                *ngFor="let col of selectedColumns"
-                class="p-4 text-left font-bold"
-              >
-                {{ col }}
-              </th>
-              <th
-                class="p-4 text-center font-bold sticky right-0 bg-gray-50 border-l"
-              >
-                Action
-              </th>
-            </tr>
-          </thead>
+       <table class="w-full border-collapse text-[13px]">
+  <thead>
+    <tr class="bg-gray-50 text-gray-500 uppercase text-[11px] border-b">
+      <th *ngFor="let col of selectedColumns" class="p-4 text-left font-bold">
+        {{ col }}
+      </th>
+      <th class="p-4 text-center font-bold sticky right-0 bg-gray-50 border-l">
+        Action
+      </th>
+    </tr>
+  </thead>
 
-          <tbody
-            *ngIf="CheckPermissionService.hasPermission(PermissionID, 'View')"
-          >
-            <tr
-              *ngFor="let q of paginatedQuotations"
-              (dblclick)="editQuotation(q)"
-              class="hover:bg-gray-50 border-b text-gray-700 cursor-pointer transition-colors"
-            >
-              <td *ngFor="let col of selectedColumns" class="p-4">
-                {{ q[col] }}
-              </td>
+  <tbody *ngIf="CheckPermissionService.hasPermission(PermissionID, 'View')">
+    <tr *ngFor="let q of paginatedQuotations" (dblclick)="editQuotation(q)"
+      class="hover:bg-gray-50 border-b text-gray-700 cursor-pointer transition-colors">
+      
+      <td *ngFor="let col of selectedColumns" class="p-4">
+        {{ q[col] }}
+      </td>
 
-              <td class="p-4 sticky right-0 bg-white border-l text-center">
-                <button
-                  (click)="editQuotation(q)"
-                  *ngIf="
-                    CheckPermissionService.hasPermission(PermissionID, 'Edit')
-                  "
-                  class="text-blue-600 mr-3 font-bold uppercase hover:underline"
-                >
-                  Edit
-                </button>
-                <button
-                  (click)="deleteQuotation(q.id)"
-                  *ngIf="
-                    CheckPermissionService.hasPermission(PermissionID, 'Delete')
-                  "
-                  class="text-red-600 font-bold uppercase hover:underline"
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <td class="p-4 sticky right-0 bg-white border-l text-center flex items-center justify-center gap-2">
+        <!-- Raw Value: {{ q.status }} | {{ q.Status }} -->
+        <!-- 🔥 Toggle Status Button (Same as Leads/Org) -->
+        <button [title]="q.status === 1 ? 'Deactivate' : 'Activate'"
+          (click)="$event.stopPropagation(); toggleStatus(q)"
+          class="flex items-center gap-2 px-3 py-1.5 rounded-md transition-all font-medium text-[10px] shadow-sm border no-export"
+          [ngClass]="q.status === 1 ? 'bg-green-50 text-green-600 border-green-200 hover:bg-green-600 hover:text-white' : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-600 hover:text-white'">
+          <span class="relative flex h-2 w-2">
+            <span *ngIf="q.status === 1" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+            <span [class]="q.status === 1 ? 'bg-green-500' : 'bg-gray-500'" class="relative inline-flex rounded-full h-2 w-2"></span>
+          </span>
+          <span>{{ q.status === 1 ? 'Active' : 'Inactive' }}</span>
+        </button>
+
+        <button (click)="editQuotation(q)"
+          *ngIf="CheckPermissionService.hasPermission(PermissionID, 'Edit')"
+          class="text-blue-600 font-bold uppercase hover:underline text-[11px]">
+          Edit
+        </button>
+
+        <button (click)="deleteQuotation(q.id)"
+          *ngIf="CheckPermissionService.hasPermission(PermissionID, 'Delete')"
+          class="text-red-600 font-bold uppercase hover:underline text-[11px]">
+          Delete
+        </button>
+      </td>
+    </tr>
+  </tbody>
+</table>
       </div>
       <div
         class="flex flex-col items-center mt-6 gap-3"

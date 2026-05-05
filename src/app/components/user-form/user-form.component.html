@@ -362,7 +362,7 @@
       <label class="font-semibold text-gray-600 block uppercase">HOD</label>
       <select formControlName="hodId" class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f] bg-white">
         <option [value]="null" disabled selected>Select HOD</option>
-        <option *ngFor="let h of hods" [value]="h.id">{{ h.firstName }} {{ h.lastName }}</option>
+        <option *ngFor="let h of hods" [value]="h.id">{{ h.name }}</option>
       </select>
       <div *ngIf="userForm.get('hodId')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
         {{ userForm.get('hodId')?.errors?.['zod'] }}

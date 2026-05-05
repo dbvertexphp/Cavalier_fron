@@ -42,6 +42,7 @@ searchFilters: any = {
   orgType: '',
   status: 'Active' // 👈 Default 'Active' rakha hai
 };
+searchDone: boolean = false;
 // Isse TypeScript ko pata chal jayega ki ye variable exist karta hai
 editingBranchId: any = null;
 department:any=[];
@@ -258,6 +259,7 @@ deleteSelectedBranch() {
 }
 AllSearch(){
 this.getOrgList();
+
 }
 // Button click ka logic
 // Button click ka sahi logic
@@ -465,9 +467,18 @@ landmark: string = '';
 
  ngOnInit() {
   this.route.queryParams.subscribe(params => {
-    if (params['highlightId']) {
+    const highlightId = params['highlightId'];
+    
+    if (highlightId) {
+      this.highlightedOrgId = +highlightId;
+      
+      // Step A: Puri list load karo (takki background mein table dikhe)
       this.getOrgList();
-      this.highlightedOrgId = +params['highlightId']; // String to Number
+
+      // Step B: Direct backend se single record fetch karo Edit mode ke liye
+      this.fetchAndEditOrg(this.highlightedOrgId);
+    } else {
+      this.getOrgList();
     }
   });
   const state = history.state;           // ya this.router.lastSuccessfulNavigation?.extras?.state
@@ -1045,6 +1056,9 @@ saveOrganization() {
           this.saveAllLocalBranches(finalOrgId); 
 
           alert(this.isOrgEditMode ? "✅ Organization Updated Successfully!" : "✅ Organization + Branches Saved Successfully!");
+
+          // 🚀 Yahan se table par redirect hoga (Apne table ka path '/organization-list' ki jagah dal dein)
+          this.router.navigate(['/dashboard/organization-add']); 
         }
       },
       error: (err) => alert(this.isOrgEditMode ? "❌ Failed to Update Organization" : "❌ Failed to Save Organization")
@@ -1183,7 +1197,17 @@ editOrg(org: any) {
 
   this.cdr.detectChanges();
 }
-
+fetchAndEditOrg(id: number) {
+  this.http.get(`${environment.apiUrl}/Organization/${id}`).subscribe({
+    next: (data: any) => {
+      // Backend se data aane ke baad editOrg call karo
+      this.editOrg(data);
+    },
+    error: (err) => {
+      console.error('Error fetching organization details', err);
+    }
+  });
+}
 // Ye function alag se niche add kar dena
 // ==================== GET BRANCHES BY ORGANIZATION (FULL MAPPING) ====================
 // ==================== GET BRANCHES BY ORGANIZATION (FULL MAPPING) ====================
@@ -1596,47 +1620,67 @@ selectCitySuggestion(item: any) {
   this.filteredCities = []; // City dropdown band
   this.cdr.detectChanges();
 }
+// 1. Sabse pehle, jaha variable declare kiya hai waha check karo
+// organizations: any[] = []; // Ye empty hona chahiye initial level par.
+
+// 1. Pehle variable declare karein (top par)
+showTable: boolean = false;
+
 onSearch() {
   let finalFilters: any = {};
 
-  // 1. Pehle saare filters normal build karo (Same as before)
-  Object.entries(this.searchFilters).forEach(([key, value]) => {
-    if (value !== '' && value !== null && value !== undefined && value !== 'Any') {
-      finalFilters[key] = value;
-    }
-  });
-
-  if (finalFilters.orgCode) {
-    finalFilters = { id: finalFilters.orgCode };
+  // 1. ID Priority Check
+  if (this.searchFilters.orgCode && this.searchFilters.orgCode.trim() !== '') {
+    finalFilters = { id: this.searchFilters.orgCode };
+  } 
+  else {
+    // 2. Build other filters (Name, etc.)
+    Object.entries(this.searchFilters).forEach(([key, value]) => {
+      if (value !== '' && value !== null && value !== undefined && value !== 'Any') {
+        finalFilters[key] = value;
+      }
+    });
   }
 
+  // --- 🔥 HIDE/SHOW LOGIC ---
+  // Agar blank search hai (koi filter nahi), toh getOrgList call hoga aur table dikhegi
   if (Object.keys(finalFilters).length === 0) {
-    alert("Bhai, kam se kam ek filter to bharo!");
+    this.showTable = true;
+    this.getOrgList();
     return;
   }
 
-  // --- 🔥 STATUS LOGIC START ---
-  // Agar status filter mangaya hai, toh POST API chalegi
-  if (this.searchFilters.status && this.searchFilters.status !== 'Both') {
-    
-    // Status mapping for POST API
+  // Agar filters hain, toh table dikhao aur niche API call hone do
+  this.showTable = true;
+
+  // --- 🔥 REST OF YOUR CODE (NO CHANGES) ---
+  const token = localStorage.getItem('cavalier_token');
+  const headers = { 
+    'Authorization': `Bearer ${token}`, 
+    'Content-Type': 'application/json' 
+  };
+
+  if (finalFilters.id) {
+    this.http.get<any[]>(`${environment.apiUrl}/Organization/search`, { params: finalFilters, headers })
+      .subscribe({
+        next: (response) => { this.processSearchResponse(response, finalFilters); },
+        error: (err) => { console.error("❌ ID Search failed:", err); this.cdr.detectChanges(); }
+      });
+  } 
+  else if (this.searchFilters.status && this.searchFilters.status !== 'Both') {
     if (this.searchFilters.status === 'Active') finalFilters['Status'] = 'active';
     else if (this.searchFilters.status === 'Deactive') finalFilters['Status'] = 'inactive';
 
-    const token = localStorage.getItem('cavalier_token');
-    const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
-
     this.http.post<any[]>(`${environment.apiUrl}/Organization/search-by-branches`, finalFilters, { headers })
       .subscribe({
-        next: (response) => this.processSearchResponse(response, finalFilters),
+        next: (response) => { this.processSearchResponse(response, finalFilters); },
         error: (err) => { console.error("❌ POST Search failed:", err); this.cdr.detectChanges(); }
       });
-
-  } else {
-    // --- 🔥 PURANI GET API (No Change) ---
-    this.http.get<any[]>(`${environment.apiUrl}/Organization/search`, { params: finalFilters })
+  } 
+  else {
+    this.http.get<any[]>(`${environment.apiUrl}/Organization/search`, { params: finalFilters, headers })
       .subscribe({
-        next: (response) => this.processSearchResponse(response, finalFilters),
+        next: (response) => { this.processSearchResponse(response, finalFilters); },
         error: (err) => { console.error("❌ GET Search failed:", err); this.cdr.detectChanges(); }
       });
   }
@@ -1674,7 +1718,7 @@ resetFilters() {
     branchName: '',
     orgGroup: '',
     orgType: '',
-    status: 'Active'
+    status: 'Both'
   };
   this.getOrgList(); // Poori list load hogi
   this.cdr.detectChanges(); // 👈 Yahan bhi lagao taaki filter boxes turant khali dikhein
@@ -2471,48 +2515,123 @@ closeOrgModal() {
 }
 // Variables class mein define honge
 
-onPostalCodeChange(value: string) {
+// onPostalCodeChange(value: string) {
+//   if (!value || value.length < 3) return;
+
+//   // 1. Agar India ka pincode hai (6 Digits)
+//   if (/^\d{6}$/.test(value)) {
+//     this.fetchIndiaData(value);
+//   } 
+//   // 2. Global search ke liye (Zip codes can be alphanumeric)
+//   else if (value.length >= 3) {
+//     this.fetchGlobalData(value);
+//   }
+// }
+
+// // India Specific Fetch
+// private fetchIndiaData(pincode: string) {
+//   fetch(`https://api.postalpincode.in/pincode/${pincode}`)
+//     .then(res => res.json())
+//     .then(data => {
+//       if (data[0].Status === 'Success') {
+//         const res = data[0].PostOffice[0];
+//         this.city = res.Block.toUpperCase();
+//         this.stateProvince = res.State.toUpperCase();
+//         this.country = 'INDIA';
+//       }
+//     }).catch(err => console.log(err));
+// }
+
+// // Global Fetch (Zippopotam - Supports US, FR, DE, GB, etc.)
+// private fetchGlobalData(zip: string) {
+//   // Defaulting to 'US' for international lookup if not India
+//   // Aap isse dynamic bhi kar sakte hain agar aapke paas country code list hai
+//   const countryCode = 'us'; 
+//   fetch(`https://api.zippopotam.us/${countryCode}/${zip}`)
+//     .then(res => res.json())
+//     .then(data => {
+//       if (data.places && data.places.length > 0) {
+//         this.city = data.places[0]['place name'].toUpperCase();
+//         this.stateProvince = data.places[0]['state'].toUpperCase();
+//         this.country = 'UNITED STATES';
+//       }
+//     }).catch(err => console.log(err));
+// }
+onFindClick() {
+    const value = this.postalCode;
+    if (!value || value.length < 3) return;
+
+    // India Specific (6 Digits)
+    if (/^\d{6}$/.test(value)) {
+      this.fetchIndiaData(value);
+    } 
+    // Global
+    else {
+      this.fetchGlobalData(value);
+    }
+  }
+
+  private fetchIndiaData(pincode: string) {
+    fetch(`https://api.postalpincode.in/pincode/${pincode}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data[0].Status === 'Success') {
+          const res = data[0].PostOffice[0];
+          this.city = res.Block.toUpperCase();
+          this.stateProvince = res.State.toUpperCase();
+          this.country = 'INDIA';
+          
+          this.cdr.detectChanges(); // 🔥 UI update force karein
+        }
+      }).catch(err => console.log(err));
+  }
+
+  private fetchGlobalData(zip: string) {
+    const countryCode = 'us'; 
+    fetch(`https://api.zippopotam.us/${countryCode}/${zip}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.places && data.places.length > 0) {
+          this.city = data.places[0]['place name'].toUpperCase();
+          this.stateProvince = data.places[0]['state'].toUpperCase();
+          this.country = 'UNITED STATES';
+          
+          this.cdr.detectChanges(); // 🔥 UI update force karein
+        }
+      }).catch(err => console.log(err));
+  }
+  onFindAgentAddress() {
+  const value = this.agentPostalCode;
   if (!value || value.length < 3) return;
 
-  // 1. Agar India ka pincode hai (6 Digits)
+  // 1. India Pincode Logic
   if (/^\d{6}$/.test(value)) {
-    this.fetchIndiaData(value);
+    fetch(`https://api.postalpincode.in/pincode/${value}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data[0].Status === 'Success') {
+          const res = data[0].PostOffice[0];
+          this.agentCity = res.Block.toUpperCase();
+          this.agentState = res.State.toUpperCase();
+          this.agentCountry = 'INDIA';
+          this.cdr.detectChanges(); // UI Update
+        }
+      }).catch(err => console.error(err));
   } 
-  // 2. Global search ke liye (Zip codes can be alphanumeric)
-  else if (value.length >= 3) {
-    this.fetchGlobalData(value);
-  }
-}
-
-// India Specific Fetch
-private fetchIndiaData(pincode: string) {
-  fetch(`https://api.postalpincode.in/pincode/${pincode}`)
-    .then(res => res.json())
-    .then(data => {
-      if (data[0].Status === 'Success') {
-        const res = data[0].PostOffice[0];
-        this.city = res.Block.toUpperCase();
-        this.stateProvince = res.State.toUpperCase();
-        this.country = 'INDIA';
-      }
-    }).catch(err => console.log(err));
-}
-
-// Global Fetch (Zippopotam - Supports US, FR, DE, GB, etc.)
-private fetchGlobalData(zip: string) {
-  // Defaulting to 'US' for international lookup if not India
-  // Aap isse dynamic bhi kar sakte hain agar aapke paas country code list hai
-  const countryCode = 'us'; 
-  fetch(`https://api.zippopotam.us/${countryCode}/${zip}`)
-    .then(res => res.json())
-    .then(data => {
-      if (data.places && data.places.length > 0) {
-        this.city = data.places[0]['place name'].toUpperCase();
-        this.stateProvince = data.places[0]['state'].toUpperCase();
-        this.country = 'UNITED STATES';
-      }
-    }).catch(err => console.log(err));
-}
+  // 2. Global Zip Logic
+  else {
+    const countryCode = 'us'; // Default global search
+    fetch(`https://api.zippopotam.us/${countryCode}/${value}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.places && data.places.length > 0) {
+          this.agentCity = data.places[0]['place name'].toUpperCase();
+          this.agentState = data.places[0]['state'].toUpperCase();
+          this.agentCountry = 'UNITED STATES';
+          this.cdr.detectChanges(); // UI Update
+        }
+      }).catch(err => console.error(err));
+    }}
 // Variables// Variables
 isOrgIdModalOpen: boolean = false;
 modalOrgIdSearchText: string = '';

@@ -99,9 +99,20 @@ goToPage(page: number) {
 
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
-    if (params['highlightId']) {
+    const highlightId = params['highlightId'];
+
+    if (highlightId) {
+      // 1. Highlight ID set karo table ke liye
+      this.highlightedLeadId = +highlightId;
+
+      // 2. Puri list load karo background mein
       this.loadLeads();
-      this.highlightedLeadId = +params['highlightId']; // String to Number
+
+      // 3. 🔥 Form auto-fill aur open karne ke liye function call
+      this.onEditLead(this.highlightedLeadId);
+    } else {
+      // Agar highlightId nahi hai toh sirf list load karo
+      this.loadLeads();
     }
   });
     this.loadBranchess()
@@ -212,8 +223,12 @@ onOrganizationFocus() {
     // Optionally show all or keep typing based
   }
 }
+// initial value false rakhein
+showTable: boolean = false;
 AllLeadSearch(){
+  
 this.loadLeads();
+this.showTable = true;
 }
   // NEW button function
   navigateToNewOrg(event?: MouseEvent) {
@@ -1221,30 +1236,136 @@ selectStatus(status: string): void {
   this.filteredStatusSuggestions = [];
   this.cdr.detectChanges();
 }
-// 2. Main Search Button Function
+// // 2. Main Search Button Function
+// onLeadSearch() {
+//   // 1. Pehle search Input lo
+//   const searchInput = this.leadSearchFilters.leadNo?.toString().trim();
+  
+//   // 2. Date ko Form se uthao
+//   let searchDate = this.leadForm.get('date')?.value || this.leadSearchFilters.date || ""; 
+
+//   // --- 🔥 Logic: Agar Date "Aaj" ki hai, toh use empty kar do ---
+//   const today = new Date();
+//   const year = today.getFullYear();
+//   const month = String(today.getMonth() + 1).padStart(2, '0');
+//   const day = String(today.getDate()).padStart(2, '0');
+//   const todayFormatted = `${year}-${month}-${day}`; 
+
+//   if (searchDate === todayFormatted) {
+//     console.log("📅 Today's date detected, sending empty to show all data.");
+//     searchDate = ""; 
+//   }
+
+//   let filtersToSend: any = {};
+
+//   if (searchInput && searchInput !== "") {
+//     // 🎯 Priority Search: Agar LeadNo hai toh baaki sab empty
+//     filtersToSend = {
+//       LeadNo: searchInput,
+//       OrganizationName: '',
+//       Type: '',
+//       LeadOwner: '',
+//       SalesStage: '',
+//       SalesProcess: '',
+//       HOD: '',
+//       Team: '',
+//       Branch: '', 
+//       ReportingManager: '',
+//       Status: '',
+//       Date: '' 
+//     };
+//     console.log("🎯 Hard Searching for Lead No only:", searchInput);
+//   } else {
+//     // 🔍 Multi-Filter Search
+//     filtersToSend = {
+//       LeadNo: '',
+//       OrganizationName: this.leadSearchFilters.organizationName || "",
+//       Type: this.leadSearchFilters.type === 'Any' ? "" : this.leadSearchFilters.type,
+//       LeadOwner: this.leadSearchFilters.leadOwner === 'Any' ? "" : this.leadSearchFilters.leadOwner,
+//       SalesStage: this.leadSearchFilters.salesStage || "",
+//       SalesProcess: this.leadSearchFilters.salesProcess || "",
+//       HOD: this.leadSearchFilters.hod || "",
+//       Team: this.leadSearchFilters.team || "",
+//       Branch: this.leadSearchFilters.branch || "", 
+//       ReportingManager: this.leadSearchFilters.reportingManager || "",
+      
+//       // 🔥 FIX: 'Status' (Capital S) backend ke liye hai, 'status' (Small s) tere frontend object ke liye
+//       Status: (this.leadSearchFilters.status === 'Any' || !this.leadSearchFilters.status) 
+//                ? "" 
+//                : this.leadSearchFilters.status.toString().toLowerCase(),
+      
+//       Date: searchDate 
+//     };
+//     console.log("🔍 Normal Filter Search Triggered with Branch:", this.leadSearchFilters.branch);
+//   }
+
+//   // --- API Call ---
+//   const token = localStorage.getItem('cavalier_token');
+//   const headers = { 'Authorization': `Bearer ${token}` };
+
+//   this.http.post<any[]>(`${environment.apiUrl}/Leads/Search`, filtersToSend, { headers })
+//     .subscribe({
+//       next: (response) => {
+//         let results = response ? [...response] : [];
+        
+//         // Sorting logic
+//         if (searchInput && results.length > 0) {
+//           results.sort((a: any, b: any) => {
+//             const valA = (a.leadNo || a.LeadNo || "").toString().trim();
+//             const valB = (b.leadNo || b.LeadNo || "").toString().trim();
+//             if (valA === searchInput) return -1;
+//             if (valB === searchInput) return 1;
+//             return 0;
+//           });
+//         }
+        
+//         this.leads = results;
+//         this.paginatedLeads = [...results]; 
+//         setTimeout(() => { this.cdr.detectChanges(); }, 0);
+        
+//         if (this.leads.length === 0) {
+//           alert("No data found In db.");
+//         }
+//       },
+//       error: (err) => {
+//         console.error("❌ API Error:", err);
+//         alert("Search failed!");
+//       }
+//     });
+// }
+// 1. Apne class ke variables mein ye add karein
+// showTable: boolean = false; 
+
+// 2. Aapka Function jaisa tha waisa hi hai
 onLeadSearch() {
-  // 1. Pehle search Input lo
+  this.showTable = true;
+
+  // 1. LeadNo input
   const searchInput = this.leadSearchFilters.leadNo?.toString().trim();
   
-  // 2. Date ko Form se uthao
-  let searchDate = this.leadForm.get('date')?.value || this.leadSearchFilters.date || ""; 
+  // 2. Date picking
+  let rawDate = this.leadForm.get('date')?.value || this.leadSearchFilters.date || ""; 
+  console.log("📅 [DEBUG] Original Date from Form/Filter:", rawDate);
 
-  // --- 🔥 Logic: Agar Date "Aaj" ki hai, toh use empty kar do ---
+  // --- Logic: Check for Today ---
   const today = new Date();
   const year = today.getFullYear();
   const month = String(today.getMonth() + 1).padStart(2, '0');
   const day = String(today.getDate()).padStart(2, '0');
   const todayFormatted = `${year}-${month}-${day}`; 
 
+  let searchDate = rawDate;
+
+  // 🚩 YAHAN DIKKAT HAI: Agar aaj ki date search karni ho, toh ye usey hata deta hai.
+  // Agar tumhe aaj ki search karni hai, toh ye if block hata dena chahiye.
   if (searchDate === todayFormatted) {
-    console.log("📅 Today's date detected, sending empty to show all data.");
+    console.warn("⚠️ [DEBUG] Today's date detected! Setting to EMPTY string. (Isi wajah se aaj ki search nahi ho rahi)");
     searchDate = ""; 
   }
 
   let filtersToSend: any = {};
 
   if (searchInput && searchInput !== "") {
-    // 🎯 Priority Search: Agar LeadNo hai toh baaki sab empty
     filtersToSend = {
       LeadNo: searchInput,
       OrganizationName: '',
@@ -1259,9 +1380,8 @@ onLeadSearch() {
       Status: '',
       Date: '' 
     };
-    console.log("🎯 Hard Searching for Lead No only:", searchInput);
+    console.log("🎯 [DEBUG] Sending Priority LeadNo Search:", filtersToSend);
   } else {
-    // 🔍 Multi-Filter Search
     filtersToSend = {
       LeadNo: '',
       OrganizationName: this.leadSearchFilters.organizationName || "",
@@ -1273,27 +1393,25 @@ onLeadSearch() {
       Team: this.leadSearchFilters.team || "",
       Branch: this.leadSearchFilters.branch || "", 
       ReportingManager: this.leadSearchFilters.reportingManager || "",
-      
-      // 🔥 FIX: 'Status' (Capital S) backend ke liye hai, 'status' (Small s) tere frontend object ke liye
       Status: (this.leadSearchFilters.status === 'Any' || !this.leadSearchFilters.status) 
                ? "" 
                : this.leadSearchFilters.status.toString().toLowerCase(),
-      
       Date: searchDate 
     };
-    console.log("🔍 Normal Filter Search Triggered with Branch:", this.leadSearchFilters.branch);
+    console.log("🔍 [DEBUG] Sending Multi-Filter Search:", filtersToSend);
   }
 
-  // --- API Call ---
   const token = localStorage.getItem('cavalier_token');
   const headers = { 'Authorization': `Bearer ${token}` };
+
+  console.log("🚀 [DEBUG] Final Payload being sent to API:", JSON.stringify(filtersToSend));
 
   this.http.post<any[]>(`${environment.apiUrl}/Leads/Search`, filtersToSend, { headers })
     .subscribe({
       next: (response) => {
+        console.log("✅ [DEBUG] API Response Count:", response ? response.length : 0);
         let results = response ? [...response] : [];
         
-        // Sorting logic
         if (searchInput && results.length > 0) {
           results.sort((a: any, b: any) => {
             const valA = (a.leadNo || a.LeadNo || "").toString().trim();
@@ -1309,11 +1427,12 @@ onLeadSearch() {
         setTimeout(() => { this.cdr.detectChanges(); }, 0);
         
         if (this.leads.length === 0) {
+          console.warn("ℹ️ [DEBUG] No leads found for these filters.");
           alert("No data found In db.");
         }
       },
       error: (err) => {
-        console.error("❌ API Error:", err);
+        console.error("❌ [DEBUG] API Error Details:", err);
         alert("Search failed!");
       }
     });
@@ -2133,16 +2252,19 @@ selectLnFromIcon(val: any) {
   this.cdr.detectChanges();
 }
 loadLeadOwners(): void {
-  // Teri API call
-  this.userServices.getUsers('onlyuserdata').subscribe({
-    next: (data: any) => {
-      // API se aane wala data leadOwners mein assign kar diya
-      this.leadOwners = data; 
-      console.log('Lead Owners loaded:', this.leadOwners);
-          this.cdr.detectChanges(); 
+  // Aapki batayi hui API call
+  this.userServices.getHodList().subscribe({
+    next: (res: any) => {
+      // Data assign kiya jo virtual scroll handle karega
+      this.hodList = res; 
+      
+      console.log('HOD List Loaded:', res);
+      
+      // UI update karne ke liye
+      this.cdr.detectChanges(); 
     },
     error: (err) => {
-      console.error('Error loading users:', err);
+      console.error('HOD load error:', err);
     }
   });
 }

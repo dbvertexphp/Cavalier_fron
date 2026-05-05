@@ -27,6 +27,15 @@ getUsers(userType: string = 'all'): Observable<User[]> {
     { headers }
   );
 }
+// Naya function sirf HOD list ke liye
+getHodList(): Observable<any[]> {
+  const token = localStorage.getItem('cavalier_token');
+  const headers = {
+    Authorization: `Bearer ${token}`
+  };
+
+  return this.http.get<any[]>(`${this.apiUrl}/hod-list`, { headers });
+}
 
 
   // 2. ✅ Delete Department

@@ -126,7 +126,9 @@
             <td class="p-3 uppercase font-medium">
               {{ emp.firstName }} {{ emp.lastName }}
             </td>
-            <td class="p-3 text-gray-700 font-bold">{{ emp.branch }}</td>
+           <td class="p-3 text-gray-700 font-bold">
+  {{ getBranchNames(emp) }}
+</td>
 
             <td class="p-3 text-gray-700 font-bold">
               {{ emp?.hod?.name || "N/A" }}

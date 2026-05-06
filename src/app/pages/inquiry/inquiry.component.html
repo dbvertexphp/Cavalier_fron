@@ -2755,7 +2755,92 @@
                   </ul>
                 </div>
               </div>
+<!-- 🔥 SIMPLE ROUTE DISPLAY (Input Style) -->
+<div class="mt-6 space-y-3">
+  <div class="flex items-center justify-between border-b border-red-200 pb-2">
+    <label class="text-red-800 font-black uppercase text-[13px] italic">Connecting Ports Configuration</label>
+    <button (click)="toggleConnectingPortModal()" class="bg-red-700 text-white px-3 py-1 rounded text-[11px] font-bold hover:bg-red-800 transition-all">
+      + ADD PORTS
+    </button>
+  </div>
 
+  <div class="space-y-2">
+    <!-- 1. Auto-filled Port of Loading -->
+    <div *ngIf="quotation.portOfLoading" class="flex items-center gap-3">
+      <span class="w-6 font-bold text-red-700 text-[12px]">01</span>
+      <div class="flex-1 border-b border-gray-200 p-2 bg-gray-50 text-[12px] font-bold text-gray-700 uppercase">
+        {{ quotation.portOfLoading }}
+      </div>
+      <span class="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded">POL</span>
+    </div>
+
+    <!-- 2. Dynamically added Connecting Ports -->
+    <div *ngFor="let port of selectedConnectingPorts; let i = index" class="flex items-center gap-3 group">
+      <span class="w-6 font-bold text-red-700 text-[12px]">0{{ i + 2 }}</span>
+      <div class="flex-1 border-b border-gray-300 p-2 bg-white text-[12px] uppercase text-gray-800">
+        {{ port.name }}
+      </div>
+      <button (click)="removeConnectingPort(port)" class="text-red-400 hover:text-red-700 font-bold text-xl">&times;</button>
+    </div>
+
+    <!-- 3. Auto-filled Port of Destination (POD) -->
+    <div *ngIf="quotation.portOfDestination" class="flex items-center gap-3">
+      <span class="w-6 font-bold text-red-700 text-[12px]">0{{ selectedConnectingPorts.length + 2 }}</span>
+      <div class="flex-1 border-b border-gray-200 p-2 bg-gray-50 text-[12px] font-bold text-gray-700 uppercase">
+        {{ quotation.portOfDestination }}
+      </div>
+      <span class="text-[10px] font-black text-green-600 bg-green-50 px-2 py-1 rounded">POD</span>
+    </div>
+  </div>
+</div>
+
+<!-- 🔥 PREMIUM MODAL -->
+<div *ngIf="isCPModalOpen" class="fixed inset-0 z-[200] flex items-center justify-center p-4">
+  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" (click)="toggleConnectingPortModal()"></div>
+
+  <div class="relative bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden border border-gray-200">
+    <!-- Header -->
+    <div class="bg-red-800 p-5 flex justify-between items-center text-white">
+      <div>
+        <h3 class="font-black uppercase tracking-tight">Select Connecting Ports</h3>
+        <p class="text-[10px] text-red-200 uppercase">Manage your shipment route</p>
+      </div>
+      <button (click)="toggleConnectingPortModal()" class="text-2xl hover:text-red-200 transition-all">&times;</button>
+    </div>
+
+    <!-- Search -->
+    <div class="p-4 bg-gray-50 border-b">
+      <input type="text" [(ngModel)]="cpSearchTerm" (input)="onSearchingConnectingPorts()"
+        placeholder="Search port name..." 
+        class="w-full border-2 border-gray-200 p-2.5 rounded-lg text-[13px] outline-none focus:border-red-500 uppercase font-semibold">
+    </div>
+
+    <!-- Body -->
+    <div class="p-4 max-h-[400px] overflow-y-auto">
+      <div class="grid grid-cols-2 gap-3">
+        <div *ngFor="let port of filteredConnectingPorts" 
+             (click)="selectConnectingPort(port)"
+             [ngClass]="{'border-red-600 bg-red-50': isPortSelected(port)}"
+             class="p-3 border-2 rounded-xl cursor-pointer hover:border-red-400 transition-all flex flex-col relative group">
+          <span class="text-[13px] font-bold text-gray-800 uppercase group-hover:text-red-700">{{ port.name }}</span>
+          <span class="text-[9px] font-bold text-gray-400 uppercase mt-1">{{ port.cpType }} Port</span>
+          
+          <div *ngIf="isPortSelected(port)" class="absolute top-2 right-2">
+            <div class="w-4 h-4 bg-red-600 rounded-full flex items-center justify-center">
+              <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="p-4 bg-gray-50 flex justify-between items-center border-t">
+      <span class="text-[12px] font-bold text-gray-500 uppercase">Selected: <span class="text-red-700">{{ selectedConnectingPorts.length }}</span></span>
+      <button (click)="toggleConnectingPortModal()" class="bg-red-800 text-white px-6 py-2 rounded-lg font-bold text-[12px] hover:bg-red-900 shadow-lg">DONE</button>
+    </div>
+  </div>
+</div>
               <!-- Final Destination -->
               <div class="flex items-center text-red-700 font-bold">
                 <label class="w-40">Final Destination</label>
@@ -2778,86 +2863,7 @@
                 />
               </div>
               <!-- Connecting Ports Section -->
-<div class="flex flex-col text-red-800 font-bold mt-4">
-  <label class="w-40 mb-1">Connecting Ports</label>
 
-  <!-- Container -->
-  <div class="relative flex flex-wrap items-center gap-2 border-2 border-red-400 p-2 bg-white min-h-[45px] rounded-md shadow-sm focus-within:border-red-600 transition-all cursor-pointer" 
-       (click)="toggleConnectingPortModal()">
-    
-    <!-- Selected Tags (Chips) -->
-    <div *ngFor="let port of selectedConnectingPorts" 
-         class="flex items-center gap-1 bg-red-100 text-red-900 px-3 py-1 rounded-full text-[12px] border border-red-300 shadow-sm shadow-red-100"
-         (click)="$event.stopPropagation()"> <!-- Chip click par modal na khule -->
-      <span class="font-bold">{{ port.name }}</span>
-      <span class="text-[10px] text-red-600 font-medium">({{ port.cpType === 'Loading' ? 'POL' : 'POD' }})</span>
-      <button (click)="removeConnectingPort(port)" class="ml-1 hover:text-black font-black text-lg leading-none">&times;</button>
-    </div>
-
-    <!-- Input Field (Ab ye sirf display/placeholder ka kaam karega) -->
-    <input
-      readonly
-      placeholder="Click to select connecting ports..."
-      class="flex-1 outline-none text-[13px] font-semibold min-w-[150px] bg-transparent text-gray-800 placeholder-gray-400 cursor-pointer"
-      [value]="selectedConnectingPorts.length === 0 ? '' : 'Add more...'"
-    />
-
-    <!-- Icon Button -->
-    <button class="p-1.5 hover:bg-red-50 rounded-full transition-colors group">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-500 group-hover:text-red-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-      </svg>
-    </button>
-  </div>
-</div>
-
-<!-- 🔥 PREMIUM MODAL (Wahi rahega jo pehle tha) -->
-<div *ngIf="isCPModalOpen" class="fixed inset-0 z-[200] flex items-center justify-center p-4">
-  <!-- Backdrop -->
-  <div class="absolute inset-0 bg-black/60 backdrop-blur-md transition-opacity" (click)="toggleConnectingPortModal()"></div>
-
-  <!-- Modal Content -->
-  <div class="relative bg-white w-full max-w-2xl rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] overflow-hidden border border-gray-200">
-    <!-- Header -->
-    <div class="bg-gradient-to-r from-red-800 to-red-950 p-6 flex justify-between items-center">
-      <div>
-        <h3 class="text-white text-xl font-black tracking-wide">Connecting Ports Directory</h3>
-        <p class="text-red-200 text-[12px] font-medium opacity-90">Select multiple POL or POD ports from the list below</p>
-      </div>
-      <button (click)="toggleConnectingPortModal()" class="text-white/80 hover:text-white transition-all text-3xl font-light hover:rotate-90">&times;</button>
-    </div>
-
-    <!-- Modal Body -->
-    <div class="p-6 bg-gray-50">
-      <!-- Search inside Modal (Optional: Agar search chahiye toh modal ke andar laga sakte ho) -->
-      <div class="grid grid-cols-2 gap-4 max-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
-        <div *ngFor="let port of allConnectingPorts" 
-             (click)="selectConnectingPort(port)"
-             [ngClass]="{'border-red-600 bg-red-50 ring-2 ring-red-200': selectedConnectingPorts.includes(port)}"
-             class="flex flex-col p-4 border-2 border-gray-200 bg-white rounded-2xl hover:border-red-400 hover:shadow-lg cursor-pointer relative transition-all group shadow-sm">
-          
-          <span class="text-gray-900 font-extrabold text-[14px] group-hover:text-red-700">{{ port.name }}</span>
-          <span class="text-gray-500 text-[11px] font-bold uppercase mt-1 tracking-tighter">{{ port.cpType }} PORT</span>
-          
-          <div *ngIf="selectedConnectingPorts.includes(port)" class="absolute top-3 right-3 text-red-600 bg-white rounded-full">
-            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-            </svg>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Footer -->
-    <div class="p-5 bg-white flex justify-between items-center border-t-2 border-gray-100">
-      <span class="text-gray-600 font-bold text-sm">Selected: <span class="text-red-700">{{ selectedConnectingPorts.length }} Ports</span></span>
-      <button (click)="toggleConnectingPortModal()" 
-              class="bg-red-800 text-white px-8 py-2.5 rounded-xl font-black text-[14px] hover:bg-red-900 transition-all active:scale-95 shadow-xl shadow-red-200 uppercase tracking-widest">
-        Done Selection
-      </button>
-    </div>
-  </div>
-</div>
               <!-- Button -->
 <div class="flex flex-wrap gap-4 mb-6">
     <!-- MULTI-CARRIER TOGGLE -->

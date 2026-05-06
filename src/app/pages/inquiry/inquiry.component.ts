@@ -2922,118 +2922,73 @@ selectCountry(country: any) {
   // 🎯 Alert dikhane ka function (Lead/Org ID ke liye)
   // showAlert(title: string, id: any) {
   //   alert(`${title}: ${id || 'N/A'}`);
-  // }
-  allConnectingPorts: any[] = []; 
-  filteredConnectingPorts: any[] = [];
-  selectedConnectingPorts: any[] = []; 
-  
-  // --- UI States (Unique Names) ---
-  // Variables
+  // }// --- Variables (Same as yours) ---
+allConnectingPorts: any[] = []; 
+filteredConnectingPorts: any[] = [];
+selectedConnectingPorts: any[] = []; 
+isCPModalOpen: boolean = false;
+cpSearchTerm: string = '';
 
-  showCPDropdown: boolean = false;
-  isCPModalOpen: boolean = false;
-  cpSearchTerm: string = '';
+// 1. Load Data (POL + POD Merge)
+loadConnectingPortsData() {
+  const loadingApi = `${environment.apiUrl}/PortOfLoading`;
+  const dischargeApi = `${environment.apiUrl}/PortOfDischarge`;
 
-
-  // 🔥 Dropdown ko bahar click karne par close karne ke liye
-  @HostListener('document:click', ['$event'])
-  clickout(event: any) {
-    if (!this.eRef.nativeElement.contains(event.target)) {
-      this.showCPDropdown = false;
+  this.http.get<any[]>(loadingApi).subscribe({
+    next: (loadingData) => {
+      this.http.get<any[]>(dischargeApi).subscribe({
+        next: (dischargeData) => {
+          const p1 = loadingData.map(p => ({ ...p, cpType: 'Loading', cpDisplayName: `${p.name} (POL)` }));
+          const p2 = dischargeData.map(p => ({ ...p, cpType: 'Discharge', cpDisplayName: `${p.name} (POD)` }));
+          this.allConnectingPorts = [...p1, ...p2];
+          this.filteredConnectingPorts = [...this.allConnectingPorts];
+        }
+      });
     }
+  });
+}
+
+// 2. Select/Toggle Port Logic
+selectConnectingPort(port: any) {
+  const index = this.selectedConnectingPorts.findIndex(
+    p => p.id === port.id && p.cpType === port.cpType
+  );
+
+  if (index === -1) {
+    // Agar nahi hai toh add karo
+    this.selectedConnectingPorts.push(port);
+  } else {
+    // Agar pehle se hai toh remove karo (Toggle for Modal)
+    this.selectedConnectingPorts.splice(index, 1);
   }
+}
 
-  // 1. Fetch & Console Print Data
-  loadConnectingPortsData() {
-    const loadingApi = `${environment.apiUrl}/PortOfLoading`;
-    const dischargeApi = `${environment.apiUrl}/PortOfDischarge`;
+// 3. Simple Remove
+removeConnectingPort(port: any) {
+  this.selectedConnectingPorts = this.selectedConnectingPorts.filter(
+    p => !(p.id === port.id && p.cpType === port.cpType)
+  );
+}
 
-    // API 1: Loading Ports
-    this.http.get<any[]>(loadingApi).subscribe({
-      next: (loadingData) => {
-        console.log('1. Raw Loading Ports from API:', loadingData);
+// 4. Modal Search
+onSearchingConnectingPorts() {
+  const term = this.cpSearchTerm.toLowerCase().trim();
+  this.filteredConnectingPorts = this.allConnectingPorts.filter(p => 
+    p.name.toLowerCase().includes(term)
+  );
+}
 
-        // API 2: Discharge Ports
-        this.http.get<any[]>(dischargeApi).subscribe({
-          next: (dischargeData) => {
-            console.log('2. Raw Discharge Ports from API:', dischargeData);
-
-            // Mapping & Tagging
-            const p1 = loadingData.map(p => ({ 
-              ...p, 
-              cpType: 'Loading', 
-              cpDisplayName: `${p.name} (POL)` 
-            }));
-
-            const p2 = dischargeData.map(p => ({ 
-              ...p, 
-              cpType: 'Discharge', 
-              cpDisplayName: `${p.name} (POD)` 
-            }));
-            
-            // Merge both
-            this.allConnectingPorts = [...p1, ...p2];
-            this.filteredConnectingPorts = [...this.allConnectingPorts];
-
-            console.log('3. Final Merged Data for UI:', this.allConnectingPorts);
-          },
-          error: (err) => console.error('Error fetching Discharge Ports:', err)
-        });
-      },
-      error: (err) => console.error('Error fetching Loading Ports:', err)
-    });
-  }
-
-  // 2. Select Port logic
-  selectConnectingPort(port: any) {
-    console.log('Port Selected:', port);
-    
-    // Check if already added (compare ID + Type)
-    const exists = this.selectedConnectingPorts.find(
-      p => p.id === port.id && p.cpType === port.cpType
-    );
-
-    if (!exists) {
-      this.selectedConnectingPorts.push(port);
-      console.log('Current Selected List:', this.selectedConnectingPorts);
-    } else {
-      console.warn('Port already in selection');
-    }
-
-    this.showCPDropdown = false;
+// 5. Toggle Modal
+toggleConnectingPortModal() {
+  this.isCPModalOpen = !this.isCPModalOpen;
+  if (this.isCPModalOpen) {
     this.cpSearchTerm = '';
+    this.filteredConnectingPorts = [...this.allConnectingPorts];
   }
+}
 
-  // 3. Remove Port logic
-  removeConnectingPort(port: any) {
-    this.selectedConnectingPorts = this.selectedConnectingPorts.filter(
-      p => !(p.id === port.id && p.cpType === port.cpType)
-    );
-    console.log('After Removal:', this.selectedConnectingPorts);
-  }
-
-  // 4. Searching Logic
-  onSearchingConnectingPorts() {
-    this.showCPDropdown = true;
-    if (!this.cpSearchTerm.trim()) {
-      this.filteredConnectingPorts = [...this.allConnectingPorts];
-    } else {
-      this.filteredConnectingPorts = this.allConnectingPorts.filter(p => 
-        p.name.toLowerCase().includes(this.cpSearchTerm.toLowerCase())
-      );
-    }
-  }
-
-  // 5. Modal Toggle
-  toggleConnectingPortModal() {
-    this.isCPModalOpen = !this.isCPModalOpen;
-    console.log('Modal State:', this.isCPModalOpen ? 'Open' : 'Closed');
-    
-    // Reset search when opening modal
-    if (this.isCPModalOpen) {
-      this.cpSearchTerm = '';
-      this.filteredConnectingPorts = [...this.allConnectingPorts];
-      this.showCPDropdown = false;
-    }
-  }
+// Helper to check if port is selected (for Modal UI)
+isPortSelected(port: any): boolean {
+  return this.selectedConnectingPorts.some(p => p.id === port.id && p.cpType === port.cpType);
+}
 }

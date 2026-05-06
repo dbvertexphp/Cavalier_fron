@@ -69,7 +69,14 @@ showInquiryDropdown: boolean = false;
 
   quotations: any[] = [];
   quotation: any = this.resetQuotationModel();
-
+// PriceComponent class ke andar top par dalo
+showCountryDropdown: boolean = false;
+filteredCountries: any[] = [];
+selectedConnectingPorts: any[] = [];
+isCPModalOpen: boolean = false;
+cpSearchTerm: string = '';
+filteredConnectingPorts: any[] = [];
+countries: any[] = [];
   // --- Revenue & Cost Logic ---
 revenueRows: any[] = [{ lob: '', chargeName: '', chargeType: 'Prepaid', basis: '',  rate: 0, exchangeRate: 1, amount: 0 }];
 costRows: any[] = [{ lob: '', chargeName: '', chargeType: 'Prepaid', basis: '',  rate: 0, exchangeRate: 1, amount: 0 }];
@@ -630,70 +637,55 @@ selectInquiry(inq: any) {
 
   this.http.get<any>(url).subscribe({
     next: (fullData) => {
-      console.log("✅ Full Inquiry Data:", fullData);
+      console.log("✅ Full Inquiry Data Received:", fullData);
 
-      // 1. Transport Mode
-      if (fullData.transportMode) {
-        this.quotation.TransportMode = fullData.transportMode.toUpperCase().trim();
-      } else {
-        this.quotation.TransportMode = '';
-      }
-
-      // 2. Transport Type
-      if (fullData.transportType) {
-        this.quotation.transportType = fullData.transportType.trim();
-      } else if (fullData.transportMode === 'AIR' || fullData.transportMode === 'SEA') {
-        this.quotation.transportType = 'Export';
-      } else {
-        this.quotation.transportType = '';
-      }
-
+      // --- 1. Transport & Movement ---
+      this.quotation.TransportMode = fullData.transportMode?.toUpperCase().trim() || '';
+      this.quotation.transportType = fullData.transportType?.trim() || 
+                                    ((fullData.transportMode === 'AIR' || fullData.transportMode === 'SEA') ? 'Export' : '');
       this.quotation.shipmentType = fullData.shipmentType || '';
+      this.quotation.movementType = fullData.movementType?.trim() || fullData.movement?.trim() || '';
 
-      // Movement
-      this.quotation.movementType = fullData.movementType ? fullData.movementType.trim() : '';
-      if (!this.quotation.movementType && fullData.movement) {
-        this.quotation.movementType = fullData.movement.trim();
-      }
-
+      // --- 2. Basic Details ---
       this.quotation.incoterm = fullData.incoterm || fullData.incoTerms || '';
       this.quotation.description = fullData.description || '';
       this.quotation.pickupAddress = fullData.pickupAddress || '';
       this.quotation.placeOfDelivery = fullData.placeOfDelivery || '';
       this.quotation.podFinalDest = fullData.finalDestination || '';
-      this.quotation.location = fullData.location || '';
       this.quotation.currency = (fullData.cargoCurrency || '').trim();
       this.quotation.cargoValue = fullData.cargoValue || '';
-      this.quotation.chargeableWeightKg = fullData.volumeWeight || '';
+      
+      // --- 3. Weights & Measures ---
       this.quotation.noOfPkgs = fullData.noOfPkgs || 0;
       this.quotation.grossWeightKg = fullData.grossWeightKg || 0;
-      this.quotation.netWeight = fullData.netWeight || 0;
-      this.quotation.chargeableWeight = fullData.chargeableWeight || 0;
-      this.quotation.volumeWeight = fullData.volumeWeight || 0;
+      this.quotation.chargeableWeightKg = fullData.volumeWeight || fullData.chargeableWeight || 0;
 
+      // --- 4. Ports & Routes (POL/POD) ---
       this.quotation.originPOL = fullData.originName || '';
-      this.quotation.portOfLoading = fullData.portOfLoadingName || '';
-      this.quotation.portOfDischarge = fullData.portOfDischargeName || '';
+      this.quotation.portOfLoading = fullData.portOfLoadingName || fullData.portOfLoading || '';
+      this.quotation.portOfDischarge = fullData.portOfDischargeName || fullData.portOfDischarge || '';
       this.quotation.commodity = fullData.commodityId ? Number(fullData.commodityId) : null;
 
-      this.quotation.businessDimensions = fullData.businessDimensions || '';
-      this.quotation.isServiceRequired = fullData.isServiceRequired ?? true;
-      this.quotation.partyRole = fullData.partyRole || '';
-
-      this.quotation.salesCoordinator = fullData.salesCoordinator ? Number(fullData.salesCoordinator) : null;
-      this.quotation.pricingBy = fullData.pricingDoneBy || '';
-      this.quotation.qtnDoneBy = fullData.qtnDoneBy || '';
-      this.quotation.cargoStatus = fullData.cargoStatus || 'Pending';
-      this.quotation.placeOfReceipt = fullData.placeOfReceipt || '';
-      this.quotation.transitDest = fullData.transitDest || '';
-      this.quotation.transitDays = fullData.transitDays || '';
-
-      if (fullData) {
-        this.quotation.validTill = fullData.validTill || '';
-        this.quotation.version = fullData.version || '';
-        this.quotation.cargoStatus = fullData.cargoStatus || '';
-        this.quotation.cargoReadyDate = fullData.cargoReadyDate || '';
+      // --- 5. AUTOFILL: Country & Routes (Connecting Ports) ---
+      // Agar 'country' key nahi mil rahi toh 'originCountry' ya 'destinationCountry' check karein
+      this.quotation.country = fullData.country || fullData.originCountry || fullData.destinationCountry || '';
+      
+      // Connecting Ports logic with extra safety
+      const cPorts = fullData.connectingPorts || fullData.routes || fullData.transitPorts;
+      if (cPorts && Array.isArray(cPorts)) {
+        this.selectedConnectingPorts = cPorts.map((cp: any) => ({
+          id: cp.id || cp.portId || 0,
+          name: cp.name || cp.portName || cp.port || cp.location,
+          cpType: cp.cpType || 'Transit'
+        }));
+      } else {
+        this.selectedConnectingPorts = [];
       }
+
+      // --- 6. Other Info ---
+      this.quotation.validTill = fullData.validTill || '';
+      this.quotation.cargoStatus = fullData.cargoStatus || 'Pending';
+      this.quotation.transitDays = fullData.transitDays || '';
 
       // ====================== DIMENSIONS AUTOFILL ======================
       if (fullData?.dimensions?.length > 0) {
@@ -707,56 +699,37 @@ selectInquiry(inq: any) {
           this.quotation.dimUnit = mainDim.unit ?? 'CMS';
         }
         this.dimRows = dims.filter((d: any) => d.id !== 0).map((d: any) => ({
-          box: d.box ?? null,
-          l: d.l ?? null,
-          w: d.w ?? null,
-          h: d.h ?? null,
-          unit: d.unit ?? 'CMS'
+          box: d.box ?? null, l: d.l ?? null, w: d.w ?? null, h: d.h ?? null, unit: d.unit ?? 'CMS'
         }));
-        if (this.dimRows.length === 0) {
-          this.dimRows = [{ box: null, l: null, w: null, h: null, unit: 'CMS' }];
-        }
       } else {
-        this.quotation.dimBox = null;
-        this.quotation.dimL = null;
-        this.quotation.dimW = null;
-        this.quotation.dimH = null;
-        this.quotation.dimUnit = 'CMS';
         this.dimRows = [{ box: null, l: null, w: null, h: null, unit: 'CMS' }];
       }
 
-      // ====================== NEW: PRICING AUTO-FILL LOGIC ======================
+      // ====================== PRICING AUTO-FILL ======================
       const inqIdForPricing = fullData.id;
       if (inqIdForPricing) {
-        // 1. Single Carrier (CostBreakdown)
         this.http.get<any[]>(`${environment.apiUrl}/CostBreakdown/GetByInquiry/${inqIdForPricing}`).subscribe({
           next: (costs) => {
-            this.costRows = costs && costs.length > 0 ? costs : [];
-            // --- AUTO FILL LOGIC ---
-            this.quotation.isDirect = this.costRows.length > 0; 
+            this.costRows = costs || [];
+            this.quotation.isDirect = this.costRows.length > 0;
             this.cdr.detectChanges();
           }
         });
 
-        // 2. Multi Carrier (Filter from all because by-id endpoint was missing in controller)
         this.http.get<any[]>(`${environment.apiUrl}/MultiCarrier/get-all`).subscribe({
           next: (allCarriers) => {
-            const filtered = allCarriers.filter((c: any) => c.inquiryId === inqIdForPricing);
-            this.multiCarrierRows = filtered.length > 0 ? filtered : [];
-            // --- AUTO FILL LOGIC ---
+            this.multiCarrierRows = allCarriers.filter((c: any) => c.inquiryId === inqIdForPricing) || [];
             this.quotation.isIndirect = this.multiCarrierRows.length > 0;
             this.cdr.detectChanges();
           }
         });
       }
-      // =========================================================================
 
-      this.cdr.detectChanges();
-      console.log("✅ Quotation & Pricing Auto-filled successfully!");
+      this.cdr.detectChanges(); 
+      console.log("✅ Country & Routes Autofilled:", this.quotation.country, this.selectedConnectingPorts);
     },
     error: (err) => {
-      console.error("❌ Error fetching full inquiry:", err);
-      alert("Failed to load inquiry details.");
+      console.error("❌ Error fetching inquiry:", err);
     }
   });
 }
@@ -2107,5 +2080,43 @@ closeRowModal() {
   this.showRowModal = false;
   this.selectedQuotationId = null;
   this.selectedQuotationData = null;
+}
+// 1. Country search function
+onCountrySearch() {
+  console.log('Searching country...');
+  // Yahan aap country filter karne ka logic likh sakte ho
+}
+
+// 2. Country select karne wala function
+selectCountry(country: any) {
+  this.quotation.country = country.name;
+  this.showCountryDropdown = false;
+}
+
+// 3. Modal open/close karne wala function
+toggleConnectingPortModal() {
+  this.isCPModalOpen = !this.isCPModalOpen;
+}
+
+// 4. Port remove karne wala function
+removeConnectingPort(port: any) {
+  this.selectedConnectingPorts = this.selectedConnectingPorts.filter(p => p !== port);
+}
+
+// 5. Port search logic (Modal ke liye)
+onSearchingConnectingPorts() {
+  // Modal ke andar search logic
+}
+
+// 6. Modal se port select karna
+selectConnectingPort(port: any) {
+  if (!this.isPortSelected(port)) {
+    this.selectedConnectingPorts.push(port);
+  }
+}
+
+// 7. Check if port is already selected
+isPortSelected(port: any): boolean {
+  return this.selectedConnectingPorts.some(p => p.id === port.id);
 }
   }

@@ -1162,7 +1162,39 @@ Cancel
         <label class="w-40">Place of Receipt</label>
         <input name="placeOfReceipt" [(ngModel)]="quotation.placeOfReceipt" class="flex-1 border p-2 border-red-300 outline-none">
       </div>
-      
+      <div class="flex items-center text-red-700 font-bold mt-2">
+  <label class="w-40">Country</label>
+
+  <div class="relative flex-1 flex items-center">
+    <input
+      [(ngModel)]="quotation.country"
+      name="country"
+      placeholder="Search Country..."
+      (input)="onCountrySearch()"
+      (focus)="showCountryDropdown = true"
+      class="w-full border p-2 border-red-300 outline-none pr-8 text-[12px]"
+    />
+
+    <button class="absolute right-2 text-gray-500 hover:text-black">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+    </button>
+
+    <!-- Country Dropdown -->
+    <ul
+      *ngIf="showCountryDropdown"
+      class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto text-gray-700 text-[12px]"
+    >
+      <li *ngFor="let c of filteredCountries" (click)="selectCountry(c)" class="p-2 hover:bg-gray-100 cursor-pointer">
+        {{ c.name }}
+      </li>
+      <li *ngIf="showCountryDropdown && filteredCountries.length === 0" class="p-3 text-center text-red-500 italic">
+        No Country Found
+      </li>
+    </ul>
+  </div>
+</div>
       
     <div class="flex items-center text-red-700 font-bold">
   <label class="w-40">Origin</label>
@@ -1297,9 +1329,51 @@ Cancel
           <input name="portOfDischarge" [(ngModel)]="quotation.portOfDischarge" class="ml-9 flex-1 border p-2 border-red-300 outline-none">
          <label class="w-40 ml-6">Final Dest</label>
           <input name="finalDestination" [(ngModel)]="quotation.podFinalDest" class="w-60 border p-2 border-red-300 outline-none">
+          
         </div>
+ <!-- 1. COUNTRY SEARCH SECTION -->
+
+
+<!-- 2. ROUTE CONFIGURATION (Connecting Ports) -->
+<div class="mt-6 space-y-3">
+  <div class="flex items-center justify-between border-b border-red-200 pb-2">
+    <label class="text-red-800 font-black uppercase text-[13px] italic">Connecting Port Configuration</label>
+    <button (click)="toggleConnectingPortModal()" type="button" class="bg-red-700 text-white px-3 py-1 rounded text-[11px] font-bold hover:bg-red-800 transition-all">
+      + ADD PORTS
+    </button>
+  </div>
+
+  <div class="space-y-2">
+    <!-- POL -->
+    <div *ngIf="quotation.portOfLoading" class="flex items-center gap-3">
+      <span class="w-6 font-bold text-red-700 text-[12px]">01</span>
+      <div class="flex-1 border-b border-gray-200 p-2 bg-gray-50 text-[12px] font-bold text-gray-700 uppercase">
+        {{ quotation.portOfLoading }}
       </div>
-      
+      <span class="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded">POL</span>
+    </div>
+
+    <!-- Connecting Ports (Autofilled from selectInquiry) -->
+    <div *ngFor="let port of selectedConnectingPorts; let i = index" class="flex items-center gap-3 group">
+      <span class="w-6 font-bold text-red-700 text-[12px]">0{{ i + 2 }}</span>
+      <div class="flex-1 border-b border-gray-300 p-2 bg-white text-[12px] uppercase text-gray-800">
+        {{ port.name }}
+      </div>
+      <button (click)="removeConnectingPort(port)" type="button" class="text-red-400 hover:text-red-700 font-bold text-xl">&times;</button>
+    </div>
+
+    <!-- POD -->
+    <div *ngIf="quotation.portOfDischarge" class="flex items-center gap-3">
+      <span class="w-6 font-bold text-red-700 text-[12px]">0{{ selectedConnectingPorts.length + 2 }}</span>
+      <div class="flex-1 border-b border-gray-200 p-2 bg-gray-50 text-[12px] font-bold text-gray-700 uppercase">
+        {{ quotation.portOfDischarge }}
+      </div>
+      <span class="text-[10px] font-black text-green-600 bg-green-50 px-2 py-1 rounded">POD</span>
+    </div>
+  </div>
+</div>
+      </div>
+     
       </div>
   <div class="grid grid-cols-2 gap-6 p-4 bg-gray-50 border-t">
     <div class="border p-3 bg-white shadow-sm">
@@ -1581,111 +1655,7 @@ Cancel
   </div>
 </div> -->
 <!-- ====================== SINGLE CARRIER TABLE (CostBreakdown) ====================== -->
-<div *ngIf="quotation.isDirect && costRows && costRows.length > 0" class="mt-6 mb-10 animate-in fade-in duration-500">
-    <h4 class="text-lg font-black text-[#4a3f3f] uppercase tracking-tighter italic mb-4 border-l-4 border-blue-600 pl-3 flex items-center">
-        <i class="fa fa-calculator mr-2 text-blue-600"></i> Single Carrier Pricing
-    </h4>
-    
-    <div class="overflow-x-auto border-2 border-[#4a3f3f] rounded-sm bg-white shadow-md">
-        <table class="w-full text-left border-separate border-spacing-0">
-            <thead>
-                <tr class="bg-[#4a3f3f] text-white text-[10px] font-black uppercase tracking-wider">
-                    <th class="p-4 border-r border-white/10">LOB / Charge Name</th>
-                    <th class="p-4">Type</th>
-                    <th class="p-4">Basis</th>
-                    <th class="p-4 text-center">Currency</th>
-                    <th class="p-4 text-right">Rate</th>
-                    <th class="p-4 text-right">Ex. Rate</th>
-                    <th class="p-4 text-right text-blue-400 bg-black/20">Total Amount</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200">
-                <tr *ngFor="let row of costRows" class="hover:bg-blue-50/30 transition-colors">
-                    <td class="p-4 border-r border-gray-100">
-                        <span class="block text-[9px] text-blue-600 font-bold uppercase tracking-tight">{{ row.lob }}</span>
-                        <span class="block text-sm font-bold text-[#4a3f3f]">{{ row.chargeName }}</span>
-                    </td>
-                    <td class="p-4 text-[10px] text-gray-500 font-bold uppercase">{{ row.chargeType }}</td>
-                    <td class="p-4 text-[10px] font-black text-gray-600 uppercase">{{ row.basis }}</td>
-                    <td class="p-4 text-center text-xs font-mono font-bold text-gray-400">{{ row.currency }}</td>
-                    <td class="p-4 text-right font-mono text-xs font-bold">{{ row.rate | number:'1.2-2' }}</td>
-                    <td class="p-4 text-right font-mono text-[11px] text-blue-700 font-black italic">{{ row.exchangeRate | number:'1.2-4' }}</td>
-                    <td class="p-4 text-right bg-blue-50/50">
-                        <div class="text-[11px] font-black text-blue-900 tracking-tighter">
-                            {{ row.amount | number:'1.2-2' }}
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
 
-<!-- ====================== MULTI-CARRIER TABLE (MultiCarrier) ====================== -->
-<div *ngIf="quotation.isIndirect && multiCarrierRows && multiCarrierRows.length > 0" class="mt-6 mb-10 animate-in fade-in duration-500">
-    <h4 class="text-lg font-black text-[#4a3f3f] uppercase tracking-tighter italic mb-4 border-l-4 border-orange-500 pl-3 flex justify-between items-center">
-        <span><i class="fa fa-ship mr-2 text-orange-500"></i> Multi-Carrier Options</span>
-        <span class="text-[10px] bg-[#4a3f3f] text-white px-2 py-1 rounded font-bold tracking-widest">
-            {{ multiCarrierRows.length }} OPTIONS FOUND
-        </span>
-    </h4>
-
-    <div class="overflow-x-auto border-2 border-[#4a3f3f] rounded-sm bg-white shadow-md">
-        <table class="w-full text-left border-separate border-spacing-0 min-w-[1100px]">
-            <thead>
-                <tr class="bg-[#4a3f3f] text-white text-[10px] font-black uppercase tracking-wider">
-                    <th class="p-4 border-r border-white/10 sticky left-0 bg-[#4a3f3f] z-10">Forwarder</th>
-                    <th class="p-4 text-center">Origin</th>
-                    <th class="p-4 text-center">Curr</th>
-                    <th class="p-4 text-right">Airfreight</th>
-                    <th class="p-4">Airline / Type</th>
-                    <th class="p-4 text-right">ExW / DO / CC</th>
-                    <th class="p-4 text-right text-amber-400 bg-black/20">Grand Total</th>
-                    <th class="p-4">Remarks</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200">
-                <tr *ngFor="let carrier of multiCarrierRows" class="hover:bg-orange-50/30 transition-colors">
-                    <!-- Sticky Name -->
-                    <td class="p-4 border-r border-gray-100 sticky left-0 bg-white font-black text-sm text-[#4a3f3f] shadow-[2px_0_5px_rgba(0,0,0,0.05)]">
-                        {{ carrier.forwarder || '---' }}
-                    </td>
-                    <td class="p-4 text-center text-xs font-semibold text-gray-700">{{ carrier.origin }}</td>
-                    <td class="p-4 text-center text-xs font-mono font-bold text-gray-500">{{ carrier.currency }}</td>
-                    <td class="p-4 text-right">
-                        <span class="text-xs font-black text-gray-800">{{ carrier.airFreight | number:'1.2-2' }}</span>
-                        <div class="text-[9px] text-gray-400 font-bold uppercase">FSC: {{ carrier.fsc }}</div>
-                    </td>
-                    <td class="p-4">
-                        <div class="flex flex-col">
-                            <span class="text-xs italic text-gray-700 font-bold leading-tight">{{ carrier.airline }}</span>
-                            <span class="mt-1 w-fit px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-tighter"
-                                  [ngClass]="carrier.type === 'DIRECT' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'">
-                                {{ carrier.type }}
-                            </span>
-                        </div>
-                    </td>
-                    <td class="p-4 text-right">
-                        <div class="text-[10px] text-gray-500 font-bold italic leading-tight">
-                            ExW: {{ carrier.exWorks | number:'1.2-2' }}<br>
-                            DO: {{ carrier.doCharges | number:'1.2-2' }}
-                        </div>
-                    </td>
-                    <td class="p-4 text-right bg-amber-50/50">
-                        <div class="text-[11px] font-black text-[#4a3f3f] tracking-tighter">
-                            {{ carrier.currency }} {{ carrier.totalCost | number:'1.2-2' }}
-                        </div>
-                    </td>
-                    <td class="p-4">
-                        <p class="text-[10px] text-gray-400 italic leading-tight max-w-[120px] truncate" [title]="carrier.remark">
-                            {{ carrier.remark || '--' }}
-                        </p>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
 <div class="p-4 bg-gray-100 border-t flex justify-end gap-3 mt-4">
   <button type="button" (click)="toggleForm()" class="bg-white border border-gray-400 px-6 py-2 font-bold text-gray-700 hover:bg-gray-200">CANCEL</button>
   <button type="button" (click)="saveQuotation()" class="bg-[#4a3f3f] text-white px-8 py-2 font-bold shadow-md hover:bg-black uppercase">

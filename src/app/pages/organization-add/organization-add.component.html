@@ -235,20 +235,22 @@
 
         <div class="flex flex-col justify-between pt-1">
           <div class="space-y-2 pl-4">
-            <div class="flex items-center mb-1">
+<div class="flex items-center mb-1">
   <label class="w-28 font-bold text-gray-600 text-[12px]">Branch</label>
   
   <div class="flex-1 flex border border-gray-300 relative rounded-sm bg-white shadow-sm focus-within:ring-1 focus-within:ring-red-400">                
     
+    <!-- Input Field: Ab ye sirf modal ke filter ke liye ya search text store karne ke liye use hoga -->
     <input 
       type="text" 
       [(ngModel)]="branchSearchText"
       (input)="onBranchSearch()"
-      placeholder="Type to search branch..."
+      placeholder="Type to filter in modal..."
       class="w-full p-1.5 outline-none text-[12px] bg-white"
       autocomplete="off"
     >
     
+    <!-- Search Icon: Modal open karne ke liye -->
     <span 
       (click)="toggleBranchModal()" 
       class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-red-500 hover:text-white transition-all flex items-center justify-center w-9"
@@ -256,28 +258,17 @@
       🔍
     </span>
 
-    <ul *ngIf="branchSearchText.length >= 3 && filteredBranchSuggestions.length > 0" 
-        class="absolute top-full left-0 w-full bg-white border border-gray-300 z-[4000] shadow-xl max-h-60 overflow-y-auto mt-1 rounded-sm list-none p-0">
-      
-      <li *ngFor="let b of filteredBranchSuggestions" 
-          (click)="selectBranchFromDropdown(b)"
-          class="p-2 text-[12px] hover:bg-red-50 cursor-pointer border-b border-gray-100 last:border-none flex justify-between items-center transition-colors">
-        <div class="flex flex-col">
-          <span class="font-bold text-gray-700 uppercase">{{ b.branchName }}</span>
-          <span class="text-[10px] text-gray-400">{{ b.branchCode }}</span>
-        </div>
-        <span *ngIf="b.isSelected" class="text-red-500 text-[10px] font-bold">SELECTED</span>
-      </li>
-    </ul>
+    <!-- Dropdown list (<ul>) yahan se remove kar di gayi hai -->
   </div>
 </div>
 
+<!-- Modal wala code same rahega -->
 <div *ngIf="isBranchModalOpen" 
      class="fixed inset-0 z-[3000] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
     <div class="bg-white w-full max-w-md shadow-2xl rounded-sm border-t-4 border-red-600 animate-in zoom-in duration-200">
         <div class="flex justify-between items-center p-3 border-b bg-gray-50">
             <h3 class="text-[12px] font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
-               🏢 Select Branches
+                🏢 Select Branches
             </h3>
             <button (click)="toggleBranchModal()" 
                     class="text-gray-400 hover:text-red-500 text-2xl font-bold leading-none">&times;</button>
@@ -330,7 +321,6 @@
 
 
 
-
      <div class="space-y-2">
   <div class="flex items-center">
     <label class="w-24 font-bold text-gray-600">Date</label>
@@ -376,9 +366,9 @@
               Search Organization
             </button>
             &nbsp;
-            <button (click)="AllSearch()"  class="bg-[#4a3f3f] text-white px-8 py-1.5 font-bold shadow-md uppercase text-[11px] hover:bg-black transition-all">
+            <!-- <button (click)="AllSearch()"  class="bg-[#4a3f3f] text-white px-8 py-1.5 font-bold shadow-md uppercase text-[11px] hover:bg-black transition-all">
               All Organizations
-            </button>
+            </button> -->
           </div>
         </div>
       </div>
@@ -431,6 +421,8 @@
 
       <div class="overflow-x-auto" #tableToExport id="printable-table">
    <div class="relative">
+  <!-- 🔥 Wrapper added for hide/show logic -->
+<div *ngIf="showTable">
   <table class="w-full border-collapse">
     <thead>
       <tr class="bg-gray-200 text-gray-700 uppercase text-[13px] border-b-2 border-gray-300">
@@ -443,74 +435,71 @@
     </thead>
 
     <tbody class="bg-white divide-y divide-gray-200" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
-  
-  <ng-container *ngIf="paginatedOrganizations && paginatedOrganizations.length > 0; else noData">
-    <tr *ngFor="let org of paginatedOrganizations" 
-    [class.row-blink]="org.id === highlightedOrgId"
-        (dblclick)="editOrg(org)"
-        class="hover:bg-blue-50 transition-colors text-gray-800 cursor-pointer">
       
-      <td class="p-5 text-center text-gray-300 no-export">⠿</td>
-
-      <td *ngFor="let col of selectedColumns" class="p-5">
-        <ng-container [ngSwitch]="col">
-          <span *ngSwitchCase="'Org ID'" class="font-bold text-blue-700 uppercase">{{org.id}}</span>
-          <span *ngSwitchCase="'Org Name'" class="font-bold text-blue-700 uppercase">{{org.orgName}}</span>
+      <ng-container *ngIf="paginatedOrganizations && paginatedOrganizations.length > 0; else noData">
+        <tr *ngFor="let org of paginatedOrganizations" 
+            [class.row-blink]="org.id === highlightedOrgId"
+            (dblclick)="editOrg(org)"
+            class="hover:bg-blue-50 transition-colors text-gray-800 cursor-pointer">
           
-          <span *ngSwitchCase="'Type'">
-            <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-[12px] font-bold uppercase">
-              {{org.selectedRoles}}
-            </span>
-          </span>
+          <td class="p-5 text-center text-gray-300 no-export">⠿</td>
 
-          <span *ngSwitchDefault class="font-medium text-gray-700">
-            {{ org[columnFieldMap[col]] || '-' }}
-          </span>
-        </ng-container>
-      </td>
+          <td *ngFor="let col of selectedColumns" class="p-5">
+            <ng-container [ngSwitch]="col">
+              <span *ngSwitchCase="'Org ID'" class="font-bold text-blue-700 uppercase">{{org.id}}</span>
+              <span *ngSwitchCase="'Org Name'" class="font-bold text-blue-700 uppercase">{{org.orgName}}</span>
+              
+              <span *ngSwitchCase="'Type'">
+                <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-[12px] font-bold uppercase">
+                  {{org.selectedRoles}}
+                </span>
+              </span>
 
-      <td class="p-5 sticky right-0 bg-white border-l text-center shadow-sm">
-        <div class="flex items-center justify-center gap-3">
-          <!-- 🔥 Leads wala Active/Inactive Toggle Button -->
-          <button [title]="org.status === 1 ? 'Deactivate' : 'Activate'"
-                  (click)="$event.stopPropagation(); toggleOrgStatus(org)"
-                  class="flex items-center gap-2 px-3 py-1.5 rounded-md transition-all font-medium text-sm shadow-sm border no-export"
-                  [ngClass]="org.status === 1 ? 'bg-green-50 text-green-600 border-green-200 hover:bg-green-600 hover:text-white' : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-600 hover:text-white'">
-            <span class="relative flex h-2 w-2">
-              <span *ngIf="org.status === 1" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-              <span [class]="org.status === 1 ? 'bg-green-500' : 'bg-gray-500'" class="relative inline-flex rounded-full h-2 w-2"></span>
-            </span>
-            <span>{{ org.status === 1 ? 'Active' : 'Inactive' }}</span>
-          </button>
+              <span *ngSwitchDefault class="font-medium text-gray-700">
+                {{ org[columnFieldMap[col]] || '-' }}
+              </span>
+            </ng-container>
+          </td>
 
-          <button (click)="editOrg(org)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Edit')" class="text-blue-600 font-bold hover:underline no-export">EDIT</button>
-          <button (click)="deleteOrg(org.id)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Delete')" class="text-red-600 font-bold hover:underline no-export">DELETE</button>
-        </div>
-      </td>
-    </tr>
-  </ng-container>
+          <td class="p-5 sticky right-0 bg-white border-l text-center shadow-sm">
+            <div class="flex items-center justify-center gap-3">
+              <!-- 🔥 Leads wala Active/Inactive Toggle Button -->
+              <button [title]="org.status === 1 ? 'Deactivate' : 'Activate'"
+                      (click)="$event.stopPropagation(); toggleOrgStatus(org)"
+                      class="flex items-center gap-2 px-3 py-1.5 rounded-md transition-all font-medium text-sm shadow-sm border no-export"
+                      [ngClass]="org.status === 1 ? 'bg-green-50 text-green-600 border-green-200 hover:bg-green-600 hover:text-white' : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-600 hover:text-white'">
+                <span class="relative flex h-2 w-2">
+                  <span *ngIf="org.status === 1" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span [class]="org.status === 1 ? 'bg-green-500' : 'bg-gray-500'" class="relative inline-flex rounded-full h-2 w-2"></span>
+                </span>
+                <span>{{ org.status === 1 ? 'Active' : 'Inactive' }}</span>
+              </button>
 
-  <ng-template #noData>
-    <tr>
-      <td [attr.colspan]="selectedColumns.length + 2" class="p-12 text-center">
-        <div class="flex flex-col items-center justify-center">
-          
-          <div class="bg-blue-50 p-4 rounded-full mb-3">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" class="w-16 h-16 text-blue-400">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
-            </svg>
-          </div>
-          
-          <h3 class="text-lg font-bold text-gray-700">No Organizations Found</h3>
-          <p class="text-sm text-gray-500 mt-1">There are no organizations available to display right now.</p>
-        
-        </div>
-      </td>
-    </tr>
-  </ng-template>
+              <button (click)="editOrg(org)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Edit')" class="text-blue-600 font-bold hover:underline no-export">EDIT</button>
+              <button (click)="deleteOrg(org.id)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Delete')" class="text-red-600 font-bold hover:underline no-export">DELETE</button>
+            </div>
+          </td>
+        </tr>
+      </ng-container>
 
-</tbody>
+      <ng-template #noData>
+        <tr>
+          <td [attr.colspan]="selectedColumns.length + 2" class="p-12 text-center">
+            <div class="flex flex-col items-center justify-center">
+              <div class="bg-blue-50 p-4 rounded-full mb-3">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" class="w-16 h-16 text-blue-400">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
+                </svg>
+              </div>
+              <h3 class="text-lg font-bold text-gray-700">No Organizations Found</h3>
+              <p class="text-sm text-gray-500 mt-1">There are no organizations available to display right now.</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </tbody>
   </table>
+</div>
 </div>
         <div class="flex justify-between items-center bg-white p-4 border-t border-gray-200 mt-2 shadow-sm rounded-b-lg no-export" *ngIf="organizations.length > 0">
       <div class="text-[12px] text-gray-600 font-medium">
@@ -806,32 +795,33 @@
 
 <div class="space-y-4 p-4 bg-white rounded-lg">
   <div class="flex items-center gap-3">
-  <label class="w-40 font-bold text-gray-700">Postal Code*</label>
-  <div class="flex-1 flex gap-2">
-    <div class="flex-1">
-      <input type="text" 
-             [(ngModel)]="postalCode" 
-             (ngModelChange)="onPostalCodeChange($event)"
-             (input)="postalCode = $event.target.value.toUpperCase()" 
-             [readonly]="!isEditMode" 
-             [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'" 
-             name="postalCode"
-             placeholder="Enter Pincode/Zip Code"
-             class="w-full border border-gray-300 p-2 outline-none rounded shadow-sm">
-      <p class="text-[10px] text-gray-400 mt-1">International zip codes are supported</p>
+    <label class="w-40 font-bold text-gray-700">Postal Code*</label>
+    <div class="flex-1 flex gap-2">
+      <div class="flex-1">
+        <input type="text" 
+               [(ngModel)]="postalCode" 
+               (input)="postalCode = $any($event.target).value.toUpperCase()" 
+               [readonly]="!isEditMode" 
+               [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'" 
+               name="postalCode"
+               placeholder="Enter Pincode/Zip Code"
+               class="w-full border border-gray-300 p-2 outline-none rounded shadow-sm">
+        <p class="text-[10px] text-gray-400 mt-1">International zip codes are supported</p>
+      </div>
+      
+      <!-- Find Button -->
+      <button type="button" 
+              (click)="onFindClick()"
+              class="bg-[#4a3f3f] text-white px-4 py-2 rounded-md shadow-sm font-bold h-fit hover:opacity-90 transition-all border border-gray-600">
+        Find
+      </button>
     </div>
-    
-    <button type="button" 
-            class="bg-[#4a3f3f] text-white px-4 py-2 rounded-md shadow-sm font-bold h-fit hover:opacity-90 transition-all border border-gray-600">
-      Find
-    </button>
   </div>
-</div>
 
   <div class="grid grid-cols-2 gap-6">
     <div class="flex items-center gap-3">
       <label class="w-40 text-red-700 font-bold">Country</label>
-      <input type="text" [(ngModel)]="country" name="country"  class="flex-1 p-2 bg-[#f3f4f6] border rounded outline-none text-gray-600">
+      <input type="text" [(ngModel)]="country" name="country" readonly class="flex-1 p-2 bg-[#f3f4f6] border rounded outline-none text-gray-600">
     </div>
 
     <div class="flex items-center gap-3">
@@ -846,7 +836,6 @@
       <input type="text" [(ngModel)]="city" name="city" class="flex-1 p-2 border rounded outline-none">
     </div>
   </div>
-
 </div>
 
       <!-- 
@@ -1352,64 +1341,77 @@
           class="border border-gray-300 p-1.5 outline-none focus:border-[#4a3f3f]">
       </div>
     </div>
+<!-- Country, State, City, Postal -->
+<div class="grid grid-cols-2 gap-6">
+  <div class="flex items-center gap-3">
+    <label class="w-40 text-red-700 font-bold">Country</label>
+    <div class="flex-1 flex flex-col relative">
+      <div class="flex border border-gray-300 rounded overflow-hidden">
+        <input type="text" 
+               [(ngModel)]="agentCountry" 
+               (input)="onAgentCountrySearch($event)" 
+               placeholder="Search Country..."
+               class="flex-1 p-1.5 outline-none" 
+               #countryRef="ngModel">
+        <button class="bg-gray-100 px-3 border-l border-gray-300 hover:bg-gray-200">🔍</button>
+      </div>
 
-    <!-- Country, State, City, Postal -->
-    <div class="grid grid-cols-2 gap-6">
-     <div class="flex items-center gap-3">
-  <label class="w-40 text-red-700 font-bold">Country</label>
-  <div class="flex-1 flex flex-col relative">
-    <div class="flex border border-gray-300 rounded overflow-hidden">
+      <ul *ngIf="filteredCountries.length" 
+          class="absolute z-50 w-full bg-white border border-gray-300 mt-10 rounded shadow-lg max-h-60 overflow-y-auto">
+        <li *ngFor="let item of filteredCountries" 
+            (mousedown)="selectAgentCountry(item.name)" 
+            class="p-2 hover:bg-blue-100 cursor-pointer text-sm border-b border-gray-50">
+          {{ item.name | uppercase }}
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-3">
+    <label class="w-40">State/Province</label>
+    <div class="flex-1 flex flex-col">
+      <div class="flex border border-gray-300 rounded overflow-hidden">
+        <input type="text" [(ngModel)]="agentState" list="stateOptions"
+          placeholder="Search State..." class="flex-1 p-1.5 outline-none">
+        <button class="bg-gray-100 px-3 border-l border-gray-300 hover:bg-gray-200">🔍</button>
+      </div>
+      <datalist id="stateOptions">
+        <option *ngFor="let state of stateLookupList" [value]="state"></option>
+      </datalist>
+    </div>
+  </div>
+</div>
+
+<div class="grid grid-cols-2 gap-6">
+  <div class="flex items-center gap-3">
+    <label class="w-40 text-red-700 font-bold">City</label>
+    <div class="flex-1 flex flex-col">
+      <div class="flex border border-gray-300 overflow-hidden">
+        <input type="text" [(ngModel)]="agentCity" placeholder="Search City..."
+          class="flex-1 p-1.5 outline-none">
+        <button class="bg-gray-100 px-3 border-l border-gray-300 hover:bg-gray-200">🔍</button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="flex items-center gap-3">
+    <label class="w-40">Postal Code</label>
+    <div class="flex-1 flex gap-2">
       <input type="text" 
-             [(ngModel)]="agentCountry" 
-             (input)="onAgentCountrySearch($event)" 
-             placeholder="Search Country..."
-             class="flex-1 p-1.5 outline-none" 
-             #countryRef="ngModel">
-      <button class="bg-gray-100 px-3 border-l border-gray-300 hover:bg-gray-200">🔍</button>
+             [(ngModel)]="agentPostalCode" 
+             (input)="agentPostalCode = $any($event.target).value.toUpperCase()"
+             placeholder="Zip Code"
+             class="flex-1 border border-gray-300 p-1.5 outline-none">
+      
+      <!-- API Call Button -->
+      <button type="button" 
+              (click)="onFindAgentAddress()"
+              class="bg-[#4a3f3f] text-white px-3 py-1 rounded shadow-sm font-bold text-[12px] hover:opacity-90 transition-all border border-gray-600">
+        Find
+      </button>
     </div>
-
-    <ul *ngIf="filteredCountries.length" 
-        class="absolute z-50 w-full bg-white border border-gray-300 mt-10 rounded shadow-lg max-h-60 overflow-y-auto">
-      <li *ngFor="let item of filteredCountries" 
-          (mousedown)="selectAgentCountry(item.name)" 
-          class="p-2 hover:bg-blue-100 cursor-pointer text-sm border-b border-gray-50">
-        {{ item.name | uppercase }}
-      </li>
-    </ul>
   </div>
 </div>
-
-<div class="flex items-center gap-3">
-  <label class="w-40">State/Province</label>
-  <div class="flex-1 flex flex-col">
-    <div class="flex border border-gray-300 rounded overflow-hidden">
-      <input type="text" [(ngModel)]="agentState" list="stateOptions"
-        placeholder="Search State..." class="flex-1 p-1.5 outline-none">
-      <button class="bg-gray-100 px-3 border-l border-gray-300 hover:bg-gray-200">🔍</button>
-    </div>
-    <datalist id="stateOptions">
-      <option *ngFor="let state of stateLookupList" [value]="state"></option>
-    </datalist>
-  </div>
-</div>
-    </div>
-
-    <div class="grid grid-cols-2 gap-6">
-      <div class="flex items-center gap-3">
-        <label class="w-40 text-red-700 font-bold">City</label>
-        <div class="flex-1 flex flex-col">
-          <div class="flex border border-gray-300 overflow-hidden">
-            <input type="text" [(ngModel)]="agentCity" placeholder="Search City..."
-              class="flex-1 p-1.5 outline-none">
-            <button class="bg-gray-100 px-3 border-l border-gray-300 hover:bg-gray-200">🔍</button>
-          </div>
-        </div>
-      </div>
-      <div class="flex items-center gap-3">
-        <label class="w-40">Postal Code</label>
-        <input type="text" [(ngModel)]="agentPostalCode" class="flex-1 border border-gray-300 p-1.5 outline-none">
-      </div>
-    </div>
 
     <!-- Telephone, Fax -->
     <div class="grid grid-cols-2 gap-6">

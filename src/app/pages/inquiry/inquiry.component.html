@@ -542,22 +542,20 @@
               <option value="Failed">Failed</option>
               <option value="In Progress">In Progress</option>
             </select>
-          </div>
-          <div class="flex items-center">
-            <label class="w-28 font-bold text-gray-600 text-[12px]"
-              >Status</label
-            >
-
-            <div class="flex-1">
-              <select
-                class="w-full p-1 border border-gray-300 outline-none text-[12px] h-[26px] bg-white cursor-pointer"
-              >
-                <option value="">Select Status</option>
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-              </select>
-            </div>
           </div> -->
+          <div class="flex items-center">
+  <label class="w-28 font-bold text-gray-600 text-[12px]">Status</label>
+  <div class="flex-1">
+    <select
+      [(ngModel)]="searchFilters.status"
+      class="w-full p-1 border border-gray-300 outline-none text-[12px] h-[26px] bg-white cursor-pointer"
+    >
+      <option value="">Both</option> <!-- "Both" ke liye empty value rakhi hai -->
+      <option value="1">Active</option>
+      <option value="0">Inactive</option>
+    </select>
+  </div>
+</div>
          <div class="space-y-2">
   <div class="flex items-center mb-1">
     <label class="w-28 font-bold text-gray-600 text-[12px]">Branch</label>
@@ -627,6 +625,7 @@
               class="w-4 h-4 accent-red-600 cursor-pointer"
             />
 
+
             <div class="flex flex-col">
               <span class="text-[12px] text-gray-800 font-medium uppercase">{{ branch.branchName }}</span>
               <span *ngIf="branch.branchCode" class="text-[10px] text-gray-400">{{ branch.branchCode }}</span>
@@ -678,12 +677,12 @@
       Search
     </button>
     
-    <button
+    <!-- <button
       (click)="AllSearch()"
       class="bg-[#4a3f3f] text-white px-5 py-1.5 font-bold shadow-md uppercase text-[10px] hover:bg-black transition-all rounded-sm outline-none"
     >
       All Search
-    </button>
+    </button> -->
   </div>
 
   <!-- Grid Code: Added pr-[280px] to prevent overlapping with buttons -->
@@ -779,101 +778,91 @@
       <div class="p-0 overflow-x-auto">
         <div class="relative">
           <div class="relative">
-            <table
-              class="w-full border-collapse border border-gray-200 whitespace-nowrap"
-            >
-              <thead>
-                <tr
-                  class="bg-gray-50 text-gray-600 uppercase text-[11px] border-b"
-                  cdkDropList
-                  cdkDropListOrientation="horizontal"
-                  [cdkDropListData]="selectedColumns"
-                  (cdkDropListDropped)="dropColumn($any($event))"
-                >
-                  <th
-                    *ngFor="let col of selectedColumns"
-                    cdkDrag
-                    class="p-4 text-left font-bold cursor-move hover:bg-gray-100 border-r border-gray-200 last:border-r-0"
-                  >
-                    <div class="flex items-center gap-2">
-                      <span class="text-gray-300">⋮⋮</span>
-                      {{ col }}
-                    </div>
-                  </th>
-
-                  <th
-                    class="p-4 text-center font-bold sticky right-0 bg-gray-50 border-l shadow-sm no-export"
-                  >
-                    Action
-                  </th>
-                </tr>
-              </thead>
-
-      <tbody class="bg-white" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
-        <tr *ngFor="let q of paginatedInquiries" 
-            (dblclick)="editQuotation(q)"
-            class="hover:bg-gray-50 border-b text-gray-700 cursor-pointer transition-colors">
-          
-          <td *ngFor="let col of selectedColumns" class="p-4">
-            <ng-container [ngSwitch]="col">
-              <span *ngSwitchCase="'Inquiry Id.'" class="font-bold text-gray-900">{{ q.id }}</span>
-              <span *ngSwitchCase="'Inquiry No.'" class="font-bold text-blue-600">{{ q.inquiryNo }}</span>
-              <span *ngSwitchCase="'Date'" class="font-medium">{{ q.receivedDate | date: "dd-MMM-yyyy" }}</span>
-              <!-- Lead Name click par alert -->
-<span *ngSwitchCase="'LeadName'" 
-      class="font-medium cursor-pointer text-blue-600 hover:underline" 
-      (click)="showAlert('Lead ID', q.leadId)">
-  {{ q.leadName || '-' }}
-</span>
-
-<!-- Organisation Name click par alert -->
-<span *ngSwitchCase="'OrganisationName'" 
-      class="font-medium cursor-pointer text-blue-600 hover:underline" 
-      (click)="showAlert('Organisation ID', q.organisationId)">
-  {{ q.organisationName || '-' }}
-</span>
-              <span *ngSwitchCase="'Status'">
-                <span [ngClass]="{'bg-yellow-100 text-yellow-800': q.id > 0, 'bg-green-100 text-green-800': q.id === 0}"
-                      class="px-3 py-1 rounded text-[11px] font-bold uppercase">
-                  {{ q.cargoStatus }}
-                </span>
-              </span>
-              <span *ngSwitchDefault class="uppercase font-medium">{{ q[columnFieldMap[col]] || "-" }}</span>
-            </ng-container>
-          </td>
-
-                  <td
-                    class="p-4 sticky right-0 bg-white border-l text-center shadow-[-5px_0_10px_rgba(0,0,0,0.02)]"
-                  >
-                    <button
-                      (click)="editQuotation(q)"
-                      *ngIf="
-                        CheckPermissionService.hasPermission(
-                          PermissionID,
-                          'Edit'
-                        )
-                      "
-                      class="text-blue-600 mr-3 font-bold uppercase hover:underline text-[11px]"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      (click)="deleteQuotation(q.id)"
-                      *ngIf="
-                        CheckPermissionService.hasPermission(
-                          PermissionID,
-                          'Delete'
-                        )
-                      "
-                      class="text-red-600 font-bold uppercase hover:underline text-[11px]"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+  <table class="w-full border-collapse border border-gray-200 whitespace-nowrap">
+    <thead>
+      <tr class="bg-gray-50 text-gray-600 uppercase text-[11px] border-b" 
+          cdkDropList 
+          cdkDropListOrientation="horizontal" 
+          [cdkDropListData]="selectedColumns" 
+          (cdkDropListDropped)="dropColumn($any($event))">
+        <th *ngFor="let col of selectedColumns" 
+            cdkDrag 
+            class="p-4 text-left font-bold cursor-move hover:bg-gray-100 border-r border-gray-200 last:border-r-0">
+          <div class="flex items-center gap-2">
+            <span class="text-gray-300">⋮⋮</span>
+            {{ col }}
           </div>
+        </th>
+
+        <th class="p-4 text-center font-bold sticky right-0 bg-gray-50 border-l shadow-sm no-export">
+          Action
+        </th>
+      </tr>
+    </thead>
+
+    <tbody class="bg-white" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
+      <tr *ngFor="let q of paginatedInquiries" 
+          (dblclick)="editQuotation(q)" 
+          class="hover:bg-gray-50 border-b text-gray-700 cursor-pointer transition-colors">
+        
+        <td *ngFor="let col of selectedColumns" class="p-4">
+          <ng-container [ngSwitch]="col">
+            <span *ngSwitchCase="'Inquiry Id.'" class="font-bold text-gray-900">{{ q.id }}</span>
+            <span *ngSwitchCase="'Inquiry No.'" class="font-bold text-blue-600">{{ q.inquiryNo }}</span>
+            <span *ngSwitchCase="'Date'" class="font-medium">{{ q.receivedDate | date: "dd-MMM-yyyy" }}</span>
+            
+            <!-- Lead Name click par alert -->
+            <span *ngSwitchCase="'LeadName'" 
+                  class="font-medium cursor-pointer text-blue-600 hover:underline" 
+                  (click)="showAlert('Lead ID', q.leadId)">
+              {{ q.leadName || '-' }}
+            </span>
+
+            <!-- Organisation Name click par alert -->
+            <span *ngSwitchCase="'OrganisationName'" 
+                  class="font-medium cursor-pointer text-blue-600 hover:underline" 
+                  (click)="showAlert('Organisation ID', q.organisationId)">
+              {{ q.organisationName || '-' }}
+            </span>
+
+            <!-- 🔥 Status Column with Toggle Logic -->
+            <span *ngSwitchCase="'Status'" class="flex items-center gap-3" (click)="$event.stopPropagation()">
+              <!-- Status Badge -->
+              <span [ngClass]="q.status === 1 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+                    class="px-2 py-0.5 rounded text-[10px] font-bold uppercase">
+                {{ q.status === 1 ? 'Active' : 'Inactive' }}
+              </span>
+
+              <!-- Toggle Switch -->
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" 
+                       [checked]="q.status === 1" 
+                       (change)="toggleStatus(q)" 
+                       class="sr-only peer">
+                <div class="w-8 h-4 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-green-600"></div>
+              </label>
+            </span>
+
+            <span *ngSwitchDefault class="uppercase font-medium">{{ q[columnFieldMap[col]] || "-" }}</span>
+          </ng-container>
+        </td>
+
+        <td class="p-4 sticky right-0 bg-white border-l text-center shadow-[-5px_0_10px_rgba(0,0,0,0.02)]">
+          <button (click)="editQuotation(q)" 
+                  *ngIf="CheckPermissionService.hasPermission(PermissionID, 'Edit')" 
+                  class="text-blue-600 mr-3 font-bold uppercase hover:underline text-[11px]">
+            Edit
+          </button>
+          <button (click)="deleteQuotation(q.id)" 
+                  *ngIf="CheckPermissionService.hasPermission(PermissionID, 'Delete')" 
+                  class="text-red-600 font-bold uppercase hover:underline text-[11px]">
+            Delete
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
         </div>
       </div>
       <div

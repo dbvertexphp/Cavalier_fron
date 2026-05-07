@@ -780,33 +780,7 @@ Cancel
         <option value="Single">Single</option>
         <option value="Multiple">Multiple</option>
       </select>
-      <div class="grid grid-cols-2 items-center gap-4 py-2 border-b border-gray-100 mb-4">
-  <label class="font-bold text-gray-700 text-[12px] uppercase">Service Type</label>
-
-  <div class="flex items-center gap-6">
-    <!-- Direct Checkbox -->
-    <label class="flex items-center gap-2 cursor-pointer group">
-      <input
-        type="checkbox"
-        [(ngModel)]="quotation.isDirect"
-        (change)="onServiceTypeChange()"
-        class="w-4 h-4 accent-blue-600 rounded cursor-pointer"
-      />
-      <span class="text-gray-700 font-medium text-[12px] group-hover:text-blue-600">Direct</span>
-    </label>
-
-    <!-- Indirect Checkbox -->
-    <label class="flex items-center gap-2 cursor-pointer group">
-      <input
-        type="checkbox"
-        [(ngModel)]="quotation.isIndirect"
-        (change)="onServiceTypeChange()"
-        class="w-4 h-4 accent-blue-600 rounded cursor-pointer"
-      />
-      <span class="text-gray-700 font-medium text-[12px] group-hover:text-blue-600">Indirect</span>
-    </label>
-  </div>
-</div>
+      
      
       <!--<select name="lineOfBusiness" [(ngModel)]="quotation.lineOfBusiness" class="w-full border p-2 outline-none">
         <select name="lineOfBusiness" [(ngModel)]="quotation.lineOfBusiness" (change)="onHeaderLOBChange()" class="w-full border p-2 outline-none">

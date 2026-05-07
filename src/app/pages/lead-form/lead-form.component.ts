@@ -323,7 +323,7 @@ onOrgClick(orgId: any, orgName: string) {
       queryParams: { highlightId: orgId } 
     });
   } else {
-    alert("Bhai, is organization ki koi ID nahi mili.");
+    alert("NO ORGANIZATION FOUND!.");
   }
 }
 getBranches() {
@@ -534,7 +534,14 @@ initSearchForm() {
 }
 
   // --- ADDED: Logic to calculate next lead number ---
-  calculateNextLeadNo(): void {
+ calculateNextLeadNo(): void {
+  // 🔥 Sirf ye logic add karo: Hyperlink (highlightId) ya Edit mode mein calculation mat karo
+  const highlightId = this.route.snapshot.queryParams['highlightId'];
+  if (this.isEditMode || highlightId) {
+    return; // Yahan se function band ho jayega, niche ka logic nahi chalega
+  }
+
+  // --- Aapka original logic yahan se shuru hota hai (No changes below) ---
   if (!this.leads || this.leads.length === 0) {
     this.nextLeadNo = 'CAV/LEAD/0001';
     this.leadForm.patchValue({ leadNo: this.nextLeadNo });
@@ -543,12 +550,9 @@ initSearchForm() {
 
   let maxNumber = 0;
 
-  // Har lead se number extract karke sabse bada nikaalo
   this.leads.forEach((lead: any) => {
     if (lead?.leadNo) {
-      // "CAV/LEAD/0012" se number (0012) nikaalne ke liye regex
       const match = lead.leadNo.toString().match(/CAV\/LEAD\/(\d+)/i);
-      
       if (match && match[1]) {
         const currentNumber = parseInt(match[1], 10);
         if (currentNumber > maxNumber) {
@@ -558,16 +562,10 @@ initSearchForm() {
     }
   });
 
-  // Next number generate karo
   const nextNumber = maxNumber + 1;
-  
-  // Format: CAV/LEAD/0013
   this.nextLeadNo = `CAV/LEAD/${nextNumber.toString().padStart(4, '0')}`;
-
-  // Form field mein set kar do
   this.leadForm.patchValue({ leadNo: this.nextLeadNo });
-
-  console.log('Next Lead No generated:', this.nextLeadNo); // Debugging ke liye
+  console.log('Next Lead No generated:', this.nextLeadNo);
 }
 
 onDeleteLead(id: any) {
@@ -628,16 +626,50 @@ onDeleteLead(id: any) {
       org.orgName.toLowerCase().includes(value)
     );
   }
+selectOrganization(org: any): void {
+  this.OrganisationId = org.id; // Organization ID store kar lo
+  this.leadForm.patchValue({
+    organization: org.orgName,
+    organizationId: org.id
+  });
 
-  selectOrganization(org: any): void {
-    this.OrganisationId = org.id; // Organization ID store kar lo (agar zarurat ho toh)
-    this.leadForm.patchValue({
-      organization: org.orgName,
-      organizationId: org.id
-    });
+  this.filteredOrganizations = [];
+}
 
-    this.filteredOrganizations = [];
+selectOrg(org: any) {
+  // Purana logic: quotation update karna
+  if (this.quotation) {
+    this.quotation.organizationName = org.orgName; 
   }
+  
+  // LeadSearchFilters bhi update kar dete hain safety ke liye
+  this.leadSearchFilters.organizationName = org.orgName;
+  
+  // ID set karna zaroori hai backend ke liye
+  this.OrganisationId = org.id; 
+
+  this.leadForm.patchValue({
+    organization: org.orgName,
+    organizationId: org.id // Form control mein bhi ID daal di
+  });
+
+  // 2. Dropdown ko band karein
+  this.showOrgDropdown = false;
+
+  // 3. (Optional) Filtered list ko khali karein taaki purana data na dikhe
+  this.orgList = [];
+  this.showOrgDropdown = false;
+  this.cdr.detectChanges(); 
+}
+  // selectOrganization(org: any): void {
+  //   this.OrganisationId = org.id; // Organization ID store kar lo (agar zarurat ho toh)
+  //   this.leadForm.patchValue({
+  //     organization: org.orgName,
+  //     organizationId: org.id
+  //   });
+
+  //   this.filteredOrganizations = [];
+  // }
 
   initForm() {
     const today = new Date();
@@ -773,8 +805,8 @@ selectDate(date: string): void {
 onSave() {
   const rawValue = this.leadForm.getRawValue();
 
+  // 1. Zod Validation
   const validation = leadSchema.safeParse(rawValue);
-  
   if (!validation.success) {
     const errors = validation.error.flatten().fieldErrors;
     Object.keys(errors).forEach((field: string) => {
@@ -786,26 +818,34 @@ onSave() {
     alert("Please Fix the error input fields!");
     return;
   }
-  console.log('Validated Form Value:', rawValue);
 
-  // Payload banayein (Backend ke hisab se)
-  const payload = {
-    date: new Date(rawValue.date).toISOString(),
-    expectedValidity: new Date(rawValue.expectedValidity).toISOString(),
-    type: rawValue.type,
-    leadOwner: rawValue.leadOwner,
-    leadSource: rawValue.source,
-    salesProcess: rawValue.salesProcess,
-    salesCoordinator: rawValue.salesCoordinator,
-    salesStage: rawValue.salesStage,
-    branch: rawValue.branch,
-    reportingManager: rawValue.reportingManager,
-    team: rawValue.team,
-    hod: rawValue.hod,
-    location: rawValue.location,
-    area: rawValue.area,
-    organizationName: rawValue.organization,
-    organizationId: this.OrganisationId || rawValue.organizationId, // Dropdown se select karne par ID mil jayegi, warna form value se
+  // 2. OrganisationId Fix (Isko pakka Number banana hai)
+  // Variable check karega ya form control se uthayega
+  const orgIdValue = this.OrganisationId || rawValue.organizationId;
+  const finalOrgId = (orgIdValue && orgIdValue !== "") ? Number(orgIdValue) : null;
+
+  // 3. Payload Build (Directly as per LeadDto)
+  const payload: any = {
+    // Agar Edit mode hai toh purana LeadNo, warna naya wala
+    LeadNo: this.isEditMode ? rawValue.leadNo : this.nextLeadNo,
+    Date: rawValue.date ? new Date(rawValue.date).toISOString() : null,
+    ExpectedValidity: rawValue.expectedValidity ? new Date(rawValue.expectedValidity).toISOString() : null,
+    Type: rawValue.type,
+    LeadOwner: String(rawValue.leadOwner || ""),
+    LeadSource: String(rawValue.source || ""),
+    SalesProcess: rawValue.salesProcess,
+    SalesCoordinator: String(rawValue.salesCoordinator || ""),
+    SalesStage: String(rawValue.salesStage || ""),
+    Branch: String(rawValue.branch || ""),
+    ReportingManager: String(rawValue.reportingManager || ""),
+    Team: rawValue.team,
+    HOD: String(rawValue.hod || ""),
+    Location: rawValue.location,
+    Area: rawValue.area,
+    OrganizationName: rawValue.organization || rawValue.organizationName,
+    
+    // DTO mein [JsonPropertyName("organizationId")] hai
+    organizationId: finalOrgId 
   };
 
   const token = localStorage.getItem('cavalier_token');
@@ -818,25 +858,25 @@ onSave() {
         next: () => {
           alert("Lead Updated Successfully!");
           this.resetFormAfterSave();
+          this.OrganisationId = null; // Resetting
         },
         error: (err) => {
-          console.error(err);
+          console.error("Update Error:", err);
           alert("Failed to update lead!");
         }
       });
 
   } else {
     // ==================== CREATE (POST) ====================
-    leadNo: this.nextLeadNo,   // Sirf new lead ke liye leadNo bhejna hai
-
     this.http.post(`${environment.apiUrl}/Leads`, payload, { headers })
       .subscribe({
         next: () => {
           alert("Lead Created Successfully!");
           this.resetFormAfterSave();
+          this.OrganisationId = null; // Resetting
         },
         error: (err) => {
-          console.error(err);
+          console.error("Create Error:", err);
           alert("Failed to create lead!");
         }
       });
@@ -2211,26 +2251,26 @@ loadOrganizationList() {
   });
 }
 
-selectOrg(org: any) {
-  // Purana logic: quotation update karna
-  if (this.quotation) {
-    this.quotation.organizationName = org.orgName; 
-  }
+// selectOrg(org: any) {
+//   // Purana logic: quotation update karna
+//   if (this.quotation) {
+//     this.quotation.organizationName = org.orgName; 
+//   }
   
-  // LeadSearchFilters bhi update kar dete hain safety ke liye
-  this.leadSearchFilters.organizationName = org.orgName;
-this.leadForm.patchValue({
-    organization: org.orgName
-  });
+//   // LeadSearchFilters bhi update kar dete hain safety ke liye
+//   this.leadSearchFilters.organizationName = org.orgName;
+// this.leadForm.patchValue({
+//     organization: org.orgName
+//   });
 
-  // 2. Dropdown ko band karein
-  this.showOrgDropdown = false;
+//   // 2. Dropdown ko band karein
+//   this.showOrgDropdown = false;
 
-  // 3. (Optional) Filtered list ko khali karein taaki purana data na dikhe
-  this.orgList = [];
-  this.showOrgDropdown = false;
-  this.cdr.detectChanges(); 
-}
+//   // 3. (Optional) Filtered list ko khali karein taaki purana data na dikhe
+//   this.orgList = [];
+//   this.showOrgDropdown = false;
+//   this.cdr.detectChanges(); 
+// }
 filterHODs(event: any) {
   // Baad mein logic likh lena
 }

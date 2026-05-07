@@ -399,12 +399,13 @@ organizations: any[] = [];
   searchDone: boolean = false; // Shuru mein false rahega
   uploadedDocuments: any[] = [];
     // Ye line add karein
-    constructor(private http: HttpClient, private router: Router,private cdr: ChangeDetectorRef,private branchservice:BranchService,public userServices:UserService,public CheckPermissionService:CheckPermissionService,private sanitizer: DomSanitizer) {}
+    constructor(private http: HttpClient, private router: Router,private cdr: ChangeDetectorRef,private branchservice:BranchService,public userServices:UserService,public CheckPermissionService:CheckPermissionService,private sanitizer: DomSanitizer,private eRef: ElementRef,) {}
 
     ngOnInit() {
       this.PermissionID = Number(localStorage.getItem('permissionID'));
       console.log("Direct API call trigger ho rahi hai...");
    this.getsales();
+   this.loadConnectingPortsData();
       this.getbranch();
       this.loadQuotations();
       this.portOfLoading();
@@ -420,6 +421,7 @@ organizations: any[] = [];
     this.loadInquirySettings();
     this.fetchCompanyServices();
     this.getTransportModes();
+    this.fetchAllCountries();
 this.getShipmentTypes();
 this.portdischarge();
 this.getIncoTerms();
@@ -2676,6 +2678,16 @@ costRows: CostBreakdown[] = [
   alert('Carrier details added to Inquiry!');
 }
 
+sendBulkEmails(inqId: number) {
+  const payload = {
+    toEmails: this.selectedEmails,
+    inquiryId: inqId  // Backend ko pata chalega kaunsa data uthana hai
+  };
+  const token = localStorage.getItem('cavalier_token');
+  const headers = { Authorization: `Bearer ${token}` };
+  this.http.post(`${this.apiUrl}/SendBulkEmail`, payload, { headers }).subscribe();
+}
+
 saveQuotation() {
   // Basic validation
   if (!this.inquiry.organization) { 
@@ -2683,7 +2695,7 @@ saveQuotation() {
     return;
   }
 
-  // 1. JSON Payload Taiyaar Karna (NO CHANGES HERE)
+  // 1. JSON Payload Taiyaar Karna (Adding only country and connecting ports)
   const payload = {
     ...this.quotation, 
     inquiryNo: this.inquiry.inquiryNo,
@@ -2701,7 +2713,7 @@ saveQuotation() {
     HazardDocPath: this.quotation.hazardDocPath || null,
     weightUnit: this.quotation.GrossweightUnit || 'KGS',
     cargocurrency:this.quotation.currency || 'INR',
-    cargoValue: this.quotation.cargoValue.toString() || 0,
+    cargoValue: this.quotation.cargoValue.toString() || '0',
     lineOfBusinessId: this.quotation.lineOfBusinessId ? Number(this.quotation.lineOfBusinessId) : null,
     lineOfBusinessName: this.quotation.lineOfBusinessName || null,
     commodityId: this.quotation.commodity, 
@@ -2712,7 +2724,13 @@ saveQuotation() {
     createdBy: 'admin@cavalierlogistic.in', 
     qtnId: this.quotation.qtnId || ('QTN-' + Math.floor(1000 + Math.random() * 9000)),
     createdDate: new Date().toISOString(),
-    dimensions: this.appliedDimensions
+    dimensions: this.appliedDimensions,
+
+    // 🔥 YE DO NAYI FIELDS ADD KI HAIN (Sirf extra data ke liye) 🔥
+    countryName: this.selectedCountryName || null,
+    connectingPortIds: this.selectedConnectingPorts && this.selectedConnectingPorts.length > 0 
+                       ? this.selectedConnectingPorts.map((p: any) => p.id).join(',') 
+                       : null
   };
 
   console.log("JSON Payload before FormData:", payload);
@@ -2727,8 +2745,7 @@ saveQuotation() {
     formData.append('multiCarrierData', JSON.stringify(this.multiCarrierRows));
   }
 
-  // 🔥 NAYA LOGIC: COST DATA APPEND (Sirf ye 3 line add hui hain) 🔥
-  // Agar single carrier (costRows) mein data hai, toh use append karo
+  // 🔥 COST DATA APPEND 🔥
   if (this.costRows && this.costRows.length > 0) {
     formData.append('costData', JSON.stringify(this.costRows));
   }
@@ -2765,16 +2782,19 @@ saveQuotation() {
     : this.http.post(this.apiUrl, formData, httpOptions);
 
   action.subscribe({
-    next: () => {
+    next: (res: any) => {
       alert("Success: Saved everything in CavalierDB!");
+      if (this.selectedEmails.length > 0) {
+        this.sendBulkEmails(res.id); 
+      }
       this.isFormOpen = false;
       this.showMultiCarrierTable = false; 
-      this.showCostTable = false; // Cost table modal band karne ke liye
+      this.showCostTable = false; 
       
       this.documents = []; 
       this.invoices = [];
       this.multiCarrierRows = []; 
-      this.costRows = []; // Cost data clear karne ke liye
+      this.costRows = []; 
 
       this.loadQuotations();
       this.toggleForm();
@@ -2782,7 +2802,6 @@ saveQuotation() {
       this.cdr.detectChanges();
     },
     error: (err) => {
-       // Error logic (NO CHANGES HERE)
        console.error("Post Error Details:", err);
        alert("Failed to save: " + (err.error?.message || "Check Backend."));
     }
@@ -2862,10 +2881,172 @@ toggleStatus(q: any) {
       this.cdr.detectChanges();
     }
   });
+}// --- Variables Section ---
+showCountryDropdown: boolean = false;
+countriesList: any[] = []; 
+filteredCountries: any[] = [];
+
+// 🔥 Ye variable declare karna zaroori tha error hatane ke liye
+selectedCountryName: string = ''; 
+
+fetchAllCountries() {
+  const apiUrl = 'https://restcountries.com/v3.1/all';
+  
+  this.http.get<any[]>(apiUrl).subscribe({
+    next: (data) => {
+      // Data format: Name aur Code nikal rahe hain
+      this.countriesList = data.map(country => ({
+        name: country.name.common,
+        id: country.cca2 
+      })).sort((a, b) => a.name.localeCompare(b.name));
+      
+      this.filteredCountries = this.countriesList;
+    },
+    error: (err) => {
+      console.error('Country API failed:', err);
+      // Fallback
+      this.countriesList = [{ id: 'IN', name: 'India' }];
+      this.filteredCountries = this.countriesList;
+    }
+  });
 }
 
+// 🔍 Search Function
+onCountrySearch() {
+  const searchTerm = this.quotation.country?.toLowerCase() || '';
+  this.showCountryDropdown = true;
+  
+  this.filteredCountries = this.countriesList.filter(c => 
+    c.name.toLowerCase().includes(searchTerm)
+  );
+}
+
+// ✅ Selection Function (Updated with selection logic)
+selectCountry(country: any) {
+  this.quotation.country = country.name;     // UI Input box ke liye
+  this.quotation.countryId = country.id;     // Backend ID ke liye
+  
+  // 🔥 Ye line saveQuotation() ke payload mein data bhejegi
+  this.selectedCountryName = country.name; 
+  
+  this.showCountryDropdown = false;
+  console.log("Country Selected for Save:", this.selectedCountryName);
+}
   // 🎯 Alert dikhane ka function (Lead/Org ID ke liye)
   // showAlert(title: string, id: any) {
   //   alert(`${title}: ${id || 'N/A'}`);
   // }
+  allConnectingPorts: any[] = []; 
+  filteredConnectingPorts: any[] = [];
+  selectedConnectingPorts: any[] = []; 
+  
+  // --- UI States (Unique Names) ---
+  // Variables
+
+  showCPDropdown: boolean = false;
+  isCPModalOpen: boolean = false;
+  cpSearchTerm: string = '';
+
+
+  // 🔥 Dropdown ko bahar click karne par close karne ke liye
+  @HostListener('document:click', ['$event'])
+  clickout(event: any) {
+    if (!this.eRef.nativeElement.contains(event.target)) {
+      this.showCPDropdown = false;
+    }
+  }
+
+  // 1. Fetch & Console Print Data
+  loadConnectingPortsData() {
+    const loadingApi = `${environment.apiUrl}/PortOfLoading`;
+    const dischargeApi = `${environment.apiUrl}/PortOfDischarge`;
+
+    // API 1: Loading Ports
+    this.http.get<any[]>(loadingApi).subscribe({
+      next: (loadingData) => {
+        console.log('1. Raw Loading Ports from API:', loadingData);
+
+        // API 2: Discharge Ports
+        this.http.get<any[]>(dischargeApi).subscribe({
+          next: (dischargeData) => {
+            console.log('2. Raw Discharge Ports from API:', dischargeData);
+
+            // Mapping & Tagging
+            const p1 = loadingData.map(p => ({ 
+              ...p, 
+              cpType: 'Loading', 
+              cpDisplayName: `${p.name} (POL)` 
+            }));
+
+            const p2 = dischargeData.map(p => ({ 
+              ...p, 
+              cpType: 'Discharge', 
+              cpDisplayName: `${p.name} (POD)` 
+            }));
+            
+            // Merge both
+            this.allConnectingPorts = [...p1, ...p2];
+            this.filteredConnectingPorts = [...this.allConnectingPorts];
+
+            console.log('3. Final Merged Data for UI:', this.allConnectingPorts);
+          },
+          error: (err) => console.error('Error fetching Discharge Ports:', err)
+        });
+      },
+      error: (err) => console.error('Error fetching Loading Ports:', err)
+    });
+  }
+
+  // 2. Select Port logic
+  selectConnectingPort(port: any) {
+    console.log('Port Selected:', port);
+    
+    // Check if already added (compare ID + Type)
+    const exists = this.selectedConnectingPorts.find(
+      p => p.id === port.id && p.cpType === port.cpType
+    );
+
+    if (!exists) {
+      this.selectedConnectingPorts.push(port);
+      console.log('Current Selected List:', this.selectedConnectingPorts);
+    } else {
+      console.warn('Port already in selection');
+    }
+
+    this.showCPDropdown = false;
+    this.cpSearchTerm = '';
+  }
+
+  // 3. Remove Port logic
+  removeConnectingPort(port: any) {
+    this.selectedConnectingPorts = this.selectedConnectingPorts.filter(
+      p => !(p.id === port.id && p.cpType === port.cpType)
+    );
+    console.log('After Removal:', this.selectedConnectingPorts);
+  }
+
+  // 4. Searching Logic
+  onSearchingConnectingPorts() {
+    this.showCPDropdown = true;
+    if (!this.cpSearchTerm.trim()) {
+      this.filteredConnectingPorts = [...this.allConnectingPorts];
+    } else {
+      this.filteredConnectingPorts = this.allConnectingPorts.filter(p => 
+        p.name.toLowerCase().includes(this.cpSearchTerm.toLowerCase())
+      );
+    }
+  }
+
+  // 5. Modal Toggle
+  toggleConnectingPortModal() {
+    this.isCPModalOpen = !this.isCPModalOpen;
+    console.log('Modal State:', this.isCPModalOpen ? 'Open' : 'Closed');
+    
+    // Reset search when opening modal
+    if (this.isCPModalOpen) {
+      this.cpSearchTerm = '';
+      this.filteredConnectingPorts = [...this.allConnectingPorts];
+      this.showCPDropdown = false;
+    }
+  }
 }

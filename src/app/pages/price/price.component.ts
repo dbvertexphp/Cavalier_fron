@@ -43,6 +43,9 @@ export class PriceComponent {
     PermissionID:any;
     LeadId:number=0;
     originpinCode:any;
+    // Add these lines in your class variables section
+paginatedPricings: any[] = []; 
+costBreakdowns: any[] = []; // Check if you intended to use 'costRows' instead
     OrganisationId:number=0;
     invoices: any[] = [];
   isInvoiceModalOpen = false;
@@ -344,15 +347,12 @@ calculateVolumeWeightLogic() {
   console.log("Calculated -> CBM:", this.quotation.cbm, "Net:", this.quotation.netWeight, "Chrg:", this.quotation.chargeableWeight);
 }
 columnFieldMap: any = {
-  'ID': 'id',
-  'Inquiry No': 'inquiryNo',
-  'Date': 'receivedDate',
-  'Customer': 'customerName',
-  'Mode': 'transportMode',
-  'Origin': 'originPort',
-  'Destination': 'destinationPort',
-  'Status': 'cargoStatus',
-  'Sales Person': 'salesPerson'
+  'Pricing No.': 'pricingNo',
+  'Inquiry Ref.': 'referenceByInquiryNo',
+  'Organisation': 'organisationName',
+  'Origin': 'originName',
+  'Destination': 'finalDestination',
+  'Status': 'status'
 };
 
 selectedColumns: string[] = ['ID', 'Inquiry No', 'Date', 'Customer', 'Status','LeadName','OrganisationName'];
@@ -406,6 +406,7 @@ organizations: any[] = [];
    this.getsales();
    this.loadConnectingPortsData();
       this.getbranch();
+      this.loadPricings();
       this.loadQuotations();
       this.portOfLoading();
       this.getNextInquiryNumber();
@@ -1010,15 +1011,43 @@ getFormattedInquiryNo(): string {
     
 
     toggleForm() {
-      this.isFormOpen = !this.isFormOpen;
-      
-      if (!this.isFormOpen) {
-         this.isPreviewMode = false; // Add this line
-        this.quotation = this.resetQuotationModel();
-        this.appliedDimensions = [];
-        this.dimRows = [{ box: 1, l: 0, w: 0, h: 0, unit: 'CMS' }];
-      }
+  this.isFormOpen = !this.isFormOpen;
+
+  if (!this.isFormOpen) {
+    // Jab form BAND ho raha ho (Existing logic)
+    this.isPreviewMode = false;
+    this.quotation = this.resetQuotationModel();
+    this.appliedDimensions = [];
+    this.dimRows = [{ box: 1, l: 0, w: 0, h: 0, unit: 'CMS' }];
+  } else {
+    // Jab form KHUL raha ho (New logic for Pricing No)
+    // Check karein ki ye New Entry hai (ID nahi hai) ya Edit hai
+    if (!this.quotation || !this.quotation.id || this.quotation.id === 0) {
+      this.fetchNextPricingNumber();
     }
+  }
+  
+  this.cdr.detectChanges();
+}
+
+// Yeh function bhi niche add kar dena agar pehle nahi kiya hai
+fetchNextPricingNumber() {
+  const token = localStorage.getItem('cavalier_token');
+  const headers = { Authorization: `Bearer ${token}` };
+
+  this.http.get(`${environment.apiUrl}/Pricing/GetNextNumber`, { headers }).subscribe({
+    next: (res: any) => {
+      if (res && res.nextNo) {
+        // Form khulne ke turant baad input mein number dikh jayega
+        this.quotation.pricingNo = res.nextNo;
+        this.cdr.detectChanges();
+      }
+    },
+    error: (err) => {
+      console.error("Pricing number fetch error:", err);
+    }
+  });
+}
 
 //    openDimModal() {
 //   // Agar dimRows khali hai ya purana data hai toh reset kar do
@@ -1444,91 +1473,67 @@ setQuickDate(type: string) {
 
 //-----/////
 onSearch() {
-  console.log("Search button clicked!");
+  console.log("Pricing Search Initiated...");
   this.searchDone = true;
-  
-  // 1. Ek naya object banao taaki original filters disturb na hon
-  const filtersToSend: any = { ...this.searchFilters };
 
-  // 2. Cleaning logic
-  if (filtersToSend.transportMode === 'Any') filtersToSend.transportMode = '';
-  if (filtersToSend.cargoStatus === '(Any)') filtersToSend.cargoStatus = '';
-  
-  if (filtersToSend.salesCoordinator === 'null' || !filtersToSend.salesCoordinator) {
-    filtersToSend.salesCoordinator = ""; 
-  }
+  // 1. Backend PricingSearchRequest ke hisaab se payload taiyar karna
+  const filtersToSend = {
+    // Backend expects 'PricingNo', not 'inquiryNo' (as per your C# code)
+    pricingNo: this.searchFilters.pricingNo || "", 
+    
+    // TransportMode (Air/Sea/Road)
+    transportMode: (this.searchFilters.serviceType === "(Any)" || this.searchFilters.serviceType === "") 
+                   ? "" : this.searchFilters.serviceType,
 
-  // 🔥 NEW STATUS LOGIC:
-  // Agar dropdown "" (Both) hai toh null bhejenge taaki backend filter na kare.
-  // Agar "1" ya "0" hai toh Number mein convert karke bhejenge.
-  if (filtersToSend.status === "" || filtersToSend.status === undefined || filtersToSend.status === null) {
-    filtersToSend.status = null; 
-  } else {
-    filtersToSend.status = Number(filtersToSend.status);
-  }
+    // OrganisationName (Agar UI mein customer search hai toh yahan map hoga)
+    organisationName: this.searchFilters.customerName || "",
 
-  // 🔥 FIXED BRANCH LOGIC:
-  if (this.branchSearchText && this.branchSearchText !== "") {
-    const bId = Number(this.searchFilters.branchId);
-    filtersToSend.branchId = isNaN(bId) ? null : bId; 
-    delete filtersToSend.branchName; 
-  } else {
-    filtersToSend.branchId = null;
-  }
+    // Date Range logic
+    fromDate: this.searchFilters.fromDate ? new Date(this.searchFilters.fromDate).toISOString() : null,
+    toDate: this.searchFilters.toDate ? new Date(this.searchFilters.toDate).toISOString() : null,
 
-  console.log("📡 Final Payload with Status:", filtersToSend);
+    // Branch logic (Multiple branches ko single ID mein convert kar rahe hain as per your API)
+    // Note: Agar aapka API single ID leta hai toh pehla selected ID bhejenge
+    branchId: (this.searchFilters.branchIds && this.searchFilters.branchIds.length > 0) 
+              ? Number(this.searchFilters.branchIds[0]) : null,
 
-  // 3. API Call
+    // Status logic (1: Active, 0: Inactive, -1 or null: Both)
+    status: (this.searchFilters.status === "" || this.searchFilters.status === null) 
+            ? -1 : Number(this.searchFilters.status)
+  };
+
+  console.log("📡 Final Pricing Payload:", filtersToSend);
+
+  // 2. HTTP Options with Token
   const token = localStorage.getItem('cavalier_token');
   const httpOptions = {
     headers: new HttpHeaders({
-      Authorization: `Bearer ${token}`,
+      'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     })
   };
 
-  this.http.post<any[]>(`${environment.apiUrl}/Inquiry/Search`, filtersToSend, httpOptions)
+  // 3. API Call to /api/Pricing/Search (Corrected endpoint)
+  this.http.post<any[]>(`${environment.apiUrl}/Pricing/Search`, filtersToSend, httpOptions)
     .subscribe({
       next: (response) => {
-        if (response && response.length > 0) {
-          this.quotations = response;
-          console.log("Strict Search Result Success:", response);
-          this.cdr.detectChanges();
-        } 
-        else if (filtersToSend.inquiryNo) {
-          // Fallback logic
-          const fallbackFilters = { 
-            inquiryNo: filtersToSend.inquiryNo,
-            branchId: filtersToSend.branchId,
-            status: filtersToSend.status // Fallback mein bhi status bhej rahe hain
-          };
-          this.http.post<any[]>(`${environment.apiUrl}/api/Inquiry/Search`, fallbackFilters, httpOptions)
-            .subscribe({
-              next: (fallbackRes) => {
-                this.quotations = fallbackRes;
-                this.cdr.detectChanges();
-              },
-              error: () => {
-                this.quotations = [];
-                this.cdr.detectChanges();
-              }
-            });
-        } 
-        else {
-          this.quotations = [];
-          this.cdr.detectChanges();
+        console.log("Search Result Success:", response);
+        // Backend Pricing model returns data, mapping it to quotations for display
+        this.quotations = response || [];
+        
+        if (this.quotations.length === 0) {
+          console.warn("No pricing records found for this criteria.");
         }
+        
+        this.setPage(1); // Pagination reset
+        this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error("Search failed details:", err);
-        if (err.status === 400) {
-          console.log("Validation Errors:", err.error.errors);
-        }
-        if (err.status === 401) {
-          alert("Unauthorized! Token expired, login again.");
-        } else {
-          alert("Server error while searching!");
-        }
+        console.error("Pricing Search Error:", err);
+        if (err.status === 401) alert("Session Expired! Please login again.");
+        else alert("Search failed: Server error or invalid fields.");
+        
+        this.quotations = [];
         this.cdr.detectChanges();
       }
     });
@@ -2676,120 +2681,161 @@ costRows: CostBreakdown[] = [
   this.showMultiCarrierTable = false;
   alert('Carrier details added to Inquiry!');
 }
+pricings: any[] = [];
+loadPricings() {
+  const token = localStorage.getItem('cavalier_token');
+  const httpOptions = {
+    headers: { Authorization: `Bearer ${token}` }
+  };
 
+  const pricingApiUrl = `${environment.apiUrl}/Pricing`;
+
+  this.http.get<any[]>(pricingApiUrl, httpOptions).subscribe({
+    next: (data) => {
+      // 1. Sabse pehle main array mein data daalein
+      this.pricings = data || []; 
+      
+      // 2. Ab Pagination wala array bharo jo table mein dikhta hai
+      this.updatePagination(); 
+
+      console.log("Pricings loaded and paginated:", this.paginatedPricings);
+      this.cdr.detectChanges(); // UI refresh
+    },
+    error: (err) => {
+      console.error("Error fetching pricings:", err);
+    }
+  });
+}
+updatePagination() {
+  const startIndex = (this.currentPage - 1) * this.pageSize;
+  const endIndex = startIndex + this.pageSize;
+  
+  // 'pricings' se data nikaal kar 'paginatedPricings' mein daalna
+  this.paginatedPricings = this.pricings.slice(startIndex, endIndex);
+}
 saveQuotation() {
-  // Basic validation
   if (!this.inquiry.organization) { 
     alert("Organization Name is required!");
     return;
   }
 
-  // 1. JSON Payload Taiyaar Karna (Adding only country and connecting ports)
+  // --- DEBUGGING LOGS ---
+  console.log("Current costBreakdowns state:", this.costBreakdowns);
+  console.log("Current costRows state:", (this as any).costRows);
+  console.log("Current multiCarrierRows state:", this.multiCarrierRows);
+
+  // 1. Breakdowns Mapping logic
+  const actualCosts = (this.costBreakdowns && this.costBreakdowns.length > 0) 
+                      ? this.costBreakdowns 
+                      : ((this as any).costRows || []);
+
+  const costData = actualCosts.map((cb: any) => ({
+    ...cb,
+    inquiryId: this.inquiry.id || 0,
+    pricingId: this.quotation.id || 0
+  }));
+
+  const multiCarrierData = (this.multiCarrierRows || []).map((mcb: any) => ({
+    ...mcb,
+    inquiryId: this.inquiry.id || 0,
+    pricingId: this.quotation.id || 0
+  }));
+
+  // 2. Payload Preparation
   const payload = {
-    ...this.quotation, 
-    inquiryNo: this.inquiry.inquiryNo,
-    customerName: this.inquiry.organization,
-    organization: this.inquiry.organization,
-    shipmentType: this.quotation.shipmentType,
-    leadNo: this.inquiry.leadNo,
-    leadId: this.LeadId,
-    OrganisationId: this.OrganisationId,
-    LeadName: this.LeadName,
-    OrganisationName: this.OrganisationName,
-    origin: this.inquiry.origin,
-    TransportMode: this.quotation.transportMode,
-    TransportType: this.quotation.TransportType,
-    HazardDocPath: this.quotation.hazardDocPath || null,
-    weightUnit: this.quotation.GrossweightUnit || 'KGS',
-    cargocurrency:this.quotation.currency || 'INR',
-    cargoValue: this.quotation.cargoValue.toString() || 0,
-    lineOfBusinessId: this.quotation.lineOfBusinessId ? Number(this.quotation.lineOfBusinessId) : null,
-    lineOfBusinessName: this.quotation.lineOfBusinessName || null,
-    commodityId: this.quotation.commodity, 
-    originId: this.originsaveid,
-    portOfLoadingId: !isNaN(Number(this.quotation.portOfLoadingId)) && Number(this.quotation.portOfLoadingId) > 0 ? Number(this.quotation.portOfLoadingId) : null,
-    portOfDischargeId: !isNaN(Number(this.quotation.portOfDischargeId)) && Number(this.quotation.portOfDischargeId) > 0 ? Number(this.quotation.portOfDischargeId) : null,
-    cargoStatus: this.quotation.cargoStatusType || 'Ready',
-    createdBy: 'admin@cavalierlogistic.in', 
+    ...this.quotation,
+    pricingNo: this.quotation.pricingNo || null,
+    referenceByInquiryNo: this.inquiry.inquiryNo,
     qtnId: this.quotation.qtnId || ('QTN-' + Math.floor(1000 + Math.random() * 9000)),
-    createdDate: new Date().toISOString(),
-    dimensions: this.appliedDimensions,
+    organisationName: this.inquiry.organization,
+    customerName: this.inquiry.organization,
+    organisationId: this.OrganisationId,
+    originName: this.inquiry.origin,
+    transportMode: this.quotation.transportMode?.toString() || "", 
+    transportType: this.quotation.TransportType?.toString() || "",
+    serviceType: this.quotation.shipmentType?.toString() || "",
+    
+    costBreakdowns: costData,
+    multiCarrierBreakdowns: multiCarrierData,
 
-    // 🔥 YE DO NAYI FIELDS ADD KI HAIN (Sirf extra data ke liye) 🔥
+    salesCoordinator: typeof this.quotation.salesCoordinator === 'object' 
+                      ? this.quotation.salesCoordinator?.name?.toString() 
+                      : this.quotation.salesCoordinator?.toString() || "",
+    salesExecutive: typeof this.quotation.salesExecutive === 'object' 
+                    ? this.quotation.salesExecutive?.name?.toString() 
+                    : this.quotation.salesExecutive?.toString() || "",
+
+    cargoStatus: this.quotation.cargoStatusType || 'Ready',
+    cargoValue: this.quotation.cargoValue?.toString() || "0",
+    cargoCurrency: this.quotation.currency || 'INR',
+    grossWeightKg: Number(this.quotation.grossWeight) || 0,
+    grossWeightUnit: this.quotation.GrossweightUnit || 'KGS',
+    
+    lineOfBusinessId: this.quotation.lineOfBusinessId ? Number(this.quotation.lineOfBusinessId) : null,
+    commodityId: this.quotation.commodity ? Number(this.quotation.commodity) : null,
+    originId: this.originsaveid,
+    portOfLoadingId: Number(this.quotation.portOfLoadingId) || null,
+    portOfDischargeId: Number(this.quotation.portOfDischargeId) || null,
+    finalDestination: this.quotation.finalDestination || null,
     countryName: this.selectedCountryName || null,
-    connectingPortIds: this.selectedConnectingPorts && this.selectedConnectingPorts.length > 0 
-                       ? this.selectedConnectingPorts.map((p: any) => p.id).join(',') 
-                       : null
+    connectingPortIds: this.selectedConnectingPorts?.length > 0 
+                        ? this.selectedConnectingPorts.map((p: any) => p.id).join(',') 
+                        : null,
+    dimensions: this.appliedDimensions,
+    createdBy: 'admin@cavalierlogistic.in'
   };
 
-  console.log("JSON Payload before FormData:", payload);
+  // 3. Mandatory Cleanup
+  delete (payload as any).TransportMode;
+  delete (payload as any).TransportType;
+  delete (payload as any).SalesCoordinator;
+  delete (payload as any).SalesExecutive;
 
-  // 2. FormData Create Karna
+  console.log("FINAL JSON TO BE SENT:", JSON.stringify(payload));
+
   const formData = new FormData();
-  
-  formData.append('inquiryData', JSON.stringify(payload));
+  formData.append('pricingData', JSON.stringify(payload));
 
-  // Multi-Carrier Data (As it is)
-  if (this.multiCarrierRows && this.multiCarrierRows.length > 0) {
-    formData.append('multiCarrierData', JSON.stringify(this.multiCarrierRows));
-  }
-
-  // 🔥 COST DATA APPEND 🔥
-  if (this.costRows && this.costRows.length > 0) {
-    formData.append('costData', JSON.stringify(this.costRows));
-  }
-
-  // 3. Documents Logic (NO CHANGES HERE)
-  if (this.documents && this.documents.length > 0) {
-    this.documents.forEach((doc) => {
-      if (doc.file) {
-        formData.append('commodityFiles', doc.file);
-        formData.append('documentNames', doc.name || doc.fileName);
-      }
-    });
-  }
-  if (this.invoices && this.invoices.length > 0) {
-    this.invoices.forEach((inv) => {
-      if (inv.file) {
-        formData.append('invoiceFiles', inv.file);
-        formData.append('invoiceNames', inv.name || inv.fileName);
-      }
-    });
-  }
-
-  // 4. Headers (NO CHANGES HERE)
-  const token = localStorage.getItem('cavalier_token');
-  const httpOptions = {
-    headers: {
-      Authorization: `Bearer ${token}`
+  // Documents processing
+  const allDocs = [...(this.documents || []), ...(this.invoices || [])];
+  allDocs.forEach((doc) => {
+    if (doc.file) {
+      formData.append('docFiles', doc.file);
+      formData.append('docTypes', doc.category === 'invoice' ? 'Invoice' : (doc.name || 'General'));
     }
-  };
+  });
 
-  // 5. Backend Call (NO CHANGES HERE)
+  const token = localStorage.getItem('cavalier_token');
+  const httpOptions = { headers: { Authorization: `Bearer ${token}` } };
+  const pricingApiUrl = `${environment.apiUrl}/Pricing`;
+
   const action = this.quotation.id > 0 
-    ? this.http.put(`${this.apiUrl}/${this.quotation.id}`, formData, httpOptions)
-    : this.http.post(this.apiUrl, formData, httpOptions);
+    ? this.http.put(`${pricingApiUrl}/${this.quotation.id}`, formData, httpOptions)
+    : this.http.post(pricingApiUrl, formData, httpOptions);
 
   action.subscribe({
-    next: () => {
-      alert("Success: Saved everything in CavalierDB!");
-      this.isFormOpen = false;
-      this.showMultiCarrierTable = false; 
-      this.showCostTable = false; 
+    next: (res: any) => {
+      // ✅ Sabse pehle Pricing No assign karo taaki UI change ho
+      const generatedNo = res?.pricingNo || res?.data?.pricingNo || res?.PricingNo;
       
-      this.documents = []; 
-      this.invoices = [];
-      this.multiCarrierRows = []; 
-      this.costRows = []; 
+      if (generatedNo) {
+        this.quotation.pricingNo = generatedNo;
+      }
+      
+      // ✅ Force update UI taaki "Generating..." hat jaye
+      this.cdr.detectChanges();
 
-      this.loadQuotations();
+      alert("Success: Pricing and Breakdowns Saved!");
+      
+      // ✅ Form band karne se pehle data reload karo
+      this.loadPricings(); 
+      this.isFormOpen = false;
       this.toggleForm();
-      this.getNextInquiryNumber();
       this.cdr.detectChanges();
     },
     error: (err) => {
-       console.error("Post Error Details:", err);
-       alert("Failed to save: " + (err.error?.message || "Check Backend."));
+       console.error("API ERROR DETAILS:", err);
+       alert("Failed: " + (err.error?.message || "Server Error"));
     }
   });
 }
@@ -2839,7 +2885,7 @@ toggleStatus(q: any) {
   });
 
   // 2. URL Setup
-  const url = `${environment.apiUrl}/Inquiry/ToggleStatus/${q.id}`;
+  const url = `${environment.apiUrl}/Pricing/ToggleStatus/${q.id}`;
 
   // Current state save kar lo (error handle karne ke liye)
   const previousStatus = q.status;
@@ -3194,4 +3240,83 @@ onInquirySearchInput() {
     this.showInquiryDropdown = false;
   }
 }
+// TS File ke andar
+generateTemporaryPricingNo() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth() + 1; // Months 0-11 hote hain
+  
+  let financialYear = "";
+  if (month >= 4) {
+    // April ya uske baad: 2024-25 format
+    financialYear = `${year.toString().slice(-2)}-${(year + 1).toString().slice(-2)}`;
+  } else {
+    // Jan-March: 2023-24 format
+    financialYear = `${(year - 1).toString().slice(-2)}-${year.toString().slice(-2)}`;
+  }
+
+  // Naya temporary number (Controller save karte waqt real number de dega)
+  this.quotation.pricingNo = `CAV/PRC/${financialYear}/---`;
+}
+openPricingForm(inquiryData: any) {
+  this.isFormOpen = true;
+  this.inquiry = inquiryData; // Purana data map karein
+  this.generateTemporaryPricingNo(); // Pricing No set karein
+}
+// 1. Edit Function
+editPricing(pricing: any) {
+  console.log("Editing Pricing:", pricing);
+  this.quotation = { ...pricing }; // Sara data quotation object mein bhar do
+  this.isFormOpen = true; // Form open kar do
+  this.cdr.detectChanges();
+} 
+
+// 2. Delete Function
+deletePricing(id: number) {
+  if (confirm("Are you sure you want to delete this pricing?")) {
+    const token = localStorage.getItem('cavalier_token');
+    const httpOptions = {
+      headers: { Authorization: `Bearer ${token}` }
+    };
+
+    this.http.delete(`${environment.apiUrl}/api/Pricing/${id}`, httpOptions).subscribe({
+      next: () => {
+        alert("Pricing deleted successfully!");
+        this.loadPricings(); // Table refresh karein
+      },
+      error: (err) => {
+        console.error("Delete Error:", err);
+        alert("Failed to delete pricing.");
+      }
+    });
+  }
+}
+openNewQuotation() {
+  this.quotation = {}; // Reset form or initialize
+  
+  // Yahan 'pricingsList' ki jagah 'pricings' kar diya hai
+  if (this.pricings && this.pricings.length > 0) {
+    // 1. Saare Pricing Numbers ki list nikaalo
+    const numbers = this.pricings
+      .map((p: any) => {
+        // Agar format 'PR-101' hai toh digit nikaalo, warna direct number lo
+        const val = p.pricingNo || p.PricingNo;
+        const match = val?.toString().match(/\d+/);
+        return match ? parseInt(match[0]) : 0;
+      })
+      .filter((n: number) => !isNaN(n));
+
+    // 2. Sabse bada number dhundo
+    const maxNo = Math.max(...numbers, 0);
+
+    // 3. Agla number set karo
+    this.quotation.pricingNo = (maxNo + 1).toString(); 
+  } else {
+    this.quotation.pricingNo = "1"; // Agar list khali hai toh 1 se start
+  }
+
+  this.isFormOpen = true;
+  this.cdr.detectChanges();
+}
+
 }

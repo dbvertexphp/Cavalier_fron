@@ -699,7 +699,7 @@
     </div>
     <div class="bg-[#4a3f3f] p-3 flex justify-between items-center text-white">
       <div class="font-bold uppercase tracking-widest px-2 text-[12px]">
-        Inquiry Records
+        Pricing Records
       </div>
 
       <div class="flex items-center gap-3">
@@ -769,101 +769,106 @@
               d="M12 4v16m8-8H4"
             />
           </svg>
-          ADD NEW INQUIRY
+          ADD NEW PRICING
         </button>
       </div>
     </div>
 
     <div class="p-0 overflow-x-auto">
       <div class="p-0 overflow-x-auto">
-        <div class="relative">
-          <div class="relative">
-  <table class="w-full border-collapse border border-gray-200 whitespace-nowrap">
+     <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+  <table class="w-full border-collapse border border-gray-200 whitespace-nowrap text-[12px]">
     <thead>
-      <tr class="bg-gray-50 text-gray-600 uppercase text-[11px] border-b" 
-          cdkDropList 
-          cdkDropListOrientation="horizontal" 
-          [cdkDropListData]="selectedColumns" 
-          (cdkDropListDropped)="dropColumn($any($event))">
-        <th *ngFor="let col of selectedColumns" 
-            cdkDrag 
-            class="p-4 text-left font-bold cursor-move hover:bg-gray-100 border-r border-gray-200 last:border-r-0">
-          <div class="flex items-center gap-2">
-            <span class="text-gray-300">⋮⋮</span>
-            {{ col }}
-          </div>
-        </th>
-
-        <th class="p-4 text-center font-bold sticky right-0 bg-gray-50 border-l shadow-sm no-export">
-          Action
-        </th>
+      <tr class="bg-gray-100 text-gray-700 uppercase border-b font-bold">
+        <th class="p-3 text-left">Pricing & Inquiry</th>
+        <th class="p-3 text-left">Customer & Location</th>
+        <th class="p-3 text-left">Route & Incoterm</th>
+        <th class="p-3 text-left">Movement Details</th>
+        <th class="p-3 text-left">Commodity / LOB</th>
+        <th class="p-3 text-center">Status</th>
+        <th class="p-3 text-center sticky right-0 bg-gray-100 border-l">Action</th>
       </tr>
     </thead>
 
-    <tbody class="bg-white" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
-      <tr *ngFor="let q of paginatedInquiries" 
-          (dblclick)="editQuotation(q)" 
-          class="hover:bg-gray-50 border-b text-gray-700 cursor-pointer transition-colors">
+    <tbody class="bg-white" *ngIf="paginatedPricings.length > 0">
+      <tr *ngFor="let q of paginatedPricings" 
+          (dblclick)="editPricing(q)" 
+          class="hover:bg-blue-50 border-b text-gray-700 cursor-pointer transition-colors">
         
-        <td *ngFor="let col of selectedColumns" class="p-4">
-          <ng-container [ngSwitch]="col">
-            <span *ngSwitchCase="'Inquiry Id.'" class="font-bold text-gray-900">{{ q.id }}</span>
-            <span *ngSwitchCase="'Inquiry No.'" class="font-bold text-blue-600">{{ q.inquiryNo }}</span>
-            <span *ngSwitchCase="'Date'" class="font-medium">{{ q.receivedDate | date: "dd-MMM-yyyy" }}</span>
-            
-            <!-- Lead Name click par alert -->
-            <span *ngSwitchCase="'LeadName'" 
-                  class="font-medium cursor-pointer text-blue-600 hover:underline" 
-                  (click)="showAlert('Lead ID', q.leadId)">
-              {{ q.leadName || '-' }}
-            </span>
-
-            <!-- Organisation Name click par alert -->
-            <span *ngSwitchCase="'OrganisationName'" 
-                  class="font-medium cursor-pointer text-blue-600 hover:underline" 
-                  (click)="showAlert('Organisation ID', q.organisationId)">
-              {{ q.organisationName || '-' }}
-            </span>
-
-            <!-- 🔥 Status Column with Toggle Logic -->
-            <span *ngSwitchCase="'Status'" class="flex items-center gap-3" (click)="$event.stopPropagation()">
-              <!-- Status Badge -->
-              <span [ngClass]="q.status === 1 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
-                    class="px-2 py-0.5 rounded text-[10px] font-bold uppercase">
-                {{ q.status === 1 ? 'Active' : 'Inactive' }}
-              </span>
-
-              <!-- Toggle Switch -->
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" 
-                       [checked]="q.status === 1" 
-                       (change)="toggleStatus(q)" 
-                       class="sr-only peer">
-                <div class="w-8 h-4 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-green-600"></div>
-              </label>
-            </span>
-
-            <span *ngSwitchDefault class="uppercase font-medium">{{ q[columnFieldMap[col]] || "-" }}</span>
-          </ng-container>
+        <!-- Pricing & Inquiry -->
+        <td class="p-3">
+          <div class="font-bold text-blue-700">{{ q.pricingNo || q.PricingNo }}</div>
+          <div class="text-[10px] text-gray-500">Inq: {{ q.inquiryNo || '-' }}</div>
+          <div class="text-[9px] text-gray-400 italic">{{ q.createdDate | date:'mediumDate' }}</div>
         </td>
 
-        <td class="p-4 sticky right-0 bg-white border-l text-center shadow-[-5px_0_10px_rgba(0,0,0,0.02)]">
-          <button (click)="editQuotation(q)" 
-                  *ngIf="CheckPermissionService.hasPermission(PermissionID, 'Edit')" 
-                  class="text-blue-600 mr-3 font-bold uppercase hover:underline text-[11px]">
-            Edit
-          </button>
-          <button (click)="deleteQuotation(q.id)" 
-                  *ngIf="CheckPermissionService.hasPermission(PermissionID, 'Delete')" 
-                  class="text-red-600 font-bold uppercase hover:underline text-[11px]">
-            Delete
-          </button>
+        <!-- Customer & Location -->
+        <td class="p-3">
+          <div class="font-semibold uppercase text-gray-800">{{ q.customerName }}</div>
+          <div class="text-[11px] text-blue-600 font-medium">📍 {{ q.location || 'N/A' }}</div>
+          <div class="text-[10px] text-gray-400">Lead: {{ q.leadName }}</div>
+        </td>
+
+        <!-- Route & Incoterm -->
+        <td class="p-3">
+          <div class="flex items-center gap-1 font-bold">
+            <span class="text-green-700 uppercase">{{ q.countryName }}</span>
+            <span class="text-gray-400">➔</span>
+            <span class="text-red-700 uppercase">{{ q.finalDestination }}</span>
+          </div>
+          <div class="mt-1 flex gap-2">
+            <span class="px-2 py-0.5 bg-orange-100 text-orange-800 rounded text-[10px] font-bold border border-orange-200">
+              {{ q.incoterm || 'EXW' }}
+            </span>
+          </div>
+        </td>
+
+        <!-- Movement Details -->
+        <td class="p-3">
+          <div class="font-medium text-gray-700 uppercase">{{ q.movementType || '-' }}</div>
+          <div class="flex gap-1 mt-1">
+            <span *ngIf="q.isDirect" class="text-[9px] bg-blue-100 text-blue-700 px-1 rounded font-bold">DIRECT</span>
+            <span *ngIf="q.isServiceRequired" class="text-[9px] bg-purple-100 text-purple-700 px-1 rounded font-bold">SVC REQ</span>
+          </div>
+        </td>
+
+        <!-- Commodity & Dimensions -->
+        <td class="p-3">
+          <div class="font-semibold text-gray-800">{{ q.businessDimensions || 'General' }}</div>
+          <div class="text-[10px] text-gray-500 max-w-[150px] truncate" [title]="q.description">
+            {{ q.description || 'No description' }}
+          </div>
+          <div class="text-[10px] font-bold text-gray-400">CHG WT: {{ q.chargeableWeight }} KG</div>
+        </td>
+
+        <!-- Status Toggle -->
+        <td class="p-3 text-center" (click)="$event.stopPropagation()">
+          <div class="flex flex-col items-center gap-1">
+             <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" [checked]="q.status === 1" (change)="toggleStatus(q)" class="sr-only peer">
+                <div class="w-9 h-5 bg-gray-300 rounded-full peer peer-checked:bg-green-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full border border-gray-200 shadow-sm"></div>
+              </label>
+              <span [ngClass]="q.status === 1 ? 'text-green-700' : 'text-red-700'" class="text-[9px] font-bold uppercase">
+                {{ q.status === 1 ? 'Active' : 'Inactive' }}
+              </span>
+          </div>
+        </td>
+
+        <!-- Actions -->
+        <td class="p-3 sticky right-0 bg-white border-l text-center shadow-sm">
+          <div class="flex items-center justify-center gap-2">
+            <button (click)="editPricing(q)" class="px-2 py-1 bg-white hover:bg-blue-50 text-blue-600 font-bold rounded border border-blue-200 transition-all text-[10px]">
+                EDIT
+            </button>
+            <button (click)="deletePricing(q.id)" class="px-2 py-1 bg-white hover:bg-red-50 text-red-600 font-bold rounded border border-red-200 transition-all text-[10px]">
+                DEL
+            </button>
+          </div>
         </td>
       </tr>
     </tbody>
   </table>
 </div>
-        </div>
       </div>
       <div
         class="flex justify-between items-center bg-white p-4 border-t border-gray-200 mt-2 shadow-sm rounded-b-lg no-export"
@@ -1167,16 +1172,17 @@
               </div>
             </div>
             <div class="space-y-2">
-              <div class="flex items-center">
-                <label class="w-28 font-bold text-gray-600">Pricing No.</label>
-                <input
-                  type="text"
-                  name="inquiryNo"
-                  [(ngModel)]="inquiry.inquiryNo"
-                  readonly
-                  class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-gray-100 text-gray-600 cursor-not-allowed font-semibold"
-                />
-              </div>
+     <div class="flex items-center">
+  <label class="w-28 font-bold text-gray-600">Pricing No.</label>
+  <input
+    type="text"
+    name="pricingNo"
+    [(ngModel)]="quotation.pricingNo"
+    readonly
+    placeholder="Generating..."
+    class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-gray-100 text-gray-600 cursor-not-allowed font-semibold"
+  />
+</div>
 
               <div class="flex items-center gap-2">
                 <label class="w-26 font-bold text-[#802a2a]">Location</label>
@@ -3173,7 +3179,7 @@
               (click)="saveQuotation()"
               class="bg-[#4a3f3f] text-white px-10 py-2 font-bold shadow-md hover:bg-black uppercase transition-all"
             >
-                      {{ quotation.id ? "Update" : "Save" }} Inquiry    
+                      {{ quotation.id ? "Update" : "Save" }} Pricing    
             </button>
           </div>
         </div>

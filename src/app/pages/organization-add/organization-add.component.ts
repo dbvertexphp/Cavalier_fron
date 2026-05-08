@@ -1074,10 +1074,25 @@ proceedToSave() {
     }
     if (this.branchList.length === 0) { alert("❌ Please add at least one branch!"); return; }
 
-    const payload = { Id: this.selectedOrgId || 0, OrgName: this.orgName.trim(), Alias: this.alias || '', SelectedRoles: this.selectedRoles.join(',') };
-    const apiUrl = this.isOrgEditMode && this.selectedOrgId ? `${environment.apiUrl}/Organization/update` : `${environment.apiUrl}/Organization/save`;
+    // --- Token nikalne ka logic ---
+    const token = localStorage.getItem('cavalier_token'); 
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
 
-    this.http.post(apiUrl, payload).subscribe({
+    const payload = { 
+        Id: this.selectedOrgId || 0, 
+        OrgName: this.orgName.trim(), 
+        Alias: this.alias || '', 
+        SelectedRoles: this.selectedRoles.join(',') 
+    };
+
+    const apiUrl = this.isOrgEditMode && this.selectedOrgId 
+        ? `${environment.apiUrl}/Organization/update` 
+        : `${environment.apiUrl}/Organization/save`;
+
+    // Headers ko post request mein add kar diya
+    this.http.post(apiUrl, payload, { headers }).subscribe({
       next: (res: any) => {
         const finalOrgId = res?.id || res?.data?.id || res?.Id || this.selectedOrgId || 0;
         if (finalOrgId > 0) {
@@ -1087,7 +1102,13 @@ proceedToSave() {
           this.router.navigate(['/dashboard/organization-add']); 
         }
       },
-      error: (err) => alert(this.isOrgEditMode ? "❌ Failed to Update Organization" : "❌ Failed to Save Organization")
+      error: (err) => {
+        if (err.status === 401) {
+            alert("❌ Session expired! Please login again.");
+        } else {
+            alert(this.isOrgEditMode ? "❌ Failed to Update Organization" : "❌ Failed to Save Organization");
+        }
+      }
     });
 }
 // ==================== SAVE AGENT WITH ORGANISATION ID ====================

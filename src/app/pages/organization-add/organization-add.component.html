@@ -590,16 +590,30 @@
       <div class="bg-white p-6 border border-gray-300 shadow-sm">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
           <div class="space-y-3">
-            <div class="flex items-center gap-2">
-              <label class="w-24 text-red-700 font-bold">Name</label>
-              <div class="flex-1">
-                <input type="text" [(ngModel)]="orgName" name="orgName" (input)="orgName = $event.target.value.toUpperCase()" placeholder="Full Organization Name"
-                       class="w-full border border-gray-300 p-1.5 focus:border-[#4a3f3f] outline-none shadow-sm" required #orgNameRef="ngModel">
-                <div *ngIf="orgNameRef.invalid && (orgNameRef.dirty || orgNameRef.touched)" class="text-red-600 text-[11px] mt-1">
-                  Organization Name is required.
-                </div>
-              </div>
-            </div>
+           <div class="flex items-center gap-2">
+  <label class="w-24 text-red-700 font-bold">Name</label>
+  <div class="flex-1">
+    <input type="text" 
+           [(ngModel)]="orgName" 
+           name="orgName" 
+           (input)="orgName = $event.target.value.toUpperCase()" 
+           (blur)="checkDuplicateOrg()" 
+           placeholder="Full Organization Name"
+           class="w-full border border-gray-300 p-1.5 focus:border-[#4a3f3f] outline-none shadow-sm" 
+           required 
+           #orgNameRef="ngModel">
+    
+    <!-- Required Validation -->
+    <div *ngIf="orgNameRef.invalid && (orgNameRef.dirty || orgNameRef.touched)" class="text-red-600 text-[11px] mt-1">
+      Organization Name is required.
+    </div>
+
+    <!-- Duplicate Error Message (Inline) -->
+    <div *ngIf="isDuplicate" class="text-amber-600 font-bold text-[11px] mt-1">
+      ⚠️ This name already exists in our database.
+    </div>
+  </div>
+</div>
             <div class="flex items-center gap-2">
               <label class="w-24 text-red-700 font-bold">Alias</label>
               <div class="w-48">

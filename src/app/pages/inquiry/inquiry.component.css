@@ -60,3 +60,30 @@
   from { opacity: 0; transform: scale(0.95); }
   to { opacity: 1; transform: scale(1); }
 }
+/* SweetAlert Animation Styles */
+.email-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.envelope-wrapper {
+  font-size: 50px;
+  animation: float 2s ease-in-out infinite;
+}
+
+.envelope-wrapper::before {
+  content: '📩'; /* Email Logo */
+}
+
+@keyframes float {
+  0% { transform: translateY(0px) rotate(0deg); opacity: 1; }
+  50% { transform: translateY(-20px) rotate(10deg); opacity: 0.7; }
+  100% { transform: translateY(0px) rotate(0deg); opacity: 1; }
+}
+
+.premium-popup {
+  border: 4px solid #4a3f3f !important;
+  border-radius: 0 !important; /* Sharp premium edges */
+}

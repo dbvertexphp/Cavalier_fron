@@ -13,6 +13,7 @@ import { moveItemInArray, transferArrayItem, CdkDragDrop } from '@angular/cdk/dr
 import { DragDropModule } from '@angular/cdk/drag-drop'; // 👈 Ye zaroori hai // Ye import ensure kar lena
 import { CheckPermissionService } from '../../services/check-permission.service';
 import { ActivatedRoute } from '@angular/router';
+import Swal from 'sweetalert2';
 @Component({
   selector: 'app-organization-add',
   standalone: true,
@@ -1035,6 +1036,36 @@ loadestination(){
 };
 
 saveOrganization() {
+    // 1. Pehle Direct API call karke confirm karo (Final Guard)
+    const checkUrl = `${environment.apiUrl}/Organization/check-duplicate/${this.orgName.trim()}`;
+    
+    this.http.get(checkUrl).subscribe({
+      next: (res: any) => {
+        // Agar Edit mode hai toh hume check karna hoga ki ID alag hai ya nahi
+        // Lekin simple check ke liye: agar res.exists true hai aur hum naya record bana rahe hain
+        if (res.exists && !this.isOrgEditMode) {
+          Swal.fire({
+            title: 'Duplicate Name!',
+            text: 'This organization is already registered. Please use a different name.',
+            icon: 'error',
+            confirmButtonColor: '#4a3f3f'
+          });
+          return; // Save process yahi ruk jayega
+        }
+
+        // 2. Agar duplicate nahi hai, toh purana wala save logic chalne do
+        this.proceedToSave();
+      },
+      error: (err) => {
+        console.error("Check failed", err);
+        this.proceedToSave(); // Error aaye toh save karne ki koshish karo
+      }
+    });
+}
+
+// Maine aapke purane logic ko is naye function mein wrap kar diya hai 
+// taaki "Save" ke andar pehle duplicate check ho sake
+proceedToSave() {
     if (!this.orgName?.trim()) { alert("❌ Organization Name is required!"); return; }
 
     if (this.branchName && this.branchName.trim() !== '') {
@@ -1051,19 +1082,14 @@ saveOrganization() {
         const finalOrgId = res?.id || res?.data?.id || res?.Id || this.selectedOrgId || 0;
         if (finalOrgId > 0) {
           this.selectedOrgId = finalOrgId;
-          
-          // 🔥 YAHAN SIRF BRANCH SAVE CALL HOGA, AGENT USKE ANDAR CALL HOGA
           this.saveAllLocalBranches(finalOrgId); 
-
           alert(this.isOrgEditMode ? "✅ Organization Updated Successfully!" : "✅ Organization + Branches Saved Successfully!");
-
-          // 🚀 Yahan se table par redirect hoga (Apne table ka path '/organization-list' ki jagah dal dein)
           this.router.navigate(['/dashboard/organization-add']); 
         }
       },
       error: (err) => alert(this.isOrgEditMode ? "❌ Failed to Update Organization" : "❌ Failed to Save Organization")
     });
-  }
+}
 // ==================== SAVE AGENT WITH ORGANISATION ID ====================
  
 // 🔥 Puraane saveAgentWithOrganisation() ko is naye function se Replace kar do
@@ -2720,5 +2746,38 @@ toggleOrgStatus(org: any) {
         alert("Status change karne mein error aaya!");
       }
     });
+}
+isDuplicate: boolean = false;
+
+checkDuplicateOrg() {
+  if (!this.orgName || this.orgName.trim() === '') {
+    this.isDuplicate = false;
+    return;
+  }
+
+  // Direct environment file se URL utha kar call kar rahe hain
+  const url = `${environment.apiUrl}/Organization/check-duplicate/${this.orgName}`;
+
+  this.http.get(url).subscribe({
+    next: (res: any) => {
+      if (res.exists) {
+        this.isDuplicate = true;
+        
+        Swal.fire({
+          title: 'Duplicate Entry!',
+          text: `The organization "${this.orgName}" is already registered.`,
+          icon: 'warning',
+          confirmButtonColor: '#4a3f3f',
+          confirmButtonText: 'I will change it'
+        });
+      } else {
+        this.isDuplicate = false;
+      }
+    },
+    error: (err) => {
+      console.error("API Error:", err);
+      this.isDuplicate = false; // Error pe safe side false rakhein
+    }
+  });
 }
 } 

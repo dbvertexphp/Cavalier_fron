@@ -2678,6 +2678,16 @@ costRows: CostBreakdown[] = [
   alert('Carrier details added to Inquiry!');
 }
 
+sendBulkEmails(inqId: number) {
+  const payload = {
+    toEmails: this.selectedEmails,
+    inquiryId: inqId  // Backend ko pata chalega kaunsa data uthana hai
+  };
+  const token = localStorage.getItem('cavalier_token');
+  const headers = { Authorization: `Bearer ${token}` };
+  this.http.post(`${this.apiUrl}/SendBulkEmail`, payload, { headers }).subscribe();
+}
+
 saveQuotation() {
   // Basic validation
   if (!this.inquiry.organization) { 
@@ -2703,7 +2713,7 @@ saveQuotation() {
     HazardDocPath: this.quotation.hazardDocPath || null,
     weightUnit: this.quotation.GrossweightUnit || 'KGS',
     cargocurrency:this.quotation.currency || 'INR',
-    cargoValue: this.quotation.cargoValue.toString() || 0,
+    cargoValue: this.quotation.cargoValue.toString() || '0',
     lineOfBusinessId: this.quotation.lineOfBusinessId ? Number(this.quotation.lineOfBusinessId) : null,
     lineOfBusinessName: this.quotation.lineOfBusinessName || null,
     commodityId: this.quotation.commodity, 
@@ -2772,8 +2782,11 @@ saveQuotation() {
     : this.http.post(this.apiUrl, formData, httpOptions);
 
   action.subscribe({
-    next: () => {
+    next: (res: any) => {
       alert("Success: Saved everything in CavalierDB!");
+      if (this.selectedEmails.length > 0) {
+        this.sendBulkEmails(res.id); 
+      }
       this.isFormOpen = false;
       this.showMultiCarrierTable = false; 
       this.showCostTable = false; 

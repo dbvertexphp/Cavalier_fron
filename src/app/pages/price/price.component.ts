@@ -2992,131 +2992,146 @@ isPortSelected(port: any): boolean {
 }
 selectInquiry(inq: any) {
   if (!inq || !inq.inquiryNo) {
-    console.error("Invalid inquiry data");
+    console.error("❌ Inquiry No missing!");
     return;
   }
 
-  // Basic fields
-  this.quotation.referenceByInquiry = inq.inquiryNo || '';
-  this.quotation.customerName = inq.customerName || '';
-  this.quotation.organization = inq.customerName || '';
-
-  this.showInquiryDropdown = false;
-  this.cdr.detectChanges();
-
   const inquiryNo = inq.inquiryNo?.trim();
-  if (!inquiryNo) return;
-
   const url = `${environment.apiUrl}/Inquiry/by-no?inquiryNo=${inquiryNo}`;
 
   this.http.get<any>(url).subscribe({
-    next: (fullData) => {
-      console.log("✅ Full Inquiry Data:", fullData);
+    next: (data) => {
+      console.log("✅ Actual API Data:", data);
 
-      // --- Transport & Movement Logic ---
-      if (fullData.transportMode) {
-        const modeFromApi = fullData.transportMode.trim();
-        const matchedMode = this.transportModes?.find(m => 
-          m.name.toLowerCase() === modeFromApi.toLowerCase()
-        );
-        this.quotation.transportMode = matchedMode ? matchedMode.name : modeFromApi;
-      } else {
-        this.quotation.transportMode = '';
-      }
-
-      if (fullData.transportType) {
-        this.quotation.transportType = fullData.transportType.trim();
-      } else if (this.quotation.transportMode?.toUpperCase() === 'AIR' || this.quotation.transportMode?.toUpperCase() === 'SEA') {
-        this.quotation.transportType = 'Export';
-      } else {
-        this.quotation.transportType = '';
-      }
-
-      this.quotation.shipmentType = fullData.shipmentType || '';
-      this.quotation.movementType = fullData.movementType ? fullData.movementType.trim() : (fullData.movement ? fullData.movement.trim() : '');
-
-      // --- Weight, Packages & CBM AUTO-FILL ---
-      this.quotation.noOfPkgs = fullData.noOfPkgs || 0;
-      this.quotation.grossWeightKg = fullData.grossWeightKg || 0;
-      this.quotation.netWeight = fullData.netWeight || 0;
-      this.quotation.chargeableWeight = fullData.chargeableWeight || 0;
-      this.quotation.volumeWeight = fullData.volumeWeight || 0;
-      this.quotation.chargeableWeightKg = fullData.volumeWeight || '';
-
-      // 🔥 CBM WEIGHT CALCULATION LOGIC
-      // Pehle check karega API mein value hai kya, agar nahi hai toh formula use karega
-      const apiCbm = fullData.cbm || fullData.cbmWeight || fullData.totalCbm;
+      // --- 1. Basic & Organization ---
+      this.quotation.referenceByInquiry = data.inquiryNo || '';
+      this.quotation.customerName = data.customerName || '';
+      this.quotation.organization = data.organisationName || '';
+      if (this.inquiry) this.inquiry.organization = data.organisationName || '';
       
-      if (apiCbm) {
-        this.quotation.cbm = apiCbm;
-      } else if (this.quotation.volumeWeight) {
-        // Aapka formula: Volume Weight / 167
-        const calculatedCbm = this.quotation.volumeWeight / 167;
-        this.quotation.cbm = parseFloat(calculatedCbm.toFixed(3));
-      } else {
-        this.quotation.cbm = 0;
+      this.quotation.branchName = data.branchName || '';
+      this.quotation.location = data.location || '';
+      this.quotation.partyRole = data.partyRole || '';
+
+      // --- 2. Line of Business (LOB) ---
+      this.quotation.lineOfBusinessId = data.lineOfBusinessId ? Number(data.lineOfBusinessId) : null;
+
+      // --- 3. Transport Mode & Type ---
+      if (data.transportMode) {
+        const modeObj = this.transportModes.find(m => 
+          m.name.toLowerCase() === data.transportMode.toLowerCase() || 
+          m.id == data.transportMode
+        );
+        this.quotation.TransportMode = modeObj ? modeObj.id : data.transportMode;
       }
 
-      this.quotation.cbmUnit = fullData.cbmUnit || 'CBM';
+      this.quotation.TransportType = data.transportType || ''; 
 
-      // --- Remaining Fields ---
-      this.quotation.businessDimensions = fullData.businessDimensions || fullData.businessDim || fullData.commodityName || '';
-      this.quotation.incoterm = fullData.incoterm || fullData.incoTerms || '';
-      this.quotation.description = fullData.description || '';
-      this.quotation.pickupAddress = fullData.pickupAddress || '';
-      this.quotation.placeOfDelivery = fullData.placeOfDelivery || '';
-      this.quotation.podFinalDest = fullData.finalDestination || '';
-      this.quotation.location = fullData.location || '';
-      this.quotation.currency = (fullData.cargoCurrency || '').trim();
-      this.quotation.cargoValue = fullData.cargoValue || '';
+      // --- 4. Other IDs & Pricing ---
+      this.quotation.salesCoordinator = data.salesCoordinator ? Number(data.salesCoordinator) : null;
+      this.quotation.commodity = data.commodityId ? Number(data.commodityId) : null;
+      this.quotation.pricingDoneBy = data.pricingDoneBy || ''; 
+      this.quotation.qtnDoneBy = data.qtnDoneBy || '';
+      this.quotation.businessDimensions = data.businessDimensions || '';
 
-      // IDs & Names
-      this.quotation.originPOL = fullData.originName || '';
-      this.quotation.portOfLoading = fullData.portOfLoadingName || '';
-      this.quotation.portOfDischarge = fullData.portOfDischargeName || '';
-      this.quotation.commodity = fullData.commodityId ? Number(fullData.commodityId) : null;
-      this.quotation.lineOfBusiness = fullData.lineOfBusinessId || '';
+      // --- 5. Movement & Ports ---
+      this.quotation.shipmentType = data.shipmentType?.toString() || '';
+      this.quotation.movementType = data.movementType || '';
+      this.quotation.originPOL = data.originName || ''; 
+      this.quotation.portOfLoading = data.portOfLoadingName || '';
+      this.quotation.portOfDischarge = data.portOfDischargeName || '';
+      this.quotation.podFinalDest = data.finalDestination || '';
+      this.quotation.placeOfDelivery = data.placeOfDelivery || '';
+      
+      this.quotation.portOfDestination = data.portOfDischargeName || '';
+      this.quotation.finalDestination = data.finalDestination || '';
 
-      // Sales & Status
-      this.quotation.salesCoordinator = fullData.salesCoordinator ? Number(fullData.salesCoordinator) : null;
-      this.quotation.pricingBy = fullData.pricingDoneBy || '';
-      this.quotation.qtnDoneBy = fullData.qtnDoneBy || '';
-      this.quotation.cargoStatus = fullData.cargoStatus || 'Ready';
+      // --- 5a. Connecting Ports Auto-fill (Fix for ConnectingPortIds) ---
+      this.selectedConnectingPorts = [];
+      
+      // Agar DB se IDs string format mein aa rahi hain (e.g. "1,2,3")
+      if (data.connectingPortIds) {
+        const idsArray = Array.isArray(data.connectingPortIds) 
+          ? data.connectingPortIds 
+          : data.connectingPortIds.toString().split(',');
 
-      const statusDate = fullData.cargoStatusDate ? fullData.cargoStatusDate.split('T')[0] : null;
-      this.quotation.cargoReadyDate = null;
-      setTimeout(() => { this.quotation.cargoReadyDate = statusDate; }, 0);
+        // Hum selectedConnectingPorts ko fill kar rahe hain taaki screen pe dikhe
+        // Note: Name hum tabhi dikha payenge agar 'data.connectingPorts' (names) bhi API mein ho.
+        // Agar sirf IDs hain, toh hum matching ports se name uthayenge:
+        this.selectedConnectingPorts = idsArray.map((id: any) => {
+          const trimmedId = id.toString().trim();
+          // Pura ports list (master data) mein se find karein taaki name mil jaye
+          const masterPort = this.filteredConnectingPorts.find(p => p.id.toString() === trimmedId);
+          return {
+            id: trimmedId,
+            name: masterPort ? masterPort.name : `Port ID: ${trimmedId}`,
+            cpType: 'Transit'
+          };
+        });
+      }
 
-      this.quotation.validTill = fullData.validTill || '';
-      this.quotation.version = fullData.version || '';
+      // --- NEW: IncoTerms Mapping ---
+      this.quotation.incoterm = data.incoterm || '';
+      if (this.quotation.incoterm) {
+        this.onIncotermChange({ target: { value: this.quotation.incoterm } });
+      }
 
-      // --- Dimensions Autofill ---
-      if (fullData?.dimensions?.length > 0) {
-        const dims = fullData.dimensions;
-        const mainDim = dims.find((d: any) => d.id === 0) || dims[0];
-        if (mainDim) {
-          this.quotation.dimBox = mainDim.box ?? 0;
-          this.quotation.dimL = mainDim.l ?? 0;
-          this.quotation.dimW = mainDim.w ?? 0;
-          this.quotation.dimH = mainDim.h ?? 0;
-          this.quotation.dimUnit = mainDim.unit ?? 'CMS';
+      // --- 6. Weights & Dimensions ---
+      this.quotation.noOfPkgs = data.noOfPkgs || 0;
+      this.quotation.grossWeightKg = data.grossWeightKg || 0;
+      this.quotation.chargeableWeight = data.chargeableWeight || 0;
+      this.quotation.volumeWeight = data.volumeWeight || 0;
+      this.quotation.description = data.description || '';
+      this.quotation.cargoValue = data.cargoValue || '';
+      this.quotation.currency = data.cargoCurrency || '';
+
+      if (data.cargoStatusDate) {
+        this.quotation.cargoReadyDate = data.cargoStatusDate.split('T')[0];
+      }
+
+      // Dimensions mapping
+      if (data.dimensions && data.dimensions.length > 0) {
+        const firstDim = data.dimensions[0];
+        this.dimRow = {
+          box: firstDim.box || 0,
+          l: firstDim.l || 0,
+          w: firstDim.w || 0,
+          h: firstDim.h || 0,
+          unit: firstDim.unit || 'CMS'
+        };
+
+        if (data.dimensions.length > 1) {
+          this.dimRows = data.dimensions.slice(1).map((d: any) => ({
+            box: d.box, l: d.l, w: d.w, h: d.h, unit: d.unit || 'CMS'
+          }));
+        } else {
+          this.dimRows = [];
         }
-        this.dimRows = dims.filter((d: any) => d.id !== 0).map((d: any) => ({
-          box: d.box ?? null, l: d.l ?? null, w: d.w ?? null, h: d.h ?? null, unit: d.unit ?? 'CMS'
-        }));
-      } else {
-        this.dimRows = [{ box: null, l: null, w: null, h: null, unit: 'CMS' }];
+        this.calculateVolumeWeight();
       }
+
+      // --- 8. Country ---
+      this.quotation.country = data.countryName || '';
+
+      // --- 9. Final UI Refresh ---
+      this.showInquiryDropdown = false;
+      this.showCountryDropdown = false; 
+      this.showPortOfDischargeDropdown = false;
 
       this.cdr.detectChanges();
-      console.log("✅ Quotation Auto-filled & CBM Calculated successfully!");
+      
+      if (this.quotation.lineOfBusinessId) {
+        const event = { target: { value: this.quotation.lineOfBusinessId } };
+        this.onLOBChange(event); 
+      }
+
+      setTimeout(() => {
+        this.cdr.detectChanges();
+      }, 200);
     },
-    error: (err) => {
-      console.error("❌ Error fetching full inquiry:", err);
-      alert("Failed to load inquiry details.");
-    }
+    error: (err) => console.error("❌ API Error:", err)
   });
-} 
+}
  token:string='';
  inquiryList: any[] = [];
    allInquiries: any[] = [];

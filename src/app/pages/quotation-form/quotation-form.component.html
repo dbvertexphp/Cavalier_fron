@@ -877,69 +877,60 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-x-6 gap-y-4">
           <div class="md:col-span-1">
             <div class="grid grid-cols-2 gap-2 mb-3">
-              <div>
-                <label
-                  class="text-gray-700 font-bold block mb-1 uppercase text-[11px]"
-                  >Reference by inquiry</label
-                >
-                <div class="relative">
-                  <input
-                    name="referenceByInquiry"
-                    [(ngModel)]="quotation.referenceByInquiry"
-                    (input)="onInquirySearchInput()"
-                    placeholder="Search Inquiry No..."
-                    class="w-full border p-2 bg-white outline-none pr-7 text-[12px]"
-                    autocomplete="off"
-                  />
+             <!-- Pricing Reference Selection (Similar to Inquiry Design) -->
+<div>
+  <label class="text-gray-700 font-bold block mb-1 uppercase text-[11px]">
+    Reference by Pricing
+  </label>
+  
+  <div class="relative">
+    <input
+      type="text"
+      name="referencePricingNo"
+      [(ngModel)]="quotation.referencePricingNo"
+      (input)="onPricingSearchInput()"
+      placeholder="Search Pricing No..."
+      class="w-full border p-2 bg-white outline-none pr-7 text-[12px]"
+      autocomplete="off"
+    />
 
-                  <span
-                    (click)="loadInquiryList()"
-                    class="absolute right-1 top-2.5 text-gray-400 cursor-pointer p-1 hover:text-blue-500 transition-all"
-                  >
-                    🔍
-                  </span>
+    <!-- Search Icon -->
+    <span
+      (click)="loadPricingList()"
+      class="absolute right-1 top-2.5 text-gray-400 cursor-pointer p-1 hover:text-blue-500 transition-all"
+      title="Load All Pricings"
+    >
+      🔍
+    </span>
 
-                  <ul
-                    *ngIf="showInquiryDropdown && inquiryList.length > 0"
-                    class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-48 overflow-y-auto mt-1"
-                  >
-                    <li
-                      *ngFor="let inq of inquiryList"
-                      (click)="selectInquiry(inq)"
-                      class="p-2 hover:bg-blue-50 cursor-pointer text-[12px] border-b border-gray-100 last:border-0"
-                    >
-                      <div class="font-bold text-blue-700">
-                        {{ inq.inquiryNo }}
-                      </div>
+    <!-- Suggestions Dropdown -->
+    <ul
+      *ngIf="showPricingDropdown && filteredPricings.length > 0"
+      class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-48 overflow-y-auto mt-1"
+    >
+      <li
+        *ngFor="let prc of filteredPricings"
+        (click)="selectPricing(prc)"
+        class="p-2 hover:bg-blue-50 cursor-pointer text-[12px] border-b border-gray-100 last:border-0"
+      >
+        <div class="font-bold text-blue-700">
+          {{ prc.pricingNo }}
+        </div>
+        <div *ngIf="prc.organisationName" class="text-gray-500 text-[10px]">
+          {{ prc.organisationName }}
+        </div>
+      </li>
+    </ul>
 
-                      <div
-                        *ngIf="inq.customerName"
-                        class="text-gray-500 text-[10px]"
-                      >
-                        {{ inq.customerName }}
-                      </div>
-                    </li>
-                  </ul>
-
-                  <ul
-                    *ngIf="showInquiryDropdown && filteredInquiries.length > 0"
-                    class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-48 overflow-y-auto"
-                  >
-                    <li
-                      *ngFor="let inq of filteredInquiries"
-                      (click)="selectInquiry(inq)"
-                      class="p-2 hover:bg-blue-50 cursor-pointer text-[12px] border-b border-gray-100"
-                    >
-                      <div class="font-bold text-blue-700">
-                        {{ inq.inquiryNo }}
-                      </div>
-                      <div class="text-gray-500 text-[10px]">
-                        {{ inq.customerName }}
-                      </div>
-                    </li>
-                  </ul>
-                </div>
-              </div>
+    <!-- No Results Message -->
+    <ul
+      *ngIf="showPricingDropdown && filteredPricings.length === 0 && quotation.referencePricingNo"
+      class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 rounded-sm shadow-lg p-3 mt-1"
+    >
+      <li class="text-gray-400 text-[11px] italic text-center">No matching pricing found.</li>
+    </ul>
+  </div>
+</div>
 
               <div>
                 <label
@@ -2041,6 +2032,92 @@
               class="w-full border p-2 h-16 outline-none"
             ></textarea>
           </div>
+          <!-- 🔥 SIMPLE ROUTE DISPLAY (Input Style) -->
+<div class="mt-6 space-y-3">
+  <div class="flex items-center justify-between border-b border-red-200 pb-2">
+    <label class="text-red-800 font-black uppercase text-[13px] italic">Connecting Ports Configuration</label>
+    <button (click)="toggleConnectingPortModal()" class="bg-red-700 text-white px-3 py-1 rounded text-[11px] font-bold hover:bg-red-800 transition-all">
+      + ADD PORTS
+    </button>
+  </div>
+
+  <div class="space-y-2">
+    <!-- 1. Auto-filled Port of Loading -->
+    <div *ngIf="quotation.portOfLoading" class="flex items-center gap-3">
+      <span class="w-6 font-bold text-red-700 text-[12px]">01</span>
+      <div class="flex-1 border-b border-gray-200 p-2 bg-gray-50 text-[12px] font-bold text-gray-700 uppercase">
+        {{ quotation.portOfLoading }}
+      </div>
+      <span class="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded">POL</span>
+    </div>
+
+    <!-- 2. Dynamically added Connecting Ports -->
+    <div *ngFor="let port of selectedConnectingPorts; let i = index" class="flex items-center gap-3 group">
+      <span class="w-6 font-bold text-red-700 text-[12px]">0{{ i + 2 }}</span>
+      <div class="flex-1 border-b border-gray-300 p-2 bg-white text-[12px] uppercase text-gray-800">
+        {{ port.name }}
+      </div>
+      <button (click)="removeConnectingPort(port)" class="text-red-400 hover:text-red-700 font-bold text-xl">&times;</button>
+    </div>
+
+    <!-- 3. Auto-filled Port of Destination (POD) -->
+    <div *ngIf="quotation.portOfDestination" class="flex items-center gap-3">
+      <span class="w-6 font-bold text-red-700 text-[12px]">0{{ selectedConnectingPorts.length + 2 }}</span>
+      <div class="flex-1 border-b border-gray-200 p-2 bg-gray-50 text-[12px] font-bold text-gray-700 uppercase">
+        {{ quotation.portOfDestination }}
+      </div>
+      <span class="text-[10px] font-black text-green-600 bg-green-50 px-2 py-1 rounded">POD</span>
+    </div>
+  </div>
+</div>
+
+<!-- 🔥 PREMIUM MODAL -->
+<div *ngIf="isCPModalOpen" class="fixed inset-0 z-[200] flex items-center justify-center p-4">
+  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" (click)="toggleConnectingPortModal()"></div>
+
+  <div class="relative bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden border border-gray-200">
+    <!-- Header -->
+    <div class="bg-red-800 p-5 flex justify-between items-center text-white">
+      <div>
+        <h3 class="font-black uppercase tracking-tight">Select Connecting Ports</h3>
+        <p class="text-[10px] text-red-200 uppercase">Manage your shipment route</p>
+      </div>
+      <button (click)="toggleConnectingPortModal()" class="text-2xl hover:text-red-200 transition-all">&times;</button>
+    </div>
+
+    <!-- Search -->
+    <div class="p-4 bg-gray-50 border-b">
+      <input type="text" [(ngModel)]="cpSearchTerm" (input)="onSearchingConnectingPorts()"
+        placeholder="Search port name..." 
+        class="w-full border-2 border-gray-200 p-2.5 rounded-lg text-[13px] outline-none focus:border-red-500 uppercase font-semibold">
+    </div>
+
+    <!-- Body -->
+    <div class="p-4 max-h-[400px] overflow-y-auto">
+      <div class="grid grid-cols-2 gap-3">
+        <div *ngFor="let port of filteredConnectingPorts" 
+             (click)="selectConnectingPort(port)"
+             [ngClass]="{'border-red-600 bg-red-50': isPortSelected(port)}"
+             class="p-3 border-2 rounded-xl cursor-pointer hover:border-red-400 transition-all flex flex-col relative group">
+          <span class="text-[13px] font-bold text-gray-800 uppercase group-hover:text-red-700">{{ port.name }}</span>
+          <span class="text-[9px] font-bold text-gray-400 uppercase mt-1">{{ port.cpType }} Port</span>
+          
+          <div *ngIf="isPortSelected(port)" class="absolute top-2 right-2">
+            <div class="w-4 h-4 bg-red-600 rounded-full flex items-center justify-center">
+              <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="p-4 bg-gray-50 flex justify-between items-center border-t">
+      <span class="text-[12px] font-bold text-gray-500 uppercase">Selected: <span class="text-red-700">{{ selectedConnectingPorts.length }}</span></span>
+      <button (click)="toggleConnectingPortModal()" class="bg-red-800 text-white px-6 py-2 rounded-lg font-bold text-[12px] hover:bg-red-900 shadow-lg">DONE</button>
+    </div>
+  </div>
+</div>
         </div>
       </div>
 

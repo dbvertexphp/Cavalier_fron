@@ -408,6 +408,7 @@ organizations: any[] = [];
       this.getbranch();
       this.loadPricings();
       this.loadQuotations();
+      this.loadPricingNumbers();
       this.portOfLoading();
       this.getNextInquiryNumber();
       this.fetchOrganizations();
@@ -1220,16 +1221,7 @@ openDimModal() {
         dimensions: []
       };
     }
-    // --- COMMAND: IS SECTION KO REPLACE KAREIN ---
-  searchFilters: any = { 
-    transportMode: 'Any',
-    inquiryNo: '',
-    branchName: '',
-    salesCoordinator: '',
-    cargoStatus: '(Any)',
-    receivedDate: null, 
-    showMode: 'valid'
-  };
+    
  
  // Variables define karein
 allUniqueServices: string[] = []; 
@@ -1242,7 +1234,7 @@ loadDropdownData() {
     Authorization: `Bearer ${token}`
   };
 
-  this.http.get<any[]>(`${environment.apiUrl}/Inquiry`, { headers })
+  this.http.get<any[]>(`${environment.apiUrl}/Pricing`, { headers })
     .subscribe({
       next: (data) => {
         // 1. Data se transportMode nikalo aur null values hatao
@@ -1280,6 +1272,66 @@ onServiceType() {
 // Variables declare karein
 allUniqueInquiryNos: string[] = []; // Master list (Unique)
 filteredInquiryNos: string[] = [];  // Suggestions for UI
+// --- Pricing Number Search Variables ---
+showPricingPopup: boolean = false;
+allUniquePricingNos: string[] = []; 
+masterPricingList: string[] = []; // Backup ke liye
+filteredPricingNos: string[] = [];
+// 1. Isko ngOnInit mein ek hi baar call karo
+loadPricingNumbers() {
+  const token = localStorage.getItem('cavalier_token');
+  const headers = { 'Authorization': `Bearer ${token}` };
+
+  this.http.get<any[]>(`${environment.apiUrl}/Pricing`, { headers }).subscribe({
+    next: (data) => {
+      const rawNumbers = data
+        .map(item => item.pricingNo)
+        .filter(n => n);
+
+      this.masterPricingList = [...new Set(rawNumbers)]; // Backup list
+      this.allUniquePricingNos = [...this.masterPricingList]; // Display list
+    },
+    error: (err) => console.error("Error:", err)
+  });
+}
+
+// 2. Icon click par bina kisi delay ke modal kholna
+togglePricingPopup() {
+  this.showPricingPopup = !this.showPricingPopup;
+  this.allUniquePricingNos = [...this.masterPricingList]; // List reset karo instantly
+  
+  // 🔥 Ye magic line hai: UI ko turant update karega
+  this.cdr.detectChanges(); 
+}
+
+// 3. Modal ke andar search - Ab ye bina API ke chalega (Local Search)
+filterPricingList(event: any) {
+  const searchTerm = event.target.value.toLowerCase().trim();
+  
+  if (!searchTerm) {
+    this.allUniquePricingNos = [...this.masterPricingList];
+  } else {
+    this.allUniquePricingNos = this.masterPricingList.filter(pNo =>
+      pNo.toLowerCase().includes(searchTerm)
+    );
+  }
+  this.cdr.detectChanges(); // Fast Update
+}
+// 2. Ye raha wo function jo error de raha hai
+onPricingNoType() {
+  const query = this.searchFilters.pricingNo ? this.searchFilters.pricingNo.trim().toLowerCase() : '';
+
+  if (query.length >= 3) {
+    this.filteredPricingNos = this.allUniquePricingNos.filter((pNo: string) => 
+      pNo.toLowerCase().includes(query)
+    );
+  } else {
+    this.filteredPricingNos = [];
+  }
+  
+  // Agar ChangeDetectorRef use kar rahe ho toh:
+  this.cdr.detectChanges(); 
+}
 
 loadInquiryNumbers() {
   // 1. Token nikaalna (Local storage se ya jahan aapne save kiya ho)
@@ -1455,90 +1507,110 @@ setQuickDate(type: string) {
       targetDate.setMonth(today.getMonth() - 1);
       break;
     default:
-      // Default 'today' rahega
       targetDate = today;
   }
 
-  // Proper YYYY-MM-DD format build karein
   const year = targetDate.getFullYear();
   const month = String(targetDate.getMonth() + 1).padStart(2, '0');
   const day = String(targetDate.getDate()).padStart(2, '0');
   
+  // Value assign ki
   this.searchFilters.receivedDate = `${year}-${month}-${day}`;
   
-  // Panel band karein aur search trigger karein
   this.showCustomPicker = false;
+
+  // Change detect karke search call karein taaki payload updated date le
+  this.cdr.detectChanges(); 
   this.onSearch();
 }
+pricings: any[] = [];             // Master display list
+     // Table mein jo loop ho raha hai
+  allPricingData: any[] = [];       // Backend se aaya hua full search result
+  
 
-//-----/////
+  // --- Pagination Variables ---
+  currentPage: number = 1;
+  pageSize: number = 10;
+
+  // --- Filter Model ---
+  searchFilters: any = {
+    pricingNo: '',
+    transportMode: '',
+    organisationName: '',
+    fromDate: null,
+    toDate: null,
+    branchIds: [],
+    status: -1
+  };
+
+
+
+
+// 2. Updated Search Function with Date
 onSearch() {
-  console.log("Pricing Search Initiated...");
-  this.searchDone = true;
-
-  // 1. Backend PricingSearchRequest ke hisaab se payload taiyar karna
-  const filtersToSend = {
-    // Backend expects 'PricingNo', not 'inquiryNo' (as per your C# code)
-    pricingNo: this.searchFilters.pricingNo || "", 
-    
-    // TransportMode (Air/Sea/Road)
-    transportMode: (this.searchFilters.serviceType === "(Any)" || this.searchFilters.serviceType === "") 
-                   ? "" : this.searchFilters.serviceType,
-
-    // OrganisationName (Agar UI mein customer search hai toh yahan map hoga)
-    organisationName: this.searchFilters.customerName || "",
-
-    // Date Range logic
-    fromDate: this.searchFilters.fromDate ? new Date(this.searchFilters.fromDate).toISOString() : null,
-    toDate: this.searchFilters.toDate ? new Date(this.searchFilters.toDate).toISOString() : null,
-
-    // Branch logic (Multiple branches ko single ID mein convert kar rahe hain as per your API)
-    // Note: Agar aapka API single ID leta hai toh pehla selected ID bhejenge
-    branchId: (this.searchFilters.branchIds && this.searchFilters.branchIds.length > 0) 
-              ? Number(this.searchFilters.branchIds[0]) : null,
-
-    // Status logic (1: Active, 0: Inactive, -1 or null: Both)
-    status: (this.searchFilters.status === "" || this.searchFilters.status === null) 
-            ? -1 : Number(this.searchFilters.status)
-  };
-
-  console.log("📡 Final Pricing Payload:", filtersToSend);
-
-  // 2. HTTP Options with Token
   const token = localStorage.getItem('cavalier_token');
-  const httpOptions = {
-    headers: new HttpHeaders({
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    })
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  });
+
+  // Status mapping
+  let statusValue = -1;
+  if (this.searchFilters.status !== "" && this.searchFilters.status !== null) {
+    statusValue = Number(this.searchFilters.status);
+  }
+
+  // 🔥 Payload for Multiple Branches
+  const payload = {
+    pricingNo: this.searchFilters.pricingNo || "",
+    transportMode: this.searchFilters.transportMode || "",
+    organisationName: this.searchFilters.organisationName || "",
+    status: statusValue,
+    receivedDate: this.searchFilters.receivedDate || null,
+    
+    // 🔥 Yahan array ja raha hai [1, 2, 3] types
+    // Agar selectedBranchIds khali hai toh empty array ya 0 bhej sakte ho logic ke hisab se
+    branchIds: this.searchFilters.branchIds && this.searchFilters.branchIds.length > 0 
+               ? this.searchFilters.branchIds 
+               : [] 
   };
 
-  // 3. API Call to /api/Pricing/Search (Corrected endpoint)
-  this.http.post<any[]>(`${environment.apiUrl}/Pricing/Search`, filtersToSend, httpOptions)
+  console.log("🚀 Payload with Branches:", payload);
+
+  this.http.post<any[]>(`${environment.apiUrl}/Pricing/Search`, payload, { headers })
     .subscribe({
-      next: (response) => {
-        console.log("Search Result Success:", response);
-        // Backend Pricing model returns data, mapping it to quotations for display
-        this.quotations = response || [];
+      next: (res: any) => {
+        const rawData = Array.isArray(res) ? res : (res.data || []);
         
-        if (this.quotations.length === 0) {
-          console.warn("No pricing records found for this criteria.");
-        }
-        
-        this.setPage(1); // Pagination reset
+        // Data Mapping
+        this.pricings = rawData.map((item: any) => ({
+          ...item,
+          pricingNo: item.pricingNo || item.PricingNo || 'N/A',
+          customerName: item.organisationName || item.customerName || 'N/A',
+          inquiryNo: item.referenceByInquiryNo || item.inquiryNo || '-',
+          transportMode: item.transportMode || '-',
+          status: (item.status === 1 || item.status === true) ? 1 : 0,
+          // Agar UI par branch name dikhana hai toh:
+          branchName: item.branchName || 'N/A'
+        }));
+
+        this.paginatedPricings = [...this.pricings];
         this.cdr.detectChanges();
+        console.log("✅ Results found:", this.paginatedPricings.length);
       },
       error: (err) => {
-        console.error("Pricing Search Error:", err);
-        if (err.status === 401) alert("Session Expired! Please login again.");
-        else alert("Search failed: Server error or invalid fields.");
-        
-        this.quotations = [];
+        console.error("❌ Search failed:", err);
+        this.pricings = [];
+        this.paginatedPricings = [];
         this.cdr.detectChanges();
       }
     });
 }
-// --- Variables ---
+
+  // --- Pagination Logic ---
+  
+
+  // --- Placeholder
 isExportOpen = false;
 
 toggleExportMenu() {
@@ -1750,8 +1822,7 @@ downloadLeadsExcel() {
   XLSX.writeFile(wb, `Inquiry_Report_${new Date().getTime()}.xlsx`);
 }
 // --- Pagination Variables ---
-currentPage: number = 1;
-pageSize: number = 10; // Ek page par kitne records dikhane hain
+// Ek page par kitne records dikhane hain
 protected readonly Math = Math; // Template mein Math functions use karne ke liye
 
 // Computed property: Ye table mein sirf current page ka data filter karke bhejega
@@ -1865,7 +1936,7 @@ toggleServicePopup() {
   this.serviceSub?.unsubscribe();
 
   // 3. API Call with Headers
-  this.serviceSub = this.http.get<any[]>(`${environment.apiUrl}/Inquiry`, { headers }).subscribe({
+  this.serviceSub = this.http.get<any[]>(`${environment.apiUrl}/Pricing`, { headers }).subscribe({
     next: (res) => {
       // transportMode nikalna aur Duplicates hatana
       const uniqueModes = [...new Set(
@@ -1873,7 +1944,7 @@ toggleServicePopup() {
           .filter(item => item.transportMode && item.transportMode.trim() !== "")
           .map(item => item.transportMode)
       )];
-
+console.log("Unique Transport Modes:", uniqueModes,res);
       this.allTransportModes = uniqueModes;
       this.showServicePopup = true;
       this.cdr.detectChanges(); 
@@ -2502,25 +2573,37 @@ toggleBranchSelection(branch: any) {
 
 confirmSelection() {
   console.log("🆗 Confirming Selection...");
+  
+  // 1. Saari selected branches nikaalo
   const selectedBranches = this.branchList.filter(b => b.isSelected);
-  console.log("📍 Branches found with isSelected=true:", selectedBranches);
+  console.log("📍 Selected Branches:", selectedBranches);
 
   if (selectedBranches.length > 0) {
-    // 1. Sabse important: searchFilters mein ID daalo (Yahi pichli baar miss ho raha tha)
-    this.searchFilters.branchId = selectedBranches[0].branchId || selectedBranches[0].id;
+    // 2. 🔥 Sabki IDs ka array banao (Multiple select ke liye)
+    // Map karke check karo ki property 'id' hai ya 'branchId'
+    this.searchFilters.branchIds = selectedBranches.map(b => b.branchId || b.id);
     
-    // 2. Input box mein Name dikhao
-    const selectedNames = selectedBranches.map(b => b.branchName);
-    this.branchSearchText = selectedNames.join(', ');
+    // 3. Input box mein saare selected names dikhao (comma separated)
+    this.branchSearchText = selectedBranches.map(b => b.branchName).join(', ');
+    
+    // Agar aapka backend purana hai aur sirf ek ID leta hai, 
+    // toh purani property bhi set rakhte hain (safe side)
+    this.searchFilters.branchId = selectedBranches[0].branchId || selectedBranches[0].id;
+
   } else {
+    // Agar kuch select nahi kiya toh sab khali
+    this.searchFilters.branchIds = [];
     this.searchFilters.branchId = '';
     this.branchSearchText = '';
   }
 
   console.log("📝 Input field updated to:", this.branchSearchText);
-  console.log("🆔 Branch ID saved in filters:", this.searchFilters.branchId);
+  console.log("🆔 Array of IDs saved in filters:", this.searchFilters.branchIds);
 
   this.isBranchModalOpen = false;
+
+  // 4. Search function ko call karo taaki table refresh ho jaye
+  this.onSearch();
 }
 
 selectBranchFromDropdown(branch: any) {
@@ -2681,7 +2764,7 @@ costRows: CostBreakdown[] = [
   this.showMultiCarrierTable = false;
   alert('Carrier details added to Inquiry!');
 }
-pricings: any[] = [];
+
 loadPricings() {
   const token = localStorage.getItem('cavalier_token');
   const httpOptions = {

@@ -250,6 +250,7 @@ selectedColumns: string[] = [
 'transportType',
 'cargoStatus'
 ];
+
 openColumnModal(){
   this.showColumnModal = true;
 }
@@ -258,6 +259,8 @@ closeColumnModal(){
 }
 sortOrders:any = {};
   ngOnInit() {
+    this.loadConnectingPortsData()
+    this.loadPricingList();
     this.getTransportModes();
     this.getCommodityTypes();
     this.getIncoTerms();
@@ -2253,4 +2256,263 @@ toggleStatus(q: any) {
     }
   });
 }
+// Variables for Pricing Reference
+pricingList: any[] = [];
+filteredPricings: any[] = [];
+showPricingDropdown: boolean = false;
+// pricingList: any[] = [];
+// 1. Dropdown kholne ya list refresh karne ke liye
+
+loadPricingList() {
+  this.http.get(`${environment.apiUrl}/Pricing/GetPricingList`).subscribe({
+    next: (res: any) => {
+      this.pricingList = res;
+      this.filteredPricings = res;
+      this.showPricingDropdown = !this.showPricingDropdown;
+    },
+    error: (err) => console.error("Error fetching pricing list", err)
+  });
+}
+
+// 2. Search filter logic (Jab user type kare)
+onPricingSearchInput() {
+  const searchText = this.quotation.referencePricingNo?.toLowerCase() || '';
+  
+  if (searchText.length > 0) {
+    this.showPricingDropdown = true;
+    this.filteredPricings = this.pricingList.filter(p => 
+      p.pricingNo.toLowerCase().includes(searchText) || 
+      (p.organisationName && p.organisationName.toLowerCase().includes(searchText))
+    );
+  } else {
+    this.showPricingDropdown = false;
   }
+}
+
+// 3. Item select hone par data fetch aur auto-fill karne ke liye
+isLoadingPricing: boolean = false; // Variable declare karein
+selectPricing(prc: any) {
+  if (!prc || !prc.pricingNo) {
+    console.error("Invalid pricing data");
+    return;
+  }
+
+  this.quotation.referencePricingNo = prc.pricingNo || '';
+  this.quotation.customerName = prc.customerName || '';
+  this.quotation.organisationName = prc.organisationName || '';
+  this.quotation.organization = prc.organisationName || ''; 
+
+  this.showPricingDropdown = false;
+  this.cdr.detectChanges(); 
+
+  const pricingNo = prc.pricingNo?.trim();
+  if (!pricingNo) return;
+
+  const encodedNo = encodeURIComponent(pricingNo);
+  const url = `${environment.apiUrl}/Pricing/GetByPricingNo/${encodedNo}`;
+
+  this.http.get<any>(url).subscribe({
+    next: (fullData) => {
+      console.log("✅ FULL DATA FROM API:", fullData);
+
+      // --- Transport & Mode Logic ---
+      if (fullData.transportMode) {
+        const modeFromApi = fullData.transportMode.trim();
+        const matchedMode = this.transportModes?.find(m => 
+          m.name.toLowerCase() === modeFromApi.toLowerCase()
+        );
+        this.quotation.transportMode = matchedMode ? matchedMode.name : modeFromApi;
+      }
+
+      this.quotation.transportType = fullData.transportType || '';
+      this.quotation.shipmentType = fullData.shipmentType || '';
+      this.quotation.movementType = fullData.movementType || '';
+
+      // --- Weights & Packages ---
+      this.quotation.noOfPkgs = fullData.noOfPkgs || fullData.NoOfPkgs || 0;
+      this.quotation.grossWeightKg = fullData.grossWeightKg || fullData.GrossWeight || 0;
+      this.quotation.netWeight = fullData.netWeight || fullData.NetWeight || 0;
+      this.quotation.chargeableWeight = fullData.chargeableWeight || fullData.ChargeableWeight || 0;
+      
+      const volWt = fullData.volumeWeight || fullData.VolumeWeight || 0;
+      this.quotation.volumeWeight = volWt;
+      this.quotation.chargeableWeightKg = volWt; 
+
+      if (volWt > 0) {
+        this.quotation.cbm = parseFloat((volWt / 167).toFixed(3));
+      } else {
+        this.quotation.cbm = 0;
+      }
+
+      // --- Route & Locations ---
+      this.quotation.originPOL = fullData.originName || '';
+      this.quotation.portOfLoading = fullData.portOfLoadingName || '';
+      this.quotation.portOfDischarge = fullData.portOfDischargeName || '';
+      this.quotation.portOfDestination = fullData.portOfDischargeName || ''; 
+      this.quotation.podFinalDest = fullData.finalDestination || '';
+      this.quotation.placeOfDelivery = fullData.placeOfDelivery || '';
+      this.quotation.location = fullData.location || '';
+      
+      // 🔥 CONNECTING PORTS DEBUGGING & MAPPING
+      console.log("🔍 Checking ConnectingPortIds:", fullData.ConnectingPortIds);
+      
+      this.selectedConnectingPorts = []; 
+      
+      if (fullData.ConnectingPortIds && fullData.ConnectingPortIds !== "") {
+        try {
+          // Check if it's already an array or a string
+          let idsArray: string[] = [];
+          
+          if (Array.isArray(fullData.ConnectingPortIds)) {
+            idsArray = fullData.ConnectingPortIds.map((v: any) => v.toString());
+          } else {
+            idsArray = fullData.ConnectingPortIds.toString().split(',').filter((x: any) => x.trim() !== '');
+          }
+
+          console.log("🛠 Parsed IDs Array:", idsArray);
+
+          this.selectedConnectingPorts = idsArray.map((id: string) => ({
+            id: id.trim(),
+            name: `Port ${id.trim()}`, 
+            cpType: 'Transit'
+          }));
+
+          console.log("🎯 Final selectedConnectingPorts for UI:", this.selectedConnectingPorts);
+        } catch (e) {
+          console.error("❌ Error parsing ConnectingPortIds:", e);
+        }
+      } else {
+        console.warn("⚠️ ConnectingPortIds is empty or null in API response");
+      }
+
+      // --- Cargo Details ---
+      this.quotation.businessDimensions = fullData.businessDimensions || '';
+      this.quotation.incoterm = fullData.incoterm || '';
+      this.quotation.description = fullData.description || '';
+      this.quotation.currency = (fullData.cargoCurrency || '').trim();
+      this.quotation.cargoValue = fullData.cargoValue || '';
+      this.quotation.commodity = fullData.commodityId ? Number(fullData.commodityId) : null;
+      this.quotation.cargoStatus = fullData.cargoStatus || 'Ready';
+
+      // --- Fixed Fields ---
+      this.quotation.lineOfBusiness = fullData.lineOfBusinessId || ''; 
+      this.quotation.organization = fullData.organisationName || '';
+      this.quotation.pricingBy = fullData.pricingDoneBy || '';
+      
+      if (fullData.salesCoordinator) {
+        this.quotation.salesCoordinator = isNaN(fullData.salesCoordinator) 
+          ? fullData.salesCoordinator 
+          : Number(fullData.salesCoordinator);
+      }
+
+      // --- Date Handling ---
+      const statusDate = fullData.cargoStatusDate ? fullData.cargoStatusDate.split('T')[0] : null;
+      this.quotation.cargoReadyDate = null;
+      setTimeout(() => { 
+        this.quotation.cargoReadyDate = statusDate; 
+        this.cdr.detectChanges(); // Re-triggering for async updates
+      }, 0);
+
+      // --- Dimensions Autofill ---
+      if (fullData.dimensions && fullData.dimensions.length > 0) {
+        const dims = fullData.dimensions;
+        this.dimRows = dims.map((d: any) => ({
+          box: d.Box || d.pcs || d.box || null,
+          l: d.L || d.length || d.l || null,
+          w: d.W || d.width || d.w || null,
+          h: d.H || d.height || d.h || null,
+          unit: d.Unit || d.uom || d.unit || 'CMS'
+        }));
+        
+        const mainDim = dims[0];
+        this.quotation.dimBox = mainDim.Box || mainDim.pcs || 0;
+        this.quotation.dimL = mainDim.L || mainDim.length || 0;
+        this.quotation.dimW = mainDim.W || mainDim.width || 0;
+        this.quotation.dimH = mainDim.H || mainDim.height || 0;
+        this.quotation.dimUnit = mainDim.Unit || 'CMS';
+      } else {
+        this.dimRows = [{ box: null, l: null, w: null, h: null, unit: 'CMS' }];
+      }
+
+      // --- Final UI Refresh ---
+      this.cdr.detectChanges(); 
+      if (this.calculateAll) { 
+        this.calculateAll(); 
+      }
+      this.cdr.markForCheck();
+    },
+    error: (err) => {
+      console.error("❌ API Error:", err);
+    }
+  });
+}
+allConnectingPorts: any[] = []; 
+filteredConnectingPorts: any[] = [];
+selectedConnectingPorts: any[] = []; 
+isCPModalOpen: boolean = false;
+cpSearchTerm: string = '';
+
+// 1. Load Data (POL + POD Merge)
+loadConnectingPortsData() {
+  const loadingApi = `${environment.apiUrl}/PortOfLoading`;
+  const dischargeApi = `${environment.apiUrl}/PortOfDischarge`;
+
+  this.http.get<any[]>(loadingApi).subscribe({
+    next: (loadingData) => {
+      this.http.get<any[]>(dischargeApi).subscribe({
+        next: (dischargeData) => {
+          const p1 = loadingData.map(p => ({ ...p, cpType: 'Loading', cpDisplayName: `${p.name} (POL)` }));
+          const p2 = dischargeData.map(p => ({ ...p, cpType: 'Discharge', cpDisplayName: `${p.name} (POD)` }));
+          this.allConnectingPorts = [...p1, ...p2];
+          this.filteredConnectingPorts = [...this.allConnectingPorts];
+        }
+      });
+    }
+  });
+}
+
+// 2. Select/Toggle Port Logic
+selectConnectingPort(port: any) {
+  const index = this.selectedConnectingPorts.findIndex(
+    p => p.id === port.id && p.cpType === port.cpType
+  );
+
+  if (index === -1) {
+    // Agar nahi hai toh add karo
+    this.selectedConnectingPorts.push(port);
+  } else {
+    // Agar pehle se hai toh remove karo (Toggle for Modal)
+    this.selectedConnectingPorts.splice(index, 1);
+  }
+}
+
+// 3. Simple Remove
+removeConnectingPort(port: any) {
+  this.selectedConnectingPorts = this.selectedConnectingPorts.filter(
+    p => !(p.id === port.id && p.cpType === port.cpType)
+  );
+}
+
+// 4. Modal Search
+onSearchingConnectingPorts() {
+  const term = this.cpSearchTerm.toLowerCase().trim();
+  this.filteredConnectingPorts = this.allConnectingPorts.filter(p => 
+    p.name.toLowerCase().includes(term)
+  );
+}
+
+// 5. Toggle Modal
+toggleConnectingPortModal() {
+  this.isCPModalOpen = !this.isCPModalOpen;
+  if (this.isCPModalOpen) {
+    this.cpSearchTerm = '';
+    this.filteredConnectingPorts = [...this.allConnectingPorts];
+  }
+}
+
+// Helper to check if port is selected (for Modal UI)
+isPortSelected(port: any): boolean {
+  return this.selectedConnectingPorts.some(p => p.id === port.id && p.cpType === port.cpType);
+}
+
+}

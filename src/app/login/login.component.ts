@@ -92,7 +92,10 @@ export class LoginComponent implements OnInit {
       this.displayUserName = user.firstName;
       this.displayCompanyName = (user.branches?.[0]?.companyName || '').toUpperCase();
 
-      localStorage.setItem('userName', user.firstName);
+      localStorage.setItem('userName', user.firstName+''+user.lastName);
+      localStorage.setItem('firstName', user.firstName);
+      localStorage.setItem('lastName', user.lastName);
+      localStorage.setItem('gender', user.gender);
       localStorage.setItem('companyName', this.displayCompanyName);
       localStorage.setItem('cavalier_token', res.token);
 

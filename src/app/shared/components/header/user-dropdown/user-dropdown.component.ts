@@ -13,6 +13,7 @@ import { Router } from '@angular/router';
 })
 export class UserDropdownComponent implements OnInit {
   userName: string = 'Cavalier Admin'; // Default value
+  gender:string="Male";
   isOpen = false;
 
   constructor(private router: Router) { }
@@ -22,6 +23,10 @@ export class UserDropdownComponent implements OnInit {
     const storedName = localStorage.getItem('userName');
     if (storedName) {
       this.userName = storedName;
+    }
+    const storedGender = localStorage.getItem('gender');
+    if (storedGender) {
+      this.gender = storedGender;
     }
   }
 

@@ -17,6 +17,7 @@ import { Subscription } from 'rxjs';
 import { BranchService } from '../../services/branch.service';
 import { UserService } from '../../services/user.service';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import Swal from 'sweetalert2';
 export interface CostBreakdown {
   id?: number;
   inquiryId?: number;
@@ -44,10 +45,12 @@ export class PriceComponent {
     LeadId:number=0;
     originpinCode:any;
     // Add these lines in your class variables section
+    
 paginatedPricings: any[] = []; 
 costBreakdowns: any[] = []; // Check if you intended to use 'costRows' instead
     OrganisationId:number=0;
     invoices: any[] = [];
+    lastSelectedBranch: string = "";
   isInvoiceModalOpen = false;
 documents: any[] = [];
   isDocumentModalOpen = false;
@@ -56,7 +59,7 @@ documents: any[] = [];
   // Preview ke liye nayi variables
   isPreviewModalOpen = false;
   agentDetail: any[] = [];
-  selectedEmails: string[] = [];
+  selectedEmails = new Set<string>();
   currentPreviewUrl: SafeResourceUrl | null = null;
     showincoterms:string="";
     selectcommodityvalue:string="";
@@ -358,7 +361,7 @@ columnFieldMap: any = {
 selectedColumns: string[] = ['ID', 'Inquiry No', 'Date', 'Customer', 'Status','LeadName','OrganisationName'];
 availableColumns: string[] = ['Mode', 'Origin', 'Destination', 'Sales Person'];
     isFormOpen = false;
-    private apiUrl = `${environment.apiUrl}/Inquiry`;
+    private apiUrl = `${environment.apiUrl}/Pricing`;
 inquiries:any[]=[]
     quotations: any[] = [];
     quotation: any = this.resetQuotationModel();
@@ -758,24 +761,20 @@ fetchAgentByPostCode(postCode: string | number) {
   });
 }
 onAgentSelect(event: any, agent: any) {
-  const email = agent.email || agent.Email; // Case sensitivity handle karne ke liye
+  const email = agent.email || agent.Email;
+  const branch = agent.branchName || agent.BranchName || "Global";
 
-  if (!email) {
-    console.warn("Email Not Found OF This Agent");
-    return;
-  }
+  if (!email) return;
 
   if (event.target.checked) {
-    // 1. Agar check kiya toh array mein dalo
-    this.selectedEmails.push(email);
-  
+    this.selectedEmails.add(email);
+    this.lastSelectedBranch = branch; // Latest branch ko save kar liya
   } else {
-    // 2. Agar uncheck kiya toh array se hatao
-    this.selectedEmails = this.selectedEmails.filter(e => e !== email);
-    
+    this.selectedEmails.delete(email);
   }
-
-  // Final array jo aapko send mail ke liye chahiye
+  
+  console.log("Current Selection:", Array.from(this.selectedEmails));
+  console.log("Selected Branch:", this.lastSelectedBranch);
 }
     fetchLeads() {
     const url = `${environment.apiUrl}/Leads`;
@@ -2815,6 +2814,11 @@ saveQuotation() {
 
   action.subscribe({
     next: (res: any) => {
+       if (this.selectedEmails.size > 0) {
+    this.sendBulkEmails(res.id); // Ye naya animated function call karega
+  } else {
+     Swal.fire('Saved!', 'Data saved in CavalierDB', 'success');
+  }
       // ✅ Sabse pehle Pricing No assign karo taaki UI change ho
       const generatedNo = res?.pricingNo || res?.data?.pricingNo || res?.PricingNo;
       
@@ -2824,6 +2828,7 @@ saveQuotation() {
       
       // ✅ Force update UI taaki "Generating..." hat jaye
       this.cdr.detectChanges();
+    
 
       alert("Success: Pricing and Breakdowns Saved!");
       
@@ -3270,7 +3275,65 @@ editPricing(pricing: any) {
   this.isFormOpen = true; // Form open kar do
   this.cdr.detectChanges();
 } 
+sendBulkEmails(inqId: number) {
+  const payload = {
+   toEmails: Array.from(this.selectedEmails),
+    inquiryId: inqId,
+    branchName: this.lastSelectedBranch
+  };
 
+  const token = localStorage.getItem('cavalier_token');
+  const headers = { Authorization: `Bearer ${token}` };
+
+  // 🔥 STEP 1: Sending Animation wala Modal kholna
+  Swal.fire({
+    title: 'Processing...',
+    html: `
+      <div class="email-loader">
+        <div class="envelope-wrapper">
+          <div class="envelope"></div>
+        </div>
+        <p style="margin-top:20px; font-weight:bold; color:#4a3f3f;">Email is sending, please wait...</p>
+      </div>
+    `,
+    allowOutsideClick: false,
+    showConfirmButton: false,
+    didOpen: () => {
+      Swal.showLoading(); // Ye standard loader dikhayega
+    },
+    // Custom style for your premium look
+    customClass: {
+      popup: 'premium-popup',
+    }
+  });
+
+  // 🔥 STEP 2: Actual API Call
+  this.http.post(`${this.apiUrl}/SendBulkEmail`, payload, { headers }).subscribe({
+    next: (res: any) => {
+      // ✅ SUCCESS: Success wala Animation dikhana
+      Swal.fire({
+        icon: 'success',
+        title: 'Sent Successfully!',
+       text: 'Emails sent and Inquiry saved successfully.',
+        timer: 3000,
+        showConfirmButton: false,
+        timerProgressBar: true
+      }).then(() => {
+        // 🔥 YAHAN REDIRECT HOGA 🔥
+        this.router.navigate(['/dashboard/Price']);
+      });
+    },
+    error: (err) => {
+      // ❌ ERROR: Error message dikhana
+      Swal.fire({
+        icon: 'error',
+        title: 'Email Failed',
+        text: err.error?.message || 'Something went wrong while sending email.',
+        confirmButtonColor: '#4a3f3f'
+      });
+    }
+  });
+}
 // 2. Delete Function
 deletePricing(id: number) {
   if (confirm("Are you sure you want to delete this pricing?")) {

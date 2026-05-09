@@ -2833,12 +2833,12 @@ saveQuotation() {
 
   action.subscribe({
     next: (res: any) => {
-      
-      if (this.selectedEmails.length > 0) {
-    this.sendBulkEmails(res.id); // Ye naya animated function call karega
-  } else {
-     Swal.fire('Saved!', 'Data saved in CavalierDB', 'success');
-  }
+      Swal.fire('Saved!', 'Data saved in CavalierDB', 'success');
+  //     if (this.selectedEmails.length > 0) {
+  //   this.sendBulkEmails(res.id); // Ye naya animated function call karega
+  // } else {
+  //    Swal.fire('Saved!', 'Data saved in CavalierDB', 'success');
+  // }
       this.isFormOpen = false;
       this.showMultiCarrierTable = false; 
       this.showCostTable = false; 

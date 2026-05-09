@@ -9,6 +9,7 @@ import { InputFieldComponent } from './../../form/input/input-field.component';
 import { ModalComponent } from '../../ui/modal/modal.component';
 import { ButtonComponent } from '../../ui/button/button.component';
 import { LabelComponent } from '../../form/label/label.component';
+import { th } from 'zod/v4/locales';
 
 @Component({
   selector: 'app-user-meta-card',
@@ -25,7 +26,8 @@ import { LabelComponent } from '../../form/label/label.component';
   templateUrl: './user-meta-card.component.html'
 })
 export class UserMetaCardComponent implements OnInit {
-
+gender:string="Male";
+avtaar:string="/images/assets/male.png";
   constructor(
     public modal: ModalService, 
     private http: HttpClient,
@@ -41,7 +43,7 @@ export class UserMetaCardComponent implements OnInit {
     lastName: '',
     role: '',
     location: '',
-    avatar: 'images/user/owner.jpg',
+    avatar: this.avtaar,
     social: {
       facebook: '#',
       x: '#',
@@ -54,10 +56,18 @@ export class UserMetaCardComponent implements OnInit {
   };
 
   ngOnInit(): void {
+    this.gender=localStorage.getItem('gender') || 'Male';
+    
     this.fetchUserProfile();
   }
 
   fetchUserProfile() {
+    if(this.gender==="Female"){
+      this.avtaar="/images/assets/female.png";
+    }
+    else{
+      this.avtaar="/images/assets/male.png";
+    }
     const apiUrl = `${environment.apiUrl}/Auth/me`;
     const token = localStorage.getItem('cavalier_token');
     

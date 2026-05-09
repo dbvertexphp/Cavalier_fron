@@ -133,15 +133,15 @@
     </div>
   </div>
 </div>
-          <div class="flex items-center relative">
-  <label class="w-28 font-bold text-gray-600 text-[12px]">Inquiry No.</label>
+      <div class="flex items-center relative">
+  <label class="w-28 font-bold text-gray-600 text-[12px]">Pricing No.</label>
 
   <div class="flex-1 flex flex-col relative">
     <div class="flex border border-gray-300 overflow-hidden rounded-sm">
       <input
         type="text"
-        [(ngModel)]="searchFilters.inquiryNo"
-        (input)="onInquiryType()"
+        [(ngModel)]="searchFilters.pricingNo" 
+        (input)="onPricingNoType()"
         placeholder="Type min 3 chars..."
         class="w-full p-1 outline-none text-[12px] bg-white"
         autocomplete="off"
@@ -150,19 +150,19 @@
       <!-- Instant Modal Trigger -->
       <button
         type="button"
-        (mousedown)="$event.preventDefault(); toggleInquiryPopup()"
+        (mousedown)="$event.preventDefault(); showPricingPopup = true"
         class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-gray-200 transition-colors outline-none"
       >
         🔍
       </button>
     </div>
 
-    <!-- Frontend Suggestion Dropdown (TS ke 3-char logic par based) -->
-    <div *ngIf="filteredInquiryNos.length > 0" 
+    <!-- Frontend Suggestion Dropdown -->
+    <div *ngIf="filteredPricingNos.length > 0" 
          class="absolute top-full left-0 right-0 bg-white border border-gray-300 shadow-xl z-[1000] max-h-48 overflow-y-auto rounded-b-md mt-0.5 custom-scrollbar">
       <ul class="list-none p-0 m-0">
-        <li *ngFor="let num of filteredInquiryNos" 
-            (click)="searchFilters.inquiryNo = num; filteredInquiryNos = []"
+        <li *ngFor="let num of filteredPricingNos" 
+            (click)="searchFilters.pricingNo = num; filteredPricingNos = []"
             class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 last:border-none uppercase transition-colors"
         >
           {{ num }}
@@ -174,14 +174,14 @@
 
 <!-- Modal Backdrop -->
 <div
-  *ngIf="showInquiryPopup"
+  *ngIf="showPricingPopup"
   class="fixed inset-0 bg-gray-900/70 backdrop-blur-sm z-[9998] animate-in fade-in duration-300"
-  (click)="showInquiryPopup = false"
+  (click)="showPricingPopup = false"
 ></div>
 
 <!-- Selection Modal Popup -->
 <div
-  *ngIf="showInquiryPopup"
+  *ngIf="showPricingPopup"
   class="fixed inset-0 flex items-center justify-center z-[9999] p-4 sm:p-6"
   (click)="$event.stopPropagation()"
 >
@@ -192,11 +192,11 @@
     <div class="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex-shrink-0">
       <div class="flex items-center justify-between mb-4">
         <div>
-          <h3 class="text-xl font-bold text-gray-950 tracking-tight">Select Inquiry Number</h3>
-          <p class="text-xs text-gray-500 mt-1">Search and select the reference inquiry</p>
+          <h3 class="text-xl font-bold text-gray-950 tracking-tight">Select Pricing Number</h3>
+          <p class="text-xs text-gray-500 mt-1">Search and select the unique pricing reference</p>
         </div>
         <button
-          (click)="showInquiryPopup = false"
+          (click)="showPricingPopup = false"
           class="w-9 h-9 flex items-center justify-center rounded-full bg-white hover:bg-red-50 text-gray-400 hover:text-red-500 border border-gray-200 hover:border-red-100 transition-all outline-none"
         >
           ✕
@@ -207,9 +207,9 @@
         <span class="absolute inset-y-0 left-4 flex items-center text-gray-400">🔍</span>
         <input
           type="text"
-          placeholder="Filter inquiries..."
+          placeholder="Filter pricing numbers..."
           class="w-full pl-12 pr-4 py-3 text-sm bg-white border border-gray-200 rounded-2xl outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all placeholder:text-gray-400"
-          (input)="filterInquiryList($event)"
+          (input)="filterPricingList($event)"
         />
       </div>
     </div>
@@ -217,18 +217,18 @@
     <!-- Modal List Body -->
     <div class="overflow-y-auto bg-white flex-1 min-h-0 custom-scrollbar">
       <div class="p-3 space-y-1">
-        <div *ngIf="allInquiryNos.length > 0; else emptyState">
+        <div *ngIf="allUniquePricingNos.length > 0; else emptyState">
           <div
-            *ngFor="let inq of allInquiryNos"
-            (click)="selectInquiryFromPopup(inq); showInquiryPopup = false"
+            *ngFor="let pNo of allUniquePricingNos"
+            (click)="searchFilters.pricingNo = pNo; showPricingPopup = false"
             class="group flex items-center justify-between px-4 py-4 rounded-xl hover:bg-blue-50/70 cursor-pointer transition-all border border-transparent hover:border-blue-100"
           >
             <div class="flex items-center gap-4">
-              <div class="w-10 h-10 rounded-full bg-blue-100/70 text-blue-600 flex items-center justify-center text-sm font-bold flex-shrink-0 border border-blue-200">
-                #
+              <div class="w-10 h-10 rounded-full bg-blue-100/70 text-blue-600 flex items-center justify-center text-[10px] font-bold flex-shrink-0 border border-blue-200">
+                PRC
               </div>
               <span class="text-sm font-semibold text-gray-800 group-hover:text-blue-700 truncate pr-2 uppercase">
-                {{ inq }}
+                {{ pNo }}
               </span>
             </div>
             <span class="flex-shrink-0 opacity-0 group-hover:opacity-100 text-blue-500 transform translate-x-1 group-hover:translate-x-0 transition-all text-xs font-bold flex items-center gap-1.5 bg-blue-100/70 px-3 py-1.5 rounded-full">
@@ -241,8 +241,7 @@
           <div class="py-16 text-center text-gray-500 flex flex-col items-center gap-4">
             <span class="text-4xl opacity-50">📄</span>
             <div>
-              <p class="text-sm font-medium italic text-gray-600">No inquiries found.</p>
-              <p class="text-xs text-gray-400 mt-1">Try a different search term.</p>
+              <p class="text-sm font-medium italic text-gray-600">No Pricing numbers found.</p>
             </div>
           </div>
         </ng-template>
@@ -255,7 +254,7 @@
         Cavalier Logistics
       </p>
       <button
-        (click)="showInquiryPopup = false"
+        (click)="showPricingPopup = false"
         class="px-5 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-100 transition-all outline-none"
       >
         Cancel
@@ -404,7 +403,7 @@
               </div>
             </div>
           </div>
-          <div class="flex items-center relative">
+          <!-- <div class="flex items-center relative">
   <label class="w-24 font-bold text-gray-600 text-[12px]">Inquiry By</label>
 
   <div class="flex-1 flex flex-col relative">
@@ -418,7 +417,7 @@
         autocomplete="off"
       />
 
-      <!-- Instant Modal Trigger Button -->
+       Instant Modal Trigger Button 
       <button
         type="button"
         (mousedown)="toggleCoordinatorPopup(); $event.preventDefault()"
@@ -428,7 +427,7 @@
       </button>
     </div>
 
-    <!-- Custom Dropdown (3 chars ke baad hi activate hoga) -->
+    Custom Dropdown (3 chars ke baad hi activate hoga)
     <div *ngIf="filteredCoordinators && filteredCoordinators.length > 0" 
          class="absolute top-full left-0 right-0 bg-white border border-gray-300 shadow-xl z-[1000] max-h-48 overflow-y-auto mt-0.5 custom-scrollbar">
       <ul class="list-none p-0 m-0">
@@ -443,14 +442,14 @@
   </div>
 </div>
 
-<!-- Modal Backdrop -->
+Modal Backdrop
 <div
   *ngIf="showCoordinatorPopup"
   class="fixed inset-0 bg-gray-900/70 backdrop-blur-sm z-[9998] transition-opacity duration-300"
   (click)="showCoordinatorPopup = false"
 ></div>
 
-<!-- Selection Modal Popup -->
+Selection Modal Popup
 <div
   *ngIf="showCoordinatorPopup"
   class="fixed inset-0 flex items-center justify-center z-[9999] p-4 sm:p-6"
@@ -459,7 +458,7 @@
   <div
     class="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-gray-100 flex flex-col max-h-[85vh] overflow-hidden transform transition-all duration-300"
   >
-    <!-- Modal Header -->
+    Modal Header
     <div class="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex-shrink-0">
       <div class="flex justify-between items-center mb-4">
         <div>
@@ -485,7 +484,7 @@
       </div>
     </div>
 
-    <!-- Modal List Body -->
+    Modal List Body
     <div class="overflow-y-auto bg-white flex-1 min-h-0 custom-scrollbar">
       <div class="p-3 space-y-1">
         <div *ngIf="allCoordinators.length > 0; else noData">
@@ -516,7 +515,7 @@
       </div>
     </div>
 
-    <!-- Footer -->
+    Footer
     <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex-shrink-0 flex items-center justify-between">
       <p class="text-[10px] text-gray-400 uppercase tracking-widest font-black opacity-60">
         Cavalier Logistics
@@ -529,7 +528,7 @@
       </button>
     </div>
   </div>
-</div>
+</div> -->
           <!-- <div class="flex items-center">
             <label class="w-24 font-bold text-gray-600">Inquiry Status</label>
             <select
@@ -790,33 +789,34 @@
       </tr>
     </thead>
 
-    <tbody class="bg-white" *ngIf="paginatedPricings.length > 0">
-      <tr *ngFor="let q of paginatedPricings" 
+    <!-- Table Body: Loop on pricings (Check if data exists) -->
+    <tbody class="bg-white" *ngIf="pricings && pricings.length > 0">
+      <tr *ngFor="let q of pricings" 
           (dblclick)="editPricing(q)" 
           class="hover:bg-blue-50 border-b text-gray-700 cursor-pointer transition-colors">
         
         <!-- Pricing & Inquiry -->
         <td class="p-3">
           <div class="font-bold text-blue-700">{{ q.pricingNo || q.PricingNo }}</div>
-          <div class="text-[10px] text-gray-500">Inq: {{ q.inquiryNo || '-' }}</div>
+          <div class="text-[10px] text-gray-500">Inq: {{ q.referenceByInquiryNo || q.inquiryNo || '-' }}</div>
           <div class="text-[9px] text-gray-400 italic">{{ q.createdDate | date:'mediumDate' }}</div>
         </td>
 
         <!-- Customer & Location -->
         <td class="p-3">
-          <div class="font-semibold uppercase text-gray-800">{{ q.customerName }}</div>
+          <div class="font-semibold uppercase text-gray-800">{{ q.customerName || q.organisationName }}</div>
           <div class="text-[11px] text-blue-600 font-medium">📍 {{ q.location || 'N/A' }}</div>
-          <div class="text-[10px] text-gray-400">Lead: {{ q.leadName }}</div>
+          <div class="text-[10px] text-gray-400">Mode: {{ q.transportMode }}</div>
         </td>
 
         <!-- Route & Incoterm -->
         <td class="p-3">
           <div class="flex items-center gap-1 font-bold">
-            <span class="text-green-700 uppercase">{{ q.countryName }}</span>
+            <span class="text-green-700 uppercase">{{ q.originName || 'Origin' }}</span>
             <span class="text-gray-400">➔</span>
-            <span class="text-red-700 uppercase">{{ q.finalDestination }}</span>
+            <span class="text-red-700 uppercase">{{ q.finalDestination || 'Destination' }}</span>
           </div>
-          <div class="mt-1 flex gap-2">
+          <div class="mt-1">
             <span class="px-2 py-0.5 bg-orange-100 text-orange-800 rounded text-[10px] font-bold border border-orange-200">
               {{ q.incoterm || 'EXW' }}
             </span>
@@ -828,42 +828,47 @@
           <div class="font-medium text-gray-700 uppercase">{{ q.movementType || '-' }}</div>
           <div class="flex gap-1 mt-1">
             <span *ngIf="q.isDirect" class="text-[9px] bg-blue-100 text-blue-700 px-1 rounded font-bold">DIRECT</span>
-            <span *ngIf="q.isServiceRequired" class="text-[9px] bg-purple-100 text-purple-700 px-1 rounded font-bold">SVC REQ</span>
+            <span class="text-[9px] bg-gray-100 text-gray-600 px-1 rounded font-bold">{{ q.transportType || 'N/A' }}</span>
           </div>
         </td>
 
         <!-- Commodity & Dimensions -->
         <td class="p-3">
           <div class="font-semibold text-gray-800">{{ q.businessDimensions || 'General' }}</div>
-          <div class="text-[10px] text-gray-500 max-w-[150px] truncate" [title]="q.description">
-            {{ q.description || 'No description' }}
-          </div>
-          <div class="text-[10px] font-bold text-gray-400">CHG WT: {{ q.chargeableWeight }} KG</div>
+          <div class="text-[10px] font-bold text-gray-400 uppercase">CHG WT: {{ q.chargeableWeight || 0 }} {{ q.grossWeightUnit || 'KG' }}</div>
         </td>
 
-        <!-- Status Toggle -->
+        <!-- Status Toggle (Fixing Button) -->
         <td class="p-3 text-center" (click)="$event.stopPropagation()">
           <div class="flex flex-col items-center gap-1">
-             <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" [checked]="q.status === 1" (change)="toggleStatus(q)" class="sr-only peer">
-                <div class="w-9 h-5 bg-gray-300 rounded-full peer peer-checked:bg-green-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full border border-gray-200 shadow-sm"></div>
-              </label>
-              <span [ngClass]="q.status === 1 ? 'text-green-700' : 'text-red-700'" class="text-[9px] font-bold uppercase">
-                {{ q.status === 1 ? 'Active' : 'Inactive' }}
-              </span>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" 
+                     [checked]="q.status === 1 || q.status === true" 
+                     (change)="toggleStatus(q)" 
+                     class="sr-only peer">
+              <div class="w-8 h-4 bg-gray-300 rounded-full peer peer-checked:bg-green-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4 border border-gray-200 shadow-sm"></div>
+            </label>
+            <span [ngClass]="(q.status === 1 || q.status === true) ? 'text-green-700' : 'text-red-700'" class="text-[9px] font-bold uppercase">
+              {{ (q.status === 1 || q.status === true) ? 'Active' : 'Inactive' }}
+            </span>
           </div>
         </td>
 
-        <!-- Actions -->
+        <!-- Action Button -->
         <td class="p-3 sticky right-0 bg-white border-l text-center shadow-sm">
-          <div class="flex items-center justify-center gap-2">
-            <button (click)="editPricing(q)" class="px-2 py-1 bg-white hover:bg-blue-50 text-blue-600 font-bold rounded border border-blue-200 transition-all text-[10px]">
-                EDIT
-            </button>
-            <button (click)="deletePricing(q.id)" class="px-2 py-1 bg-white hover:bg-red-50 text-red-600 font-bold rounded border border-red-200 transition-all text-[10px]">
-                DEL
-            </button>
-          </div>
+          <button (click)="editPricing(q)" 
+                  class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded transition-all text-[10px] uppercase shadow-sm">
+            Edit
+          </button>
+        </td>
+      </tr>
+    </tbody>
+
+    <!-- Empty State -->
+    <tbody *ngIf="!pricings || pricings.length === 0">
+      <tr>
+        <td colspan="7" class="p-10 text-center text-gray-400 italic">
+          No records found.
         </td>
       </tr>
     </tbody>

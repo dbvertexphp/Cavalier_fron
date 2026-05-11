@@ -2605,48 +2605,82 @@ closeOrgModal() {
 //     }).catch(err => console.log(err));
 // }
 onFindClick() {
-    const value = this.postalCode;
-    if (!value || value.length < 3) return;
-
-    // India Specific (6 Digits)
-    if (/^\d{6}$/.test(value)) {
-      this.fetchIndiaData(value);
-    } 
-    // Global
-    else {
-      this.fetchGlobalData(value);
-    }
+  const value = this.postalCode;
+  if (!value || value.length < 3) {
+    alert("Please enter a valid Postal Code");
+    return;
   }
 
-  private fetchIndiaData(pincode: string) {
-    fetch(`https://api.postalpincode.in/pincode/${pincode}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data[0].Status === 'Success') {
-          const res = data[0].PostOffice[0];
-          this.city = res.Block.toUpperCase();
-          this.stateProvince = res.State.toUpperCase();
-          this.country = 'INDIA';
-          
-          this.cdr.detectChanges(); // 🔥 UI update force karein
-        }
-      }).catch(err => console.log(err));
+  // India Specific (6 Digits)
+  if (/^\d{6}$/.test(value)) {
+    this.fetchIndiaData(value);
+  } 
+  // Global
+  else {
+    this.fetchGlobalData(value);
   }
+}
 
-  private fetchGlobalData(zip: string) {
-    const countryCode = 'us'; 
-    fetch(`https://api.zippopotam.us/${countryCode}/${zip}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.places && data.places.length > 0) {
-          this.city = data.places[0]['place name'].toUpperCase();
-          this.stateProvince = data.places[0]['state'].toUpperCase();
-          this.country = 'UNITED STATES';
-          
-          this.cdr.detectChanges(); // 🔥 UI update force karein
-        }
-      }).catch(err => console.log(err));
-  }
+private fetchIndiaData(pincode: string) {
+  fetch(`https://api.postalpincode.in/pincode/${pincode}`)
+    .then(res => res.json())
+    .then(data => {
+      // Check if data exists and status is Success
+      if (data && data[0] && data[0].Status === 'Success' && data[0].PostOffice) {
+        const res = data[0].PostOffice[0];
+        this.city = res.Block.toUpperCase();
+        this.stateProvince = res.State.toUpperCase();
+        this.country = 'INDIA';
+        
+        // Data milte hi UI update karo
+        this.cdr.detectChanges(); 
+      } else {
+        // 🔥 Data nahi mila popup
+        alert("Data not found for this Indian Pincode!");
+        this.clearFields();
+      }
+    })
+    .catch(err => {
+      console.log(err);
+      alert("Error fetching Indian postal data.");
+    });
+}
+
+private fetchGlobalData(zip: string) {
+  const countryCode = 'us'; // Default US ke liye
+  fetch(`https://api.zippopotam.us/${countryCode}/${zip}`)
+    .then(res => {
+      if (!res.ok) throw new Error('Not Found'); // 404 handle karne ke liye
+      return res.json();
+    })
+    .then(data => {
+      if (data && data.places && data.places.length > 0) {
+        this.city = data.places[0]['place name'].toUpperCase();
+        this.stateProvince = data.places[0]['state'].toUpperCase();
+        this.country = 'UNITED STATES';
+        
+        // Data milte hi UI update karo
+        this.cdr.detectChanges();
+      } else {
+        // 🔥 Data nahi mila popup
+        alert("Global Location Data Not Found!");
+        this.clearFields();
+      }
+    })
+    .catch(err => {
+      console.log(err);
+      alert("Data not found for this Global Postal Code!");
+      this.clearFields();
+    });
+}
+
+// Extra helper taaki purana data screen par na rahe
+private clearFields() {
+  this.city = '';
+  this.stateProvince = '';
+  this.country = '';
+  this.cdr.detectChanges();
+}
   onFindAgentAddress() {
   const value = this.agentPostalCode;
   if (!value || value.length < 3) return;

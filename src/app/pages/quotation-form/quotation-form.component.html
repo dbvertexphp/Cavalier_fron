@@ -874,268 +874,241 @@
 
     <div class="p-5 space-y-5">
       <div class="bg-gray-50 p-4 border border-gray-200 rounded">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-x-6 gap-y-4">
-          <div class="md:col-span-1">
-            <div class="grid grid-cols-2 gap-2 mb-3">
-             <!-- Pricing Reference Selection (Similar to Inquiry Design) -->
-<div>
-  <label class="text-gray-700 font-bold block mb-1 uppercase text-[11px]">
-    Reference by Pricing
-  </label>
-  
-  <div class="relative">
-    <input
-      type="text"
-      name="referencePricingNo"
-      [(ngModel)]="quotation.referencePricingNo"
-      (input)="onPricingSearchInput()"
-      placeholder="Search Pricing No..."
-      class="w-full border p-2 bg-white outline-none pr-7 text-[12px]"
-      autocomplete="off"
-    />
-
-    <!-- Search Icon -->
-    <span
-      (click)="loadPricingList()"
-      class="absolute right-1 top-2.5 text-gray-400 cursor-pointer p-1 hover:text-blue-500 transition-all"
-      title="Load All Pricings"
-    >
-      🔍
-    </span>
-
-    <!-- Suggestions Dropdown -->
-    <ul
-      *ngIf="showPricingDropdown && filteredPricings.length > 0"
-      class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-48 overflow-y-auto mt-1"
-    >
-      <li
-        *ngFor="let prc of filteredPricings"
-        (click)="selectPricing(prc)"
-        class="p-2 hover:bg-blue-50 cursor-pointer text-[12px] border-b border-gray-100 last:border-0"
-      >
-        <div class="font-bold text-blue-700">
-          {{ prc.pricingNo }}
-        </div>
-        <div *ngIf="prc.organisationName" class="text-gray-500 text-[10px]">
-          {{ prc.organisationName }}
-        </div>
-      </li>
-    </ul>
-
-    <!-- No Results Message -->
-    <ul
-      *ngIf="showPricingDropdown && filteredPricings.length === 0 && quotation.referencePricingNo"
-      class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 rounded-sm shadow-lg p-3 mt-1"
-    >
-      <li class="text-gray-400 text-[11px] italic text-center">No matching pricing found.</li>
-    </ul>
-  </div>
-</div>
-
-              <div>
-                <label
-                  class="text-gray-700 font-bold block mb-1 uppercase text-[11px]"
-                  >Quotation No</label
-                >
-                <input
-                  type="text"
-                  name="quotationNo"
-                  [(ngModel)]="quotation.quotationNo"
-                  readonly
-                  class="w-full border p-2 bg-gray-100 text-gray-600 outline-none cursor-not-allowed font-semibold rounded-sm"
-                />
-              </div>
-            </div>
-            <label class="text-red-700 font-bold uppercase block mt-3 mb-1"
-              >Organization</label
-            >
-            <div class="flex items-center relative">
-              <input
-                name="orgSearch"
-                [(ngModel)]="quotation.organization"
-                (input)="onSearchInput()"
-                class="w-full border p-2 border-red-300 outline-none rounded-l-sm"
-                placeholder="Search Organization.."
-              />
-
-              <button
-                type="button"
-                (click)="navigateToNewOrg()"
-                class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 text-[11px] font-bold shadow-sm border border-green-800 rounded-r-sm uppercase"
-              >
-                NEW
-              </button>
-
-              <div
-                *ngIf="showDropdown && filteredOrganizations.length > 0"
-                class="absolute top-full left-0 right-0 bg-white border border-gray-200 shadow-lg z-50 max-h-40 overflow-y-auto rounded-b-sm"
-              >
-                <div
-                  *ngFor="let org of filteredOrganizations"
-                  (click)="selectOrganization(org)"
-                  class="p-2 border-b hover:bg-blue-50 cursor-pointer text-sm"
-                >
-                  <div class="font-bold text-gray-800">{{ org.orgName }}</div>
-                  <div class="text-xs text-gray-600">{{ org.address }}</div>
-                </div>
-              </div>
-            </div>
-            <textarea
-              name="organizationAddress"
-              [(ngModel)]="quotation.organizationAddress"
-              class="w-full border mt-2 text-[12px] bg-white p-2 text-gray-500 italic"
-              rows="2"
-              placeholder="Organization Address..."
-              readonly
-            ></textarea>
-          </div>
-
-          <div>
-            <label class="text-gray-700 font-bold block mb-1 uppercase">
-              Valid From
-            </label>
-
-            <input
-              type="date"
-              name="validFrom"
-              [(ngModel)]="quotation.validFrom"
-              class="w-full border p-2 outline-none"
-              #validFromInput
-              (click)="validFromInput.showPicker()"
-              (focus)="validFromInput.showPicker()"
-            />
-
-            <label class="text-[#4a3f3f] font-bold mt-3 block mb-1 uppercase"
-              >Usability</label
-            >
-            <select
-              name="usability"
-              [(ngModel)]="quotation.usability"
-              class="w-full border p-2 outline-none"
-            >
-              <option value="Single">Single</option>
-              <option value="Multiple">Multiple</option>
-            </select>
-
-            <!--<select name="lineOfBusiness" [(ngModel)]="quotation.lineOfBusiness" class="w-full border p-2 outline-none">
-        <select name="lineOfBusiness" [(ngModel)]="quotation.lineOfBusiness" (change)="onHeaderLOBChange()" class="w-full border p-2 outline-none">
-         </div>-->
-            <label class="text-gray-700 font-bold mt-3 block mb-1 uppercase"
-              >Lines Of Business</label
-            >
-            <select
-              name="lineOfBusiness"
-              [(ngModel)]="quotation.lineOfBusiness"
-              (change)="onHeaderLOBChange()"
-              class="w-full border p-2 outline-none"
-            >
-              <option value="" disabled selected>Select Business Line</option>
-              <option *ngFor="let s of companyServices" [value]="s.id">
-                {{ s.serviceName }}
-              </option>
-            </select>
-          </div>
-
-          <div>
-            <label class="text-red-700 font-bold block mb-1 uppercase">
-              Valid Till
-            </label>
-
-            <input
-              type="date"
-              name="validTill"
-              [(ngModel)]="quotation.validTill"
-              class="w-full border p-2 border-red-300 outline-none"
-              #validTillInput
-              (click)="validTillInput.showPicker()"
-              (focus)="validTillInput.showPicker()"
-            />
-
-            <label class="text-gray-700 font-bold mt-3 block mb-1 uppercase"
-              >Version</label
-            >
-            <input
-              name="version"
-              [(ngModel)]="quotation.version"
-              class="w-full border p-2 outline-none"
-            />
-
-            <label class="text-gray-700 font-bold mt-3 block mb-1 uppercase"
-              >Cargo Status</label
-            >
-            <div class="flex gap-1">
-              <!-- Dropdown -->
-              <select
-                name="cargoStatus"
-                [(ngModel)]="quotation.cargoStatus"
-                (change)="onCargoStatusChange2()"
-                class="border p-2 w-1/2 outline-none"
-              >
-                <option value="Ready">Ready</option>
-                <option value="Ready By">Ready By</option>
-              </select>
-
-              <!-- Date Input -->
-              <input
-                type="date"
-                name="cargoReadyDate"
-                [(ngModel)]="quotation.cargoReadyDate"
-                #cargoReadyDateInput
-                [readonly]="quotation.cargoStatus === 'Ready'"
-                [disabled]="false"
-                (click)="
-                  quotation.cargoStatus === 'Ready By' &&
-                    cargoReadyDateInput.showPicker()
-                "
-                (focus)="
-                  quotation.cargoStatus === 'Ready By' &&
-                    cargoReadyDateInput.showPicker()
-                "
-                class="border p-2 w-1/2 outline-none"
-              />
-            </div>
-          </div>
-
-          <div class="bg-white p-3 border border-gray-200">
-            <label class="text-gray-700 font-bold block mb-1 uppercase"
-              >Location</label
-            >
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-x-6 gap-y-4">
+    
+    <!-- Column 1: Pricing Reference & Organization -->
+    <div class="md:col-span-1">
+      <div class="grid grid-cols-2 gap-2 mb-3">
+        <!-- Pricing Reference Selection -->
+        <div>
+          <label class="text-gray-700 font-bold block mb-1 uppercase text-[11px]">
+            Reference by Pricing
+          </label>
+          <div class="relative">
             <input
               type="text"
-              name="location"
-              [(ngModel)]="quotation.location"
-              class="w-full border p-2 mb-2 outline-none"
-              placeholder="Enter Location"
+              name="referencePricingNo"
+              [(ngModel)]="quotation.referencePricingNo"
+              (input)="onPricingSearchInput()"
+              placeholder="Search Pricing No..."
+              class="w-full border p-2 bg-white outline-none pr-7 text-[12px]"
+              autocomplete="off"
             />
-
-            <label class="text-gray-700 font-bold block mb-1 uppercase"
-              >Pricing By</label
+            <!-- Search Icon -->
+            <span
+              (click)="loadPricingList()"
+              class="absolute right-1 top-2.5 text-gray-400 cursor-pointer p-1 hover:text-blue-500 transition-all"
+              title="Load All Pricings"
             >
-            <input
-              name="pricingBy"
-              [(ngModel)]="quotation.pricingBy"
-              class="w-full border p-2 mb-2 outline-none"
-            />
-
-            <label class="text-gray-700 font-bold block mb-1 uppercase"
-              >Sales Coor.</label
+              🔍
+            </span>
+            <!-- Suggestions Dropdown -->
+            <ul
+              *ngIf="showPricingDropdown && filteredPricings.length > 0"
+              class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-48 overflow-y-auto mt-1"
             >
-            <select
-              [(ngModel)]="quotation.salesCoordinator"
-              name="salesCoordinator"
-              class="flex-1 border p-1.5 outline-none text-[12px]"
+              <li
+                *ngFor="let prc of filteredPricings"
+                (click)="selectPricing(prc)"
+                class="p-2 hover:bg-blue-50 cursor-pointer text-[12px] border-b border-gray-100 last:border-0"
+              >
+                <div class="font-bold text-blue-700">
+                  {{ prc.pricingNo }}
+                </div>
+                <div *ngIf="prc.organisationName" class="text-gray-500 text-[10px]">
+                  {{ prc.organisationName }}
+                </div>
+              </li>
+            </ul>
+            <!-- No Results Message -->
+            <ul
+              *ngIf="showPricingDropdown && filteredPricings.length === 0 && quotation.referencePricingNo"
+              class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 rounded-sm shadow-lg p-3 mt-1"
             >
-              <option value="">-- Select Sales Coordinator --</option>
+              <li class="text-gray-400 text-[11px] italic text-center">No matching pricing found.</li>
+            </ul>
+          </div>
+        </div>
 
-              <option *ngFor="let sc of getsalescordinate" [ngValue]="sc.id">
-                <!-- [value] → [ngValue] kar do -->
+        <div>
+          <label class="text-gray-700 font-bold block mb-1 uppercase text-[11px]">Quotation No</label>
+          <input
+            type="text"
+            name="quotationNo"
+            [(ngModel)]="quotation.quotationNo"
+            readonly
+            class="w-full border p-2 bg-gray-100 text-gray-600 outline-none cursor-not-allowed font-semibold rounded-sm"
+          />
+        </div>
+      </div>
 
-                {{ sc.firstName }} {{ sc.lastName }}
-              </option>
-            </select>
+      <label class="text-red-700 font-bold uppercase block mt-3 mb-1">Organization</label>
+      <div class="flex items-center relative">
+        <input
+          name="orgSearch"
+          [(ngModel)]="quotation.organization"
+          (input)="onSearchInput()"
+          class="w-full border p-2 border-red-300 outline-none rounded-l-sm"
+          placeholder="Search Organization.."
+        />
+        <button
+          type="button"
+          (click)="navigateToNewOrg()"
+          class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 text-[11px] font-bold shadow-sm border border-green-800 rounded-r-sm uppercase"
+        >
+          NEW
+        </button>
+        <div
+          *ngIf="showDropdown && filteredOrganizations.length > 0"
+          class="absolute top-full left-0 right-0 bg-white border border-gray-200 shadow-lg z-50 max-h-40 overflow-y-auto rounded-b-sm"
+        >
+          <div
+            *ngFor="let org of filteredOrganizations"
+            (click)="selectOrganization(org)"
+            class="p-2 border-b hover:bg-blue-50 cursor-pointer text-sm"
+          >
+            <div class="font-bold text-gray-800">{{ org.orgName }}</div>
+            <div class="text-xs text-gray-600">{{ org.address }}</div>
           </div>
         </div>
       </div>
+      <textarea
+        name="organizationAddress"
+        [(ngModel)]="quotation.organizationAddress"
+        class="w-full border mt-2 text-[12px] bg-white p-2 text-gray-500 italic"
+        rows="2"
+        placeholder="Organization Address..."
+        readonly
+      ></textarea>
+    </div>
+
+    <!-- Column 2: Validity & LOB -->
+    <div>
+      <label class="text-gray-700 font-bold block mb-1 uppercase"> Valid From </label>
+      <input
+        type="date"
+        name="validFrom"
+        [(ngModel)]="quotation.validFrom"
+        class="w-full border p-2 outline-none"
+        #validFromInput
+        (click)="validFromInput.showPicker()"
+        (focus)="validFromInput.showPicker()"
+      />
+
+      <label class="text-[#4a3f3f] font-bold mt-3 block mb-1 uppercase">Usability</label>
+      <select
+        name="usability"
+        [(ngModel)]="quotation.usability"
+        class="w-full border p-2 outline-none"
+      >
+        <option value="Single">Single</option>
+        <option value="Multiple">Multiple</option>
+      </select>
+
+      <label class="text-gray-700 font-bold mt-3 block mb-1 uppercase">Lines Of Business</label>
+      <select
+        name="lineOfBusiness"
+        [(ngModel)]="quotation.lineOfBusiness"
+        (change)="onHeaderLOBChange()"
+        class="w-full border p-2 outline-none"
+      >
+        <option value="" disabled selected>Select Business Line</option>
+        <option *ngFor="let s of companyServices" [value]="s.id">
+          {{ s.serviceName }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Column 3: Valid Till, Version & Service Type -->
+    <div>
+      <label class="text-red-700 font-bold block mb-1 uppercase"> Valid Till </label>
+      <input
+        type="date"
+        name="validTill"
+        [(ngModel)]="quotation.validTill"
+        class="w-full border p-2 border-red-300 outline-none"
+        #validTillInput
+        (click)="validTillInput.showPicker()"
+        (focus)="validTillInput.showPicker()"
+      />
+
+      <label class="text-gray-700 font-bold mt-3 block mb-1 uppercase">Version</label>
+      <input
+        name="version"
+        [(ngModel)]="quotation.version"
+        class="w-full border p-2 outline-none"
+      />
+
+      <label class="text-gray-700 font-bold mt-3 block mb-1 uppercase">Cargo Status</label>
+      <div class="flex gap-1 mb-3">
+        <select
+          name="cargoStatus"
+          [(ngModel)]="quotation.cargoStatus"
+          (change)="onCargoStatusChange2()"
+          class="border p-2 w-1/2 outline-none"
+        >
+          <option value="Ready">Ready</option>
+          <option value="Ready By">Ready By</option>
+        </select>
+        <input
+          type="date"
+          name="cargoReadyDate"
+          [(ngModel)]="quotation.cargoReadyDate"
+          #cargoReadyDateInput
+          [readonly]="quotation.cargoStatus === 'Ready'"
+          (click)="quotation.cargoStatus === 'Ready By' && cargoReadyDateInput.showPicker()"
+          (focus)="quotation.cargoStatus === 'Ready By' && cargoReadyDateInput.showPicker()"
+          class="border p-2 w-1/2 outline-none"
+        />
+      </div>
+
+      <!-- Service Type Section Added Here -->
+      <label class="text-gray-700 font-bold block mb-1 uppercase text-[11px]">Service Type</label>
+      <div class="flex items-center gap-6 p-2 bg-white border rounded-sm">
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" [(ngModel)]="quotation.isDirect" class="w-4 h-4 accent-blue-600" />
+          <span class="text-gray-700 font-medium text-[12px]">Direct</span>
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" [(ngModel)]="quotation.isIndirect" class="w-4 h-4 accent-blue-600" />
+          <span class="text-gray-700 font-medium text-[12px]">Indirect</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Column 4: Location & Pricing By -->
+    <div class="bg-white p-3 border border-gray-200">
+      <label class="text-gray-700 font-bold block mb-1 uppercase">Location</label>
+      <input
+        type="text"
+        name="location"
+        [(ngModel)]="quotation.location"
+        class="w-full border p-2 mb-2 outline-none"
+        placeholder="Enter Location"
+      />
+
+      <label class="text-gray-700 font-bold block mb-1 uppercase">Pricing By</label>
+      <input
+        name="pricingBy"
+        [(ngModel)]="quotation.pricingBy"
+        class="w-full border p-2 mb-2 outline-none"
+      />
+
+      <label class="text-gray-700 font-bold block mb-1 uppercase">Sales Coor.</label>
+      <select
+        [(ngModel)]="quotation.salesCoordinator"
+        name="salesCoordinator"
+        class="w-full border p-1.5 outline-none text-[12px]"
+      >
+        <option value="">-- Select Sales Coordinator --</option>
+        <option *ngFor="let sc of getsalescordinate" [ngValue]="sc.id">
+          {{ sc.firstName }} {{ sc.lastName }}
+        </option>
+      </select>
+    </div>
+
+  </div>
+</div>
 
       <!--  first phase     -->
       <div class="border border-gray-300 bg-white shadow-sm">
@@ -2540,7 +2513,139 @@
             </tfoot>
           </table>
         </div>
+        
       </div>
+      <!-- SINGLE CARRIER TABLE -->
+<div *ngIf="quotation.isDirect" class="p-4 bg-white shadow-lg rounded-xl border border-gray-200 animate-in fade-in duration-300 mb-6">
+  <div class="flex justify-between items-center mb-4 pb-2 border-b">
+    <h2 class="text-xl font-bold text-gray-700 uppercase tracking-wide">Single Carrier Cost Breakdown</h2>
+    <button (click)="quotation.isDirect = false" class="text-sm text-red-500 hover:text-red-700 font-medium">✕ Close Table</button>
+  </div>
+
+  <div class="overflow-x-auto border border-gray-300 rounded-sm">
+    <table class="w-full border-collapse text-[11px]">
+      <thead class="bg-[#4a3f3f] text-white">
+        <tr>
+          <th class="border p-2 text-left">LOB</th>
+          <th class="border p-2 text-left">Charge Name</th>
+          <th class="border p-2 text-left">Charge Type</th>
+          <th class="border p-2 text-center">Cur</th>
+          <th class="border p-2 text-right">Rate</th>
+          <th class="border p-2 text-right bg-red-600">Amount</th>
+          <th class="border p-2 text-center w-[40px]">
+            <button (click)="addCostRow()" class="bg-green-600 px-2 rounded">+</button>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let c of costRows; let i = index" class="hover:bg-gray-50">
+          <td class="border p-1"><input [(ngModel)]="c.lob" class="w-full bg-transparent outline-none" readonly /></td>
+          <td class="border p-1"><input [(ngModel)]="c.chargeName" class="w-full bg-transparent outline-none" /></td>
+          <td class="border p-1"><input [(ngModel)]="c.chargeType" class="w-full bg-transparent outline-none" /></td>
+          <td class="border p-1 text-center font-bold text-red-600"><input [(ngModel)]="c.currency" class="w-full text-center bg-transparent outline-none" /></td>
+          <td class="border p-1"><input type="number" [(ngModel)]="c.rate" (input)="calculateCost()" class="w-full text-right bg-transparent outline-none" /></td>
+          <td class="border p-1 bg-red-50 font-bold text-right">{{ c.amount | number:'1.2-2' }}</td>
+          <td class="border p-1 text-center">
+            <button (click)="removeCostRow(i)" class="text-red-500">✕</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<!-- MULTI CARRIER TABLE -->
+<!-- Multi-Carrier Section -->
+<div *ngIf="quotation.isIndirect" 
+     class="mt-8 border border-gray-200 rounded-xl shadow-xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-4 duration-500 bg-white">
+    
+    <!-- HEADER -->
+    <div class="bg-[#4a3f3f] text-white px-6 py-4 flex items-center justify-between shadow-md">
+        <div class="flex items-center gap-3">
+            <div class="bg-white/10 p-2 rounded-lg">
+                <i class="fa fa-ship text-xl text-amber-400"></i>
+            </div>
+            <div>
+                <h5 class="text-lg font-bold uppercase tracking-wider">Multi-Carrier Breakdown</h5>
+                <p class="text-[10px] text-gray-300 uppercase italic">Indirect Service Options</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <span class="bg-black/20 px-3 py-1 rounded-full text-xs font-semibold border border-white/10">
+                Total: {{ multiCarrierRows.length }} Entries
+            </span>
+        </div>
+    </div>
+
+    <!-- BODY: Scrollable Table -->
+    <div class="overflow-auto bg-gray-50 custom-scrollbar max-h-[500px]">
+        <div class="inline-block min-w-full align-middle">
+            <table class="min-w-full border-separate border-spacing-0">
+                <thead>
+                    <tr class="bg-gray-100 shadow-sm">
+                        <th class="sticky left-0 z-20 bg-gray-100 px-6 py-4 text-left text-xs font-bold text-[#4a3f3f] uppercase tracking-widest border-b border-gray-200 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">
+                            Freight Forwarder
+                        </th>
+                        <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Origin</th>
+                        <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Currency</th>
+                        <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Airfreight</th>
+                        <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">FSC/ISS</th>
+                        <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Airline</th>
+                        <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Type</th>
+                        <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Cut-off</th>
+                        <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Schedule</th>
+                        <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Ex-works</th>
+                        <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">DO</th>
+                        <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">CC fee</th>
+                        <th class="px-4 py-4 text-center text-xs font-bold text-[#4a3f3f] bg-amber-50 uppercase border-b border-amber-200">Total Cost</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase border-b border-gray-200 min-w-[250px]">REMARK</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 bg-white">
+                    <tr *ngFor="let carrier of multiCarrierRows" class="hover:bg-amber-50/30 transition-colors group">
+                        <!-- Sticky Forwarder Column -->
+                        <td class="sticky left-0 z-10 bg-white group-hover:bg-amber-50 transition-colors px-6 py-4 text-sm font-bold text-[#4a3f3f] border-r border-gray-100">
+                            {{ carrier.forwarder || '---' }}
+                        </td>
+                        <td class="px-4 py-4 text-center text-sm text-gray-600">{{ carrier.origin || '---' }}</td>
+                        <td class="px-4 py-4 text-center text-sm font-mono font-bold text-gray-500">{{ carrier.currency || '---' }}</td>
+                        <td class="px-4 py-4 text-center text-sm font-semibold text-gray-900">{{ carrier.airFreight | number:'1.2-2' }}</td>
+                        <td class="px-4 py-4 text-center text-sm text-gray-600">{{ carrier.fsc || 0 }}</td>
+                        <td class="px-4 py-4 text-center text-sm italic text-gray-600">{{ carrier.airline || '---' }}</td>
+                        <td class="px-4 py-4 text-center">
+                            <span *ngIf="carrier.type" 
+                                  class="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-tight shadow-sm border"
+                                  [ngClass]="carrier.type.toUpperCase() === 'DIRECT' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-blue-50 text-blue-700 border-blue-100'">
+                                {{ carrier.type }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-4 text-center text-sm text-gray-600">{{ carrier.cutoff || '---' }}</td>
+                        <td class="px-4 py-4 text-center text-sm text-gray-600">{{ carrier.schedule || '---' }}</td>
+                        <td class="px-4 py-4 text-center text-sm text-gray-600">{{ carrier.exWorks | number:'1.2-2' }}</td>
+                        <td class="px-4 py-4 text-center text-sm text-gray-600">{{ carrier.doCharges | number:'1.2-2' }}</td>
+                        <td class="px-4 py-4 text-center text-sm text-gray-600">{{ carrier.ccFee | number:'1.2-2' }}</td>
+                        <td class="px-4 py-4 text-center text-sm font-black text-[#4a3f3f] bg-amber-50/50 italic">
+                            {{ carrier.totalCost | number:'1.2-2' }}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-500 italic">{{ carrier.remark || '---' }}</td>
+                    </tr>
+
+                    <!-- Empty State -->
+                    <tr *ngIf="multiCarrierRows.length === 0">
+                        <td colspan="14" class="px-6 py-16 text-center bg-white">
+                            <i class="fa fa-inbox text-5xl text-gray-100 mb-2 block"></i>
+                            <span class="text-gray-400 font-medium text-sm">No carrier options added for this pricing.</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="bg-gray-50 px-6 py-3 border-t border-gray-200">
+        <p class="text-[10px] text-gray-400 italic">Showing all available indirect route options for comparison.</p>
+    </div>
+</div>
 
       <div class="p-4 bg-gray-100 border-t flex justify-end gap-3 mt-4">
         <button

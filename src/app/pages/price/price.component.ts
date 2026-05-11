@@ -2801,84 +2801,97 @@ saveQuotation() {
     return;
   }
 
-  // --- DEBUGGING LOGS ---
-  console.log("Current costBreakdowns state:", this.costBreakdowns);
-  console.log("Current costRows state:", (this as any).costRows);
-  console.log("Current multiCarrierRows state:", this.multiCarrierRows);
-
-  // 1. Breakdowns Mapping logic
-  const actualCosts = (this.costBreakdowns && this.costBreakdowns.length > 0) 
-                      ? this.costBreakdowns 
-                      : ((this as any).costRows || []);
-
-  const costData = actualCosts.map((cb: any) => ({
-    ...cb,
-    inquiryId: this.inquiry.id || 0,
-    pricingId: this.quotation.id || 0
+  // 1. Cost Breakdowns Mapping
+  const costData = (this.costRows && this.costRows.length > 0 ? this.costRows : (this.costBreakdowns || [])).map((cb: any) => ({
+    lob: cb.lob || '', 
+    chargeType: cb.chargeType || '',
+    basis: cb.basis || '',
+    chargeName: cb.chargeName || cb.charge || '',
+    currency: cb.currency || 'INR',
+    rate: Number(cb.rate) || 0,
+    exchangeRate: Number(cb.exchangeRate || (cb as any).exRate) || 1, 
+    amount: Number(cb.amount) || 0
   }));
 
+  // 2. Multi Carrier Mapping
   const multiCarrierData = (this.multiCarrierRows || []).map((mcb: any) => ({
-    ...mcb,
-    inquiryId: this.inquiry.id || 0,
-    pricingId: this.quotation.id || 0
+    forwarder: mcb.forwarder || '',
+    origin: mcb.origin || '',
+    currency: mcb.currency || 'INR',
+    airFreight: Number(mcb.airFreight) || 0,
+    fsc: mcb.fsc || '',
+    airline: mcb.airline || '',
+    type: mcb.type || 'DIRECT',
+    cutoff: mcb.cutoff || '',
+    schedule: mcb.schedule || '',
+    exWorks: Number(mcb.exWorks) || 0,
+    doCharges: Number(mcb.doCharges) || 0,
+    ccFee: Number(mcb.ccFee) || 0,
+    totalCost: Number(mcb.totalCost) || 0,
+    remark: mcb.remark || ''
   }));
 
-  // 2. Payload Preparation
-  const payload = {
-    ...this.quotation,
-    pricingNo: this.quotation.pricingNo || null,
-    referenceByInquiryNo: this.inquiry.inquiryNo,
-    qtnId: this.quotation.qtnId || ('QTN-' + Math.floor(1000 + Math.random() * 9000)),
+  // 3. Payload Preparation (Types fixed as per Backend)
+  const payload: any = {
+    ...this.quotation, 
+    
+    // 🔥 TRANSPORT FIX: Explicitly toString() ensure karega ki text hi jaye
+    transportMode: (this.quotation.transportMode || this.inquiry.transportMode || "").toString(), 
+    transportType: (this.quotation.transportType || this.quotation.TransportType || this.inquiry.transportType || "").toString(),
+    serviceType: (this.quotation.transportType || this.quotation.TransportType || this.inquiry.transportType || "").toString(), 
+    shipmentType: (this.quotation.shipmentType || this.inquiry.shipmentType || "").toString(),
+
+    // 🔥 COUNTRY NAME FIX: Null check hata kar empty string or actual value
+    countryName: (this.selectedCountryName || this.quotation.countryName || this.inquiry.country || "").toString(),
+
+    // 🔥 BACKEND TYPE FIX: OrganisationId aksar string hota hai database mein
+    organisationId: this.OrganisationId ? this.OrganisationId.toString() : null,
     organisationName: this.inquiry.organization,
     customerName: this.inquiry.organization,
-    organisationId: this.OrganisationId,
-    originName: this.inquiry.origin,
-    transportMode: this.quotation.transportMode?.toString() || "", 
-    transportType: this.quotation.TransportType?.toString() || "",
-    serviceType: this.quotation.shipmentType?.toString() || "",
     
-    costBreakdowns: costData,
-    multiCarrierBreakdowns: multiCarrierData,
+    pricingNo: this.quotation.pricingNo || null,
+    referenceByInquiryNo: this.inquiry.inquiryNo || null,
+    qtnId: this.quotation.qtnId || ('QTN-' + Math.floor(1000 + Math.random() * 9000)),
+    originName: this.inquiry.origin || this.quotation.originPOL,
 
-    salesCoordinator: typeof this.quotation.salesCoordinator === 'object' 
-                      ? this.quotation.salesCoordinator?.name?.toString() 
-                      : this.quotation.salesCoordinator?.toString() || "",
-    salesExecutive: typeof this.quotation.salesExecutive === 'object' 
-                    ? this.quotation.salesExecutive?.name?.toString() 
-                    : this.quotation.salesExecutive?.toString() || "",
-
-    cargoStatus: this.quotation.cargoStatusType || 'Ready',
-    cargoValue: this.quotation.cargoValue?.toString() || "0",
-    cargoCurrency: this.quotation.currency || 'INR',
-    grossWeightKg: Number(this.quotation.grossWeight) || 0,
-    grossWeightUnit: this.quotation.GrossweightUnit || 'KGS',
-    
+    // Numeric IDs (Inhe Number rehne do, ye IDs int? hote hain)
+    portOfLoadingId: this.quotation.portOfLoadingId ? Number(this.quotation.portOfLoadingId) : null,
+    portOfDischargeId: this.quotation.portOfDischargeId ? Number(this.quotation.portOfDischargeId) : null,
     lineOfBusinessId: this.quotation.lineOfBusinessId ? Number(this.quotation.lineOfBusinessId) : null,
     commodityId: this.quotation.commodity ? Number(this.quotation.commodity) : null,
-    originId: this.originsaveid,
-    portOfLoadingId: Number(this.quotation.portOfLoadingId) || null,
-    portOfDischargeId: Number(this.quotation.portOfDischargeId) || null,
-    finalDestination: this.quotation.finalDestination || null,
-    countryName: this.selectedCountryName || null,
-    connectingPortIds: this.selectedConnectingPorts?.length > 0 
-                        ? this.selectedConnectingPorts.map((p: any) => p.id).join(',') 
-                        : null,
-    dimensions: this.appliedDimensions,
+    originId: this.originsaveid ? Number(this.originsaveid) : null,
+
+    // Weight & Measures
+    grossWeightKg: Number(this.quotation.grossWeightKg || this.quotation.grossWeight) || 0,
+    grossWeightUnit: this.quotation.grossWeightUnit || this.quotation.GrossweightUnit || 'KGS',
+    noOfPkgs: Number(this.quotation.noOfPkgs) || 0,
+
+    // Relationships
+    costBreakdowns: costData, 
+    multiCarrierBreakdowns: multiCarrierData,
+    dimensions: this.appliedDimensions || [],
+
+    // String Field Fixes
+    salesCoordinator: (this.quotation.salesCoordinator?.name || this.quotation.salesCoordinator || "").toString(),
+    cargoStatus: (this.quotation.cargoStatus || this.quotation.cargoStatusType || 'Ready').toString(),
+    cargoValue: (this.quotation.cargoValue || "0").toString(), // 🔥 Mandatory string fix
+    cargoCurrency: (this.quotation.currency || 'INR').toString(),
     createdBy: 'admin@cavalierlogistic.in'
   };
 
-  // 3. Mandatory Cleanup
-  delete (payload as any).TransportMode;
-  delete (payload as any).TransportType;
-  delete (payload as any).SalesCoordinator;
-  delete (payload as any).SalesExecutive;
+  // 4. Final Cleanup: Delete keys that cause confusion in JSON
+  const keysToDelete = [
+    'TransportMode', 'TransportType', 'SalesCoordinator', 
+    'GrossWeight', 'GrossweightUnit', 'CountryName'
+  ];
+  keysToDelete.forEach(key => delete payload[key]);
 
-  console.log("FINAL JSON TO BE SENT:", JSON.stringify(payload));
+  console.log("FINAL PAYLOAD:", payload);
 
   const formData = new FormData();
   formData.append('pricingData', JSON.stringify(payload));
 
-  // Documents processing
+  // Documents
   const allDocs = [...(this.documents || []), ...(this.invoices || [])];
   allDocs.forEach((doc) => {
     if (doc.file) {
@@ -2897,33 +2910,14 @@ saveQuotation() {
 
   action.subscribe({
     next: (res: any) => {
-       if (this.selectedEmails.size > 0) {
-    this.sendBulkEmails(res.id); // Ye naya animated function call karega
-  } else {
-     Swal.fire('Saved!', 'Data saved in CavalierDB', 'success');
-  }
-      // ✅ Sabse pehle Pricing No assign karo taaki UI change ho
-      const generatedNo = res?.pricingNo || res?.data?.pricingNo || res?.PricingNo;
-      
-      if (generatedNo) {
-        this.quotation.pricingNo = generatedNo;
-      }
-      
-      // ✅ Force update UI taaki "Generating..." hat jaye
-      this.cdr.detectChanges();
-    
-
-      alert("Success: Pricing and Breakdowns Saved!");
-      
-      // ✅ Form band karne se pehle data reload karo
+      Swal.fire('Saved!', 'Pricing, Transport and Country saved successfully!', 'success');
       this.loadPricings(); 
       this.isFormOpen = false;
-      this.toggleForm();
       this.cdr.detectChanges();
     },
     error: (err) => {
-       console.error("API ERROR DETAILS:", err);
-       alert("Failed: " + (err.error?.message || "Server Error"));
+      console.error("❌ API ERROR DETAILS:", err);
+      alert("Error: " + (err.error?.message || "Internal Mapping Error"));
     }
   });
 }
@@ -2945,11 +2939,7 @@ openMultiCarrierModal() {
 closeModal() {
   this.isModalOpen = false;
 }
-// calculateMultiTotal(index: number) {
-//   let row = this.multiCarrierRows[index];
-//   // Aap apne calculation logic ke hisaab se ise change kar sakte hain
-//   row.totalCost = (Number(row.airFreight) || 0) + (Number(row.exWorks) || 0) + (Number(row.ccFee) || 0);
-// }
+
 
 showRowModal = false;
 selectedInquiryId: any = null;
@@ -3180,21 +3170,20 @@ selectInquiry(inq: any) {
       this.quotation.portOfDestination = data.portOfDischargeName || '';
       this.quotation.finalDestination = data.finalDestination || '';
 
-      // --- 5a. Connecting Ports Auto-fill (Fix for ConnectingPortIds) ---
+      // 🔥 FIX: SERVICE TYPE AUTOFILL (Matching ngModel names) 🔥
+      // Hum direct data se value utha rahe hain jo aapne upar object mein dikhayi hai
+      this.quotation.isDirect = data.isDirect === true;
+      this.quotation.isIndirect = data.isIndirect === true;
+
+      // --- 5a. Connecting Ports Auto-fill ---
       this.selectedConnectingPorts = [];
-      
-      // Agar DB se IDs string format mein aa rahi hain (e.g. "1,2,3")
       if (data.connectingPortIds) {
         const idsArray = Array.isArray(data.connectingPortIds) 
           ? data.connectingPortIds 
           : data.connectingPortIds.toString().split(',');
 
-        // Hum selectedConnectingPorts ko fill kar rahe hain taaki screen pe dikhe
-        // Note: Name hum tabhi dikha payenge agar 'data.connectingPorts' (names) bhi API mein ho.
-        // Agar sirf IDs hain, toh hum matching ports se name uthayenge:
         this.selectedConnectingPorts = idsArray.map((id: any) => {
           const trimmedId = id.toString().trim();
-          // Pura ports list (master data) mein se find karein taaki name mil jaye
           const masterPort = this.filteredConnectingPorts.find(p => p.id.toString() === trimmedId);
           return {
             id: trimmedId,
@@ -3204,7 +3193,7 @@ selectInquiry(inq: any) {
         });
       }
 
-      // --- NEW: IncoTerms Mapping ---
+      // --- IncoTerms ---
       this.quotation.incoterm = data.incoterm || '';
       if (this.quotation.incoterm) {
         this.onIncotermChange({ target: { value: this.quotation.incoterm } });
@@ -3418,25 +3407,25 @@ sendBulkEmails(inqId: number) {
   });
 }
 // 2. Delete Function
-deletePricing(id: number) {
-  if (confirm("Are you sure you want to delete this pricing?")) {
-    const token = localStorage.getItem('cavalier_token');
-    const httpOptions = {
-      headers: { Authorization: `Bearer ${token}` }
-    };
+// deletePricing(id: number) {
+//   if (confirm("Are you sure you want to delete this pricing?")) {
+//     const token = localStorage.getItem('cavalier_token');
+//     const httpOptions = {
+//       headers: { Authorization: `Bearer ${token}` }
+//     };
 
-    this.http.delete(`${environment.apiUrl}/api/Pricing/${id}`, httpOptions).subscribe({
-      next: () => {
-        alert("Pricing deleted successfully!");
-        this.loadPricings(); // Table refresh karein
-      },
-      error: (err) => {
-        console.error("Delete Error:", err);
-        alert("Failed to delete pricing.");
-      }
-    });
-  }
-}
+//     this.http.delete(`${environment.apiUrl}/api/Pricing/${id}`, httpOptions).subscribe({
+//       next: () => {
+//         alert("Pricing deleted successfully!");
+//         this.loadPricings(); // Table refresh karein
+//       },
+//       error: (err) => {
+//         console.error("Delete Error:", err);
+//         alert("Failed to delete pricing.");
+//       }
+//     });
+//   }
+// }
 openNewQuotation() {
   this.quotation = {}; // Reset form or initialize
   
@@ -3464,5 +3453,47 @@ openNewQuotation() {
   this.isFormOpen = true;
   this.cdr.detectChanges();
 }
+deletePricing(id: number) {
+  if (!id) {
+    Swal.fire('Error', 'Invalid Pricing ID', 'error');
+    return;
+  }
 
+  Swal.fire({
+    title: 'Are you sure?',
+    text: "Do you really want to delete this pricing record? This action cannot be undone.",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Yes, delete it!',
+    cancelButtonText: 'Cancel'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      const token = localStorage.getItem('cavalier_token');
+      const httpOptions = { 
+        headers: { Authorization: `Bearer ${token}` } 
+      };
+
+      // API Call to delete pricing
+      this.http.delete(`${environment.apiUrl}/Pricing/${id}`, httpOptions).subscribe({
+        next: (res: any) => {
+          // 1. Show success message in English
+          Swal.fire('Deleted!', 'The record has been successfully deleted.', 'success');
+          
+          // 2. Filter out the deleted item from the local array
+          this.pricings = this.pricings.filter(p => (p.id || p.Id) !== id);
+          
+          // 3. Trigger Change Detection manually to refresh the table UI
+          this.cdr.detectChanges(); 
+        },
+        error: (err) => {
+          console.error("Delete error:", err);
+          const errorMsg = err.error?.message || 'Something went wrong on the server.';
+          Swal.fire('Error!', 'Failed to delete: ' + errorMsg, 'error');
+        }
+      });
+    }
+  });
+}
 }

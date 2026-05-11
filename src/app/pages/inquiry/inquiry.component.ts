@@ -17,7 +17,6 @@ import { Subscription } from 'rxjs';
 import { BranchService } from '../../services/branch.service';
 import { UserService } from '../../services/user.service';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import Swal from 'sweetalert2';
 export interface CostBreakdown {
   id?: number;
   inquiryId?: number;
@@ -2679,65 +2678,6 @@ costRows: CostBreakdown[] = [
   alert('Carrier details added to Inquiry!');
 }
 
-sendBulkEmails(inqId: number) {
-  const payload = {
-    toEmails: this.selectedEmails,
-    inquiryId: inqId
-  };
-
-  const token = localStorage.getItem('cavalier_token');
-  const headers = { Authorization: `Bearer ${token}` };
-
-  // 🔥 STEP 1: Sending Animation wala Modal kholna
-  Swal.fire({
-    title: 'Processing...',
-    html: `
-      <div class="email-loader">
-        <div class="envelope-wrapper">
-          <div class="envelope"></div>
-        </div>
-        <p style="margin-top:20px; font-weight:bold; color:#4a3f3f;">Email is sending, please wait...</p>
-      </div>
-    `,
-    allowOutsideClick: false,
-    showConfirmButton: false,
-    didOpen: () => {
-      Swal.showLoading(); // Ye standard loader dikhayega
-    },
-    // Custom style for your premium look
-    customClass: {
-      popup: 'premium-popup',
-    }
-  });
-
-  // 🔥 STEP 2: Actual API Call
-  this.http.post(`${this.apiUrl}/SendBulkEmail`, payload, { headers }).subscribe({
-    next: (res: any) => {
-      // ✅ SUCCESS: Success wala Animation dikhana
-      Swal.fire({
-        icon: 'success',
-        title: 'Sent Successfully!',
-       text: 'Emails sent and Inquiry saved successfully.',
-        timer: 3000,
-        showConfirmButton: false,
-        timerProgressBar: true
-      }).then(() => {
-        // 🔥 YAHAN REDIRECT HOGA 🔥
-        this.router.navigate(['/dashboard/salescrm/inquiry']);
-      });
-    },
-    error: (err) => {
-      // ❌ ERROR: Error message dikhana
-      Swal.fire({
-        icon: 'error',
-        title: 'Email Failed',
-        text: err.error?.message || 'Something went wrong while sending email.',
-        confirmButtonColor: '#4a3f3f'
-      });
-    }
-  });
-}
-
 saveQuotation() {
   // Basic validation
   if (!this.inquiry.organization) { 
@@ -2745,25 +2685,26 @@ saveQuotation() {
     return;
   }
 
-  // 1. JSON Payload Taiyaar Karna (Adding only country and connecting ports)
+  // 1. JSON Payload Taiyaar Karna
   const payload = {
-    ...this.quotation, 
-    inquiryNo: this.inquiry.inquiryNo,
+    ...this.quotation, // Purana saara data uthaya
+    inquiryNo: this.inquiry.inquiryNo || '',
     customerName: this.inquiry.organization,
     organization: this.inquiry.organization,
-    shipmentType: this.quotation.shipmentType,
-    leadNo: this.inquiry.leadNo,
+    shipmentType: this.quotation.shipmentType?.toString() || '',
+    leadNo: this.inquiry.leadNo || '',
     leadId: this.LeadId,
     OrganisationId: this.OrganisationId,
     LeadName: this.LeadName,
     OrganisationName: this.OrganisationName,
-    origin: this.inquiry.origin,
+    origin: this.inquiry.origin || '',
     TransportMode: this.quotation.transportMode,
     TransportType: this.quotation.TransportType,
+
     HazardDocPath: this.quotation.hazardDocPath || null,
     weightUnit: this.quotation.GrossweightUnit || 'KGS',
-    cargocurrency:this.quotation.currency || 'INR',
-    cargoValue: this.quotation.cargoValue.toString() || '0',
+    cargocurrency: this.quotation.currency || 'INR',
+    cargoValue: this.quotation.cargoValue?.toString() || "0",
     lineOfBusinessId: this.quotation.lineOfBusinessId ? Number(this.quotation.lineOfBusinessId) : null,
     lineOfBusinessName: this.quotation.lineOfBusinessName || null,
     commodityId: this.quotation.commodity, 
@@ -2774,33 +2715,27 @@ saveQuotation() {
     createdBy: 'admin@cavalierlogistic.in', 
     qtnId: this.quotation.qtnId || ('QTN-' + Math.floor(1000 + Math.random() * 9000)),
     createdDate: new Date().toISOString(),
-    dimensions: this.appliedDimensions,
+    dimensions: this.appliedDimensions || [],
 
-    // 🔥 YE DO NAYI FIELDS ADD KI HAIN (Sirf extra data ke liye) 🔥
-    countryName: this.selectedCountryName || null,
+    countryName: this.selectedCountryName || this.quotation.country || null,
     connectingPortIds: this.selectedConnectingPorts && this.selectedConnectingPorts.length > 0 
-                       ? this.selectedConnectingPorts.map((p: any) => p.id).join(',') 
-                       : null
+                        ? this.selectedConnectingPorts.map((p: any) => p.id).join(',') 
+                        : null,
+
+    // 🔥 SERVICE TYPE FIX (Sabse niche rakha hai taaki overwrite na ho) 🔥
+    // Inhe forcefully boolean mein convert kiya hai jo aapne checkbox tick kiya hai wahi jayega
+    isDirect: Boolean(this.quotation.isDirect),
+    isIndirect: Boolean(this.quotation.isIndirect),
+    serviceType: (this.searchFilters?.transportMode || this.quotation.serviceType || "").toString()
   };
 
-  console.log("JSON Payload before FormData:", payload);
+  console.log("FINAL PAYLOAD BEFORE SENDING:", payload); // Console mein check kar lena ek baar
 
-  // 2. FormData Create Karna
+  // 2. FormData Create Karna (No Cost/Multi-Carrier as per your requirement)
   const formData = new FormData();
-  
   formData.append('inquiryData', JSON.stringify(payload));
 
-  // Multi-Carrier Data (As it is)
-  if (this.multiCarrierRows && this.multiCarrierRows.length > 0) {
-    formData.append('multiCarrierData', JSON.stringify(this.multiCarrierRows));
-  }
-
-  // 🔥 COST DATA APPEND 🔥
-  if (this.costRows && this.costRows.length > 0) {
-    formData.append('costData', JSON.stringify(this.costRows));
-  }
-
-  // 3. Documents Logic (NO CHANGES HERE)
+  // 3. Documents Logic
   if (this.documents && this.documents.length > 0) {
     this.documents.forEach((doc) => {
       if (doc.file) {
@@ -2818,27 +2753,21 @@ saveQuotation() {
     });
   }
 
-  // 4. Headers (NO CHANGES HERE)
+  // 4. Headers
   const token = localStorage.getItem('cavalier_token');
   const httpOptions = {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
+    headers: { Authorization: `Bearer ${token}` }
   };
 
-  // 5. Backend Call (NO CHANGES HERE)
+  // 5. Backend Call
   const action = this.quotation.id > 0 
     ? this.http.put(`${this.apiUrl}/${this.quotation.id}`, formData, httpOptions)
     : this.http.post(this.apiUrl, formData, httpOptions);
 
   action.subscribe({
-    next: (res: any) => {
-      Swal.fire('Saved!', 'Data saved in CavalierDB', 'success');
-  //     if (this.selectedEmails.length > 0) {
-  //   this.sendBulkEmails(res.id); // Ye naya animated function call karega
-  // } else {
-  //    Swal.fire('Saved!', 'Data saved in CavalierDB', 'success');
-  // }
+    next: () => {
+      alert("Success: Saved in CavalierDB!");
+      
       this.isFormOpen = false;
       this.showMultiCarrierTable = false; 
       this.showCostTable = false; 
@@ -2849,13 +2778,17 @@ saveQuotation() {
       this.costRows = []; 
 
       this.loadQuotations();
-      this.toggleForm();
+      
+      if (this.toggleForm) {
+        this.toggleForm();
+      }
+      
       this.getNextInquiryNumber();
       this.cdr.detectChanges();
     },
     error: (err) => {
        console.error("Post Error Details:", err);
-       alert("Failed to save: " + (err.error?.message || "Check Backend."));
+       alert("Failed to save: " + (err.error?.message || "Check Backend Connection."));
     }
   });
 }

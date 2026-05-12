@@ -802,12 +802,25 @@ Selection Modal Popup
           <div class="text-[9px] text-gray-400 italic">{{ q.createdDate | date:'mediumDate' }}</div>
         </td>
 
-        <!-- Customer & Location -->
-        <td class="p-3">
-          <div class="font-semibold uppercase text-gray-800">{{ q.customerName || q.organisationName }}</div>
-          <div class="text-[11px] text-blue-600 font-medium">📍 {{ q.location || 'N/A' }}</div>
-          <div class="text-[10px] text-gray-400">Mode: {{ q.transportMode }}</div>
-        </td>
+   <!-- Customer & Location -->
+<td class="p-3">
+  <!-- Window location se URL change hoga, jo 100% link ko trigger karega -->
+  <a href="/dashboard/organization-add/{{q.id}}" class="block group cursor-pointer decoration-none">
+    
+    <div class="font-semibold uppercase text-gray-800 group-hover:text-blue-700">
+      {{ q.customerName || q.organisationName }}
+    </div>
+    
+    <div class="text-[11px] text-blue-600 font-medium">
+      📍 {{ q.location || 'N/A' }}
+    </div>
+    
+    <div class="text-[10px] text-gray-400">
+      Mode: {{ q.transportMode }}
+    </div>
+    
+  </a>
+</td>
 
         <!-- Route & Incoterm -->
         <td class="p-3">

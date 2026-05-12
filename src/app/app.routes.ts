@@ -96,12 +96,14 @@ export const routes: Routes = [
 canActivate: [authGuard],
     children: [
       {
+        
         path: '',
         component: EcommerceComponent,
         canActivate: [authGuard],
         pathMatch: 'full',
         title: 'Cavalier Logistics Dashboard',
       },
+      
       {
         path: 'salecrm/qoutation',
         component: QuotationFormComponent,
@@ -177,6 +179,7 @@ canActivate: [authGuard],
         component: CargoTypeComponent ,
         canActivate: [authGuard],        //cargo type
       },
+      
       {
         path: 'commoditytype',
         component: CommodityTypeComponent,
@@ -411,6 +414,7 @@ canActivate: [authGuard],
     component: SignUpComponent,
     title: 'Sign Up'
   },
+  
 
   // 5. ERROR PAGES
   {

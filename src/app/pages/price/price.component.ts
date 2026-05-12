@@ -5,7 +5,7 @@ import { ChangeDetectorRef, Component, ElementRef, HostListener, OnInit, ViewChi
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http'; 
 import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -401,9 +401,25 @@ organizations: any[] = [];
   searchDone: boolean = false; // Shuru mein false rahega
   uploadedDocuments: any[] = [];
     // Ye line add karein
-    constructor(private http: HttpClient, private router: Router,private cdr: ChangeDetectorRef,private branchservice:BranchService,public userServices:UserService,public CheckPermissionService:CheckPermissionService,private sanitizer: DomSanitizer,private eRef: ElementRef,) {}
-
+    constructor(private http: HttpClient, private router: Router,private cdr: ChangeDetectorRef,private branchservice:BranchService,public userServices:UserService,public CheckPermissionService:CheckPermissionService,private sanitizer: DomSanitizer,private eRef: ElementRef,private route: ActivatedRoute) {}
+orgData: any = null;
+  isLoading: boolean = true;
     ngOnInit() {
+      const idFromUrl = this.route.snapshot.paramMap.get('id');
+    
+    // Aapki purani list wali API call kar rahe hain
+    this.http.get<any[]>(`${environment.apiUrl}/Organization/list`).subscribe({
+      next: (allOrgs) => {
+        // List mein se wo wali Org dhoond rahe hain jiski ID match kare
+        this.orgData = allOrgs.find(o => o.id == idFromUrl || o.Id == idFromUrl);
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error("Error loading orgs", err);
+        this.isLoading = false;
+      }
+    });
+  
       this.PermissionID = Number(localStorage.getItem('permissionID'));
       console.log("Direct API call trigger ho rahi hai...");
    this.getsales();
@@ -3495,5 +3511,11 @@ deletePricing(id: number) {
       });
     }
   });
+}
+goToOrganization(id: any) {
+  if (id) {
+    // Ye Angular router ko bypass karke browser se redirect karega
+    window.location.href = `/dashboard/organization-add/${id}`;
+  }
 }
 }

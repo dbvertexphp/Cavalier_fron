@@ -731,9 +731,8 @@ selectInquiry(inq: any) {
       this.quotation.originPOL = fullData.originName || '';
       this.quotation.portOfLoading = fullData.portOfLoadingName || '';
       this.quotation.portOfDischarge = fullData.portOfDischargeName || '';
-      this.quotation.commodity = fullData.commodityId ? Number(fullData.commodityId) : null;
-      this.quotation.lineOfBusiness = fullData.lineOfBusinessId || '';
-
+      this.quotation.commodity = fullData.commodity ? String(fullData.commodity) : "";
+      // this.quotation.lineOfBusiness = fullData.lineOfBusiness ? Number(fullData.lineOfBusiness) : 0;
       // Sales & Status
       this.quotation.salesCoordinator = fullData.salesCoordinator ? Number(fullData.salesCoordinator) : null;
       this.quotation.pricingBy = fullData.pricingDoneBy || '';
@@ -998,6 +997,8 @@ saveQuotation() {
     this.quotation.totalRevenue = this.totalRevFinal;
     this.quotation.totalCost = this.totalCostFinal;
     this.quotation.totalProfit = this.totalProfitFinal;
+    this.quotation.lineOfBusiness=String(this.quotation.lineOfBusiness);
+    this.quotation.commodity=String(this.quotation.commodity);
 
     // 4. API Call - Swagger ke mutabiq Edit ke liye /update/id use kiya hai
     

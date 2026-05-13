@@ -26,6 +26,7 @@ export class OrganizationAddComponent implements OnInit {
   showAgentLobDropdown: boolean = false;
 highlightedOrgId: number | null = null;
   lineOfBusinessList: any[] = [];
+  isBranchLoading: boolean = false;
 selectedLineOfBusiness: any[] = [];        // Multiple select ke liye array
 showLobDropdown: boolean = false;
   isEditMode: boolean = false;
@@ -1259,6 +1260,8 @@ fetchAndEditOrg(id: number) {
 // ==================== GET BRANCHES BY ORGANIZATION (FULL MAPPING) ====================
 // ==================== GET BRANCHES BY ORGANIZATION (FULL MAPPING) ====================
 getBranchesByOrg(orgId: number) {
+  this.isBranchLoading = true;
+  this.branchList = [];
     const url = `${environment.apiUrl}/OrgBranch/GetByOrg/${orgId}`;
     this.http.get<any>(url).subscribe({
       next: (res) => {
@@ -1351,6 +1354,7 @@ getBranchesByOrg(orgId: number) {
           this.resetAgentFormOnly();
           this.isEditMode = false;
         }
+        this.isBranchLoading = false;
         this.cdr.detectChanges();
       },
       error: (err) => {

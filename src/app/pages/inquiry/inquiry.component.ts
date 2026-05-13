@@ -17,6 +17,8 @@ import { Subscription } from 'rxjs';
 import { BranchService } from '../../services/branch.service';
 import { UserService } from '../../services/user.service';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { ActivatedRoute } from '@angular/router';
+import Swal from 'sweetalert2';
 export interface CostBreakdown {
   id?: number;
   inquiryId?: number;
@@ -399,11 +401,17 @@ organizations: any[] = [];
   searchDone: boolean = false; // Shuru mein false rahega
   uploadedDocuments: any[] = [];
     // Ye line add karein
-    constructor(private http: HttpClient, private router: Router,private cdr: ChangeDetectorRef,private branchservice:BranchService,public userServices:UserService,public CheckPermissionService:CheckPermissionService,private sanitizer: DomSanitizer,private eRef: ElementRef,) {}
+    constructor(private http: HttpClient, private router: Router,private route: ActivatedRoute,private cdr: ChangeDetectorRef,private branchservice:BranchService,public userServices:UserService,public CheckPermissionService:CheckPermissionService,private sanitizer: DomSanitizer,private eRef: ElementRef,) {}
 
     ngOnInit() {
       this.PermissionID = Number(localStorage.getItem('permissionID'));
-      console.log("Direct API call trigger ho rahi hai...");
+    this.route.queryParams.subscribe(params => {
+    const editId = params['editId'];
+    if (editId) {
+      console.log('Fetching data for Inquiry ID:', editId);
+      this.loadInquiryById(Number(editId));
+    }
+  });
    this.getsales();
    this.loadConnectingPortsData();
       this.getbranch();
@@ -2564,24 +2572,98 @@ services = [
   // --- LOGIC FUNCTIONS ---
 
   // Nayi row add karne ke liye
-  showAlert(type: string, id: any) {
+ showAlert(type: string, id: any) {
   // Agar ID null ya undefined hai toh handle karne ke liye
   const displayId = id ? id : 'N/A';
 
   if (type === 'Organisation ID') {
-    const orgId = id ? id : 'N/A';
-    this.router.navigate(['/dashboard/organization-add'], { 
-      queryParams: { highlightId: orgId } 
+    if (!id) {
+      Swal.fire({
+        title: 'Organization Not Found',
+        text: 'Please provide a valid Organization ID.',
+        icon: 'warning',
+        confirmButtonColor: '#4a3f3f'
+      });
+      return;
+    }
+
+    // 1. API call to check Organization existence
+    this.http.get(`${environment.apiUrl}/Organization/exists/${id}`).subscribe({
+      next: (res: any) => {
+        if (res.exists) {
+          // 2. Redirect and highlight
+          this.router.navigate(['/dashboard/organization-add'], { 
+            queryParams: { highlightId: id } 
+          });
+        } else {
+          // 3. Error message if ID not in DB
+          Swal.fire({
+            title: 'Not Found',
+            text: 'This Organization record does not exist in our database.',
+            icon: 'error',
+            confirmButtonColor: '#4a3f3f'
+          });
+        }
+      },
+      error: (err) => {
+        console.error("Error checking ID existence", err);
+        Swal.fire({
+          title: 'Connection Error',
+          text: 'Something went wrong while searching. Please try again later.',
+          icon: 'error',
+          confirmButtonColor: '#4a3f3f'
+        });
+      }
     });
   } 
+  
   else if (type === 'Lead ID') {
-    const leadId = id ? id : 'N/A';
-    this.router.navigate(['/dashboard/salescrm/lead'], { 
-      queryParams: { highlightId: leadId } 
+    if (!id) {
+      Swal.fire({
+        title: 'Invalid ID',
+        text: 'The Lead ID provided is not valid.',
+        icon: 'warning',
+        confirmButtonColor: '#4a3f3f'
+      });
+      return;
+    }
+
+    // Call the Leads exists endpoint
+    this.http.get(`${environment.apiUrl}/Leads/exists/${id}`).subscribe({
+      next: (res: any) => {
+        if (res.exists) {
+          this.router.navigate(['/dashboard/salescrm/lead'], { 
+            queryParams: { highlightId: id } 
+          });
+        } else {
+          Swal.fire({
+            title: 'Lead Not Found',
+            text: 'No Lead record found with this ID.',
+            icon: 'error',
+            confirmButtonColor: '#4a3f3f'
+          });
+        }
+      },
+      error: (err) => {
+        console.error("Lead existence check failed:", err);
+        Swal.fire({
+          title: 'Server Error',
+          text: 'Unable to verify Lead existence at this time.',
+          icon: 'error',
+          confirmButtonColor: '#4a3f3f'
+        });
+      }
     });
-  }
+  } 
+  
   else {
-    alert('Action performed: ' + type);
+    // Default fallback for other types
+    Swal.fire({
+      title: 'Action Triggered',
+      text: `Action performed for: ${type}`,
+      icon: 'info',
+      confirmButtonColor: '#4a3f3f'
+    });
   }
 }
   addCostRow() {
@@ -2824,7 +2906,28 @@ handleRowDblClick(id: any) {
   this.selectedInquiryId = id;
   this.showRowModal = true;
 }
+loadInquiryById(id: number) {
+  const token = localStorage.getItem('cavalier_token');
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`
+  });
 
+  // Aapki specific API: [HttpGet("{id}")]
+  this.http.get<any>(`${this.apiUrl}/${id}`, { headers }).subscribe({
+    next: (data) => {
+      console.log("Data received from API:", data);
+      if (data) {
+        // Aapka existing edit function call hoga jo poora data map kar dega
+        this.editQuotation(data);
+        this.cdr.detectChanges();
+      }
+    },
+    error: (err) => {
+      console.error("Error loading inquiry for edit:", err);
+      Swal.fire('Error', 'Could not load inquiry data', 'error');
+    }
+  });
+}
 closeRowModal() {
   this.showRowModal = false;
   this.selectedInquiryId = null;
@@ -2850,7 +2953,7 @@ toggleStatus(q: any) {
       q.status = res.newStatus;
       
       // UI update trigger
-      this.cdr.detectChanges();
+      
       
       console.log(`✅ Status changed for ID ${q.id}:`, res.newStatus);
     },

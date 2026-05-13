@@ -44,6 +44,10 @@ export class PriceComponent {
     PermissionID:any;
     LeadId:number=0;
     originpinCode:any;
+    InquiryId:number=0;
+    referenceByInquiryNo:string='';
+    organisationId:number=0;
+    organisationName:string='';
     // Add these lines in your class variables section
     
 paginatedPricings: any[] = []; 
@@ -2845,12 +2849,12 @@ saveQuotation() {
     countryName: (this.selectedCountryName || this.quotation.countryName || this.inquiry.country || "").toString(),
 
     // 🔥 BACKEND TYPE FIX: OrganisationId aksar string hota hai database mein
-    organisationId: this.OrganisationId ? this.OrganisationId.toString() : null,
-    organisationName: this.inquiry.organization,
+    OrganisationId: this.organisationId || 0,
+    OrganisationName: this.organisationName,
     customerName: this.inquiry.organization,
-    
+    InquiryId:this.InquiryId || 0,
     pricingNo: this.quotation.pricingNo || null,
-    referenceByInquiryNo: this.inquiry.inquiryNo || null,
+    referenceByInquiryNo: this.referenceByInquiryNo || null,
     qtnId: this.quotation.qtnId || ('QTN-' + Math.floor(1000 + Math.random() * 9000)),
     originName: this.inquiry.origin || this.quotation.originPOL,
 
@@ -2910,6 +2914,8 @@ saveQuotation() {
 
   action.subscribe({
     next: (res: any) => {
+
+      this.sendBulkEmails(res.id);
       Swal.fire('Saved!', 'Pricing, Transport and Country saved successfully!', 'success');
       this.loadPricings(); 
       this.isFormOpen = false;
@@ -3119,10 +3125,16 @@ selectInquiry(inq: any) {
     console.error("❌ Inquiry No missing!");
     return;
   }
+  this.InquiryId=inq.id || 0;
+  this.referenceByInquiryNo=inq.inquiryNo || 0;
+  this.organisationId=inq.organisationId || 0;
+  this.organisationName=inq.organisationName || '';
+  
+  console.log(this.organisationId,'changed in inquiry');
 
   const inquiryNo = inq.inquiryNo?.trim();
   const url = `${environment.apiUrl}/Inquiry/by-no?inquiryNo=${inquiryNo}`;
-
++
   this.http.get<any>(url).subscribe({
     next: (data) => {
       console.log("✅ Actual API Data:", data);
@@ -3339,6 +3351,23 @@ openPricingForm(inquiryData: any) {
   this.isFormOpen = true;
   this.inquiry = inquiryData; // Purana data map karein
   this.generateTemporaryPricingNo(); // Pricing No set karein
+}
+redirectdata(type: any, id: any) {
+  if (type === 'org') {
+   this.router.navigate(['/dashboard/organization-add'], { 
+            queryParams: { highlightId: id } 
+          });
+  } 
+  else if (type === 'inq') {
+    // Agar hum isi page par hain, toh seedha edit function call karenge
+    // Agar kisi aur page se aa rahe hain, toh navigation ke baad data load karenge
+    if (id) {
+       // Isse URL change hoga aur inquiry page load hoga
+       this.router.navigate(['/dashboard/salescrm/inquiry'], { queryParams: { editId: id } });
+       
+      
+    }
+  }
 }
 // 1. Edit Function
 editPricing(pricing: any) {

@@ -780,6 +780,9 @@ Selection Modal Popup
     <thead>
       <tr class="bg-gray-100 text-gray-700 uppercase border-b font-bold">
         <th class="p-3 text-left">Pricing & Inquiry</th>
+        <th class="p-3 text-left">Organisation Name</th>
+        <th class="p-3 text-left">Inquiry Name</th>
+        <th class="p-3 text-left">Pricing & Inquiry</th>
         <th class="p-3 text-left">Customer & Location</th>
         <th class="p-3 text-left">Route & Incoterm</th>
         <th class="p-3 text-left">Movement Details</th>
@@ -798,11 +801,23 @@ Selection Modal Popup
         <!-- Pricing & Inquiry -->
         <td class="p-3">
           <div class="font-bold text-blue-700">{{ q.pricingNo || q.PricingNo }}</div>
+          <div class="font-bold text-blue-700">{{ q.organisationName}}</div>
+          <div class="font-bold text-blue-700">{{ q.referenceByInquiryNo}}</div>
           <div class="text-[10px] text-gray-500">Inq: {{ q.referenceByInquiryNo || q.inquiryNo || '-' }}</div>
           <div class="text-[9px] text-gray-400 italic">{{ q.createdDate | date:'mediumDate' }}</div>
         </td>
 
         <!-- Customer & Location -->
+         <td class="p-3" (click)="redirectdata('org',q.organisationId)">
+          <div class="font-semibold uppercase text-green-600">{{ q.organisationName }}</div>
+        </td>
+        <td class="p-3" (click)="redirectdata('inq',q.inquiryId)">
+          <div class="font-semibold uppercase text-green-600">{{ q.referenceByInquiryNo }}</div>
+        </td>
+        <td class="p-3">
+          <div class="font-semibold uppercase text-gray-800">{{ q.customerName || q.organisationName }}</div>
+          
+        </td>
         <td class="p-3">
           <div class="font-semibold uppercase text-gray-800">{{ q.customerName || q.organisationName }}</div>
           <div class="text-[11px] text-blue-600 font-medium">📍 {{ q.location || 'N/A' }}</div>

@@ -20,6 +20,7 @@ import html2canvas from 'html2canvas';
 import { HostListener } from '@angular/core'; 
 import * as XLSX from 'xlsx';
 import { Subscription } from 'rxjs';
+import Swal from 'sweetalert2';
 @Component({
   selector: 'app-quotation-form',
   standalone: true,
@@ -399,6 +400,16 @@ console.error("Save error",err);
 });
 
 }
+showPricingDetails(item: any) {
+  const pId = item.pricingId || item.PricingId;
+  
+  if (pId) {
+    // Dashboard/Price page par navigate karein aur 'editId' query parameter bhejien
+    this.router.navigate(['/dashboard/Price'], { queryParams: { editId: pId } });
+  } else {
+    Swal.fire('Error', 'Pricing ID nahi mili is record ke liye.', 'error');
+  }
+}
 getMovementTypes() {
     // Hits: https://localhost:xxxx/api/MovementTypes
     this.http.get<any[]>(`${environment.apiUrl}/MovementTypes`).subscribe({
@@ -447,6 +458,7 @@ columnFieldMap:any = {
 'ID':'id',
 
 'Quotation No':'quotationNo',
+'Reference By Inquiry':'referenceByInquiry',
 
 'Organization':'organization',
 
@@ -520,9 +532,9 @@ columnFieldMap:any = {
 
 'Profit Percentage':'profitPercentage',
 
-'Reference By Inquiry':'referenceByInquiry',
 
-'Revenue Data':'revenueData',
+
+// 'Revenue Data':'revenueData',
 
 'Sales Coordinator':'salesCoor',
 
@@ -652,7 +664,7 @@ selectInquiry(inq: any) {
     console.error("Invalid inquiry data");
     return;
   }
-
+console.log(inq);
   // Basic fields
   this.quotation.referenceByInquiry = inq.inquiryNo || '';
   this.quotation.customerName = inq.customerName || '';
@@ -973,68 +985,175 @@ generateQuotationNo(): string {
   return `CAV/QTN/${initials}/${formattedNumber}/${fy}`;
 }
 saveQuotation() {
-  // 1. Token nikaalo (Directly from localStorage)
-    const token = localStorage.getItem('cavalier_token');
-    
-    if (!token) {
-        alert("Bhai, Session expire ho gaya hai. Please login fir se karein.");
-        return;
-    }
-
-    // 2. Headers mein Token set karo
-    const headers = new HttpHeaders({
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-    });
-    // ... (Aapki validation logic yahan rahegi)
-
-    // Data preparation for Backend
-    this.quotation.quotationNo = this.quotation.quotationNo;
-    this.quotation.revenueData = JSON.stringify(this.revenueRows);
-    this.quotation.costData = JSON.stringify(this.costRows);
-    this.quotation.dimensionsData = JSON.stringify(this.appliedDimensions);
-    
-    this.quotation.totalRevenue = this.totalRevFinal;
-    this.quotation.totalCost = this.totalCostFinal;
-    this.quotation.totalProfit = this.totalProfitFinal;
-    this.quotation.lineOfBusiness=String(this.quotation.lineOfBusiness);
-    this.quotation.commodity=String(this.quotation.commodity);
-
-    // 4. API Call - Swagger ke mutabiq Edit ke liye /update/id use kiya hai
-    
-
-const httpOptions = {
-  headers: new HttpHeaders({
-    Authorization: `Bearer ${token}`,
-    'Content-Type': 'application/json'
-  })
-};
-
-const request = this.quotation.id > 0 
-  ? this.http.put(`${this.apiEndpoint}/update/${this.quotation.id}`, this.quotation, httpOptions)
-  : this.http.post(this.apiEndpoint, this.quotation, httpOptions);
-
-request.subscribe({
-  next: () => {
-    alert(this.quotation.id > 0 
-      ? "Quotation Updated Successfully!" 
-      : "Quotation Saved Successfully!"
-    );
-
-    this.loadQuotations();
-    this.toggleForm();
-    this.cdr.detectChanges();                
-  },
-  error: (err) => {
-    console.error("Error details:", err);
-
-    if (err.status === 401) {
-      alert("Unauthorized! Token expired, login again.");
-    } else {
-      alert("Save failed! Check console for errors.");
-    }
+  const token = localStorage.getItem('cavalier_token');
+  if (!token) {
+    Swal.fire('Error', 'Session expire ho gaya hai. Login karein.', 'error');
+    return;
   }
-});
+
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  });
+  const httpOptions = { headers };
+
+  const validRevenueRows = this.revenueRows.filter(r => r.chargeName && r.chargeName.trim() !== '');
+  const validCostRows = this.costRows.filter(c => c.chargeName && c.chargeName.trim() !== '');
+
+  if (validRevenueRows.length === 0 && validCostRows.length === 0) {
+    Swal.fire('Incomplete Data', 'Valid Revenue or Cost items required!', 'warning');
+    return;
+  }
+
+  // --- Start SweetAlert Loading Animation ---
+  Swal.fire({
+    title: 'Processing Quotation...',
+    html: '<b>Step 1:</b> Saving main records...',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+
+  // 🔥 MAPPING LOGIC: Frontend variables ko Backend Model keys se match kiya hai
+  const payload = {
+    ...this.quotation,
+    pricingId: this.quotation.pricingId ? Number(this.quotation.pricingId) : null,
+   organisationId: this.quotation.organisationId ? Number(this.quotation.organisationId) : null,
+    organisationName: this.quotation.organisationName || this.quotation.organization,
+    // 1. Reference by Pricing
+    referenceByInquiry: this.quotation.referencePricingNo, 
+    
+    // 2. Sales Coordinator (ID to String)
+    salesCoor: String(this.quotation.salesCoordinator || ""), 
+    
+    // 3. No of Package & Weights (Numeric Conversion)
+    numOfPackages: Number(this.quotation.noOfPkgs || 0),
+    grossWeight: Number(this.quotation.grossWeightKg || 0),
+    chrgWeight: Number(this.quotation.chargeableWeight || 0),
+    volumeWeight: Number(this.quotation.volumeWeight || 0),
+    
+    // 4. IncoTerms & Movement
+    incoTerms: this.quotation.incoterm, 
+    movement: this.quotation.movementType, 
+    
+    // 5. Carrier & Transit Days
+    awbIssuedBy: this.quotation.awbIssuedBy, 
+    transitDest: this.quotation.transitDays ? `${this.quotation.transitDest} (${this.quotation.transitDays} Days)` : this.quotation.transitDest,
+    
+    // 6. Cargo Value Currency merge
+    cargoValue: `${this.quotation.currency} ${this.quotation.cargoValue}`,
+    
+    // 7. Pickup & Delivery Address merge (Org + Address)
+    pickupAddress: `Org: ${this.quotation.pickupOrg || ""}, Addr: ${this.quotation.pickupAddress || ""}`,
+    deliveryAddress: `Org: ${this.quotation.deliveryOrg || ""}, Addr: ${this.quotation.deliveryAddress || ""}`,
+
+    // JSON Data
+    revenueData: JSON.stringify(this.revenueRows),
+    costData: JSON.stringify(this.costRows),
+    dimensionsData: "", // Jaisa aapne kaha, isse save nahi karwana
+    
+    // Total Calculations
+    totalRevenue: this.totalRevFinal,
+    totalCost: this.totalCostFinal,
+    totalProfit: this.totalProfitFinal,
+    lineOfBusiness: String(this.quotation.lineOfBusiness),
+    commodity: String(this.quotation.commodity)
+  };
+
+  // 1. API Step 1: Save Quotation
+  const request = this.quotation.id > 0 
+    ? this.http.put(`${this.apiEndpoint}/update/${this.quotation.id}`, payload, httpOptions)
+    : this.http.post(this.apiEndpoint, payload, httpOptions);
+
+  request.subscribe({
+    next: (res: any) => {
+      const savedQtnId = res?.id || res?.data?.id || this.quotation.id;
+
+      Swal.update({
+        title: 'Revenue is Saving... ⏳',
+        html: '<b>Step 2:</b> Syncing Revenue items...'
+      });
+
+      // 2. Prepare Revenue Payload
+      const revenuePayload = validRevenueRows.map(r => ({
+        quotationId: savedQtnId,
+        lob: String(r.lob || payload.lineOfBusiness || ""),
+        chargeName: r.chargeName,
+        chargeType: r.chargeType,
+        basis: r.basis,
+        cur: r.currency,
+        rate: Number(r.rate) || 0,
+        exchangeRate: Number(r.exchangeRate) || 1,
+        amount: Number(r.amount) || 0
+      }));
+
+      this.http.post(`${this.apiEndpoint}/SaveQuotationRevenue`, revenuePayload, httpOptions).subscribe({
+        next: () => {
+          Swal.update({
+            title: 'Cast Is Saving... ⏳',
+            html: '<b>Step 3:</b> Finalizing Cost breakdowns...'
+          });
+
+          // 3. Prepare Cost Payload
+          const costPayload = validCostRows.map(c => ({
+            quotationId: savedQtnId,
+            lob: String(c.lob || payload.lineOfBusiness || ""),
+            chargeName: c.chargeName,
+            chargeType: c.chargeType,
+            basis: c.basis,
+            cur: c.currency,
+            rate: Number(c.rate) || 0,
+            exchangeRate: Number(c.exchangeRate) || 1,
+            amount: Number(c.amount) || 0
+          }));
+
+          this.http.post(`${this.apiEndpoint}/SaveQuotationCost`, costPayload, httpOptions).subscribe({
+            next: () => {
+              Swal.update({
+                title: 'Cost Analysis Ready ✅',
+                html: '<b>Step 4:</b> Generating P&L Summary...'
+              });
+
+              // 4. Prepare PnL Summary
+              const pnlPayload = this.pnLRows.map(p => ({
+                quotationId: savedQtnId,
+                lob: String(p.lob || ""),
+                chargeName: p.chargeName,
+                revenue: Number(p.revenue) || 0,
+                cost: Number(p.cost) || 0,
+                profit: Number(p.profit) || 0,
+                profitPercentage: Number(p.profitPercent) || 0
+              }));
+
+              this.http.post(`${this.apiEndpoint}/SavePnLSummary`, pnlPayload, httpOptions).subscribe({
+                next: () => {
+                  Swal.fire({
+                    icon: 'success',
+                    title: 'All Done! 🚀',
+                    text: 'SuccessFully Save!',
+                    timer: 2000,
+                    showConfirmButton: false
+                  });
+
+                  this.loadQuotations();
+                  this.toggleForm();
+                  this.cdr.detectChanges();
+                },
+                error: () => Swal.fire('Error', 'PnL Summary save fail hui.', 'warning')
+              });
+            },
+            error: () => Swal.fire('Error', 'Cost save fail hua.', 'error')
+          });
+        },
+        error: () => Swal.fire('Error', 'Revenue save fail hua.', 'error')
+      });
+    },
+    error: (err) => {
+      console.error(err);
+      Swal.fire('Failed', 'Main Quotation save nahi ho saki.', 'error');
+    }
+  });
 }
 
 editQuotation(q: any) {
@@ -2300,9 +2419,12 @@ selectPricing(prc: any) {
   }
 
   // Initial basic info
+  console.log(prc, "Selected Pricing Data:");
   this.quotation.referencePricingNo = prc.pricingNo || '';
   this.quotation.customerName = prc.customerName || '';
-  this.quotation.organisationName = prc.organisationName || '';
+  this.quotation.pricingId = prc.id;
+  this.quotation.organisationId = prc.organisationId || prc.OrganisationId;
+  this.quotation.organisationName = prc.organisationName;
   this.quotation.organization = prc.organisationName || ''; 
 
   this.showPricingDropdown = false;

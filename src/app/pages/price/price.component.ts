@@ -5,7 +5,7 @@ import { ChangeDetectorRef, Component, ElementRef, HostListener, OnInit, ViewChi
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http'; 
 import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -405,9 +405,32 @@ organizations: any[] = [];
   searchDone: boolean = false; // Shuru mein false rahega
   uploadedDocuments: any[] = [];
     // Ye line add karein
-    constructor(private http: HttpClient, private router: Router,private cdr: ChangeDetectorRef,private branchservice:BranchService,public userServices:UserService,public CheckPermissionService:CheckPermissionService,private sanitizer: DomSanitizer,private eRef: ElementRef,) {}
-
+    constructor(private http: HttpClient, private router: Router,private cdr: ChangeDetectorRef,private branchservice:BranchService,public userServices:UserService,public CheckPermissionService:CheckPermissionService,private sanitizer: DomSanitizer,private eRef: ElementRef,private route: ActivatedRoute) {}
+orgData: any = null;
+  isLoading: boolean = true;
     ngOnInit() {
+      this.route.queryParams.subscribe(params => {
+    const editId = params['editId'];
+    if (editId) {
+      console.log("URL se Edit ID mili:", editId);
+      this.loadPricingForEdit(editId);
+    }
+  });
+      const idFromUrl = this.route.snapshot.paramMap.get('id');
+    
+    // Aapki purani list wali API call kar rahe hain
+    this.http.get<any[]>(`${environment.apiUrl}/Organization/list`).subscribe({
+      next: (allOrgs) => {
+        // List mein se wo wali Org dhoond rahe hain jiski ID match kare
+        this.orgData = allOrgs.find(o => o.id == idFromUrl || o.Id == idFromUrl);
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error("Error loading orgs", err);
+        this.isLoading = false;
+      }
+    });
+  
       this.PermissionID = Number(localStorage.getItem('permissionID'));
       console.log("Direct API call trigger ho rahi hai...");
    this.getsales();
@@ -480,6 +503,38 @@ portOfLoading() {
     },
     error: (err) => {
       console.error("Error loading Port of Loading:", err);
+    }
+  });
+}
+loadPricingForEdit(id: any) {
+  const token = localStorage.getItem('cavalier_token');
+  const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+
+  // Pura data fetch karne ke liye API call (Aapke controller ka specific GET endpoint)
+  this.http.get(`${environment.apiUrl}/Pricing/${id}`, { headers }).subscribe({
+    next: (data: any) => {
+      if (data) {
+        // 1. Quotation object mein data bharo
+        this.quotation = { ...data };
+        
+        // 2. Form open kar do
+        this.isFormOpen = true;
+
+        // 3. Agar table data parse karna ho (Jaise Revenue/Cost)
+        if (data.costBreakdowns) {
+          this.costRows = data.costBreakdowns;
+        }
+        if (data.multiCarrierBreakdowns) {
+          this.multiCarrierRows = data.multiCarrierBreakdowns;
+        }
+
+        this.cdr.detectChanges();
+        console.log("Edit Form automatically opened for ID:", id);
+      }
+    },
+    error: (err) => {
+      console.error("Pricing load fail:", err);
+      Swal.fire('Error', 'Data load karne mein problem aayi.', 'error');
     }
   });
 }
@@ -3524,5 +3579,11 @@ deletePricing(id: number) {
       });
     }
   });
+}
+goToOrganization(id: any) {
+  if (id) {
+    // Ye Angular router ko bypass karke browser se redirect karega
+    window.location.href = `/dashboard/organization-add/${id}`;
+  }
 }
 }

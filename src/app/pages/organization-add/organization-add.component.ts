@@ -1694,14 +1694,12 @@ onSearch() {
   }
 
   // --- 🔥 HIDE/SHOW LOGIC ---
-  // Agar blank search hai (koi filter nahi), toh getOrgList call hoga aur table dikhegi
   if (Object.keys(finalFilters).length === 0) {
     this.showTable = true;
     this.getOrgList();
     return;
   }
 
-  // Agar filters hain, toh table dikhao aur niche API call hone do
   this.showTable = true;
 
   // --- 🔥 REST OF YOUR CODE (NO CHANGES) ---
@@ -1767,6 +1765,9 @@ resetFilters() {
     orgName: '',
     city: '',
     branchName: '',
+// branchName: '', // Aapke purane code wala
+    branch: '',     // Extra safety ke liye
+    branchId: '',
     orgGroup: '',
     orgType: '',
     status: 'Both'

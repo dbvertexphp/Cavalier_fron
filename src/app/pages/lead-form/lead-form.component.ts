@@ -1535,36 +1535,44 @@ selectLeadSalesStage(stage: string): void {
 resetLeadFilters() {
   this.leadSearchFilters = {
     leadNo: '',
-    date: "",
+    date: '', // 👈 "" hi rakha hai taaki Type Error na aaye
     organizationName: '',
     type: 'Any',
     leadOwner: 'Any',
     salesProcess: '',
     salesStage: '',
-    hod:'',
-    team:'',
-    reportingManager:'',
-    status:'Any',
-    branch:''
+    hod: '',
+    team: '',
+    reportingManager: '',
+    status: 'Any',
+    branch: ''
   };
 
   const resetPayload = {
     leadNo: '',
-    date: null,
+    date: null, // Payload mein null bhej sakte hain backend ke liye
     organizationName: '',
     type: '',
     leadOwner: '',
     salesProcess: '',
     salesStage: '',
-    team:''
+    team: ''
   };
 
   this.http.post<any[]>(`${environment.apiUrl}/Leads/Search`, resetPayload)
     .subscribe({
       next: (response) => {
         this.leads = response || [];
+        
+        // 🔥 Ye sabse important hai: Manual Change Detection
+        // Ye UI ke saare inputs (including date) ko forcibly clear dikhayega
+        this.cdr.markForCheck(); 
         this.cdr.detectChanges();
-        console.log("✅ Leads Table Restored");
+        
+        console.log("✅ Leads Table Restored and Filters Cleared");
+      },
+      error: (err) => {
+        console.error("❌ Reset failed:", err);
       }
     });
 }

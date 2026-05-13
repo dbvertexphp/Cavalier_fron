@@ -759,9 +759,26 @@
     <tr *ngFor="let q of paginatedQuotations" (dblclick)="editQuotation(q)"
       class="hover:bg-gray-50 border-b text-gray-700 cursor-pointer transition-colors">
       
-      <td *ngFor="let col of selectedColumns" class="p-4">
-        {{ q[col] }}
-      </td>
+     <td *ngFor="let col of selectedColumns" class="p-4">
+  <!-- Check agar column 'referenceByInquiry' hai -->
+  <div *ngIf="col === 'referenceByInquiry'">
+    <!-- Button hat gaya hai, ab sirf text clickable hai -->
+    <span 
+      (click)="$event.stopPropagation(); showPricingDetails(q)" 
+      class="text-blue-600 font-bold hover:text-blue-800 hover:underline cursor-pointer transition-all flex items-center gap-1"
+      title="Click to Edit Pricing"
+    >
+      {{ q[col] }}
+      <!-- Chhota icon taaki user ko pata chale ki ye clickable link hai -->
+      <i class="fa fa-external-link-alt text-[9px] opacity-70"></i>
+    </span>
+  </div>
+
+  <!-- Baki saare normal columns -->
+  <div *ngIf="col !== 'referenceByInquiry'">
+    {{ q[col] }}
+  </div>
+</td>
 
       <td class="p-4 sticky right-0 bg-white border-l text-center flex items-center justify-center gap-2">
         <!-- Raw Value: {{ q.status }} | {{ q.Status }} -->

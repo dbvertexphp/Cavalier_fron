@@ -1156,51 +1156,126 @@ saveQuotation() {
   });
 }
 
+// Naya function: Pehle API call karega fir autofill
+loadQuotationForEdit(id: number) {
+  const token = localStorage.getItem('cavalier_token');
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`
+  });
+
+  // 1. Backend ki specific ID wali API call (Jo aapne upar di hai)
+  this.http.get<any>(`${this.apiEndpoint}/${id}`, { headers }).subscribe({
+    next: (data) => {
+      console.log("✅ Fresh Quotation Data Received:", data);
+      // 2. Data milte hi aapka existing autofill logic trigger kar do
+      this.editQuotation(data);
+      this.cdr.detectChanges(); // Ensure UI updates with new data
+    },
+    error: (err) => {
+      console.error("❌ Error fetching quotation:", err);
+      Swal.fire('Error', 'Data load karne mein problem aayi!', 'error');
+    }
+  });
+}
+
+// Aapka existing editQuotation logic (Isme koi change nahi, bas call upar se ho rahi hai)
 editQuotation(q: any) {
+  console.warn("Editing Quotation Data:", q);
+  
+  // 1. Form Open karein
   this.isFormOpen = true;
 
-  // 1. Basic details copy
-  this.quotation = { ...q };
+  // 2. Base Model Mapping (Backend keys to Frontend ngModel)
+  this.quotation = {
+    ...q,
+    // ID Mapping (Dropdowns ke liye string/number sync)
+    // commodity: q.commodity ? Number(q.commodity) : null,
+    chargeableWeight: q.chrgWeight || 0,
+    grossWeightKg: q.grossWeight || q.grossWeightKg || 0,
+    salesCoordinator: q.salesCoor ? Number(q.salesCoor) : null,
+    commodity: q.commodity ? Number(q.commodity) : null, // "15" ko select karne ke liye
+    lineOfBusiness: q.lineOfBusiness ? q.lineOfBusiness.toString() : "",
+    
+    // Carrier Name Mapping
+    awbIssuedBy: q.awbIssuedBy || "", 
+    
+    // Service Required Mapping
+    isServiceRequired: q.isServiceRequired === true,
 
-  // 2. Date Formatting Fix (ISO to yyyy-MM-dd)
-  // Input type="date" ke liye string ko slice karna zaroori hai
-  if (q.validFrom) {
-    this.quotation.validFrom = q.validFrom.split('T')[0];
+    // Weight & CBM Mapping
+    volumeWeight: Number(q.volumeWeight) || 0,
+    volumeWeightUnit: q.volumeWeightUnit || "KGS",
+    cbm: q.cbmWeight || (Number(q.volumeWeight) ? parseFloat((q.volumeWeight / 167).toFixed(3)) : 0),
+
+    // Movement & Terms
+    movementType: q.movement || q.movementType || '',
+    incoterm: q.incoTerms || q.incoterm || '',
+    referencePricingNo: q.referenceByInquiry || ''
+  };
+if (q.transitDest && q.transitDest.includes('(')) {
+    // Location nikalne ke liye '(' se pehle ka part split karein
+    this.quotation.transitDest = q.transitDest.split(' (')[0].trim();
+    
+    // Days nikalne ke liye Regex use karein jo brackets ke beech ka number nikale
+    const daysMatch = q.transitDest.match(/\((.*?) Days\)/);
+    if (daysMatch && daysMatch[1]) {
+      this.quotation.transitDays = daysMatch[1].trim(); // Isme '32' aa jayega
+    }
+  } else {
+    this.quotation.transitDest = q.transitDest || '';
+    this.quotation.transitDays = '';
   }
-  if (q.validTill) {
-    this.quotation.validTill = q.validTill.split('T')[0];
+  // 3. Pickup Address Splitting (Org aur Addr alag fields mein)
+  if (q.pickupAddress && q.pickupAddress.includes(', Addr:')) {
+    const pParts = q.pickupAddress.split(', Addr:');
+    this.quotation.pickupOrg = pParts[0].replace('Org:', '').trim();
+    this.quotation.pickupAddress = pParts[1].trim();
+  } else {
+    this.quotation.pickupAddress = q.pickupAddress || '';
   }
 
-  // 3. Revenue Table data
-  const revData = q.revenueData || q.RevenueData;
-  if (revData) {
-    try {
-      this.revenueRows = typeof revData === 'string' ? JSON.parse(revData) : revData;
-    } catch (e) { console.error("Error revenueData", e); }
+  // 4. Delivery Address Splitting
+  if (q.deliveryAddress && q.deliveryAddress.includes(', Addr:')) {
+    const dParts = q.deliveryAddress.split(', Addr:');
+    this.quotation.deliveryOrg = dParts[0].replace('Org:', '').trim();
+    this.quotation.deliveryAddress = dParts[1].trim();
+  } else {
+    this.quotation.deliveryAddress = q.deliveryAddress || '';
   }
 
-  // 4. Cost Table data
-  const cstData = q.costData || q.CostData;
-  if (cstData) {
-    try {
-      this.costRows = typeof cstData === 'string' ? JSON.parse(cstData) : cstData;
-    } catch (e) { console.error("Error costData", e); }
+  // 5. Date Formatting (YYYY-MM-DD)
+  if (q.validFrom) this.quotation.validFrom = q.validFrom.split('T')[0];
+  if (q.validTill) this.quotation.validTill = q.validTill.split('T')[0];
+  if (q.cargoStatus === 'Ready' || q.cargoStatus === 'Ready By') {
+     this.quotation.cargoReadyDate = q.validFrom ? q.validFrom.split('T')[0] : null;
   }
 
-  // 5. Dimensions data
+  // 6. Tables Data Parsing (JSON string parse)
+  if (q.revenueData) {
+    try { 
+      this.revenueRows = typeof q.revenueData === 'string' ? JSON.parse(q.revenueData) : q.revenueData; 
+    } catch (e) { this.revenueRows = []; }
+  }
+  if (q.costData) {
+    try { 
+      this.costRows = typeof q.costData === 'string' ? JSON.parse(q.costData) : q.costData; 
+    } catch (e) { this.costRows = []; }
+  }
+
+  // 7. Dimensions Logic
   const dimData = q.dimensionsData || q.DimensionsData;
   if (dimData) {
     try {
       this.appliedDimensions = typeof dimData === 'string' ? JSON.parse(dimData) : dimData;
       this.dimRows = this.appliedDimensions.length > 0 ? [...this.appliedDimensions] : [{ box: null, l: null, w: null, h: null, unit: 'CMS' }];
-    } catch (e) { console.error("Error dimensionsData", e); }
+    } catch (e) { this.dimRows = [{ box: null, l: null, w: null, h: null, unit: 'CMS' }]; }
   }
 
-  // 6. Totals refresh
+  // 8. Refresh All Totals and UI
   setTimeout(() => {
     this.calculateAll();
     this.cdr.detectChanges();
-  }, 100);
+  }, 200);
 }
 
 // Constructor mein inject karein

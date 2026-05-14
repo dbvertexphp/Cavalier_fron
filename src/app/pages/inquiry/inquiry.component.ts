@@ -1135,44 +1135,101 @@ openDimModal() {
   this.isDimModalOpen = true;
 }
     
-   editQuotation(q: any) {
-  // 1. Backend data ko model mein map karein
+ editQuotation(q: any) {
+  console.warn('Backend Data for Autofill:', q);
+
+  // 1. Pura data copy karein
   this.quotation = { ...q };
 
-  // 2. IMPORTANT: IDs ko numbers mein convert karein (Mapping Fix)
-  this.quotation.lineOfBusinessId = q.lineOfBusinessId ? Number(q.lineOfBusinessId) : null;
-  this.quotation.originId = q.originId ? Number(q.originId) : null;
+  // 2. Transport Mode Fix (Dropdown autoselect)
+  // Backend se 'transportMode': 'Air' aa raha hai, par HTML 'TransportMode' (Capital T) mang raha hai
+  this.quotation.TransportMode = q.transportMode; 
+  if (q.transportType) {
+    this.quotation.TransportType = q.transportType.charAt(0).toUpperCase() + q.transportType.slice(1).toLowerCase();
+  }
+  // Agar aapki list ID based hai toh ye use karein:
+  const modeObj = this.transportModes.find(m => m.name.toLowerCase() === (q.transportMode || '').toLowerCase());
+  if (modeObj) {
+    this.quotation.TransportMode = modeObj.id;
+  }
+if (q.salesCoordinator) {
+    this.quotation.salesCoordinator = q.salesCoordinator.toString();
+    // Forcefully list check (Optional but safe)
+    const coordinatorExists = this.getsalescordinate.find(sc => sc.id.toString() === q.salesCoordinator.toString());
+    if (coordinatorExists) {
+      this.quotation.salesCoordinator = coordinatorExists.id.toString();
+    }
+  }
+  // 3. Commodity & Currency Fix (Cargo Value select)
+  // Backend se 'commodityId': 15 aa raha hai, HTML 'commodity' mang raha hai
+  this.quotation.commodity = q.commodityId ? Number(q.commodityId) : null;
+  this.quotation.currency = q.cargoCurrency; // ¥ CNY - Chinese Yuan direct select hoga agar option value match hui
+
+  // 4. Origin & Country Fix
+  this.originsaveid = q.originId ? Number(q.originId) : 0;
+  this.quotation.country = q.countryName; 
+  this.selectedCountryName = q.countryName; // Payload safety ke liye
+
+  // 5. Port of Loading & Discharge (Display Fix)
+  // Sirf ID se input box mein naam nahi dikhta, isliye manually naam set karenge
   this.quotation.portOfLoadingId = q.portOfLoadingId ? Number(q.portOfLoadingId) : null;
   this.quotation.portOfDischargeId = q.portOfDischargeId ? Number(q.portOfDischargeId) : null;
 
-  // 3. UI object (this.inquiry) ko update karein 
-  // Agar aapke HTML mein [ngModel]="inquiry.origin" hai toh ye zaroori hai
+  // Ports ki list se naam nikaal kar input boxes mein bharna (Display ke liye)
+  const pol = this.portsOfLoading.find(p => p.id == q.portOfLoadingId);
+  if (pol) this.quotation.portOfLoading = pol.name || pol.portName;
+
+  const pod = this.portsOfDischarge.find(p => p.id == q.portOfDischargeId);
+  if (pod) this.quotation.portOfDestination = pod.name || pod.portName;
+
+  // 6. UI Specific Mapping (this.inquiry object)
   this.inquiry = {
-    ...this.inquiry, // purani properties bachane ke liye
+    ...this.inquiry,
     inquiryNo: q.inquiryNo,
-    organization: q.customerName || q.organization,
-    origin: q.origin, // text representation
-    leadNo: q.leadNo
+    organization: q.organisationName || q.customerName,
+    origin: q.location || q.originName || q.origin, // Origin text box fix
+    leadNo: q.leadName || q.leadNo
   };
 
-  // 4. Dates handling
+  // 7. IDs to Strings (Dropdowns ke liye: Branch & Coordinator)
+  this.quotation.branchName = q.branchId ? q.branchId.toString() : q.branchName;
+  this.quotation.salesCoordinator = q.salesCoordinator ? q.salesCoordinator.toString() : '';
+
+  // 8. Date Formatting (HTML5 standard 'YYYY-MM-DD')
   if (q.receivedDate) {
     this.quotation.receivedDate = new Date(q.receivedDate).toISOString().split('T')[0];
   }
+  if (q.cargoStatusDate) {
+    this.quotation.cargoStatusDate = new Date(q.cargoStatusDate).toISOString().split('T')[0];
+  }
+  if (q.repliedDate && q.repliedDate !== '2000-02-12T00:00:00') {
+    this.quotation.repliedDate = new Date(q.repliedDate).toISOString().split('T')[0];
+  }
 
-  // 5. Dimensions parsing
-  this.appliedDimensions = q.dimensions || [];
-  this.dimRows = this.appliedDimensions.length > 0 
-    ? [...this.appliedDimensions] 
-    : [{ box: 1, l: 0, w: 0, h: 0, unit: 'CMS' }];
+  // 9. Dimensions Handling
+  if (q.dimensions && q.dimensions.length > 0) {
+    this.appliedDimensions = [...q.dimensions];
+    this.dimRows = [...q.dimensions];
+    this.dimRow = { ...q.dimensions[0] }; // Pehli row bahar dikhane ke liye
+  } else {
+    this.dimRows = [{ box: 1, l: 0, w: 0, h: 0, unit: 'CMS' }];
+  }
 
-  // 6. Modal open karein
+  // 10. Logic Flags (UI states)
+  const incoterm = (q.incoterm || '').toUpperCase();
+  this.isPickupEnabled = (incoterm === 'EXWORK');
+  this.isDeliveryEnabled = ['DDP', 'DDU', 'DAP'].includes(incoterm);
+  this.showincoterms = incoterm;
+  this.selectcommodityvalue = q.commodityName || '';
+
+  // 11. Final UI Update
   this.isFormOpen = true;
+  this.cdr.detectChanges();
 
-  // 7. Forcefully Angular ko batayein ki data update hua hai
+  // Rendering delay safety
   setTimeout(() => {
     this.cdr.detectChanges();
-  }, 100);
+  }, 300);
 }
 
 

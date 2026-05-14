@@ -794,7 +794,7 @@
           <span>{{ q.status === 1 ? 'Active' : 'Inactive' }}</span>
         </button>
 
-        <button (click)="editQuotation(q)"
+        <button (click)="loadQuotationForEdit(q.id)"
           *ngIf="CheckPermissionService.hasPermission(PermissionID, 'Edit')"
           class="text-blue-600 font-bold uppercase hover:underline text-[11px]">
           Edit

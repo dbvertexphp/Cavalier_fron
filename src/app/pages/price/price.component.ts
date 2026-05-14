@@ -3427,10 +3427,76 @@ redirectdata(type: any, id: any) {
 // 1. Edit Function
 editPricing(pricing: any) {
   console.log("Editing Pricing:", pricing);
-  this.quotation = { ...pricing }; // Sara data quotation object mein bhar do
-  this.isFormOpen = true; // Form open kar do
+
+  // 1. Pehle pura data copy karein
+  this.quotation = { ...pricing };
+
+  // 2. Transport Mode Fix (Dropdown Autoselect)
+  // Backend se "Air" aa raha hai, agar aapka dropdown ID (1, 2, 3) mangta hai:
+  if (pricing.transportMode) {
+    const modeObj = this.transportModes.find(m => 
+      m.name.toLowerCase() === pricing.transportMode.toLowerCase()
+    );
+    // Agar list mein mil gaya toh ID set karein, warna direct string
+    this.quotation.TransportMode = modeObj ? modeObj.id : pricing.transportMode;
+  }
+
+  // 3. Transport Type Fix (Import/Export)
+  this.quotation.TransportType = pricing.transportType;
+
+  // 4. Currency Fix (Cargo Value select)
+  this.quotation.currency = pricing.cargoCurrency;
+
+  // 5. Origin Name Display (Searchable input)
+  this.inquiry.origin = pricing.originName;
+  this.originsaveid = pricing.originId;
+
+  // 6. Port Loading/Discharge Fix
+  // Agar UI box mein naam nahi dikh raha toh ye zaroori hai:
+  this.quotation.portOfLoading = pricing.portOfLoadingName || "";
+  this.quotation.portOfDestination = pricing.portOfDischargeName || "";
+  
+  // Mapping IDs for dropdowns
+  this.quotation.portOfLoadingId = pricing.portOfLoadingId;
+  this.quotation.portOfDischargeId = pricing.portOfDischargeId;
+
+  // 7. Organization & Inquiry Ref
+  this.inquiry.organization = pricing.organisationName || pricing.customerName;
+  this.quotation.referenceByInquiry = pricing.referenceByInquiryNo;
+
+  // 8. Date Formatting (YYYY-MM-DD)
+  if (pricing.receivedDate) {
+    this.quotation.receivedDate = pricing.receivedDate.split('T')[0];
+  }
+  if (pricing.cargoStatusDate) {
+    this.quotation.cargoStatusDate = pricing.cargoStatusDate.split('T')[0];
+  }
+
+  // 9. Tables Data (Cost & Multi-Carrier)
+  this.costRows = pricing.costBreakdowns && pricing.costBreakdowns.length > 0 
+    ? [...pricing.costBreakdowns] 
+    : [{ lob: 'Standard', chargeName: '', chargeType: 'Prepaid', basis: 'Per KG', currency: 'INR', rate: 0, exchangeRate: 1, amount: 0 }];
+
+  this.multiCarrierRows = pricing.multiCarrierBreakdowns && pricing.multiCarrierBreakdowns.length > 0 
+    ? [...pricing.multiCarrierBreakdowns] 
+    : [this.createEmptyRow()];
+
+  // 10. Dimensions capture
+  if (pricing.dimensions && pricing.dimensions.length > 0) {
+    this.dimRows = [...pricing.dimensions];
+    this.dimRow = { ...pricing.dimensions[0] };
+    this.appliedDimensions = [...pricing.dimensions];
+  }
+
+  // Final: Open Form & Detect Changes
+  this.isFormOpen = true;
   this.cdr.detectChanges();
-} 
+
+  // Safety timeout for nested dropdowns
+  setTimeout(() => {
+    this.cdr.detectChanges();
+  }, 200);
+}
 sendBulkEmails(inqId: number) {
   const payload = {
    toEmails: Array.from(this.selectedEmails),

@@ -107,17 +107,17 @@ canActivate: [authGuard],
       {
         path: 'salecrm/qoutation',
         component: QuotationFormComponent,
-        canActivate: [authGuard],
+        
       },
       {
         path: 'salescrm/lead',
         component: LeadFormComponent,
-        canActivate: [authGuard],
+        
       },
       {
         path: 'salescrm/inquiry',
         component: InquiryComponent,
-        canActivate: [authGuard],
+       
       },
       {
         path: 'transport-mode',
@@ -208,7 +208,7 @@ canActivate: [authGuard],
           { path: 'Consignee',                          //list of unit
         component:ConsigneeComponent,canActivate: [authGuard],  }, 
            { path: 'Price',                          //list of unit
-        component:PriceComponent,canActivate: [authGuard],   }, 
+        component:PriceComponent,   }, 
         
     
       {

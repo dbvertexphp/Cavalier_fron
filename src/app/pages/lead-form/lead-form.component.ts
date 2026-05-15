@@ -116,7 +116,7 @@ goToPage(page: number) {
     }
   });
     this.loadBranchess()
-    this.loadDropdownData()
+    // this.loadDropdownData()
     this.loadLeadOwners();
     this.getSalesProcesses();
     this.getLeadOwners();
@@ -254,7 +254,7 @@ getSalesCoordinators() {
   this.http.get<any[]>(`${environment.apiUrl}/SalesCoordinators`).subscribe({
     next: (res) => {
       this.salesCoordinators = res;
-      console.log('API Response:', res); // Check karo array hai ya object
+    
   this.salesCoordinators = res;
     },
     error: (err) => console.error('Sales Coordinator load karne mein error:', err)
@@ -270,7 +270,7 @@ onEditLead(id: any) {
 
   this.http.get<any>(url).subscribe({
     next: (lead) => {
-      console.log("Lead data received:", lead);   // Debugging ke liye
+      
 
       this.isEditMode = true;
       this.selectedLeadId = id;
@@ -328,7 +328,7 @@ onOrgClick(orgId: any, orgName: string) {
 }
 getBranches() {
   this.http.get<any[]>(`${environment.apiUrl}/branch/list`).subscribe(res => {
-    console.log("Branch Data:", res); // 👈 Ye check karo console mein ki 'name' ki jagah kya likha hai
+    
     this.branches = res;
   });
 }
@@ -385,8 +385,7 @@ event.currentIndex
 );
 
 }
-console.log("Available Columns:", this.availableColumns);
-console.log("Selected Columns:", this.selectedColumns);
+
 
 // 🔥 table turant refresh
 this.cdr.detectChanges();
@@ -395,13 +394,12 @@ this.cdr.detectChanges();
     selectedColumns: JSON.stringify(this.selectedColumns)
   };
 
-  console.log("Available Columns:", this.availableColumns);
-  console.log("Selected Columns:", this.selectedColumns);
+  
 
   this.http.post(`${environment.apiUrl}/LeadColumnSettings/save`, payload)
   .subscribe({
     next:(res)=>{
-      console.log("Column Settings Saved:", res);
+     
     },
     error:(err)=>{
       console.error("Save error",err);
@@ -481,8 +479,7 @@ loadColumnSettings() {
 
       this.cdr.detectChanges();
 
-      console.log("Available Columns:", this.availableColumns);
-      console.log("Selected Columns:", this.selectedColumns);
+   
 
     },
 
@@ -518,7 +515,7 @@ initSearchForm() {
 
         this.updatePagination();
         this.cdr.detectChanges(); // Ensure UI updates after data load
-        console.log('Leads loaded:', res);
+      
 
         // Next Lead Number calculate
         this.calculateNextLeadNo();
@@ -565,7 +562,7 @@ initSearchForm() {
   const nextNumber = maxNumber + 1;
   this.nextLeadNo = `CAV/LEAD/${nextNumber.toString().padStart(4, '0')}`;
   this.leadForm.patchValue({ leadNo: this.nextLeadNo });
-  console.log('Next Lead No generated:', this.nextLeadNo);
+  
 }
 
 onDeleteLead(id: any) {
@@ -578,13 +575,13 @@ onDeleteLead(id: any) {
     this.http.delete(`${environment.apiUrl}/Leads/${id}`, { responseType: 'text' })
       .subscribe({
         next: (res) => {
-          console.log('Delete response:', res);
+         
           
           // 2. Alert ko baad mein dikhao taaki UI na ruke
           setTimeout(() => {
             this.loadLeads(); // Backend se sync
             this.cdr.detectChanges();
-            console.log('Lead Deleted Successfully!');
+            
           }, 100);
         },
         error: (err) => {
@@ -917,7 +914,7 @@ onOrgSearchForFilters(event: Event): void {
 selectOrgForFilters(org: any): void {
   // 1. --- CHANGED: Direct control access for faster update ---
   this.searchForm.controls['organizationName'].setValue(org.orgName);
-  console.log("Selected Organization for Filter:", org.orgName);
+ 
 
   // 2. Dropdown suggestions ko khali karein
   this.filteredOrganizations = [];
@@ -1216,8 +1213,7 @@ this.managerUniqueList = [...new Set(data
   .filter(val => val && val.toString().trim() !== '')
 )];
 
-          console.log("✅ HOD Unique List Loaded:", this.hodUniqueList);
-          console.log("✅ owner Unique List Loaded:", this.leadOwnerList);
+         
           this.cdr.detectChanges(); 
         }
       },
@@ -1385,7 +1381,7 @@ onLeadSearch() {
   
   // 2. Date picking
   let rawDate = this.leadForm.get('date')?.value || this.leadSearchFilters.date || ""; 
-  console.log("📅 [DEBUG] Original Date from Form/Filter:", rawDate);
+  
 
   // --- Logic: Check for Today ---
   const today = new Date();
@@ -1420,7 +1416,7 @@ onLeadSearch() {
       Status: '',
       Date: '' 
     };
-    console.log("🎯 [DEBUG] Sending Priority LeadNo Search:", filtersToSend);
+   
   } else {
     filtersToSend = {
       LeadNo: '',
@@ -1438,18 +1434,18 @@ onLeadSearch() {
                : this.leadSearchFilters.status.toString().toLowerCase(),
       Date: searchDate 
     };
-    console.log("🔍 [DEBUG] Sending Multi-Filter Search:", filtersToSend);
+   
   }
 
   const token = localStorage.getItem('cavalier_token');
   const headers = { 'Authorization': `Bearer ${token}` };
 
-  console.log("🚀 [DEBUG] Final Payload being sent to API:", JSON.stringify(filtersToSend));
+  
 
   this.http.post<any[]>(`${environment.apiUrl}/Leads/Search`, filtersToSend, { headers })
     .subscribe({
       next: (response) => {
-        console.log("✅ [DEBUG] API Response Count:", response ? response.length : 0);
+       
         let results = response ? [...response] : [];
         
         if (searchInput && results.length > 0) {
@@ -1467,7 +1463,7 @@ onLeadSearch() {
         setTimeout(() => { this.cdr.detectChanges(); }, 0);
         
         if (this.leads.length === 0) {
-          console.warn("ℹ️ [DEBUG] No leads found for these filters.");
+          
           alert("No data found In db.");
         }
       },
@@ -1508,7 +1504,7 @@ private executeGlobalSearch(targetNo: string | null) {
 
         this.leads = results;
         this.cdr.detectChanges();
-        console.log("🌐 Global Search complete. Leads sorted by priority.");
+        
       }
     });
 }
@@ -1569,7 +1565,7 @@ resetLeadFilters() {
         this.cdr.markForCheck(); 
         this.cdr.detectChanges();
         
-        console.log("✅ Leads Table Restored and Filters Cleared");
+        
       },
       error: (err) => {
         console.error("❌ Reset failed:", err);
@@ -1753,7 +1749,7 @@ downloadLeadsExcel() {
   // 5. File Save karein
   XLSX.writeFile(wb, `Lead_Report_${new Date().getTime()}.xlsx`);
   
-  console.log("✅ Excel Downloaded Successfully");
+  
 }
 // --- Pagination Variables ---
 // currentPage: number = 1;
@@ -1885,7 +1881,7 @@ onHODSearchType(event: Event): void {
     hod.toLowerCase().includes(value)
   );
 
-  console.log("🎯 HOD Matches Found:", this.filteredHODSuggestions);
+ 
 }
 
 // 3. Selection Logic (Dono Dropdown aur Modal ke liye common)
@@ -1901,7 +1897,7 @@ selectHOD(hodName: string): void {
   // Angular ko batayein ki UI update karni hai
   this.cdr.detectChanges();
 
-  console.log("HOD Selected:", hodName);
+  
 }
 
 // 4. Modal Inner Search (Modal ke andar filtering ke liye)
@@ -2000,7 +1996,7 @@ selectLeadOwner(ownerName: string): void {
   this.modalOwnerSearchText = '';    // Modal search clear
   
   this.cdr.detectChanges();
-  console.log("Owner Selected:", ownerName);
+ 
 }
 
 // 4. Modal Inner Search (Modal ke andar filtering ke liye)
@@ -2232,7 +2228,7 @@ loadOrganizationList() {
   // 1. Token nikalo
   const token = localStorage.getItem('cavalier_token'); 
   if (!token) {
-    console.warn("Bhai login token nahi mila!");
+    
     return;
   }
 
@@ -2249,7 +2245,7 @@ loadOrganizationList() {
       this.orgList = res; 
       this.showOrgDropdown = true; 
       this.cdr.detectChanges(); 
-      console.log(res, "Organization list loaded with token");
+      
     },
     error: (err) => {
       console.error("Organization fetch error:", err);
@@ -2305,8 +2301,11 @@ loadLeadOwners(): void {
     next: (res: any) => {
       // Data assign kiya jo virtual scroll handle karega
       this.hodList = res; 
+      this.leadOwners = res;
+      this.salesCoordinators = res;
+      this.reportingManagers = res;
       
-      console.log('HOD List Loaded:', res);
+    
       
       // UI update karne ke liye
       this.cdr.detectChanges(); 
@@ -2316,25 +2315,25 @@ loadLeadOwners(): void {
     }
   });
 }
-loadDropdownData(): void {
-  this.userServices.getUsers('onlyuserdata').subscribe({
-    next: (data: any) => {
-      // Data assign kiya
-      this.leadOwners = data;
-      this.salesCoordinators = data;
-      this.reportingManagers = data;
-      this.hodList = data;
+// loadDropdownData(): void {
+//   this.userServices.getUsers('onlyuserdata').subscribe({
+//     next: (data: any) => {
+//       // Data assign kiya
+//       this.leadOwners = data;
+//       this.salesCoordinators = data;
+//       this.reportingManagers = data;
+//       this.hodList = data;
       
-      console.log('Data loaded, triggering change detection...');
+      
 
-      // 3. Ye magic line hai jo UI turant update kar degi
-      this.cdr.detectChanges(); 
-    },
-    error: (err) => {
-      console.error('API Error:', err);
-    }
-  });
-}
+//       // 3. Ye magic line hai jo UI turant update kar degi
+//       this.cdr.detectChanges(); 
+//     },
+//     error: (err) => {
+//       console.error('API Error:', err);
+//     }
+//   });
+// }
 
 branchList: any[] = [];           
   filteredBranchSuggestions: any[] = []; 
@@ -2346,7 +2345,7 @@ branchList: any[] = [];
 
     this.http.get(fullUrl).subscribe({
       next: (res: any) => {
-        console.log("API Success Response:", res);
+        
 
         // API response format handle karna
         const data = Array.isArray(res) ? res : (res.data || res.result || []);
@@ -2398,7 +2397,7 @@ confirmSelection() {
     this.branchSearchText = this.leadSearchFilters.branch;
   }
 
-  console.log("Payload Branch Value:", this.leadSearchFilters.branch);
+ 
   this.onLeadSearch();
 }
 
@@ -2453,7 +2452,7 @@ toggleLeadStatus(lead: any) {
         // 4. Forcefully UI refresh kar
         this.cdr.detectChanges(); 
         
-        console.log("UI Updated with ChangeDetector!");
+        
       },
       error: (err) => {
         console.error("Error:", err);

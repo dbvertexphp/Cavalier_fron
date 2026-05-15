@@ -1203,7 +1203,7 @@ editQuotation(q: any) {
     isServiceRequired: q.isServiceRequired === true,
 
     // Weight & CBM Mapping
-    volumeWeight: Number(q.volumeWeight) || 0,
+    chargeableWeightKg: Number(q.volumeWeight) || 0,
     volumeWeightUnit: q.volumeWeightUnit || "KGS",
     cbm: q.cbmWeight || (Number(q.volumeWeight) ? parseFloat((q.volumeWeight / 167).toFixed(3)) : 0),
 
@@ -1212,6 +1212,25 @@ editQuotation(q: any) {
     incoterm: q.incoTerms || q.incoterm || '',
     referencePricingNo: q.referenceByInquiry || ''
   };
+  // editQuotation(q: any) function ke andar yaha paste karein:
+
+if (q.cargoValue) {
+  // Regex use karke string se sirf numbers aur decimal nikalein
+  const amountMatch = q.cargoValue.match(/(\d+(\.\d+)?)/);
+  
+  if (amountMatch) {
+    const amount = amountMatch[0]; // Ye "4545" nikalega
+    
+    // 1. Currency select karne ke liye number ko string se remove karein
+    this.quotation.currency = q.cargoValue.replace(amount, '').trim();
+    
+    // 2. Input box mein sirf number daalne ke liye
+    this.quotation.cargoValue = parseFloat(amount);
+  }
+} else {
+  this.quotation.currency = '';
+  this.quotation.cargoValue = null;
+}
 if (q.transitDest && q.transitDest.includes('(')) {
     // Location nikalne ke liye '(' se pehle ka part split karein
     this.quotation.transitDest = q.transitDest.split(' (')[0].trim();

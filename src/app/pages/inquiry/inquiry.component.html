@@ -1670,44 +1670,29 @@
                   </div>
                 </div>
               </div>
-              <div class="flex items-center gap-2">
-                <label class="w-40 font-bold text-gray-700">Net Weight</label>
-                <div class="flex flex-1">
-                  <input
-                    type="number"
-                    [(ngModel)]="quotation.netWeight"
-                    name="netWeight"
-                    readonly
-                    class="w-full border p-2 outline-none bg-gray-50"
-                  />
-                  <div
-                    class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="w-3 h-3 text-gray-400"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      />
-                    </svg>
-                    <select
-                      [(ngModel)]="quotation.netWeightUnit"
-                      name="netWeightUnit"
-                      class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
-                    >
-                      <option value="KGS">KGS</option>
-                      <option value="LBS">LBS</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
+            <div class="flex items-center gap-2">
+  <label class="w-40 font-bold text-gray-700">Net Weight</label>
+  <div class="flex flex-1">
+    <!-- Simple input field, koi automatic calculation nahi -->
+    <input
+      type="number"
+      [(ngModel)]="quotation.netWeight"
+      name="netWeight"
+      class="w-full border p-2 outline-none focus:border-blue-400"
+      placeholder="Enter weight manually"
+    />
+    <div class="flex items-center border border-l-0 bg-gray-50 px-2 h-[38px]">
+       <select
+        [(ngModel)]="quotation.netWeightUnit"
+        name="netWeightUnit"
+        class="outline-none font-bold text-gray-600 bg-transparent text-[11px]"
+      >
+        <option value="KGS">KGS</option>
+        <option value="LBS">LBS</option>
+      </select>
+    </div>
+  </div>
+</div>
               <div class="flex items-center gap-2">
                 <label class="w-40 font-bold text-gray-700">Chrg. Weight</label>
                 <div class="flex flex-1">

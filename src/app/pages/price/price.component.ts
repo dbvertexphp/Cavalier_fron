@@ -620,47 +620,35 @@ onShipmentTypeChange() {
       error: (err) => console.error('Error fetching Movement Types:', err)
     });
   }
-  onLOBChange(event: any) {
-    // alert('lob changed'+this.quotation.lineOfBusinessId);
+ onLOBChange(event: any) {
   const selectedId = event.target.value;
-  
-
-
   const selectedService = this.companyServices.find(s => s.id == selectedId);
 
-  if (!selectedService || !selectedService.serviceName) {
-    console.warn("No service found for ID:", selectedId);
-    return;
-  }
+  if (!selectedService) return;
 
   const fullName = selectedService.serviceName.trim();
-  
   this.quotation.lineOfBusinessName = fullName;
 
-  const parts = fullName.split(/[\s\-]+/);
+  // 🔥 NAYA LOGIC: Table (costRows) mein LOB auto-fill karne ke liye
+  if (this.costRows && this.costRows.length > 0) {
+    // Agar aap chahte hain ki sirf pehli row update ho:
+    this.costRows[0].lob = fullName;
 
-  if (parts.length >= 1) {
-    const modeName = parts[0]; // AIR
-
-    // 🔥 Yaha main fix hai
-    const modeObj = this.transportModes.find(
-      m => m.name.toLowerCase() === modeName.toLowerCase()
-    );
-
-    if (modeObj) {
-      this.quotation.TransportMode = modeObj.id; // ✅ ID set hoga
-    } else {
-      console.warn("Mode not found:", modeName);
-    }
-
-    if (parts.length >= 2) {
-      let lastWord = parts[parts.length - 1];
-      this.quotation.TransportType =
-        lastWord.charAt(0).toUpperCase() + lastWord.slice(1).toLowerCase();
-    }
+    // Ya agar aap chahte hain ki table ki saari rows ka LOB badal jaye:
+    // this.costRows.forEach(row => row.lob = fullName);
   }
 
-  console.log(`Auto Filled → Mode ID: ${this.quotation.TransportMode}`);
+  // Baaki aapka purana logic (Transport Mode wagera wala) yahan niche rahega...
+  const parts = fullName.split(/[\s\-]+/);
+  if (parts.length >= 1) {
+    const modeName = parts[0];
+    const modeObj = this.transportModes.find(m => m.name.toLowerCase() === modeName.toLowerCase());
+    if (modeObj) {
+      this.quotation.TransportMode = modeObj.id;
+    }
+  }
+  
+  this.cdr.detectChanges();
 }
     getIncoTerms() {
     this.http.get<any[]>(`${environment.apiUrl}/IncoTerms`).subscribe({

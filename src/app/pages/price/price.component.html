@@ -3023,6 +3023,7 @@ Selection Modal Popup
                     <th class="px-4 py-4 text-right text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Rate</th>
                     <th class="px-4 py-4 text-right text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Ex. Rate</th>
                     <th class="px-4 py-4 text-right text-xs font-bold text-[#4a3f3f] bg-amber-50 uppercase border-b border-amber-200">Amount</th>
+                    <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Chrg. Weight</th>
                     <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Action</th>
                 </tr>
             </thead>
@@ -3030,7 +3031,7 @@ Selection Modal Popup
                 <tr *ngFor="let row of costRows; let i = index" class="hover:bg-amber-50/30 transition-colors">
                     <td class="px-3 py-3">
                         <select [(ngModel)]="row.lob" class="w-full bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none transition-all">
-                            <option *ngFor="let s of services" [value]="s.serviceName">{{s.serviceName}}</option>
+                            <option *ngFor="let service of companyServices" [value]="service.serviceName"> {{ service.serviceName }}</option>
                         </select>
                     </td>
                     <td class="px-3 py-3">
@@ -3056,6 +3057,14 @@ Selection Modal Popup
                     <td class="px-4 py-3 text-right font-black text-[#4a3f3f] bg-amber-50/50 italic">
                         {{ row.amount | number:'1.2-2' }}
                     </td>
+                    <td class="px-3 py-3">
+    <!-- Readonly input field for Chargeable Weight -->
+    <input 
+        [value]="quotation.chargeableWeight" 
+        readonly 
+        class="w-full text-center bg-gray-50 border-b border-transparent text-sm py-1 outline-none cursor-not-allowed font-semibold text-gray-500"
+        placeholder="0.00">
+</td>
                     <td class="px-3 py-3 text-center">
                         <button (click)="removeCostRow(i)" class="text-gray-400 hover:text-red-500 transition-colors">
                             <i class="fa fa-trash-alt"></i>

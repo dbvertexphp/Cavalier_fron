@@ -327,24 +327,21 @@ calculateChargeableWeight() {
   this.quotation.chargeableWeight = parseFloat(higherWeight.toFixed(2));
 }
 // Volume weight badalne par CBM aur Net Weight dono update hone chahiye
+// Volume weight ya Gross Weight badalne par CBM aur Chargeable Weight dono update honge
 calculateVolumeWeightLogic() {
-  // Numbers mein convert karna zaroori hai
   const gross = Number(this.quotation.grossWeightKg) || 0;
   const volume = Number(this.quotation.volumeWeight) || 0;
 
-  // 1. CBM Calculation (Volume / 167)
-  const calculatedCbm = volume / 167;
-  this.quotation.cbm = parseFloat(calculatedCbm.toFixed(3));
+  // 1. CBM calculate hota rahega kyunki wo volume par depend hai
+  this.quotation.cbm = parseFloat((volume / 167).toFixed(3));
 
-  // 2. Net Weight Calculation (Volume - Gross)
-  const netResult = volume - gross;
-  this.quotation.netWeight = parseFloat(netResult.toFixed(2));
+  // 2. 🔥 NET WEIGHT WALI LINE HATA DI HAI 🔥
+  // Ab ye hamesha wahi rahega jo aapne hath se likha hai.
 
-  // 3. Chargeable Weight Calculation (Higher of Gross or Volume)
-  const higherWeight = Math.max(gross, volume);
-  this.quotation.chargeableWeight = parseFloat(higherWeight.toFixed(2));
+  // 3. Chargeable Weight hamesha bada wala hi select karega (Gross vs Volume)
+  this.quotation.chargeableWeight = parseFloat(Math.max(gross, volume).toFixed(2));
 
-  console.log("Calculated -> CBM:", this.quotation.cbm, "Net:", this.quotation.netWeight, "Chrg:", this.quotation.chargeableWeight);
+  this.cdr.detectChanges();
 }
 columnFieldMap: any = {
   'ID': 'id',
@@ -888,26 +885,25 @@ console.log("Lead No set to:", this.OrganisationId);
   this.showOrgDropdown = false;
   this.cdr.detectChanges();
   }
-    getNextInquiryNumber() {
-    // 1. URL ko environment variable se combine karein
-    // Ensure you are calling: GET api/Inquiry/NextInquiryNo
-    const url = `${environment.apiUrl}/Inquiry/NextInquiryNo`;
-    
-    // 2. API Call (responseType 'text' use karein kyunki hum sirf number ki string mang rahe hain)
-    this.http.get(url, { responseType: 'text' })
-      .subscribe({
-        next: (nextNo) => {
-          // 3. Form ke inquiryNo field mein value set karein
-          this.inquiry.inquiryNo = nextNo;
-          console.log("Next Inquiry No set to:", nextNo);
-        },
-        error: (err) => {
-          console.error("API Error:", err);
-          // Yahan aap user ko error message dikha sakte hain
-        }
-      });
-}
+  
+getNextInquiryNumber() {
+  const url = `${environment.apiUrl}/Inquiry/NextInquiryNo`;
+  
+  // Pehle UI ko khali dikhao taaki user ko lage ki naya generate ho raha hai
+  this.inquiry.inquiryNo = 'Loading...';
 
+  this.http.get(url, { responseType: 'text' }).subscribe({
+    next: (nextNo) => {
+      this.inquiry.inquiryNo = nextNo;
+      console.log("New Inquiry Number Generated:", nextNo);
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error("Number generation failed:", err);
+      this.inquiry.inquiryNo = 'AUTO-GEN'; // Fallback
+    }
+  });
+}
     loadQuotations() {
       this.http.get<any[]>(this.apiUrl).subscribe({
         next: (res) => (this.quotations = res),
@@ -1019,15 +1015,43 @@ getFormattedInquiryNo(): string {
     
 
     toggleForm() {
-      this.isFormOpen = !this.isFormOpen;
+  this.isFormOpen = !this.isFormOpen;
+
+  if (this.isFormOpen) {
+    // Check karein ki ye Edit click se toh nahi khula (id check)
+    if (!this.quotation.id || this.quotation.id === 0) {
+      console.log("Adding New Inquiry - Resetting form...");
       
-      if (!this.isFormOpen) {
-         this.isPreviewMode = false; // Add this line
-        this.quotation = this.resetQuotationModel();
-        this.appliedDimensions = [];
-        this.dimRows = [{ box: 1, l: 0, w: 0, h: 0, unit: 'CMS' }];
-      }
+      // 1. Saare data models reset karein
+      this.quotation = this.resetQuotationModel();
+      this.inquiry = {
+        inquiryNo: '',
+        customerName: '',
+        organization: '',
+        organizationAddress: '',
+        leadNo: '',
+        isDirect: false,
+        isIndirect: false,
+        origin: ''
+      };
+      this.appliedDimensions = [];
+      this.dimRows = [{ box: 1, l: 0, w: 0, h: 0, unit: 'CMS' }];
+      this.dimRow = { box: 1, l: 0, w: 0, h: 0, unit: 'CMS' };
+      this.isPreviewMode = false;
+      this.LeadId = 0;
+      this.OrganisationId = 0;
+
+      // 2. Naya Inquiry Number fetch karein
+      this.getNextInquiryNumber();
     }
+  } else {
+    // Form band karte waqt states reset karein
+    this.isPreviewMode = false;
+    this.quotation.id = 0; // Reset ID taaki agli baar naya samjhe
+  }
+  
+  this.cdr.detectChanges();
+}
 
 //    openDimModal() {
 //   // Agar dimRows khali hai ya purana data hai toh reset kar do

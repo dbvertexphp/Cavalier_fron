@@ -514,7 +514,7 @@ onSubmit() {
         console.error('--- API ERROR DETECTED ---');
         console.error('Status:', err.status); 
         console.error('Full Error Body:', err.error); 
-        alert('Please Check Field properly (API 500 Error)');
+        alert(err.error);
       }
     });
   }

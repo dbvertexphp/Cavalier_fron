@@ -698,9 +698,28 @@ selectOrg(org: any) {
     });
   }
 
-  toggleForm() {
-    this.isFormOpen = !this.isFormOpen;
+ toggleForm() {
+  // Jab form band ho raha ho
+  if (this.isFormOpen) {
+    this.isFormOpen = false;
+    this.isEditMode = false;
+    this.selectedLeadId = null;
+    this.leadForm.reset();
+  } else {
+    // Jab naya form khul raha ho (Add New Lead)
+    this.isFormOpen = true;
+    this.isEditMode = false;
+    this.selectedLeadId = null;
+    
+    // Form ko reset karke default values set karein
+    this.initForm(); 
+    
+    // Naya Lead Number calculate karein
+    this.calculateNextLeadNo(); 
+    
+    this.cdr.detectChanges();
   }
+}
 
 
 

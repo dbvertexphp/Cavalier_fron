@@ -14,7 +14,7 @@ import Swal from 'sweetalert2';
   templateUrl: './port-setup.component.html',
 })
 export class PortSetupComponent implements OnInit {
-countries: string[] = [];
+countries: any[] = [];
 cities: string[] = [];
 countrySearch = '';
 citySearch = '';
@@ -31,8 +31,10 @@ selectedCountry = 'Peru';
     id: 0,
     portName: '',
     portCode: '',
+    countryCode: '',
     cityName: '',
     countryName: '',
+    
     functionName: '',
    pinCode: 0,
     status: true,
@@ -51,20 +53,34 @@ selectedCountry = 'Peru';
     this.loadCountries();
     this.fetchPorts();
   }
+countryData: any[] = [];
+
 loadCountries() {
-  this.http.get<any>('https://countriesnow.space/api/v0.1/countries/positions')
+  this.http.get<any>('https://countriesnow.space/api/v0.1/countries/info?returns=currency,flag,unicodeFlag,dialCode')
     .subscribe(res => {
-      this.countries = res.data.map((c: any) => c.name);
+
+      this.countryData = res.data;
+
+      this.countries = res.data.map((c: any) => ({
+        name: c.name,
+        dialCode: c.dialCode
+      }));
     });
 }
 
 // On country change
-onCountryChange(selectedCountry: string) {
+onCountryChange(selectedCountry: any) {
 
-  
+  // Country Name
+  this.newPort.countryName = selectedCountry.name;
 
+  // Auto Fill Country Code
+this.newPort.countryCode = selectedCountry.dialCode.startsWith('+')
+  ? selectedCountry.dialCode
+  : '+' + selectedCountry.dialCode;
+  // Load Cities
   this.http.post<any>('https://countriesnow.space/api/v0.1/countries/cities', {
-    country: selectedCountry
+    country: selectedCountry.name
   }).subscribe(res => {
     this.cities = res.data;
   });
@@ -103,6 +119,7 @@ filteredCities() {
       id: 0,
       portName: '',
       portCode: '',
+       countryCode: '', 
       cityName: '',
       countryName: '',
       functionName: '',

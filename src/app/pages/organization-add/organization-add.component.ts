@@ -22,6 +22,8 @@ import Swal from 'sweetalert2';
   styleUrl: './organization-add.component.css',
 })
 export class OrganizationAddComponent implements OnInit {
+  allDialCodes: any[] = []; // Saari countries ke dialing codes store karne ke liye
+  agentCountryCode: string = '';
   agentSelectedLineOfBusiness: any[] = [];
   showAgentLobDropdown: boolean = false;
 highlightedOrgId: number | null = null;
@@ -468,6 +470,7 @@ landmark: string = '';
 
 
  ngOnInit() {
+  this.loadGlobalPhoneCodes();
   this.route.queryParams.subscribe(params => {
     const highlightId = params['highlightId'];
     
@@ -532,6 +535,15 @@ agentContacts: any[] = [
 ];
 
 // Methods (example)
+loadGlobalPhoneCodes() {
+  this.http.get('https://countriesnow.space/api/v0.1/countries/codes').subscribe({
+    next: (res: any) => {
+      // API se hume 'name' aur 'dial_code' milta hai
+      this.allDialCodes = res.data || [];
+    },
+    error: (err) => console.error("Dial codes load nahi ho paye", err)
+  });
+}
 agentaddContact() {
   this.agentContacts.push({
     contactName: '',
@@ -786,10 +798,28 @@ onAgentCountrySearch(event: any) {
 }
 
 // 2. Agent Country Select
+// 2. Agent Country Select
+// 2. Agent Country Select
+// 2. Agent Country Select
+// 2. Agent Country Select
 selectAgentCountry(countryName: string) {
-  this.agentCountry = countryName;  // Yahan agentCountry update hoga!
-  this.filteredCountries = [];      // Dropdown band karein
-  this.onAgentCountrySelectionChange(); // States load karein
+  this.agentCountry = countryName;  
+
+  // 🔥 Automatic Search in Dial Codes Array
+  const found = this.allDialCodes.find(c => 
+    c.name.toLowerCase() === countryName.toLowerCase()
+  );
+
+  if (found) {
+    let dCode = found.dial_code;
+    // Agar dial_code ke aage '+' nahi hai toh add kar do
+    this.agentCountryCode = dCode.startsWith('+') ? dCode : '+' + dCode;
+  } else {
+    this.agentCountryCode = ''; // Agar nahi mila toh khali
+  }
+
+  this.filteredCountries = [];      
+  this.onAgentCountrySelectionChange(); 
   this.cdr.detectChanges();
 }
 

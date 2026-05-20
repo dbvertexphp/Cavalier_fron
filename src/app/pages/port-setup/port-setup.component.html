@@ -106,12 +106,18 @@
         <input [(ngModel)]="newPort.portCode"
           placeholder="Port Code"
           class="w-full border p-2 rounded">
+          <input
+    [(ngModel)]="newPort.countryCode"
+    placeholder="Country Code"
+    readonly
+    class="w-full border p-2 rounded bg-gray-100 cursor-not-allowed">
 <!-- Country Dropdown -->
 <!-- Search Input -->
 <!-- 🌍 Country -->
 <ng-select
   [items]="countries"
-  [(ngModel)]="newPort.countryName"
+  bindLabel="name"
+  [(ngModel)]="selectedCountry"
   (change)="onCountryChange($event)"
   placeholder="Select Country"
   [searchable]="true"

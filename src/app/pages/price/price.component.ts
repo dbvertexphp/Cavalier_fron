@@ -782,7 +782,8 @@ onOriginSearchInput() {
   this.inquiry.origin = origin.portName; 
   this.showOriginDropdown = false;
 
-  console.log("Selected Origin pinCode:", this.originpinCode);
+
+  console.log("Selected Origin pinCode:", origin);
 
   // 2. Agar pinCode valid hai toh API call karein
   if (this.originpinCode) {

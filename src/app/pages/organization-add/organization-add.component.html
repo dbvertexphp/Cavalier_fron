@@ -1365,37 +1365,57 @@
     </div>
 <!-- Country, State, City, Postal -->
 <div class="grid grid-cols-2 gap-6">
+  <!-- Country & Phone Code Group -->
   <div class="flex items-center gap-3">
     <label class="w-40 text-red-700 font-bold">Country</label>
-    <div class="flex-1 flex flex-col relative">
-      <div class="flex border border-gray-300 rounded overflow-hidden">
-        <input type="text" 
-               [(ngModel)]="agentCountry" 
-               (input)="onAgentCountrySearch($event)" 
-               placeholder="Search Country..."
-               class="flex-1 p-1.5 outline-none" 
-               #countryRef="ngModel">
-        <button class="bg-gray-100 px-3 border-l border-gray-300 hover:bg-gray-200">🔍</button>
+    <div class="flex-1 flex gap-2">
+      
+      <!-- Country Search Input -->
+      <div class="flex-1 flex flex-col relative">
+        <div class="flex border border-gray-300 rounded overflow-hidden bg-white">
+          <input type="text" 
+                 [(ngModel)]="agentCountry" 
+                 (input)="onAgentCountrySearch($event)" 
+                 placeholder="Search Country..."
+                 class="flex-1 p-1.5 outline-none text-[12px]" 
+                 #countryRef="ngModel">
+          <button class="bg-gray-100 px-3 border-l border-gray-300 hover:bg-gray-200">🔍</button>
+        </div>
+
+        <!-- Suggestions Dropdown -->
+        <ul *ngIf="filteredCountries.length" 
+            class="absolute top-full left-0 z-[100] w-full bg-white border border-gray-300 mt-1 rounded shadow-lg max-h-60 overflow-y-auto">
+          <li *ngFor="let item of filteredCountries" 
+              (mousedown)="selectAgentCountry(item.name)" 
+              class="p-2 hover:bg-red-50 cursor-pointer text-[12px] border-b border-gray-50 uppercase">
+            {{ item.name }}
+          </li>
+        </ul>
       </div>
 
-      <ul *ngIf="filteredCountries.length" 
-          class="absolute z-50 w-full bg-white border border-gray-300 mt-10 rounded shadow-lg max-h-60 overflow-y-auto">
-        <li *ngFor="let item of filteredCountries" 
-            (mousedown)="selectAgentCountry(item.name)" 
-            class="p-2 hover:bg-blue-100 cursor-pointer text-sm border-b border-gray-50">
-          {{ item.name | uppercase }}
-        </li>
-      </ul>
+      <!-- 🔥 Dialing Code Display (+91, +92, etc.) -->
+      <div class="w-20">
+        <input type="text" 
+               [(ngModel)]="agentCountryCode" 
+               placeholder="+91" 
+               readonly
+               class="w-full p-1.5 border border-gray-300 bg-gray-100 text-[#4a3f3f] text-center font-bold text-[12px] rounded outline-none shadow-sm"
+               title="Dialing Code">
+      </div>
     </div>
   </div>
 
+  <!-- State/Province Section (Unchanged) -->
   <div class="flex items-center gap-3">
     <label class="w-40">State/Province</label>
     <div class="flex-1 flex flex-col">
-      <div class="flex border border-gray-300 rounded overflow-hidden">
-        <input type="text" [(ngModel)]="agentState" list="stateOptions"
-          placeholder="Search State..." class="flex-1 p-1.5 outline-none">
-        <button class="bg-gray-100 px-3 border-l border-gray-300 hover:bg-gray-200">🔍</button>
+      <div class="flex border border-gray-300 rounded overflow-hidden bg-white">
+        <input type="text" 
+               [(ngModel)]="agentState" 
+               list="stateOptions"
+               placeholder="Search State..." 
+               class="flex-1 p-1.5 outline-none text-[12px]">
+        <button class="bg-gray-100 px-3 border-l border-gray-200 hover:bg-gray-200">🔍</button>
       </div>
       <datalist id="stateOptions">
         <option *ngFor="let state of stateLookupList" [value]="state"></option>

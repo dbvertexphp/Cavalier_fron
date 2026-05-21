@@ -1,10 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit,ChangeDetectorRef} from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClient, HttpParams,HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { UserService } from '../services/user.service';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { environment } from '../../environments/environment';
 import { CheckPermissionService } from '../services/check-permission.service';
 @Component({
   selector: 'app-user',
@@ -24,7 +26,7 @@ export class UserComponent implements OnInit {
    PermissionID:any;
   
 
-  constructor(private userService: UserService, private router: Router,public CheckPermissionService:CheckPermissionService) {}
+  constructor(private userService: UserService, private router: Router,public CheckPermissionService:CheckPermissionService,private http: HttpClient,private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.PermissionID = Number(localStorage.getItem('permissionID'));
@@ -47,24 +49,57 @@ export class UserComponent implements OnInit {
 //   });
 // }
 
-loadUsers(userType: string = 'all') {
-  this.loading = true;
+// Naye variables add karein
+totalRecords = 0;
+  currentPage = 1;
+  pageSize = 10;
+  
+  currentType = 'all';
 
-  this.userService.getUsers(userType).subscribe({
-    next: (data: any[]) => {
-      this.users = data;
-      this.loading = false;
-      this.resetSelection();
+loadUsers(userType: string = this.currentType) {
+    this.loading = true;
+    this.currentType = userType;
+const token = localStorage.getItem('cavalier_token');
 
-     
-    },
-    error: (err) => {
-      console.error("Data fetch error:", err);
-      this.loading = false;
-    }
-  });
-}
+    // 2. Headers taiyar karein
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+    // Backend API URL
+    const url = `${environment.apiUrl}/User/list`;
 
+    // Query Parameters set karein
+    const params = new HttpParams()
+      .set('user_type', userType)
+      .set('pageNumber', this.currentPage.toString())
+      .set('pageSize', this.pageSize.toString());
+
+    // Direct API Call
+    this.http.get<any>(url, {headers, params }).subscribe({
+      next: (res) => {
+        // Backend key names match karein (TotalRecords aur Users/Data)
+        this.users = res.users || res.data; 
+        this.totalRecords = res.totalRecords;
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error("API Error:", err);
+        this.loading = false;
+      }
+    });
+  }
+
+  onPageChange(page: number) {
+    this.currentPage = page;
+    this.loadUsers();
+  }
+
+  // Filter change hone par page reset karna zaroori hai
+  filterUsers(type: string) {
+    this.currentPage = 1; 
+    this.loadUsers(type);
+  }
 
 
 

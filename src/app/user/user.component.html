@@ -232,7 +232,41 @@
       </table>
     </div>
   </div>
+<!-- Table content... -->
 
+<!-- Pagination Controls -->
+<div class="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6 mt-4 rounded-xl shadow-sm">
+  <div class="flex justify-between flex-1 sm:hidden">
+    <button (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 1" class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">Previous</button>
+    <button (click)="onPageChange(currentPage + 1)" [disabled]="(currentPage * pageSize) >= totalRecords" class="relative ml-3 inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">Next</button>
+  </div>
+  <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+    <div>
+      <p class="text-sm text-gray-700">
+        Showing <span class="font-medium">{{ (currentPage - 1) * pageSize + 1 }}</span> 
+        to <span class="font-medium">{{ currentPage * pageSize > totalRecords ? totalRecords : currentPage * pageSize }}</span> 
+        of <span class="font-medium">{{ totalRecords }}</span> results
+      </p>
+    </div>
+    <div>
+      <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+        <button (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 1" 
+          class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50">
+          Previous
+        </button>
+        
+        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-bold text-blue-600">
+          {{ currentPage }}
+        </span>
+
+        <button (click)="onPageChange(currentPage + 1)" [disabled]="(currentPage * pageSize) >= totalRecords"
+          class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50">
+          Next
+        </button>
+      </nav>
+    </div>
+  </div>
+</div>
   <div *ngIf="!loading && users.length === 0"
     class="flex flex-col items-center justify-center p-20 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 mt-4">
     <p class="text-slate-400 font-bold italic">Cavalier Database: No users found.</p>

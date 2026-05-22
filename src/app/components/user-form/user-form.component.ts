@@ -145,18 +145,28 @@ openImageModal(url: string | null | undefined) {
 }
 // Is function ko class ke andar kahin bhi rakh dein
 getFormattedImagePath(path: string | null | undefined): string {
-  if (!path) return 'assets/images/default-placeholder.png'; // Default image agar path na ho
+  // 1. Agar path khali hai toh placeholder return karein
+  if (!path) return 'assets/images/default-placeholder.png';
   
-  // 1. Agar path backslash wala hai (\), toh use forward slash (/) banayein
+  // 2. Agar path mein pehle se hi 'http' maujood hai (yani full URL hai),
+  // toh use bina chhede wahi return kar dein.
+  if (path.startsWith('http')) {
+    return path;
+  }
+
+  // 3. Slashes fix karein: saare backslashes (\) ko forward slash (/) banayein
   let cleanPath = path.replace(/\\/g, '/');
   
-  // 2. Agar path ke shuru mein slash nahi hai, toh jod dein
-  if (!cleanPath.startsWith('/')) {
-    cleanPath = '/' + cleanPath;
+  // 4. Double slash issue avoid karne ke liye:
+  // Agar cleanPath ke shuru mein '/' hai, toh use hata dein.
+  if (cleanPath.startsWith('/')) {
+    cleanPath = cleanPath.substring(1);
   }
+
+  // 5. Final URL banayein: Ensure karein ki baseUrl aur path ke beech ek hi slash ho
+  const base = this.baseUrl.endsWith('/') ? this.baseUrl : `${this.baseUrl}/`;
   
-  // 3. Final URL banayein
-  return this.baseUrl + cleanPath;
+  return base + cleanPath;
 }
 closeImageModal() {
   this.isImageModalOpen = false;

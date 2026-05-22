@@ -8,6 +8,7 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { employeeSchema } from './employee.schema';
 import { firstValueFrom } from 'rxjs';
+import Swal from 'sweetalert2';
 @Component({
   selector: 'app-user-form',
   standalone: true,
@@ -52,7 +53,12 @@ public baseUrl: string ='';
     private http: HttpClient,
     private cdr: ChangeDetectorRef
   ) {
-    this.baseUrl = environment.apiUrl.replace('/api', '');
+    let api = environment.apiUrl;
+    if (api.endsWith('/api')) {
+    this.baseUrl = api.substring(0, api.length - 4); // '/api' hata dega
+  } else {
+    this.baseUrl = api; 
+  }
     const nav = this.router.getCurrentNavigation();
     if (nav?.extras.state) {
       this.initialData = nav.extras.state['data'];
@@ -132,11 +138,26 @@ ngOnInit(): void {
   }
 openImageModal(url: string | null | undefined) {
   if (url) {
+    alert(url);
     this.selectedImageUrl = url;
     this.isImageModalOpen = true;
   }
 }
-
+// Is function ko class ke andar kahin bhi rakh dein
+getFormattedImagePath(path: string | null | undefined): string {
+  if (!path) return 'assets/images/default-placeholder.png'; // Default image agar path na ho
+  
+  // 1. Agar path backslash wala hai (\), toh use forward slash (/) banayein
+  let cleanPath = path.replace(/\\/g, '/');
+  
+  // 2. Agar path ke shuru mein slash nahi hai, toh jod dein
+  if (!cleanPath.startsWith('/')) {
+    cleanPath = '/' + cleanPath;
+  }
+  
+  // 3. Final URL banayein
+  return this.baseUrl + cleanPath;
+}
 closeImageModal() {
   this.isImageModalOpen = false;
   this.selectedImageUrl = '';
@@ -412,6 +433,7 @@ onSubmit() {
       const controlErrors = this.userForm.get(key)?.errors;
       if (controlErrors != null) {
         console.log('Field Key:', key, 'Errors:', controlErrors);
+        Swal.fire('Please Fill All Required Fields', key + ' is invalid', 'error');
       }
     });
     
@@ -511,11 +533,13 @@ onSubmit() {
         // this.router.navigate(['/dashboard/Employee']);
       },
       error: err => {
-        console.error('--- API ERROR DETECTED ---');
-        console.error('Status:', err.status); 
-        console.error('Full Error Body:', err.error); 
-        alert(err.error);
-      }
+    console.error('--- API ERROR DETECTED ---');
+    console.error('Status:', err.status); 
+    console.error('Full Error Body:', err.error); 
+    
+    // Old SweetAlert Code
+    Swal.fire(`${err.error}`, err.error || "Something went wrong", "error");
+}
     });
   }
   const finalPayload = {
@@ -1141,29 +1165,24 @@ onUserTypeChange(event: any) {
   if (selectedType) {
     this.isLoading = true;
     
-    this.userService.getUsers(selectedType).subscribe({
-      next: (data: any[]) => {
+    // Naya API endpoint call karein
+    this.userService.generateNextCode(selectedType).subscribe({
+      next: (res: any) => {
         this.isLoading = false;
+        
+        if (res && res.nextCode) {
+          // Form mein autofill logic
+          this.userForm.patchValue({
+            employeeCode: res.nextCode
+          });
 
-        if (data && data.length > 0) {
-          const lastRecord = data[data.length - 1]; 
-          const latestCode = lastRecord.empCode; // "TRN/004"
-
-          // setTimeout use kar rahe hain taaki Angular check cycle khatam ho jaye
-          setTimeout(() => {
-            // Hum direct patchValue use karenge pure form par
-            this.userForm.patchValue({
-              employeeCode: latestCode
-            }, { emitEvent: false }); // emitEvent false karne se loop nahi banega
-
-            this.cdr.detectChanges(); // UI refresh
-            console.log("Value ab set ho gayi hai:", latestCode);
-          }, 0);
+          this.cdr.detectChanges(); // UI refresh ke liye
+          console.log("Next Employee Code:", res.nextCode);
         }
       },
       error: (err) => {
         this.isLoading = false;
-        console.error("API Error:", err);
+        console.error("Fetch Code Error:", err);
       }
     });
   }

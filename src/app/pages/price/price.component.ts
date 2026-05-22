@@ -40,6 +40,9 @@ export interface CostBreakdown {
 
 export class PriceComponent {
  @ViewChild('cargoDateInput') cargoDateInput!: ElementRef<HTMLInputElement>;
+ totalCount: number = 0;
+currentPage: number = 1;
+pageSize: number = 10;
     getsalescordinate: any[] = [];
     PermissionID:any;
     LeadId:number=0;
@@ -309,6 +312,10 @@ AllSearch(){
   this.onSearch();
   this.cdr.detectChanges();
 }
+testing(){
+ this.loadPricings();
+  this.cdr.detectChanges();
+}
 calculateNetWeight() {
   // Number() ensures ki hum string nahi, number minus kar rahe hain
   const gross = Number(this.quotation.grossWeightKg) || 0;
@@ -436,7 +443,7 @@ orgData: any = null;
    this.getsales();
    this.loadConnectingPortsData();
       this.getbranch();
-      this.loadPricings();
+      
       this.loadQuotations();
       this.loadPricingNumbers();
       this.portOfLoading();
@@ -1576,8 +1583,7 @@ pricings: any[] = [];             // Master display list
   
 
   // --- Pagination Variables ---
-  currentPage: number = 1;
-  pageSize: number = 10;
+ 
 
   // --- Filter Model ---
   searchFilters: any = {
@@ -1654,6 +1660,11 @@ onSearch() {
     });
 }
 
+AllSearchprice(){
+alert("All Price Search");
+return;
+
+}
   // --- Pagination Logic ---
   
 
@@ -1879,16 +1890,10 @@ get paginatedInquiries(): any[] {
 }
 
 // Total pages calculate karne ke liye
-get totalPages(): number {
-  return Math.ceil(this.quotations.length / this.pageSize) || 1;
-}
+
 
 // Page badalne ka function
-setPage(page: number) {
-  if (page < 1 || page > this.totalPages) return;
-  this.currentPage = page;
-  this.cdr.detectChanges();
-}
+
 
 // Page size badalne par page 1 par reset karein
 onPageSizeChange() {
@@ -2814,27 +2819,31 @@ costRows: CostBreakdown[] = [
 
 loadPricings() {
   const token = localStorage.getItem('cavalier_token');
-  const httpOptions = {
-    headers: { Authorization: `Bearer ${token}` }
-  };
+  const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
-  const pricingApiUrl = `${environment.apiUrl}/Pricing`;
+  // Pass pageNumber and pageSize as Query Params
+  const url = `${environment.apiUrl}/Pricing?pageNumber=${this.currentPage}&pageSize=${this.pageSize}`;
 
-  this.http.get<any[]>(pricingApiUrl, httpOptions).subscribe({
-    next: (data) => {
-      // 1. Sabse pehle main array mein data daalein
-      this.pricings = data || []; 
-      
-      // 2. Ab Pagination wala array bharo jo table mein dikhta hai
-      this.updatePagination(); 
-
-      console.log("Pricings loaded and paginated:", this.paginatedPricings);
-      this.cdr.detectChanges(); // UI refresh
+  this.http.get(url, { headers }).subscribe({
+    next: (res: any) => {
+      // Backend returns { totalCount, data, ... }
+      this.pricings = res.data; 
+      this.totalCount = res.totalCount;
+      this.cdr.detectChanges();
     },
-    error: (err) => {
-      console.error("Error fetching pricings:", err);
-    }
+    error: (err) => console.error("Error loading pricings:", err)
   });
+}
+
+// Function to handle page change
+setPage(page: number) {
+  if (page < 1 || page > this.totalPages) return;
+  this.currentPage = page;
+  this.loadPricings(); // Fetch new data from server
+}
+
+get totalPages(): number {
+  return Math.ceil(this.totalCount / this.pageSize) || 1;
 }
 updatePagination() {
   const startIndex = (this.currentPage - 1) * this.pageSize;

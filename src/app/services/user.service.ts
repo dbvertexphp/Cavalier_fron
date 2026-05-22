@@ -110,6 +110,9 @@ getTeams(): Observable<any[]> {
   }
 
   // 9. ✅ Register New User (With File Upload Support)
+  generateNextCode(userType: string) {
+  return this.http.get(`${this.apiUrl}/generate-code/${userType}`);
+}
 registerUser(userData: any) {
 
   const formData = new FormData();

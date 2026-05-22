@@ -675,6 +675,12 @@ Selection Modal Popup
     >
       Search
     </button>
+    <button
+      (click)="testing()"
+      class="bg-[#4a3f3f] text-white px-5 py-1.5 font-bold shadow-md uppercase text-[10px] hover:bg-black transition-all rounded-sm outline-none"
+    >
+      All Price
+    </button>
     
     <!-- <button
       (click)="AllSearch()"
@@ -913,85 +919,59 @@ Selection Modal Popup
   </table>
 </div>
       </div>
-      <div
-        class="flex justify-between items-center bg-white p-4 border-t border-gray-200 mt-2 shadow-sm rounded-b-lg no-export"
-        *ngIf="quotations.length > 0"
-      >
-        <div class="flex items-center gap-4">
-          <div class="text-[12px] text-gray-600 font-medium">
-            Showing
-            <span class="font-bold text-gray-800">{{
-              (currentPage - 1) * pageSize + 1
-            }}</span>
-            to
-            <span class="font-bold text-gray-800">{{
-              Math.min(currentPage * pageSize, quotations.length)
-            }}</span>
-            of
-            <span class="font-bold text-gray-800">{{ quotations.length }}</span>
-            Inquiries
-          </div>
+      <!-- PREMIUM SERVER-SIDE PAGINATION -->
+<div class="flex flex-col md:flex-row justify-between items-center bg-white p-5 border-t-2 border-gray-100 mt-4 rounded-b-xl shadow-inner gap-4">
+    
+    <!-- Info -->
+    <div class="flex items-center gap-4">
+        <div class="bg-gray-50 border border-gray-200 px-4 py-2 rounded-lg shadow-sm">
+            <span class="text-[10px] font-black uppercase text-gray-400 tracking-tighter block">Total Records</span>
+            <span class="text-sm font-bold text-[#4a3f3f]">{{ totalCount }}</span>
+        </div>
+        <div class="text-[12px] text-gray-400 italic">
+            Page <span class="text-[#4a3f3f] font-bold">{{ currentPage }}</span> of {{ totalPages }}
+        </div>
+    </div>
 
-          <select
-            [(ngModel)]="pageSize"
-            (change)="onPageSizeChange()"
-            class="border rounded text-[11px] px-2 py-1 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-blue-400"
-          >
-            <option [ngValue]="10">10 / Page</option>
-            <option [ngValue]="25">25 / Page</option>
-            <option [ngValue]="50">50 / Page</option>
-          </select>
+    <!-- Page Buttons -->
+    <div class="flex items-center gap-1">
+        <!-- Prev -->
+        <button (click)="setPage(currentPage - 1)" 
+                [disabled]="currentPage === 1"
+                class="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-[#4a3f3f] hover:text-white transition-all disabled:opacity-20 shadow-sm">
+            <span class="text-lg">‹</span>
+        </button>
+
+        <!-- Page Numbers -->
+        <div class="flex items-center gap-1 px-2">
+            <button *ngFor="let p of [].constructor(totalPages > 5 ? 5 : totalPages); let i = index"
+                    (click)="setPage(i + 1)"
+                    [ngClass]="currentPage === (i + 1) ? 'bg-[#4a3f3f] text-white border-[#4a3f3f] scale-110 shadow-md' : 'bg-white text-gray-600 hover:bg-gray-50 border-gray-200'"
+                    class="w-9 h-9 rounded-lg border font-bold text-xs transition-all duration-200">
+                {{ i + 1 }}
+            </button>
+            <span *ngIf="totalPages > 5" class="px-1 text-gray-400">...</span>
         </div>
 
-        <div class="flex items-center gap-1">
-          <button
-            (click)="setPage(1)"
-            [disabled]="currentPage === 1"
-            class="p-2 text-gray-500 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed"
-          >
-            ««
-          </button>
+        <!-- Next -->
+        <button (click)="setPage(currentPage + 1)" 
+                [disabled]="currentPage === totalPages"
+                class="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-[#4a3f3f] hover:text-white transition-all disabled:opacity-20 shadow-sm">
+            <span class="text-lg">›</span>
+        </button>
+    </div>
 
-          <button
-            (click)="setPage(currentPage - 1)"
-            [disabled]="currentPage === 1"
-            class="px-3 py-1 text-[11px] font-bold uppercase border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-30 transition-all"
-          >
-            Prev
-          </button>
-
-          <div
-            class="flex items-center mx-1 border border-gray-200 rounded overflow-hidden"
-          >
-            <span
-              class="px-3 py-1 text-[12px] font-black bg-[#4a3f3f] text-white"
-            >
-              {{ currentPage }}
-            </span>
-            <span
-              class="px-3 py-1 text-[12px] font-bold bg-gray-50 text-gray-600"
-            >
-              of {{ totalPages }}
-            </span>
-          </div>
-
-          <button
-            (click)="setPage(currentPage + 1)"
-            [disabled]="currentPage === totalPages"
-            class="px-3 py-1 text-[11px] font-bold uppercase border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-30 transition-all"
-          >
-            Next
-          </button>
-
-          <button
-            (click)="setPage(totalPages)"
-            [disabled]="currentPage === totalPages"
-            class="p-2 text-gray-500 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed"
-          >
-            »»
-          </button>
-        </div>
-      </div>
+    <!-- Rows Per Page -->
+    <div class="flex items-center gap-3">
+        <label class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Rows</label>
+        <select [(ngModel)]="pageSize" (change)="currentPage = 1; loadPricings()"
+                class="bg-gray-50 border border-gray-200 text-[#4a3f3f] font-bold text-xs rounded-lg p-2 outline-none focus:ring-2 focus:ring-[#4a3f3f]/20 transition-all cursor-pointer">
+            <option [value]="10">10 Rows</option>
+            <option [value]="25">25 Rows</option>
+            <option [value]="50">50 Rows</option>
+        </select>
+    </div>
+</div>
     </div>
   </div>
   <div

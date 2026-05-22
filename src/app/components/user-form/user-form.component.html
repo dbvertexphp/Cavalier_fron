@@ -816,9 +816,14 @@
       <div class="flex flex-col">
         <input type="file" (change)="onFileSelect($event, 'marksheet', i)" class="border p-2 rounded text-xs">
         <div *ngIf="edu.get('marksheetPath')?.value" class="mt-1">
-          <span (click)="openImageModal(baseUrl + edu.get('marksheetPath')?.value)" class="text-blue-600 underline text-xs cursor-pointer font-bold hover:text-blue-800">
-            👁️ View Marksheet
-          </span>
+          <!-- Purana code -->
+<!-- <img [src]="baseUrl + edu.get('marksheetPath')?.value"> -->
+
+<!-- Naya Code -->
+<span (click)="openImageModal(getFormattedImagePath(edu.get('marksheetPath')?.value))" 
+      class="text-blue-600 underline text-xs cursor-pointer font-bold">
+    👁️ View Marksheet
+</span>
         </div>
       </div>
       
@@ -876,11 +881,10 @@
       {{ userForm.get('offerLetter')?.errors?.['zod'] }}
     </div>
     <div *ngIf="userForm.get('offerLetterPath')?.value" class="mt-1">
-      <img [src]="userForm.get('offerLetterPath')?.value" 
-           (click)="openImageModal(userForm.get('offerLetterPath')?.value)"
-           class="h-16 w-16 object-cover border border-gray-300 rounded shadow-sm cursor-pointer hover:opacity-75 transition-opacity" 
-           alt="Offer Letter preview" title="Click to view full image">
-    </div>
+  <img [src]="getFormattedImagePath(userForm.get('offerLetterPath')?.value)" 
+       (click)="openImageModal(getFormattedImagePath(userForm.get('offerLetterPath')?.value))"
+       class="h-16 w-16 object-cover border border-gray-300 rounded shadow-sm cursor-pointer">
+</div>
   </div>
 
   <div class="flex flex-col space-y-2">

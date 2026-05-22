@@ -291,10 +291,23 @@ actionChange(permissionId: number, action: string, event: any) {
   this.getAllUsers(this.currentPage); // Search bar ka text API mein jayega
 }
 
-  deleteEmployee(id: string): void {
-    if (confirm('Do you want to delete this employee?')) {
-      this.employees = this.employees.filter(emp => emp.id !== id);
-      this.search(); 
+  deleteEmployee(id: any): void {
+     if (id) {
+      if (confirm(`Are you sure you want to delete this user?`)) {
+        
+        this.userService.deleteUser(id).subscribe({
+          next: () => {
+            alert('User deleted successfully');
+           this.getAllUsers(); 
+          },
+          error: (err) => {
+            console.error("Delete Error:", err);
+            alert('Error deleting user.');
+            
+          }
+        });
+      }
+      return;
     }
   }
 

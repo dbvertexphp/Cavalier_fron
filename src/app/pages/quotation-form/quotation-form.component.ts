@@ -32,6 +32,8 @@ export class QuotationFormComponent implements OnInit {
   token:string='';
   getsalescordinate: any[] = [];
     shipmentTypes: any[] = [];
+    portOfLoadingList: any[] = [];
+portOfDischargeList: any[] = [];
     commodityTypes: any[] = [];
   PermissionID:any;
   currentPage: number = 1;
@@ -260,6 +262,8 @@ closeColumnModal(){
 }
 sortOrders:any = {};
   ngOnInit() {
+    this.loadPortOfLoadings();
+  this.loadPortOfDischarges();
     this.loadConnectingPortsData()
     this.loadPricingList();
     this.getTransportModes();
@@ -1019,7 +1023,7 @@ saveQuotation() {
   const payload = {
     ...this.quotation,
     pricingId: this.quotation.pricingId ? Number(this.quotation.pricingId) : null,
-   organisationId: this.quotation.organisationId ? Number(this.quotation.organisationId) : null,
+    organisationId: this.quotation.organisationId ? Number(this.quotation.organisationId) : null,
     organisationName: this.quotation.organisationName || this.quotation.organization,
     // 1. Reference by Pricing
     referenceByInquiry: this.quotation.referencePricingNo, 
@@ -1058,8 +1062,15 @@ saveQuotation() {
     totalCost: this.totalCostFinal,
     totalProfit: this.totalProfitFinal,
     lineOfBusiness: String(this.quotation.lineOfBusiness),
-    commodity: String(this.quotation.commodity)
+    commodity: String(this.quotation.commodity),
+
+    // ✅ FIXED PLACEMENT: Inko object ke sabse aakhiri mein rakha hai taaki ...this.quotation ki string values is numeric conversion ko override na kar sakein.
+    portOfLoadingId: (this.quotation.portOfLoadingId !== null && this.quotation.portOfLoadingId !== undefined && this.quotation.portOfLoadingId !== '') ? Number(this.quotation.portOfLoadingId) : null,
+    portOfDischargeId: (this.quotation.portOfDischargeId !== null && this.quotation.portOfDischargeId !== undefined && this.quotation.portOfDischargeId !== '') ? Number(this.quotation.portOfDischargeId) : null
   };
+
+  // 📝 CONSOLE LOG: Isse aap Inspect Element -> Console me pura payload check kar sakte hain api hit hone se pehle
+  console.log("🚀 FINAL PAYLOAD BEING SENT TO BACKEND:", payload);
 
   // 1. API Step 1: Save Quotation
   const request = this.quotation.id > 0 
@@ -1189,7 +1200,6 @@ editQuotation(q: any) {
   this.quotation = {
     ...q,
     // ID Mapping (Dropdowns ke liye string/number sync)
-    // commodity: q.commodity ? Number(q.commodity) : null,
     chargeableWeight: q.chrgWeight || 0,
     grossWeightKg: q.grossWeight || q.grossWeightKg || 0,
     salesCoordinator: q.salesCoor ? Number(q.salesCoor) : null,
@@ -1210,41 +1220,54 @@ editQuotation(q: any) {
     // Movement & Terms
     movementType: q.movement || q.movementType || '',
     incoterm: q.incoTerms || q.incoterm || '',
-    referencePricingNo: q.referenceByInquiry || ''
-  };
-  // editQuotation(q: any) function ke andar yaha paste karein:
+    referencePricingNo: q.referenceByInquiry || '',
 
-if (q.cargoValue) {
-  // Regex use karke string se sirf numbers aur decimal nikalein
-  const amountMatch = q.cargoValue.match(/(\d+(\.\d+)?)/);
+  // 🔥 FIXED DROPDOWN AUTO-POPULATE SYNC: Direct incoming 'q' se numeric ID nikal kar assign ki hai taaki dropdown automatically select ho jaye.
+    portOfLoadingId: (q.portOfLoadingId !== null && q.portOfLoadingId !== undefined && q.portOfLoadingId !== '' && !isNaN(Number(q.portOfLoadingId))) ? Number(q.portOfLoadingId) : null,
+    portOfDischargeId: (q.portOfDischargeId !== null && q.portOfDischargeId !== undefined && q.portOfDischargeId !== '' && !isNaN(Number(q.portOfDischargeId))) ? Number(q.portOfDischargeId) : null
   
-  if (amountMatch) {
-    const amount = amountMatch[0]; // Ye "4545" nikalega
+  };
+  // 📝 CONSOLE LOGS: Edit mode me kya ID bind hui hai check karne ke liye
+  console.log("✅ POPULATED POL ID FOR DROPDOWN:", this.quotation.portOfLoadingId);
+  console.log("✅ POPULATED POD ID FOR DROPDOWN:", this.quotation.portOfDischargeId);
+
+  // 3. Cargo Value Splitting
+  if (q.cargoValue) {
+    // Regex use karke string se sirf numbers aur decimal nikalein
+    const amountMatch = q.cargoValue.match(/(\d+(\.\d+)?)/);
     
-    // 1. Currency select karne ke liye number ko string se remove karein
-    this.quotation.currency = q.cargoValue.replace(amount, '').trim();
-    
-    // 2. Input box mein sirf number daalne ke liye
-    this.quotation.cargoValue = parseFloat(amount);
+    if (amountMatch) {
+      const amount = amountMatch[0]; // Ye "4545" nikalega
+      
+      // 1. Currency select karne ke liye number ko string se remove karein
+      this.quotation.currency = q.cargoValue.replace(amount, '').trim();
+      
+      // 2. Input box mein sirf number daalne ke liye
+      this.quotation.cargoValue = parseFloat(amount);
+    }
+  } else {
+    this.quotation.currency = '';
+    this.quotation.cargoValue = null;
   }
-} else {
-  this.quotation.currency = '';
-  this.quotation.cargoValue = null;
-}
-if (q.transitDest && q.transitDest.includes('(')) {
-    // Location nikalne ke liye '(' se pehle ka part split karein
-    this.quotation.transitDest = q.transitDest.split(' (')[0].trim();
-    
-    // Days nikalne ke liye Regex use karein jo brackets ke beech ka number nikale
+
+  // 4. Transit Destination & Days Splitting (Bug Fixed 🛠️)
+  if (q.transitDest && q.transitDest.includes('(')) {
+    // Days nikalne ke liye origin string (q.transitDest) par regex chalayein
     const daysMatch = q.transitDest.match(/\((.*?) Days\)/);
     if (daysMatch && daysMatch[1]) {
-      this.quotation.transitDays = daysMatch[1].trim(); // Isme '32' aa jayega
+      this.quotation.transitDays = daysMatch[1].trim(); // Isme '32' perfect aa jayega
+    } else {
+      this.quotation.transitDays = '';
     }
+    
+    // Location nikalne ke liye '(' se pehle ka part split karein
+    this.quotation.transitDest = q.transitDest.split(' (')[0].trim();
   } else {
     this.quotation.transitDest = q.transitDest || '';
     this.quotation.transitDays = '';
   }
-  // 3. Pickup Address Splitting (Org aur Addr alag fields mein)
+
+  // 5. Pickup Address Splitting (Org aur Addr alag fields mein)
   if (q.pickupAddress && q.pickupAddress.includes(', Addr:')) {
     const pParts = q.pickupAddress.split(', Addr:');
     this.quotation.pickupOrg = pParts[0].replace('Org:', '').trim();
@@ -1253,7 +1276,7 @@ if (q.transitDest && q.transitDest.includes('(')) {
     this.quotation.pickupAddress = q.pickupAddress || '';
   }
 
-  // 4. Delivery Address Splitting
+  // 6. Delivery Address Splitting
   if (q.deliveryAddress && q.deliveryAddress.includes(', Addr:')) {
     const dParts = q.deliveryAddress.split(', Addr:');
     this.quotation.deliveryOrg = dParts[0].replace('Org:', '').trim();
@@ -1262,14 +1285,14 @@ if (q.transitDest && q.transitDest.includes('(')) {
     this.quotation.deliveryAddress = q.deliveryAddress || '';
   }
 
-  // 5. Date Formatting (YYYY-MM-DD)
+  // 7. Date Formatting (YYYY-MM-DD)
   if (q.validFrom) this.quotation.validFrom = q.validFrom.split('T')[0];
   if (q.validTill) this.quotation.validTill = q.validTill.split('T')[0];
   if (q.cargoStatus === 'Ready' || q.cargoStatus === 'Ready By') {
      this.quotation.cargoReadyDate = q.validFrom ? q.validFrom.split('T')[0] : null;
   }
 
-  // 6. Tables Data Parsing (JSON string parse)
+  // 8. Tables Data Parsing (JSON string parse)
   if (q.revenueData) {
     try { 
       this.revenueRows = typeof q.revenueData === 'string' ? JSON.parse(q.revenueData) : q.revenueData; 
@@ -1281,7 +1304,7 @@ if (q.transitDest && q.transitDest.includes('(')) {
     } catch (e) { this.costRows = []; }
   }
 
-  // 7. Dimensions Logic
+  // 9. Dimensions Logic
   const dimData = q.dimensionsData || q.DimensionsData;
   if (dimData) {
     try {
@@ -1290,7 +1313,7 @@ if (q.transitDest && q.transitDest.includes('(')) {
     } catch (e) { this.dimRows = [{ box: null, l: null, w: null, h: null, unit: 'CMS' }]; }
   }
 
-  // 8. Refresh All Totals and UI
+  // 10. Refresh All Totals and UI
   setTimeout(() => {
     this.calculateAll();
     this.cdr.detectChanges();
@@ -2478,6 +2501,7 @@ showPricingDropdown: boolean = false;
 // 1. Dropdown kholne ya list refresh karne ke liye
 
 loadPricingList() {
+  this.showPricingDropdown = true;
   this.http.get(`${environment.apiUrl}/Pricing/GetPricingList`).subscribe({
     next: (res: any) => {
       this.pricingList = res;
@@ -2490,6 +2514,7 @@ loadPricingList() {
 
 // 2. Search filter logic (Jab user type kare)
 onPricingSearchInput() {
+  this.showPricingDropdown = true;
   const searchText = this.quotation.referencePricingNo?.toLowerCase() || '';
   
   if (searchText.length > 0) {
@@ -2669,6 +2694,18 @@ selectPricing(prc: any) {
     error: (err) => console.error("❌ API Error:", err)
   });
 }
+onPricingFocus() {
+  if (this.quotation.referencePricingNo) {
+    this.showPricingDropdown = true;
+  }
+}
+
+// 5. Bahar click karte hi dropdown automatic band ho jaye (200ms delay ke sath taaki click event trigger ho sake)
+onPricingBlur() {
+  setTimeout(() => {
+    this.showPricingDropdown = false;
+  }, 200);
+}
 allConnectingPorts: any[] = []; 
 filteredConnectingPorts: any[] = [];
 selectedConnectingPorts: any[] = []; 
@@ -2737,5 +2774,35 @@ toggleConnectingPortModal() {
 isPortSelected(port: any): boolean {
   return this.selectedConnectingPorts.some(p => p.id === port.id && p.cpType === port.cpType);
 }
+// 1. Properties declare karein (agar pehle se nahi ki hain)
+// portOfLoadingList: any[] = [];
+// portOfDischargeList
 
+// 2. Direct environment file se API URL pick karne ke liye methods:
+loadPortOfLoadings() {
+  const token = localStorage.getItem('cavalier_token');
+  const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+
+  // 📝 Direct environment.apiEndpoint use kiya hai bina kisi service ke
+  this.http.get(`${environment.apiUrl}/PortOfLoading`, { headers }).subscribe({
+    next: (data: any) => {
+      this.portOfLoadingList = data || [];
+      console.log("⚓ POL Data Loaded directly from Environment:", this.portOfLoadingList);
+    },
+    error: (err) => console.error("Error loading POL:", err)
+  });
 }
+
+loadPortOfDischarges() {
+  const token = localStorage.getItem('cavalier_token');
+  const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+
+  // 📝 Direct environment.apiEndpoint use kiya hai bina kisi service ke
+  this.http.get(`${environment.apiUrl}/PortOfDischarge`, { headers }).subscribe({
+    next: (data: any) => {
+      this.portOfDischargeList = data || [];
+      console.log("⚓ POD Data Loaded directly from Environment:", this.portOfDischargeList);
+    },
+    error: (err) => console.error("Error loading POD:", err)
+  });
+}}

@@ -145,28 +145,25 @@ openImageModal(url: string | null | undefined) {
 }
 // Is function ko class ke andar kahin bhi rakh dein
 getFormattedImagePath(path: string | null | undefined): string {
-  // 1. Agar path khali hai toh placeholder return karein
   if (!path) return 'assets/images/default-placeholder.png';
   
-  // 2. Agar path mein pehle se hi 'http' maujood hai (yani full URL hai),
-  // toh use bina chhede wahi return kar dein.
+  // 1. Agar path mein pehle se 'http' hai toh use clean karein
+  // (Kyunki kabhi kabhi database se galat formatted URL aa jata hai)
   if (path.startsWith('http')) {
+    // Agar URL ke andar 'api/uploads' hai, toh use simple '/uploads' mein badal dega
+    path = path.replace('/api/uploads/', '/uploads/');
     return path;
   }
 
-  // 3. Slashes fix karein: saare backslashes (\) ko forward slash (/) banayein
-  let cleanPath = path.replace(/\\/g, '/');
-  
-  // 4. Double slash issue avoid karne ke liye:
-  // Agar cleanPath ke shuru mein '/' hai, toh use hata dein.
-  if (cleanPath.startsWith('/')) {
-    cleanPath = cleanPath.substring(1);
-  }
+  // 2. Sirf filename nikalne ka sabse foolproof tarika
+  const filename = path.split(/[\\/]/).pop();
 
-  // 5. Final URL banayein: Ensure karein ki baseUrl aur path ke beech ek hi slash ho
-  const base = this.baseUrl.endsWith('/') ? this.baseUrl : `${this.baseUrl}/`;
+  // 3. Base URL ko fix karein (https://api.cavalierlogistic.graphicsvolume.com)
+  // Hum ensures karenge ki 'api' ke baad seedha '/uploads' aaye
+  let base = this.baseUrl.replace(/\/api$/, ''); // Agar baseUrl ke end mein /api hai toh hata dega
+  base = base.endsWith('/') ? base : `${base}/`;
   
-  return base + cleanPath;
+  return `${base}uploads/${filename}`;
 }
 closeImageModal() {
   this.isImageModalOpen = false;

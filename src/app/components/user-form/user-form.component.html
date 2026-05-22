@@ -894,7 +894,7 @@
       {{ userForm.get('appointmentLetter')?.errors?.['zod'] }}
     </div>
     <div *ngIf="userForm.get('appointmentLetterPath')?.value" class="mt-1">
-      <img [src]="userForm.get('appointmentLetterPath')?.value" 
+      <img [src]="getFormattedImagePath(userForm.get('appointmentLetterPath')?.value)" 
            (click)="openImageModal(getFormattedImagePath(userForm.get('appointmentLetterPath')?.value))"
            class="h-16 w-16 object-cover border border-gray-300 rounded shadow-sm cursor-pointer hover:opacity-75 transition-opacity" 
            alt="Appointment Letter preview" title="Click to view full image">
@@ -908,7 +908,7 @@
       {{ userForm.get('invitationLetter')?.errors?.['zod'] }}
     </div>
     <div *ngIf="userForm.get('invitationLetterPath')?.value" class="mt-1">
-      <img [src]="userForm.get('invitationLetterPath')?.value" 
+      <img [src]="getFormattedImagePath(userForm.get('invitationLetterPath')?.value)" 
            (click)="openImageModal(getFormattedImagePath(userForm.get('invitationLetterPath')?.value))"
            class="h-16 w-16 object-cover border border-gray-300 rounded shadow-sm cursor-pointer hover:opacity-75 transition-opacity" 
            alt="Invitation Letter preview" title="Click to view full image">
@@ -922,7 +922,7 @@
       {{ userForm.get('relievingLetter')?.errors?.['zod'] }}
     </div>
     <div *ngIf="userForm.get('relievingLetterPath')?.value" class="mt-1">
-      <img [src]="userForm.get('relievingLetterPath')?.value" 
+      <img [src]="getFormattedImagePath(userForm.get('relievingLetterPath')?.value)" 
            (click)="openImageModal(getFormattedImagePath(userForm.get('relievingLetterPath')?.value))"
            class="h-16 w-16 object-cover border border-gray-300 rounded shadow-sm cursor-pointer hover:opacity-75 transition-opacity" 
            alt="Relieving Letter preview" title="Click to view full image">
@@ -936,7 +936,7 @@
       {{ userForm.get('fullAndFinalLetter')?.errors?.['zod'] }}
     </div>
     <div *ngIf="userForm.get('fullAndFinalLetterPath')?.value" class="mt-1">
-      <img [src]="userForm.get('fullAndFinalLetterPath')?.value" 
+      <img [src]="getFormattedImagePath(userForm.get('fullAndFinalLetterPath')?.value)" 
            (click)="openImageModal(getFormattedImagePath(userForm.get('fullAndFinalLetterPath')?.value))"
            class="h-16 w-16 object-cover border border-gray-300 rounded shadow-sm cursor-pointer hover:opacity-75 transition-opacity" 
            alt="Full and Final Letter preview" title="Click to view full image">

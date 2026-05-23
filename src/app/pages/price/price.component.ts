@@ -489,16 +489,18 @@ this.quotation.shipmentType = 'Ready';
     this.quotation.cargoStatusDate = today;
 }
 getsales(): void {
-  // Teri API call
-  this.userServices.getUsers('onlyuserdata').subscribe({
-    next: (data: any) => {
-      // API se aane wala data leadOwners mein assign kar diya
+  console.log('Fetching Sales Coordinators from HOD list API...');
+
+  this.userServices.getHodList().subscribe({
+    next: (data: any[]) => {
+      // Yahan check karo ki data aa raha hai ya nahi
+      console.log('HOD/Sales Coord data received:', data);
+      
       this.getsalescordinate = data; 
-      console.log('Lead Owners loaded:', this.getsalescordinate);
-          this.cdr.detectChanges(); 
+      this.cdr.detectChanges(); 
     },
     error: (err) => {
-      console.error('Error loading users:', err);
+      console.error('Error loading HOD list:', err);
     }
   });
 }
@@ -1199,6 +1201,7 @@ saveDimensions() {
   this.calculateVolumeWeightLogic();
   this.syncFinalData();
   this.closeDimModal();
+  this.calculateTotalPackages();
 }
 
 // Jab Modal Open ho
@@ -1310,18 +1313,81 @@ loadDropdownData() {
 }
 
 // 🔥 Naya function: Jo typing ke waqt filter karega
+// ---- 1. Toggle Service Popup (Token + Headers + Correct Object Mapping) ----
+// ---- 1. Toggle Service Popup (Token + Headers + Correct Object Mapping) ----
+toggleServicePopup() {
+  // FIX: Service popup variable check karo
+  if (this.showServicePopup) {
+    this.showServicePopup = false;
+    this.cdr.detectChanges();
+    return;
+  }
+
+  const token = localStorage.getItem('cavalier_token'); 
+  if (!token) {
+    console.warn("Bhai login token nahi mila!");
+    return;
+  }
+
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`
+  });
+
+  this.serviceSub?.unsubscribe();
+
+  const fullUrl = `${environment.apiUrl}/Pricing`;
+  
+  this.serviceSub = this.http.get<any>(fullUrl, { headers }).subscribe({
+    next: (res: any) => {
+      const rawList = (res && res.data && Array.isArray(res.data)) ? res.data : (Array.isArray(res) ? res : []);
+
+      const uniqueModes: string[] = Array.from(new Set<string>(
+        rawList
+          .filter((item: any) => item && typeof item.transportMode === 'string' && item.transportMode.trim() !== "")
+          .map((item: any) => item.transportMode as string)
+      ));
+
+      this.allTransportModes = uniqueModes;
+      
+      // FIX: Yahan 'allUniqueServices' use karo jo aapne pehle declare kiya hai
+      this.allUniqueServices = [...uniqueModes]; 
+
+      this.showServicePopup = true; 
+      
+      this.cdr.detectChanges(); 
+    },
+    error: (err) => {
+      console.error("Error fetching Inquiry Services", err);
+      this.showServicePopup = false;
+      this.cdr.detectChanges();
+    }
+  });
+}
+
+// ---- 2. Input change search filter logic ----
 onServiceType() {
   const query = this.searchFilters.transportMode ? this.searchFilters.transportMode.trim().toLowerCase() : '';
+  console.log('--- ⌨️ Input Box Typing --- Query:', query);
 
-  // 3. Logic: 3 letter ke baad hi filter karke suggestions dikhao
   if (query.length >= 3) {
-    this.filteredServices = this.allUniqueServices.filter(mode => 
-      mode.toLowerCase().includes(query)
+    this.filteredServices = this.allTransportModes.filter((mode: string) => 
+      mode && mode.toLowerCase().includes(query)
     );
+    console.log(`Dropdown Matches found: ${this.filteredServices.length}`, this.filteredServices);
   } else {
-    // 3 se kam characters par list ko khali rakho
     this.filteredServices = [];
   }
+  this.cdr.detectChanges();
+}
+
+// ---- 3. Helper: Item selection handler ----
+selectServiceType(val: string) {
+  console.log('--- 🎯 Item Selected ---', val);
+  this.searchFilters.transportMode = val;
+  this.filteredServices = [];
+  // FIX: Service popup ko band karenge
+  this.showServicePopup = false;
+  this.cdr.detectChanges();
 }
 // Variables declare karein
 allUniqueInquiryNos: string[] = []; // Master list (Unique)
@@ -1357,35 +1423,101 @@ togglePricingPopup() {
   // 🔥 Ye magic line hai: UI ko turant update karega
   this.cdr.detectChanges(); 
 }
+// 1. Main Field me type karne par chalne wala function (Inline Dropdown ke liye)
 
-// 3. Modal ke andar search - Ab ye bina API ke chalega (Local Search)
+
+// 2. Modal ke andar search box me type karne par chalne wala function
+// ---- 1. Icon (🔍) Clicked - Map response object to string array ----
+openPricingModal() {
+  console.log('--- 🔍 Icon Clicked: openPricingModal() Triggered ---');
+  this.showPricingPopup = true;
+
+  const fullUrl = `${environment.apiUrl}/pricing`; 
+  console.log('Fetching directly from target API URL:', fullUrl);
+
+  this.http.get(fullUrl).subscribe({
+    next: (response: any) => {
+      console.log('Backend API Raw Response:', response);
+      
+      // FIX: Pehle response.data check karenge, fir usme se sirf pricingNo ki string nikalenge
+      if (response && response.data && Array.isArray(response.data)) {
+        this.masterPricingList = response.data.map((item: any) => item.pricingNo);
+      } else {
+        this.masterPricingList = [];
+      }
+      
+      console.log('Master list stored locally (Strings only):', this.masterPricingList);
+
+      // Ab yeh safely spread (...) ho jayega kyunki yeh pure array hai
+      this.allUniquePricingNos = [...this.masterPricingList];
+      console.log('Modal rendering data sequence ready:', this.allUniquePricingNos);
+
+      this.cdr.detectChanges(); // UI Update
+    },
+    error: (error: any) => {
+      console.error('API call directly failed! Trace:', error);
+      this.cdr.detectChanges();
+    }
+  });
+}
+
+// ---- 2. Main Input Change Observer (Dropdown Control) ----
+onPricingNoType() {
+  const query = this.searchFilters.pricingNo ? this.searchFilters.pricingNo.trim().toLowerCase() : '';
+  console.log('--- ⌨️ Main Input Event Tracked ---');
+  console.log('Normalized query filter:', query);
+
+  if (query.length >= 3) {
+    // FIX: ensure masterPricingList string array hi ho
+    this.filteredPricingNos = this.masterPricingList.filter((pNo: any) => 
+      pNo && pNo.toLowerCase().includes(query)
+    );
+    console.log(`Matches found (>= 3 chars): ${this.filteredPricingNos.length}`, this.filteredPricingNos);
+  } else {
+    this.filteredPricingNos = [];
+    console.log('Query string too short (< 3 chars). Dropdown hidden.');
+  }
+  
+  this.cdr.detectChanges(); 
+}
+
+// ---- 3. Modal Inner Filtration Control ----
 filterPricingList(event: any) {
-  const searchTerm = event.target.value.toLowerCase().trim();
+  const searchTerm = event.target.value ? event.target.value.toLowerCase().trim() : '';
+  console.log('--- 📦 Inner Modal Searching ---');
   
   if (!searchTerm) {
     this.allUniquePricingNos = [...this.masterPricingList];
+    console.log('Search field empty. Reverted back to full master dataset.');
   } else {
-    this.allUniquePricingNos = this.masterPricingList.filter(pNo =>
-      pNo.toLowerCase().includes(searchTerm)
+    // FIX: safe check lagaya taaki lowercase crash na ho
+    this.allUniquePricingNos = this.masterPricingList.filter((pNo: any) =>
+      pNo && pNo.toLowerCase().includes(searchTerm)
     );
-  }
-  this.cdr.detectChanges(); // Fast Update
-}
-// 2. Ye raha wo function jo error de raha hai
-onPricingNoType() {
-  const query = this.searchFilters.pricingNo ? this.searchFilters.pricingNo.trim().toLowerCase() : '';
-
-  if (query.length >= 3) {
-    this.filteredPricingNos = this.allUniquePricingNos.filter((pNo: string) => 
-      pNo.toLowerCase().includes(query)
-    );
-  } else {
-    this.filteredPricingNos = [];
+    console.log(`Filtered result subset size: ${this.allUniquePricingNos.length}`, this.allUniquePricingNos);
   }
   
-  // Agar ChangeDetectorRef use kar rahe ho toh:
   this.cdr.detectChanges(); 
 }
+
+// ---- Helper Option Selection Control ----
+selectPricingNumber(num: string) {
+  console.log('--- 🎯 Selection Event Fired ---', num);
+  
+  this.searchFilters.pricingNo = num;
+  this.filteredPricingNos = [];      // Suggestion List reset
+  this.showPricingPopup = false;     // Modal close
+  
+  this.cdr.detectChanges();
+}
+
+// 3. Ek extra helper function (Modal kholte waqt list ko reset karne ke liye)
+// Isko aap tab trigger karna jab 🔍 button par click karke modal open ho
+
+// 3. Modal ke andar search - Ab ye bina API ke chalega (Local Search)
+
+// 2. Ye raha wo function jo error de raha hai
+
 
 loadInquiryNumbers() {
   // 1. Token nikaalna (Local storage se ya jahan aapne save kiya ho)
@@ -1601,34 +1733,40 @@ pricings: any[] = [];             // Master display list
 
 // 2. Updated Search Function with Date
 onSearch() {
+  // 1. Agar filters khali hain, to simple loadPricings (GET) call karo
+  const isBlank = !this.searchFilters.pricingNo && 
+                  !this.searchFilters.transportMode && 
+                  !this.searchFilters.organisationName && 
+                  (this.searchFilters.status === "" || this.searchFilters.status === null) && 
+                  !this.searchFilters.receivedDate && 
+                  (!this.searchFilters.branchIds || this.searchFilters.branchIds.length === 0);
+
+  if (isBlank) {
+    this.currentPage = 1; 
+    this.loadPricings(); 
+    return;
+  }
+
+  // 2. SEARCH WALA LOGIC (POST)
   const token = localStorage.getItem('cavalier_token');
   const headers = new HttpHeaders({
     'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json'
   });
 
-  // Status mapping
   let statusValue = -1;
   if (this.searchFilters.status !== "" && this.searchFilters.status !== null) {
     statusValue = Number(this.searchFilters.status);
   }
 
-  // 🔥 Payload for Multiple Branches
   const payload = {
     pricingNo: this.searchFilters.pricingNo || "",
     transportMode: this.searchFilters.transportMode || "",
     organisationName: this.searchFilters.organisationName || "",
     status: statusValue,
     receivedDate: this.searchFilters.receivedDate || null,
-    
-    // 🔥 Yahan array ja raha hai [1, 2, 3] types
-    // Agar selectedBranchIds khali hai toh empty array ya 0 bhej sakte ho logic ke hisab se
-    branchIds: this.searchFilters.branchIds && this.searchFilters.branchIds.length > 0 
-               ? this.searchFilters.branchIds 
-               : [] 
+    branchIds: this.searchFilters.branchIds && this.searchFilters.branchIds.length > 0 ? this.searchFilters.branchIds : []
   };
-
-  console.log("🚀 Payload with Branches:", payload);
 
   this.http.post<any[]>(`${environment.apiUrl}/Pricing/Search`, payload, { headers })
     .subscribe({
@@ -1643,22 +1781,50 @@ onSearch() {
           inquiryNo: item.referenceByInquiryNo || item.inquiryNo || '-',
           transportMode: item.transportMode || '-',
           status: (item.status === 1 || item.status === true) ? 1 : 0,
-          // Agar UI par branch name dikhana hai toh:
           branchName: item.branchName || 'N/A'
         }));
 
-        this.paginatedPricings = [...this.pricings];
+        // 🔥 PAGINATION HANDLE KARNE KA LOGIC:
+        this.currentPage = 1; // Search karte hi 1st page set karo
+        this.totalCount = this.pricings.length; // Total records set karo
+        this.paginatedPricings = this.pricings.slice(0, this.pageSize); // Sirf pehle page ka data slice karo
+        
         this.cdr.detectChanges();
-        console.log("✅ Results found:", this.paginatedPricings.length);
+        console.log("✅ Results found:", this.totalCount);
       },
       error: (err) => {
         console.error("❌ Search failed:", err);
         this.pricings = [];
         this.paginatedPricings = [];
+        this.totalCount = 0;
         this.cdr.detectChanges();
       }
     });
 }
+onPageChange(page: number) {
+  this.currentPage = page;
+
+  // Agar 'pricings' array mein data hai aur 'searchFilters' empty hai, 
+  // toh hum "All" mode mein hain (Server-side pagination)
+  const isSearchActive = this.pricings.length > 0 && 
+                         (this.searchFilters.pricingNo || 
+                          this.searchFilters.organisationName || 
+                          this.searchFilters.transportMode || 
+                          this.searchFilters.status !== "" || 
+                          this.searchFilters.branchIds?.length > 0);
+
+  if (isSearchActive) {
+    // Client-side pagination (Search result ko slice karo)
+    const startIndex = (page - 1) * this.pageSize;
+    this.paginatedPricings = this.pricings.slice(startIndex, startIndex + this.pageSize);
+  } else {
+    // Server-side pagination (All data ke liye API call karo)
+    this.loadPricings();
+  }
+  
+  this.cdr.detectChanges();
+}
+
 
 AllSearchprice(){
 alert("All Price Search");
@@ -1966,49 +2132,7 @@ allTransportModes: string[] = [];
 private serviceSub?: Subscription;
 
 // 1. Icon click par popup toggle logic
-toggleServicePopup() {
-  if (this.showServicePopup) {
-    this.showServicePopup = false;
-    this.cdr.detectChanges();
-    return;
-  }
 
-  // 1. Token nikaalo
-  const token = localStorage.getItem('cavalier_token'); 
-  if (!token) {
-    console.warn("Bhai login token nahi mila!");
-    return;
-  }
-
-  // 2. Headers mein pass karo
-  const headers = new HttpHeaders({
-    'Authorization': `Bearer ${token}`
-  });
-
-  this.serviceSub?.unsubscribe();
-
-  // 3. API Call with Headers
-  this.serviceSub = this.http.get<any[]>(`${environment.apiUrl}/Pricing`, { headers }).subscribe({
-    next: (res) => {
-      // transportMode nikalna aur Duplicates hatana
-      const uniqueModes = [...new Set(
-        res
-          .filter(item => item.transportMode && item.transportMode.trim() !== "")
-          .map(item => item.transportMode)
-      )];
-console.log("Unique Transport Modes:", uniqueModes,res);
-      this.allTransportModes = uniqueModes;
-      this.showServicePopup = true;
-      this.cdr.detectChanges(); 
-      console.log("Transport modes loaded with token");
-    },
-    error: (err) => {
-      console.error("Error fetching Inquiry Services", err);
-      this.showServicePopup = false;
-      this.cdr.detectChanges();
-    }
-  });
-}
 
 // Popup se select karne par
 selectServiceFromPopup(val: string) {
@@ -3341,7 +3465,15 @@ loadInquiryList() {
   // 2. Check karna ki token exists karta hai ya nahi
   if (!cavalierToken) {
     console.error("Auth Token (cavalier_token) missing in localStorage");
-    // Aap yahan user ko login page par redirect bhi kar sakte hain
+    
+    // 🔥 SweetAlert for Missing Token
+    Swal.fire({
+      icon: 'warning',
+      title: 'Session Expired',
+      text: 'Aapka login token missing hai. Kripya fir se login karein.',
+      confirmButtonColor: '#3085d6',
+      confirmButtonText: 'OK'
+    });
     return;
   }
 
@@ -3357,14 +3489,37 @@ loadInquiryList() {
     next: (res) => {
       this.inquiryList = res;
       this.filteredInquiries = res; // Search ke liye list update karna zaroori hai
-      this.showInquiryDropdown = true;
-      this.cdr.detectChanges();
+      
+      // Fix: setTimeout lagane se dropdown pehle hi click par turant dikhega
+      setTimeout(() => {
+        this.showInquiryDropdown = this.inquiryList && this.inquiryList.length > 0;
+        this.cdr.detectChanges();
+      }, 50);
+
       console.log(res, "Inquiry data loaded successfully");
+
+      // 🔥 Optional: Agar data load hone par chota sa success toast dikhana ho
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: 'Inquiries Loaded',
+        showConfirmButton: false,
+        timer: 1500
+      });
     },
     error: (err) => {
       console.error("Inquiry fetch error:", err);
       this.showInquiryDropdown = false;
       this.cdr.detectChanges();
+
+      // 🔥 SweetAlert for API Fetch Error
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: 'Error While loading inquiry list please try again!',
+        confirmButtonColor: '#d33'
+      });
     }
   });
 }
@@ -3737,6 +3892,13 @@ goToOrganization(id: any) {
   if (id) {
     // Ye Angular router ko bypass karke browser se redirect karega
     window.location.href = `/dashboard/organization-add/${id}`;
+  }
+}
+calculateTotalPackages() {
+  if (this.dimRows && this.dimRows.length > 0) {
+    this.quotation.noOfPkgs = this.dimRows.reduce((total: number, dim: any) => {
+      return total + (Number(dim.box) || 0);
+    }, 0);
   }
 }
 }

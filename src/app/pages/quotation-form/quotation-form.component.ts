@@ -1052,10 +1052,10 @@ saveQuotation() {
     pickupAddress: `Org: ${this.quotation.pickupOrg || ""}, Addr: ${this.quotation.pickupAddress || ""}`,
     deliveryAddress: `Org: ${this.quotation.deliveryOrg || ""}, Addr: ${this.quotation.deliveryAddress || ""}`,
 
-    // JSON Data
+    // JSON Data (✅ DIMENSIONS DATA UPDATED TO PASS REAL VALUE NOW)
     revenueData: JSON.stringify(this.revenueRows),
     costData: JSON.stringify(this.costRows),
-    dimensionsData: "", // Jaisa aapne kaha, isse save nahi karwana
+    dimensionsData: this.dimRows && this.dimRows.length > 0 ? JSON.stringify(this.dimRows) : "",
     
     // Total Calculations
     totalRevenue: this.totalRevFinal,
@@ -1222,14 +1222,20 @@ editQuotation(q: any) {
     incoterm: q.incoTerms || q.incoterm || '',
     referencePricingNo: q.referenceByInquiry || '',
 
-  // 🔥 FIXED DROPDOWN AUTO-POPULATE SYNC: Direct incoming 'q' se numeric ID nikal kar assign ki hai taaki dropdown automatically select ho jaye.
+    // ✅ NO OF PACKAGES MAPPING FOR MAIN UI
+    // Backend se aane wali 'numOfPackages' keys ko frontend variable 'noOfPkgs' se sync kar diya hai
+    noOfPkgs: q.numOfPackages !== undefined ? q.numOfPackages : (q.numOfPackages !== undefined ? q.numOfPackages : 0),
+    pkgUnit: q.packageUnit || q.pkgUnit || 'PKGS',
+
+    // 🔥 FIXED DROPDOWN AUTO-POPULATE SYNC: Direct incoming 'q' se numeric ID nikal kar assign ki hai taaki dropdown automatically select ho jaye.
     portOfLoadingId: (q.portOfLoadingId !== null && q.portOfLoadingId !== undefined && q.portOfLoadingId !== '' && !isNaN(Number(q.portOfLoadingId))) ? Number(q.portOfLoadingId) : null,
     portOfDischargeId: (q.portOfDischargeId !== null && q.portOfDischargeId !== undefined && q.portOfDischargeId !== '' && !isNaN(Number(q.portOfDischargeId))) ? Number(q.portOfDischargeId) : null
-  
   };
-  // 📝 CONSOLE LOGS: Edit mode me kya ID bind hui hai check karne ke liye
+
+  // 📝 CONSOLE LOGS: Edit mode me kya ID aur Package Count bind hui hai check karne ke liye
   console.log("✅ POPULATED POL ID FOR DROPDOWN:", this.quotation.portOfLoadingId);
   console.log("✅ POPULATED POD ID FOR DROPDOWN:", this.quotation.portOfDischargeId);
+  console.log("✅ POPULATED TOTAL PACKAGES COUNT:", this.quotation.noOfPkgs);
 
   // 3. Cargo Value Splitting
   if (q.cargoValue) {
@@ -1304,18 +1310,37 @@ editQuotation(q: any) {
     } catch (e) { this.costRows = []; }
   }
 
-  // 9. Dimensions Logic
+  // 9. Dimensions Logic (✅ EXTRACTING 1ST ID TO OUTSIDE INPUTS)
   const dimData = q.dimensionsData || q.DimensionsData;
   if (dimData) {
     try {
       this.appliedDimensions = typeof dimData === 'string' ? JSON.parse(dimData) : dimData;
-      this.dimRows = this.appliedDimensions.length > 0 ? [...this.appliedDimensions] : [{ box: null, l: null, w: null, h: null, unit: 'CMS' }];
-    } catch (e) { this.dimRows = [{ box: null, l: null, w: null, h: null, unit: 'CMS' }]; }
+      this.dimRows = this.appliedDimensions && this.appliedDimensions.length > 0 
+        ? [...this.appliedDimensions] 
+        : [{ box: null, l: null, w: null, h: null, unit: 'CMS' }];
+      
+      // 🔥 FIRST ROW DATA BINDING FOR MAIN UI: Pahli ID ko bahar show karwane ke liye map kiya hai
+      if (this.dimRows && this.dimRows.length > 0) {
+        this.quotation.dimBox = this.dimRows[0].box;
+        this.quotation.dimL = this.dimRows[0].l;
+        this.quotation.dimW = this.dimRows[0].w;
+        this.quotation.dimH = this.dimRows[0].h;
+      }
+    } catch (e) { 
+      this.dimRows = [{ box: null, l: null, w: null, h: null, unit: 'CMS' }]; 
+    }
+  } else {
+    this.dimRows = [{ box: null, l: null, w: null, h: null, unit: 'CMS' }];
   }
 
   // 10. Refresh All Totals and UI
   setTimeout(() => {
-    this.calculateAll();
+    // Agar applied dimensions pehle se save the, toh yeh pure state rows ka total recalculate kar dega
+    if (this.updateTotalPackagesFromDims) {
+      this.updateTotalPackagesFromDims();
+    } else {
+      this.calculateAll();
+    }
     this.cdr.detectChanges();
   }, 200);
 }
@@ -1483,6 +1508,7 @@ prepareQuotationPayload() {
   saveDimensions() {
     this.appliedDimensions = [...this.dimRows];
     this.closeDimModal();
+    this.updateTotalPackagesFromDims();
   }
 
   onFileSelected(event: any) {
@@ -2805,4 +2831,37 @@ loadPortOfDischarges() {
     },
     error: (err) => console.error("Error loading POD:", err)
   });
-}}
+
+}
+// 1. Jab modal ke andar boxes badlenge - tab bahar wale num of packages aur first element box ko autofill karega
+updateTotalPackagesFromDims() {
+  if (this.dimRows && this.dimRows.length > 0) {
+    // Pehli row ka value outer view variables ke sath maintain rakhne ke liye
+    if (this.dimRows[0]) {
+      this.quotation.dimBox = this.dimRows[0].box;
+    }
+
+    // Pura mathematical loop validation check ke sath
+    const totalBoxes = this.dimRows.reduce((sum, row) => {
+      return sum + (row && row.box ? Number(row.box) : 0);
+    }, 0);
+
+    // Dynamic state refresh
+    this.quotation.noOfPkgs = totalBoxes;
+
+    if (this.cdr) {
+      this.cdr.detectChanges();
+    }
+  }
+}
+
+// 2. Agar koi direct main UI screen par "Dimensions BOX" change kare toh modal ki pehli row update ho jaye
+syncOuterBoxToFirstRow() {
+  if (!this.dimRows || this.dimRows.length === 0) {
+    this.dimRows = [{ box: 0, l: 0, w: 0, h: 0, unit: 'CMS' }];
+  }
+  
+  this.dimRows[0].box = this.quotation.dimBox;
+  this.updateTotalPackagesFromDims(); // Isse calculation recalculate ho jayegi automatically
+}
+}

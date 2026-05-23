@@ -30,6 +30,10 @@ import Swal from 'sweetalert2';
 export class QuotationFormComponent implements OnInit {
   @ViewChild('cargoReadyDateInput') cargoReadyDateInput!: ElementRef;
   token:string='';
+  isPreviewMode = false;
+agentDetail: any[] = [];
+selectedEmails = new Set<string>();
+lastSelectedBranch: string = "";
   getsalescordinate: any[] = [];
     shipmentTypes: any[] = [];
     portOfLoadingList: any[] = [];
@@ -412,6 +416,46 @@ showPricingDetails(item: any) {
     this.router.navigate(['/dashboard/Price'], { queryParams: { editId: pId } });
   } else {
     Swal.fire('Error', 'Pricing ID nahi mili is record ke liye.', 'error');
+  }
+}
+toggleReview() {
+  if (!this.quotation.organization) {
+    alert("Please select or save organization first");
+    return;
+  }
+  
+  // Pricing ki tarah assigned branches fetch karne ke liye (agar origin/country code available hai)
+  // Note: Agar quotation me originPort code milta hai toh fetchAgentByPostCode call karein
+  this.isPreviewMode = true;
+}
+backToEdit() {
+  this.isPreviewMode = false;
+}
+fetchAgentByPostCode(postCode: string) {
+  const url = `${environment.apiUrl}/OrgBranch/GetByPostCodeAgent/${postCode}`;
+  this.http.get<any[]>(url).subscribe({
+    next: (res) => {
+      this.agentDetail = res;
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error("Agent fetch fail:", err);
+      this.agentDetail = [];
+    }
+  });
+}
+
+// 3. Branch Selection Logic
+onAgentSelect(event: any, agent: any) {
+  const email = agent.email || agent.Email;
+  const branch = agent.branchName || agent.BranchName || "Global";
+  if (!email) return;
+
+  if (event.target.checked) {
+    this.selectedEmails.add(email);
+    this.lastSelectedBranch = branch;
+  } else {
+    this.selectedEmails.delete(email);
   }
 }
 getMovementTypes() {

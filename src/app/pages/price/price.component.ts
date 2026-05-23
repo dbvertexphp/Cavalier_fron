@@ -785,7 +785,7 @@ onOriginSearchInput() {
  selectOrigin(origin: any) {
   // 1. Basic UI aur Selection update
   this.originsaveid = origin.id;
-  this.originpinCode = origin.pinCode;
+  this.originpinCode = origin.countryCode;
   this.inquiry.origin = origin.portName; 
   this.showOriginDropdown = false;
 

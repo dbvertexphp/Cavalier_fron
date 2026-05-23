@@ -9,6 +9,7 @@ import { environment } from '../../../environments/environment';
 import { employeeSchema } from './employee.schema';
 import { firstValueFrom } from 'rxjs';
 import Swal from 'sweetalert2';
+import { Location } from '@angular/common';
 @Component({
   selector: 'app-user-form',
   standalone: true,
@@ -51,7 +52,8 @@ public baseUrl: string ='';
     private branchService: BranchService,
     private router: Router,
     private http: HttpClient,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private location: Location
   ) {
     let api = environment.apiUrl;
     if (api.endsWith('/api')) {
@@ -664,9 +666,8 @@ async saveEducation(userId: any) {
   }
 
   onCancel() {
-    this.router.navigate([
-      this.isBranchForm ? '/dashboard/branch' : '/dashboard/Employee'
-    ]);
+    // Ye line user ko pichle page par le jayegi
+    this.location.back();
   }
 //   saveEducation() {
 //   const formData = new FormData();

@@ -652,6 +652,7 @@ addCurrentBranchIfValid(): boolean {
 
     branchName: this.branchName.trim(),
     address: this.address || '',
+    countryCode: this.agentCountryCode,
     area: this.area || '',
     landmark: this.landmark || '',
     country: this.country || '',
@@ -1169,7 +1170,7 @@ proceedToSave() {
           lineOfBusinessId: localBranch.agentData.agentSelectedLineOfBusiness && localBranch.agentData.agentSelectedLineOfBusiness.length > 0 
             ? localBranch.agentData.agentSelectedLineOfBusiness.map((item:any) => item.id).join(',') 
             : "",
-            
+            countryCode: localBranch.countryCode,
           branchName: localBranch.agentData.agentBranchName.trim(),
           address: localBranch.agentData.agentAddress?.trim() || '',
           area: localBranch.agentData.agentArea?.trim() || '',

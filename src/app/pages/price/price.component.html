@@ -801,7 +801,7 @@ Selection Modal Popup
     <!-- Table Body: Loop on pricings (Check if data exists) -->
     <tbody class="bg-white" *ngIf="pricings && pricings.length > 0">
       <tr *ngFor="let q of pricings" 
-          (dblclick)="editPricing(q)" 
+          (dblclick)="editPricing(q.id)" 
           class="hover:bg-blue-50 border-b text-gray-700 cursor-pointer transition-colors">
         
         <!-- Pricing & Inquiry -->

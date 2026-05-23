@@ -289,128 +289,15 @@ calculateSingleVolumeWeight(dim: any): number {
 // }
 
 // 2. CBM Calculation logic
-// 1. Pehle class ke bilkul upar (jahan variables declare hote hain) ye do naam check kar lena agar pehle se hain toh theek, nahi toh hamara code handle kar lega:
-// cbmValue: number = 0;
-// selectcommodityvalue: string = '';
-
-editPricing(pricing: any) {
-  console.log("Editing Pricing Entry Data:", pricing);
-  if (!pricing) return;
-
-  // Saare background data ko ek jagah safe nikaal lo
-  const rawCbm = pricing.cbm || pricing.volume || pricing.totalCbm || pricing.cbmWeight || pricing.cbm_weight;
-  const rawVolWeight = pricing.volumeWeight || pricing.volume_weight || pricing.volumetricWeight || (this.quotation && this.quotation.volumeWeight);
-  const rawCommodityId = pricing.commodityId || pricing.commodityID || pricing.commodity_id || pricing.commodity;
-  const rawCommodityName = pricing.commodityName || pricing.commodity_name || pricing.commodity || '';
-
-  // 1. Data Copying (Deep Merge Safety)
-  if (!this.quotation) this.quotation = {};
-  this.quotation = { ...this.quotation, ...pricing };
-
-  // 2. Transport Mode Fix
-  if (pricing.transportMode && this.transportModes) {
-    const modeObj = this.transportModes.find(m => m && m.name && m.name.toLowerCase() === pricing.transportMode.toLowerCase());
-    this.quotation.TransportMode = modeObj ? modeObj.id : pricing.transportMode;
-  }
-
-  // 3. Transport Type & Currency Fix
-  this.quotation.TransportType = pricing.transportType;
-  this.quotation.currency = pricing.cargoCurrency;
-
-  // 4. Origin Display
-  if (!this.inquiry) this.inquiry = {};
-  this.inquiry.origin = pricing.originName || pricing.origin;
-  this.originsaveid = pricing.originId;
-
-  // 5. Ports Setup
-  this.quotation.portOfLoading = pricing.portOfLoadingName || "";
-  this.quotation.portOfDestination = pricing.portOfDischargeName || "";
-  this.quotation.portOfLoadingId = pricing.portOfLoadingId;
-  this.quotation.portOfDischargeId = pricing.portOfDischargeId;
-
-  // 6. Org & Ref
-  this.inquiry.organization = pricing.organisationName || pricing.customerName;
-  this.quotation.referenceByInquiry = pricing.referenceByInquiryNo;
-
-  // 7. Dates
-  if (pricing.receivedDate) this.quotation.receivedDate = pricing.receivedDate.split('T')[0];
-  if (pricing.cargoStatusDate) this.quotation.cargoStatusDate = pricing.cargoStatusDate.split('T')[0];
-
-  // 8. COMMODITY IMMEDIATE ASSIGNMENT
-  if (rawCommodityId) {
-    this.quotation.commodity = Number(rawCommodityId);
-  }
-  this.selectcommodityvalue = rawCommodityName;
-
-  // 9. CBM INITIAL ASSIGNMENT & CALCULATION
-  if (rawVolWeight) {
-    this.quotation.volumeWeight = Number(rawVolWeight);
-  }
-
-  if (rawCbm && Number(rawCbm) > 0) {
-    this.quotation.cbm = parseFloat(Number(rawCbm).toFixed(3));
-  } else if (this.quotation.volumeWeight && Number(this.quotation.volumeWeight) > 0) {
-    const calc = Number(this.quotation.volumeWeight) / 167;
-    this.quotation.cbm = parseFloat(calc.toFixed(3));
+calculateCBM() {
+  if (this.quotation.volumeWeight) {
+    // Formula as per your requirement: Volume Weight / 167
+    const calculatedCbm = this.quotation.volumeWeight / 167;
+    this.quotation.cbm = parseFloat(calculatedCbm.toFixed(3));
   } else {
     this.quotation.cbm = 0;
   }
-
-  this.quotation.weight = pricing.weight || pricing.grossWeight || pricing.gross_weight || 0;
-  this.quotation.cbmUnit = pricing.cbmUnit || 'CBM';
-
-  // 10. Tables Grid Data
-  this.costRows = pricing.costBreakdowns && pricing.costBreakdowns.length > 0 ? [...pricing.costBreakdowns] : [{ lob: 'Standard', chargeName: '', chargeType: 'Prepaid', basis: 'Per KG', currency: 'INR', rate: 0, exchangeRate: 1, amount: 0 }];
-  this.multiCarrierRows = pricing.multiCarrierBreakdowns && pricing.multiCarrierBreakdowns.length > 0 ? [...pricing.multiCarrierBreakdowns] : [this.createEmptyRow()];
-
-  // 11. Dimensions
-  if (pricing.dimensions && pricing.dimensions.length > 0) {
-    this.dimRows = [...pricing.dimensions];
-    this.dimRow = { ...pricing.dimensions[0] };
-    this.appliedDimensions = [...pricing.dimensions];
-  }
-
-  // Form Open State Trigger
-  this.isFormOpen = true;
-  this.cdr.detectChanges();
-
-  // ========================================================
-  // 🎯 ULTIMATE TEMPLATE SYNC (Iske bina view update nahi ho raha)
-  // ========================================================
-  setTimeout(() => {
-    // 1. Commodity Re-Sync
-    if (rawCommodityId) this.quotation.commodity = Number(rawCommodityId);
-    this.selectcommodityvalue = rawCommodityName;
-
-    // 2. CBM Re-Sync / Re-Calculate
-    const freshVolWeight = this.quotation.volumeWeight || rawVolWeight;
-    if (rawCbm && Number(rawCbm) > 0) {
-      this.quotation.cbm = parseFloat(Number(rawCbm).toFixed(3));
-    } else if (freshVolWeight && Number(freshVolWeight) > 0) {
-      const coreCalc = Number(freshVolWeight) / 167;
-      this.quotation.cbm = parseFloat(coreCalc.toFixed(3));
-    }
-
-    console.log("🔥 Final Check Inside Timeout - Commodity:", this.quotation.commodity, "CBM:", this.quotation.cbm);
-    
-    // UI Refresh Force
-    this.cdr.detectChanges();
-  }, 400); // 400ms ka buffer taaki saare hooks complete ho jayein
 }
-
-// Keep it safe for other components calling it
-calculateCBM() {
-  if (this.quotation && this.quotation.volumeWeight) {
-    this.quotation.cbm = parseFloat((Number(this.quotation.volumeWeight) / 167).toFixed(3));
-  } else if (this.quotation) {
-    this.quotation.cbm = 0;
-  }
-  this.cdr.detectChanges();
-}
-
-// Ensure kijiye ki aapki class me ye function bhi bna ho compilation error se bachne ke liye
-
-
 AllSearch(){
   this.onSearch();
   this.cdr.detectChanges();
@@ -1260,6 +1147,7 @@ saveDimensions() {
   this.calculateNetWeight();
   this.calculateVolumeWeightLogic();
   this.syncFinalData();
+  this.calculateTotalPackages(); // Ye line add ki hai
   this.closeDimModal();
 }
 
@@ -1368,6 +1256,9 @@ editQuotation(q: any) {
       this.dimRows = [{ box: 1, l: 0, w: 0, h: 0, unit: 'CMS' }];
     }
 
+    // --- CBM CALCULATION TRIGGERED HERE ---
+    this.calculateCBM();
+
     // 10. Logic Flags
     const incoterm = (q.incoterm || '').toUpperCase();
     this.isPickupEnabled = (incoterm === 'EXWORK');
@@ -1384,7 +1275,6 @@ editQuotation(q: any) {
     }, 300);
 
   } catch (mainError) {
-    // Agar abhi bhi koi anjaan cheez crash karegi, toh log karega par chupchaap form khol dega bina alert ke!
     console.error("🛑 Internal logic crash bypassed safely:", mainError);
     this.isFormOpen = true;
     this.cdr.detectChanges();
@@ -3307,5 +3197,12 @@ toggleConnectingPortModal() {
 // Helper to check if port is selected (for Modal UI)
 isPortSelected(port: any): boolean {
   return this.selectedConnectingPorts.some(p => p.id === port.id && p.cpType === port.cpType);
+}
+calculateTotalPackages() {
+  if (this.dimRows && this.dimRows.length > 0) {
+    this.quotation.noOfPkgs = this.dimRows.reduce((total: number, dim: any) => {
+      return total + (Number(dim.box) || 0);
+    }, 0);
+  }
 }
 }

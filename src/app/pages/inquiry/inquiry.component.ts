@@ -289,15 +289,128 @@ calculateSingleVolumeWeight(dim: any): number {
 // }
 
 // 2. CBM Calculation logic
-calculateCBM() {
-  if (this.quotation.volumeWeight) {
-    // Formula as per your requirement: Volume Weight / 167
-    const calculatedCbm = this.quotation.volumeWeight / 167;
-    this.quotation.cbm = parseFloat(calculatedCbm.toFixed(3));
+// 1. Pehle class ke bilkul upar (jahan variables declare hote hain) ye do naam check kar lena agar pehle se hain toh theek, nahi toh hamara code handle kar lega:
+// cbmValue: number = 0;
+// selectcommodityvalue: string = '';
+
+editPricing(pricing: any) {
+  console.log("Editing Pricing Entry Data:", pricing);
+  if (!pricing) return;
+
+  // Saare background data ko ek jagah safe nikaal lo
+  const rawCbm = pricing.cbm || pricing.volume || pricing.totalCbm || pricing.cbmWeight || pricing.cbm_weight;
+  const rawVolWeight = pricing.volumeWeight || pricing.volume_weight || pricing.volumetricWeight || (this.quotation && this.quotation.volumeWeight);
+  const rawCommodityId = pricing.commodityId || pricing.commodityID || pricing.commodity_id || pricing.commodity;
+  const rawCommodityName = pricing.commodityName || pricing.commodity_name || pricing.commodity || '';
+
+  // 1. Data Copying (Deep Merge Safety)
+  if (!this.quotation) this.quotation = {};
+  this.quotation = { ...this.quotation, ...pricing };
+
+  // 2. Transport Mode Fix
+  if (pricing.transportMode && this.transportModes) {
+    const modeObj = this.transportModes.find(m => m && m.name && m.name.toLowerCase() === pricing.transportMode.toLowerCase());
+    this.quotation.TransportMode = modeObj ? modeObj.id : pricing.transportMode;
+  }
+
+  // 3. Transport Type & Currency Fix
+  this.quotation.TransportType = pricing.transportType;
+  this.quotation.currency = pricing.cargoCurrency;
+
+  // 4. Origin Display
+  if (!this.inquiry) this.inquiry = {};
+  this.inquiry.origin = pricing.originName || pricing.origin;
+  this.originsaveid = pricing.originId;
+
+  // 5. Ports Setup
+  this.quotation.portOfLoading = pricing.portOfLoadingName || "";
+  this.quotation.portOfDestination = pricing.portOfDischargeName || "";
+  this.quotation.portOfLoadingId = pricing.portOfLoadingId;
+  this.quotation.portOfDischargeId = pricing.portOfDischargeId;
+
+  // 6. Org & Ref
+  this.inquiry.organization = pricing.organisationName || pricing.customerName;
+  this.quotation.referenceByInquiry = pricing.referenceByInquiryNo;
+
+  // 7. Dates
+  if (pricing.receivedDate) this.quotation.receivedDate = pricing.receivedDate.split('T')[0];
+  if (pricing.cargoStatusDate) this.quotation.cargoStatusDate = pricing.cargoStatusDate.split('T')[0];
+
+  // 8. COMMODITY IMMEDIATE ASSIGNMENT
+  if (rawCommodityId) {
+    this.quotation.commodity = Number(rawCommodityId);
+  }
+  this.selectcommodityvalue = rawCommodityName;
+
+  // 9. CBM INITIAL ASSIGNMENT & CALCULATION
+  if (rawVolWeight) {
+    this.quotation.volumeWeight = Number(rawVolWeight);
+  }
+
+  if (rawCbm && Number(rawCbm) > 0) {
+    this.quotation.cbm = parseFloat(Number(rawCbm).toFixed(3));
+  } else if (this.quotation.volumeWeight && Number(this.quotation.volumeWeight) > 0) {
+    const calc = Number(this.quotation.volumeWeight) / 167;
+    this.quotation.cbm = parseFloat(calc.toFixed(3));
   } else {
     this.quotation.cbm = 0;
   }
+
+  this.quotation.weight = pricing.weight || pricing.grossWeight || pricing.gross_weight || 0;
+  this.quotation.cbmUnit = pricing.cbmUnit || 'CBM';
+
+  // 10. Tables Grid Data
+  this.costRows = pricing.costBreakdowns && pricing.costBreakdowns.length > 0 ? [...pricing.costBreakdowns] : [{ lob: 'Standard', chargeName: '', chargeType: 'Prepaid', basis: 'Per KG', currency: 'INR', rate: 0, exchangeRate: 1, amount: 0 }];
+  this.multiCarrierRows = pricing.multiCarrierBreakdowns && pricing.multiCarrierBreakdowns.length > 0 ? [...pricing.multiCarrierBreakdowns] : [this.createEmptyRow()];
+
+  // 11. Dimensions
+  if (pricing.dimensions && pricing.dimensions.length > 0) {
+    this.dimRows = [...pricing.dimensions];
+    this.dimRow = { ...pricing.dimensions[0] };
+    this.appliedDimensions = [...pricing.dimensions];
+  }
+
+  // Form Open State Trigger
+  this.isFormOpen = true;
+  this.cdr.detectChanges();
+
+  // ========================================================
+  // 🎯 ULTIMATE TEMPLATE SYNC (Iske bina view update nahi ho raha)
+  // ========================================================
+  setTimeout(() => {
+    // 1. Commodity Re-Sync
+    if (rawCommodityId) this.quotation.commodity = Number(rawCommodityId);
+    this.selectcommodityvalue = rawCommodityName;
+
+    // 2. CBM Re-Sync / Re-Calculate
+    const freshVolWeight = this.quotation.volumeWeight || rawVolWeight;
+    if (rawCbm && Number(rawCbm) > 0) {
+      this.quotation.cbm = parseFloat(Number(rawCbm).toFixed(3));
+    } else if (freshVolWeight && Number(freshVolWeight) > 0) {
+      const coreCalc = Number(freshVolWeight) / 167;
+      this.quotation.cbm = parseFloat(coreCalc.toFixed(3));
+    }
+
+    console.log("🔥 Final Check Inside Timeout - Commodity:", this.quotation.commodity, "CBM:", this.quotation.cbm);
+    
+    // UI Refresh Force
+    this.cdr.detectChanges();
+  }, 400); // 400ms ka buffer taaki saare hooks complete ho jayein
 }
+
+// Keep it safe for other components calling it
+calculateCBM() {
+  if (this.quotation && this.quotation.volumeWeight) {
+    this.quotation.cbm = parseFloat((Number(this.quotation.volumeWeight) / 167).toFixed(3));
+  } else if (this.quotation) {
+    this.quotation.cbm = 0;
+  }
+  this.cdr.detectChanges();
+}
+
+// Ensure kijiye ki aapki class me ye function bhi bna ho compilation error se bachne ke liye
+
+
 AllSearch(){
   this.onSearch();
   this.cdr.detectChanges();
@@ -1159,101 +1272,123 @@ openDimModal() {
   this.isDimModalOpen = true;
 }
     
- editQuotation(q: any) {
+editQuotation(q: any) {
   console.warn('Backend Data for Autofill:', q);
-
-  // 1. Pura data copy karein
-  this.quotation = { ...q };
-
-  // 2. Transport Mode Fix (Dropdown autoselect)
-  // Backend se 'transportMode': 'Air' aa raha hai, par HTML 'TransportMode' (Capital T) mang raha hai
-  this.quotation.TransportMode = q.transportMode; 
-  if (q.transportType) {
-    this.quotation.TransportType = q.transportType.charAt(0).toUpperCase() + q.transportType.slice(1).toLowerCase();
+  if (!q) {
+    console.error('No data received in editQuotation');
+    return;
   }
-  // Agar aapki list ID based hai toh ye use karein:
-  const modeObj = this.transportModes.find(m => m.name.toLowerCase() === (q.transportMode || '').toLowerCase());
-  if (modeObj) {
-    this.quotation.TransportMode = modeObj.id;
-  }
-if (q.salesCoordinator) {
-    this.quotation.salesCoordinator = q.salesCoordinator.toString();
-    // Forcefully list check (Optional but safe)
-    const coordinatorExists = this.getsalescordinate.find(sc => sc.id.toString() === q.salesCoordinator.toString());
-    if (coordinatorExists) {
-      this.quotation.salesCoordinator = coordinatorExists.id.toString();
+
+  try {
+    // 1. Pura data copy karein
+    this.quotation = { ...q };
+
+    // 2. Transport Mode Fix (Added strict type and null checks)
+    this.quotation.TransportMode = q.transportMode; 
+    if (q.transportType && typeof q.transportType === 'string' && q.transportType.length > 0) {
+      this.quotation.TransportType = q.transportType.charAt(0).toUpperCase() + q.transportType.slice(1).toLowerCase();
     }
-  }
-  // 3. Commodity & Currency Fix (Cargo Value select)
-  // Backend se 'commodityId': 15 aa raha hai, HTML 'commodity' mang raha hai
-  this.quotation.commodity = q.commodityId ? Number(q.commodityId) : null;
-  this.quotation.currency = q.cargoCurrency; // ¥ CNY - Chinese Yuan direct select hoga agar option value match hui
+    
+    // Safety check: Agar transportModes list sahi mein array hai aur loaded hai
+    if (this.transportModes && Array.isArray(this.transportModes)) {
+      const modeObj = this.transportModes.find(m => m && m.name && m.name.toLowerCase() === (q.transportMode || '').toLowerCase());
+      if (modeObj) {
+        this.quotation.TransportMode = modeObj.id;
+      }
+    }
 
-  // 4. Origin & Country Fix
-  this.originsaveid = q.originId ? Number(q.originId) : 0;
-  this.quotation.country = q.countryName; 
-  this.selectedCountryName = q.countryName; // Payload safety ke liye
+    if (q.salesCoordinator) {
+      this.quotation.salesCoordinator = q.salesCoordinator.toString();
+      // Safety check: Agar getsalescordinate list sahi mein array hai aur loaded hai
+      if (this.getsalescordinate && Array.isArray(this.getsalescordinate)) {
+        const coordinatorExists = this.getsalescordinate.find(sc => sc && sc.id && sc.id.toString() === q.salesCoordinator.toString());
+        if (coordinatorExists) {
+          this.quotation.salesCoordinator = coordinatorExists.id.toString();
+        }
+      }
+    }
 
-  // 5. Port of Loading & Discharge (Display Fix)
-  // Sirf ID se input box mein naam nahi dikhta, isliye manually naam set karenge
-  this.quotation.portOfLoadingId = q.portOfLoadingId ? Number(q.portOfLoadingId) : null;
-  this.quotation.portOfDischargeId = q.portOfDischargeId ? Number(q.portOfDischargeId) : null;
+    // 3. Commodity & Currency Fix
+    this.quotation.commodity = q.commodityId ? Number(q.commodityId) : null;
+    this.quotation.currency = q.cargoCurrency; 
 
-  // Ports ki list se naam nikaal kar input boxes mein bharna (Display ke liye)
-  const pol = this.portsOfLoading.find(p => p.id == q.portOfLoadingId);
-  if (pol) this.quotation.portOfLoading = pol.name || pol.portName;
+    // 4. Origin & Country Fix
+    this.originsaveid = q.originId ? Number(q.originId) : 0;
+    this.quotation.country = q.countryName; 
+    this.selectedCountryName = q.countryName; 
 
-  const pod = this.portsOfDischarge.find(p => p.id == q.portOfDischargeId);
-  if (pod) this.quotation.portOfDestination = pod.name || pod.portName;
+    // 5. Port of Loading & Discharge (Display Fix)
+    this.quotation.portOfLoadingId = q.portOfLoadingId ? Number(q.portOfLoadingId) : null;
+    this.quotation.portOfDischargeId = q.portOfDischargeId ? Number(q.portOfDischargeId) : null;
 
-  // 6. UI Specific Mapping (this.inquiry object)
-  this.inquiry = {
-    ...this.inquiry,
-    inquiryNo: q.inquiryNo,
-    organization: q.organisationName || q.customerName,
-    origin: q.location || q.originName || q.origin, // Origin text box fix
-    leadNo: q.leadName || q.leadNo
-  };
+    if (this.portsOfLoading && Array.isArray(this.portsOfLoading)) {
+      const pol = this.portsOfLoading.find(p => p && p.id == q.portOfLoadingId);
+      if (pol) this.quotation.portOfLoading = pol.name || pol.portName;
+    }
 
-  // 7. IDs to Strings (Dropdowns ke liye: Branch & Coordinator)
-  this.quotation.branchName = q.branchId ? q.branchId.toString() : q.branchName;
-  this.quotation.salesCoordinator = q.salesCoordinator ? q.salesCoordinator.toString() : '';
+    if (this.portsOfDischarge && Array.isArray(this.portsOfDischarge)) {
+      const pod = this.portsOfDischarge.find(p => p && p.id == q.portOfDischargeId);
+      if (pod) this.quotation.portOfDestination = pod.name || pod.portName;
+    }
 
-  // 8. Date Formatting (HTML5 standard 'YYYY-MM-DD')
-  if (q.receivedDate) {
-    this.quotation.receivedDate = new Date(q.receivedDate).toISOString().split('T')[0];
-  }
-  if (q.cargoStatusDate) {
-    this.quotation.cargoStatusDate = new Date(q.cargoStatusDate).toISOString().split('T')[0];
-  }
-  if (q.repliedDate && q.repliedDate !== '2000-02-12T00:00:00') {
-    this.quotation.repliedDate = new Date(q.repliedDate).toISOString().split('T')[0];
-  }
+    // 6. UI Specific Mapping
+    this.inquiry = {
+      ...this.inquiry,
+      inquiryNo: q.inquiryNo,
+      organization: q.organisationName || q.customerName,
+      origin: q.location || q.originName || q.origin, 
+      leadNo: q.leadName || q.leadNo
+    };
 
-  // 9. Dimensions Handling
-  if (q.dimensions && q.dimensions.length > 0) {
-    this.appliedDimensions = [...q.dimensions];
-    this.dimRows = [...q.dimensions];
-    this.dimRow = { ...q.dimensions[0] }; // Pehli row bahar dikhane ke liye
-  } else {
-    this.dimRows = [{ box: 1, l: 0, w: 0, h: 0, unit: 'CMS' }];
-  }
+    // 7. IDs to Strings
+    this.quotation.branchName = q.branchId ? q.branchId.toString() : q.branchName;
+    this.quotation.salesCoordinator = q.salesCoordinator ? q.salesCoordinator.toString() : '';
 
-  // 10. Logic Flags (UI states)
-  const incoterm = (q.incoterm || '').toUpperCase();
-  this.isPickupEnabled = (incoterm === 'EXWORK');
-  this.isDeliveryEnabled = ['DDP', 'DDU', 'DAP'].includes(incoterm);
-  this.showincoterms = incoterm;
-  this.selectcommodityvalue = q.commodityName || '';
+    // 8. Date Formatting with individual try-catch so it never stops the flow
+    try {
+      if (q.receivedDate) {
+        this.quotation.receivedDate = new Date(q.receivedDate).toISOString().split('T')[0];
+      }
+      if (q.cargoStatusDate) {
+        this.quotation.cargoStatusDate = new Date(q.cargoStatusDate).toISOString().split('T')[0];
+      }
+      if (q.repliedDate && q.repliedDate !== '2000-02-12T00:00:00') {
+        this.quotation.repliedDate = new Date(q.repliedDate).toISOString().split('T')[0];
+      }
+    } catch (dateErr) {
+      console.error('Date parsing issue:', dateErr);
+    }
 
-  // 11. Final UI Update
-  this.isFormOpen = true;
-  this.cdr.detectChanges();
+    // 9. Dimensions Handling
+    if (q.dimensions && q.dimensions.length > 0) {
+      this.appliedDimensions = [...q.dimensions];
+      this.dimRows = [...q.dimensions];
+      this.dimRow = { ...q.dimensions[0] }; 
+    } else {
+      this.dimRows = [{ box: 1, l: 0, w: 0, h: 0, unit: 'CMS' }];
+    }
 
-  // Rendering delay safety
-  setTimeout(() => {
+    // 10. Logic Flags
+    const incoterm = (q.incoterm || '').toUpperCase();
+    this.isPickupEnabled = (incoterm === 'EXWORK');
+    this.isDeliveryEnabled = ['DDP', 'DDU', 'DAP'].includes(incoterm);
+    this.showincoterms = incoterm;
+    this.selectcommodityvalue = q.commodityName || '';
+
+    // 11. Final UI Update - Form open status
+    this.isFormOpen = true;
     this.cdr.detectChanges();
-  }, 300);
+
+    setTimeout(() => {
+      this.cdr.detectChanges();
+    }, 300);
+
+  } catch (mainError) {
+    // Agar abhi bhi koi anjaan cheez crash karegi, toh log karega par chupchaap form khol dega bina alert ke!
+    console.error("🛑 Internal logic crash bypassed safely:", mainError);
+    this.isFormOpen = true;
+    this.cdr.detectChanges();
+  }
 }
 
 

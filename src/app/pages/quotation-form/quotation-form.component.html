@@ -1734,12 +1734,19 @@
                 class="ml-10 flex-1 border p-2 border-red-300 outline-none"
               />
 
-              <label class="w-40 ml-4">POL</label>
-              <input
-                name="portOfLoading"
-                [(ngModel)]="quotation.portOfLoading"
-                class="w-60 border p-2 border-red-300 outline-none"
-              />
+ <!-- === POL SECTION === -->
+<label class="w-40 ml-4">POL</label>
+<select
+  name="portOfLoading"
+  [(ngModel)]="quotation.portOfLoadingId"
+  class="w-60 border p-2 border-red-300 outline-none"
+>
+  <option [ngValue]="null">-- Select POL --</option>
+  <!-- port.id aur port.portName (ya jo bhi column name backend model me ho) use karein -->
+  <option *ngFor="let port of portOfLoadingList" [value]="port.id">
+    {{ port.portName || port.name }}
+  </option>
+</select>
             </div>
           </div>
 
@@ -1967,13 +1974,19 @@
             </div>
 
             <div class="flex items-center text-red-700 font-bold">
-              <label class="w-40">POD </label>
-              <div class="flex flex-1 gap-1"></div>
-              <input
-                name="portOfDischarge"
-                [(ngModel)]="quotation.portOfDischarge"
-                class="ml-9 flex-1 border p-2 border-red-300 outline-none"
-              />
+          <<!-- === POD SECTION === -->
+<label class="w-40">POD</label>
+<div class="flex flex-1 gap-1"></div>
+<select
+  name="portOfDischarge"
+  [(ngModel)]="quotation.portOfDischargeId"
+  class="ml-9 flex-1 border p-2 border-red-300 outline-none"
+>
+  <option [ngValue]="null">-- Select POD --</option>
+  <option *ngFor="let port of portOfDischargeList" [value]="port.id">
+    {{ port.portName || port.name }}
+  </option>
+</select>
               <label class="w-40 ml-6">Final Dest</label>
               <input
                 name="finalDestination"

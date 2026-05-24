@@ -3176,20 +3176,24 @@ saveQuotation() {
     remark: mcb.remark || ''
   }));
 
-  // 3. Payload Preparation (Types fixed as per Backend)
+  // 3. Payload Preparation
   const payload: any = {
     ...this.quotation, 
     
-    // 🔥 TRANSPORT FIX: Explicitly toString() ensure karega ki text hi jaye
+    // 🔥 TRANSPORT FIX
     transportMode: (this.quotation.transportMode || this.inquiry.transportMode || "").toString(), 
     transportType: (this.quotation.transportType || this.quotation.TransportType || this.inquiry.transportType || "").toString(),
     serviceType: (this.quotation.transportType || this.quotation.TransportType || this.inquiry.transportType || "").toString(), 
     shipmentType: (this.quotation.shipmentType || this.inquiry.shipmentType || "").toString(),
 
-    // 🔥 COUNTRY NAME FIX: Null check hata kar empty string or actual value
+    // 🔥 COUNTRY NAME FIX
     countryName: (this.selectedCountryName || this.quotation.countryName || this.inquiry.country || "").toString(),
 
-    // 🔥 BACKEND TYPE FIX: OrganisationId aksar string hota hai database mein
+    // 🔥 CONNECTING PORTS FIX (Dual sending for backend compatibility)
+    connectingPortIds: Array.isArray(this.quotation.connectingPortIds) ? this.quotation.connectingPortIds.join(',') : (this.quotation.connectingPortIds || ""),
+    connectingPortIdsArray: Array.isArray(this.quotation.connectingPortIds) ? this.quotation.connectingPortIds : [],
+
+    // 🔥 BACKEND TYPE FIX
     OrganisationId: this.organisationId || 0,
     OrganisationName: this.organisationName,
     customerName: this.inquiry.organization,
@@ -3199,7 +3203,7 @@ saveQuotation() {
     qtnId: this.quotation.qtnId || ('QTN-' + Math.floor(1000 + Math.random() * 9000)),
     originName: this.inquiry.origin || this.quotation.originPOL,
 
-    // Numeric IDs (Inhe Number rehne do, ye IDs int? hote hain)
+    // Numeric IDs
     portOfLoadingId: this.quotation.portOfLoadingId ? Number(this.quotation.portOfLoadingId) : null,
     portOfDischargeId: this.quotation.portOfDischargeId ? Number(this.quotation.portOfDischargeId) : null,
     lineOfBusinessId: this.quotation.lineOfBusinessId ? Number(this.quotation.lineOfBusinessId) : null,
@@ -3219,12 +3223,12 @@ saveQuotation() {
     // String Field Fixes
     salesCoordinator: (this.quotation.salesCoordinator?.name || this.quotation.salesCoordinator || "").toString(),
     cargoStatus: (this.quotation.cargoStatus || this.quotation.cargoStatusType || 'Ready').toString(),
-    cargoValue: (this.quotation.cargoValue || "0").toString(), // 🔥 Mandatory string fix
+    cargoValue: (this.quotation.cargoValue || "0").toString(),
     cargoCurrency: (this.quotation.currency || 'INR').toString(),
     createdBy: 'admin@cavalierlogistic.in'
   };
 
-  // 4. Final Cleanup: Delete keys that cause confusion in JSON
+  // 4. Final Cleanup (Check if these keys are truly required to be deleted)
   const keysToDelete = [
     'TransportMode', 'TransportType', 'SalesCoordinator', 
     'GrossWeight', 'GrossweightUnit', 'CountryName'
@@ -3255,7 +3259,6 @@ saveQuotation() {
 
   action.subscribe({
     next: (res: any) => {
-
       this.sendBulkEmails(res.id);
       Swal.fire('Saved!', 'Pricing, Transport and Country saved successfully!', 'success');
       this.loadPricings(); 
@@ -3466,16 +3469,16 @@ selectInquiry(inq: any) {
     console.error("❌ Inquiry No missing!");
     return;
   }
-  this.InquiryId=inq.id || 0;
-  this.referenceByInquiryNo=inq.inquiryNo || 0;
-  this.organisationId=inq.organisationId || 0;
-  this.organisationName=inq.organisationName || '';
+  this.InquiryId = inq.id || 0;
+  this.referenceByInquiryNo = inq.inquiryNo || 0;
+  this.organisationId = inq.organisationId || 0;
+  this.organisationName = inq.organisationName || '';
   
-  console.log(this.organisationId,'changed in inquiry');
+  console.log(this.organisationId, 'changed in inquiry');
 
   const inquiryNo = inq.inquiryNo?.trim();
   const url = `${environment.apiUrl}/Inquiry/by-no?inquiryNo=${inquiryNo}`;
-+
+
   this.http.get<any>(url).subscribe({
     next: (data) => {
       console.log("✅ Actual API Data:", data);
@@ -3523,18 +3526,21 @@ selectInquiry(inq: any) {
       this.quotation.portOfDestination = data.portOfDischargeName || '';
       this.quotation.finalDestination = data.finalDestination || '';
 
-      // 🔥 FIX: SERVICE TYPE AUTOFILL (Matching ngModel names) 🔥
-      // Hum direct data se value utha rahe hain jo aapne upar object mein dikhayi hai
       this.quotation.isDirect = data.isDirect === true;
       this.quotation.isIndirect = data.isIndirect === true;
 
-      // --- 5a. Connecting Ports Auto-fill ---
+      // --- 5a. FIXED: Connecting Ports Auto-fill ---
       this.selectedConnectingPorts = [];
-      if (data.connectingPortIds) {
-        const idsArray = Array.isArray(data.connectingPortIds) 
-          ? data.connectingPortIds 
-          : data.connectingPortIds.toString().split(',');
+      this.quotation.connectingPortIds = [];
+      const rawCP = data.connectingPortIds || data.ConnectingPortIds;
+      
+      if (rawCP) {
+        const idsArray = Array.isArray(rawCP) ? rawCP : rawCP.toString().split(',');
+        
+        // Save to quotation object so it goes into payload
+        this.quotation.connectingPortIds = idsArray.map((id: any) => Number(id));
 
+        // UI Display mapping
         this.selectedConnectingPorts = idsArray.map((id: any) => {
           const trimmedId = id.toString().trim();
           const masterPort = this.filteredConnectingPorts.find(p => p.id.toString() === trimmedId);
@@ -3779,11 +3785,11 @@ editPricing(pricing: any) {
   const dbPlaceOfDelivery = pricing['[PlaceOfDelivery]'] || pricing.placeOfDelivery || pricing.PlaceOfDelivery || "";
   const dbCountryName = pricing['[CountryName]'] || pricing.countryName || pricing.CountryName || "";
 
-  // Dropdown safe matching ke liye IDs ko Hamesha String banao (Kyuki HTML master list string compare karti hai)
+  // Dropdown safe matching ke liye IDs ko Hamesha String banao
   this.quotation.portOfLoadingId = dbPortOfLoadingId ? dbPortOfLoadingId.toString() : null;
   this.quotation.portOfDischargeId = dbPortOfDischargeId ? dbPortOfDischargeId.toString() : null;
   
-  // HTML Binding text variable fallback (Jaise selectInquiry me chal raha hai)
+  // HTML Binding text variable fallback
   this.quotation.originPOL = pricing.originName || pricing.origin || "";
   this.quotation.placeOfDelivery = dbPlaceOfDelivery;
   this.quotation.country = dbCountryName; 
@@ -3805,6 +3811,15 @@ editPricing(pricing: any) {
   } else {
     this.quotation.portOfDischarge = pricing.portOfDischargeName || "";
     this.quotation.portOfDestination = pricing.portOfDischargeName || "";
+  }
+
+  // --- CONNECTING PORTS MAPPING ---
+  const rawCP = pricing.connectingPortIds || pricing.ConnectingPortIds;
+  const cPortIds = typeof rawCP === 'string' ? rawCP.split(',').map(id => Number(id.trim())) : (Array.isArray(rawCP) ? rawCP : []);
+  this.quotation.connectingPortIds = cPortIds;
+  
+  if (this.filteredConnectingPorts) {
+    this.selectedConnectingPorts = this.filteredConnectingPorts.filter(p => cPortIds.includes(Number(p.id)));
   }
 
   // 6. Org & Ref
@@ -3842,7 +3857,7 @@ editPricing(pricing: any) {
   this.costRows = pricing.costBreakdowns && pricing.costBreakdowns.length > 0 ? [...pricing.costBreakdowns] : [{ lob: 'Standard', chargeName: '', chargeType: 'Prepaid', basis: 'Per KG', currency: 'INR', rate: 0, exchangeRate: 1, amount: 0 }];
   this.multiCarrierRows = pricing.multiCarrierBreakdowns && pricing.multiCarrierBreakdowns.length > 0 ? [...pricing.multiCarrierBreakdowns] : [this.createEmptyRow()];
 
-  // 11. Dimensions (FIXED FOR ITERABLE ERROR NG02200)
+  // 11. Dimensions
   if (pricing.dimensions && Array.isArray(pricing.dimensions) && pricing.dimensions.length > 0) {
     this.dimRows = [...pricing.dimensions];
     this.dimRow = { ...pricing.dimensions[0] };
@@ -3853,7 +3868,6 @@ editPricing(pricing: any) {
     this.appliedDimensions = [];
   }
 
-  // Form Open State Trigger
   this.isFormOpen = true;
   this.cdr.detectChanges();
 
@@ -3861,11 +3875,9 @@ editPricing(pricing: any) {
   // 🎯 ULTIMATE TEMPLATE SYNC 
   // ========================================================
   setTimeout(() => {
-    // 1. Commodity Re-Sync
     if (rawCommodityId) this.quotation.commodity = Number(rawCommodityId);
     this.selectcommodityvalue = rawCommodityName;
 
-    // 2. CBM Re-Sync / Re-Calculate
     const freshVolWeight = this.quotation.volumeWeight || rawVolWeight;
     if (rawCbm && Number(rawCbm) > 0) {
       this.quotation.cbm = parseFloat(Number(rawCbm).toFixed(3));
@@ -3874,24 +3886,19 @@ editPricing(pricing: any) {
       this.quotation.cbm = parseFloat(coreCalc.toFixed(3));
     }
 
-    // 3. Strict Re-Binding string IDs inside timeout loop for Form Render
-    if (dbPortOfLoadingId) {
-      this.quotation.portOfLoadingId = dbPortOfLoadingId.toString();
-    }
-    if (dbPortOfDischargeId) {
-      this.quotation.portOfDischargeId = dbPortOfDischargeId.toString();
-    }
-    
-    if (dbPlaceOfDelivery) {
-      this.quotation.placeOfDelivery = dbPlaceOfDelivery;
-    }
-    
+    if (dbPortOfLoadingId) this.quotation.portOfLoadingId = dbPortOfLoadingId.toString();
+    if (dbPortOfDischargeId) this.quotation.portOfDischargeId = dbPortOfDischargeId.toString();
+    if (dbPlaceOfDelivery) this.quotation.placeOfDelivery = dbPlaceOfDelivery;
     if (dbCountryName) {
       this.quotation.country = dbCountryName; 
       this.quotation.countryName = dbCountryName;
     }
 
-    // Trigger selectCountry function safely if data exists
+    // Re-sync Connecting Ports in Timeout
+    if (this.filteredConnectingPorts) {
+        this.selectedConnectingPorts = this.filteredConnectingPorts.filter(p => this.quotation.connectingPortIds.includes(Number(p.id)));
+    }
+
     if (pricing.countryId && typeof this.selectCountry === 'function') {
       this.selectCountry({ id: pricing.countryId, name: dbCountryName });
     }

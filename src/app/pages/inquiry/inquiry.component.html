@@ -777,7 +777,7 @@
     <div class="p-0 overflow-x-auto">
       <div class="p-0 overflow-x-auto">
         <div class="relative">
-          <div class="relative">
+      <div class="relative">
   <table class="w-full border-collapse border border-gray-200 whitespace-nowrap">
     <thead>
       <tr class="bg-gray-50 text-gray-600 uppercase text-[11px] border-b" 
@@ -807,43 +807,38 @@
         
         <td *ngFor="let col of selectedColumns" class="p-4">
           <ng-container [ngSwitch]="col">
+            <!-- Specific Cases -->
             <span *ngSwitchCase="'Inquiry Id.'" class="font-bold text-gray-900">{{ q.id }}</span>
             <span *ngSwitchCase="'Inquiry No.'" class="font-bold text-blue-600">{{ q.inquiryNo }}</span>
             <span *ngSwitchCase="'Date'" class="font-medium">{{ q.receivedDate | date: "dd-MMM-yyyy" }}</span>
             
-            <!-- Lead Name click par alert -->
             <span *ngSwitchCase="'LeadName'" 
                   class="font-medium cursor-pointer text-blue-600 hover:underline" 
                   (click)="showAlert('Lead ID', q.leadId)">
               {{ q.leadName || '-' }}
             </span>
 
-            <!-- Organisation Name click par alert -->
             <span *ngSwitchCase="'OrganisationName'" 
                   class="font-medium cursor-pointer text-blue-600 hover:underline" 
                   (click)="showAlert('Organisation ID', q.organisationId)">
               {{ q.organisationName || '-' }}
             </span>
 
-            <!-- 🔥 Status Column with Toggle Logic -->
             <span *ngSwitchCase="'Status'" class="flex items-center gap-3" (click)="$event.stopPropagation()">
-              <!-- Status Badge -->
               <span [ngClass]="q.status === 1 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
                     class="px-2 py-0.5 rounded text-[10px] font-bold uppercase">
                 {{ q.status === 1 ? 'Active' : 'Inactive' }}
               </span>
-
-              <!-- Toggle Switch -->
               <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" 
-                       [checked]="q.status === 1" 
-                       (change)="toggleStatus(q)" 
-                       class="sr-only peer">
-                <div class="w-8 h-4 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-green-600"></div>
+                <input type="checkbox" [checked]="q.status === 1" (change)="toggleStatus(q)" class="sr-only peer">
+                <div class="w-8 h-4 bg-gray-200 rounded-full peer peer-checked:bg-green-600"></div>
               </label>
             </span>
 
-            <span *ngSwitchDefault class="uppercase font-medium">{{ q[columnFieldMap[col]] || "-" }}</span>
+            <!-- 🔥 DYNAMIC FALLBACK: Yahan map lookup check kiya gaya hai -->
+            <span *ngSwitchDefault class="uppercase font-medium">
+              {{ (columnFieldMap[col] ? q[columnFieldMap[col]] : (q[col] || "-")) || "-" }}
+            </span>
           </ng-container>
         </td>
 

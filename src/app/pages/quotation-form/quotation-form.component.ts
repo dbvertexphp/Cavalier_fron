@@ -1108,15 +1108,17 @@ saveQuotation() {
     lineOfBusiness: String(this.quotation.lineOfBusiness),
     commodity: String(this.quotation.commodity),
 
-    // ✅ FIXED PLACEMENT: Inko object ke sabse aakhiri mein rakha hai
+    // ✅ FIXED PLACEMENT: Inko object ke sabse aakhiri mein rakha hai taaki ...this.quotation ki string values is numeric conversion ko override na kar sakein.
     portOfLoadingId: (this.quotation.portOfLoadingId !== null && this.quotation.portOfLoadingId !== undefined && this.quotation.portOfLoadingId !== '') ? Number(this.quotation.portOfLoadingId) : null,
     portOfDischargeId: (this.quotation.portOfDischargeId !== null && this.quotation.portOfDischargeId !== undefined && this.quotation.portOfDischargeId !== '') ? Number(this.quotation.portOfDischargeId) : null,
     
-    // 🔥 NAYA ADDITION: Connecting Ports (Assume kiya hai ki frontend variable 'selectedConnectingPorts' comma-separated string hai)
-    connectingPortIds: this.quotation.connectingPortIds || ""
+    // ✅ CONNECTING PORTS MAPPING (Array of objects to comma-separated ID string)
+    connectingPortIds: this.selectedConnectingPorts && this.selectedConnectingPorts.length > 0 
+        ? this.selectedConnectingPorts.map(p => p.id).join(',') 
+        : ""
   };
 
-  // 📝 CONSOLE LOG: Isse aap Inspect Element -> Console me pura payload check kar sakte hain
+  // 📝 CONSOLE LOG: Isse aap Inspect Element -> Console me pura payload check kar sakte hain api hit hone se pehle
   console.log("🚀 FINAL PAYLOAD BEING SENT TO BACKEND:", payload);
 
   // 1. API Step 1: Save Quotation

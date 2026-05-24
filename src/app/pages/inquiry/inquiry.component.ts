@@ -456,16 +456,18 @@ this.quotation.shipmentType = 'Ready';
     this.quotation.cargoStatusDate = today;
 }
 getsales(): void {
-  // Teri API call
-  this.userServices.getUsers('onlyuserdata').subscribe({
-    next: (data: any) => {
-      // API se aane wala data leadOwners mein assign kar diya
+  console.log('Fetching Sales Coordinators from HOD list API...');
+
+  this.userServices.getHodList().subscribe({
+    next: (data: any[]) => {
+      // Yahan check karo ki data aa raha hai ya nahi
+      console.log('HOD/Sales Coord data received:', data);
+      
       this.getsalescordinate = data; 
-      console.log('Lead Owners loaded:', this.getsalescordinate);
-          this.cdr.detectChanges(); 
+      this.cdr.detectChanges(); 
     },
     error: (err) => {
-      console.error('Error loading users:', err);
+      console.error('Error loading HOD list:', err);
     }
   });
 }
@@ -1168,44 +1170,31 @@ editQuotation(q: any) {
   }
 
   try {
-    // 1. Pura data copy karein
     this.quotation = { ...q };
 
-    // 2. Transport Mode Fix (Added strict type and null checks)
+    // ... (2, 3, 4, 5, 6, 7 code waisa hi hai)
     this.quotation.TransportMode = q.transportMode; 
     if (q.transportType && typeof q.transportType === 'string' && q.transportType.length > 0) {
       this.quotation.TransportType = q.transportType.charAt(0).toUpperCase() + q.transportType.slice(1).toLowerCase();
     }
-    
-    // Safety check: Agar transportModes list sahi mein array hai aur loaded hai
     if (this.transportModes && Array.isArray(this.transportModes)) {
       const modeObj = this.transportModes.find(m => m && m.name && m.name.toLowerCase() === (q.transportMode || '').toLowerCase());
-      if (modeObj) {
-        this.quotation.TransportMode = modeObj.id;
-      }
+      if (modeObj) this.quotation.TransportMode = modeObj.id;
     }
 
     if (q.salesCoordinator) {
       this.quotation.salesCoordinator = q.salesCoordinator.toString();
-      // Safety check: Agar getsalescordinate list sahi mein array hai aur loaded hai
       if (this.getsalescordinate && Array.isArray(this.getsalescordinate)) {
         const coordinatorExists = this.getsalescordinate.find(sc => sc && sc.id && sc.id.toString() === q.salesCoordinator.toString());
-        if (coordinatorExists) {
-          this.quotation.salesCoordinator = coordinatorExists.id.toString();
-        }
+        if (coordinatorExists) this.quotation.salesCoordinator = coordinatorExists.id.toString();
       }
     }
 
-    // 3. Commodity & Currency Fix
     this.quotation.commodity = q.commodityId ? Number(q.commodityId) : null;
     this.quotation.currency = q.cargoCurrency; 
-
-    // 4. Origin & Country Fix
     this.originsaveid = q.originId ? Number(q.originId) : 0;
     this.quotation.country = q.countryName; 
     this.selectedCountryName = q.countryName; 
-
-    // 5. Port of Loading & Discharge (Display Fix)
     this.quotation.portOfLoadingId = q.portOfLoadingId ? Number(q.portOfLoadingId) : null;
     this.quotation.portOfDischargeId = q.portOfDischargeId ? Number(q.portOfDischargeId) : null;
 
@@ -1213,41 +1202,33 @@ editQuotation(q: any) {
       const pol = this.portsOfLoading.find(p => p && p.id == q.portOfLoadingId);
       if (pol) this.quotation.portOfLoading = pol.name || pol.portName;
     }
-
     if (this.portsOfDischarge && Array.isArray(this.portsOfDischarge)) {
       const pod = this.portsOfDischarge.find(p => p && p.id == q.portOfDischargeId);
       if (pod) this.quotation.portOfDestination = pod.name || pod.portName;
     }
 
-    // 6. UI Specific Mapping
-    this.inquiry = {
-      ...this.inquiry,
-      inquiryNo: q.inquiryNo,
-      organization: q.organisationName || q.customerName,
-      origin: q.location || q.originName || q.origin, 
-      leadNo: q.leadName || q.leadNo
-    };
-
-    // 7. IDs to Strings
+    this.inquiry = { ...this.inquiry, inquiryNo: q.inquiryNo, organization: q.organisationName || q.customerName, origin: q.location || q.originName || q.origin, leadNo: q.leadName || q.leadNo };
     this.quotation.branchName = q.branchId ? q.branchId.toString() : q.branchName;
     this.quotation.salesCoordinator = q.salesCoordinator ? q.salesCoordinator.toString() : '';
+    
+    // --- CONNECTING PORTS MAPPING (SAFE VERSION) ---
+    const rawPorts = q.connectingPortIds || q.ConnectingPortIds;
+    const portIdsArray = typeof rawPorts === 'string' ? rawPorts.split(',').map(Number) : (Array.isArray(rawPorts) ? rawPorts : []);
+    this.quotation.connectingPortIds = portIdsArray;
 
-    // 8. Date Formatting with individual try-catch so it never stops the flow
+    // Combine all available ports lists to find the objects
+    const allKnownPorts = [...(this.portsOfLoading || []), ...(this.portsOfDischarge || [])];
+    this.selectedConnectingPorts = allKnownPorts.filter(p => portIdsArray.includes(Number(p.id)));
+    
+    console.log("DEBUG: Ports matched for UI:", this.selectedConnectingPorts);
+
+    // ... (Date, Dimensions, CBM, Logic, Final Update)
     try {
-      if (q.receivedDate) {
-        this.quotation.receivedDate = new Date(q.receivedDate).toISOString().split('T')[0];
-      }
-      if (q.cargoStatusDate) {
-        this.quotation.cargoStatusDate = new Date(q.cargoStatusDate).toISOString().split('T')[0];
-      }
-      if (q.repliedDate && q.repliedDate !== '2000-02-12T00:00:00') {
-        this.quotation.repliedDate = new Date(q.repliedDate).toISOString().split('T')[0];
-      }
-    } catch (dateErr) {
-      console.error('Date parsing issue:', dateErr);
-    }
+      if (q.receivedDate) this.quotation.receivedDate = new Date(q.receivedDate).toISOString().split('T')[0];
+      if (q.cargoStatusDate) this.quotation.cargoStatusDate = new Date(q.cargoStatusDate).toISOString().split('T')[0];
+      if (q.repliedDate && q.repliedDate !== '2000-02-12T00:00:00') this.quotation.repliedDate = new Date(q.repliedDate).toISOString().split('T')[0];
+    } catch (dateErr) { console.error('Date parsing issue:', dateErr); }
 
-    // 9. Dimensions Handling
     if (q.dimensions && q.dimensions.length > 0) {
       this.appliedDimensions = [...q.dimensions];
       this.dimRows = [...q.dimensions];
@@ -1256,23 +1237,16 @@ editQuotation(q: any) {
       this.dimRows = [{ box: 1, l: 0, w: 0, h: 0, unit: 'CMS' }];
     }
 
-    // --- CBM CALCULATION TRIGGERED HERE ---
     this.calculateCBM();
-
-    // 10. Logic Flags
     const incoterm = (q.incoterm || '').toUpperCase();
     this.isPickupEnabled = (incoterm === 'EXWORK');
     this.isDeliveryEnabled = ['DDP', 'DDU', 'DAP'].includes(incoterm);
     this.showincoterms = incoterm;
     this.selectcommodityvalue = q.commodityName || '';
 
-    // 11. Final UI Update - Form open status
     this.isFormOpen = true;
     this.cdr.detectChanges();
-
-    setTimeout(() => {
-      this.cdr.detectChanges();
-    }, 300);
+    setTimeout(() => this.cdr.detectChanges(), 300);
 
   } catch (mainError) {
     console.error("🛑 Internal logic crash bypassed safely:", mainError);

@@ -1119,7 +1119,7 @@
       >
         <option value="">-- Select Sales Coordinator --</option>
         <option *ngFor="let sc of getsalescordinate" [ngValue]="sc.id">
-          {{ sc.firstName }} {{ sc.lastName }}
+          {{ sc.name }} 
         </option>
       </select>
     </div>
@@ -1739,10 +1739,10 @@
 <select
   name="portOfLoading"
   [(ngModel)]="quotation.portOfLoadingId"
+  (change)="onPolChange()"
   class="w-60 border p-2 border-red-300 outline-none"
 >
   <option [ngValue]="null">-- Select POL --</option>
-  <!-- port.id aur port.portName (ya jo bhi column name backend model me ho) use karein -->
   <option *ngFor="let port of portOfLoadingList" [value]="port.id">
     {{ port.portName || port.name }}
   </option>
@@ -1980,6 +1980,7 @@
 <select
   name="portOfDischarge"
   [(ngModel)]="quotation.portOfDischargeId"
+  (change)="onPodChange()"
   class="ml-9 flex-1 border p-2 border-red-300 outline-none"
 >
   <option [ngValue]="null">-- Select POD --</option>
@@ -2035,7 +2036,7 @@
               class="w-full border p-2 h-16 outline-none"
             ></textarea>
           </div>
-          <!-- 🔥 SIMPLE ROUTE DISPLAY (Input Style) -->
+      <!-- 🔥 SIMPLE ROUTE DISPLAY (Input Style) -->
 <div class="mt-6 space-y-3">
   <div class="flex items-center justify-between border-b border-red-200 pb-2">
     <label class="text-red-800 font-black uppercase text-[13px] italic">Connecting Ports Configuration</label>
@@ -2074,12 +2075,10 @@
   </div>
 </div>
 
-<!-- 🔥 PREMIUM MODAL -->
+<!-- 🔥 PREMIUM MODAL (Waisa hi rahega, logic TS me bind ho gaya hai) -->
 <div *ngIf="isCPModalOpen" class="fixed inset-0 z-[200] flex items-center justify-center p-4">
   <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" (click)="toggleConnectingPortModal()"></div>
-
   <div class="relative bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden border border-gray-200">
-    <!-- Header -->
     <div class="bg-red-800 p-5 flex justify-between items-center text-white">
       <div>
         <h3 class="font-black uppercase tracking-tight">Select Connecting Ports</h3>
@@ -2087,15 +2086,11 @@
       </div>
       <button (click)="toggleConnectingPortModal()" class="text-2xl hover:text-red-200 transition-all">&times;</button>
     </div>
-
-    <!-- Search -->
     <div class="p-4 bg-gray-50 border-b">
       <input type="text" [(ngModel)]="cpSearchTerm" (input)="onSearchingConnectingPorts()"
         placeholder="Search port name..." 
         class="w-full border-2 border-gray-200 p-2.5 rounded-lg text-[13px] outline-none focus:border-red-500 uppercase font-semibold">
     </div>
-
-    <!-- Body -->
     <div class="p-4 max-h-[400px] overflow-y-auto">
       <div class="grid grid-cols-2 gap-3">
         <div *ngFor="let port of filteredConnectingPorts" 
@@ -2104,7 +2099,6 @@
              class="p-3 border-2 rounded-xl cursor-pointer hover:border-red-400 transition-all flex flex-col relative group">
           <span class="text-[13px] font-bold text-gray-800 uppercase group-hover:text-red-700">{{ port.name }}</span>
           <span class="text-[9px] font-bold text-gray-400 uppercase mt-1">{{ port.cpType }} Port</span>
-          
           <div *ngIf="isPortSelected(port)" class="absolute top-2 right-2">
             <div class="w-4 h-4 bg-red-600 rounded-full flex items-center justify-center">
               <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
@@ -2113,8 +2107,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Footer -->
     <div class="p-4 bg-gray-50 flex justify-between items-center border-t">
       <span class="text-[12px] font-bold text-gray-500 uppercase">Selected: <span class="text-red-700">{{ selectedConnectingPorts.length }}</span></span>
       <button (click)="toggleConnectingPortModal()" class="bg-red-800 text-white px-6 py-2 rounded-lg font-bold text-[12px] hover:bg-red-900 shadow-lg">DONE</button>

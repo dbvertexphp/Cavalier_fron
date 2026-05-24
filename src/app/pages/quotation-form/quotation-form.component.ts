@@ -1108,12 +1108,15 @@ saveQuotation() {
     lineOfBusiness: String(this.quotation.lineOfBusiness),
     commodity: String(this.quotation.commodity),
 
-    // ✅ FIXED PLACEMENT: Inko object ke sabse aakhiri mein rakha hai taaki ...this.quotation ki string values is numeric conversion ko override na kar sakein.
+    // ✅ FIXED PLACEMENT: Inko object ke sabse aakhiri mein rakha hai
     portOfLoadingId: (this.quotation.portOfLoadingId !== null && this.quotation.portOfLoadingId !== undefined && this.quotation.portOfLoadingId !== '') ? Number(this.quotation.portOfLoadingId) : null,
-    portOfDischargeId: (this.quotation.portOfDischargeId !== null && this.quotation.portOfDischargeId !== undefined && this.quotation.portOfDischargeId !== '') ? Number(this.quotation.portOfDischargeId) : null
+    portOfDischargeId: (this.quotation.portOfDischargeId !== null && this.quotation.portOfDischargeId !== undefined && this.quotation.portOfDischargeId !== '') ? Number(this.quotation.portOfDischargeId) : null,
+    
+    // 🔥 NAYA ADDITION: Connecting Ports (Assume kiya hai ki frontend variable 'selectedConnectingPorts' comma-separated string hai)
+    connectingPortIds: this.quotation.connectingPortIds || ""
   };
 
-  // 📝 CONSOLE LOG: Isse aap Inspect Element -> Console me pura payload check kar sakte hain api hit hone se pehle
+  // 📝 CONSOLE LOG: Isse aap Inspect Element -> Console me pura payload check kar sakte hain
   console.log("🚀 FINAL PAYLOAD BEING SENT TO BACKEND:", payload);
 
   // 1. API Step 1: Save Quotation
@@ -1240,59 +1243,60 @@ editQuotation(q: any) {
   // 1. Form Open karein
   this.isFormOpen = true;
 
-  // 2. Base Model Mapping (Backend keys to Frontend ngModel)
+  // 2. Base Model Mapping
   this.quotation = {
     ...q,
-    // ID Mapping (Dropdowns ke liye string/number sync)
     chargeableWeight: q.chrgWeight || 0,
     grossWeightKg: q.grossWeight || q.grossWeightKg || 0,
     salesCoordinator: q.salesCoor ? Number(q.salesCoor) : null,
-    commodity: q.commodity ? Number(q.commodity) : null, // "15" ko select karne ke liye
+    commodity: q.commodity ? Number(q.commodity) : null,
     lineOfBusiness: q.lineOfBusiness ? q.lineOfBusiness.toString() : "",
-    
-    // Carrier Name Mapping
     awbIssuedBy: q.awbIssuedBy || "", 
-    
-    // Service Required Mapping
     isServiceRequired: q.isServiceRequired === true,
-
-    // Weight & CBM Mapping
     chargeableWeightKg: Number(q.volumeWeight) || 0,
     volumeWeightUnit: q.volumeWeightUnit || "KGS",
     cbm: q.cbmWeight || (Number(q.volumeWeight) ? parseFloat((q.volumeWeight / 167).toFixed(3)) : 0),
-
-    // Movement & Terms
     movementType: q.movement || q.movementType || '',
     incoterm: q.incoTerms || q.incoterm || '',
     referencePricingNo: q.referenceByInquiry || '',
-
-    // ✅ NO OF PACKAGES MAPPING FOR MAIN UI
-    // Backend se aane wali 'numOfPackages' keys ko frontend variable 'noOfPkgs' se sync kar diya hai
-    noOfPkgs: q.numOfPackages !== undefined ? q.numOfPackages : (q.numOfPackages !== undefined ? q.numOfPackages : 0),
+    noOfPkgs: q.numOfPackages !== undefined ? q.numOfPackages : 0,
     pkgUnit: q.packageUnit || q.pkgUnit || 'PKGS',
-
-    // 🔥 FIXED DROPDOWN AUTO-POPULATE SYNC: Direct incoming 'q' se numeric ID nikal kar assign ki hai taaki dropdown automatically select ho jaye.
     portOfLoadingId: (q.portOfLoadingId !== null && q.portOfLoadingId !== undefined && q.portOfLoadingId !== '' && !isNaN(Number(q.portOfLoadingId))) ? Number(q.portOfLoadingId) : null,
     portOfDischargeId: (q.portOfDischargeId !== null && q.portOfDischargeId !== undefined && q.portOfDischargeId !== '' && !isNaN(Number(q.portOfDischargeId))) ? Number(q.portOfDischargeId) : null
   };
 
-  // 📝 CONSOLE LOGS: Edit mode me kya ID aur Package Count bind hui hai check karne ke liye
-  console.log("✅ POPULATED POL ID FOR DROPDOWN:", this.quotation.portOfLoadingId);
-  console.log("✅ POPULATED POD ID FOR DROPDOWN:", this.quotation.portOfDischargeId);
-  console.log("✅ POPULATED TOTAL PACKAGES COUNT:", this.quotation.noOfPkgs);
+  // 3. Connecting Ports Mapping (Auto-populate for UI)
+  console.log("🔍 Debugging Connecting Ports Input:", q.connectingPortIds);
+  this.selectedConnectingPorts = [];
+  this.quotation.connectingPortIds = []; // Ensure model is also updated
 
-  // 3. Cargo Value Splitting
+  if (q.connectingPortIds) {
+    const idsArray = typeof q.connectingPortIds === 'string' 
+      ? q.connectingPortIds.split(',').map((x: any) => x.trim()).filter((x: any) => x !== '')
+      : (Array.isArray(q.connectingPortIds) ? q.connectingPortIds : [q.connectingPortIds]);
+
+    this.quotation.connectingPortIds = idsArray.map((id: any) => Number(id));
+
+    this.selectedConnectingPorts = idsArray.map((id: any) => {
+      const trimmedId = id.toString().trim();
+      const masterPort = this.filteredConnectingPorts?.find(p => p.id.toString() === trimmedId);
+      
+      const portObj = {
+        id: trimmedId,
+        name: masterPort ? masterPort.name : `Port ID: ${trimmedId}`,
+        cpType: 'Transit'
+      };
+      return portObj;
+    });
+    console.log("✅ Populated selectedConnectingPorts:", this.selectedConnectingPorts);
+  }
+
+  // 4. Cargo Value Splitting
   if (q.cargoValue) {
-    // Regex use karke string se sirf numbers aur decimal nikalein
     const amountMatch = q.cargoValue.match(/(\d+(\.\d+)?)/);
-    
     if (amountMatch) {
-      const amount = amountMatch[0]; // Ye "4545" nikalega
-      
-      // 1. Currency select karne ke liye number ko string se remove karein
+      const amount = amountMatch[0];
       this.quotation.currency = q.cargoValue.replace(amount, '').trim();
-      
-      // 2. Input box mein sirf number daalne ke liye
       this.quotation.cargoValue = parseFloat(amount);
     }
   } else {
@@ -1300,24 +1304,17 @@ editQuotation(q: any) {
     this.quotation.cargoValue = null;
   }
 
-  // 4. Transit Destination & Days Splitting (Bug Fixed 🛠️)
+  // 5. Transit Destination & Days
   if (q.transitDest && q.transitDest.includes('(')) {
-    // Days nikalne ke liye origin string (q.transitDest) par regex chalayein
     const daysMatch = q.transitDest.match(/\((.*?) Days\)/);
-    if (daysMatch && daysMatch[1]) {
-      this.quotation.transitDays = daysMatch[1].trim(); // Isme '32' perfect aa jayega
-    } else {
-      this.quotation.transitDays = '';
-    }
-    
-    // Location nikalne ke liye '(' se pehle ka part split karein
+    this.quotation.transitDays = (daysMatch && daysMatch[1]) ? daysMatch[1].trim() : '';
     this.quotation.transitDest = q.transitDest.split(' (')[0].trim();
   } else {
     this.quotation.transitDest = q.transitDest || '';
     this.quotation.transitDays = '';
   }
 
-  // 5. Pickup Address Splitting (Org aur Addr alag fields mein)
+  // 6. Address Splitting
   if (q.pickupAddress && q.pickupAddress.includes(', Addr:')) {
     const pParts = q.pickupAddress.split(', Addr:');
     this.quotation.pickupOrg = pParts[0].replace('Org:', '').trim();
@@ -1326,7 +1323,6 @@ editQuotation(q: any) {
     this.quotation.pickupAddress = q.pickupAddress || '';
   }
 
-  // 6. Delivery Address Splitting
   if (q.deliveryAddress && q.deliveryAddress.includes(', Addr:')) {
     const dParts = q.deliveryAddress.split(', Addr:');
     this.quotation.deliveryOrg = dParts[0].replace('Org:', '').trim();
@@ -1335,57 +1331,40 @@ editQuotation(q: any) {
     this.quotation.deliveryAddress = q.deliveryAddress || '';
   }
 
-  // 7. Date Formatting (YYYY-MM-DD)
+  // 7. Date Formatting
   if (q.validFrom) this.quotation.validFrom = q.validFrom.split('T')[0];
   if (q.validTill) this.quotation.validTill = q.validTill.split('T')[0];
   if (q.cargoStatus === 'Ready' || q.cargoStatus === 'Ready By') {
      this.quotation.cargoReadyDate = q.validFrom ? q.validFrom.split('T')[0] : null;
   }
 
-  // 8. Tables Data Parsing (JSON string parse)
-  if (q.revenueData) {
-    try { 
-      this.revenueRows = typeof q.revenueData === 'string' ? JSON.parse(q.revenueData) : q.revenueData; 
-    } catch (e) { this.revenueRows = []; }
-  }
-  if (q.costData) {
-    try { 
-      this.costRows = typeof q.costData === 'string' ? JSON.parse(q.costData) : q.costData; 
-    } catch (e) { this.costRows = []; }
-  }
+  // 8. Tables Data
+  this.revenueRows = q.revenueData ? (typeof q.revenueData === 'string' ? JSON.parse(q.revenueData) : q.revenueData) : [];
+  this.costRows = q.costData ? (typeof q.costData === 'string' ? JSON.parse(q.costData) : q.costData) : [];
 
-  // 9. Dimensions Logic (✅ EXTRACTING 1ST ID TO OUTSIDE INPUTS)
+  // 9. Dimensions
   const dimData = q.dimensionsData || q.DimensionsData;
-  if (dimData) {
-    try {
-      this.appliedDimensions = typeof dimData === 'string' ? JSON.parse(dimData) : dimData;
-      this.dimRows = this.appliedDimensions && this.appliedDimensions.length > 0 
-        ? [...this.appliedDimensions] 
-        : [{ box: null, l: null, w: null, h: null, unit: 'CMS' }];
-      
-      // 🔥 FIRST ROW DATA BINDING FOR MAIN UI: Pahli ID ko bahar show karwane ke liye map kiya hai
-      if (this.dimRows && this.dimRows.length > 0) {
-        this.quotation.dimBox = this.dimRows[0].box;
-        this.quotation.dimL = this.dimRows[0].l;
-        this.quotation.dimW = this.dimRows[0].w;
-        this.quotation.dimH = this.dimRows[0].h;
-      }
-    } catch (e) { 
-      this.dimRows = [{ box: null, l: null, w: null, h: null, unit: 'CMS' }]; 
-    }
-  } else {
-    this.dimRows = [{ box: null, l: null, w: null, h: null, unit: 'CMS' }];
+  this.dimRows = dimData ? (typeof dimData === 'string' ? JSON.parse(dimData) : dimData) : [{ box: null, l: null, w: null, h: null, unit: 'CMS' }];
+  
+  if (this.dimRows.length > 0) {
+    this.quotation.dimBox = this.dimRows[0].box;
+    this.quotation.dimL = this.dimRows[0].l;
+    this.quotation.dimW = this.dimRows[0].w;
+    this.quotation.dimH = this.dimRows[0].h;
   }
 
-  // 10. Refresh All Totals and UI
+  // 10. Final UI Refresh & Sync
   setTimeout(() => {
-    // Agar applied dimensions pehle se save the, toh yeh pure state rows ka total recalculate kar dega
-    if (this.updateTotalPackagesFromDims) {
-      this.updateTotalPackagesFromDims();
-    } else {
-      this.calculateAll();
-    }
+    // Trigger POL/POD name mapping for the display logic
+    this.onPolChange();
+    this.onPodChange();
+
+    if (this.updateTotalPackagesFromDims) this.updateTotalPackagesFromDims();
+    else this.calculateAll();
+    
+    // Force UI update
     this.cdr.detectChanges();
+    console.log("🏁 UI Refresh triggered for Quotation Edit");
   }, 200);
 }
 
@@ -1922,16 +1901,18 @@ onDocumentClick(event: MouseEvent) {
 
 // 1. PDF DOWNLOAD LOGIC
 getsales(): void {
-  // Teri API call
-  this.userServices.getUsers('onlyuserdata').subscribe({
-    next: (data: any) => {
-      // API se aane wala data leadOwners mein assign kar diya
+  console.log('Fetching Sales Coordinators from HOD list API...');
+
+  this.userServices.getHodList().subscribe({
+    next: (data: any[]) => {
+      // Yahan check karo ki data aa raha hai ya nahi
+      console.log('HOD/Sales Coord data received:', data);
+      
       this.getsalescordinate = data; 
-      console.log('Lead Owners loaded:', this.getsalescordinate);
-          this.cdr.detectChanges(); 
+      this.cdr.detectChanges(); 
     },
     error: (err) => {
-      console.error('Error loading users:', err);
+      console.error('Error loading HOD list:', err);
     }
   });
 }
@@ -2655,36 +2636,22 @@ selectPricing(prc: any) {
         this.quotation.cbm = parseFloat((this.quotation.volumeWeight / 167).toFixed(3));
       }
 
-      // --- 3. Route & Locations (FIXED FOR POL/POD DISPLAY) ---
+      // --- 3. Route & Locations ---
       this.quotation.originPOL = fullData.originName || '';
       this.quotation.podFinalDest = fullData.finalDestination || '';
       this.quotation.placeOfDelivery = fullData.placeOfDelivery || '';
       this.quotation.location = fullData.location || '';
 
-      // --- POL Mapping ---
-      if (fullData.portOfLoadingId) {
-        const foundPol = this.filteredConnectingPorts?.find(p => p.id.toString() === fullData.portOfLoadingId.toString());
-        this.quotation.portOfLoading = foundPol ? foundPol.name : (fullData.portOfLoadingName || fullData.portOfLoadingId);
-      } else {
-        this.quotation.portOfLoading = fullData.portOfLoadingName || '';
-      }
+      // POL & POD IDs Mapping
+      this.quotation.portOfLoadingId = fullData.portOfLoadingId ? Number(fullData.portOfLoadingId) : null;
+      this.quotation.portOfDischargeId = fullData.portOfDischargeId ? Number(fullData.portOfDischargeId) : null;
 
-      // --- POD Mapping ---
-      if (fullData.portOfDischargeId) {
-        const foundPod = this.filteredConnectingPorts?.find(p => p.id.toString() === fullData.portOfDischargeId.toString());
-        this.quotation.portOfDischarge = foundPod ? foundPod.name : (fullData.portOfDischargeName || fullData.portOfDischargeId);
-        this.quotation.portOfDestination = this.quotation.portOfDischarge; // Sync with destination
-      } else {
-        this.quotation.portOfDischarge = fullData.portOfDischargeName || '';
-        this.quotation.portOfDestination = fullData.portOfDischargeName || '';
-      }
-
-      // --- 4. Connecting Ports (FIXED DISPLAY) ---
+      // --- 4. Connecting Ports ---
       this.selectedConnectingPorts = []; 
+      this.quotation.connectingPortIds = []; 
       if (fullData.connectingPortIds) {
-        const idsArray = fullData.connectingPortIds.toString().split(',')
-                          .map((x: any) => x.trim())
-                          .filter((x: any) => x !== '');
+        const idsArray = fullData.connectingPortIds.toString().split(',').map((x: any) => x.trim()).filter((x: any) => x !== '');
+        this.quotation.connectingPortIds = idsArray.map((id: any) => Number(id));
 
         this.selectedConnectingPorts = idsArray.map((id: any) => {
           const trimmedId = id.toString().trim();
@@ -2756,7 +2723,10 @@ selectPricing(prc: any) {
         }));
       }
 
-      // Final UI Refresh
+      // --- TRIGGER UI UPDATES ---
+      this.onPolChange();
+      this.onPodChange();
+
       this.cdr.detectChanges(); 
       if (this.calculateAll) { this.calculateAll(); }
       this.cdr.markForCheck();
@@ -2907,5 +2877,19 @@ syncOuterBoxToFirstRow() {
   
   this.dimRows[0].box = this.quotation.dimBox;
   this.updateTotalPackagesFromDims(); // Isse calculation recalculate ho jayegi automatically
+}
+// Jab POL dropdown change ho
+onPolChange() {
+  const selectedPol = this.portOfLoadingList.find(p => p.id == this.quotation.portOfLoadingId);
+  this.quotation.portOfLoading = selectedPol ? (selectedPol.portName || selectedPol.name) : '';
+  this.cdr.detectChanges();
+}
+
+// Jab POD dropdown change ho
+onPodChange() {
+  const selectedPod = this.portOfDischargeList.find(p => p.id == this.quotation.portOfDischargeId);
+  this.quotation.portOfDischarge = selectedPod ? (selectedPod.portName || selectedPod.name) : '';
+  this.quotation.portOfDestination = this.quotation.portOfDischarge; // Syncing
+  this.cdr.detectChanges();
 }
 }

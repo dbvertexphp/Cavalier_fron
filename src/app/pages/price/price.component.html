@@ -708,204 +708,210 @@ Selection Modal Popup
         Pricing Records
       </div>
 
-      <div class="flex items-center gap-3">
-        <button
-          (click)="showColumnModal = true"
-          class="flex items-center gap-2 px-3 py-1.5 text-[11px] font-bold uppercase border border-gray-300 rounded hover:bg-gray-50 transition-all text-white"
-        >
-          <span>⚙️</span> Columns
-        </button>
-        <div class="relative inline-block">
-          <button
-            type="button"
+      <div class="flex items-center justify-end gap-3 mb-4">
+  
+  <button (click)="$event.stopPropagation(); toggleColumnSelector()" 
+          class="group flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 text-[11px] font-bold uppercase tracking-wider rounded-lg shadow-sm hover:shadow-md transition-all duration-300 active:scale-95">
+    <span class="text-[14px] group-hover:rotate-180 transition-transform duration-500">⚙️</span>
+    <span>Columns</span>
+  </button>
+
+  <div class="relative inline-block">
+    <button type="button"
             (click)="toggleExportMenu(); $event.stopPropagation()"
-            class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-[12px] px-4 py-1.5 uppercase shadow-sm flex items-center gap-2 transition-all"
-          >
-            <span>💾</span> EXPORT
-            <span
-              [class.rotate-180]="isExportOpen"
-              class="transition-transform text-[10px]"
-              >▼</span
-            >
-          </button>
+            class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] px-4 py-2 uppercase shadow-sm flex items-center gap-2 transition-all rounded-lg">
+      <span>💾</span> EXPORT
+      <span [class.rotate-180]="isExportOpen" class="transition-transform text-[10px]">▼</span>
+    </button>
 
-          <div
-            *ngIf="isExportOpen"
-            class="absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded shadow-2xl z-[100] border border-gray-200 overflow-hidden normal-case ring-1 ring-black ring-opacity-5"
-          >
-            <button
-              type="button"
-              (click)="printInquiries()"
-              class="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-2 border-b border-gray-100 text-[13px] text-gray-700"
-            >
-              <span>🖨️</span> Print (Top 20)
-            </button>
-            <button
-              type="button"
-              (click)="downloadInquiriesPDF()"
-              class="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-2 text-[13px] text-gray-700"
-            >
-              <span>📄</span> Download PDF
-            </button>
-            <button
-              (click)="downloadLeadsExcel()"
-              class="w-full text-left px-4 py-3 hover:bg-gray-100 flex items-center gap-2 text-[12px] font-medium"
-            >
-              <i class="fas fa-file-excel text-green-600"></i> Download Excel
-            </button>
-          </div>
-        </div>
+    <div *ngIf="isExportOpen"
+         class="absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded-lg shadow-2xl z-[100] border border-gray-100 overflow-hidden normal-case ring-1 ring-black ring-opacity-5">
+      <button type="button" (click)="printInquiries()" class="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-2 border-b border-gray-100 text-[13px] text-gray-700">
+        <span>🖨️</span> Print (Top 20)
+      </button>
+      <button type="button" (click)="downloadInquiriesPDF()" class="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-2 text-[13px] text-gray-700">
+        <span>📄</span> Download PDF
+      </button>
+      <button (click)="downloadLeadsExcel()" class="w-full text-left px-4 py-3 hover:bg-gray-100 flex items-center gap-2 text-[13px] font-medium text-gray-700">
+        <i class="fas fa-file-excel text-green-600"></i> Download Excel
+      </button>
+    </div>
+  </div>
 
-        <button
-          (click)="toggleForm()"
+  <button (click)="toggleForm()"
           *ngIf="CheckPermissionService.hasPermission(PermissionID, 'Add')"
-          class="bg-green-600 hover:bg-green-700 px-5 py-1.5 text-[12px] font-bold shadow-sm flex items-center gap-2 transition-all"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="w-3 h-3"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="3"
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          ADD NEW PRICING
-        </button>
+          class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 text-[11px] font-bold shadow-sm flex items-center gap-2 transition-all rounded-lg uppercase tracking-wider">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
+    </svg>
+    ADD NEW PRICING
+  </button>
+</div>
+
+<!-- Premium Glassy Column Modal -->
+<div
+  *ngIf="isColumnModalOpen"
+  class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-fadeIn"
+>
+  <!-- Modal -->
+  <div
+    class="relative w-full max-w-lg overflow-hidden rounded-3xl border border-white/10 bg-[rgb(70,50,50)]/80 shadow-[0_20px_80px_rgba(0,0,0,0.5)] backdrop-blur-2xl"
+  >
+
+    <!-- Glow Effects -->
+    <div class="absolute -top-20 -left-20 h-52 w-52 rounded-full bg-pink-500/20 blur-3xl"></div>
+    <div class="absolute -bottom-20 -right-20 h-52 w-52 rounded-full bg-indigo-500/20 blur-3xl"></div>
+
+    <!-- Header -->
+    <div
+      class="relative flex items-center justify-between border-b border-white/10 px-6 py-5"
+    >
+      <div>
+        <h3 class="text-xl font-semibold tracking-wide text-white">
+          Manage Columns
+        </h3>
+        <p class="mt-1 text-sm text-gray-300">
+          Customize visible table columns
+        </p>
       </div>
+
+      <!-- Close -->
+      <button
+        (click)="toggleColumnSelector()"
+        class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-gray-300 transition-all duration-300 hover:rotate-90 hover:bg-red-500 hover:text-white"
+      >
+        ✕
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="relative p-6">
+      <div
+        class="grid max-h-[350px] grid-cols-2 gap-4 overflow-y-auto pr-2 custom-scrollbar"
+      >
+        <label
+          *ngFor="let col of allPossibleColumns"
+          class="group flex cursor-pointer items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white transition-all duration-300 hover:scale-[1.03] hover:border-white/20 hover:bg-white/10"
+        >
+          <input
+            type="checkbox"
+            [checked]="selectedPricingColumns.includes(col)"
+            (change)="toggleColumn(col)"
+            class="h-5 w-5 rounded border-none bg-white/20 text-pink-500 focus:ring-2 focus:ring-pink-400"
+          />
+
+          <span
+            class="text-sm font-medium tracking-wide text-gray-200 transition-colors group-hover:text-white"
+          >
+            {{ col }}
+          </span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div
+      class="relative flex items-center justify-end gap-3 border-t border-white/10 bg-black/10 px-6 py-5"
+    >
+      <!-- Cancel -->
+      <button
+        (click)="toggleColumnSelector()"
+        class="rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 font-medium text-gray-300 transition-all duration-300 hover:bg-white/10 hover:text-white"
+      >
+        Cancel
+      </button>
+
+      <!-- Save -->
+      <button
+        (click)="toggleColumnSelector()"
+        class="rounded-xl bg-gradient-to-r from-pink-500 to-violet-500 px-6 py-2.5 font-semibold text-white shadow-lg shadow-pink-500/30 transition-all duration-300 hover:scale-105 hover:shadow-pink-500/50 active:scale-95"
+      >
+        Save Changes
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+</style>
     </div>
 
     <div class="p-0 overflow-x-auto">
       <div class="p-0 overflow-x-auto">
      <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+<div class="relative overflow-x-auto">
   <table class="w-full border-collapse border border-gray-200 whitespace-nowrap text-[12px]">
     <thead>
-      <tr class="bg-gray-100 text-gray-700 uppercase border-b font-bold">
-        <th class="p-3 text-left">Pricing & Inquiry</th>
-        <th class="p-3 text-left">Organisation Name</th>
-        <th class="p-3 text-left">Inquiry Name</th>
-        <th class="p-3 text-left">Pricing & Inquiry</th>
-        <th class="p-3 text-left">Customer & Location</th>
-        <th class="p-3 text-left">Route & Incoterm</th>
-        <th class="p-3 text-left">Movement Details</th>
-        <th class="p-3 text-left">Commodity / LOB</th>
-        <th class="p-3 text-center">Status</th>
-        <th class="p-3 text-center sticky right-0 bg-gray-100 border-l">Action</th>
+      <tr class="bg-gray-100 text-gray-700 uppercase border-b font-bold" 
+          cdkDropList 
+          cdkDropListOrientation="horizontal" 
+          [cdkDropListData]="selectedPricingColumns" 
+          (cdkDropListDropped)="dropPricingColumn($any($event))">
+        
+        <th *ngFor="let col of selectedPricingColumns" 
+            cdkDrag 
+            class="p-3 text-left cursor-move hover:bg-gray-200 border-r border-gray-200">
+          <div class="flex items-center gap-2">
+            <span class="text-gray-400">⋮⋮</span>
+            {{ col }}
+          </div>
+        </th>
+
+        <th class="p-3 text-center sticky right-0 bg-gray-100 border-l shadow-sm">Action</th>
       </tr>
     </thead>
 
-    <!-- Table Body: Loop on pricings (Check if data exists) -->
     <tbody class="bg-white" *ngIf="pricings && pricings.length > 0">
       <tr *ngFor="let q of pricings" 
-          (dblclick)="editPricing(q.id)" 
+          (dblclick)="editPricing(q)" 
           class="hover:bg-blue-50 border-b text-gray-700 cursor-pointer transition-colors">
         
-        <!-- Pricing & Inquiry -->
-        <td class="p-3">
-          <div class="font-bold text-blue-700">{{ q.pricingNo || q.PricingNo }}</div>
-          <div class="font-bold text-blue-700">{{ q.organisationName}}</div>
-          <div class="font-bold text-blue-700">{{ q.referenceByInquiryNo}}</div>
-          <div class="text-[10px] text-gray-500">Inq: {{ q.referenceByInquiryNo || q.inquiryNo || '-' }}</div>
-          <div class="text-[9px] text-gray-400 italic">{{ q.createdDate | date:'mediumDate' }}</div>
+        <td *ngFor="let col of selectedPricingColumns" class="p-3">
+          <ng-container [ngSwitch]="col">
+            
+            <span *ngSwitchCase="'Pricing No'" class="font-bold text-blue-700">{{ q.pricingNo || q.PricingNo || '-' }}</span>
+            <span *ngSwitchCase="'Organisation'" class="text-green-600 font-semibold uppercase cursor-pointer hover:underline" (click)="redirectdata('org', q.organisationId)">{{ q.organisationName || '-' }}</span>
+            <span *ngSwitchCase="'Inquiry No'" class="text-green-600 font-semibold uppercase cursor-pointer hover:underline" (click)="redirectdata('inq', q.inquiryId)">{{ q.referenceByInquiryNo || q.inquiryNo || '-' }}</span>
+            
+            <span *ngSwitchCase="'Status'" (click)="$event.stopPropagation()">
+              <button [title]="(q.status === 1 || q.status === true) ? 'Deactivate' : 'Activate'"
+                  (click)="toggleStatus(q)"
+                  class="flex items-center gap-2 px-2 py-1 rounded-md transition-all font-medium text-[10px] shadow-sm border"
+                  [ngClass]="(q.status === 1 || q.status === true) ? 'bg-green-50 text-green-600 border-green-200 hover:bg-green-600 hover:text-white' : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-600 hover:text-white'">
+                  <span class="relative flex h-1.5 w-1.5">
+                    <span *ngIf="q.status === 1 || q.status === true" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span [class]="(q.status === 1 || q.status === true) ? 'bg-green-500' : 'bg-gray-500'" class="relative inline-flex rounded-full h-1.5 w-1.5"></span>
+                  </span>
+                  <span>{{ (q.status === 1 || q.status === true) ? 'Active' : 'Inactive' }}</span>
+              </button>
+            </span>
+
+            <span *ngSwitchDefault class="uppercase font-medium">{{ q[pricingColumnFieldMap[col]] || "-" }}</span>
+          </ng-container>
         </td>
 
-    <td class="p-3" (click)="redirectdata('org',q.organisationId)">
-      <div class="font-semibold uppercase text-green-600">{{ q.organisationName }}</div>
-    </td>
-    <td class="p-3" (click)="redirectdata('inq',q.inquiryId)">
-      <div class="font-semibold uppercase text-green-600">{{ q.referenceByInquiryNo }}</div>
-    </td>
-    <td class="p-3">
-      <div class="font-semibold uppercase text-gray-800">{{ q.customerName || q.organisationName }}</div>
-    </td>
-    <td class="p-3">
-      <div class="font-semibold uppercase text-gray-800">{{ q.customerName || q.organisationName }}</div>
-      <div class="text-[11px] text-blue-600 font-medium">📍 {{ q.location || 'N/A' }}</div>
-      <div class="text-[10px] text-gray-400">Mode: {{ q.transportMode }}</div>
-    </td>
-    
-    <td class="p-3">
-      <a href="/dashboard/organization-add/{{q.id}}" class="block group cursor-pointer decoration-none">
-        <div class="font-semibold uppercase text-gray-800 group-hover:text-blue-700">
-          {{ q.customerName || q.organisationName }}
-        </div>
-        <div class="text-[11px] text-blue-600 font-medium">
-          📍 {{ q.location || 'N/A' }}
-        </div>
-        <div class="text-[10px] text-gray-400">
-          Mode: {{ q.transportMode }}
-        </div>
-      </a>
-    </td>
-
-    <td class="p-3">
-      <div class="flex items-center gap-1 font-bold">
-        <span class="text-green-700 uppercase">{{ q.originName || 'Origin' }}</span>
-        <span class="text-gray-400">➔</span>
-        <span class="text-red-700 uppercase">{{ q.finalDestination || 'Destination' }}</span>
-      </div>
-      <div class="mt-1">
-        <span class="px-2 py-0.5 bg-orange-100 text-orange-800 rounded text-[10px] font-bold border border-orange-200">
-          {{ q.incoterm || 'EXW' }}
-        </span>
-      </div>
-    </td>
-
-    <td class="p-3">
-      <div class="font-medium text-gray-700 uppercase">{{ q.movementType || '-' }}</div>
-      <div class="flex gap-1 mt-1">
-        <span *ngIf="q.isDirect" class="text-[9px] bg-blue-100 text-blue-700 px-1 rounded font-bold">DIRECT</span>
-        <span class="text-[9px] bg-gray-100 text-gray-600 px-1 rounded font-bold">{{ q.transportType || 'N/A' }}</span>
-      </div>
-    </td>
-
-    <td class="p-3">
-      <div class="font-semibold text-gray-800">{{ q.businessDimensions || 'General' }}</div>
-      <div class="text-[10px] font-bold text-gray-400 uppercase">CHG WT: {{ q.chargeableWeight || 0 }} {{ q.grossWeightUnit || 'KG' }}</div>
-    </td>
-
-    <td class="p-3 text-center" (click)="$event.stopPropagation()">
-      <div class="flex flex-col items-center gap-1">
-        <label class="relative inline-flex items-center cursor-pointer">
-          <input type="checkbox" 
-                 [checked]="q.status === 1 || q.status === true" 
-                 (change)="toggleStatus(q)" 
-                 class="sr-only peer">
-          <div class="w-8 h-4 bg-gray-300 rounded-full peer peer-checked:bg-green-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4 border border-gray-200 shadow-sm"></div>
-        </label>
-        <span [ngClass]="(q.status === 1 || q.status === true) ? 'text-green-700' : 'text-red-700'" class="text-[9px] font-bold uppercase">
-          {{ (q.status === 1 || q.status === true) ? 'Active' : 'Inactive' }}
-        </span>
-      </div>
-    </td>
-
-    <td class="p-3 sticky right-0 bg-white border-l text-center shadow-sm">
-      <button (click)="editPricing(q)" 
-              class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded transition-all text-[10px] uppercase shadow-sm">
-        Edit
-      </button>
-      <button (click)="$event.stopPropagation(); deletePricing(q.id || q.Id)" 
-              class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white font-bold rounded transition-all text-[10px] uppercase shadow-sm">
-        Delete
-      </button>
-    </td>
-  </tr>
-</tbody>
-
-    <!-- Empty State -->
-    <tbody *ngIf="!pricings || pricings.length === 0">
-      <tr>
-        <td colspan="7" class="p-10 text-center text-gray-400 italic">
-          No records found.
+        <td class="p-3 sticky right-0 bg-white border-l text-center shadow-sm">
+          <div class="flex justify-center gap-2">
+            <button title="Edit" (click)="editPricing(q)" class="flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-600 border border-blue-200 rounded-md hover:bg-blue-600 hover:text-white transition-all text-[10px]">
+              Edit
+            </button>
+            <button title="Delete" (click)="$event.stopPropagation(); deletePricing(q.id || q.Id)" class="flex items-center gap-1 px-2 py-1 bg-red-50 text-red-600 border border-red-200 rounded-md hover:bg-red-600 hover:text-white transition-all text-[10px]">
+              Del
+            </button>
+          </div>
         </td>
       </tr>
     </tbody>
+
+    <tbody *ngIf="!pricings || pricings.length === 0">
+      <tr>
+        <td [attr.colspan]="selectedPricingColumns.length + 1" class="p-10 text-center text-gray-400 italic">No records found.</td>
+      </tr>
+    </tbody>
   </table>
+</div>
 </div>
       </div>
       <!-- PREMIUM SERVER-SIDE PAGINATION -->
@@ -1086,43 +1092,37 @@ Selection Modal Popup
         <div class="bg-gray-50 p-4 border border-gray-200 rounded">
           <div class="grid grid-cols-1 md:grid-cols-4 gap-x-8 gap-y-3">
             <div class="space-y-2">
-          <div>
+      <div>
   <label class="text-gray-700 font-bold block mb-1 uppercase text-[11px]">Reference by inquiry</label>
   <div class="relative">
     <input
-      #inquiryInput
       name="referenceByInquiry"
       [(ngModel)]="quotation.referenceByInquiry"
       (input)="onInquirySearchInput()"
+      (blur)="showInquiryDropdown = false"
       placeholder="Search Inquiry No..."
       class="w-full border p-2 bg-white outline-none pr-7 text-[12px]"
       autocomplete="off"
     />
 
     <span
-      (click)="$event.stopPropagation(); loadInquiryList()"
+      (mousedown)="$event.preventDefault(); loadInquiryList()"
       class="absolute right-1 top-2.5 text-gray-400 cursor-pointer p-1 hover:text-blue-500 transition-all"
     >
       🔍
     </span>
 
     <ul
-      *ngIf="showInquiryDropdown && inquiryList && inquiryList.length > 0"
-      class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-48 overflow-y-auto mt-1"
+      *ngIf="showInquiryDropdown && inquiryList.length > 0"
+      class="absolute top-full left-0 z-[100] w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-48 overflow-y-auto mt-1"
     >
       <li
         *ngFor="let inq of inquiryList"
-        (click)="selectInquiry(inq)"
-        class="p-2 hover:bg-blue-50 cursor-pointer text-[12px] border-b border-gray-100 last:border-0"
+        (mousedown)="selectInquiry(inq)"
+        class="p-2 hover:bg-blue-50 cursor-pointer text-[12px] border-b border-gray-100"
       >
-        <div class="font-bold text-blue-700">
-          {{ inq.inquiryNo }}
-        </div>
-
-        <div
-          *ngIf="inq.customerName"
-          class="text-gray-500 text-[10px]"
-        >
+        <div class="font-bold text-blue-700">{{ inq.inquiryNo }}</div>
+        <div *ngIf="inq.customerName" class="text-gray-500 text-[10px]">
           {{ inq.customerName }}
         </div>
       </li>
@@ -1634,7 +1634,7 @@ Selection Modal Popup
                     type="number"
                     [(ngModel)]="quotation.netWeight"
                     name="netWeight"
-                    readonly
+                   
                     class="w-full border p-2 outline-none bg-gray-50"
                   />
                   <div
@@ -1764,214 +1764,55 @@ Selection Modal Popup
 
     <div class="flex flex-1 items-center">
       <div class="flex flex-1 items-center gap-1">
-        <input
-          type="number"
-          placeholder="BOX"
-          [(ngModel)]="dimRow.box"
-          (input)="calculateVolumeWeight()"
-          class="w-full border p-2 outline-none text-center rounded-l-sm focus:border-blue-400"
-        />
-
-        <input
-          type="number"
-          placeholder="L"
-          [(ngModel)]="dimRow.l"
-          (input)="calculateVolumeWeight()"
-          class="w-full border p-2 outline-none text-center focus:border-blue-400"
-        />
-
+        <input type="number" placeholder="BOX" [(ngModel)]="dimRow.box" (input)="calculateVolumeWeight(); updatePreview()" class="w-full border p-2 outline-none text-center rounded-l-sm focus:border-blue-400" />
+        <input type="number" placeholder="L" [(ngModel)]="dimRow.l" (input)="calculateVolumeWeight(); updatePreview()" class="w-full border p-2 outline-none text-center focus:border-blue-400" />
         <span class="text-gray-400 font-bold">x</span>
-
-        <input
-          type="number"
-          placeholder="W"
-          [(ngModel)]="dimRow.w"
-          (input)="calculateVolumeWeight()"
-          class="w-full border p-2 outline-none text-center focus:border-blue-400"
-        />
-
+        <input type="number" placeholder="W" [(ngModel)]="dimRow.w" (input)="calculateVolumeWeight(); updatePreview()" class="w-full border p-2 outline-none text-center focus:border-blue-400" />
         <span class="text-gray-400 font-bold">x</span>
-
-        <input
-          type="number"
-          placeholder="H"
-          [(ngModel)]="dimRow.h"
-          (input)="calculateVolumeWeight()"
-          class="w-full border p-2 outline-none text-center focus:border-blue-400"
-        />
+        <input type="number" placeholder="H" [(ngModel)]="dimRow.h" (input)="calculateVolumeWeight(); updatePreview()" class="w-full border p-2 outline-none text-center focus:border-blue-400" />
       </div>
 
-      <div
-        class="flex items-center border border-l-0 bg-gray-50 h-[38px] divide-x divide-gray-300"
-      >
+      <div class="flex items-center border border-l-0 bg-gray-50 h-[38px] divide-x divide-gray-300">
         <div class="flex items-center px-2 gap-1 cursor-pointer">
-          <select
-            [(ngModel)]="dimRow.unit"
-            (change)="calculateVolumeWeight()"
-            class="outline-none font-bold text-gray-600 bg-transparent text-[11px]"
-          >
+          <select [(ngModel)]="dimRow.unit" (change)="calculateVolumeWeight(); updatePreview()" class="outline-none font-bold text-gray-600 bg-transparent text-[11px]">
             <option value="CMS">CMS</option>
             <option value="INCH">INCH</option>
           </select>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="w-3 h-3 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M19 9l-7 7-7-7"
-            />
-          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
         </div>
-        <button
-          type="button"
-          (click)="openDimModal()"
-          class="bg-green-600 hover:bg-green-700 text-white px-3 h-full flex items-center justify-center transition-colors shadow-inner"
-          title="Add more dimensions"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="w-4 h-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="3"
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
+        <button type="button" (click)="openDimModal()" class="bg-green-600 hover:bg-green-700 text-white px-3 h-full flex items-center justify-center transition-colors shadow-inner" title="Add more dimensions">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"/></svg>
         </button>
 
-        <div
-          *ngIf="isDimModalOpen"
-          class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
-        >
-          <div
-            class="bg-white w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200"
-          >
-            <div
-              class="bg-gray-800 text-white px-6 py-4 flex justify-between items-center"
-            >
-              <h3 class="font-bold text-lg uppercase tracking-wider">
-                Add Multiple Dimensions
-              </h3>
-              <button
-                (click)="closeDimModal()"
-                class="text-white hover:text-red-400 text-2xl"
-              >
-                &times;
-              </button>
+        <div *ngIf="isDimModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div class="bg-white w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div class="bg-gray-800 text-white px-6 py-4 flex justify-between items-center">
+              <h3 class="font-bold text-lg uppercase tracking-wider">Add Multiple Dimensions</h3>
+              <button (click)="closeDimModal()" class="text-white hover:text-red-400 text-2xl">&times;</button>
             </div>
-
             <div class="p-6 max-h-[50vh] overflow-y-auto">
-              <div
-                *ngFor="let dim of dimRows; let i = index"
-                class="flex items-center gap-2 mb-4 group"
-              >
-                <label
-                  class="w-24 font-bold text-gray-700 text-xs uppercase"
-                  >Dim {{ i + 1 }}</label
-                >
-
+              <div *ngFor="let dim of dimRows; let i = index" class="flex items-center gap-2 mb-4 group">
+                <label class="w-24 font-bold text-gray-700 text-xs uppercase">Dim {{ i + 1 }}</label>
                 <div class="flex flex-1 items-center gap-1">
-                  <input
-                    type="number"
-                    [(ngModel)]="dim.box"
-                    placeholder="BOX"
-                    class="w-full border p-2 text-center rounded-sm text-sm"
-                  />
-                  <input
-                    type="number"
-                    [(ngModel)]="dim.l"
-                    placeholder="L"
-                    class="w-full border p-2 text-center rounded-sm text-sm"
-                  />
+                  <input type="number" [(ngModel)]="dim.box" (input)="updatePreview()" placeholder="BOX" class="w-full border p-2 text-center rounded-sm text-sm" />
+                  <input type="number" [(ngModel)]="dim.l" (input)="updatePreview()" placeholder="L" class="w-full border p-2 text-center rounded-sm text-sm" />
                   <span class="text-gray-400 font-bold text-xs">x</span>
-                  <input
-                    type="number"
-                    [(ngModel)]="dim.w"
-                    placeholder="W"
-                    class="w-full border p-2 text-center text-sm"
-                  />
+                  <input type="number" [(ngModel)]="dim.w" (input)="updatePreview()" placeholder="W" class="w-full border p-2 text-center text-sm" />
                   <span class="text-gray-400 font-bold text-xs">x</span>
-                  <input
-                    type="number"
-                    [(ngModel)]="dim.h"
-                    placeholder="H"
-                    class="w-full border p-2 text-center text-sm"
-                  />
-
-                  <select
-                    [(ngModel)]="dim.unit"
-                    class="border p-2 bg-gray-50 text-[11px] font-bold"
-                  >
-                    <option value="CMS">CMS</option>
-                    <option value="INCH">INCH</option>
-                  </select>
-
-                  <button
-                    *ngIf="dimRows.length > 1"
-                    (click)="removeDimRow(i)"
-                    class="text-red-400 p-2"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="w-4 h-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
-                  </button>
+                  <input type="number" [(ngModel)]="dim.h" (input)="updatePreview()" placeholder="H" class="w-full border p-2 text-center text-sm" />
+                  <select [(ngModel)]="dim.unit" (change)="updatePreview()" class="border p-2 bg-gray-50 text-[11px] font-bold"><option value="CMS">CMS</option><option value="INCH">INCH</option></select>
+                  <button *ngIf="dimRows.length > 1" (click)="removeDimRow(i); updatePreview()" class="text-red-400 p-2"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
                 </div>
               </div>
-
-              <button
-                (click)="addNewDimRow()"
-                class="mt-2 text-blue-600 font-bold text-xs flex items-center gap-1"
-              >
-                + Add Another Dimension
-              </button>
+              <button (click)="addNewDimRow(); updatePreview()" class="mt-2 text-blue-600 font-bold text-xs flex items-center gap-1">+ Add Another Dimension</button>
             </div>
-
-            <div
-              class="px-6 py-3 bg-blue-50 border-t flex justify-between items-center"
-            >
-              <span class="text-blue-700 font-bold text-sm"
-                >TOTAL CALCULATED WEIGHT:</span
-              >
-              <span class="text-blue-900 font-black text-lg"
-                >{{ getTotalVolumeWeight() }} KG</span
-              >
+            <div class="px-6 py-3 bg-blue-50 border-t flex justify-between items-center">
+              <span class="text-blue-700 font-bold text-sm">TOTAL CALCULATED WEIGHT:</span>
+              <span class="text-blue-900 font-black text-lg">{{ getTotalVolumeWeight() }} KG</span>
             </div>
-
             <div class="p-4 bg-gray-100 border-t flex justify-end gap-3">
-              <button
-                (click)="closeDimModal()"
-                class="px-6 py-2 text-gray-600 font-bold text-sm"
-              >
-                Cancel
-              </button>
-              <button
-                (click)="saveDimensions()"
-                class="px-8 py-2 bg-blue-600 text-white font-bold rounded-lg text-sm"
-              >
-                Apply Dimensions
-              </button>
+              <button (click)="closeDimModal()" class="px-6 py-2 text-gray-600 font-bold text-sm">Cancel</button>
+              <button (click)="saveDimensions(); updatePreview()" class="px-8 py-2 bg-blue-600 text-white font-bold rounded-lg text-sm">Apply Dimensions</button>
             </div>
           </div>
         </div>
@@ -3282,71 +3123,16 @@ Selection Modal Popup
                           </td>
                         </tr>
                         <tr>
-                          <td
-                            class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase"
-                          >
-                            📦 Package Dimensions Log
-                          </td>
-                          <td class="p-3 md:p-4 text-gray-800">
-                            <div class="space-y-1">
-                              <div *ngFor="let data of localInquiryList">
-                                <div
-                                  *ngIf="
-                                    data.dimensions &&
-                                      data.dimensions.length > 0;
-                                    else checkGlobal
-                                  "
-                                >
-                                  <div
-                                    *ngFor="
-                                      let dim of data.dimensions;
-                                      let i = index
-                                    "
-                                    class="text-[10px] md:text-[11px] font-mono border-b border-gray-100 last:border-0 py-1 flex justify-between"
-                                  >
-                                    <span class="font-bold text-[#4a3f3f]"
-                                      >BOX {{ i + 1 }}:</span
-                                    >
-                                    <span
-                                      >{{ dim.l }} x {{ dim.w }} x {{ dim.h }}
-                                      {{ dim.unit || "CMS" }}</span
-                                    >
-                                  </div>
-                                </div>
-                              </div>
-                              <ng-template #checkGlobal>
-                                <div
-                                  *ngIf="
-                                    appliedDimensions &&
-                                      appliedDimensions.length > 0;
-                                    else noDim
-                                  "
-                                >
-                                  <div
-                                    *ngFor="
-                                      let dim of appliedDimensions;
-                                      let i = index
-                                    "
-                                    class="text-[10px] md:text-[11px] font-mono border-b border-gray-100 last:border-0 py-1 flex justify-between"
-                                  >
-                                    <span class="font-bold text-[#4a3f3f]"
-                                      >BOX {{ i + 1 }}:</span
-                                    >
-                                    <span
-                                      >{{ dim.l }} x {{ dim.w }} x {{ dim.h }}
-                                      {{ dim.unit || "CMS" }}</span
-                                    >
-                                  </div>
-                                </div>
-                              </ng-template>
-                              <ng-template #noDim>
-                                <span class="text-red-400 italic text-[10px]"
-                                  >No dimensions captured</span
-                                >
-                              </ng-template>
-                            </div>
-                          </td>
-                        </tr>
+  <td class="p-3 bg-gray-50 font-bold text-gray-600 uppercase text-xs">Dimensions Log</td>
+  <td class="p-3 text-sm text-gray-700">
+    <div *ngIf="dimRow.l">
+      1 Box: {{ dimRow.l }} x {{ dimRow.w }} x {{ dimRow.h }} {{ dimRow.unit }}
+    </div>
+    <div *ngFor="let dim of dimRows; let i = index" class="mt-1">
+      <span class="font-bold">BOX {{ i + 1 }}:</span> {{ dim.l || 0 }} x {{ dim.w || 0 }} x {{ dim.h || 0 }} {{ dim.unit }}
+    </div>
+  </td>
+</tr>
                         <tr>
                           <td
                             class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase"
@@ -3408,7 +3194,7 @@ Selection Modal Popup
                             {{ quotation.finalDestination }}
                           </td>
                         </tr>
-                        <tr>
+                        <!-- <tr>
                           <td
                             class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase border-b-0"
                           >
@@ -3419,7 +3205,7 @@ Selection Modal Popup
                           >
                             {{ quotation.pickupAddress || "N/A" }}
                           </td>
-                        </tr>
+                        </tr> -->
                       </tbody>
                     </table>
                   </div>

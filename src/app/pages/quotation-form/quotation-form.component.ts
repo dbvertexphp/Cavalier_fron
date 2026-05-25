@@ -1108,15 +1108,17 @@ saveQuotation() {
     lineOfBusiness: String(this.quotation.lineOfBusiness),
     commodity: String(this.quotation.commodity),
 
-    // ✅ FIXED PLACEMENT: Inko object ke sabse aakhiri mein rakha hai
+    // ✅ FIXED PLACEMENT: Inko object ke sabse aakhiri mein rakha hai taaki ...this.quotation ki string values is numeric conversion ko override na kar sakein.
     portOfLoadingId: (this.quotation.portOfLoadingId !== null && this.quotation.portOfLoadingId !== undefined && this.quotation.portOfLoadingId !== '') ? Number(this.quotation.portOfLoadingId) : null,
     portOfDischargeId: (this.quotation.portOfDischargeId !== null && this.quotation.portOfDischargeId !== undefined && this.quotation.portOfDischargeId !== '') ? Number(this.quotation.portOfDischargeId) : null,
     
-    // 🔥 NAYA ADDITION: Connecting Ports (Assume kiya hai ki frontend variable 'selectedConnectingPorts' comma-separated string hai)
-    connectingPortIds: this.quotation.connectingPortIds || ""
+    // ✅ CONNECTING PORTS MAPPING (Array of objects to comma-separated ID string)
+    connectingPortIds: this.selectedConnectingPorts && this.selectedConnectingPorts.length > 0 
+        ? this.selectedConnectingPorts.map(p => p.id).join(',') 
+        : ""
   };
 
-  // 📝 CONSOLE LOG: Isse aap Inspect Element -> Console me pura payload check kar sakte hain
+  // 📝 CONSOLE LOG: Isse aap Inspect Element -> Console me pura payload check kar sakte hain api hit hone se pehle
   console.log("🚀 FINAL PAYLOAD BEING SENT TO BACKEND:", payload);
 
   // 1. API Step 1: Save Quotation
@@ -1517,8 +1519,13 @@ prepareQuotationPayload() {
 
 
   // --- Dimension Modal Methods (Fixes 'openDimModal', 'addNewDimRow' etc.) ---
-  openDimModal() { this.isDimModalOpen = true; }
-  closeDimModal() { this.isDimModalOpen = false; }
+openDimModal() {
+  // Agar pehle se saved dimensions hain toh unhe load karo
+  if (this.quotation.allDimensions && this.quotation.allDimensions.length > 0) {
+    this.dimRows = JSON.parse(JSON.stringify(this.quotation.allDimensions));
+  }
+  this.isDimModalOpen = true;
+}  closeDimModal() { this.isDimModalOpen = false; }
   
   addNewDimRow() {
     this.dimRows.push({ box: null, l: null, w: null, h: null, unit: 'CMS' });
@@ -1532,6 +1539,7 @@ prepareQuotationPayload() {
     this.appliedDimensions = [...this.dimRows];
     this.closeDimModal();
     this.updateTotalPackagesFromDims();
+    this.updatePreview();
   }
 
   onFileSelected(event: any) {
@@ -2891,5 +2899,22 @@ onPodChange() {
   this.quotation.portOfDischarge = selectedPod ? (selectedPod.portName || selectedPod.name) : '';
   this.quotation.portOfDestination = this.quotation.portOfDischarge; // Syncing
   this.cdr.detectChanges();
+}
+updatePreview() {
+  this.quotation = { ...this.quotation };
+  this.calculateTotalRevenue()
+}
+calculateTotalRevenue(): number {
+  return this.revenueRows.reduce((sum, row) => sum + (Number(row.amount) || 0), 0);
+}
+getServiceName(id: any): string {
+  if (!id || !this.companyServices) return '-';
+  const service = this.companyServices.find(s => s.id == id);
+  return service ? service.serviceName : '-';
+}
+getCommodityName(id: any): string {
+  if (!id || !this.commodityTypes) return '-';
+  const item = this.commodityTypes.find(t => t.id == id);
+  return item ? item.name : '-';
 }
 }

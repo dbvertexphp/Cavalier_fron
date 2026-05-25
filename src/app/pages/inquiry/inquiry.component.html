@@ -778,90 +778,84 @@
       <div class="p-0 overflow-x-auto">
         <div class="relative">
           <div class="relative">
-  <table class="w-full border-collapse border border-gray-200 whitespace-nowrap">
-    <thead>
-      <tr class="bg-gray-50 text-gray-600 uppercase text-[11px] border-b" 
-          cdkDropList 
-          cdkDropListOrientation="horizontal" 
-          [cdkDropListData]="selectedColumns" 
-          (cdkDropListDropped)="dropColumn($any($event))">
-        <th *ngFor="let col of selectedColumns" 
-            cdkDrag 
-            class="p-4 text-left font-bold cursor-move hover:bg-gray-100 border-r border-gray-200 last:border-r-0">
-          <div class="flex items-center gap-2">
-            <span class="text-gray-300">⋮⋮</span>
-            {{ col }}
-          </div>
-        </th>
+ <table class="w-full border-collapse border border-gray-200 whitespace-nowrap">
+  <thead>
+    <tr class="bg-gray-50 text-gray-600 uppercase text-[11px] border-b" 
+        cdkDropList 
+        cdkDropListOrientation="horizontal" 
+        [cdkDropListData]="selectedColumns" 
+        (cdkDropListDropped)="dropColumn($any($event))">
+      <th *ngFor="let col of selectedColumns" 
+          cdkDrag 
+          class="p-4 text-left font-bold cursor-move hover:bg-gray-100 border-r border-gray-200 last:border-r-0">
+        <div class="flex items-center gap-2">
+          <span class="text-gray-300">⋮⋮</span>
+          {{ col }}
+        </div>
+      </th>
 
-        <th class="p-4 text-center font-bold sticky right-0 bg-gray-50 border-l shadow-sm no-export">
-          Action
-        </th>
-      </tr>
-    </thead>
+      <th class="p-4 text-center font-bold sticky right-0 bg-gray-50 border-l shadow-sm no-export">
+        Actions
+      </th>
+    </tr>
+  </thead>
 
-    <tbody class="bg-white" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
-      <tr *ngFor="let q of paginatedInquiries" 
-          (dblclick)="editQuotation(q)" 
-          class="hover:bg-gray-50 border-b text-gray-700 cursor-pointer transition-colors">
-        
-        <td *ngFor="let col of selectedColumns" class="p-4">
-          <ng-container [ngSwitch]="col">
-            <span *ngSwitchCase="'Inquiry Id.'" class="font-bold text-gray-900">{{ q.id }}</span>
-            <span *ngSwitchCase="'Inquiry No.'" class="font-bold text-blue-600">{{ q.inquiryNo }}</span>
-            <span *ngSwitchCase="'Date'" class="font-medium">{{ q.receivedDate | date: "dd-MMM-yyyy" }}</span>
-            
-            <!-- Lead Name click par alert -->
-            <span *ngSwitchCase="'LeadName'" 
-                  class="font-medium cursor-pointer text-blue-600 hover:underline" 
-                  (click)="showAlert('Lead ID', q.leadId)">
-              {{ q.leadName || '-' }}
-            </span>
+  <tbody class="bg-white" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
+    <tr *ngFor="let q of paginatedInquiries" 
+        (dblclick)="editQuotation(q)" 
+        class="hover:bg-gray-50 border-b text-gray-700 cursor-pointer transition-colors">
+      
+      <td *ngFor="let col of selectedColumns" class="p-4">
+        <ng-container [ngSwitch]="col">
+          <span *ngSwitchCase="'Inquiry Id.'" class="font-bold text-gray-900">{{ q.id }}</span>
+          <span *ngSwitchCase="'Inquiry No.'" class="font-bold text-blue-600">{{ q.inquiryNo }}</span>
+          <span *ngSwitchCase="'Date'" class="font-medium">{{ q.receivedDate | date: "dd-MMM-yyyy" }}</span>
+          
+          <span *ngSwitchCase="'LeadName'" 
+                class="font-medium cursor-pointer text-blue-600 hover:underline" 
+                (click)="showAlert('Lead ID', q.leadId)">
+            {{ q.leadName || '-' }}
+          </span>
 
-            <!-- Organisation Name click par alert -->
-            <span *ngSwitchCase="'OrganisationName'" 
-                  class="font-medium cursor-pointer text-blue-600 hover:underline" 
-                  (click)="showAlert('Organisation ID', q.organisationId)">
-              {{ q.organisationName || '-' }}
-            </span>
+          <span *ngSwitchCase="'OrganisationName'" 
+                class="font-medium cursor-pointer text-blue-600 hover:underline" 
+                (click)="showAlert('Organisation ID', q.organisationId)">
+            {{ q.organisationName || '-' }}
+          </span>
 
-            <!-- 🔥 Status Column with Toggle Logic -->
-            <span *ngSwitchCase="'Status'" class="flex items-center gap-3" (click)="$event.stopPropagation()">
-              <!-- Status Badge -->
-              <span [ngClass]="q.status === 1 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
-                    class="px-2 py-0.5 rounded text-[10px] font-bold uppercase">
-                {{ q.status === 1 ? 'Active' : 'Inactive' }}
-              </span>
+          <span *ngSwitchCase="'Status'" (click)="$event.stopPropagation()">
+            <button [title]="(q?.status === 1) ? 'Deactivate' : 'Activate'"
+                (click)="toggleStatus(q)"
+                class="flex items-center gap-2 px-3 py-1.5 rounded-md transition-all font-medium text-sm shadow-sm border"
+                [ngClass]="(q?.status === 1) ? 'bg-green-50 text-green-600 border-green-200 hover:bg-green-600 hover:text-white' : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-600 hover:text-white'">
+                <span class="relative flex h-2 w-2">
+                  <span *ngIf="q?.status === 1" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span [class]="(q?.status === 1) ? 'bg-green-500' : 'bg-gray-500'" class="relative inline-flex rounded-full h-2 w-2"></span>
+                </span>
+                <span>{{ (q?.status === 1) ? 'Active' : 'Inactive' }}</span>
+            </button>
+          </span>
 
-              <!-- Toggle Switch -->
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" 
-                       [checked]="q.status === 1" 
-                       (change)="toggleStatus(q)" 
-                       class="sr-only peer">
-                <div class="w-8 h-4 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-green-600"></div>
-              </label>
-            </span>
+          <span *ngSwitchDefault class="uppercase font-medium">{{ q[columnFieldMap[col]] || "-" }}</span>
+        </ng-container>
+      </td>
 
-            <span *ngSwitchDefault class="uppercase font-medium">{{ q[columnFieldMap[col]] || "-" }}</span>
-          </ng-container>
-        </td>
-
-        <td class="p-4 sticky right-0 bg-white border-l text-center shadow-[-5px_0_10px_rgba(0,0,0,0.02)]">
-          <button (click)="editQuotation(q)" 
-                  *ngIf="CheckPermissionService.hasPermission(PermissionID, 'Edit')" 
-                  class="text-blue-600 mr-3 font-bold uppercase hover:underline text-[11px]">
-            Edit
+      <td class="p-4 sticky right-0 bg-white border-l text-center shadow-[-5px_0_10px_rgba(0,0,0,0.02)]">
+        <div class="flex justify-center gap-2">
+          <button title="Edit" *ngIf="CheckPermissionService.hasPermission(PermissionID, 'Edit')" (click)="editQuotation(q)" class="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-600 border border-blue-200 rounded-md hover:bg-blue-600 hover:text-white transition-all font-medium text-sm shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
+            <span>Edit</span>
           </button>
-          <button (click)="deleteQuotation(q.id)" 
-                  *ngIf="CheckPermissionService.hasPermission(PermissionID, 'Delete')" 
-                  class="text-red-600 font-bold uppercase hover:underline text-[11px]">
-            Delete
+
+          <button title="Delete" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Delete')" (click)="deleteQuotation(q.id)" class="flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 rounded-md hover:bg-red-600 hover:text-white transition-all font-medium text-sm shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
+            <span>Delete</span>
           </button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
 </div>
         </div>
       </div>
@@ -1796,7 +1790,7 @@
           type="number"
           placeholder="BOX"
           [(ngModel)]="dimRow.box"
-          (input)="calculateVolumeWeight()"
+          (ngModelChange)="calculateVolumeWeight(); updatePreview()"
           class="w-full border p-2 outline-none text-center rounded-l-sm focus:border-blue-400"
         />
 
@@ -1804,7 +1798,7 @@
           type="number"
           placeholder="L"
           [(ngModel)]="dimRow.l"
-          (input)="calculateVolumeWeight()"
+          (ngModelChange)="calculateVolumeWeight(); updatePreview()"
           class="w-full border p-2 outline-none text-center focus:border-blue-400"
         />
 
@@ -1814,7 +1808,7 @@
           type="number"
           placeholder="W"
           [(ngModel)]="dimRow.w"
-          (input)="calculateVolumeWeight()"
+          (ngModelChange)="calculateVolumeWeight(); updatePreview()"
           class="w-full border p-2 outline-none text-center focus:border-blue-400"
         />
 
@@ -1824,7 +1818,7 @@
           type="number"
           placeholder="H"
           [(ngModel)]="dimRow.h"
-          (input)="calculateVolumeWeight()"
+          (ngModelChange)="calculateVolumeWeight(); updatePreview()"
           class="w-full border p-2 outline-none text-center focus:border-blue-400"
         />
       </div>
@@ -1835,7 +1829,7 @@
         <div class="flex items-center px-2 gap-1 cursor-pointer">
           <select
             [(ngModel)]="dimRow.unit"
-            (change)="calculateVolumeWeight()"
+            (ngModelChange)="calculateVolumeWeight(); updatePreview()"
             class="outline-none font-bold text-gray-600 bg-transparent text-[11px]"
           >
             <option value="CMS">CMS</option>
@@ -1913,12 +1907,14 @@
                   <input
                     type="number"
                     [(ngModel)]="dim.box"
+                    (ngModelChange)="updatePreview()"
                     placeholder="BOX"
                     class="w-full border p-2 text-center rounded-sm text-sm"
                   />
                   <input
                     type="number"
                     [(ngModel)]="dim.l"
+                    (ngModelChange)="updatePreview()"
                     placeholder="L"
                     class="w-full border p-2 text-center rounded-sm text-sm"
                   />
@@ -1926,6 +1922,7 @@
                   <input
                     type="number"
                     [(ngModel)]="dim.w"
+                    (ngModelChange)="updatePreview()"
                     placeholder="W"
                     class="w-full border p-2 text-center text-sm"
                   />
@@ -1933,12 +1930,14 @@
                   <input
                     type="number"
                     [(ngModel)]="dim.h"
+                    (ngModelChange)="updatePreview()"
                     placeholder="H"
                     class="w-full border p-2 text-center text-sm"
                   />
 
                   <select
                     [(ngModel)]="dim.unit"
+                    (ngModelChange)="updatePreview()"
                     class="border p-2 bg-gray-50 text-[11px] font-bold"
                   >
                     <option value="CMS">CMS</option>
@@ -1947,7 +1946,7 @@
 
                   <button
                     *ngIf="dimRows.length > 1"
-                    (click)="removeDimRow(i)"
+                    (click)="removeDimRow(i); updatePreview()"
                     class="text-red-400 p-2"
                   >
                     <svg
@@ -1969,7 +1968,7 @@
               </div>
 
               <button
-                (click)="addNewDimRow()"
+                (click)="addNewDimRow(); updatePreview()"
                 class="mt-2 text-blue-600 font-bold text-xs flex items-center gap-1"
               >
                 + Add Another Dimension
@@ -1995,7 +1994,7 @@
                 Cancel
               </button>
               <button
-                (click)="saveDimensions()"
+                (click)="saveDimensions(); updatePreview()"
                 class="px-8 py-2 bg-blue-600 text-white font-bold rounded-lg text-sm"
               >
                 Apply Dimensions
@@ -3114,71 +3113,19 @@
                           </td>
                         </tr>
                         <tr>
-                          <td
-                            class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase"
-                          >
-                            📦 Package Dimensions Log
-                          </td>
-                          <td class="p-3 md:p-4 text-gray-800">
-                            <div class="space-y-1">
-                              <div *ngFor="let data of localInquiryList">
-                                <div
-                                  *ngIf="
-                                    data.dimensions &&
-                                      data.dimensions.length > 0;
-                                    else checkGlobal
-                                  "
-                                >
-                                  <div
-                                    *ngFor="
-                                      let dim of data.dimensions;
-                                      let i = index
-                                    "
-                                    class="text-[10px] md:text-[11px] font-mono border-b border-gray-100 last:border-0 py-1 flex justify-between"
-                                  >
-                                    <span class="font-bold text-[#4a3f3f]"
-                                      >BOX {{ i + 1 }}:</span
-                                    >
-                                    <span
-                                      >{{ dim.l }} x {{ dim.w }} x {{ dim.h }}
-                                      {{ dim.unit || "CMS" }}</span
-                                    >
-                                  </div>
-                                </div>
-                              </div>
-                              <ng-template #checkGlobal>
-                                <div
-                                  *ngIf="
-                                    appliedDimensions &&
-                                      appliedDimensions.length > 0;
-                                    else noDim
-                                  "
-                                >
-                                  <div
-                                    *ngFor="
-                                      let dim of appliedDimensions;
-                                      let i = index
-                                    "
-                                    class="text-[10px] md:text-[11px] font-mono border-b border-gray-100 last:border-0 py-1 flex justify-between"
-                                  >
-                                    <span class="font-bold text-[#4a3f3f]"
-                                      >BOX {{ i + 1 }}:</span
-                                    >
-                                    <span
-                                      >{{ dim.l }} x {{ dim.w }} x {{ dim.h }}
-                                      {{ dim.unit || "CMS" }}</span
-                                    >
-                                  </div>
-                                </div>
-                              </ng-template>
-                              <ng-template #noDim>
-                                <span class="text-red-400 italic text-[10px]"
-                                  >No dimensions captured</span
-                                >
-                              </ng-template>
-                            </div>
-                          </td>
-                        </tr>
+  <td class="p-3 bg-gray-50 font-bold text-gray-600 uppercase text-xs">Dimensions</td>
+  <td class="p-3 font-medium text-sm">
+    <div *ngIf="dimRow && dimRow.l" class="mb-2">
+      <span class="font-bold text-gray-700">BOX 1:</span> 
+      {{ dimRow.l }} x {{ dimRow.w }} x {{ dimRow.h }} {{ dimRow.unit }}
+    </div>
+
+    <div *ngFor="let dim of dimRows; let i = index" class="text-xs text-gray-500 mt-1">
+      <span class="font-bold text-gray-700">BOX {{ i + 1 }}:</span> 
+      {{ dim.l || 0 }} x {{ dim.w || 0 }} x {{ dim.h || 0 }} ({{ dim.unit || 'CMS' }})
+    </div>
+  </td>
+</tr>
                         <tr>
                           <td
                             class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase"
@@ -3240,63 +3187,11 @@
                             {{ quotation.finalDestination }}
                           </td>
                         </tr>
-                        <tr>
-                          <td
-                            class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase border-b-0"
-                          >
-                            Pick-up Address
-                          </td>
-                          <td
-                            class="p-3 md:p-4 text-gray-800 text-xs italic border-b-0"
-                          >
-                            {{ quotation.pickupAddress || "N/A" }}
-                          </td>
-                        </tr>
+                     
                       </tbody>
                     </table>
                   </div>
-<!-- 🔥 AGENT & COORDINATION SECTION (Clean Vertical Stack Design) -->
-<!-- 🔥 AGENT BRANCH LIST ONLY -->
- <div class="mt-8 border-t-4 border-[#4a3f3f] pt-6">
-  <h3 class="text-lg md:text-2xl font-black text-[#4a3f3f] uppercase tracking-tighter italic mb-6 flex items-center gap-2">
-    <span>🕵️</span> ASSIGNED AGENTS
-  </h3>
-  
-  <div class="bg-white p-6 border-2 border-gray-200 shadow-sm rounded-sm">
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      
-      <!-- Loop through agentDetail array -->
-      <label *ngFor="let agent of agentDetail" 
-        class="flex items-center gap-4 cursor-pointer group p-4 border border-gray-100 hover:bg-gray-50 hover:border-[#4a3f3f] rounded-lg transition-all shadow-sm">
-        
-        <!-- Checkbox -->
-        <div class="flex items-center justify-center">
-          <input type="checkbox" (change)="onAgentSelect($event, agent)"
-            class="w-5 h-5 accent-[#4a3f3f] cursor-pointer rounded border-gray-300 focus:ring-[#4a3f3f]">
-        </div>
-        
-        <!-- Agent Name Only -->
-        <div class="flex flex-col">
-          <span class="text-sm md:text-base font-black text-gray-800 group-hover:text-[#4a3f3f] uppercase tracking-tight">
-            {{ agent.branchName }}
-          </span>
-          <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">
-            Designated Branch
-          </span>
-        </div>
 
-      </label>
-
-      <!-- Empty State agar data na ho -->
-      <div *ngIf="agentDetail.length === 0" class="col-span-full py-10 text-center border-2 border-dashed border-gray-100 rounded-xl">
-        <p class="text-gray-400 font-bold italic uppercase text-sm tracking-widest">
-          No Branches Found for this Pincode
-        </p>
-      </div>
-
-    </div>
-  </div>
-</div> 
                   <div
                     class="mt-8 flex flex-col sm:flex-row justify-end gap-3 md:gap-4"
                   >

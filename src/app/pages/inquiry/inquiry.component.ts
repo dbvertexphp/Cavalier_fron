@@ -349,14 +349,14 @@ columnFieldMap: any = {
   'Date': 'receivedDate',
   'Customer': 'customerName',
   'Mode': 'transportMode',
-  'Origin': 'originPort',
-  'Destination': 'destinationPort',
+  // 'Origin': 'origin',
+  'Destination': 'finalDestination', // 'finalDestination' property map kar di
   'Status': 'cargoStatus',
-  'Sales Person': 'salesPerson'
+  'Sales Person': 'salesCoordinator'   // 'salesCoordinator' property map kar di
 };
 
 selectedColumns: string[] = ['ID', 'Inquiry No', 'Date', 'Customer', 'Status','LeadName','OrganisationName'];
-availableColumns: string[] = ['Mode', 'Origin', 'Destination', 'Sales Person'];
+availableColumns: string[] = ['Mode', 'Destination', 'Sales Person'];
     isFormOpen = false;
     private apiUrl = `${environment.apiUrl}/Inquiry`;
 inquiries:any[]=[]

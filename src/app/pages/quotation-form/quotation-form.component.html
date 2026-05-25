@@ -1023,17 +1023,17 @@
       </select>
 
       <label class="text-gray-700 font-bold mt-3 block mb-1 uppercase">Lines Of Business</label>
-      <select
-        name="lineOfBusiness"
-        [(ngModel)]="quotation.lineOfBusiness"
-        (change)="onHeaderLOBChange()"
-        class="w-full border p-2 outline-none"
-      >
-        <option value="" disabled selected>Select Business Line</option>
-        <option *ngFor="let s of companyServices" [value]="s.id">
-          {{ s.serviceName }}
-        </option>
-      </select>
+<select
+  name="lineOfBusiness"
+  [(ngModel)]="quotation.lineOfBusiness"
+  (ngModelChange)="onHeaderLOBChange(); updatePreview()"
+  class="w-full border p-2 outline-none"
+>
+  <option value="" disabled selected>Select Business Line</option>
+  <option *ngFor="let s of companyServices" [value]="s.id">
+    {{ s.serviceName }}
+  </option>
+</select>
     </div>
 
     <!-- Column 3: Valid Till, Version & Service Type -->
@@ -1227,68 +1227,68 @@
                 </select>
               </div>
 
-              <div class="flex flex-col gap-4">
-                <div class="flex items-center">
-                  <label class="w-40 font-bold text-gray-700">Commodity</label>
-                  <select
-                    [(ngModel)]="quotation.commodity"
-                    name="commodity"
-                    class="flex-1 border p-2 outline-none"
-                  >
-                    <option value="" disabled>Select Commodity</option>
+           <div class="flex flex-col gap-4">
+  <div class="flex items-center">
+    <label class="w-40 font-bold text-gray-700">Commodity</label>
+    <select
+      [(ngModel)]="quotation.commodity"
+      (ngModelChange)="updatePreview()"
+      name="commodity"
+      class="flex-1 border p-2 outline-none"
+    >
+      <option value="" disabled>Select Commodity</option>
+      <option
+        *ngFor="let type of commodityTypes"
+        [ngValue]="type.id"
+      >
+        {{ type.name }}
+      </option>
+    </select>
+  </div>
 
-                    <option
-                      *ngFor="let type of commodityTypes"
-                      [ngValue]="type.id"
-                    >
-                      <!-- ← [value] ko [ngValue] kar do -->
+  <div
+    *ngIf="quotation.commodity === 'Hazard'"
+    class="flex items-center animate-in fade-in slide-in-from-top-2 duration-300"
+  >
+    <label class="w-40 font-bold text-gray-700"
+      >Upload Document</label
+    >
+    <div class="flex-1 flex items-center gap-2">
+      <input
+        type="file"
+        name="hazardDoc"
+        (change)="onFileSelected($event)"
+        class="flex-1 border p-1 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
+      />
+    </div>
+  </div>
+</div>
 
-                      {{ type.name }}
-                    </option>
-                  </select>
-                </div>
-
-                <div
-                  *ngIf="quotation.commodity === 'Hazard'"
-                  class="flex items-center animate-in fade-in slide-in-from-top-2 duration-300"
-                >
-                  <label class="w-40 font-bold text-gray-700"
-                    >Upload Document</label
-                  >
-                  <div class="flex-1 flex items-center gap-2">
-                    <input
-                      type="file"
-                      name="hazardDoc"
-                      (change)="onFileSelected($event)"
-                      class="flex-1 border p-1 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div class="flex items-center gap-2">
-                <label class="w-40 font-bold text-gray-700">Gross Weight</label>
-                <div class="flex flex-1">
-                  <input
-                    type="number"
-                    name="grossWeightKg"
-                    [(ngModel)]="quotation.grossWeightKg"
-                    class="w-full border p-2 outline-none"
-                  />
-                  <div
-                    class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1"
-                  >
-                    <select
-                      name="grossWeightUnit"
-                      [(ngModel)]="quotation.grossWeightUnit"
-                      class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
-                    >
-                      <option value="KGS">KGS</option>
-                      <option value="LBS">LBS</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
+             <div class="flex items-center gap-2">
+  <label class="w-40 font-bold text-gray-700">Gross Weight</label>
+  <div class="flex flex-1">
+    <input
+      type="number"
+      name="grossWeightKg"
+      [(ngModel)]="quotation.grossWeightKg"
+      (ngModelChange)="updatePreview()"
+      class="w-full border p-2 outline-none"
+    />
+    <div
+      class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1"
+    >
+      <select
+        name="grossWeightUnit"
+        [(ngModel)]="quotation.grossWeightUnit"
+        (ngModelChange)="updatePreview()"
+        class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
+      >
+        <option value="KGS">KGS</option>
+        <option value="LBS">LBS</option>
+      </select>
+    </div>
+  </div>
+</div>
 
               <div class="flex items-center gap-2">
                 <label class="w-40 font-bold text-gray-700">Net Weight</label>
@@ -1340,24 +1340,22 @@
             </div>
 
             <div class="space-y-3">
-              <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2">
   <label class="w-40 font-bold text-gray-700">Num of Packages</label>
 
   <div class="flex flex-1">
-    <!-- 
-      Yahan hum dimBox use kar rahe hain jo main model ka part hai, 
-      isliye Angular loop ke baahar error nahi dega.
-    -->
     <input
       type="number"
       name="noOfPkgs"
       [(ngModel)]="quotation.noOfPkgs"
+      (ngModelChange)="updatePreview()"
       class="w-full border p-2 outline-none"
     />
     <div class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1">
       <select
         name="pkgUnit"
         [(ngModel)]="quotation.pkgUnit"
+        (ngModelChange)="updatePreview()"
         class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
       >
         <option value="PKGS">PKGS</option>
@@ -1370,22 +1368,20 @@
       <div class="flex items-center gap-2">
   <label class="w-40 font-bold text-gray-700">Dimensions</label>
   <div class="flex flex-1 items-center gap-1">
-    <!-- Main Outer Box Input: Isme sync lagaya hai -->
     <input
       type="number"
       name="dimBox"
       [(ngModel)]="quotation.dimBox"
-      (ngModelChange)="syncOuterBoxToFirstRow()"
+      (ngModelChange)="syncOuterBoxToFirstRow(); updatePreview()"
       placeholder="BOX"
       class="w-full border p-2 outline-none text-center"
     />
-
     <input
       type="number"
       name="dimL"
       [(ngModel)]="quotation.dimL"
+      (ngModelChange)="updatePreview()"
       placeholder="L"
-      [(ngModel)]="quotation.dimL"
       class="w-full border p-2 outline-none text-center"
     />
     <span class="text-gray-400 font-bold">x</span>
@@ -1393,8 +1389,8 @@
       type="number"
       name="dimW"
       [(ngModel)]="quotation.dimW"
+      (ngModelChange)="updatePreview()"
       placeholder="W"
-      [(ngModel)]="quotation.dimW"
       class="w-full border p-2 outline-none text-center"
     />
     <span class="text-gray-400 font-bold">x</span>
@@ -1402,8 +1398,8 @@
       type="number"
       name="dimH"
       [(ngModel)]="quotation.dimH"
+      (ngModelChange)="updatePreview()"
       placeholder="H"
-      [(ngModel)]="quotation.dimH"
       class="w-full border p-2 outline-none text-center"
     />
     <button
@@ -1412,143 +1408,49 @@
       class="bg-green-600 hover:bg-green-700 text-white p-[5px] h-[30px] flex items-center justify-center transition-colors shadow-inner rounded-sm"
       title="Add more dimensions"
     >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        class="w-4 h-4"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="3"
-          d="M12 4v16m8-8H4"
-        />
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
       </svg>
     </button>
 
-    <!-- Modal Loop Area -->
-    <div
-      *ngIf="isDimModalOpen"
-      class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
-    >
-      <div
-        class="bg-white w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200"
-      >
+    <div *ngIf="isDimModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div class="bg-white w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
         <div class="bg-gray-800 text-white px-6 py-4 flex justify-between items-center">
-          <h3 class="font-bold text-lg uppercase tracking-wider">
-            Add Multiple Dimensions
-          </h3>
-          <button
-            type="button"
-            (click)="closeDimModal()"
-            class="text-white hover:text-red-400 text-2xl"
-          >
-            &times;
-          </button>
+          <h3 class="font-bold text-lg uppercase tracking-wider">Add Multiple Dimensions</h3>
+          <button type="button" (click)="closeDimModal()" class="text-white hover:text-red-400 text-2xl">&times;</button>
         </div>
 
         <div class="p-6 max-h-[60vh] overflow-y-auto">
-          <div
-            *ngFor="let dim of dimRows; let i = index"
-            class="flex items-center gap-2 mb-4 group"
-          >
+          <div *ngFor="let dim of dimRows; let i = index" class="flex items-center gap-2 mb-4 group">
             <label class="w-24 font-bold text-gray-700 text-xs uppercase">Dim {{ i + 1 }}</label>
             <div class="flex flex-1 items-center gap-1">
-              <!-- ✅ Added ngModelChange hook inside loop structure -->
-              <input
-                type="number"
-                [name]="'box' + i"
-                [(ngModel)]="dim.box"
-                (ngModelChange)="updateTotalPackagesFromDims()"
-                placeholder="BOX"
-                class="w-full border p-2 outline-none text-center rounded-sm text-sm"
-              />
-              <input
-                type="number"
-                [name]="'l' + i"
-                [(ngModel)]="dim.l"
-                placeholder="L"
-                [(ngModel)]="dim.l"
-                class="w-full border p-2 outline-none text-center rounded-sm text-sm"
-              />
+              <input type="number" [name]="'box' + i" [(ngModel)]="dim.box" (ngModelChange)="updateTotalPackagesFromDims(); updatePreview()" placeholder="BOX" class="w-full border p-2 outline-none text-center rounded-sm text-sm" />
+              <input type="number" [name]="'l' + i" [(ngModel)]="dim.l" (ngModelChange)="updatePreview()" placeholder="L" class="w-full border p-2 outline-none text-center rounded-sm text-sm" />
               <span class="text-gray-400 font-bold text-xs">x</span>
-              <input
-                type="number"
-                [name]="'w' + i"
-                [(ngModel)]="dim.w"
-                placeholder="W"
-                [(ngModel)]="dim.w"
-                class="w-full border p-2 outline-none text-center text-sm"
-              />
+              <input type="number" [name]="'w' + i" [(ngModel)]="dim.w" (ngModelChange)="updatePreview()" placeholder="W" class="w-full border p-2 outline-none text-center text-sm" />
               <span class="text-gray-400 font-bold text-xs">x</span>
-              <input
-                type="number"
-                [name]="'h' + i"
-                [(ngModel)]="dim.h"
-                placeholder="H"
-                [(ngModel)]="dim.h"
-                class="w-full border p-2 outline-none text-center text-sm"
-              />
+              <input type="number" [name]="'h' + i" [(ngModel)]="dim.h" (ngModelChange)="updatePreview()" placeholder="H" class="w-full border p-2 outline-none text-center text-sm" />
               <div class="flex items-center border bg-gray-50 h-[38px] px-2 rounded-sm">
-                <select
-                  [name]="'unit' + i"
-                  [(ngModel)]="dim.unit"
-                  class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer appearance-none"
-                >
+                <select [name]="'unit' + i" [(ngModel)]="dim.unit" (ngModelChange)="updatePreview()" class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer appearance-none">
                   <option value="CMS">CMS</option>
                   <option value="INCH">INCH</option>
                 </select>
               </div>
-              <button
-                type="button"
-                *ngIf="dimRows.length > 1"
-                (click)="removeDimRow(i)"
-                class="text-red-400 hover:text-red-600 p-2"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
+              <button type="button" *ngIf="dimRows.length > 1" (click)="removeDimRow(i); updatePreview()" class="text-red-400 hover:text-red-600 p-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
               </button>
             </div>
           </div>
-          <!-- Action Buttons Inside Modal -->
-          <button
-            type="button"
-            (click)="addNewDimRow()"
-            class="mt-2 text-blue-600 font-bold text-xs flex items-center gap-1 hover:underline"
-          >
+          <button type="button" (click)="addNewDimRow(); updatePreview()" class="mt-2 text-blue-600 font-bold text-xs flex items-center gap-1 hover:underline">
             <span class="text-lg">+</span> Add Another Dimension
           </button>
         </div>
 
         <div class="p-4 bg-gray-50 border-t flex justify-end gap-3">
-          <button
-            type="button"
-            (click)="closeDimModal()"
-            class="px-6 py-2 text-gray-600 font-bold text-sm"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            (click)="saveDimensions()"
-            class="px-8 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 shadow-lg text-sm transition-all"
-          >
-            Apply Dimensions
-          </button>
+          <button type="button" (click)="closeDimModal()" class="px-6 py-2 text-gray-600 font-bold text-sm">Cancel</button>
+          <button type="button" (click)="saveDimensions(); updatePreview()" class="px-8 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 shadow-lg text-sm transition-all">Apply Dimensions</button>
         </div>
       </div>
     </div>
@@ -1677,20 +1579,20 @@
         </div>
         <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-10 bg-white">
           <div class="space-y-3">
-            <div class="flex items-center">
-              <label class="w-40 font-bold text-gray-700">IncoTerms</label>
-              <select
-                [(ngModel)]="quotation.incoterm"
-                (change)="onIncotermChange($event)"
-                name="incoterm"
-                class="flex-1 border p-2 outline-none"
-              >
-                <option value="" disabled>-- Select IncoTerm --</option>
-                <option *ngFor="let term of incoTerms" [value]="term.name">
-                  {{ term.name }}
-                </option>
-              </select>
-            </div>
+           <div class="flex items-center">
+  <label class="w-40 font-bold text-gray-700">IncoTerms</label>
+  <select
+    [(ngModel)]="quotation.incoterm"
+    (ngModelChange)="onIncotermChange($event); updatePreview()"
+    name="incoterm"
+    class="flex-1 border p-2 outline-none"
+  >
+    <option value="" disabled>-- Select IncoTerm --</option>
+    <option *ngFor="let term of incoTerms" [value]="term.name">
+      {{ term.name }}
+    </option>
+  </select>
+</div>
 
             <div class="flex items-center">
               <label class="w-40 font-bold text-gray-700">Carrier Name</label>
@@ -1999,24 +1901,26 @@
         </div>
         <div class="grid grid-cols-2 gap-6 p-4 bg-gray-50 border-t">
           <div class="border p-3 bg-white shadow-sm">
-            <div
-              class="bg-gray-200 text-[#4a3f3f] px-3 py-1 mb-2 font-bold uppercase text-[11px]"
-            >
-              Pickup Address
-            </div>
-            <input
-              name="pickupOrg"
-              placeholder="Organization"
-              [(ngModel)]="quotation.pickupOrg"
-              class="w-full border p-2 mb-2 outline-none"
-            />
-            <textarea
-              name="pickupAddress"
-              placeholder="Full Address"
-              [(ngModel)]="quotation.pickupAddress"
-              class="w-full border p-2 h-16 outline-none"
-            ></textarea>
-          </div>
+  <div
+    class="bg-gray-200 text-[#4a3f3f] px-3 py-1 mb-2 font-bold uppercase text-[11px]"
+  >
+    Pickup Address
+  </div>
+  <input
+    name="pickupOrg"
+    placeholder="Organization"
+    [(ngModel)]="quotation.pickupOrg"
+    (ngModelChange)="updatePreview()"
+    class="w-full border p-2 mb-2 outline-none"
+  />
+  <textarea
+    name="pickupAddress"
+    placeholder="Full Address"
+    [(ngModel)]="quotation.pickupAddress"
+    (ngModelChange)="updatePreview()"
+    class="w-full border p-2 h-16 outline-none"
+  ></textarea>
+</div>
           <div class="border p-3 bg-white shadow-sm">
             <div
               class="bg-gray-200 text-[#4a3f3f] px-3 py-1 mb-2 font-bold uppercase text-[11px]"
@@ -2693,74 +2597,116 @@
 </div>
 <!-- 🔥 REVIEW BEFORE SAVE MODAL (Pricing Style) -->
 <div *ngIf="isPreviewMode" class="fixed inset-0 z-[1050] flex items-center justify-center p-2 md:p-4 bg-black/80 backdrop-blur-sm">
-  <div class="relative w-full max-w-4xl mx-auto shadow-2xl animate-in fade-in zoom-in duration-200">
-    <div class="relative flex flex-col w-full bg-gray-50 border-4 border-dashed border-[#4a3f3f] max-h-[92vh] overflow-hidden rounded-sm">
-      
-      <!-- Header -->
-      <div class="sticky top-0 z-50 bg-gray-50 px-6 py-4 border-b-2 border-[#4a3f3f] flex justify-between items-center">
-        <h3 class="text-lg md:text-2xl font-black text-[#4a3f3f] uppercase tracking-tighter italic flex items-center gap-2">
-          <span>🔍</span> QUOTATION PREVIEW
-        </h3>
-        <button (click)="backToEdit()" class="text-[#4a3f3f] hover:text-red-600 transition-all text-3xl font-bold">&times;</button>
+ <div class="relative w-full max-w-4xl mx-auto shadow-2xl animate-in fade-in zoom-in duration-200">
+  <div class="relative flex flex-col w-full bg-gray-50 border-4 border-dashed border-[#4a3f3f] max-h-[92vh] overflow-hidden rounded-sm">
+    
+    <div class="sticky top-0 z-50 bg-gray-50 px-6 py-4 border-b-2 border-[#4a3f3f] flex justify-between items-center">
+      <h3 class="text-lg md:text-2xl font-black text-[#4a3f3f] uppercase tracking-tighter italic flex items-center gap-2">
+        <span>🔍</span> QUOTATION PREVIEW
+      </h3>
+      <button (click)="backToEdit()" class="text-[#4a3f3f] hover:text-red-600 transition-all text-3xl font-bold">&times;</button>
+    </div>
+
+    <div class="p-4 md:p-8 overflow-y-auto custom-scrollbar bg-gray-50">
+      <div class="bg-white border-2 border-gray-200 overflow-hidden shadow-sm mb-6">
+        <table class="w-full text-left border-collapse">
+          <tbody class="divide-y divide-gray-200 text-[11px] md:text-sm">
+            <tr>
+              <td class="p-3 bg-gray-50 font-bold text-gray-600 uppercase w-1/3">Quotation No</td>
+              <td class="p-3 text-blue-700 font-bold">{{ quotation.quotationNo || '-' }}</td>
+            </tr>
+            <tr>
+              <td class="p-3 bg-gray-50 font-bold text-gray-600 uppercase">Customer / Org</td>
+              <td class="p-3 font-bold uppercase">{{ quotation.organization || '-' }}</td>
+            </tr>
+            <tr>
+              <td class="p-3 bg-gray-50 font-bold text-gray-600 uppercase">Line of Business</td>
+             <td class="p-3">
+  {{ getServiceName(quotation.lineOfBusiness) }}
+</td>
+            </tr>
+            <tr>
+              <td class="p-3 bg-gray-50 font-bold text-gray-600 uppercase">Cargo Status</td>
+              <td class="p-3">{{ quotation.cargoStatus || '-' }}</td>
+            </tr>
+            <tr>
+              <td class="p-3 bg-gray-50 font-bold text-gray-600 uppercase">Commodity</td>
+            <td class="p-3">{{ getCommodityName(quotation.commodity) }}</td>
+            </tr>
+            <tr>
+              <td class="p-3 bg-gray-50 font-bold text-gray-600 uppercase">Weights</td>
+              <td class="p-3 font-semibold text-xs">
+                Gross: {{ quotation.grossWeightKg || 0 }} {{ quotation.grossWeightUnit || 'KGS' }} | Vol: {{ quotation.volumeWeight || 0 }} KG | Chrg: {{ quotation.chargeableWeight || 0 }} KG
+              </td>
+            </tr>
+            <tr>
+              <td class="p-3 bg-gray-50 font-bold text-gray-600 uppercase">No. of Packages</td>
+<td class="p-3 font-medium">
+    {{ quotation.noOfPkgs || 0 }} {{ quotation.pkgUnit || 'PKGS' }}
+  </td>            </tr>
+            <tr>
+              <td class="p-3 bg-gray-50 font-bold text-gray-600 uppercase">Inco-Term / Mode</td>
+<td class="p-3 font-medium">{{ quotation.incoterm || '-' }}</td>            </tr>
+            <tr>
+              <td class="p-3 bg-gray-50 font-bold text-gray-600 uppercase">Origin</td>
+              <td class="p-3 italic">{{ quotation.originPOL || '-' }}</td>
+            </tr>
+            <tr>
+              <td class="p-3 bg-gray-50 font-bold text-gray-600 uppercase">Destination</td>
+              <td class="p-3 italic">{{ quotation.podFinalDest || '-' }}</td>
+            </tr>
+            <tr>
+              <td class="p-3 bg-gray-50 font-bold text-gray-600 uppercase">Pickup Address</td>
+             <td class="p-3 text-xs">
+    {{ quotation.pickupOrg ? quotation.pickupOrg + ', ' : '' }}{{ quotation.pickupAddress || '-' }}
+  </td>
+            </tr>
+            <tr>
+              <td class="p-3 bg-gray-50 font-bold text-gray-600 uppercase">Delivery Address</td>
+              <td class="p-3 text-xs">{{ quotation.deliveryAddress || '-' }}</td>
+            </tr>
+            <tr>
+<td class="p-3 bg-gray-50 font-bold text-gray-600 uppercase">Dimensions</td>
+  <td class="p-3 font-medium">
+    <div *ngIf="quotation.dimBox">
+      {{ quotation.dimBox }} Box: {{ quotation.dimL }} x {{ quotation.dimW }} x {{ quotation.dimH }}
+    </div>
+    
+    <div *ngFor="let dim of quotation.allDimensions" class="text-xs text-gray-500 mt-1">
+      {{ dim.box || 0 }} Box: {{ dim.l || 0 }} x {{ dim.w || 0 }} x {{ dim.h || 0 }} ({{ dim.unit }})
+    </div>
+  </td>
+            </tr>
+            <tr>
+              <td class="p-3 bg-gray-50 font-bold text-gray-600 uppercase">Total Revenue</td>
+              <td class="p-3 text-blue-700 font-bold text-lg">{{ totalRevFinal | number:'1.2-2' }}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
-      <div class="p-4 md:p-8 overflow-y-auto custom-scrollbar bg-gray-50">
-        <!-- Data Table Summary -->
-        <div class="bg-white border-2 border-gray-200 overflow-hidden shadow-sm mb-6">
-          <table class="w-full text-left border-collapse">
-            <tbody class="divide-y divide-gray-200 text-sm">
-              <tr>
-                <td class="p-3 bg-gray-50 font-bold text-gray-600 uppercase w-1/3">Quotation No</td>
-                <td class="p-3 text-blue-700 font-bold">{{ quotation.quotationNo }}</td>
-              </tr>
-              <tr>
-                <td class="p-3 bg-gray-50 font-bold text-gray-600 uppercase">Customer / Org</td>
-                <td class="p-3 font-bold uppercase">{{ quotation.organization }}</td>
-              </tr>
-              <tr>
-                <td class="p-3 bg-gray-50 font-bold text-gray-600 uppercase">Inco-Term / Mode</td>
-                <td class="p-3">{{ quotation.incoterm }} | {{ quotation.transportMode }}</td>
-              </tr>
-              <tr>
-                <td class="p-3 bg-gray-50 font-bold text-gray-600 uppercase">Chg. Weight</td>
-                <td class="p-3 font-black">{{ quotation.chargeableWeight }} KGS</td>
-              </tr>
-              <tr>
-                <td class="p-3 bg-gray-50 font-bold text-gray-600 uppercase">Total Revenue</td>
-                <td class="p-3 text-blue-700 font-bold">{{ totalRevFinal | number:'1.2-2' }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- 🔥 ASSIGNED BRANCHES SECTION (Pricing Style) -->
-        <div class="mt-8 border-t-4 border-[#4a3f3f] pt-6">
-          <h3 class="text-lg md:text-2xl font-black text-[#4a3f3f] uppercase tracking-tighter italic mb-6 flex items-center gap-2">
-            <span>🕵️</span> ASSIGNED BRANCHES
-          </h3>
-          <div class="bg-white p-6 border-2 border-gray-200 shadow-sm rounded-sm">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <label *ngFor="let agent of agentDetail" 
-                class="flex items-center gap-4 cursor-pointer group p-4 border border-gray-100 hover:bg-gray-50 hover:border-[#4a3f3f] rounded-lg transition-all shadow-sm">
-                <input type="checkbox" (change)="onAgentSelect($event, agent)" class="w-5 h-5 accent-[#4a3f3f]">
-                <div class="flex flex-col">
-                  <span class="text-sm font-black text-gray-800 uppercase">{{ agent.branchName }}</span>
-                  <span class="text-[9px] font-bold text-gray-400 uppercase">Designated Branch</span>
-                </div>
-              </label>
-            </div>
-            <div *ngIf="agentDetail.length === 0" class="py-6 text-center text-gray-400 italic font-bold">
-              NO BRANCHES FOUND FOR THIS ROUTE
-            </div>
+      <div class="mt-8 border-t-4 border-[#4a3f3f] pt-6">
+        <h3 class="text-lg md:text-2xl font-black text-[#4a3f3f] uppercase tracking-tighter italic mb-6 flex items-center gap-2">
+          <span>🕵️</span> ASSIGNED BRANCHES
+        </h3>
+        <div class="bg-white p-6 border-2 border-gray-200 shadow-sm rounded-sm">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <label *ngFor="let agent of agentDetail" 
+              class="flex items-center gap-4 cursor-pointer group p-4 border border-gray-100 hover:bg-gray-50 hover:border-[#4a3f3f] rounded-lg transition-all shadow-sm">
+              <input type="checkbox" (change)="onAgentSelect($event, agent)" class="w-5 h-5 accent-[#4a3f3f]">
+              <div class="flex flex-col">
+                <span class="text-sm font-black text-gray-800 uppercase">{{ agent.branchName }}</span>
+              </div>
+            </label>
           </div>
         </div>
+      </div>
 
-        <!-- Action Buttons -->
-        <div class="mt-8 flex justify-end gap-4">
-          <button (click)="backToEdit()" class="bg-white border-4 border-orange-500 text-orange-600 px-8 py-2 font-black uppercase text-sm">Edit Data</button>
-          <button (click)="saveQuotation()" class="bg-[#4a3f3f] text-white px-12 py-2 font-black shadow-lg hover:bg-black uppercase tracking-widest text-sm">Confirm & Submit</button>
-        </div>
+      <div class="mt-8 flex justify-end gap-4">
+        <button (click)="backToEdit()" class="bg-white border-4 border-orange-500 text-orange-600 px-8 py-2 font-black uppercase text-sm">Edit Data</button>
+        <button (click)="saveQuotation()" class="bg-[#4a3f3f] text-white px-12 py-2 font-black shadow-lg hover:bg-black uppercase tracking-widest text-sm">Confirm & Submit</button>
       </div>
     </div>
   </div>
+</div>
 </div>

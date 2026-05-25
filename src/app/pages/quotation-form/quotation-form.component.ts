@@ -1519,8 +1519,13 @@ prepareQuotationPayload() {
 
 
   // --- Dimension Modal Methods (Fixes 'openDimModal', 'addNewDimRow' etc.) ---
-  openDimModal() { this.isDimModalOpen = true; }
-  closeDimModal() { this.isDimModalOpen = false; }
+openDimModal() {
+  // Agar pehle se saved dimensions hain toh unhe load karo
+  if (this.quotation.allDimensions && this.quotation.allDimensions.length > 0) {
+    this.dimRows = JSON.parse(JSON.stringify(this.quotation.allDimensions));
+  }
+  this.isDimModalOpen = true;
+}  closeDimModal() { this.isDimModalOpen = false; }
   
   addNewDimRow() {
     this.dimRows.push({ box: null, l: null, w: null, h: null, unit: 'CMS' });
@@ -1534,6 +1539,7 @@ prepareQuotationPayload() {
     this.appliedDimensions = [...this.dimRows];
     this.closeDimModal();
     this.updateTotalPackagesFromDims();
+    this.updatePreview();
   }
 
   onFileSelected(event: any) {
@@ -2893,5 +2899,22 @@ onPodChange() {
   this.quotation.portOfDischarge = selectedPod ? (selectedPod.portName || selectedPod.name) : '';
   this.quotation.portOfDestination = this.quotation.portOfDischarge; // Syncing
   this.cdr.detectChanges();
+}
+updatePreview() {
+  this.quotation = { ...this.quotation };
+  this.calculateTotalRevenue()
+}
+calculateTotalRevenue(): number {
+  return this.revenueRows.reduce((sum, row) => sum + (Number(row.amount) || 0), 0);
+}
+getServiceName(id: any): string {
+  if (!id || !this.companyServices) return '-';
+  const service = this.companyServices.find(s => s.id == id);
+  return service ? service.serviceName : '-';
+}
+getCommodityName(id: any): string {
+  if (!id || !this.commodityTypes) return '-';
+  const item = this.commodityTypes.find(t => t.id == id);
+  return item ? item.name : '-';
 }
 }

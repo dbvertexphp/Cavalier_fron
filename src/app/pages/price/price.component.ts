@@ -3069,7 +3069,30 @@ costRows: CostBreakdown[] = [
                   (Number(r.doCharges) || 0) + 
                   (Number(r.ccFee) || 0);
   }
+calculateIndirectCost(index: number) {
+  const row = this.multiCarrierRows[index];
+  if (row) {
+    const basisValue = Number(row.basisValue) || 0;
+    const rate = Number(row.rate) || 0;
+    
+    // Multi Carrier Formula calculation -> Basis Value * Rate
+    row.amount = basisValue * rate;
+  }
+  this.cdr.detectChanges();
+}
+calculateMasterIndirectTotal(index: number) {
+  const mRow = this.multiCarrierRows[index];
+  if (mRow) {
+    const chrgWeight = Number(this.quotation.chargeableWeight) || 0;
+    const airfreightCost = Number(mRow.airFreight) || 0;
+    const inputRate = Number(mRow.rate) || 0;
+    const exchangeVal = Number(mRow.exchangeRate) || 1;
 
+    // Formula Calculation Matrix: Airfreight + (Chargeable Weight * Rate * Ex. Rate)
+    mRow.totalCost = airfreightCost + (chrgWeight * inputRate * exchangeVal);
+  }
+  this.cdr.detectChanges();
+}
  addMultiCarrierRow() {
   this.multiCarrierRows.push({
     id: 0,

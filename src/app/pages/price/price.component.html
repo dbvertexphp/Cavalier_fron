@@ -2891,7 +2891,7 @@ Selection Modal Popup
                 <th class="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase border-b border-gray-200">LOB</th>
                 <th class="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Charge Name</th>
                 <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Type</th>
-                <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Basis (Unit & Value)</th>
+<th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Chrg. Weight</th>
                 <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Currency</th>
                 <th class="px-4 py-4 text-right text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Rate</th>
                 <th class="px-4 py-4 text-right text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Ex. Rate</th>
@@ -2932,17 +2932,7 @@ Selection Modal Popup
                 <td class="px-3 py-3">
                     <div class="flex items-center border-b border-gray-200 ">
                         <!-- Unit Dropdown -->
-<select [ngModel]="$any(row).basisUnit" (ngModelChange)="$any(row).basisUnit = $event; calculateCost()" ...>
- <option value="">Select</option>
- <option value="KG">KG</option>
-                            <option value="Ltr">Ltr</option>
-                            <option value="CBM">CBM</option>
-                            <option value="Pcs">Pcs</option>
-                            <option value="Shipment">Shipment</option>
-</select>
-
-<!-- Value Input -->
-<input type="number" [(ngModel)]="$any(row).basisValue" (input)="calculateCost()" placeholder="Val" ...>
+{{ quotation.chargeableWeight || 0 }}
                     </div>
                 </td>
 
@@ -2973,13 +2963,13 @@ Selection Modal Popup
 
     <!-- FOOTER: Actions -->
     <div class="bg-gray-50 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4 border-t border-gray-200">
-        <button (click)="addCostRow()" class="flex items-center gap-2 text-[#4a3f3f] font-bold hover:text-black transition-all text-sm uppercase tracking-widest">
+        <!-- <button (click)="addCostRow()" class="flex items-center gap-2 text-[#4a3f3f] font-bold hover:text-black transition-all text-sm uppercase tracking-widest">
             <i class="fa fa-plus-circle text-lg text-amber-500"></i> Add Another Row
         </button>
         
         <button (click)="applyCost()" class="w-full sm:w-auto bg-[#4a3f3f] text-white px-10 py-2.5 rounded-lg font-bold shadow-lg hover:bg-black uppercase tracking-widest transition-all active:scale-95 text-xs border border-white/10">
             Apply Costs
-        </button>
+        </button> -->
     </div>
 </div>
 
@@ -2990,98 +2980,148 @@ Selection Modal Popup
 <div *ngIf="quotation.isIndirect" 
      class="mt-8 border border-gray-200 rounded-xl shadow-xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-4 duration-500 bg-white">
     
-    <!-- HEADER: Premium Dark Theme -->
     <div class="bg-[#4a3f3f] text-white px-6 py-4 flex items-center justify-between shadow-md">
         <div class="flex items-center gap-3">
             <div class="bg-white/10 p-2 rounded-lg">
                 <i class="fa fa-ship text-xl text-amber-400"></i>
             </div>
             <div>
-                <h5 class="text-lg font-bold uppercase tracking-wider">Multi-Carrier Breakdown</h5>
-                <p class="text-[10px] text-gray-300 uppercase italic">Indirect Service Options</p>
+                <h5 class="text-lg font-bold uppercase tracking-wider">Multi-Carrier Master Breakdown</h5>
+                <p class="text-[10px] text-gray-300 uppercase italic">Combined Logistics & Cost Breakdown Matrix</p>
             </div>
         </div>
         <div class="flex items-center gap-4">
             <span class="bg-black/20 px-3 py-1 rounded-full text-xs font-semibold border border-white/10">
-                Total: {{ multiCarrierRows.length }} Entries
+                Total: {{ multiCarrierRows.length }} Carrier Options
             </span>
         </div>
     </div>
 
-    <!-- BODY: Scrollable Table -->
-   <div class="overflow-auto bg-gray-50 custom-scrollbar max-h-[500px]">
-    <div class="inline-block min-w-full align-middle">
-        <table class="min-w-full border-separate border-spacing-0">
-            <thead>
-                <tr class="bg-gray-100 shadow-sm">
-                    <th class="sticky left-0 z-20 bg-gray-100 px-6 py-4 text-left text-xs font-bold text-[#4a3f3f] uppercase border-b border-gray-200 shadow-md">Freight Forwarder</th>
-                    <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Origin</th>
-                    <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Currency</th>
-                    <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Airfreight</th>
-                    <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">FSC/ISS</th>
-                    <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Airline</th>
-                    <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Type</th>
-                    <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Cut-off</th>
-                    <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Schedule (Date)</th>
-                    <th class="px-4 py-4 text-center text-xs font-bold text-[#4a3f3f] bg-amber-50 uppercase border-b border-amber-200">Total Cost</th>
-                    <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Action</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200 bg-white">
-                <tr *ngFor="let m of multiCarrierRows; let i = index" class="hover:bg-amber-50/30 transition-colors">
-                    <td class="sticky left-0 z-10 bg-white px-4 py-2 border-r">
-                        <input [(ngModel)]="m.forwarder" class="w-full border-b border-transparent focus:border-amber-500 outline-none text-sm font-bold uppercase" placeholder="Enter Forwarder">
-                    </td>
-                    <td class="px-2 py-2">
-                        <input [(ngModel)]="m.origin" class="w-full text-center outline-none text-sm" placeholder="Origin">
-                    </td>
-                    <td class="px-2 py-2">
-                        <input [(ngModel)]="m.currency" [attr.list]="'mCur' + i" class="w-full text-center outline-none text-sm font-bold text-blue-600" placeholder="USD">
-                        <datalist [id]="'mCur' + i">
-                            <option *ngFor="let c of currencies" [value]="c.value">{{c.label}}</option>
-                        </datalist>
-                    </td>
-                    <td class="px-2 py-2">
-                        <input type="number" [(ngModel)]="m.airFreight" (input)="calculateMultiTotal(i)" class="w-full text-center outline-none text-sm font-bold text-gray-900">
-                    </td>
-                    <td class="px-2 py-2">
-                        <input [(ngModel)]="m.fsc" class="w-full text-center outline-none text-sm" placeholder="INC">
-                    </td>
-                    <td class="px-2 py-2">
-                        <input [(ngModel)]="m.airline" class="w-full text-center outline-none text-sm italic font-medium" placeholder="Airline Name">
-                    </td>
-                    <td class="px-2 py-2 text-center">
-                        <span class="px-2 py-1 rounded text-[10px] font-bold bg-blue-100 text-blue-700">INDIRECT</span>
-                    </td>
-                    <td class="px-2 py-2">
-                        <input [(ngModel)]="m.cutoff" class="w-full text-center outline-none text-sm" placeholder="Cut-off">
-                    </td>
-                    <input 
-    #datePicker
-    type="date" 
-    [(ngModel)]="m.schedule" 
-    (click)="openCalendar(datePicker)"
-    class="outline-none text-xs bg-gray-50 border rounded p-1 cursor-pointer"
->
-                    <td class="px-4 py-2 text-center font-black text-[#4a3f3f] bg-amber-50/50 italic">
-                        {{ m.totalCost | number:'1.2-2' }}
-                    </td>
-                    <td class="px-2 py-2 text-center">
-                        <button (click)="removeMultiCarrierRow(i)" class="text-red-400 hover:text-red-600">✕</button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
-<!-- Multiple Add Button for Multi-Carrier -->
-<div class="p-3">
-    <button (click)="addMultiCarrierRow()" class="text-blue-600 font-bold text-sm">+ Add More Carrier Option</button>
-</div>
+    <div class="overflow-auto bg-gray-50 custom-scrollbar max-h-[550px]">
+        <div class="inline-block min-w-full align-middle">
+            <table class="min-w-full border-separate border-spacing-0 text-[11px]">
+                <thead>
+                    <tr class="bg-gray-100 shadow-sm text-center font-bold text-gray-700 uppercase whitespace-nowrap">
+                        <th class="sticky left-0 z-30 bg-gray-100 px-4 py-4 text-left border-b border-gray-200 shadow-md">Freight Forwarder</th>
+                        <th class="px-4 py-4 border-b border-gray-200">Origin</th>
+                        <th class="px-4 py-4 border-b border-gray-200">LOB</th>
+                        <th class="px-4 py-4 border-b border-gray-200">Charge Name</th>
+                        <th class="px-4 py-4 border-b border-gray-200">Type</th>
+                        
+                        <th class="px-4 py-4 border-b border-gray-200 bg-blue-50/50">Chrg. Weight</th>
+                        <th class="px-4 py-4 border-b border-gray-200">Airfreight</th>
+                        <th class="px-4 py-4 border-b border-gray-200">FSC/ISS</th>
+                        <th class="px-4 py-4 border-b border-gray-200">Airline</th>
+                        <th class="px-4 py-4 border-b border-gray-200">Cut-off</th>
+                        <th class="px-4 py-4 border-b border-gray-200">Schedule (Date)</th>
+                        
+                        <th class="px-4 py-4 border-b border-gray-200">Currency</th>
+                        <th class="px-4 py-4 border-b border-gray-200">Rate</th>
+                        <th class="px-4 py-4 border-b border-gray-200">Ex. Rate</th>
+                        <th class="px-4 py-4 bg-amber-100 text-[#4a3f3f] border-b border-amber-300 font-black">Total Cost</th>
+                        <th class="px-4 py-4 border-b border-gray-200">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 bg-white">
+                    <tr *ngFor="let m of multiCarrierRows; let i = index" class="hover:bg-amber-50/30 transition-colors whitespace-nowrap">
+                        
+                        <td class="sticky left-0 z-20 bg-white group-hover:bg-amber-50/50 px-3 py-2.5 border-r shadow-sm">
+                            <input [(ngModel)]="m.forwarder" class="w-36 border-b border-transparent focus:border-[#4a3f3f] outline-none text-xs font-bold uppercase bg-transparent" placeholder="Forwarder Name">
+                        </td>
 
-    <!-- FOOTER -->
-    <div class="bg-gray-50 px-6 py-3 border-t border-gray-200">
-        <p class="text-[10px] text-gray-400 italic">Showing all available indirect route options for comparison.</p>
+                        <td class="px-2 py-2">
+                            <input [(ngModel)]="m.origin" class="w-20 text-center outline-none border-b border-transparent focus:border-gray-300 bg-transparent uppercase" placeholder="Origin">
+                        </td>
+
+                        <td class="px-2 py-2">
+                            <select [(ngModel)]="m.lob" class="w-32 bg-transparent border-b border-transparent focus:border-amber-500 outline-none font-medium">
+                            <option *ngFor="let service of companyServices" [value]="service.serviceName"> {{ service.serviceName }}</option>
+                            </select>
+                        </td>
+
+                        <td class="px-2 py-2">
+                            <select [(ngModel)]="m.chargeName" class="w-36 bg-transparent border-b border-transparent focus:border-amber-500 outline-none italic">
+                                <option value="">-- Select --</option>
+                                <option value="Freight Charges">Freight Charges</option>
+                                <option value="Fuel Surcharge">Fuel Surcharge</option>
+                                <option value="Customs Clearance">Customs Clearance</option>
+                                <option value="Documentation Fee">Documentation Fee</option>
+                                <option value="Handling Charges">Handling Charges</option>
+                                <option value="Storage Fee">Storage Fee</option>
+                                <option value="Delivery Charges">Delivery Charges</option>
+                                <option value="Insurance">Insurance</option>
+                                <option value="Inspection Fee">Inspection Fee</option>
+                                <option value="Other Charges">Other Charges</option>
+                            </select>
+                        </td>
+
+                        <td class="px-2 py-2">
+                            <select [(ngModel)]="m.chargeType" class="w-20 text-center bg-transparent border-b border-transparent focus:border-amber-500 outline-none">
+                                <option value="Prepaid">Prepaid</option>
+                                <option value="Collect">Collect</option>
+                            </select>
+                        </td>
+
+                        <td class="px-2 py-2 bg-blue-50/30 text-center font-bold text-blue-900">
+                            {{ quotation.chargeableWeight || 0 }}
+                        </td>
+
+                        <td class="px-2 py-2">
+                            <input type="number" [(ngModel)]="m.airFreight" (input)="calculateMasterIndirectTotal(i)" class="w-20 text-center font-semibold bg-transparent border-b border-transparent focus:border-gray-300 outline-none" placeholder="0">
+                        </td>
+
+                        <td class="px-2 py-2">
+                            <input [(ngModel)]="m.fsc" class="w-16 text-center bg-transparent border-b border-transparent focus:border-gray-300 outline-none" placeholder="INC">
+                        </td>
+
+                        <td class="px-2 py-2">
+                            <input [(ngModel)]="m.airline" class="w-24 text-center bg-transparent border-b border-transparent focus:border-gray-300 outline-none italic font-medium" placeholder="Airline">
+                        </td>
+
+                        <td class="px-2 py-2">
+                            <input [(ngModel)]="m.cutoff" class="w-20 text-center bg-transparent border-b border-transparent focus:border-gray-300 outline-none" placeholder="Cut-off">
+                        </td>
+
+                        <td class="px-2 py-2">
+                            <input #rowDatePicker type="date" [(ngModel)]="m.schedule" (click)="openCalendar(rowDatePicker)" class="outline-none bg-gray-50 border border-gray-200 rounded px-1 py-0.5 cursor-pointer text-xs">
+                        </td>
+
+                        <td class="px-2 py-2">
+                            <input [(ngModel)]="m.currency" [attr.list]="'mMasterCur' + i" class="w-16 text-center bg-transparent border-b border-transparent focus:border-amber-500 outline-none font-bold text-blue-600 uppercase">
+                            <datalist [id]="'mMasterCur' + i">
+                                <option *ngFor="let c of currencies" [value]="c.value">{{c.label}}</option>
+                            </datalist>
+                        </td>
+
+                        <td class="px-2 py-2">
+                            <input type="number" [(ngModel)]="m.rate" (input)="calculateMasterIndirectTotal(i)" class="w-16 text-right font-semibold bg-transparent border-b border-transparent focus:border-amber-500 outline-none">
+                        </td>
+
+                        <td class="px-2 py-2">
+                            <input type="number" [(ngModel)]="m.exchangeRate" (input)="calculateMasterIndirectTotal(i)" class="w-16 text-right bg-transparent border-b border-transparent focus:border-amber-500 outline-none">
+                        </td>
+
+                        <td class="px-4 py-2 text-right font-black text-[#4a3f3f] bg-amber-50 italic border-l border-r border-amber-200">
+                            {{ (m.totalCost || 0) | number:'1.2-2' }}
+                        </td>
+
+                        <td class="px-3 py-2 text-center">
+                            <button (click)="removeMultiCarrierRow(i)" class="text-red-400 hover:text-red-600 transition-colors">
+                                <i class="fa fa-times-circle text-base"></i>
+                            </button>
+                        </td>
+
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="bg-gray-50 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4 border-t border-gray-200">
+        <button (click)="addMultiCarrierRow()" class="flex items-center gap-2 text-[#4a3f3f] font-bold hover:text-black transition-all text-sm uppercase tracking-widest">
+            <i class="fa fa-plus-circle text-lg text-amber-500"></i> Add Another Carrier Row
+        </button>
+        <p class="text-[10px] text-gray-400 italic">Showing master integrated pricing structures across all multi-carrier lines.</p>
     </div>
 </div>
         <div

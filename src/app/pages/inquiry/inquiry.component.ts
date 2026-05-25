@@ -219,21 +219,30 @@ dimRows: any[] = [];
 // }
 
 calculateVolumeWeight() {
-  // 1. Pehle weight aur CBM calculate karein (Purana logic)
+  console.log("Function Triggered! Current Data:", this.dimRow); // Ye line sabse pehle daalo
+
+  // 1. Pehle weight aur CBM calculate karein
   const weight = this.calculateSingleVolumeWeight(this.dimRow);
   this.quotation.volumeWeight = parseFloat(weight.toFixed(2));
   this.calculateCBM();
 
-  // 2. AUTO-SAVE LOGIC (Bina Apply Button ke Preview aur Payload update karega)
-  // Hum current single row ko array mein dalenge aur filters trigger karenge
+  // 2. AUTO-SAVE LOGIC
   this.dimRows = [{ ...this.dimRow }];
   
-  // 3. Wahi logic jo aapne Save Button (Apply) par likha hai:
+  // 3. Filtering
   this.appliedDimensions = this.dimRows.filter(d => d.l > 0 && d.w > 0 && d.h > 0);
   
   this.calculateNetWeight();
   this.calculateVolumeWeightLogic();
-  this.syncFinalData(); // Yeh function hi payload/preview ko finalize karta hai
+  
+  // 4. SYNC
+  this.syncFinalData(); 
+  
+  // 5. IMPORTANT
+  this.quotation.dimensions = [...this.dimRows];
+  console.log("Final Dimensions assigned to quotation:", this.quotation.dimensions); // Check karo array mein data aaya ya nahi
+  
+  this.updatePreview();
 }
 // Ye function banaye jo modal ke button se bhi chale aur bahar se bhi
 syncFinalData() {
@@ -1150,6 +1159,10 @@ saveDimensions() {
   this.calculateVolumeWeightLogic();
   this.syncFinalData();
   this.calculateTotalPackages(); // Ye line add ki hai
+  this.quotation.dimensions = [...this.dimRows];
+  
+  // 2. Preview ko update karne ke liye call karein
+  this.updatePreview();
   this.closeDimModal();
 }
 
@@ -3179,4 +3192,14 @@ calculateTotalPackages() {
     }, 0);
   }
 }
+// Component ke andar add karein
+updatePreview() {
+  this.quotation.dimensions = [{ ...this.dimRow }];
+  this.quotation = { ...this.quotation };
+  
+  // Force Angular to check the view
+  this.cdr.detectChanges(); 
+  console.log("Updated Dimensions:", this.quotation.dimensions);
+}
+
 }

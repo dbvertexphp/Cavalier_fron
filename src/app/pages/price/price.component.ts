@@ -453,6 +453,8 @@ orgData: any = null;
       this.fetchOrigins();
       this.loadDropdownData();
     this.loadAllLeadss();
+  this.fetchPricingSettings();
+  console.log("All Possible Columns:", this.allPossibleColumns);
     this.loadInquiryNumbers();
     this.loadCoordinators(); 
     this.loadBranches();
@@ -3622,34 +3624,36 @@ gettoken(){
   return this.token;
 }
 loadInquiryList() {
-  // Toggle logic: Agar pehle se open hai toh band kar do
+  // Toggle logic
   if (this.showInquiryDropdown) {
     this.showInquiryDropdown = false;
     this.cdr.detectChanges();
     return;
   }
 
-  // 1. LocalStorage se token nikalna
   const cavalierToken = localStorage.getItem('cavalier_token');
-
-  // 2. Check karna ki token exists karta hai ya nahi
   if (!cavalierToken) {
-    console.error("Auth Token (cavalier_token) missing in localStorage");
-    
-    // 🔥 SweetAlert for Missing Token
     Swal.fire({
       icon: 'warning',
       title: 'Session Expired',
-      text: 'Aapka login token missing hai. Kripya fir se login karein.',
-      confirmButtonColor: '#3085d6',
-      confirmButtonText: 'OK'
+      text: 'Your login token is missing. Please log in again.',
     });
     return;
   }
 
+  // 1. Loading Start
+  Swal.fire({
+    title: 'Loading Inquiries',
+    text: 'Please wait while we fetch the data...',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+
+  const startTime = new Date().getTime(); // Request start time note karo
   const url = `${environment.apiUrl}/Inquiry`;
 
-  // 3. Request bhejna 'cavalier_token' ke saath
   this.http.get<any[]>(url, {
     headers: {
       'Authorization': `Bearer ${cavalierToken}`,
@@ -3657,41 +3661,42 @@ loadInquiryList() {
     }
   }).subscribe({
     next: (res) => {
-      this.inquiryList = res;
-      this.filteredInquiries = res; // Search ke liye list update karna zaroori hai
+      const endTime = new Date().getTime();
+      const duration = endTime - startTime;
       
-      // Fix: setTimeout lagane se dropdown pehle hi click par turant dikhega
+      // Agar request 1 second (1000ms) se jaldi complete hui, toh bacha hua time wait karo
+      const delay = duration < 1000 ? (1000 - duration) : 0;
+
       setTimeout(() => {
-        this.showInquiryDropdown = this.inquiryList && this.inquiryList.length > 0;
-        this.cdr.detectChanges();
-      }, 50);
-
-      console.log(res, "Inquiry data loaded successfully");
-
-      // 🔥 Optional: Agar data load hone par chota sa success toast dikhana ho
-      Swal.fire({
-        toast: true,
-        position: 'top-end',
-        icon: 'success',
-        title: 'Inquiries Loaded',
-        showConfirmButton: false,
-        timer: 1500
-      });
+        this.inquiryList = res || [];
+        this.filteredInquiries = res || [];
+        this.showInquiryDropdown = this.inquiryList.length > 0;
+        
+        this.cdr.detectChanges(); // UI update trigger
+        Swal.close(); // Swal band karo
+      }, delay);
     },
     error: (err) => {
+      Swal.close();
       console.error("Inquiry fetch error:", err);
+      
       this.showInquiryDropdown = false;
       this.cdr.detectChanges();
 
-      // 🔥 SweetAlert for API Fetch Error
       Swal.fire({
         icon: 'error',
-        title: 'Oops...',
-        text: 'Error While loading inquiry list please try again!',
+        title: 'Error',
+        text: 'Failed to load inquiry list, please try again.',
         confirmButtonColor: '#d33'
       });
     }
   });
+}
+// Blur issue fix karne ke liye delay function
+hideDropdownWithDelay() {
+  setTimeout(() => {
+    this.showInquiryDropdown = false;
+  }, 200);
 }
 onInquirySearchInput() {
   if (this.quotation.referenceByInquiry && this.quotation.referenceByInquiry.length > 0) {
@@ -4072,4 +4077,94 @@ calculateTotalPackages() {
     }, 0);
   }
 }
+updatePreview() {
+  // Yeh function sirf Angular ko refresh karne ka trigger deta hai
+  // Agar values update nahi ho rahi hain, toh ChangeDetectorRef use karo:
+  this.cdr.detectChanges(); 
+  
+  console.log("Current Dimensions List:", this.dimRows);
+}
+selectedPricingColumns: string[] = []; 
+
+pricingColumnFieldMap: any = {
+  'Pricing No': 'pricingNo',
+  'Organisation': 'organisationName',
+  'Inquiry No': 'inquiryNo',
+  'Customer': 'customerName',
+  'Location': 'location',
+ 
+  'Incoterm': 'incoterm',
+  'Movement': 'movementType',
+  'Commodity': 'businessDimensions',
+  'Status': 'status'
+};
+
+
+
+
+
+// 1. Backend se settings laane ke liye
+fetchPricingSettings() {
+  this.http.get(`${environment.apiUrl}/PricingColumnSettings`).subscribe({
+    next: (res: any) => {
+      if (res && res.selectedColumns) {
+        this.selectedPricingColumns = JSON.parse(res.selectedColumns);
+      }
+    },
+    error: (err) => console.error("Error loading settings:", err)
+  });
+}
+
+// 2. Drag & Drop aur API Save ke liye
+dropPricingColumn(event: CdkDragDrop<string[]>) {
+  moveItemInArray(this.selectedPricingColumns, event.previousIndex, event.currentIndex);
+  this.savePricingSettings();
+}
+
+savePricingSettings() {
+  const payload = {
+    Id: 1, // Controller logic ke hisaab se
+    AvailableColumns: JSON.stringify(this.selectedPricingColumns),
+    SelectedColumns: JSON.stringify(this.selectedPricingColumns)
+  };
+
+  this.http.post(`${environment.apiUrl}/PricingColumnSettings/save`, payload).subscribe({
+    next: () => console.log("Pricing settings saved successfully!"),
+    error: (err) => console.error("Error saving settings:", err)
+  });
+}
+
+// Component ke andar
+isColumnModalOpen: boolean = false; // Initial state false honi chahiye
+
+toggleColumnSelector() {
+  this.isColumnModalOpen = !this.isColumnModalOpen;
+  console.log("Modal state is now:", this.isColumnModalOpen); // F12 (Console) mein check karo
+}
+// 1. Column list jo tum dikhana chahte ho
+allPossibleColumns: string[] = ['Pricing No', 'Organisation', 'Inquiry No', 'Customer', 'Location', 'Incoterm', 'Movement', 'Commodity', 'Status'];
+
+// 2. Modal/Selector toggle state
+// isColumnModalOpen: boolean = false; 
+
+// toggleColumnSelector() {
+//   this.isColumnModalOpen = !this.isColumnModalOpen;
+// }
+
+// 3. Checkbox toggle logic
+toggleColumn(colName: string) {
+  const index = this.selectedPricingColumns.indexOf(colName);
+  if (index > -1) {
+    this.selectedPricingColumns.splice(index, 1); // Remove kar do
+  } else {
+    this.selectedPricingColumns.push(colName);    // Add kar do
+  }
+  this.savePricingSettings(); // Auto-save ho jayega
+}
+// Component ke andar
+// allPossibleColumns: string[] = [
+//   'Pricing No', 'Organisation', 'Inquiry No', 'Customer', 
+//   'Location', 'Route', 'Incoterm', 'Movement', 'Commodity', 'Status'
+// ];
+
 }

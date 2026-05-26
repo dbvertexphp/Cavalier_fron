@@ -372,7 +372,7 @@ columnFieldMap: any = {
 selectedColumns: string[] = ['ID', 'Inquiry No', 'Date', 'Customer', 'Status','LeadName','OrganisationName'];
 availableColumns: string[] = ['Mode', 'Origin', 'Destination', 'Sales Person'];
     isFormOpen = false;
-    private apiUrl = `${environment.apiUrl}/Pricing`;
+    public apiUrl = `${environment.apiUrl}/Pricing`;
 inquiries:any[]=[]
     quotations: any[] = [];
     quotation: any = this.resetQuotationModel();
@@ -3071,30 +3071,7 @@ costRows: CostBreakdown[] = [
                   (Number(r.doCharges) || 0) + 
                   (Number(r.ccFee) || 0);
   }
-calculateIndirectCost(index: number) {
-  const row = this.multiCarrierRows[index];
-  if (row) {
-    const basisValue = Number(row.basisValue) || 0;
-    const rate = Number(row.rate) || 0;
-    
-    // Multi Carrier Formula calculation -> Basis Value * Rate
-    row.amount = basisValue * rate;
-  }
-  this.cdr.detectChanges();
-}
-calculateMasterIndirectTotal(index: number) {
-  const mRow = this.multiCarrierRows[index];
-  if (mRow) {
-    const chrgWeight = Number(this.quotation.chargeableWeight) || 0;
-    const airfreightCost = Number(mRow.airFreight) || 0;
-    const inputRate = Number(mRow.rate) || 0;
-    const exchangeVal = Number(mRow.exchangeRate) || 1;
 
-    // Formula Calculation Matrix: Airfreight + (Chargeable Weight * Rate * Ex. Rate)
-    mRow.totalCost = airfreightCost + (chrgWeight * inputRate * exchangeVal);
-  }
-  this.cdr.detectChanges();
-}
  addMultiCarrierRow() {
   this.multiCarrierRows.push({
     id: 0,
@@ -3204,73 +3181,66 @@ saveQuotation() {
   // 3. Payload Preparation
   const payload: any = {
     ...this.quotation, 
-    
-    // 🔥 TRANSPORT FIX
     transportMode: (this.quotation.transportMode || this.inquiry.transportMode || "").toString(), 
     transportType: (this.quotation.transportType || this.quotation.TransportType || this.inquiry.transportType || "").toString(),
     serviceType: (this.quotation.transportType || this.quotation.TransportType || this.inquiry.transportType || "").toString(), 
     shipmentType: (this.quotation.shipmentType || this.inquiry.shipmentType || "").toString(),
-
-    // 🔥 COUNTRY NAME FIX
     countryName: (this.selectedCountryName || this.quotation.countryName || this.inquiry.country || "").toString(),
-
-    // 🔥 CONNECTING PORTS FIX (Dual sending for backend compatibility)
     connectingPortIds: Array.isArray(this.quotation.connectingPortIds) ? this.quotation.connectingPortIds.join(',') : (this.quotation.connectingPortIds || ""),
     connectingPortIdsArray: Array.isArray(this.quotation.connectingPortIds) ? this.quotation.connectingPortIds : [],
-
-    // 🔥 BACKEND TYPE FIX
     OrganisationId: this.organisationId || 0,
     OrganisationName: this.organisationName,
     customerName: this.inquiry.organization,
-    InquiryId:this.InquiryId || 0,
+    InquiryId: this.InquiryId || 0,
     pricingNo: this.quotation.pricingNo || null,
     referenceByInquiryNo: this.referenceByInquiryNo || null,
     qtnId: this.quotation.qtnId || ('QTN-' + Math.floor(1000 + Math.random() * 9000)),
     originName: this.inquiry.origin || this.quotation.originPOL,
-
-    // Numeric IDs
     portOfLoadingId: this.quotation.portOfLoadingId ? Number(this.quotation.portOfLoadingId) : null,
     portOfDischargeId: this.quotation.portOfDischargeId ? Number(this.quotation.portOfDischargeId) : null,
     lineOfBusinessId: this.quotation.lineOfBusinessId ? Number(this.quotation.lineOfBusinessId) : null,
     commodityId: this.quotation.commodity ? Number(this.quotation.commodity) : null,
     originId: this.originsaveid ? Number(this.originsaveid) : null,
-
-    // Weight & Measures
     grossWeightKg: Number(this.quotation.grossWeightKg || this.quotation.grossWeight) || 0,
     grossWeightUnit: this.quotation.grossWeightUnit || this.quotation.GrossweightUnit || 'KGS',
     noOfPkgs: Number(this.quotation.noOfPkgs) || 0,
-
-    // Relationships
     costBreakdowns: costData, 
     multiCarrierBreakdowns: multiCarrierData,
     dimensions: this.appliedDimensions || [],
-
-    // String Field Fixes
     salesCoordinator: (this.quotation.salesCoordinator?.name || this.quotation.salesCoordinator || "").toString(),
     cargoStatus: (this.quotation.cargoStatus || this.quotation.cargoStatusType || 'Ready').toString(),
     cargoValue: (this.quotation.cargoValue || "0").toString(),
     cargoCurrency: (this.quotation.currency || 'INR').toString(),
-    createdBy: 'admin@cavalierlogistic.in'
+    createdBy: 'admin@cavalierlogistic.in',
+
+    pricingDocuments: [
+      ...this.documents.filter(d => d.isExisting && d.id).map(d => ({ id: d.id, name: d.name, documentPath: d.documentPath, type: 'Commodity' })),
+      ...this.invoices.filter(d => d.isExisting && d.id).map(d => ({ id: d.id, name: d.name, documentPath: d.documentPath, type: 'Invoice' }))
+    ]
   };
 
-  // 4. Final Cleanup (Check if these keys are truly required to be deleted)
-  const keysToDelete = [
-    'TransportMode', 'TransportType', 'SalesCoordinator', 
-    'GrossWeight', 'GrossweightUnit', 'CountryName'
-  ];
+  const keysToDelete = ['TransportMode', 'TransportType', 'SalesCoordinator', 'GrossWeight', 'GrossweightUnit', 'CountryName'];
   keysToDelete.forEach(key => delete payload[key]);
-
-  console.log("FINAL PAYLOAD:", payload);
 
   const formData = new FormData();
   formData.append('pricingData', JSON.stringify(payload));
 
-  // Documents
+  // --- DOCUMENTS LOGIC ---
+  // 1. Existing IDs append
+  this.documents.forEach(doc => { if (doc.isExisting && doc.id) formData.append('ExistingCommodityDocIds', doc.id.toString()); });
+  this.invoices.forEach(inv => { if (inv.isExisting && inv.id) formData.append('ExistingInvoiceDocIds', inv.id.toString()); });
+
+  // --- YE LINE ADD KI HAI TAAKI PATH MISS NA HO ---
+  this.documents.forEach(doc => { if (doc.isExisting && doc.documentPath) formData.append('ExistingCommodityPaths', doc.documentPath); });
+  this.invoices.forEach(inv => { if (inv.isExisting && inv.documentPath) formData.append('ExistingInvoicePaths', inv.documentPath); });
+
+  // 2. New Files append
   const allDocs = [...(this.documents || []), ...(this.invoices || [])];
   allDocs.forEach((doc) => {
     if (doc.file) {
       formData.append('docFiles', doc.file);
-      formData.append('docTypes', doc.category === 'invoice' ? 'Invoice' : (doc.name || 'General'));
+      const category = (this.invoices.includes(doc)) ? 'Invoice' : 'Commodity';
+      formData.append('docTypes', category);
     }
   });
 
@@ -3489,6 +3459,34 @@ toggleConnectingPortModal() {
 isPortSelected(port: any): boolean {
   return this.selectedConnectingPorts.some(p => p.id === port.id && p.cpType === port.cpType);
 }
+isHazard(): boolean {
+  // 1. Pehle selectcommodityvalue se check karo
+  if (this.selectcommodityvalue) {
+    const val = this.selectcommodityvalue.toLowerCase().trim();
+    if (['hazard', 'hazardous'].includes(val)) return true;
+  }
+
+  // 2. Agar wahan nahi mila, toh ID (quotation.commodity) se check karo
+  if (this.quotation?.commodity && this.commodityTypes) {
+    const selectedType = this.commodityTypes.find(t => t.id == this.quotation.commodity);
+    if (selectedType) {
+      const name = (selectedType.name || '').toLowerCase().trim();
+      return ['hazard', 'hazardous'].includes(name);
+    }
+  }
+
+  return false;
+}
+// Component mein ye function add karo
+
+
+// Modal Save ka logic
+saveAndClose() {
+  // Yahan apna save karne ka logic call karo
+  this.closeDocumentModal();
+}
+commodityDocuments: any[] = [];
+  packageOrInvoiceDocuments: any[] = [];
 selectInquiry(inq: any) {
   if (!inq || !inq.inquiryNo) {
     console.error("❌ Inquiry No missing!");
@@ -3498,10 +3496,8 @@ selectInquiry(inq: any) {
   this.referenceByInquiryNo = inq.inquiryNo || 0;
   this.organisationId = inq.organisationId || 0;
   this.organisationName = inq.organisationName || '';
-  
-  console.log(this.organisationId, 'changed in inquiry');
 
-  const inquiryNo = inq.inquiryNo?.trim();
+  const inquiryNo = encodeURIComponent(inq.inquiryNo?.trim());
   const url = `${environment.apiUrl}/Inquiry/by-no?inquiryNo=${inquiryNo}`;
 
   this.http.get<any>(url).subscribe({
@@ -3535,9 +3531,38 @@ selectInquiry(inq: any) {
       // --- 4. Other IDs & Pricing ---
       this.quotation.salesCoordinator = data.salesCoordinator ? Number(data.salesCoordinator) : null;
       this.quotation.commodity = data.commodityId ? Number(data.commodityId) : null;
+      this.selectcommodityvalue = data.commodityName || '';
       this.quotation.pricingDoneBy = data.pricingDoneBy || ''; 
       this.quotation.qtnDoneBy = data.qtnDoneBy || '';
       this.quotation.businessDimensions = data.businessDimensions || '';
+
+      // --- DOCUMENTS MAPPING (DEBUGGED) ---
+      this.commodityDocuments = data.commodityDocuments || [];
+      this.packageOrInvoiceDocuments = data.packageOrInvoiceDocuments || [];
+      
+      console.log("DEBUG: CommodityDocs:", this.commodityDocuments);
+      
+      this.documents = (this.commodityDocuments || []).map((doc: any) => {
+        console.log("DEBUG: Doc Object:", doc); // Yahan check karna console mein
+        return {
+          id: doc.id,
+          name: doc.name || 'Document',
+          documentPath: doc.documentPath || doc.path || doc.filePath, 
+          isExisting: true
+        };
+      });
+
+      this.invoices = (this.packageOrInvoiceDocuments || []).map((doc: any) => {
+        console.log("DEBUG: Invoice Object:", doc); // Yahan check karna console mein
+        return {
+          id: doc.id,
+          name: doc.name || 'Invoice',
+          documentPath: doc.documentPath || doc.path || doc.filePath,
+          isExisting: true
+        };
+      });
+      
+      this.quotation.invoiceList = (this.packageOrInvoiceDocuments && this.packageOrInvoiceDocuments.length > 0) ? 'Available' : '';
 
       // --- 5. Movement & Ports ---
       this.quotation.shipmentType = data.shipmentType?.toString() || '';
@@ -3554,18 +3579,15 @@ selectInquiry(inq: any) {
       this.quotation.isDirect = data.isDirect === true;
       this.quotation.isIndirect = data.isIndirect === true;
 
-      // --- 5a. FIXED: Connecting Ports Auto-fill ---
+      // --- 5a. Connecting Ports ---
       this.selectedConnectingPorts = [];
       this.quotation.connectingPortIds = [];
       const rawCP = data.connectingPortIds || data.ConnectingPortIds;
       
       if (rawCP) {
         const idsArray = Array.isArray(rawCP) ? rawCP : rawCP.toString().split(',');
-        
-        // Save to quotation object so it goes into payload
         this.quotation.connectingPortIds = idsArray.map((id: any) => Number(id));
 
-        // UI Display mapping
         this.selectedConnectingPorts = idsArray.map((id: any) => {
           const trimmedId = id.toString().trim();
           const masterPort = this.filteredConnectingPorts.find(p => p.id.toString() === trimmedId);
@@ -4189,5 +4211,74 @@ toggleColumn(colName: string) {
 //   'Pricing No', 'Organisation', 'Inquiry No', 'Customer', 
 //   'Location', 'Route', 'Incoterm', 'Movement', 'Commodity', 'Status'
 // ];
+public calculateMasterIndirectTotal(i: number): void {
+    console.log('Calculating total for index:', i);
+    
+    // Yaha apna logic likhein
+    // Example: this.items[i].total = this.items[i].price * this.items[i].qty;
+  }
+  // SARI purani 'documents' declarations hata kar sirf ye rakhein
 
+// 1. Class ke top par ye variables define karein
+// public documents: any[] = [];
+private readonly API_BASE_URL = 'https://api.cavalierlogistic.graphicsvolume.com';
+
+// 2. Data load karne ka logic (Backend se aane ke baad)
+loadData(dbResponse: any) {
+  this.documents = []; // Reset array
+
+  // Doc Object add karein
+  if (dbResponse.docObject) {
+    this.documents.push({
+      ...dbResponse.docObject,
+      isExisting: true,
+      name: dbResponse.docObject.name || 'Document'
+    });
+  }
+
+  // Invoice Object add karein
+  if (dbResponse.invoiceObject) {
+    this.documents.push({
+      ...dbResponse.invoiceObject,
+      isExisting: true,
+      name: dbResponse.invoiceObject.name || 'Invoice'
+    });
+  }
+}
+
+// 3. Path generator function
+public getFullPath(path: string): string {
+  if (!path) return '';
+
+  // 1. Agar pehle se absolute URL (http/https) hai, toh direct return karo
+  if (path.startsWith('http')) return path;
+
+  // 2. Base URL se trailing slash hatao (agar ho toh)
+  const baseUrl = this.API_BASE_URL.endsWith('/') 
+    ? this.API_BASE_URL.slice(0, -1) 
+    : this.API_BASE_URL;
+
+  // 3. Path se leading slash hatakar handle karo (taaki double slash na bane)
+  const formattedPath = path.startsWith('/') ? path : '/' + path;
+
+  return `${baseUrl}${formattedPath}`;
+}
+public saveInvoices() {
+  // Yaha aap apne backend ka logic likhein
+  // 'this.invoices' array mein ab aapke paas updated data hai
+  
+  this.invoices.forEach(inv => {
+    if (inv.isExisting && !inv.isNewSelected) {
+      console.log("Purana path retain rahega:", inv.documentPath);
+    } else if (inv.file) {
+      console.log("Nayi file upload karni hai:", inv.file.name);
+    }
+  });
+
+  // API Call karein
+  // this.apiService.uploadInvoices(this.invoices).subscribe(...);
+  
+  this.closeInvoiceModal();
+}
+// 4. Calculate function jo aapne manga tha
 }

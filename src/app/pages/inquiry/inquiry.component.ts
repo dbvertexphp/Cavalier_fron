@@ -367,7 +367,7 @@ columnFieldMap: any = {
 selectedColumns: string[] = ['ID', 'Inquiry No', 'Date', 'Customer', 'Status','LeadName','OrganisationName'];
 availableColumns: string[] = ['Mode', 'Destination', 'Sales Person'];
     isFormOpen = false;
-    private apiUrl = `${environment.apiUrl}/Inquiry`;
+    public apiUrl = `${environment.apiUrl}/Inquiry`;
 inquiries:any[]=[]
     quotations: any[] = [];
     quotation: any = this.resetQuotationModel();
@@ -1174,7 +1174,10 @@ openDimModal() {
   }
   this.isDimModalOpen = true;
 }
-    
+    // ✅ Ye declare karna zaroori hai
+  commodityDocuments: any[] = [];
+  packageOrInvoiceDocuments: any[] = [];
+  // public apiUrl = environment.apiUrl;
 editQuotation(q: any) {
   console.warn('Backend Data for Autofill:', q);
   if (!q) {
@@ -1185,7 +1188,28 @@ editQuotation(q: any) {
   try {
     this.quotation = { ...q };
 
-    // ... (2, 3, 4, 5, 6, 7 code waisa hi hai)
+    // --- DOCUMENTS MAPPING ---
+    // 1. Backend response se list fill karo
+    this.commodityDocuments = q.commodityDocuments || [];
+    this.packageOrInvoiceDocuments = q.packageOrInvoiceDocuments || [];
+    
+    // 2. Commodity Modal ke liye mapping
+    this.documents = (q.commodityDocuments || []).map((doc: any) => ({
+      id: doc.id,
+      name: doc.name,
+      documentPath: doc.documentPath,
+      isExisting: true 
+    }));
+
+    // 3. Invoice Modal ke liye mapping (Yeh add kiya hai)
+    this.invoices = (q.packageOrInvoiceDocuments || []).map((doc: any) => ({
+      id: doc.id,
+      name: doc.name,
+      documentPath: doc.documentPath,
+      isExisting: true 
+    }));
+    
+    // Transport Mode Mapping
     this.quotation.TransportMode = q.transportMode; 
     if (q.transportType && typeof q.transportType === 'string' && q.transportType.length > 0) {
       this.quotation.TransportType = q.transportType.charAt(0).toUpperCase() + q.transportType.slice(1).toLowerCase();
@@ -1195,6 +1219,7 @@ editQuotation(q: any) {
       if (modeObj) this.quotation.TransportMode = modeObj.id;
     }
 
+    // Sales Coordinator Mapping
     if (q.salesCoordinator) {
       this.quotation.salesCoordinator = q.salesCoordinator.toString();
       if (this.getsalescordinate && Array.isArray(this.getsalescordinate)) {
@@ -1224,24 +1249,25 @@ editQuotation(q: any) {
     this.quotation.branchName = q.branchId ? q.branchId.toString() : q.branchName;
     this.quotation.salesCoordinator = q.salesCoordinator ? q.salesCoordinator.toString() : '';
     
-    // --- CONNECTING PORTS MAPPING (SAFE VERSION) ---
+    // --- CONNECTING PORTS MAPPING ---
     const rawPorts = q.connectingPortIds || q.ConnectingPortIds;
     const portIdsArray = typeof rawPorts === 'string' ? rawPorts.split(',').map(Number) : (Array.isArray(rawPorts) ? rawPorts : []);
     this.quotation.connectingPortIds = portIdsArray;
 
-    // Combine all available ports lists to find the objects
     const allKnownPorts = [...(this.portsOfLoading || []), ...(this.portsOfDischarge || [])];
     this.selectedConnectingPorts = allKnownPorts.filter(p => portIdsArray.includes(Number(p.id)));
     
-    console.log("DEBUG: Ports matched for UI:", this.selectedConnectingPorts);
-
-    // ... (Date, Dimensions, CBM, Logic, Final Update)
+    // Set commodity value for UI logic
+    this.selectcommodityvalue = q.commodityName || '';
+    
+    // Date Parsing
     try {
       if (q.receivedDate) this.quotation.receivedDate = new Date(q.receivedDate).toISOString().split('T')[0];
       if (q.cargoStatusDate) this.quotation.cargoStatusDate = new Date(q.cargoStatusDate).toISOString().split('T')[0];
       if (q.repliedDate && q.repliedDate !== '2000-02-12T00:00:00') this.quotation.repliedDate = new Date(q.repliedDate).toISOString().split('T')[0];
     } catch (dateErr) { console.error('Date parsing issue:', dateErr); }
 
+    // Dimensions
     if (q.dimensions && q.dimensions.length > 0) {
       this.appliedDimensions = [...q.dimensions];
       this.dimRows = [...q.dimensions];
@@ -1255,20 +1281,33 @@ editQuotation(q: any) {
     this.isPickupEnabled = (incoterm === 'EXWORK');
     this.isDeliveryEnabled = ['DDP', 'DDU', 'DAP'].includes(incoterm);
     this.showincoterms = incoterm;
-    this.selectcommodityvalue = q.commodityName || '';
 
+    // 🔥 Force UI refresh
     this.isFormOpen = true;
-    this.cdr.detectChanges();
+    this.cdr.detectChanges(); 
     setTimeout(() => this.cdr.detectChanges(), 300);
 
   } catch (mainError) {
-    console.error("🛑 Internal logic crash bypassed safely:", mainError);
+    console.error("🛑 Internal logic crash:", mainError);
     this.isFormOpen = true;
     this.cdr.detectChanges();
   }
 }
+isHazard(): boolean {
+  // 1. Agar selectcommodityvalue mein seedha 'Hazard' likha hai
+  const val = (this.selectcommodityvalue || '').toLowerCase();
+  if (['hazard', 'hazardous'].includes(val)) return true;
 
+  // 2. Agar quotation.commodity (ID) se check karna hai
+  // Aapke commodityTypes array mein se hazard wali entry dhund rahe hain
+  const selectedType = this.commodityTypes?.find(t => t.id == this.quotation?.commodity);
+  if (selectedType) {
+    const name = (selectedType.name || '').toLowerCase();
+    return ['hazard', 'hazardous'].includes(name);
+  }
 
+  return false;
+}
 
     resetQuotationModel() {
       return {

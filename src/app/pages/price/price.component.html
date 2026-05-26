@@ -1476,118 +1476,77 @@ Selection Modal Popup
                   </option>
                 </select>
               </div>
+<div class="flex flex-col gap-4">
+  <div class="flex items-center">
+    <label class="w-40 font-bold text-gray-700">Commodity</label>
 
-              <div class="flex flex-col gap-4">
-                <!-- Commodity Dropdown -->
-                <div class="flex items-center">
-                  <label class="w-40 font-bold text-gray-700">Commodity</label>
+    <select
+      [(ngModel)]="quotation.commodity"
+      (change)="onCommodityChange($event)"
+      name="commodity"
+      class="flex-1 border p-2 outline-none"
+    >
+      <option value="" disabled>Select Commodity</option>
+      <option *ngFor="let type of commodityTypes" [value]="type.id">
+        {{ type.name }}
+      </option>
+    </select>
+  </div>
 
-                  <select
-                    [(ngModel)]="quotation.commodity"
-                    (change)="onCommodityChange($event)"
-                    name="commodity"
-                    class="flex-1 border p-2 outline-none"
-                  >
-                    <option value="" disabled>Select Commodity</option>
+  <div *ngIf="isHazard()" class="flex flex-col gap-3">
+  <button
+    type="button"
+    (click)="openDocumentModal()"
+    class="bg-red-500 text-white px-4 py-2 rounded"
+  >
+    Manage Documents
+  </button>
+</div>
+</div>
 
-                    <option
-                      *ngFor="let type of commodityTypes"
-                      [value]="type.id"
-                    >
-                      {{ type.name }}
-                    </option>
-                  </select>
-                </div>
+<div *ngIf="isDocumentModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+  <div class="bg-white w-full max-w-lg rounded-lg p-4 shadow-xl">
+    
+    <div class="flex justify-between items-center mb-3">
+      <h2 class="text-lg font-bold">Upload Documents</h2>
+      <button type="button" (click)="closeDocumentModal()" class="text-red-500 text-xl font-bold">X</button>
+    </div>
 
-                <!-- Hazard Section -->
-                <div
-                  *ngIf="
-                    selectcommodityvalue === 'Hazard' ||
-                    selectcommodityvalue === 'HAZARD' ||
-                    selectcommodityvalue === 'Hazardous'
-                  "
-                  class="flex flex-col gap-3"
-                >
-                  <!-- Add Button -->
-                  <button
-                    (click)="openDocumentModal()"
-                    class="bg-red-500 text-white px-4 py-2 rounded"
-                  >
-                    Manage Documents
-                  </button>
+    <button type="button" (click)="addDocument()" class="bg-red-500 text-white px-4 py-2 rounded mb-3">
+      + Add Document
+    </button>
 
-                  <!-- Dynamic Document Fields -->
-                </div>
-              </div>
+    <div *ngFor="let doc of documents; let i = index" class="flex items-center gap-2 border p-2 rounded mb-2">
+      
+      <input type="text" [(ngModel)]="doc.name" placeholder="Document Name" class="border p-2 flex-1" />
 
-              <div
-                *ngIf="isDocumentModalOpen"
-                class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-              >
-                <div class="bg-white w-full max-w-lg rounded-lg p-4">
-                  <!-- Header -->
-                  <div class="flex justify-between items-center mb-3">
-                    <h2 class="text-lg font-bold">Upload Documents</h2>
-                    <button
-                      (click)="closeDocumentModal()"
-                      class="text-red-500 text-xl"
-                    >
-                      X
-                    </button>
-                  </div>
+      <div class="flex-1">
+        <div *ngIf="doc.isExisting && !doc.isNewSelected" class="flex flex-col">
+          <a [href]="getFullPath(doc.documentPath)" target="_blank" class="text-blue-600 underline text-sm truncate">
+            View Existing File
+          </a>
+          <button type="button" (click)="doc.isNewSelected = true" class="text-xs text-red-500 mt-1 underline">
+            Replace File
+          </button>
+        </div>
+        
+        <input *ngIf="!doc.isExisting || doc.isNewSelected"
+          type="file"
+          (change)="onFileSelecteds($event, i)"
+          class="w-full text-sm"
+        />
+      </div>
 
-                  <!-- Add Button -->
-                  <button
-                    (click)="addDocument()"
-                    class="bg-red-500 text-white px-4 py-2 rounded mb-3"
-                  >
-                    + Add Document
-                  </button>
+      <button type="button" (click)="removeDocument(i)" class="bg-red-600 text-white px-2 py-1 rounded">X</button>
+    </div>
 
-                  <!-- Dynamic Fields -->
-                  <div
-                    *ngFor="let doc of documents; let i = index"
-                    class="flex items-center gap-2 border p-2 rounded mb-2"
-                  >
-                    <input
-                      type="text"
-                      [(ngModel)]="doc.name"
-                      placeholder="Document Name"
-                      class="border p-2 flex-1"
-                    />
-
-                    <input
-                      type="file"
-                      (change)="onFileSelecteds($event, i)"
-                      class="flex-1 border p-1 text-sm"
-                    />
-
-                    <button
-                      (click)="removeDocument(i)"
-                      class="bg-red-600 text-white px-2 py-1 rounded"
-                    >
-                      X
-                    </button>
-                  </div>
-
-                  <!-- Footer -->
-                  <div class="flex justify-end mt-4 gap-2">
-                    <button
-                      (click)="closeDocumentModal()"
-                      class="bg-gray-400 text-white px-4 py-2 rounded"
-                    >
-                      Cancel
-                    </button>
-
-                    <button
-                      (click)="closeDocumentModal()"
-                      class="bg-green-500 text-white px-4 py-2 rounded"
-                    >
-                      Save
-                    </button>
-                  </div>
-                </div>
-              </div>
+    <div class="flex justify-end mt-4 gap-2">
+      <button type="button" (click)="closeDocumentModal()" class="bg-gray-400 text-white px-4 py-2 rounded">Cancel</button>
+      <button type="button" (click)="saveAndClose()" class="bg-green-500 text-white px-4 py-2 rounded">Save</button>
+    </div>
+    
+  </div>
+</div>
 
               <div class="flex items-center gap-2">
                 <label class="w-40 font-bold text-gray-700">Gross Weight</label>
@@ -1940,95 +1899,71 @@ Selection Modal Popup
                 </select>
               </div>
 
-              <!-- Package/Invoice List -->
-              <div class="flex flex-col gap-4">
-                <div class="flex items-center">
-                  <label class="w-40 font-bold text-gray-700"
-                    >Package/Invoice List</label
-                  >
-                  <select
-                    [(ngModel)]="quotation.invoiceList"
-                    class="flex-1 border p-2 outline-none"
-                  >
-                    <option value="" disabled>-- Select Status --</option>
-                    <option value="Available">Available</option>
-                    <option value="Not Available">Not Available</option>
-                  </select>
-                </div>
+      <div class="flex flex-col gap-4">
+  <div class="flex items-center">
+    <label class="w-40 font-bold text-gray-700">Package/Invoice List</label>
+    <select
+      [(ngModel)]="quotation.invoiceList"
+      name="invoiceList"
+      class="flex-1 border p-2 outline-none"
+    >
+      <option value="" disabled>-- Select Status --</option>
+      <option value="Available">Available</option>
+      <option value="Not Available">Not Available</option>
+    </select>
+  </div>
 
-                <div *ngIf="quotation.invoiceList === 'Available'" class="mt-2">
-                  <button
-                    (click)="openInvoiceModal()"
-                    class="bg-blue-500 text-white px-4 py-2 rounded"
-                  >
-                    Manage Invoice Documents
-                  </button>
-                </div>
-              </div>
-              <div
-                *ngIf="isInvoiceModalOpen"
-                class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-              >
-                <div class="bg-white w-full max-w-lg rounded-lg p-4">
-                  <div class="flex justify-between items-center mb-3">
-                    <h2 class="text-lg font-bold">Upload Invoice Documents</h2>
-                    <button
-                      (click)="closeInvoiceModal()"
-                      class="text-red-500 text-xl font-bold"
-                    >
-                      X
-                    </button>
-                  </div>
+  <div *ngIf="quotation.invoiceList === 'Available'" class="mt-2">
+    <button
+      type="button"
+      (click)="openInvoiceModal()"
+      class="bg-blue-500 text-white px-4 py-2 rounded"
+    >
+      Manage Invoice Documents
+    </button>
+  </div>
+</div>
 
-                  <button
-                    (click)="addInvoice()"
-                    class="bg-blue-500 text-white px-4 py-2 rounded mb-3"
-                  >
-                    + Add Invoice
-                  </button>
+<div *ngIf="isInvoiceModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+  <div class="bg-white w-full max-w-lg rounded-lg p-4 shadow-xl">
+    <div class="flex justify-between items-center mb-3">
+      <h2 class="text-lg font-bold">Upload Invoice Documents</h2>
+      <button type="button" (click)="closeInvoiceModal()" class="text-red-500 text-xl font-bold">X</button>
+    </div>
 
-                  <div
-                    *ngFor="let inv of invoices; let i = index"
-                    class="flex items-center gap-2 border p-2 rounded mb-2"
-                  >
-                    <input
-                      type="text"
-                      [(ngModel)]="inv.name"
-                      placeholder="Invoice Name/No."
-                      class="border p-2 flex-1"
-                    />
+    <button type="button" (click)="addInvoice()" class="bg-blue-500 text-white px-4 py-2 rounded mb-3">
+      + Add Invoice
+    </button>
 
-                    <input
-                      type="file"
-                      (change)="onInvoiceFileSelected($event, i)"
-                      class="flex-1 border p-1 text-sm"
-                    />
+    <div *ngFor="let inv of invoices; let i = index" class="flex items-center gap-2 border p-2 rounded mb-2">
+      <input type="text" [(ngModel)]="inv.name" placeholder="Invoice Name/No." class="border p-2 flex-1" />
 
-                    <button
-                      (click)="removeInvoice(i)"
-                      class="bg-red-600 text-white px-2 py-1 rounded"
-                    >
-                      X
-                    </button>
-                  </div>
+      <div class="flex-1">
+        <div *ngIf="inv.isExisting && !inv.isNewSelected" class="flex flex-col">
+          <a [href]="getFullPath(inv.documentPath)" target="_blank" class="text-blue-600 underline text-sm block truncate">
+            View Existing File
+          </a>
+          <button type="button" (click)="inv.isNewSelected = true" class="text-xs text-red-500 mt-1 underline">
+            Replace File
+          </button>
+        </div>
+        
+        <input *ngIf="!inv.isExisting || inv.isNewSelected"
+          type="file"
+          (change)="onInvoiceFileSelected($event, i)"
+          class="w-full text-sm"
+        />
+      </div>
 
-                  <div class="flex justify-end mt-4 gap-2">
-                    <button
-                      (click)="closeInvoiceModal()"
-                      class="bg-gray-400 text-white px-4 py-2 rounded"
-                    >
-                      Cancel
-                    </button>
+      <button type="button" (click)="removeInvoice(i)" class="bg-red-600 text-white px-2 py-1 rounded">X</button>
+    </div>
 
-                    <button
-                      (click)="closeInvoiceModal()"
-                      class="bg-green-500 text-white px-4 py-2 rounded"
-                    >
-                      Save
-                    </button>
-                  </div>
-                </div>
-              </div>
+    <div class="flex justify-end mt-4 gap-2">
+      <button type="button" (click)="closeInvoiceModal()" class="bg-gray-400 text-white px-4 py-2 rounded">Cancel</button>
+      <button type="button" (click)="saveInvoices()" class="bg-green-500 text-white px-4 py-2 rounded">Save</button>
+    </div>
+  </div>
+</div>
               <!-- Cargo Value - Naya Added -->
               <div class="flex items-center">
                 <label class="w-40 font-bold text-gray-700">Cargo Value</label>

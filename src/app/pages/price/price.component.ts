@@ -3044,25 +3044,30 @@ costRows: CostBreakdown[] = [
 
 
 
-  createEmptyRow() {
-    return {
-      id: 0,
-      forwarder: '',
-      origin: '',
-      currency: 'USD',
-      airFreight: 0,
-      fsc: 'INC',
-      airline: '',
-      type: 'DIRECT',
-      cutoff: '',
-      schedule: '',
-      exWorks: 0,
-      doCharges: 0,
-      ccFee: 0,
-      totalCost: 0,
-      remark: ''
-    };
-  }
+ createEmptyRow() {
+  return {
+    id: 0,
+    forwarder: '',
+    origin: '',
+    lob: 'Standard',           // Added for DB mapping
+    chargeName: '',            // Added for DB mapping
+    chargeType: 'Prepaid',     // Added for DB mapping
+    currency: 'USD',
+    airFreight: 0,
+    fsc: 'INC',
+    airline: '',
+    type: 'INDIRECT',          // Default Indirect as per requirement
+    cutoff: '',
+    schedule: '',              // Flight Date/Schedule
+    exWorks: 0,
+    doCharges: 0,
+    ccFee: 0,
+    rate: 0,                   // Added for DB mapping
+    exchangeRate: 1,           // Added for DB mapping
+    totalCost: 0,
+    remark: ''
+  };
+}
 
   calculateMultiTotal(i: number) {
     const r = this.multiCarrierRows[i];
@@ -3090,29 +3095,13 @@ calculateMasterIndirectTotal(index: number) {
     const inputRate = Number(mRow.rate) || 0;
     const exchangeVal = Number(mRow.exchangeRate) || 1;
 
-    // Formula Calculation Matrix: Airfreight + (Chargeable Weight * Rate * Ex. Rate)
+    // Premium Logic: Airfreight + (Chargeable Weight * Rate * Ex. Rate)
     mRow.totalCost = airfreightCost + (chrgWeight * inputRate * exchangeVal);
   }
   this.cdr.detectChanges();
 }
  addMultiCarrierRow() {
-  this.multiCarrierRows.push({
-    id: 0,
-    forwarder: '',
-    origin: '',
-    currency: 'USD',
-    airFreight: 0,
-    fsc: 'INC',
-    airline: '',
-    type: 'INDIRECT', // Default Indirect as per requirement
-    cutoff: '',
-    schedule: '', // Will hold the Date
-    exWorks: 0,
-    doCharges: 0,
-    ccFee: 0,
-    totalCost: 0,
-    remark: ''
-  });
+  this.multiCarrierRows.push(this.createEmptyRow());
 }
 
   removeMultiCarrierRow(index: number) {
@@ -3167,105 +3156,96 @@ updatePagination() {
 }
 saveQuotation() {
   if (!this.inquiry.organization) { 
-    alert("Organization Name is required!");
+    Swal.fire('Warning', 'Organization Name is required!', 'warning');
     return;
   }
 
-  // 1. Cost Breakdowns Mapping
+  // Cost Breakdowns Payload mapping
   const costData = (this.costRows && this.costRows.length > 0 ? this.costRows : (this.costBreakdowns || [])).map((cb: any) => ({
     lob: cb.lob || '', 
-    chargeType: cb.chargeType || '',
+    chargeType: cb.chargeType || 'Prepaid',
     basis: cb.basis || '',
     chargeName: cb.chargeName || cb.charge || '',
     currency: cb.currency || 'INR',
     rate: Number(cb.rate) || 0,
-    exchangeRate: Number(cb.exchangeRate || (cb as any).exRate) || 1, 
+    exchangeRate: Number(cb.exchangeRate) || 1, 
     amount: Number(cb.amount) || 0
   }));
 
-  // 2. Multi Carrier Mapping
+  // 🔥 MULTICARRIER PROPER GRAPH MAPPING (Bina kisi field ko miss kiye)
   const multiCarrierData = (this.multiCarrierRows || []).map((mcb: any) => ({
+    id: Number(mcb.id) || 0,
     forwarder: mcb.forwarder || '',
     origin: mcb.origin || '',
-    currency: mcb.currency || 'INR',
+    lob: mcb.lob || 'Standard',
+    chargeName: mcb.chargeName || '',
+    chargeType: mcb.chargeType || 'Prepaid',
+    currency: mcb.currency || 'USD',
     airFreight: Number(mcb.airFreight) || 0,
     fsc: mcb.fsc || '',
     airline: mcb.airline || '',
-    type: mcb.type || 'DIRECT',
+    type: mcb.type || 'INDIRECT',
     cutoff: mcb.cutoff || '',
     schedule: mcb.schedule || '',
     exWorks: Number(mcb.exWorks) || 0,
     doCharges: Number(mcb.doCharges) || 0,
     ccFee: Number(mcb.ccFee) || 0,
+    rate: Number(mcb.rate) || 0,
+    exchangeRate: Number(mcb.exchangeRate) || 1,
     totalCost: Number(mcb.totalCost) || 0,
     remark: mcb.remark || ''
   }));
 
-  // 3. Payload Preparation
+  // Parent Payload Object matching backend structural definitions
   const payload: any = {
     ...this.quotation, 
-    
-    // 🔥 TRANSPORT FIX
     transportMode: (this.quotation.transportMode || this.inquiry.transportMode || "").toString(), 
     transportType: (this.quotation.transportType || this.quotation.TransportType || this.inquiry.transportType || "").toString(),
     serviceType: (this.quotation.transportType || this.quotation.TransportType || this.inquiry.transportType || "").toString(), 
     shipmentType: (this.quotation.shipmentType || this.inquiry.shipmentType || "").toString(),
-
-    // 🔥 COUNTRY NAME FIX
     countryName: (this.selectedCountryName || this.quotation.countryName || this.inquiry.country || "").toString(),
-
-    // 🔥 CONNECTING PORTS FIX (Dual sending for backend compatibility)
     connectingPortIds: Array.isArray(this.quotation.connectingPortIds) ? this.quotation.connectingPortIds.join(',') : (this.quotation.connectingPortIds || ""),
-    connectingPortIdsArray: Array.isArray(this.quotation.connectingPortIds) ? this.quotation.connectingPortIds : [],
-
-    // 🔥 BACKEND TYPE FIX
+    
     OrganisationId: this.organisationId || 0,
-    OrganisationName: this.organisationName,
+    OrganisationName: this.organisationName || this.inquiry.organization,
     customerName: this.inquiry.organization,
-    InquiryId:this.InquiryId || 0,
+    InquiryId: this.InquiryId || 0,
     pricingNo: this.quotation.pricingNo || null,
     referenceByInquiryNo: this.referenceByInquiryNo || null,
-    qtnId: this.quotation.qtnId || ('QTN-' + Math.floor(1000 + Math.random() * 9000)),
     originName: this.inquiry.origin || this.quotation.originPOL,
 
-    // Numeric IDs
     portOfLoadingId: this.quotation.portOfLoadingId ? Number(this.quotation.portOfLoadingId) : null,
     portOfDischargeId: this.quotation.portOfDischargeId ? Number(this.quotation.portOfDischargeId) : null,
     lineOfBusinessId: this.quotation.lineOfBusinessId ? Number(this.quotation.lineOfBusinessId) : null,
     commodityId: this.quotation.commodity ? Number(this.quotation.commodity) : null,
     originId: this.originsaveid ? Number(this.originsaveid) : null,
 
-    // Weight & Measures
-    grossWeightKg: Number(this.quotation.grossWeightKg || this.quotation.grossWeight) || 0,
-    grossWeightUnit: this.quotation.grossWeightUnit || this.quotation.GrossweightUnit || 'KGS',
+    grossWeightKg: Number(this.quotation.grossWeightKg) || 0,
+    chargeableWeight: Number(this.quotation.chargeableWeight) || 0,
+    volumeWeight: Number(this.quotation.volumeWeight) || 0,
+    cbm: Number(this.quotation.cbm) || 0,
     noOfPkgs: Number(this.quotation.noOfPkgs) || 0,
 
-    // Relationships
-    costBreakdowns: costData, 
-    multiCarrierBreakdowns: multiCarrierData,
+    // EF Core Context explicit tracking keys map
+    CostBreakdowns: costData, 
+    MultiCarrierBreakdowns: multiCarrierData,
     dimensions: this.appliedDimensions || [],
 
-    // String Field Fixes
-    salesCoordinator: (this.quotation.salesCoordinator?.name || this.quotation.salesCoordinator || "").toString(),
+    salesCoordinator: (this.quotation.salesCoordinator || "").toString(),
     cargoStatus: (this.quotation.cargoStatus || this.quotation.cargoStatusType || 'Ready').toString(),
     cargoValue: (this.quotation.cargoValue || "0").toString(),
     cargoCurrency: (this.quotation.currency || 'INR').toString(),
     createdBy: 'admin@cavalierlogistic.in'
   };
 
-  // 4. Final Cleanup (Check if these keys are truly required to be deleted)
-  const keysToDelete = [
-    'TransportMode', 'TransportType', 'SalesCoordinator', 
-    'GrossWeight', 'GrossweightUnit', 'CountryName'
-  ];
+  // Cleaning redundant tracking references
+  const keysToDelete = ['TransportMode', 'TransportType', 'SalesCoordinator', 'GrossWeight', 'GrossweightUnit', 'CountryName', 'costBreakdowns', 'multiCarrierBreakdowns'];
   keysToDelete.forEach(key => delete payload[key]);
-
-  console.log("FINAL PAYLOAD:", payload);
 
   const formData = new FormData();
   formData.append('pricingData', JSON.stringify(payload));
 
-  // Documents
+  // Documents processing block
   const allDocs = [...(this.documents || []), ...(this.invoices || [])];
   allDocs.forEach((doc) => {
     if (doc.file) {
@@ -3285,14 +3265,14 @@ saveQuotation() {
   action.subscribe({
     next: (res: any) => {
       this.sendBulkEmails(res.id);
-      Swal.fire('Saved!', 'Pricing, Transport and Country saved successfully!', 'success');
+      Swal.fire('Saved!', 'Pricing, Single-Carrier and Multi-Carrier lists stored perfectly!', 'success');
       this.loadPricings(); 
       this.isFormOpen = false;
       this.cdr.detectChanges();
     },
     error: (err) => {
-      console.error("❌ API ERROR DETAILS:", err);
-      alert("Error: " + (err.error?.message || "Internal Mapping Error"));
+      console.error("❌ API SAVE FAILED:", err);
+      Swal.fire('Error', err.error?.message || "Internal Context Entity Mismatch Error.", 'error');
     }
   });
 }

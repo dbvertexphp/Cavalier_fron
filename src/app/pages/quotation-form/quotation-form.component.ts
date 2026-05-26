@@ -1438,7 +1438,7 @@ removeCostRow(index: number) {
 
 calculateCost() {
   this.costRows.forEach(row => {
-    row.amount = (row.rate || 0) * (row.exchangeRate || 1);
+    row.amount = (row.rate || 0) * (this.quotation.chargeableWeight || 1);
   });
   this.calculateAll();
 }

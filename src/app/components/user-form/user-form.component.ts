@@ -209,6 +209,7 @@ initForm() {
       dateOfJoining: ['', [Validators.required]],
       ctc_Monthly: [0],
       salaryAccountNo: [''],
+      secondaryEmail:[''],
       email: ['', [Validators.required, Validators.email]],
       mobile: ['', [Validators.required, Validators.pattern("^[0-9]{10}$")]],
       telephone: [''],

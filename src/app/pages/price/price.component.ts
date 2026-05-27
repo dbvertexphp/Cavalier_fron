@@ -3284,6 +3284,9 @@ saveQuotation() {
   // Parent Payload Object
   const payload: any = {
     ...this.quotation, 
+    // --- Nayi Field Add Kar Di ---
+    invoiceList: this.quotation.invoiceList || '', 
+    
     transportMode: (this.quotation.transportMode || this.inquiry.transportMode || "").toString(), 
     transportType: (this.quotation.transportType || this.quotation.TransportType || this.inquiry.transportType || "").toString(),
     serviceType: (this.quotation.transportType || this.quotation.TransportType || this.inquiry.transportType || "").toString(), 
@@ -3315,7 +3318,6 @@ saveQuotation() {
     MultiCarrierBreakdowns: multiCarrierData,
     dimensions: this.appliedDimensions || [],
     
-    // Yahan dono lists alag-alag bhej rahe hain
     commodityDocs: processedDocuments,
     packageInvoiceDocs: processedInvoices,
 
@@ -3333,7 +3335,6 @@ saveQuotation() {
   formData.append('pricingData', JSON.stringify(payload));
 
   // --- Upload Files Handling ---
-  // Commodity files ke liye 'Commodity' type, Invoice files ke liye 'Invoice' type
   this.documents.forEach((d) => {
     if (d.file) {
       formData.append('docFiles', d.file);
@@ -3931,166 +3932,376 @@ redirectdata(type: any, id: any) {
   }
 }
 // 1. Edit Function
+// editPricing(pricing: any) {
+//   console.log("Editing Pricing Entry Data:", pricing);
+//   if (!pricing) return;
+
+//   // --- Documents Mapping (Integration) ---
+// const allDocs = pricing.pricingDocuments || pricing.PricingDocuments || [];
+// console.log("DEBUG: Total Docs from API:", allDocs.length);
+
+// this.documents = allDocs
+//   .filter((d: any) => (d.docType || d.DocType || '').toLowerCase() === 'commodity')
+//   .map((d: any) => ({
+//     id: d.docId || d.DocId,
+//     name: 'Commodity Document', // Yahan tum 'Commodity' ya file ka naam set kar sakte ho
+//     documentPath: d.docPath || d.DocPath,
+//     isExisting: true
+//   }));
+
+// this.invoices = allDocs
+//   .filter((d: any) => (d.docType || d.DocType || '').toLowerCase() === 'invoice')
+//   .map((d: any) => ({
+//     id: d.docId || d.DocId,
+//     name: 'Invoice Document',
+//     documentPath: d.docPath || d.DocPath,
+//     isExisting: true
+//   }));
+
+// console.log("DEBUG: Final Array (Commodity):", this.documents);
+// console.log("DEBUG: Final Array (Invoices):", this.invoices);
+
+// // UI Force Refresh
+// this.cdr.detectChanges();
+
+//   // Saare background data ko ek jagah safe nikaal lo
+//   const rawCbm = pricing.cbm || pricing.volume || pricing.totalCbm || pricing.cbmWeight || pricing.cbm_weight;
+//   const rawVolWeight = pricing.volumeWeight || pricing.volume_weight || pricing.volumetricWeight || (this.quotation && this.quotation.volumeWeight);
+//   const rawCommodityId = pricing.commodityId || pricing.commodityID || pricing.commodity_id || pricing.commodity;
+//   const rawCommodityName = pricing.commodityName || pricing.commodity_name || pricing.commodity || '';
+
+//   // 1. Data Copying (Deep Merge Safety)
+//   if (!this.quotation) this.quotation = {};
+//   this.quotation = { ...this.quotation, ...pricing };
+
+//   // 2. Transport Mode Fix
+//   if (pricing.transportMode && this.transportModes) {
+//     const modeObj = this.transportModes.find(m => m && m.name && m.name.toLowerCase() === pricing.transportMode.toLowerCase());
+//     this.quotation.TransportMode = modeObj ? modeObj.id : pricing.transportMode;
+//   }
+
+//   // 3. Transport Type & Currency Fix
+//   this.quotation.TransportType = pricing.transportType;
+//   this.quotation.currency = pricing.cargoCurrency;
+
+//   // 4. Origin Display
+//   if (!this.inquiry) this.inquiry = {};
+//   this.inquiry.origin = pricing.originName || pricing.origin;
+//   this.originsaveid = pricing.originId;
+
+//   // ========================================================
+//   // 🎯 DB SPECIFIC AUTOFILL FIELDS & DROPDOWN ID FIXING
+//   // ========================================================
+//   const dbPortOfLoadingId = pricing['[PortOfLoadingId]'] || pricing.portOfLoadingId || pricing.PortOfLoadingId || null;
+//   const dbPortOfDischargeId = pricing['[PortOfDischargeId]'] || pricing.portOfDischargeId || pricing.PortOfDischargeId || null;
+//   const dbPlaceOfDelivery = pricing['[PlaceOfDelivery]'] || pricing.placeOfDelivery || pricing.PlaceOfDelivery || "";
+//   const dbCountryName = pricing['[CountryName]'] || pricing.countryName || pricing.CountryName || "";
+
+//   // Dropdown safe matching ke liye IDs ko Hamesha String banao
+//   this.quotation.portOfLoadingId = dbPortOfLoadingId ? dbPortOfLoadingId.toString() : null;
+//   this.quotation.portOfDischargeId = dbPortOfDischargeId ? dbPortOfDischargeId.toString() : null;
+  
+//   // HTML Binding text variable fallback
+//   this.quotation.originPOL = pricing.originName || pricing.origin || "";
+//   this.quotation.placeOfDelivery = dbPlaceOfDelivery;
+//   this.quotation.country = dbCountryName; 
+//   this.quotation.countryName = dbCountryName;
+//   this.quotation.countryId = pricing.countryId || null;
+
+//   // --- Master Array Se Names Filter Karke Text Boxes Me Bharo ---
+//   if (dbPortOfLoadingId && this.filteredConnectingPorts) {
+//     const foundPol = this.filteredConnectingPorts.find(p => p.id.toString() === dbPortOfLoadingId.toString());
+//     this.quotation.portOfLoading = foundPol ? foundPol.name : (pricing.portOfLoadingName || '');
+//   } else {
+//     this.quotation.portOfLoading = pricing.portOfLoadingName || "";
+//   }
+
+//   if (dbPortOfDischargeId && this.filteredConnectingPorts) {
+//     const foundPod = this.filteredConnectingPorts.find(p => p.id.toString() === dbPortOfDischargeId.toString());
+//     this.quotation.portOfDischarge = foundPod ? foundPod.name : (pricing.portOfDischargeName || '');
+//     this.quotation.portOfDestination = this.quotation.portOfDischarge;
+//   } else {
+//     this.quotation.portOfDischarge = pricing.portOfDischargeName || "";
+//     this.quotation.portOfDestination = pricing.portOfDischargeName || "";
+//   }
+
+//   // --- CONNECTING PORTS MAPPING ---
+//   const rawCP = pricing.connectingPortIds || pricing.ConnectingPortIds;
+//   const cPortIds = typeof rawCP === 'string' ? rawCP.split(',').map(id => Number(id.trim())) : (Array.isArray(rawCP) ? rawCP : []);
+//   this.quotation.connectingPortIds = cPortIds;
+  
+//   if (this.filteredConnectingPorts) {
+//     this.selectedConnectingPorts = this.filteredConnectingPorts.filter(p => cPortIds.includes(Number(p.id)));
+//   }
+
+//   // 6. Org & Ref
+//   this.inquiry.organization = pricing.organisationName || pricing.customerName;
+//   this.quotation.referenceByInquiry = pricing.referenceByInquiryNo;
+
+//   // 7. Dates
+//   if (pricing.receivedDate) this.quotation.receivedDate = pricing.receivedDate.split('T')[0];
+//   if (pricing.cargoStatusDate) this.quotation.cargoStatusDate = pricing.cargoStatusDate.split('T')[0];
+
+//   // 8. COMMODITY IMMEDIATE ASSIGNMENT
+//   if (rawCommodityId) {
+//     this.quotation.commodity = Number(rawCommodityId);
+//   }
+//   this.selectcommodityvalue = rawCommodityName;
+
+//   // 9. CBM INITIAL ASSIGNMENT & CALCULATION
+//   if (rawVolWeight) {
+//     this.quotation.volumeWeight = Number(rawVolWeight);
+//   }
+
+//   if (rawCbm && Number(rawCbm) > 0) {
+//     this.quotation.cbm = parseFloat(Number(rawCbm).toFixed(3));
+//   } else if (this.quotation.volumeWeight && Number(this.quotation.volumeWeight) > 0) {
+//     const calc = Number(this.quotation.volumeWeight) / 167;
+//     this.quotation.cbm = parseFloat(calc.toFixed(3));
+//   } else {
+//     this.quotation.cbm = 0;
+//   }
+
+//   this.quotation.weight = pricing.weight || pricing.grossWeightKg || pricing.grossWeight || 0;
+//   this.quotation.cbmUnit = pricing.cbmUnit || 'CBM';
+
+//   // 10. Tables Grid Data
+//   this.costRows = pricing.costBreakdowns && pricing.costBreakdowns.length > 0 ? [...pricing.costBreakdowns] : [{ lob: 'Standard', chargeName: '', chargeType: 'Prepaid', basis: 'Per KG', currency: 'INR', rate: 0, exchangeRate: 1, amount: 0 }];
+//   this.multiCarrierRows = pricing.multiCarrierBreakdowns && pricing.multiCarrierBreakdowns.length > 0 ? [...pricing.multiCarrierBreakdowns] : [this.createEmptyRow()];
+
+//   // 11. Dimensions
+//   if (pricing.dimensions && Array.isArray(pricing.dimensions) && pricing.dimensions.length > 0) {
+//     this.dimRows = [...pricing.dimensions];
+//     this.dimRow = { ...pricing.dimensions[0] };
+//     this.appliedDimensions = [...pricing.dimensions];
+//   } else {
+//     this.dimRows = [];
+//     this.dimRow = {};
+//     this.appliedDimensions = [];
+//   }
+
+//   this.isFormOpen = true;
+//   this.cdr.detectChanges();
+
+//   // ========================================================
+//   // 🎯 ULTIMATE TEMPLATE SYNC 
+//   // ========================================================
+//   setTimeout(() => {
+//     if (rawCommodityId) this.quotation.commodity = Number(rawCommodityId);
+//     this.selectcommodityvalue = rawCommodityName;
+
+//     const freshVolWeight = this.quotation.volumeWeight || rawVolWeight;
+//     if (rawCbm && Number(rawCbm) > 0) {
+//       this.quotation.cbm = parseFloat(Number(rawCbm).toFixed(3));
+//     } else if (freshVolWeight && Number(freshVolWeight) > 0) {
+//       const coreCalc = Number(freshVolWeight) / 167;
+//       this.quotation.cbm = parseFloat(coreCalc.toFixed(3));
+//     }
+
+//     if (dbPortOfLoadingId) this.quotation.portOfLoadingId = dbPortOfLoadingId.toString();
+//     if (dbPortOfDischargeId) this.quotation.portOfDischargeId = dbPortOfDischargeId.toString();
+//     if (dbPlaceOfDelivery) this.quotation.placeOfDelivery = dbPlaceOfDelivery;
+//     if (dbCountryName) {
+//       this.quotation.country = dbCountryName; 
+//       this.quotation.countryName = dbCountryName;
+//     }
+
+//     // Re-sync Connecting Ports in Timeout
+//     if (this.filteredConnectingPorts) {
+//         this.selectedConnectingPorts = this.filteredConnectingPorts.filter(p => this.quotation.connectingPortIds.includes(Number(p.id)));
+//     }
+
+//     if (pricing.countryId && typeof this.selectCountry === 'function') {
+//       this.selectCountry({ id: pricing.countryId, name: dbCountryName });
+//     }
+
+//     console.log("🔥 Sync Finished! Documents, Ports, and Commodity Synchronized.");
+//     this.cdr.detectChanges();
+//   }, 400); 
+// }
 editPricing(pricing: any) {
   console.log("Editing Pricing Entry Data:", pricing);
   if (!pricing) return;
 
-  // Saare background data ko ek jagah safe nikaal lo
-  const rawCbm = pricing.cbm || pricing.volume || pricing.totalCbm || pricing.cbmWeight || pricing.cbm_weight;
-  const rawVolWeight = pricing.volumeWeight || pricing.volume_weight || pricing.volumetricWeight || (this.quotation && this.quotation.volumeWeight);
-  const rawCommodityId = pricing.commodityId || pricing.commodityID || pricing.commodity_id || pricing.commodity;
-  const rawCommodityName = pricing.commodityName || pricing.commodity_name || pricing.commodity || '';
+  // 1. FRESH DATA FETCH (API se pura object documents ke saath)
+  const pricingId = pricing.id || pricing.PricingId;
+  const fullDataUrl = `${environment.apiUrl}/Pricing/${pricingId}`;
 
-  // 1. Data Copying (Deep Merge Safety)
-  if (!this.quotation) this.quotation = {};
-  this.quotation = { ...this.quotation, ...pricing };
+  this.http.get<any>(fullDataUrl).subscribe(
+    (fullData: any) => {
+      console.log("DEBUG: Full Data fetched from API:", fullData);
+      
+      // Update the pricing object with full data from API
+      pricing = fullData; 
 
-  // 2. Transport Mode Fix
-  if (pricing.transportMode && this.transportModes) {
-    const modeObj = this.transportModes.find(m => m && m.name && m.name.toLowerCase() === pricing.transportMode.toLowerCase());
-    this.quotation.TransportMode = modeObj ? modeObj.id : pricing.transportMode;
-  }
+      // --- Documents Mapping ---
+      const allDocs = pricing.pricingDocuments || pricing.PricingDocuments || [];
+      console.log("DEBUG: Total Docs from API:", allDocs.length);
 
-  // 3. Transport Type & Currency Fix
-  this.quotation.TransportType = pricing.transportType;
-  this.quotation.currency = pricing.cargoCurrency;
+      this.documents = allDocs
+        .filter((d: any) => (d.docType || d.DocType || '').toLowerCase() === 'commodity')
+        .map((d: any) => ({
+          id: d.docId || d.DocId,
+          name: 'Commodity Document',
+          documentPath: d.docPath || d.DocPath,
+          isExisting: true
+        }));
 
-  // 4. Origin Display
-  if (!this.inquiry) this.inquiry = {};
-  this.inquiry.origin = pricing.originName || pricing.origin;
-  this.originsaveid = pricing.originId;
+      this.invoices = allDocs
+        .filter((d: any) => (d.docType || d.DocType || '').toLowerCase() === 'invoice')
+        .map((d: any) => ({
+          id: d.docId || d.DocId,
+          name: 'Invoice Document',
+          documentPath: d.docPath || d.DocPath,
+          isExisting: true
+        }));
 
-  // ========================================================
-  // 🎯 DB SPECIFIC AUTOFILL FIELDS & DROPDOWN ID FIXING
-  // ========================================================
-  const dbPortOfLoadingId = pricing['[PortOfLoadingId]'] || pricing.portOfLoadingId || pricing.PortOfLoadingId || null;
-  const dbPortOfDischargeId = pricing['[PortOfDischargeId]'] || pricing.portOfDischargeId || pricing.PortOfDischargeId || null;
-  const dbPlaceOfDelivery = pricing['[PlaceOfDelivery]'] || pricing.placeOfDelivery || pricing.PlaceOfDelivery || "";
-  const dbCountryName = pricing['[CountryName]'] || pricing.countryName || pricing.CountryName || "";
+      console.log("DEBUG: Final Array (Commodity):", this.documents);
+      console.log("DEBUG: Final Array (Invoices):", this.invoices);
+      
+      // UI Force Refresh
+      this.cdr.detectChanges();
 
-  // Dropdown safe matching ke liye IDs ko Hamesha String banao
-  this.quotation.portOfLoadingId = dbPortOfLoadingId ? dbPortOfLoadingId.toString() : null;
-  this.quotation.portOfDischargeId = dbPortOfDischargeId ? dbPortOfDischargeId.toString() : null;
-  
-  // HTML Binding text variable fallback
-  this.quotation.originPOL = pricing.originName || pricing.origin || "";
-  this.quotation.placeOfDelivery = dbPlaceOfDelivery;
-  this.quotation.country = dbCountryName; 
-  this.quotation.countryName = dbCountryName;
-  this.quotation.countryId = pricing.countryId || null;
+      // --- BAAKI KA PURA LOGIC (Same as before) ---
+      const rawCbm = pricing.cbm || pricing.volume || pricing.totalCbm || pricing.cbmWeight || pricing.cbm_weight;
+      const rawVolWeight = pricing.volumeWeight || pricing.volume_weight || pricing.volumetricWeight || (this.quotation && this.quotation.volumeWeight);
+      const rawCommodityId = pricing.commodityId || pricing.commodityID || pricing.commodity_id || pricing.commodity;
+      const rawCommodityName = pricing.commodityName || pricing.commodity_name || pricing.commodity || '';
 
-  // --- Master Array Se Names Filter Karke Text Boxes Me Bharo ---
-  if (dbPortOfLoadingId && this.filteredConnectingPorts) {
-    const foundPol = this.filteredConnectingPorts.find(p => p.id.toString() === dbPortOfLoadingId.toString());
-    this.quotation.portOfLoading = foundPol ? foundPol.name : (pricing.portOfLoadingName || '');
-  } else {
-    this.quotation.portOfLoading = pricing.portOfLoadingName || "";
-  }
+      // 1. Data Copying (Deep Merge Safety)
+      if (!this.quotation) this.quotation = {};
+      this.quotation = { ...this.quotation, ...pricing };
 
-  if (dbPortOfDischargeId && this.filteredConnectingPorts) {
-    const foundPod = this.filteredConnectingPorts.find(p => p.id.toString() === dbPortOfDischargeId.toString());
-    this.quotation.portOfDischarge = foundPod ? foundPod.name : (pricing.portOfDischargeName || '');
-    this.quotation.portOfDestination = this.quotation.portOfDischarge;
-  } else {
-    this.quotation.portOfDischarge = pricing.portOfDischargeName || "";
-    this.quotation.portOfDestination = pricing.portOfDischargeName || "";
-  }
+      // 2. Transport Mode Fix
+      if (pricing.transportMode && this.transportModes) {
+        const modeObj = this.transportModes.find(m => m && m.name && m.name.toLowerCase() === pricing.transportMode.toLowerCase());
+        this.quotation.TransportMode = modeObj ? modeObj.id : pricing.transportMode;
+      }
 
-  // --- CONNECTING PORTS MAPPING ---
-  const rawCP = pricing.connectingPortIds || pricing.ConnectingPortIds;
-  const cPortIds = typeof rawCP === 'string' ? rawCP.split(',').map(id => Number(id.trim())) : (Array.isArray(rawCP) ? rawCP : []);
-  this.quotation.connectingPortIds = cPortIds;
-  
-  if (this.filteredConnectingPorts) {
-    this.selectedConnectingPorts = this.filteredConnectingPorts.filter(p => cPortIds.includes(Number(p.id)));
-  }
+      // 3. Transport Type & Currency Fix
+      this.quotation.TransportType = pricing.transportType;
+      this.quotation.currency = pricing.cargoCurrency;
 
-  // 6. Org & Ref
-  this.inquiry.organization = pricing.organisationName || pricing.customerName;
-  this.quotation.referenceByInquiry = pricing.referenceByInquiryNo;
+      // 4. Origin Display
+      if (!this.inquiry) this.inquiry = {};
+      this.inquiry.origin = pricing.originName || pricing.origin;
+      this.originsaveid = pricing.originId;
 
-  // 7. Dates
-  if (pricing.receivedDate) this.quotation.receivedDate = pricing.receivedDate.split('T')[0];
-  if (pricing.cargoStatusDate) this.quotation.cargoStatusDate = pricing.cargoStatusDate.split('T')[0];
+      // 5. DB SPECIFIC AUTOFILL FIELDS
+      const dbPortOfLoadingId = pricing['[PortOfLoadingId]'] || pricing.portOfLoadingId || pricing.PortOfLoadingId || null;
+      const dbPortOfDischargeId = pricing['[PortOfDischargeId]'] || pricing.portOfDischargeId || pricing.PortOfDischargeId || null;
+      const dbPlaceOfDelivery = pricing['[PlaceOfDelivery]'] || pricing.placeOfDelivery || pricing.PlaceOfDelivery || "";
+      const dbCountryName = pricing['[CountryName]'] || pricing.countryName || pricing.CountryName || "";
 
-  // 8. COMMODITY IMMEDIATE ASSIGNMENT
-  if (rawCommodityId) {
-    this.quotation.commodity = Number(rawCommodityId);
-  }
-  this.selectcommodityvalue = rawCommodityName;
-
-  // 9. CBM INITIAL ASSIGNMENT & CALCULATION
-  if (rawVolWeight) {
-    this.quotation.volumeWeight = Number(rawVolWeight);
-  }
-
-  if (rawCbm && Number(rawCbm) > 0) {
-    this.quotation.cbm = parseFloat(Number(rawCbm).toFixed(3));
-  } else if (this.quotation.volumeWeight && Number(this.quotation.volumeWeight) > 0) {
-    const calc = Number(this.quotation.volumeWeight) / 167;
-    this.quotation.cbm = parseFloat(calc.toFixed(3));
-  } else {
-    this.quotation.cbm = 0;
-  }
-
-  this.quotation.weight = pricing.weight || pricing.grossWeightKg || pricing.grossWeight || 0;
-  this.quotation.cbmUnit = pricing.cbmUnit || 'CBM';
-
-  // 10. Tables Grid Data
-  this.costRows = pricing.costBreakdowns && pricing.costBreakdowns.length > 0 ? [...pricing.costBreakdowns] : [{ lob: 'Standard', chargeName: '', chargeType: 'Prepaid', basis: 'Per KG', currency: 'INR', rate: 0, exchangeRate: 1, amount: 0 }];
-  this.multiCarrierRows = pricing.multiCarrierBreakdowns && pricing.multiCarrierBreakdowns.length > 0 ? [...pricing.multiCarrierBreakdowns] : [this.createEmptyRow()];
-
-  // 11. Dimensions
-  if (pricing.dimensions && Array.isArray(pricing.dimensions) && pricing.dimensions.length > 0) {
-    this.dimRows = [...pricing.dimensions];
-    this.dimRow = { ...pricing.dimensions[0] };
-    this.appliedDimensions = [...pricing.dimensions];
-  } else {
-    this.dimRows = [];
-    this.dimRow = {};
-    this.appliedDimensions = [];
-  }
-
-  this.isFormOpen = true;
-  this.cdr.detectChanges();
-
-  // ========================================================
-  // 🎯 ULTIMATE TEMPLATE SYNC 
-  // ========================================================
-  setTimeout(() => {
-    if (rawCommodityId) this.quotation.commodity = Number(rawCommodityId);
-    this.selectcommodityvalue = rawCommodityName;
-
-    const freshVolWeight = this.quotation.volumeWeight || rawVolWeight;
-    if (rawCbm && Number(rawCbm) > 0) {
-      this.quotation.cbm = parseFloat(Number(rawCbm).toFixed(3));
-    } else if (freshVolWeight && Number(freshVolWeight) > 0) {
-      const coreCalc = Number(freshVolWeight) / 167;
-      this.quotation.cbm = parseFloat(coreCalc.toFixed(3));
-    }
-
-    if (dbPortOfLoadingId) this.quotation.portOfLoadingId = dbPortOfLoadingId.toString();
-    if (dbPortOfDischargeId) this.quotation.portOfDischargeId = dbPortOfDischargeId.toString();
-    if (dbPlaceOfDelivery) this.quotation.placeOfDelivery = dbPlaceOfDelivery;
-    if (dbCountryName) {
+      this.quotation.portOfLoadingId = dbPortOfLoadingId ? dbPortOfLoadingId.toString() : null;
+      this.quotation.portOfDischargeId = dbPortOfDischargeId ? dbPortOfDischargeId.toString() : null;
+      
+      this.quotation.originPOL = pricing.originName || pricing.origin || "";
+      this.quotation.placeOfDelivery = dbPlaceOfDelivery;
       this.quotation.country = dbCountryName; 
       this.quotation.countryName = dbCountryName;
-    }
+      this.quotation.countryId = pricing.countryId || null;
 
-    // Re-sync Connecting Ports in Timeout
-    if (this.filteredConnectingPorts) {
-        this.selectedConnectingPorts = this.filteredConnectingPorts.filter(p => this.quotation.connectingPortIds.includes(Number(p.id)));
-    }
+      if (dbPortOfLoadingId && this.filteredConnectingPorts) {
+        const foundPol = this.filteredConnectingPorts.find(p => p.id.toString() === dbPortOfLoadingId.toString());
+        this.quotation.portOfLoading = foundPol ? foundPol.name : (pricing.portOfLoadingName || '');
+      } else {
+        this.quotation.portOfLoading = pricing.portOfLoadingName || "";
+      }
 
-    if (pricing.countryId && typeof this.selectCountry === 'function') {
-      this.selectCountry({ id: pricing.countryId, name: dbCountryName });
-    }
+      if (dbPortOfDischargeId && this.filteredConnectingPorts) {
+        const foundPod = this.filteredConnectingPorts.find(p => p.id.toString() === dbPortOfDischargeId.toString());
+        this.quotation.portOfDischarge = foundPod ? foundPod.name : (pricing.portOfDischargeName || '');
+        this.quotation.portOfDestination = this.quotation.portOfDischarge;
+      } else {
+        this.quotation.portOfDischarge = pricing.portOfDischargeName || "";
+        this.quotation.portOfDestination = pricing.portOfDischargeName || "";
+      }
 
-    console.log("🔥 Sync Finished! Both Ports Selected and NG02200 Error Resolved.");
-    this.cdr.detectChanges();
-  }, 400); 
+      // Connecting Ports
+      const rawCP = pricing.connectingPortIds || pricing.ConnectingPortIds;
+      const cPortIds = typeof rawCP === 'string' ? rawCP.split(',').map(id => Number(id.trim())) : (Array.isArray(rawCP) ? rawCP : []);
+      this.quotation.connectingPortIds = cPortIds;
+      if (this.filteredConnectingPorts) {
+        this.selectedConnectingPorts = this.filteredConnectingPorts.filter(p => cPortIds.includes(Number(p.id)));
+      }
+
+      // 6. Org & Ref
+      this.inquiry.organization = pricing.organisationName || pricing.customerName;
+      this.quotation.referenceByInquiry = pricing.referenceByInquiryNo;
+
+      // 7. Dates
+      if (pricing.receivedDate) this.quotation.receivedDate = pricing.receivedDate.split('T')[0];
+      if (pricing.cargoStatusDate) this.quotation.cargoStatusDate = pricing.cargoStatusDate.split('T')[0];
+
+      // 8. Commodity & CBM
+      if (rawCommodityId) this.quotation.commodity = Number(rawCommodityId);
+      this.selectcommodityvalue = rawCommodityName;
+
+      if (rawVolWeight) this.quotation.volumeWeight = Number(rawVolWeight);
+      if (rawCbm && Number(rawCbm) > 0) {
+        this.quotation.cbm = parseFloat(Number(rawCbm).toFixed(3));
+      } else if (this.quotation.volumeWeight && Number(this.quotation.volumeWeight) > 0) {
+        const calc = Number(this.quotation.volumeWeight) / 167;
+        this.quotation.cbm = parseFloat(calc.toFixed(3));
+      } else {
+        this.quotation.cbm = 0;
+      }
+
+      this.quotation.weight = pricing.weight || pricing.grossWeightKg || pricing.grossWeight || 0;
+      this.quotation.cbmUnit = pricing.cbmUnit || 'CBM';
+
+      // 10. Tables
+      this.costRows = pricing.costBreakdowns && pricing.costBreakdowns.length > 0 ? [...pricing.costBreakdowns] : [{ lob: 'Standard', chargeName: '', chargeType: 'Prepaid', basis: 'Per KG', currency: 'INR', rate: 0, exchangeRate: 1, amount: 0 }];
+      this.multiCarrierRows = pricing.multiCarrierBreakdowns && pricing.multiCarrierBreakdowns.length > 0 ? [...pricing.multiCarrierBreakdowns] : [this.createEmptyRow()];
+
+      // 11. Dimensions
+      if (pricing.dimensions && Array.isArray(pricing.dimensions) && pricing.dimensions.length > 0) {
+        this.dimRows = [...pricing.dimensions];
+        this.dimRow = { ...pricing.dimensions[0] };
+        this.appliedDimensions = [...pricing.dimensions];
+      } else {
+        this.dimRows = [];
+        this.dimRow = {};
+        this.appliedDimensions = [];
+      }
+
+      this.isFormOpen = true;
+      this.cdr.detectChanges();
+
+      // ========================================================
+      // 🎯 ULTIMATE TEMPLATE SYNC 
+      // ========================================================
+      setTimeout(() => {
+        if (rawCommodityId) this.quotation.commodity = Number(rawCommodityId);
+        this.selectcommodityvalue = rawCommodityName;
+        const freshVolWeight = this.quotation.volumeWeight || rawVolWeight;
+        if (rawCbm && Number(rawCbm) > 0) {
+          this.quotation.cbm = parseFloat(Number(rawCbm).toFixed(3));
+        } else if (freshVolWeight && Number(freshVolWeight) > 0) {
+          this.quotation.cbm = parseFloat((Number(freshVolWeight) / 167).toFixed(3));
+        }
+        if (dbPortOfLoadingId) this.quotation.portOfLoadingId = dbPortOfLoadingId.toString();
+        if (dbPortOfDischargeId) this.quotation.portOfDischargeId = dbPortOfDischargeId.toString();
+        if (dbPlaceOfDelivery) this.quotation.placeOfDelivery = dbPlaceOfDelivery;
+        if (dbCountryName) {
+          this.quotation.country = dbCountryName; 
+          this.quotation.countryName = dbCountryName;
+        }
+        if (this.filteredConnectingPorts) {
+          this.selectedConnectingPorts = this.filteredConnectingPorts.filter(p => this.quotation.connectingPortIds.includes(Number(p.id)));
+        }
+        if (pricing.countryId && typeof this.selectCountry === 'function') {
+          this.selectCountry({ id: pricing.countryId, name: dbCountryName });
+        }
+        console.log("🔥 Sync Finished!");
+        this.cdr.detectChanges();
+      }, 400);
+
+    },
+    (err) => console.error("Error fetching full data:", err)
+  );
 }
-
 // Keep it safe for other components calling it
 
 sendBulkEmails(inqId: number) {

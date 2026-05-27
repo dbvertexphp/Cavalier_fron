@@ -290,6 +290,9 @@ this.getsales();
     this.loadSearchSuggestions();
     this.fetchCompanyServices()
     this.fetchLOBs();
+    if (this.multiCarrierRows.length === 0) {
+    this.multiCarrierRows.push(this.createEmptyRow());
+  }
   }
   onCargoStatusChange2() {
   if (this.quotation.cargoStatus === 'Ready') {
@@ -418,6 +421,49 @@ showPricingDetails(item: any) {
     Swal.fire('Error', 'Pricing ID nahi mili is record ke liye.', 'error');
   }
 }
+// 1. New Row structure define karein jisme saari fields initialized hon
+  createEmptyRow() {
+    return {
+      id: 0,
+      forwarder: '',
+      origin: '',
+      lob: 'Standard',
+      chargeName: '',
+      chargeType: 'Prepaid',
+      currency: 'USD',
+      airFreight: 0,
+      fsc: 'INC',
+      airline: '',
+      type: 'INDIRECT',
+      cutoff: '',
+      schedule: '',
+      exWorks: 0,
+      doCharges: 0,
+      ccFee: 0,
+      rate: 0,
+      exchangeRate: 1,
+      totalCost: 0,
+      remark: ''
+    };
+  }
+
+  // 2. Multi-Carrier Rows ke dynamic push function ko backend payload logic se track karein
+  calculateMasterIndirectTotal(index: number) {
+    const mRow = this.multiCarrierRows[index];
+    if (mRow) {
+      const chrgWeight = Number(this.quotation.chargeableWeight) || 0;
+      const airfreightCost = Number(mRow.airFreight) || 0;
+      const inputRate = Number(mRow.rate) || 0;
+      const exchangeVal = Number(mRow.exchangeRate) || 1;
+
+      // Formula: Airfreight + (Chargeable Weight * Rate * Ex. Rate)
+      mRow.totalCost = airfreightCost + (chrgWeight * inputRate * exchangeVal);
+    }
+    this.cdr.detectChanges();
+    if (this.calculateAll) {
+      this.calculateAll(); // Global matrix update ke liye
+    }
+  }
 toggleReview() {
   if (!this.quotation.organization) {
     alert("Please select or save organization first");

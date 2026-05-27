@@ -2170,7 +2170,7 @@
         </div>
       </div>
 
-     <div *ngIf="quotation.isIndirect" 
+     <div 
      class="mt-8 border border-gray-200 rounded-xl shadow-xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-4 duration-500 bg-white">
     
     <div class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px] flex justify-between items-center">
@@ -2186,109 +2186,201 @@
         
     </div>
 
-    <div class="overflow-auto bg-gray-50 custom-scrollbar max-h-[550px]">
-        <div class="inline-block min-w-full align-middle">
-            <table class="min-w-full border-separate border-spacing-0 text-[11px]">
-                <thead>
-                    <tr class="bg-gray-100 shadow-sm text-center font-bold text-gray-700 uppercase whitespace-nowrap">
-                        <th class="sticky left-0 z-30 bg-gray-100 px-4 py-4 text-left border-b border-gray-200 shadow-md">Freight Forwarder</th>
-                        <th class="px-4 py-4 border-b border-gray-200">Origin</th>
-                        <th class="px-4 py-4 border-b border-gray-200">LOB</th>
-                        <th class="px-4 py-4 border-b border-gray-200">Charge Name</th>
-                        <th class="px-4 py-4 border-b border-gray-200">Type</th>
-                        <th class="px-4 py-4 border-b border-gray-200 bg-blue-50/50 text-blue-950">Chrg. Weight</th>
-                        <th class="px-4 py-4 border-b border-gray-200">Airfreight</th>
-                        <th class="px-4 py-4 border-b border-gray-200">FSC/ISS</th>
-                        <th class="px-4 py-4 border-b border-gray-200">Airline</th>
-                        <th class="px-4 py-4 border-b border-gray-200">Cut-off</th>
-                        <th class="px-4 py-4 border-b border-gray-200">Schedule (Date)</th>
-                        <th class="px-4 py-4 border-b border-gray-200">Currency</th>
-                        <th class="px-4 py-4 border-b border-gray-200">Rate</th>
-                        <th class="px-4 py-4 border-b border-gray-200">Ex. Rate</th>
-                        <th class="px-4 py-4 bg-amber-100 text-[#4a3f3f] border-b border-amber-300 font-black">Total Cost</th>
-                        <th class="px-4 py-4 border-b border-gray-200">Action</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200 bg-white">
-                    <tr *ngFor="let m of multiCarrierRows; let i = index" class="hover:bg-amber-50/30 transition-colors whitespace-nowrap">
-                        <td class="sticky left-0 z-20 bg-white group-hover:bg-amber-50/50 px-3 py-2.5 border-r shadow-sm">
-                            <input [(ngModel)]="m.forwarder" name="mforwarder_{{i}}" class="w-36 border-b border-transparent focus:border-[#4a3f3f] outline-none text-xs font-bold uppercase bg-transparent" placeholder="Forwarder Name">
-                        </td>
-                        <td class="px-2 py-2">
-                            <input [(ngModel)]="m.origin" name="morigin_{{i}}" class="w-20 text-center outline-none border-b border-transparent focus:border-gray-300 bg-transparent uppercase" placeholder="Origin">
-                        </td>
-                        <td class="px-2 py-2">
-                            <select [(ngModel)]="m.lob" name="mlob_{{i}}" class="w-32 bg-transparent border-b border-transparent focus:border-amber-500 outline-none font-medium cursor-pointer">
-                                <option *ngFor="let service of companyServices" [value]="service.serviceName">{{ service.serviceName }}</option>
-                            </select>
-                        </td>
-                        <td class="px-2 py-2">
-                            <select [(ngModel)]="m.chargeName" name="mchgname_{{i}}" class="w-36 bg-transparent border-b border-transparent focus:border-amber-500 outline-none italic cursor-pointer">
-                                <option value="">-- Select --</option>
-                                <option value="Freight Charges">Freight Charges</option>
-                                <option value="Fuel Surcharge">Fuel Surcharge</option>
-                                <option value="Customs Clearance">Customs Clearance</option>
-                                <option value="Documentation Fee">Documentation Fee</option>
-                                <option value="Handling Charges">Handling Charges</option>
-                                <option value="Storage Fee">Storage Fee</option>
-                                <option value="Delivery Charges">Delivery Charges</option>
-                                <option value="Insurance">Insurance</option>
-                                <option value="Inspection Fee">Inspection Fee</option>
-                                <option value="Other Charges">Other Charges</option>
-                            </select>
-                        </td>
-                        <td class="px-2 py-2">
-                            <select [(ngModel)]="m.chargeType" name="mchgtype_{{i}}" class="w-20 text-center bg-transparent border-b border-transparent focus:border-amber-500 outline-none cursor-pointer">
-                                <option value="Prepaid">Prepaid</option>
-                                <option value="Collect">Collect</option>
-                            </select>
-                        </td>
-                        <td class="px-2 py-2 bg-blue-50/30 text-center font-bold text-blue-900">
-                            {{ quotation.chargeableWeight || 0 }}
-                        </td>
-                        <td class="px-2 py-2">
-                            <input type="number" [(ngModel)]="m.airFreight" name="mair_{{i}}"  class="w-20 text-center font-semibold bg-transparent border-b border-transparent focus:border-gray-300 outline-none" placeholder="0">
-                        </td>
-                        <td class="px-2 py-2">
-                            <input [(ngModel)]="m.fsc" name="mfsc_{{i}}" class="w-16 text-center bg-transparent border-b border-transparent focus:border-gray-300 outline-none" placeholder="INC">
-                        </td>
-                        <td class="px-2 py-2">
-                            <input [(ngModel)]="m.airline" name="mairline_{{i}}" class="w-24 text-center bg-transparent border-b border-transparent focus:border-gray-300 outline-none italic font-medium uppercase" placeholder="Airline">
-                        </td>
-                        <td class="px-2 py-2">
-                            <input [(ngModel)]="m.cutoff" name="mcutoff_{{i}}" class="w-20 text-center bg-transparent border-b border-transparent focus:border-gray-300 outline-none" placeholder="Cut-off">
-                        </td>
-                        <td class="px-2 py-2">
-                            <input #rowDatePicker type="date" [(ngModel)]="m.schedule" name="msched_{{i}}"  class="outline-none bg-gray-50 border border-gray-200 rounded px-1 py-0.5 cursor-pointer text-xs">
-                        </td>
-                        <td class="px-2 py-2">
-                            <input [(ngModel)]="m.currency" name="mcur_{{i}}" [attr.list]="'mMasterCur' + i" class="w-16 text-center bg-transparent border-b border-transparent focus:border-amber-500 outline-none font-bold text-blue-600 uppercase">
-                            <datalist [id]="'mMasterCur' + i">
-                                <option *ngFor="let c of currencies" [value]="c.value">{{c.label}}</option>
-                            </datalist>
-                        </td>
-                        <td class="px-2 py-2">
-                            <input type="number" [(ngModel)]="m.rate" name="mrate_{{i}}"  class="w-16 text-right font-semibold bg-transparent border-b border-transparent focus:border-amber-500 outline-none">
-                        </td>
-                        <td class="px-2 py-2">
-                            <input type="number" [(ngModel)]="m.exchangeRate" name="mexch_{{i}}"  class="w-16 text-right bg-transparent border-b border-transparent focus:border-amber-500 outline-none">
-                        </td>
-                        <td class="px-4 py-2 text-right font-black text-[#4a3f3f] bg-amber-50 italic border-l border-r border-amber-200">
-                            {{ (m.totalCost || 0) | number:'1.2-2' }}
-                        </td>
-                        <td class="px-3 py-2 text-center">
-                            <button type="button"  class="text-red-400 hover:text-red-600 transition-colors cursor-pointer outline-none">
-                                <i class="fa fa-times-circle text-base"></i>
-                            </button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+    <div class="border border-gray-300 shadow-md mt-6 rounded-sm overflow-hidden bg-white">
+    
+    <div class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px] flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <span>📊 COST & MULTI-CARRIER INTEGRATED BREAKDOWN</span>
+            
         </div>
+        <button type="button" (click)="addCostRow()" 
+                class="bg-green-600 text-white w-6 h-6 rounded-full hover:bg-green-700 shadow-sm flex items-center justify-center font-black text-sm outline-none">
+            +
+        </button>
+    </div>
+
+    <div class="overflow-x-auto bg-white">
+        <table class="w-full border-collapse text-[11px] whitespace-nowrap">
+            <thead class="bg-gray-50 border-b border-gray-300 font-bold text-gray-600 uppercase text-center">
+                <tr>
+                    <th class="border p-2 text-left min-w-[140px]">Source / Forwarder</th>
+                    <th class="border p-2 min-w-[90px]">Origin</th>
+                    <th class="border p-2 min-w-[100px]">LOB</th>
+                    <th class="border p-2 text-left min-w-[150px]">Charge Name</th>
+                    <th class="border p-2 min-w-[90px]">Charge Type</th>
+                    <th class="border p-2 bg-blue-50/50 text-blue-900 min-w-[80px]">Chrg. Weight</th>
+                    <th class="border p-2 min-w-[80px]">Airfreight</th>
+                    <th class="border p-2 min-w-[70px]">FSC/ISS</th>
+                    <th class="border p-2 min-w-[90px]">Airline</th>
+                    <th class="border p-2 min-w-[80px]">Cut-off</th>
+                    <th class="border p-2 min-w-[110px]">Schedule</th>
+                    <th class="border p-2 min-w-[70px]">Cur</th>
+                    <th class="border p-2 text-right min-w-[80px]">Rate</th>
+                    <th class="border p-2 text-right min-w-[80px]">Ex. Rate</th>
+                    <th class="border p-2 text-right min-w-[110px] bg-red-50 text-red-800 font-black">Amount / Cost</th>
+                    <th class="border p-2 w-[40px] bg-gray-50">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <ng-container *ngIf="quotation.isDirect">
+                <tr  *ngFor="let c of costRows; let idx = index" class="bg-gray-50/50 hover:bg-gray-100/80 transition-colors">
+                    <td class="border p-2 font-bold text-blue-800 italic sticky left-0 bg-gray-50">
+                        📌 Single Carrier
+                    </td>
+                    <td class="border p-1 text-center text-gray-400 font-mono select-none">
+                        {{ quotation.originPOL || '---' }}
+                    </td>
+                    <td class="border p-1">
+                        <input [(ngModel)]="c.lob" name="clob_{{idx}}" readonly class="w-full bg-transparent outline-none text-gray-500 cursor-not-allowed text-center" />
+                    </td>
+                    <td class="border p-1">
+                        <select name="ccharge_{{idx}}" [(ngModel)]="c.chargeName" class="w-full outline-none p-1 bg-transparent border-none">
+                            <option value="">-- Select Charge Name --</option>
+                            <option value="Freight Charges">Freight Charges</option>
+                            <option value="Fuel Surcharge">Fuel Surcharge</option>
+                            <option value="Customs Clearance">Customs Clearance</option>
+                            <option value="Documentation Fee">Documentation Fee</option>
+                            <option value="Handling Charges">Handling Charges</option>
+                            <option value="Storage Fee">Storage Fee</option>
+                            <option value="Delivery Charges">Delivery Charges</option>
+                            <option value="Insurance">Insurance</option>
+                            <option value="Inspection Fee">Inspection Fee</option>
+                            <option value="Other Charges">Other Charges</option>
+                        </select>
+                    </td>
+                    <td class="border p-1">
+                        <select name="ctype_{{idx}}" [(ngModel)]="c.chargeType" class="w-full outline-none p-1 bg-transparent text-center">
+                            <option value="Prepaid">Prepaid</option>
+                            <option value="Collect">Collect</option>
+                        </select>
+                    </td>
+                    <td class="border p-1 bg-blue-50/20 text-center font-bold text-blue-900">
+                        {{ quotation.chargeableWeight || 0 }}
+                    </td>
+                    <td class="border p-1 text-center text-gray-400 bg-gray-100/50 select-none">---</td>
+                    <td class="border p-1 text-center text-gray-400 bg-gray-100/50 select-none">---</td>
+                    <td class="border p-1 text-center text-gray-400 bg-gray-100/50 select-none">---</td>
+                    <td class="border p-1 text-center text-gray-400 bg-gray-100/50 select-none">---</td>
+                    <td class="border p-1 text-center text-gray-400 bg-gray-100/50 select-none">---</td>
+                    
+                    <td class="border p-1">
+                        <input name="ccur_{{idx}}" [(ngModel)]="c.currency" [attr.list]="'ccurList_' + idx" class="w-full outline-none p-1 text-center font-bold text-red-600 bg-transparent uppercase" />
+                        <datalist [id]="'ccurList_' + idx">
+                            <option *ngFor="let curr of currencies" [value]="curr.value">{{ curr.label }}</option>
+                        </datalist>
+                    </td>
+                    <td class="border p-1">
+                        <input type="number" name="crate_{{idx}}" [(ngModel)]="c.rate" (input)="calculateCost()" class="w-full outline-none p-1 text-right bg-transparent font-medium" />
+                    </td>
+                    <td class="border p-1">
+                        <input type="number" name="cexch_{{idx}}" [(ngModel)]="c.exchangeRate" (input)="calculateCost()" class="w-full outline-none p-1 text-right bg-transparent" />
+                    </td>
+                    <td class="border p-2 bg-red-50 text-right font-black text-red-800">
+                        {{ (c.amount || 0) | number:'1.2-2' }}
+                    </td>
+                    <td class="border p-1 text-center">
+                        <button type="button" *ngIf="costRows.length > 1" (click)="removeCostRow(idx)" class="text-red-400 hover:text-red-600 font-bold transition-colors">✕</button>
+                    </td>
+                </tr>
+</ng-container>
+<ng-container *ngIf="quotation.isIndirect">
+                <tr *ngFor="let m of multiCarrierRows; let i = index" class="hover:bg-amber-50/30 transition-colors">
+                    
+                    <td class="sticky left-0 z-20 bg-white group-hover:bg-amber-50/50 px-2 py-1">
+                        <input [(ngModel)]="m.forwarder" name="mforwarder_{{i}}" class="w-full border-b border-gray-200 focus:border-[#4a3f3f] outline-none text-xs font-bold uppercase bg-transparent" placeholder="Forwarder Name">
+                    </td>
+                    <td class="border p-1">
+                        <input [(ngModel)]="m.origin" name="morigin_{{i}}" class="w-full outline-none p-1 bg-transparent text-center uppercase" placeholder="Origin">
+                    </td>
+                    <td class="border p-1">
+                        <select [(ngModel)]="m.lob" name="mlob_{{i}}" class="w-full bg-transparent border-none outline-none font-medium cursor-pointer text-center">
+                            <option *ngFor="let service of companyServices" [value]="service.serviceName">{{ service.serviceName }}</option>
+                        </select>
+                    </td>
+                    <td class="border p-1">
+                        <select [(ngModel)]="m.chargeName" name="mchgname_{{i}}" class="w-full bg-transparent border-none outline-none italic cursor-pointer">
+                            <option value="">-- Select Charge --</option>
+                            <option value="Freight Charges">Freight Charges</option>
+                            <option value="Fuel Surcharge">Fuel Surcharge</option>
+                            <option value="Customs Clearance">Customs Clearance</option>
+                            <option value="Documentation Fee">Documentation Fee</option>
+                            <option value="Handling Charges">Handling Charges</option>
+                            <option value="Storage Fee">Storage Fee</option>
+                            <option value="Delivery Charges">Delivery Charges</option>
+                            <option value="Insurance">Insurance</option>
+                            <option value="Inspection Fee">Inspection Fee</option>
+                            <option value="Other Charges">Other Charges</option>
+                        </select>
+                    </td>
+                    <td class="border p-1">
+                        <select [(ngModel)]="m.chargeType" name="mchgtype_{{i}}" class="w-full text-center bg-transparent border-none outline-none cursor-pointer">
+                            <option value="Prepaid">Prepaid</option>
+                            <option value="Collect">Collect</option>
+                        </select>
+                    </td>
+                    <td class="border p-1 bg-blue-50/30 text-center font-bold text-blue-900">
+                        {{ quotation.chargeableWeight || 0 }}
+                    </td>
+                    <td class="border p-1">
+                        <input type="number" [(ngModel)]="m.airFreight" name="mair_{{i}}" (input)="calculateMasterIndirectTotal(i)" class="w-full outline-none p-1 bg-transparent text-right" placeholder="0">
+                    </td>
+                    <td class="border p-1">
+                        <input [(ngModel)]="m.fsc" name="mfsc_{{i}}" class="w-full outline-none p-1 bg-transparent text-center" placeholder="INC">
+                    </td>
+                    <td class="border p-1">
+                        <input [(ngModel)]="m.airline" name="mairline_{{i}}" class="w-full outline-none p-1 bg-transparent text-center font-medium uppercase" placeholder="Airline">
+                    </td>
+                    <td class="border p-1">
+                        <input [(ngModel)]="m.cutoff" name="mcutoff_{{i}}" class="w-full outline-none p-1 bg-transparent text-center" placeholder="Cut-off">
+                    </td>
+                    <td class="border p-1 text-center">
+                        <input #rowDatePicker type="date" [(ngModel)]="m.schedule" name="msched_{{i}}"  class="outline-none bg-gray-50 border border-gray-200 rounded px-1 py-0.5 cursor-pointer text-xs">
+                    </td>
+                    <td class="border p-1">
+                        <input [(ngModel)]="m.currency" name="mcur_{{i}}" [attr.list]="'mMasterCur' + i" class="w-full outline-none p-1 text-center font-bold text-blue-600 bg-transparent uppercase">
+                        <datalist [id]="'mMasterCur' + i">
+                            <option *ngFor="let c of currencies" [value]="c.value">{{c.label}}</option>
+                        </datalist>
+                    </td>
+                    <td class="border p-1">
+                        <input type="number" [(ngModel)]="m.rate" name="mrate_{{i}}" (input)="calculateMasterIndirectTotal(i)" class="w-full text-right font-semibold bg-transparent border-none outline-none" placeholder="0.00">
+                    </td>
+                    <td class="border p-1">
+                        <input type="number" [(ngModel)]="m.exchangeRate" name="mexch_{{i}}" (input)="calculateMasterIndirectTotal(i)" class="w-full text-right bg-transparent border-none outline-none" placeholder="1">
+                    </td>
+                    <td class="border p-2 text-right font-black text-[#4a3f3f] bg-amber-50/60 italic">
+                        {{ (m.totalCost || 0) | number:'1.2-2' }}
+                    </td>
+                    <td class="border p-1 text-center">
+                        <button type="button" (click)="multiCarrierRows.splice(i, 1); calculateAll()" class="text-red-400 hover:text-red-600 transition-colors outline-none cursor-pointer">
+                            <i class="fa fa-times-circle text-base"></i>
+                        </button>
+                    </td>
+                </tr>
+</ng-container>
+                <tr *ngIf="costRows.length === 0 && multiCarrierRows.length === 0">
+                    <td colspan="16" class="p-8 text-center text-gray-400 italic bg-gray-50">
+                        No financial components mapped to this grid matrix yet.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="bg-gray-50 px-4 py-2.5 border-t flex justify-between items-center text-[10px] text-gray-400 italic">
+        <div class="flex gap-4">
+            <span>💡 <b>Tip:</b> Cost rows multiply with weight automatically.</span>
+            <span>✈️ <b>Multi-Carrier:</b> Updates formula dynamically upon rate alteration.</span>
+        </div>
+        <button type="button" (click)="multiCarrierRows.push(createEmptyRow())" 
+                class="text-blue-600 font-bold hover:underline uppercase tracking-wider text-[11px] outline-none">
+            + Append Multi-Carrier Row
+        </button>
     </div>
 </div>
+</div>
 
-<div *ngIf="quotation.isDirect" class="border border-gray-300 shadow-sm rounded-sm mt-6 animate-in fade-in duration-300">
+<!-- <div *ngIf="quotation.isDirect" class="border border-gray-300 shadow-sm rounded-sm mt-6 animate-in fade-in duration-300">
     <div class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px] flex justify-between items-center">
         <span>COST</span>
     </div>
@@ -2366,7 +2458,7 @@
             </tbody>
         </table>
     </div>
-</div>
+</div> -->
 
       <div
         class="border border-gray-300 shadow-md mt-8 rounded-sm overflow-hidden"

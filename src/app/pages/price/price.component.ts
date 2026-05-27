@@ -104,20 +104,7 @@ addDocument() {
 removeDocument(index: number) {
   this.documents.splice(index, 1);
 }
-onFileSelecteds(event: any, index: number) {
-    const file = event.target.files[0];
-    
-    if (file) {
-      this.documents[index].file = file;
-      this.documents[index].fileName = file.name; // Naam UI (Chhote badge) par dikhane ke liye
-      
-      // Local file ka temporary URL banana preview ke liye
-      const objectUrl = URL.createObjectURL(file);
-      
-      // Angular ko batana ki ye iframe me dikhane ke liye safe hai
-      this.documents[index].previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
-    }
-  }
+
 
 openCommodityModal() {
     this.isDocumentModalOpen = true;
@@ -153,6 +140,14 @@ closeDocumentModal() {
   // Add New Invoice Row
 addInvoice() {
     this.invoices.push({ name: '', file: null, fileName: '', previewUrl: null });
+  
+  this.invoices.push({ 
+    name: '', 
+    documentPath: null, 
+    file: null, 
+    isReplacing: false // Yeh line zaroori hai
+  });
+
   }
 removeInvoice(index: number) {
     this.invoices.splice(index, 1);
@@ -229,21 +224,24 @@ dimRows: any[] = [];
 // }
 
 calculateVolumeWeight() {
-  // 1. Pehle weight aur CBM calculate karein (Purana logic)
+  // 1. Sirf calculation karo, dimRows ko mat chhedo!
   const weight = this.calculateSingleVolumeWeight(this.dimRow);
   this.quotation.volumeWeight = parseFloat(weight.toFixed(2));
   this.calculateCBM();
 
-  // 2. AUTO-SAVE LOGIC (Bina Apply Button ke Preview aur Payload update karega)
-  // Hum current single row ko array mein dalenge aur filters trigger karenge
-  this.dimRows = [{ ...this.dimRow }];
+  // 2. Sirf tabhi update karo agar modal open nahi hai (Optional safety)
+  // YA PHIR: Sirf pehli row ko update karo, baaki array ko mat overwrite karo!
+  if (this.dimRows.length > 0) {
+    this.dimRows[0] = { ...this.dimRow }; 
+  } else {
+    this.dimRows = [{ ...this.dimRow }];
+  }
   
-  // 3. Wahi logic jo aapne Save Button (Apply) par likha hai:
+  // 3. Calculation logic call karo (Lekin dimRows ko overwrite mat karo)
   this.appliedDimensions = this.dimRows.filter(d => d.l > 0 && d.w > 0 && d.h > 0);
-  
   this.calculateNetWeight();
   this.calculateVolumeWeightLogic();
-  this.syncFinalData(); // Yeh function hi payload/preview ko finalize karta hai
+  this.syncFinalData();
 }
 // Ye function banaye jo modal ke button se bhi chale aur bahar se bhi
 syncFinalData() {
@@ -372,7 +370,7 @@ columnFieldMap: any = {
 selectedColumns: string[] = ['ID', 'Inquiry No', 'Date', 'Customer', 'Status','LeadName','OrganisationName'];
 availableColumns: string[] = ['Mode', 'Origin', 'Destination', 'Sales Person'];
     isFormOpen = false;
-    private apiUrl = `${environment.apiUrl}/Pricing`;
+    public apiUrl = `${environment.apiUrl}/Pricing`;
 inquiries:any[]=[]
     quotations: any[] = [];
     quotation: any = this.resetQuotationModel();
@@ -1191,70 +1189,145 @@ removeDimRow(i: number) {
 onTransportModeChange(){
   alert(this.quotation.TransportMode)
 }
-
-// 4. Save button par calculation trigger karna
+// Sahi initialization:
+// dimRows: any[] = [];
 saveDimensions() {
+  // saveDimensions ke start mein:
+this.dimRows = [...this.dimRows];
+  // 1. Data Filter karo
   this.appliedDimensions = this.dimRows.filter(d => d.l > 0 && d.w > 0 && d.h > 0);
   
-  // Modal save hote hi total weight ko field mein daal do
+  // 2. Main Quotation Dimensions mein poora array daalo
+  // (Main UI wali dimRow wahi hai jo dimRows[0] mein hai)
+  this.quotation.dimensions = [...this.dimRows];
+  
+  // 3. UI ke liye dimRow ko index 0 se update karo
+  if (this.dimRows.length > 0) {
+    this.dimRow = { ...this.dimRows[0] };
+  }
+
+  // 4. Calculations (Saare functions ko yahan call karo)
   this.quotation.volumeWeight = this.getTotalVolumeWeight();
   this.calculateCBM();
   this.calculateNetWeight();
   this.calculateVolumeWeightLogic();
   this.syncFinalData();
-  this.closeDimModal();
   this.calculateTotalPackages();
+  
+  // 5. Modal band karo
+  this.closeDimModal();
 }
-
-// Jab Modal Open ho
+// 4. Save button par calculation trigger karna
 openDimModal() {
-  // Agar modal pehli baar khul raha hai, toh bahar wali row ka data modal mein copy kar do
+  // Agar dimRows empty hai, toh dimRow (Main UI) wala data push kar do
   if (!this.dimRows || this.dimRows.length === 0) {
     this.dimRows = [{ ...this.dimRow }];
   }
   this.isDimModalOpen = true;
+  this.cdr.detectChanges();
 }
+
+// Jab Modal Open ho
+
     
-   editQuotation(q: any) {
-  // 1. Backend data ko model mein map karein
-  this.quotation = { ...q };
 
-  // 2. IMPORTANT: IDs ko numbers mein convert karein (Mapping Fix)
-  this.quotation.lineOfBusinessId = q.lineOfBusinessId ? Number(q.lineOfBusinessId) : null;
-  this.quotation.originId = q.originId ? Number(q.originId) : null;
-  this.quotation.portOfLoadingId = q.portOfLoadingId ? Number(q.portOfLoadingId) : null;
-  this.quotation.portOfDischargeId = q.portOfDischargeId ? Number(q.portOfDischargeId) : null;
 
-  // 3. UI object (this.inquiry) ko update karein 
-  // Agar aapke HTML mein [ngModel]="inquiry.origin" hai toh ye zaroori hai
-  this.inquiry = {
-    ...this.inquiry, // purani properties bachane ke liye
-    inquiryNo: q.inquiryNo,
-    organization: q.customerName || q.organization,
-    origin: q.origin, // text representation
-    leadNo: q.leadNo
-  };
+// editQuotation(q: any) {
+//   // environment se URL lekar fresh API call
+//   const url = `${environment.apiUrl}/Pricing/${q.id}`;
 
-  // 4. Dates handling
-  if (q.receivedDate) {
-    this.quotation.receivedDate = new Date(q.receivedDate).toISOString().split('T')[0];
-  }
+//   this.http.get(url).subscribe({
+//     next: (fullData: any) => {
+//       console.log("DEBUG: Fresh API Data received:", fullData);
 
-  // 5. Dimensions parsing
-  this.appliedDimensions = q.dimensions || [];
-  this.dimRows = this.appliedDimensions.length > 0 
-    ? [...this.appliedDimensions] 
-    : [{ box: 1, l: 0, w: 0, h: 0, unit: 'CMS' }];
+//       // Mapping logic
+//       this.quotation = { ...fullData };
 
-  // 6. Modal open karein
-  this.isFormOpen = true;
+//       // IDs mapping
+//       this.quotation.lineOfBusinessId = fullData.lineOfBusinessId ? Number(fullData.lineOfBusinessId) : null;
+//       this.quotation.originId = fullData.originId ? Number(fullData.originId) : null;
+//       this.quotation.portOfLoadingId = fullData.portOfLoadingId ? Number(fullData.portOfLoadingId) : null;
+//       this.quotation.portOfDischargeId = fullData.portOfDischargeId ? Number(fullData.portOfDischargeId) : null;
 
-  // 7. Forcefully Angular ko batayein ki data update hua hai
-  setTimeout(() => {
-    this.cdr.detectChanges();
-  }, 100);
+//       // UI object update
+//       this.inquiry = {
+//         ...this.inquiry,
+//         inquiryNo: fullData.inquiryNo,
+//         organization: fullData.customerName || fullData.organization,
+//         origin: fullData.origin,
+//         leadNo: fullData.leadNo
+//       };
+
+//       // --- DOCUMENTS MAPPING ---
+//       const allDocs = fullData.pricingDocuments || [];
+//       console.log("DEBUG: Total Docs found:", allDocs.length);
+
+//       this.documents = allDocs
+//         .filter((d: any) => d.docType === 'Commodity')
+//         .map((d: any) => ({
+//           id: d.docId,
+//           name: d.docType,
+//           documentPath: d.docPath,
+//           isExisting: true,
+//           file: null,
+//           isReplacing: false
+//         }));
+
+//       this.invoices = allDocs
+//         .filter((d: any) => d.docType === 'Invoice')
+//         .map((d: any) => ({
+//           id: d.docId,
+//           name: d.docType,
+//           documentPath: d.docPath,
+//           isExisting: true,
+//           file: null,
+//           isReplacing: false
+//         }));
+
+//       this.quotation.invoiceList = (this.invoices.length > 0) ? 'Available' : 'Not Available';
+
+//       // Dates & Dimensions
+//       if (fullData.receivedDate) {
+//         this.quotation.receivedDate = new Date(fullData.receivedDate).toISOString().split('T')[0];
+//       }
+
+//       this.appliedDimensions = fullData.dimensions || [];
+//       this.dimRows = this.appliedDimensions.length > 0 
+//         ? [...this.appliedDimensions] 
+//         : [{ box: 1, l: 0, w: 0, h: 0, unit: 'CMS' }];
+
+//       // Modal open
+//       this.isFormOpen = true;
+
+//       setTimeout(() => {
+//         this.cdr.detectChanges();
+//       }, 100);
+//     },
+//     error: (err) => {
+//       console.error("DEBUG: Error fetching data from:", url, err);
+//     }
+//   });
+// }
+editQuotation(q: any) {
+  const url = `${environment.apiUrl}/Pricing/${q.id}`;
+
+  this.http.get<any>(url).subscribe({
+    next: (fullData) => {
+      console.log("FULL DATA RECEIVED:", fullData); // Ye check karo, yahan documents dikhne chahiye!
+
+      this.quotation = { ...fullData };
+
+      // YAHAN Galti hoti hai: Backend 'pricingDocuments' bhej raha hai, 
+      // par tumne screenshot mein 'pricingDocuments' khali dikhaya hai.
+      // Check karo kya backend ne sach mein data diya?
+      this.documents = fullData.pricingDocuments.filter((d: any) => d.docType === 'Commodity');
+      this.invoices = fullData.pricingDocuments.filter((d: any) => d.docType === 'Invoice');
+console.log("Mapped Documents:", this.documents);
+      this.isFormOpen = true;
+      this.cdr.detectChanges();
+    }
+  });
 }
-
 
 
     resetQuotationModel() {
@@ -3172,7 +3245,7 @@ saveQuotation() {
     amount: Number(cb.amount) || 0
   }));
 
-  // 🔥 MULTICARRIER PROPER GRAPH MAPPING (Bina kisi field ko miss kiye)
+  // MultiCarrier Payload mapping
   const multiCarrierData = (this.multiCarrierRows || []).map((mcb: any) => ({
     id: Number(mcb.id) || 0,
     forwarder: mcb.forwarder || '',
@@ -3196,7 +3269,19 @@ saveQuotation() {
     remark: mcb.remark || ''
   }));
 
-  // Parent Payload Object matching backend structural definitions
+  // --- 1. Process Commodity Documents ---
+  const processedDocuments = (this.documents || []).map(d => ({
+    name: d.name,
+    documentPath: (d.documentPath && !d.isReplacing) ? d.documentPath : null
+  }));
+
+  // --- 2. Process Package/Invoice Documents ---
+  const processedInvoices = (this.invoices || []).map(i => ({
+    name: i.name,
+    documentPath: (i.documentPath && !i.isReplacing) ? i.documentPath : null 
+  }));
+
+  // Parent Payload Object
   const payload: any = {
     ...this.quotation, 
     transportMode: (this.quotation.transportMode || this.inquiry.transportMode || "").toString(), 
@@ -3226,10 +3311,13 @@ saveQuotation() {
     cbm: Number(this.quotation.cbm) || 0,
     noOfPkgs: Number(this.quotation.noOfPkgs) || 0,
 
-    // EF Core Context explicit tracking keys map
     CostBreakdowns: costData, 
     MultiCarrierBreakdowns: multiCarrierData,
     dimensions: this.appliedDimensions || [],
+    
+    // Yahan dono lists alag-alag bhej rahe hain
+    commodityDocs: processedDocuments,
+    packageInvoiceDocs: processedInvoices,
 
     salesCoordinator: (this.quotation.salesCoordinator || "").toString(),
     cargoStatus: (this.quotation.cargoStatus || this.quotation.cargoStatusType || 'Ready').toString(),
@@ -3238,19 +3326,25 @@ saveQuotation() {
     createdBy: 'admin@cavalierlogistic.in'
   };
 
-  // Cleaning redundant tracking references
-  const keysToDelete = ['TransportMode', 'TransportType', 'SalesCoordinator', 'GrossWeight', 'GrossweightUnit', 'CountryName', 'costBreakdowns', 'multiCarrierBreakdowns'];
+  const keysToDelete = ['TransportMode', 'TransportType', 'SalesCoordinator', 'GrossWeight', 'GrossweightUnit', 'CountryName', 'costBreakdowns', 'multiCarrierBreakdowns', 'existingInvoices'];
   keysToDelete.forEach(key => delete payload[key]);
 
   const formData = new FormData();
   formData.append('pricingData', JSON.stringify(payload));
 
-  // Documents processing block
-  const allDocs = [...(this.documents || []), ...(this.invoices || [])];
-  allDocs.forEach((doc) => {
-    if (doc.file) {
-      formData.append('docFiles', doc.file);
-      formData.append('docTypes', doc.category === 'invoice' ? 'Invoice' : (doc.name || 'General'));
+  // --- Upload Files Handling ---
+  // Commodity files ke liye 'Commodity' type, Invoice files ke liye 'Invoice' type
+  this.documents.forEach((d) => {
+    if (d.file) {
+      formData.append('docFiles', d.file);
+      formData.append('docTypes', 'Commodity');
+    }
+  });
+
+  this.invoices.forEach((i) => {
+    if (i.file) {
+      formData.append('docFiles', i.file);
+      formData.append('docTypes', 'Invoice');
     }
   });
 
@@ -3265,18 +3359,41 @@ saveQuotation() {
   action.subscribe({
     next: (res: any) => {
       this.sendBulkEmails(res.id);
-      Swal.fire('Saved!', 'Pricing, Single-Carrier and Multi-Carrier lists stored perfectly!', 'success');
+      Swal.fire('Saved!', 'Pricing, Commodity docs, and Invoices saved successfully!', 'success');
       this.loadPricings(); 
       this.isFormOpen = false;
       this.cdr.detectChanges();
     },
     error: (err) => {
       console.error("❌ API SAVE FAILED:", err);
-      Swal.fire('Error', err.error?.message || "Internal Context Entity Mismatch Error.", 'error');
+      Swal.fire('Error', err.error?.message || "Internal Entity Error.", 'error');
     }
   });
 }
 // Variables
+// 1. Add new document slot
+
+
+// 2. File select handler
+onFileSelecteds(event: any, index: number) {
+  const file = event.target.files[0];
+  if (file) {
+    this.documents[index].file = file;
+    // Agar replace kar rahe the, to isReplacing ko false kar do
+    this.documents[index].isReplacing = false; 
+  }
+}
+
+// 3. Save button logic inside Modal
+saveDocumentChanges() {
+  // Yahan validate kar sakte ho ki sabhi documents ke naam/files bhare hain
+  console.log("Documents saved to local state:", this.documents);
+  this.isDocumentModalOpen = false;
+  // Optional: Swal.fire('Success', 'Documents prepared', 'success');
+}
+
+// 4. Remove document
+
 isModalOpen = false;
 // selectedInquiryCarriers: any[] = []; // Iski zaroorat nahi agar aap direct array use kar rahe ho
 
@@ -3469,17 +3586,19 @@ toggleConnectingPortModal() {
 isPortSelected(port: any): boolean {
   return this.selectedConnectingPorts.some(p => p.id === port.id && p.cpType === port.cpType);
 }
+// public invoices: any[] = [];
+commodityDocuments: any[] = [];
+  packageOrInvoiceDocuments: any[] = [];
 selectInquiry(inq: any) {
   if (!inq || !inq.inquiryNo) {
     console.error("❌ Inquiry No missing!");
     return;
   }
+  
   this.InquiryId = inq.id || 0;
   this.referenceByInquiryNo = inq.inquiryNo || 0;
   this.organisationId = inq.organisationId || 0;
   this.organisationName = inq.organisationName || '';
-  
-  console.log(this.organisationId, 'changed in inquiry');
 
   const inquiryNo = inq.inquiryNo?.trim();
   const url = `${environment.apiUrl}/Inquiry/by-no?inquiryNo=${inquiryNo}`;
@@ -3493,59 +3612,77 @@ selectInquiry(inq: any) {
       this.quotation.customerName = data.customerName || '';
       this.quotation.organization = data.organisationName || '';
       if (this.inquiry) this.inquiry.organization = data.organisationName || '';
-      
       this.quotation.branchName = data.branchName || '';
       this.quotation.location = data.location || '';
       this.quotation.partyRole = data.partyRole || '';
 
-      // --- 2. Line of Business (LOB) ---
+      // --- 2. Documents Mapping & UI Sync ---
+      // Backend response se lists fill karo
+      this.commodityDocuments = data.commodityDocuments || [];
+      this.packageOrInvoiceDocuments = data.packageOrInvoiceDocuments || [];
+
+      // Commodity Modal ke liye mapping
+      this.documents = (data.commodityDocuments || []).map((doc: any) => ({
+        id: doc.id,
+        name: doc.name || 'Document',
+        documentPath: doc.documentPath,
+        isExisting: true,
+        file: null,
+        isReplacing: false
+      }));
+
+      // Invoice Modal ke liye mapping
+      this.invoices = (data.packageOrInvoiceDocuments || []).map((doc: any) => ({
+        id: doc.id,
+        name: doc.name || 'Document',
+        documentPath: doc.documentPath,
+        isExisting: true,
+        file: null,
+        isReplacing: false
+      }));
+
+      this.quotation.invoiceList = (this.invoices.length > 0) ? 'Available' : 'Not Available';
+
+      // --- 3. Line of Business (LOB) ---
       this.quotation.lineOfBusinessId = data.lineOfBusinessId ? Number(data.lineOfBusinessId) : null;
 
-      // --- 3. Transport Mode & Type ---
+      // --- 4. Transport Mode & Type ---
       if (data.transportMode) {
-        const modeObj = this.transportModes.find(m => 
-          m.name.toLowerCase() === data.transportMode.toLowerCase() || 
+        const modeObj = this.transportModes.find(m =>
+          m.name.toLowerCase() === data.transportMode.toLowerCase() ||
           m.id == data.transportMode
         );
         this.quotation.TransportMode = modeObj ? modeObj.id : data.transportMode;
       }
+      this.quotation.TransportType = data.transportType || '';
 
-      this.quotation.TransportType = data.transportType || ''; 
-
-      // --- 4. Other IDs & Pricing ---
+      // --- 5. Other IDs & Pricing ---
       this.quotation.salesCoordinator = data.salesCoordinator ? Number(data.salesCoordinator) : null;
       this.quotation.commodity = data.commodityId ? Number(data.commodityId) : null;
-      this.quotation.pricingDoneBy = data.pricingDoneBy || ''; 
+      this.quotation.pricingDoneBy = data.pricingDoneBy || '';
       this.quotation.qtnDoneBy = data.qtnDoneBy || '';
       this.quotation.businessDimensions = data.businessDimensions || '';
 
-      // --- 5. Movement & Ports ---
+      // --- 6. Movement & Ports ---
       this.quotation.shipmentType = data.shipmentType?.toString() || '';
       this.quotation.movementType = data.movementType || '';
-      this.quotation.originPOL = data.originName || ''; 
+      this.quotation.originPOL = data.originName || '';
       this.quotation.portOfLoading = data.portOfLoadingName || '';
       this.quotation.portOfDischarge = data.portOfDischargeName || '';
       this.quotation.podFinalDest = data.finalDestination || '';
       this.quotation.placeOfDelivery = data.placeOfDelivery || '';
-      
       this.quotation.portOfDestination = data.portOfDischargeName || '';
       this.quotation.finalDestination = data.finalDestination || '';
-
       this.quotation.isDirect = data.isDirect === true;
       this.quotation.isIndirect = data.isIndirect === true;
 
-      // --- 5a. FIXED: Connecting Ports Auto-fill ---
+      // --- 7. Connecting Ports Auto-fill ---
       this.selectedConnectingPorts = [];
       this.quotation.connectingPortIds = [];
       const rawCP = data.connectingPortIds || data.ConnectingPortIds;
-      
       if (rawCP) {
         const idsArray = Array.isArray(rawCP) ? rawCP : rawCP.toString().split(',');
-        
-        // Save to quotation object so it goes into payload
         this.quotation.connectingPortIds = idsArray.map((id: any) => Number(id));
-
-        // UI Display mapping
         this.selectedConnectingPorts = idsArray.map((id: any) => {
           const trimmedId = id.toString().trim();
           const masterPort = this.filteredConnectingPorts.find(p => p.id.toString() === trimmedId);
@@ -3557,13 +3694,13 @@ selectInquiry(inq: any) {
         });
       }
 
-      // --- IncoTerms ---
+      // --- 8. IncoTerms ---
       this.quotation.incoterm = data.incoterm || '';
       if (this.quotation.incoterm) {
         this.onIncotermChange({ target: { value: this.quotation.incoterm } });
       }
 
-      // --- 6. Weights & Dimensions ---
+      // --- 9. Weights & Dimensions ---
       this.quotation.noOfPkgs = data.noOfPkgs || 0;
       this.quotation.grossWeightKg = data.grossWeightKg || 0;
       this.quotation.chargeableWeight = data.chargeableWeight || 0;
@@ -3576,40 +3713,31 @@ selectInquiry(inq: any) {
         this.quotation.cargoReadyDate = data.cargoStatusDate.split('T')[0];
       }
 
-      // Dimensions mapping
-      if (data.dimensions && data.dimensions.length > 0) {
-        const firstDim = data.dimensions[0];
-        this.dimRow = {
-          box: firstDim.box || 0,
-          l: firstDim.l || 0,
-          w: firstDim.w || 0,
-          h: firstDim.h || 0,
-          unit: firstDim.unit || 'CMS'
-        };
-
-        if (data.dimensions.length > 1) {
-          this.dimRows = data.dimensions.slice(1).map((d: any) => ({
-            box: d.box, l: d.l, w: d.w, h: d.h, unit: d.unit || 'CMS'
-          }));
-        } else {
-          this.dimRows = [];
-        }
-        this.calculateVolumeWeight();
+      if (data.dimensions && Array.isArray(data.dimensions) && data.dimensions.length > 0) {
+        this.dimRows = data.dimensions.map((d: any) => ({
+          box: d.box || 0,
+          l: d.l || 0,
+          w: d.w || 0,
+          h: d.h || 0,
+          unit: d.unit || 'CMS'
+        }));
+        this.dimRow = { ...this.dimRows[0] };
+      } else {
+        this.dimRow = { box: 0, l: 0, w: 0, h: 0, unit: 'CMS' };
+        this.dimRows = [];
       }
+      this.calculateVolumeWeight();
 
-      // --- 8. Country ---
+      // --- 10. Country & Final UI Refresh ---
       this.quotation.country = data.countryName || '';
-
-      // --- 9. Final UI Refresh ---
       this.showInquiryDropdown = false;
-      this.showCountryDropdown = false; 
+      this.showCountryDropdown = false;
       this.showPortOfDischargeDropdown = false;
 
-      this.cdr.detectChanges();
-      
+      this.cdr.detectChanges(); 
+
       if (this.quotation.lineOfBusinessId) {
-        const event = { target: { value: this.quotation.lineOfBusinessId } };
-        this.onLOBChange(event); 
+        this.onLOBChange({ target: { value: this.quotation.lineOfBusinessId } });
       }
 
       setTimeout(() => {
@@ -3618,6 +3746,53 @@ selectInquiry(inq: any) {
     },
     error: (err) => console.error("❌ API Error:", err)
   });
+}
+isHazard(): boolean {
+
+  // 1. Agar selectcommodityvalue mein seedha 'Hazard' likha hai
+
+  const val = (this.selectcommodityvalue || '').toLowerCase();
+
+  if (['hazard', 'hazardous'].includes(val)) return true;
+
+
+
+  // 2. Agar quotation.commodity (ID) se check karna hai
+
+  // Aapke commodityTypes array mein se hazard wali entry dhund rahe hain
+
+  const selectedType = this.commodityTypes?.find(t => t.id == this.quotation?.commodity);
+
+  if (selectedType) {
+
+    const name = (selectedType.name || '').toLowerCase();
+
+    return ['hazard', 'hazardous'].includes(name);
+
+  }
+
+
+
+  return false;
+
+}
+saveInvoices() {
+  console.log("Updating local invoices array:", this.invoices);
+  
+  // 1. Validation (Optional): Check karo ki har invoice ka naam hai ya nahi
+  const isValid = this.invoices.every(inv => inv.name && inv.name.trim() !== '');
+  
+  if (!isValid) {
+    alert("Please provide a name for all invoices.");
+    return;
+  }
+
+  // 2. Local State update ho chuki hai (kyunki tumne [(ngModel)] use kiya hai),
+  // bas hume modal band karna hai.
+  this.isInvoiceModalOpen = false;
+  
+  // 3. Optional: Agar kuch specific formatting karni ho toh yahan kar sakte ho.
+  console.log("Local state updated successfully.");
 }
  token:string='';
  inquiryList: any[] = [];
@@ -4171,3 +4346,13 @@ toggleColumn(colName: string) {
 // ];
 
 }
+
+
+
+
+
+
+
+
+
+

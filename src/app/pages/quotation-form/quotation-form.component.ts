@@ -48,7 +48,7 @@ portOfDischargeList: any[] = [];
    movementTypes: any[] = [];
   isPickupEnabled: boolean = false;
   selectedBranchIds: number[] = []; 
- private apiEndpoint = `${environment.apiUrl}/Quotations`;
+ public apiEndpoint = `${environment.apiUrl}/Quotations`;
 // -- Dropdown Control Variables --
 companyServices:any[]=[]
 isDeliveryEnabled:boolean=false;
@@ -2636,6 +2636,8 @@ inquiry: any;
   multiCarrierRows: any[] = [];
 // 3. Item select hone par data fetch aur auto-fill karne ke liye
 isLoadingPricing: boolean = false; // Variable declare karein
+documents: any[] = [];
+  invoices: any[] = [];
 selectPricing(prc: any) {
   if (!prc || !prc.pricingNo) {
     console.error("Invalid pricing data");
@@ -2661,6 +2663,32 @@ selectPricing(prc: any) {
   this.http.get<any>(url).subscribe({
     next: (fullData) => {
       console.log("✅ FULL DATA FROM API RECEIVED:", fullData);
+
+      // --- ADDED: Documents Mapping ---
+      const allDocs = fullData.pricingDocuments || fullData.PricingDocuments || [];
+      console.log("DEBUG: Total Docs found:", allDocs.length);
+
+      this.documents = allDocs
+        .filter((d: any) => (d.docType || d.DocType) === 'Commodity')
+        .map((d: any) => ({
+          id: d.docId || d.DocId,
+          name: d.docType || d.DocType,
+          documentPath: d.docPath || d.DocPath,
+          isExisting: true
+        }));
+
+      this.invoices = allDocs
+        .filter((d: any) => (d.docType || d.DocType) === 'Invoice')
+        .map((d: any) => ({
+          id: d.docId || d.DocId,
+          name: d.docType || d.DocType,
+          documentPath: d.docPath || d.DocPath,
+          isExisting: true
+        }));
+
+      console.log("DEBUG: Filtered Commodity Docs:", this.documents);
+      console.log("DEBUG: Filtered Invoice Docs:", this.invoices);
+      // ---------------------------------
 
       // --- 1. Transport & Mode Logic ---
       if (fullData.transportMode) {
@@ -2963,4 +2991,43 @@ getCommodityName(id: any): string {
   const item = this.commodityTypes.find(t => t.id == id);
   return item ? item.name : '-';
 }
+// Helper function to check if selected is Hazard
+// 1. Hazard Check
+isHazard(): boolean {
+  // Check if commodity exists and its name is 'HAZARD' (Case insensitive)
+  const selected = this.commodityTypes?.find(c => c.id == this.quotation.commodity);
+  return selected?.name?.toUpperCase() === 'HAZARD';
+}
+
+// 2. Modal Handlers
+isDocumentModalOpen: boolean = false;
+
+openDocumentModal() {
+  this.isDocumentModalOpen = true;
+}
+
+closeDocumentModal() {
+  this.isDocumentModalOpen = false;
+}
+
+// 3. Document Array Management
+addDocument() {
+  this.documents.push({ name: '', documentPath: '', isReplacing: false });
+}
+
+removeDocument(index: number) {
+  this.documents.splice(index, 1);
+}
+
+saveDocumentChanges() {
+  // Yahan apna API save logic likho
+  console.log("Saving docs:", this.documents);
+  this.closeDocumentModal();
+}
+
+// Helper function logic
+
+
+// File select hote hi Modal mein refresh karne ke liye
+
 }

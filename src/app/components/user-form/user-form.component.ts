@@ -539,13 +539,45 @@ onSubmit() {
         // Sab save hone ke baad page navigate karein
         // this.router.navigate(['/dashboard/Employee']);
       },
-      error: err => {
-    console.error('--- API ERROR DETECTED ---');
-    console.error('Status:', err.status); 
-    console.error('Full Error Body:', err.error); 
+     error: err => {
+  console.error('--- API ERROR DETECTED ---');
+  console.error('Status:', err.status); 
+  console.error('Full Error Body:', err.error); 
+
+  let errorTitle = "Validation Error";
+  let errorMessage = "Something went wrong. Please try again.";
+
+  // Scenario 1: Agar API ne Validation Errors ka Object bheja hai (Status 400 with errors object)
+  if (err.error && err.error.errors) {
+    errorTitle = "Please fix the following Fields:";
+    errorMessage = ''; // Purani string clear karenge
     
-    // Old SweetAlert Code
-    Swal.fire(`${err.error}`, err.error || "Something went wrong", "error");
+    // Saare fields ke errors ko loop chalakar extract karenge
+    Object.keys(err.error.errors).forEach((field) => {
+      const fieldErrors = err.error.errors[field];
+      if (Array.isArray(fieldErrors)) {
+        errorMessage += `• ${fieldErrors.join(', ')}<br>`;
+      } else {
+        errorMessage += `• ${fieldErrors}<br>`;
+      }
+    });
+  } 
+  // Scenario 2: Agar API ne direct ek error string bheji hai (jaise "Email already exists")
+  else if (err.error && typeof err.error === 'string') {
+    errorMessage = err.error;
+  }
+  // Scenario 3: Agar API ne message object ke andar text bheja hai
+  else if (err.error && err.error.message) {
+    errorMessage = err.error.message;
+  }
+
+  // SweetAlert Fire (html property use ki hai taaki <br> se multiple errors line-by-line dikhein)
+  Swal.fire({
+    title: errorTitle,
+    html: `<div style="text-align: left;">${errorMessage}</div>`,
+    icon: "error",
+    confirmButtonText: "OK"
+  });
 }
     });
   }
@@ -961,32 +993,30 @@ populateForm(data: any) {
 // 1. Jab user keyboard se type kare (DD-MM-YYYY format)
 onDateInput(event: any, controlName: string = 'dob'): void {
   const input = event.target as HTMLInputElement;
-  let value = input.value.replace(/\D/g, ''); // Sirf numbers
+  let value = input.value.replace(/\D/g, ''); // Sirf numbers rakhenge
 
-  if (value.length > 8) value = value.substring(0, 8);
+  // Max 8 digits allow karenge (DDMMYYYY)
+  if (value.length > 8) {
+    value = value.substring(0, 8);
+  }
 
   let displayValue = '';
-  let backendValue = '';
 
-  if (value.length === 8) {
-    // Display: DD-MM-YYYY
+  // Typing ke waqt dashes (-) auto-insert karne ke liye logic
+  if (value.length > 4) {
     displayValue = `${value.substring(0, 2)}-${value.substring(2, 4)}-${value.substring(4, 8)}`;
-    // Backend: YYYY-MM-DD
-    backendValue = `${value.substring(4, 8)}-${value.substring(2, 4)}-${value.substring(0, 2)}`;
-    
-    input.value = displayValue;
-    this.userForm.get(controlName)?.setValue(backendValue, { emitEvent: false });
+  } else if (value.length > 2) {
+    displayValue = `${value.substring(0, 2)}-${value.substring(2, 4)}`;
   } else {
-    // Typing ke waqt display format manage karein
-    if (value.length > 4) {
-      displayValue = `${value.substring(0, 2)}-${value.substring(2, 4)}-${value.substring(4, 8)}`;
-    } else if (value.length > 2) {
-      displayValue = `${value.substring(0, 2)}-${value.substring(2, 4)}`;
-    } else {
-      displayValue = value;
-    }
-    input.value = displayValue;
+    displayValue = value;
   }
+
+  // 1. HTML input field ki visible value update karo
+  input.value = displayValue;
+
+  // 2. Angular Form Control ko bhi wahi exact value do jo screen par dikh rahi hai
+  // emitEvent: false isliye taaki infinite loop na bane
+  this.userForm.get(controlName)?.setValue(displayValue, { emitEvent: false });
 }
 
 onCalendarChange(event: any, controlName: string = 'dob'): void {

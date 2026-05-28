@@ -49,6 +49,7 @@ portOfDischargeList: any[] = [];
   isPickupEnabled: boolean = false;
   selectedBranchIds: number[] = []; 
  public apiEndpoint = `${environment.apiUrl}/Quotations`;
+ apiUrl = environment.apiUrl;
 // -- Dropdown Control Variables --
 companyServices:any[]=[]
 isDeliveryEnabled:boolean=false;
@@ -1542,9 +1543,9 @@ openDimModal() {
     this.updatePreview();
   }
 
-  onFileSelected(event: any) {
-    console.log("File selected", event.target.files[0]);
-  }
+  // onFileSelected(event: any) {
+  //   console.log("File selected", event.target.files[0]);
+  // }
 
   // --- UI Helpers ---
   toggleForm() {
@@ -2978,7 +2979,28 @@ saveDocumentChanges() {
   console.log("Saving docs:", this.documents);
   this.closeDocumentModal();
 }
+onCommodityChange(event: any) {
+  this.quotation.commodity = event.target.value;
+  // UI ko force update karne ke liye agar view update na ho
+  this.cdr.detectChanges(); 
+}
+onFileSelected(event: any, index: number) {
+  const file = event.target.files[0];
+  if (!file) return;
 
+  console.log("File selected for index:", index, "File:", file);
+
+  // 1. Agar tum file ko specific index wale document ke saath map karna chahte ho:
+  // this.documents[index].file = file; // Example agar tumhara documents array handle kar raha hai
+
+  // 2. Yahan apna upload logic call karo
+  /* this.uploadService.upload(file).subscribe((res: any) => {
+      this.documents[index].documentPath = res.path;
+      this.documents[index].isReplacing = false;
+      this.cdr.detectChanges();
+  });
+  */
+}
 // Helper function logic
 
 

@@ -121,19 +121,15 @@
 
     <div>
   <label class="font-bold">Secondary Email</label>
-  <input 
-    formControlName="secondaryemail" 
-    class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none"
-    placeholder="example@mail.com"
-  >
+ <input type="email" formControlName="secondaryEmail" name="secondaryEmail" class="form-control">
   
-  <div *ngIf="userForm.get('secondaryemail')?.touched && userForm.get('secondaryemail')?.invalid" class="text-red-600 text-xs mt-1">
-    <span *ngIf="userForm.get('secondaryemail')?.errors?.['required']">Email is required.</span>
+  <div *ngIf="userForm.get('secondaryEmail')?.touched && userForm.get('secondaryEmail')?.invalid" class="text-red-600 text-xs mt-1">
+    <span *ngIf="userForm.get('secondaryEmail')?.errors?.['required']">Email is required.</span>
     
-    <span *ngIf="userForm.get('secondaryemail')?.errors?.['email']">Please enter a valid email address.</span>
+    <span *ngIf="userForm.get('secondaryEmail')?.errors?.['email']">Please enter a valid email address.</span>
     
-    <span *ngIf="userForm.get('secondaryemail')?.errors?.['zod']">
-      {{ userForm.get('secondaryemail')?.errors?.['zod'] }}
+    <span *ngIf="userForm.get('secondaryEmail')?.errors?.['zod']">
+      {{ userForm.get('secondaryEmail')?.errors?.['zod'] }}
     </span>
   </div>
 </div>
@@ -685,8 +681,14 @@
       </div>
       <div>
         <label>Pincode</label>
-        <input formControlName="presPincode" class="w-full border p-1 rounded">
-        <div *ngIf="userForm.get('presPincode')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
+<input 
+    type="text"
+    formControlName="presPincode" 
+    class="w-full border p-1 rounded" 
+    maxlength="6"
+    oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+    placeholder="Enter 6-digit pincode"
+  />        <div *ngIf="userForm.get('presPincode')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
           {{ userForm.get('presPincode')?.errors?.['zod'] }}
         </div>
       </div>
@@ -754,7 +756,14 @@
       </div>
       <div>
         <label>Pincode</label>
-        <input formControlName="permPincode" class="w-full border p-1 rounded">
+        <input
+    type="text"
+    formControlName="permPincode" 
+    class="w-full border p-1 rounded" 
+    maxlength="6"
+    oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+    placeholder="Enter 6-digit pincode"
+  />
         <div *ngIf="userForm.get('permPincode')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
           {{ userForm.get('permPincode')?.errors?.['zod'] }}
         </div>

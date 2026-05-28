@@ -209,6 +209,7 @@ initForm() {
       dateOfJoining: ['', [Validators.required]],
       ctc_Monthly: [0],
       salaryAccountNo: [''],
+      secondaryEmail:[''],
       email: ['', [Validators.required, Validators.email]],
       mobile: ['', [Validators.required, Validators.pattern("^[0-9]{10}$")]],
       telephone: [''],
@@ -539,13 +540,45 @@ onSubmit() {
         // Sab save hone ke baad page navigate karein
         // this.router.navigate(['/dashboard/Employee']);
       },
-      error: err => {
-    console.error('--- API ERROR DETECTED ---');
-    console.error('Status:', err.status); 
-    console.error('Full Error Body:', err.error); 
+     error: err => {
+  console.error('--- API ERROR DETECTED ---');
+  console.error('Status:', err.status); 
+  console.error('Full Error Body:', err.error); 
+
+  let errorTitle = "Validation Error";
+  let errorMessage = "Something went wrong. Please try again.";
+
+  // Scenario 1: Agar API ne Validation Errors ka Object bheja hai (Status 400 with errors object)
+  if (err.error && err.error.errors) {
+    errorTitle = "Please fix the following Fields:";
+    errorMessage = ''; // Purani string clear karenge
     
-    // Old SweetAlert Code
-    Swal.fire(`${err.error}`, err.error || "Something went wrong", "error");
+    // Saare fields ke errors ko loop chalakar extract karenge
+    Object.keys(err.error.errors).forEach((field) => {
+      const fieldErrors = err.error.errors[field];
+      if (Array.isArray(fieldErrors)) {
+        errorMessage += `• ${fieldErrors.join(', ')}<br>`;
+      } else {
+        errorMessage += `• ${fieldErrors}<br>`;
+      }
+    });
+  } 
+  // Scenario 2: Agar API ne direct ek error string bheji hai (jaise "Email already exists")
+  else if (err.error && typeof err.error === 'string') {
+    errorMessage = err.error;
+  }
+  // Scenario 3: Agar API ne message object ke andar text bheja hai
+  else if (err.error && err.error.message) {
+    errorMessage = err.error.message;
+  }
+
+  // SweetAlert Fire (html property use ki hai taaki <br> se multiple errors line-by-line dikhein)
+  Swal.fire({
+    title: errorTitle,
+    html: `<div style="text-align: left;">${errorMessage}</div>`,
+    icon: "error",
+    confirmButtonText: "OK"
+  });
 }
     });
   }
@@ -562,97 +595,87 @@ onSubmit() {
 // 3. saveEducation ko UserId receive karne ke liye update kijiye
 async saveEducation(userId: any) {
   const raw = this.userForm.getRawValue();
-
-  // 1. Ek khali array banayenge jisme saare education objects push karenge
   const educationArray: any[] = [];
+  
+  // Helper list to standardize both static and dynamic fields
+  const allEntries = [
+    { name: raw.tenthName || '10th', year: raw.tenthYear, perc: raw.tenthPercentage, file: raw.tenthMarksheet },
+    { name: raw.twelfthName || '12th', year: raw.twelfthYear, perc: raw.twelfthPercentage, file: raw.twelfthMarksheet },
+    { name: raw.graduationName || 'Graduation', year: raw.graduationYear, perc: raw.graduationPercentage, file: raw.graduationMarksheet },
+    { name: raw.postGraduationName || 'Post Graduation', year: raw.postGraduationYear, perc: raw.postGraduationPercentage, file: raw.postGraduationMarksheet },
+    ...(raw.educations || []).map((e: any) => ({ name: e.educationName, year: e.year, perc: e.percentage, file: e.marksheet }))
+  ];
 
-  // --- STATIC FIELDS CHECK ---
-  if (raw.tenthYear || raw.tenthPercentage || raw.tenthMarksheet) {
-    educationArray.push({
-      userId: userId,
-      educationName: raw.tenthName || '10th',
-      passingYear: raw.tenthYear,
-      percentage: raw.tenthPercentage,
-      marksheetFile: raw.tenthMarksheet
-    });
-  }
+  // Validation & Data Preparation
+  for (const entry of allEntries) {
+    const isAnyFieldFilled = entry.year || entry.perc || entry.file;
+    const isBothFilled = entry.year && entry.perc;
 
-  if (raw.twelfthYear || raw.twelfthPercentage || raw.twelfthMarksheet) {
-    educationArray.push({
-      userId: userId,
-      educationName: raw.twelfthName || '12th',
-      passingYear: raw.twelfthYear,
-      percentage: raw.twelfthPercentage,
-      marksheetFile: raw.twelfthMarksheet
-    });
-  }
-
-  if (raw.graduationYear || raw.graduationPercentage || raw.graduationMarksheet) {
-    educationArray.push({
-      userId: userId,
-      educationName: raw.graduationName || 'Graduation',
-      passingYear: raw.graduationYear,
-      percentage: raw.graduationPercentage,
-      marksheetFile: raw.graduationMarksheet
-    });
-  }
-
-  if (raw.postGraduationYear || raw.postGraduationPercentage || raw.postGraduationMarksheet) {
-    educationArray.push({
-      userId: userId,
-      educationName: raw.postGraduationName || 'Post Graduation',
-      passingYear: raw.postGraduationYear,
-      percentage: raw.postGraduationPercentage,
-      marksheetFile: raw.postGraduationMarksheet
-    });
-  }
-
-  // --- DYNAMIC FIELDS (ADD MORE) CHECK ---
-  if (raw.educations && raw.educations.length > 0) {
-    raw.educations.forEach((edu: any) => {
-      if (edu.year || edu.percentage || edu.marksheet) {
-        educationArray.push({
-          userId: userId,
-          educationName: edu.educationName,
-          passingYear: edu.year,
-          percentage: edu.percentage,
-          marksheetFile: edu.marksheet
+    if (isAnyFieldFilled) {
+      // Validation: Agar kuch bhara hai, toh Year aur Percentage dono required hain
+      if (!isBothFilled) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Incomplete Submission',
+          text: `The academic record for ${entry.name} is incomplete. Please ensure both 'Year' and 'Percentage' fields are populated to maintain data integrity. Otherwise, the system will exclude this entry from the final submission. Thank you for your cooperation.`,
+          confirmButtonText: 'Acknowledge'
         });
+        return; // Stop execution if validation fails
       }
-    });
+      
+      // Data push karein
+      educationArray.push({
+        userId: userId,
+        educationName: entry.name,
+        passingYear: entry.year,
+        percentage: entry.perc,
+        marksheetFile: entry.file
+      });
+    }
   }
 
-  // Console me print karke dekh lo array kaisa bana hai
-  console.log('📚 Final Education Array Object:', educationArray);
-
-  if (educationArray.length === 0) {
-    console.log('No education details to save.');
-    return;
-  }
-
-  // 2. FormData banayenge List of Objects bhejne ke liye
+  // 2. Preparing FormData
   const formData = new FormData();
-
-  // Backend API me list receive karne ke liye index based append karna hota hai
   educationArray.forEach((edu, index) => {
-    // Agar API ka model parameter name 'educations' hai:
     formData.append(`educations[${index}].UserId`, edu.userId.toString());
     formData.append(`educations[${index}].EducationName`, edu.educationName || '');
     formData.append(`educations[${index}].PassingYear`, edu.passingYear || '');
     formData.append(`educations[${index}].Percentage`, edu.percentage || '');
 
-    // Image/File append kar rahe hain
     if (edu.marksheetFile instanceof File) {
       formData.append(`educations[${index}].MarksheetFile`, edu.marksheetFile);
     }
   });
 
-  // 3. Alag API par call maarna (Single API call for all educations)
+  // 3. API Call with SweetAlert Loading
   try {
-    // Note: API ka endpoint '/add-multiple' ya jo bhi aapne list ke liye banaya ho wo dalna
+    // Agar koi data nahi hai, toh API call skip karein
+    if (educationArray.length === 0) {
+      console.log('No data to synchronize.');
+      return;
+    }
+
+    Swal.fire({
+      title: 'Data Synchronization',
+      text: 'Please remain patient while we process and validate your academic records...',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
+
     const res = await this.http.post(`${environment.apiUrl}/User/add-multiple-education`, formData).toPromise();
-    console.log('✅ All Education details saved successfully in one go!', res);
+    
+    Swal.fire({
+      icon: 'success',
+      title: 'Operation Completed',
+      text: 'Your academic credentials have been successfully processed and integrated into our database.'
+    });
+    console.log('✅ Saved successfully:', res);
   } catch (err) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Transaction Failed',
+      text: 'We encountered an issue while processing your request. Please verify your connection or contact the technical support team.'
+    });
     console.error('❌ Error saving education details:', err);
   }
 }
@@ -961,32 +984,30 @@ populateForm(data: any) {
 // 1. Jab user keyboard se type kare (DD-MM-YYYY format)
 onDateInput(event: any, controlName: string = 'dob'): void {
   const input = event.target as HTMLInputElement;
-  let value = input.value.replace(/\D/g, ''); // Sirf numbers
+  let value = input.value.replace(/\D/g, ''); // Sirf numbers rakhenge
 
-  if (value.length > 8) value = value.substring(0, 8);
+  // Max 8 digits allow karenge (DDMMYYYY)
+  if (value.length > 8) {
+    value = value.substring(0, 8);
+  }
 
   let displayValue = '';
-  let backendValue = '';
 
-  if (value.length === 8) {
-    // Display: DD-MM-YYYY
+  // Typing ke waqt dashes (-) auto-insert karne ke liye logic
+  if (value.length > 4) {
     displayValue = `${value.substring(0, 2)}-${value.substring(2, 4)}-${value.substring(4, 8)}`;
-    // Backend: YYYY-MM-DD
-    backendValue = `${value.substring(4, 8)}-${value.substring(2, 4)}-${value.substring(0, 2)}`;
-    
-    input.value = displayValue;
-    this.userForm.get(controlName)?.setValue(backendValue, { emitEvent: false });
+  } else if (value.length > 2) {
+    displayValue = `${value.substring(0, 2)}-${value.substring(2, 4)}`;
   } else {
-    // Typing ke waqt display format manage karein
-    if (value.length > 4) {
-      displayValue = `${value.substring(0, 2)}-${value.substring(2, 4)}-${value.substring(4, 8)}`;
-    } else if (value.length > 2) {
-      displayValue = `${value.substring(0, 2)}-${value.substring(2, 4)}`;
-    } else {
-      displayValue = value;
-    }
-    input.value = displayValue;
+    displayValue = value;
   }
+
+  // 1. HTML input field ki visible value update karo
+  input.value = displayValue;
+
+  // 2. Angular Form Control ko bhi wahi exact value do jo screen par dikh rahi hai
+  // emitEvent: false isliye taaki infinite loop na bane
+  this.userForm.get(controlName)?.setValue(displayValue, { emitEvent: false });
 }
 
 onCalendarChange(event: any, controlName: string = 'dob'): void {

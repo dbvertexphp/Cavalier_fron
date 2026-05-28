@@ -26,3 +26,21 @@
 .animate-fadeIn {
   animation: fadeIn 0.25s ease;
 }
+/* Toast ka z-index increase karo taaki wo navbar ke upar rahe */
+.swal2-container {
+    z-index: 999999 !important;
+}
+
+/* Toast ko middle-right corner ya center me lane ke liye */
+.swal2-toast-container {
+    top: 80px !important; /* Navbar ki height ke hisaab se adjust karein */
+    right: 20px !important;
+}
+
+/* Agar center me lana hai toh ye use karein */
+/* .swal2-toast-container {
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+} 
+*/

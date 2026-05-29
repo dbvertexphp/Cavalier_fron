@@ -480,7 +480,9 @@ onSubmit() {
         console.error('Branch API Error Object:', err);
         console.error('Error Status:', err.status);
       }
+      
     });
+    return; //
 
   } else {
     // ================= USER FORM LOGIC (EDIT + REGISTER) =================

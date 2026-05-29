@@ -11,6 +11,7 @@ import { HttpClient } from '@angular/common/http';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { CheckPermissionService } from '../../services/check-permission.service';
+import { forkJoin } from 'rxjs';
 export interface UserEducation {
   id: number;
   userId: string;
@@ -215,6 +216,8 @@ finalPermissions: any[] = [];
     this.loadRoles();
     this.loadBranches(); 
      this.getAllUsers(); 
+     this.loadMasters();
+     console.log("dep,desg", this.departmentMap, this.designationMap);
      this.loadPermissions();
     this.filteredEmployees = [...this.employees];
     console.log('Initial Employees:', this.filteredEmployees);
@@ -466,12 +469,11 @@ getAllUsers(page: number = 1): void {
   this.isLoading = true;
   this.loadingProgress = 0;
 
-  // 2. Fake progress timer set karo (Har 200ms me 10-25% badhega)
+  // 2. Fake progress timer set karo
   const interval = setInterval(() => {
     if (this.loadingProgress < 90) {
-      // Random value add kar rahe hain taki natural lage (jaise 25, 48, 70...)
       this.loadingProgress += Math.floor(Math.random() * 20) + 10; 
-      if (this.loadingProgress > 90) this.loadingProgress = 90; // 90 pe rok do
+      if (this.loadingProgress > 90) this.loadingProgress = 90;
       this.cdr.detectChanges();
     }
   }, 200);
@@ -488,28 +490,41 @@ getAllUsers(page: number = 1): void {
 
       this.totalRecords = res.totalRecords;
 
-      this.employees = res.users.map((emp: any) => ({
-        ...emp,
-        profilePicture: emp.profilePicture ? `${baseUrl}${emp.profilePicture}` : '',
-        offerLetterPath: emp.offerLetterPath ? `${baseUrl}${emp.offerLetterPath}` : '',
-        appointmentLetterPath: emp.appointmentLetterPath ? `${baseUrl}${emp.appointmentLetterPath}` : '',
-        invitationLetterPath: emp.invitationLetterPath ? `${baseUrl}${emp.invitationLetterPath}` : '',
-        relievingLetterPath: emp.relievingLetterPath ? `${baseUrl}${emp.relievingLetterPath}` : '',
-        fullAndFinalLetterPath: emp.fullAndFinalLetterPath ? `${baseUrl}${emp.fullAndFinalLetterPath}` : '',
-        educationMarksheets: emp.educationMarksheets ? `${baseUrl}${emp.educationMarksheets}` : ''
-      } as Employee));
+      // Map IDs to Names
+      this.employees = res.users.map((emp: any) => {
+        // Convert IDs to Names
+        const deptName = this.departmentMap[emp.department] || emp.department;
+        const desigName = this.designationMap[emp.designation] || emp.designation;
+
+        // Console mein print karo
+        console.log(`User: ${emp.name || 'N/A'} | Dept: ${deptName} | Desig: ${desigName}`);
+
+        return {
+          ...emp,
+          department: deptName,
+          designation: desigName,
+          
+          // File paths
+          profilePicture: emp.profilePicture ? `${baseUrl}${emp.profilePicture}` : '',
+          offerLetterPath: emp.offerLetterPath ? `${baseUrl}${emp.offerLetterPath}` : '',
+          appointmentLetterPath: emp.appointmentLetterPath ? `${baseUrl}${emp.appointmentLetterPath}` : '',
+          invitationLetterPath: emp.invitationLetterPath ? `${baseUrl}${emp.invitationLetterPath}` : '',
+          relievingLetterPath: emp.relievingLetterPath ? `${baseUrl}${emp.relievingLetterPath}` : '',
+          fullAndFinalLetterPath: emp.fullAndFinalLetterPath ? `${baseUrl}${emp.fullAndFinalLetterPath}` : '',
+          educationMarksheets: emp.educationMarksheets ? `${baseUrl}${emp.educationMarksheets}` : ''
+        } as Employee;
+      });
 
       this.filteredEmployees = [...this.employees];
       this.currentPage = page;
 
-      // 4. 100% fill hone ke baad thoda sa delay (300ms) dekar table dikhao (achha UI effect)
+      // 4. Delay dekar table dikhao
       setTimeout(() => {
         this.isLoading = false;
         this.cdr.detectChanges();
       }, 300);
     },
     error: (err) => {
-      // Error aane par bhi loading hata do
       clearInterval(interval);
       this.isLoading = false;
       console.error("❌ API ERROR:", err);
@@ -876,6 +891,28 @@ getExperienceDetails(userId: string): void {
     error: (err) => {
       console.error("❌ Experience API Error:", err);
     }
+  });
+}
+// Component ke andar ye variables add karo
+departmentMap: { [key: number]: string } = {};
+designationMap: { [key: number]: string } = {};
+
+// Ye function `ngOnInit` mein ya data load karne se pehle call karna
+
+loadMasters() {
+  forkJoin({
+    departments: this.userService.getDepartments(),
+    designations: this.userService.getDesignations()
+  }).subscribe((res: any) => {
+    // Yahan 'res' mein dono data aa jayenge
+    const { departments, designations } = res;
+    
+    // Map fill karein
+    departments.forEach((d: any) => this.departmentMap[d.id] = d.name);
+    designations.forEach((des: any) => this.designationMap[des.id] = des.name);
+    
+    // Data load hone ke baad hi user list fetch karein
+    this.getAllUsers();
   });
 }
 }

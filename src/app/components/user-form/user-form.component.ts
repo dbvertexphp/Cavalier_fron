@@ -452,7 +452,7 @@ onSubmit() {
     });
     
     this.userForm.markAllAsTouched(); 
-    alert('Please fill all mandatory fields correctly before submitting.'); 
+    // alert('Please fill all mandatory fields correctly before submitting.'); 
     return;
   }
 

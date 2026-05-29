@@ -202,7 +202,7 @@ initForm() {
       department: [''],
       designation: [''],
       functionalArea: [''],
-      userType: [''],
+    userType: ['', [Validators.required]],
       branchId: [null],
       roleId: [null],
       licenceType: [''],
@@ -441,7 +441,13 @@ onSubmit() {
       const controlErrors = this.userForm.get(key)?.errors;
       if (controlErrors != null) {
         console.log('Field Key:', key, 'Errors:', controlErrors);
-        Swal.fire('Please Fill All Required Fields', key + ' is invalid', 'error');
+        Swal.fire({
+  icon: 'error',
+  title: 'Validation Discrepancy Identified',
+  text: `The information provided for '${key}' does not conform to the prescribed structural requirements. Kindly scrutinize your entry and rectify any anomalies to ensure data consistency.`,
+  confirmButtonText: 'Acknowledge',
+  confirmButtonColor: '#d33'
+});
       }
     });
     
@@ -611,17 +617,25 @@ async saveEducation(userId: any) {
     const isAnyFieldFilled = entry.year || entry.perc || entry.file;
     const isBothFilled = entry.year && entry.perc;
 
-    if (isAnyFieldFilled) {
-      // Validation: Agar kuch bhara hai, toh Year aur Percentage dono required hain
-      if (!isBothFilled) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Incomplete Submission',
-          text: `The academic record for ${entry.name} is incomplete. Please ensure both 'Year' and 'Percentage' fields are populated to maintain data integrity. Otherwise, the system will exclude this entry from the final submission. Thank you for your cooperation.`,
-          confirmButtonText: 'Acknowledge'
-        });
-        return; // Stop execution if validation fails
-      }
+if (isAnyFieldFilled) {
+  // Validation: Check agar dono fields bhari hain ya nahi
+  if (!isBothFilled) {
+    Swal.fire({
+      icon: 'success', // Success icon use kiya kyunki hum form save kar rahe hain
+      title: 'Form Saved Successfully',
+      html: `
+        <p>The academic record for <b>${entry.name}</b> is incomplete.</p>
+        <p>Please ensure both 'Year' and 'Percentage' fields are populated to maintain data integrity. Otherwise, the system will exclude this entry from the final submission.</p>
+        <p><b>Note:</b> We are proceeding without these specific education details. Should you wish to incorporate them later, kindly navigate to the <b>Edit</b> section to append the required information.</p>
+        <p>Thank you for your cooperation.</p>
+      `,
+      confirmButtonText: 'Acknowledge',
+      confirmButtonColor: '#10b981'
+    });
+    
+    return;
+  }
+
       
       // Data push karein
       educationArray.push({
@@ -1244,5 +1258,81 @@ downloadData(type: string) {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+}
+checkPanLength() {
+  const panControl = this.userForm.get('paN_No');
+  
+  // Agar field touched hai aur value 10 characters se kam hai (aur empty nahi hai)
+  if (panControl?.touched && panControl.value && panControl.value.length < 10) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Inadequate Digit Count',
+      text: 'The Permanent Account Number (PAN) provided is deficient. Please ensure the entry encompasses exactly ten alphanumeric characters to satisfy the requisite validation criteria.',
+      confirmButtonText: 'Rectify Entry',
+      confirmButtonColor: '#3b82f6'
+    });
+  }
+}
+validateAadhaarLength() {
+  const control = this.userForm.get('aadhaarNo');
+  
+  // Agar value 12 digits se kam hai aur field interact ki gayi hai
+  if (control?.touched && control.value && control.value.length < 12) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Incomplete Identification Sequence',
+      text: 'The provided sequence is insufficient to constitute a valid Aadhaar identifier. Kindly ensure that the input comprises the full twelve-digit numerical string as mandated by the regulatory framework.',
+      confirmButtonText: 'Amend Submission',
+      confirmButtonColor: '#3b82f6'
+    });
+  }
+}
+validateUserType() {
+  const control = this.userForm.get('userType');
+
+  // 'touched' hataya gaya taaki direct value check ho
+  if (!control?.value || control.value === '') {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Categorization Oversight',
+      text: 'The mandatory selection of the user classification has been omitted. Please designate the appropriate user category from the provided list to facilitate the progression of your submission.',
+      confirmButtonText: 'Amend Selection',
+      confirmButtonColor: '#3b82f6'
+    });
+  }
+}
+validateDOB() {
+  const control = this.userForm.get('dob');
+  const dateValue = control?.value;
+
+  // Regex for DD-MM-YYYY format
+  const dateRegex = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$/;
+
+  if (control?.touched && dateValue && !dateRegex.test(dateValue)) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Invalid Temporal Format',
+      text: 'The Date of Birth provided does not adhere to the required DD-MM-YYYY structure. Kindly rectify your input to ensure the temporal data is aligned with our system specifications.',
+      confirmButtonText: 'Amend Entry',
+      confirmButtonColor: '#d33'
+    });
+  }
+}
+validateJoiningDate() {
+  const control = this.userForm.get('dateOfJoining');
+  const dateValue = control?.value;
+
+  // DD-MM-YYYY format ke liye Regex
+  const dateRegex = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$/;
+
+  if (control?.touched && dateValue && !dateRegex.test(dateValue)) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Erroneous Temporal Entry',
+      text: 'The Joining Date specified deviates from the mandated DD-MM-YYYY format. Please rectify this anomaly to ensure your input aligns with the established temporal protocols.',
+      confirmButtonText: 'Amend Entry',
+      confirmButtonColor: '#d33'
+    });
+  }
 }
 }

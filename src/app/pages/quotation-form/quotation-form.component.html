@@ -1225,39 +1225,67 @@
                 </select>
               </div>
 
-           <div class="flex flex-col gap-4">
+      <div class="flex flex-col gap-4">
   <div class="flex items-center">
     <label class="w-40 font-bold text-gray-700">Commodity</label>
     <select
       [(ngModel)]="quotation.commodity"
-      (ngModelChange)="updatePreview()"
+      (change)="onCommodityChange($event)"
       name="commodity"
       class="flex-1 border p-2 outline-none"
     >
       <option value="" disabled>Select Commodity</option>
-      <option
-        *ngFor="let type of commodityTypes"
-        [ngValue]="type.id"
-      >
+      <option *ngFor="let type of commodityTypes" [value]="type.id">
         {{ type.name }}
       </option>
     </select>
   </div>
 
-  <div
-    *ngIf="quotation.commodity === 'Hazard'"
-    class="flex items-center animate-in fade-in slide-in-from-top-2 duration-300"
-  >
-    <label class="w-40 font-bold text-gray-700"
-      >Upload Document</label
+  <div *ngIf="isHazard()" class="flex flex-col gap-3">
+    <button
+      type="button"
+      (click)="openDocumentModal()"
+      class="bg-red-500 text-white px-4 py-2 rounded shadow hover:bg-red-600 transition"
     >
-    <div class="flex-1 flex items-center gap-2">
-      <input
-        type="file"
-        name="hazardDoc"
-        (change)="onFileSelected($event)"
-        class="flex-1 border p-1 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
-      />
+      Manage Documents
+    </button>
+  </div>
+</div>
+
+<div *ngIf="isDocumentModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+  <div class="bg-white w-full max-w-lg rounded-lg p-6 shadow-2xl">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-bold">Manage Documents</h2>
+      <button (click)="closeDocumentModal()" class="text-gray-500 hover:text-red-500 text-2xl font-bold">&times;</button>
+    </div>
+
+    <button (click)="addDocument()" class="bg-red-600 text-white px-4 py-2 rounded mb-4 hover:bg-red-700">
+      + Add Document
+    </button>
+
+    <div class="max-h-[300px] overflow-y-auto pr-2">
+      <div *ngFor="let doc of documents; let i = index" class="border p-3 rounded mb-3 bg-gray-50">
+        <div class="flex items-center gap-2 mb-2">
+          <input type="text" [(ngModel)]="doc.name" placeholder="Document Name" class="border p-2 flex-1 rounded" />
+          <button (click)="removeDocument(i)" class="bg-red-100 text-red-600 px-3 py-2 rounded font-bold">X</button>
+        </div>
+
+        <div *ngIf="doc.documentPath && !doc.isReplacing" class="flex items-center gap-2 text-sm bg-white p-2 border rounded">
+          <a [href]="apiUrl + doc.documentPath" target="_blank" class="text-blue-600 underline truncate flex-1">
+            View Existing File
+          </a>
+          <button (click)="doc.isReplacing = true" class="bg-yellow-500 text-white px-2 py-1 rounded text-xs">Replace</button>
+        </div>
+
+        <div *ngIf="!doc.documentPath || doc.isReplacing" class="mt-2">
+          <input type="file" (change)="onFileSelected($event, i)" class="border p-1 text-sm w-full bg-white" />
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-end mt-6 gap-2">
+      <button (click)="closeDocumentModal()" class="bg-gray-300 px-4 py-2 rounded">Cancel</button>
+      <button (click)="saveDocumentChanges()" class="bg-green-600 text-white px-4 py-2 rounded">Save Changes</button>
     </div>
   </div>
 </div>
@@ -2476,10 +2504,46 @@
         
       </div>
       <!-- SINGLE CARRIER TABLE -->
+<div *ngIf="quotation.isDirect" class="p-4 bg-white shadow-lg rounded-xl border border-gray-200 animate-in fade-in duration-300 mb-6">
+  <div class="flex justify-between items-center mb-4 pb-2 border-b">
+    <h2 class="text-xl font-bold text-gray-700 uppercase tracking-wide">Single Carrier Cost Breakdown</h2>
+    <button (click)="quotation.isDirect = false" class="text-sm text-red-500 hover:text-red-700 font-medium">✕ Close Table</button>
+  </div>
 
+  <div class="overflow-x-auto border border-gray-300 rounded-sm">
+    <table class="w-full border-collapse text-[11px]">
+      <thead class="bg-[#4a3f3f] text-white">
+        <tr>
+          <th class="border p-2 text-left">LOB</th>
+          <th class="border p-2 text-left">Charge Name</th>
+          <th class="border p-2 text-left">Charge Type</th>
+          <th class="border p-2 text-center">Cur</th>
+          <th class="border p-2 text-right">Rate</th>
+          <th class="border p-2 text-right bg-red-600">Amount</th>
+          <th class="border p-2 text-center w-[40px]">
+            <button (click)="addCostRow()" class="bg-green-600 px-2 rounded">+</button>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let c of costRows; let i = index" class="hover:bg-gray-50">
+          <td class="border p-1"><input [(ngModel)]="c.lob" class="w-full bg-transparent outline-none" readonly /></td>
+          <td class="border p-1"><input [(ngModel)]="c.chargeName" class="w-full bg-transparent outline-none" /></td>
+          <td class="border p-1"><input [(ngModel)]="c.chargeType" class="w-full bg-transparent outline-none" /></td>
+          <td class="border p-1 text-center font-bold text-red-600"><input [(ngModel)]="c.currency" class="w-full text-center bg-transparent outline-none" /></td>
+          <td class="border p-1"><input type="number" [(ngModel)]="c.rate" (input)="calculateCost()" class="w-full text-right bg-transparent outline-none" /></td>
+          <td class="border p-1 bg-red-50 font-bold text-right">{{ c.amount | number:'1.2-2' }}</td>
+          <td class="border p-1 text-center">
+            <button (click)="removeCostRow(i)" class="text-red-500">✕</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 <!-- MULTI CARRIER TABLE -->
 <!-- Multi-Carrier Section -->
-<div
+<div *ngIf="quotation.isIndirect" 
      class="mt-8 border border-gray-200 rounded-xl shadow-xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-4 duration-500 bg-white">
     
     <!-- HEADER -->

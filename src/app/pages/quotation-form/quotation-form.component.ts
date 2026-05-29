@@ -49,6 +49,7 @@ portOfDischargeList: any[] = [];
   isPickupEnabled: boolean = false;
   selectedBranchIds: number[] = []; 
  public apiEndpoint = `${environment.apiUrl}/Quotations`;
+ apiUrl = environment.apiUrl;
 // -- Dropdown Control Variables --
 companyServices:any[]=[]
 isDeliveryEnabled:boolean=false;
@@ -290,9 +291,6 @@ this.getsales();
     this.loadSearchSuggestions();
     this.fetchCompanyServices()
     this.fetchLOBs();
-    if (this.multiCarrierRows.length === 0) {
-    this.multiCarrierRows.push(this.createEmptyRow());
-  }
   }
   onCargoStatusChange2() {
   if (this.quotation.cargoStatus === 'Ready') {
@@ -421,49 +419,6 @@ showPricingDetails(item: any) {
     Swal.fire('Error', 'Pricing ID nahi mili is record ke liye.', 'error');
   }
 }
-// 1. New Row structure define karein jisme saari fields initialized hon
-  createEmptyRow() {
-    return {
-      id: 0,
-      forwarder: '',
-      origin: '',
-      lob: 'Standard',
-      chargeName: '',
-      chargeType: 'Prepaid',
-      currency: 'USD',
-      airFreight: 0,
-      fsc: 'INC',
-      airline: '',
-      type: 'INDIRECT',
-      cutoff: '',
-      schedule: '',
-      exWorks: 0,
-      doCharges: 0,
-      ccFee: 0,
-      rate: 0,
-      exchangeRate: 1,
-      totalCost: 0,
-      remark: ''
-    };
-  }
-
-  // 2. Multi-Carrier Rows ke dynamic push function ko backend payload logic se track karein
-  calculateMasterIndirectTotal(index: number) {
-    const mRow = this.multiCarrierRows[index];
-    if (mRow) {
-      const chrgWeight = Number(this.quotation.chargeableWeight) || 0;
-      const airfreightCost = Number(mRow.airFreight) || 0;
-      const inputRate = Number(mRow.rate) || 0;
-      const exchangeVal = Number(mRow.exchangeRate) || 1;
-
-      // Formula: Airfreight + (Chargeable Weight * Rate * Ex. Rate)
-      mRow.totalCost = airfreightCost + (chrgWeight * inputRate * exchangeVal);
-    }
-    this.cdr.detectChanges();
-    if (this.calculateAll) {
-      this.calculateAll(); // Global matrix update ke liye
-    }
-  }
 toggleReview() {
   if (!this.quotation.organization) {
     alert("Please select or save organization first");
@@ -1588,9 +1543,9 @@ openDimModal() {
     this.updatePreview();
   }
 
-  onFileSelected(event: any) {
-    console.log("File selected", event.target.files[0]);
-  }
+  // onFileSelected(event: any) {
+  //   console.log("File selected", event.target.files[0]);
+  // }
 
   // --- UI Helpers ---
   toggleForm() {
@@ -3024,7 +2979,28 @@ saveDocumentChanges() {
   console.log("Saving docs:", this.documents);
   this.closeDocumentModal();
 }
+onCommodityChange(event: any) {
+  this.quotation.commodity = event.target.value;
+  // UI ko force update karne ke liye agar view update na ho
+  this.cdr.detectChanges(); 
+}
+onFileSelected(event: any, index: number) {
+  const file = event.target.files[0];
+  if (!file) return;
 
+  console.log("File selected for index:", index, "File:", file);
+
+  // 1. Agar tum file ko specific index wale document ke saath map karna chahte ho:
+  // this.documents[index].file = file; // Example agar tumhara documents array handle kar raha hai
+
+  // 2. Yahan apna upload logic call karo
+  /* this.uploadService.upload(file).subscribe((res: any) => {
+      this.documents[index].documentPath = res.path;
+      this.documents[index].isReplacing = false;
+      this.cdr.detectChanges();
+  });
+  */
+}
 // Helper function logic
 
 

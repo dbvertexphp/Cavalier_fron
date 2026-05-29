@@ -444,7 +444,7 @@ onSubmit() {
         Swal.fire({
   icon: 'error',
   title: 'Validation Discrepancy Identified',
-  text: `The information provided for '${key}' does not conform to the prescribed structural requirements. Kindly scrutinize your entry and rectify any anomalies to ensure data consistency.`,
+ text: `The field '${key}' is invalid. Please check your entry and try again.`,
   confirmButtonText: 'Acknowledge',
   confirmButtonColor: '#d33'
 });
@@ -480,7 +480,9 @@ onSubmit() {
         console.error('Branch API Error Object:', err);
         console.error('Error Status:', err.status);
       }
+      
     });
+    return; //
 
   } else {
     // ================= USER FORM LOGIC (EDIT + REGISTER) =================
@@ -681,14 +683,14 @@ if (isAnyFieldFilled) {
     Swal.fire({
       icon: 'success',
       title: 'Operation Completed',
-      text: 'Your academic credentials have been successfully processed and integrated into our database.'
+text: 'Academic details saved successfully.',
     });
     console.log('✅ Saved successfully:', res);
   } catch (err) {
     Swal.fire({
       icon: 'error',
       title: 'Transaction Failed',
-      text: 'We encountered an issue while processing your request. Please verify your connection or contact the technical support team.'
+text: 'Something went wrong. Please check your internet or contact support.',
     });
     console.error('❌ Error saving education details:', err);
   }
@@ -1267,7 +1269,7 @@ checkPanLength() {
     Swal.fire({
       icon: 'error',
       title: 'Inadequate Digit Count',
-      text: 'The Permanent Account Number (PAN) provided is deficient. Please ensure the entry encompasses exactly ten alphanumeric characters to satisfy the requisite validation criteria.',
+      text: 'Please enter a valid 10-character alphanumeric PAN.',
       confirmButtonText: 'Rectify Entry',
       confirmButtonColor: '#3b82f6'
     });
@@ -1281,7 +1283,7 @@ validateAadhaarLength() {
     Swal.fire({
       icon: 'warning',
       title: 'Incomplete Identification Sequence',
-      text: 'The provided sequence is insufficient to constitute a valid Aadhaar identifier. Kindly ensure that the input comprises the full twelve-digit numerical string as mandated by the regulatory framework.',
+      text: 'Invalid Aadhaar. Please enter the full 12-digit number.',
       confirmButtonText: 'Amend Submission',
       confirmButtonColor: '#3b82f6'
     });
@@ -1295,7 +1297,7 @@ validateUserType() {
     Swal.fire({
       icon: 'warning',
       title: 'Categorization Oversight',
-      text: 'The mandatory selection of the user classification has been omitted. Please designate the appropriate user category from the provided list to facilitate the progression of your submission.',
+      text: '"User category is required.',
       confirmButtonText: 'Amend Selection',
       confirmButtonColor: '#3b82f6'
     });
@@ -1310,11 +1312,11 @@ validateDOB() {
 
   if (control?.touched && dateValue && !dateRegex.test(dateValue)) {
     Swal.fire({
-      icon: 'error',
-      title: 'Invalid Temporal Format',
-      text: 'The Date of Birth provided does not adhere to the required DD-MM-YYYY structure. Kindly rectify your input to ensure the temporal data is aligned with our system specifications.',
-      confirmButtonText: 'Amend Entry',
-      confirmButtonColor: '#d33'
+   icon: 'error',
+title: 'Invalid Date Format',
+text: 'Please enter the date of birth in DD-MM-YYYY format.',
+confirmButtonText: 'Amend Entry',
+confirmButtonColor: '#d33'
     });
   }
 }
@@ -1327,11 +1329,11 @@ validateJoiningDate() {
 
   if (control?.touched && dateValue && !dateRegex.test(dateValue)) {
     Swal.fire({
-      icon: 'error',
-      title: 'Erroneous Temporal Entry',
-      text: 'The Joining Date specified deviates from the mandated DD-MM-YYYY format. Please rectify this anomaly to ensure your input aligns with the established temporal protocols.',
-      confirmButtonText: 'Amend Entry',
-      confirmButtonColor: '#d33'
+    icon: 'error',
+title: 'Invalid Date Format',
+text: 'Please enter the date in DD-MM-YYYY format.',
+confirmButtonText: 'Amend Entry',
+confirmButtonColor: '#d33'
     });
   }
 }

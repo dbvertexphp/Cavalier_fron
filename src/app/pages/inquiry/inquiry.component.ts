@@ -2711,8 +2711,8 @@ services = [
   if (type === 'Organisation ID') {
     if (!id) {
       Swal.fire({
-        title: 'Organization Not Found',
-        text: 'Please provide a valid Organization ID.',
+        title: 'Validation Deficiency',
+        text: 'The provided Organization identifier appears to be null. Please ensure a valid ID is selected.',
         icon: 'warning',
         confirmButtonColor: '#4a3f3f'
       });
@@ -2730,18 +2730,18 @@ services = [
         } else {
           // 3. Error message if ID not in DB
           Swal.fire({
-            title: 'Not Found',
-            text: 'This Organization record does not exist in our database.',
+            title: 'Resource Unavailability',
+            text: 'The requested Organization record does not correspond to any active entry within our database repository.',
             icon: 'error',
             confirmButtonColor: '#4a3f3f'
           });
         }
       },
       error: (err) => {
-        console.error("Error checking ID existence", err);
+        console.error("Verification anomaly for Organization:", err);
         Swal.fire({
-          title: 'Connection Error',
-          text: 'Something went wrong while searching. Please try again later.',
+          title: 'System Inconsistency',
+          text: 'A transient error occurred while attempting to retrieve the record. Please verify your connection status.',
           icon: 'error',
           confirmButtonColor: '#4a3f3f'
         });
@@ -2752,8 +2752,8 @@ services = [
   else if (type === 'Lead ID') {
     if (!id) {
       Swal.fire({
-        title: 'Invalid ID',
-        text: 'The Lead ID provided is not valid.',
+        title: 'Validation Deficiency',
+        text: 'The provided Lead identifier is malformed or invalid.',
         icon: 'warning',
         confirmButtonColor: '#4a3f3f'
       });
@@ -2769,8 +2769,8 @@ services = [
           });
         } else {
           Swal.fire({
-            title: 'Lead Not Found',
-            text: 'No Lead record found with this ID.',
+            title: 'Resource Unavailability',
+            text: 'No Lead record could be identified within the system registry for the provided ID.',
             icon: 'error',
             confirmButtonColor: '#4a3f3f'
           });
@@ -2779,8 +2779,8 @@ services = [
       error: (err) => {
         console.error("Lead existence check failed:", err);
         Swal.fire({
-          title: 'Server Error',
-          text: 'Unable to verify Lead existence at this time.',
+          title: 'System Inconsistency',
+          text: 'Unable to perform verification against the Lead registry at this juncture.',
           icon: 'error',
           confirmButtonColor: '#4a3f3f'
         });
@@ -2791,8 +2791,8 @@ services = [
   else {
     // Default fallback for other types
     Swal.fire({
-      title: 'Action Triggered',
-      text: `Action performed for: ${type}`,
+      title: 'Action Acknowledged',
+      text: `The operation for ${type} has been initialized successfully.`,
       icon: 'info',
       confirmButtonColor: '#4a3f3f'
     });

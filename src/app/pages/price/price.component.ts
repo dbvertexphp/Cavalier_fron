@@ -543,7 +543,7 @@ loadPricingForEdit(id: any) {
     },
     error: (err) => {
       console.error("Pricing load fail:", err);
-      Swal.fire('Error', 'Data load karne mein problem aayi.', 'error');
+      Swal.fire('Error', 'We encountered a retrieval anomaly during the data fetch; the requested information appears to be devoid of a valid pricing association in our current system configuration.', 'error');
     }
   });
 }
@@ -3039,26 +3039,26 @@ services = [
   // --- LOGIC FUNCTIONS ---
 
   // Nayi row add karne ke liye
-  showAlert(type: string, id: any) {
-  // Agar ID null ya undefined hai toh handle karne ke liye
-  const displayId = id ? id : 'N/A';
+//   showAlert(type: string, id: any) {
+//   // Agar ID null ya undefined hai toh handle karne ke liye
+//   const displayId = id ? id : 'N/A';
 
-  if (type === 'Organisation ID') {
-    const orgId = id ? id : 'N/A';
-    this.router.navigate(['/dashboard/organization-add'], { 
-      queryParams: { highlightId: orgId } 
-    });
-  } 
-  else if (type === 'Lead ID') {
-    const leadId = id ? id : 'N/A';
-    this.router.navigate(['/dashboard/salescrm/lead'], { 
-      queryParams: { highlightId: leadId } 
-    });
-  }
-  else {
-    alert('Action performed: ' + type);
-  }
-}
+//   if (type === 'Organisation ID') {
+//     const orgId = id ? id : 'N/A';
+//     this.router.navigate(['/dashboard/organization-add'], { 
+//       queryParams: { highlightId: orgId } 
+//     });
+//   } 
+//   else if (type === 'Lead ID') {
+//     const leadId = id ? id : 'N/A';
+//     this.router.navigate(['/dashboard/salescrm/lead'], { 
+//       queryParams: { highlightId: leadId } 
+//     });
+//   }
+//   else {
+//     alert('Action performed: ' + type);
+//   }
+// }
 addCostRow() {
   const newRow: any = {
     lob: 'Standard',
@@ -3915,20 +3915,54 @@ openPricingForm(inquiryData: any) {
   this.generateTemporaryPricingNo(); // Pricing No set karein
 }
 redirectdata(type: any, id: any) {
+  // 1. Guard clause: Architectural Validation (Id check)
+  if (!id) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Reference Identifier Omission',
+      text: 'The redirection sequence cannot be instantiated due to the absence of a valid operational reference. Please cross-verify the data integrity with our technical support infrastructure.',
+      confirmButtonColor: '#4a3f3f'
+    });
+    return; // Navigation block ho gaya
+  }
+
+  // 2. Toast notification configuration
+  const Toast = Swal.mixin({
+    toast: true,
+    // position: 'top-end',
+    showConfirmButton: false,
+    timer: 2500,
+    timerProgressBar: true
+  });
+
+  // 3. Routing Logic (Strict condition checking)
   if (type === 'org') {
-   this.router.navigate(['/dashboard/organization-add'], { 
-            queryParams: { highlightId: id } 
-          });
+    Toast.fire({
+      icon: 'info',
+      title: 'Synchronizing organizational parameters...'
+    });
+    this.router.navigate(['/dashboard/organization-add'], { 
+      queryParams: { highlightId: id } 
+    });
   } 
   else if (type === 'inq') {
-    // Agar hum isi page par hain, toh seedha edit function call karenge
-    // Agar kisi aur page se aa rahe hain, toh navigation ke baad data load karenge
-    if (id) {
-       // Isse URL change hoga aur inquiry page load hoga
-       this.router.navigate(['/dashboard/salescrm/inquiry'], { queryParams: { editId: id } });
-       
-      
-    }
+    Toast.fire({
+      icon: 'info',
+      title: 'Fetching inquiry metadata for modification...'
+    });
+    this.router.navigate(['/dashboard/salescrm/inquiry'], { 
+      queryParams: { editId: id } 
+    });
+  } 
+  else {
+    // 4. Fallback for Protocol Deviation (Jab type mismatch ho)
+    Swal.fire({
+      icon: 'error',
+      title: 'Protocol Deviation',
+      text: 'The requested routing protocol is currently incompatible with existing system configurations. Should this persistence anomaly continue, please escalate the matter to the technical support department.',
+      confirmButtonColor: '#4a3f3f'
+    });
+    // Yahan navigate nahi hoga kyunki hum else block mein hain
   }
 }
 // 1. Edit Function

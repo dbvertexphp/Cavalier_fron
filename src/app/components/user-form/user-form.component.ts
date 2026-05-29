@@ -595,97 +595,87 @@ onSubmit() {
 // 3. saveEducation ko UserId receive karne ke liye update kijiye
 async saveEducation(userId: any) {
   const raw = this.userForm.getRawValue();
-
-  // 1. Ek khali array banayenge jisme saare education objects push karenge
   const educationArray: any[] = [];
+  
+  // Helper list to standardize both static and dynamic fields
+  const allEntries = [
+    { name: raw.tenthName || '10th', year: raw.tenthYear, perc: raw.tenthPercentage, file: raw.tenthMarksheet },
+    { name: raw.twelfthName || '12th', year: raw.twelfthYear, perc: raw.twelfthPercentage, file: raw.twelfthMarksheet },
+    { name: raw.graduationName || 'Graduation', year: raw.graduationYear, perc: raw.graduationPercentage, file: raw.graduationMarksheet },
+    { name: raw.postGraduationName || 'Post Graduation', year: raw.postGraduationYear, perc: raw.postGraduationPercentage, file: raw.postGraduationMarksheet },
+    ...(raw.educations || []).map((e: any) => ({ name: e.educationName, year: e.year, perc: e.percentage, file: e.marksheet }))
+  ];
 
-  // --- STATIC FIELDS CHECK ---
-  if (raw.tenthYear || raw.tenthPercentage || raw.tenthMarksheet) {
-    educationArray.push({
-      userId: userId,
-      educationName: raw.tenthName || '10th',
-      passingYear: raw.tenthYear,
-      percentage: raw.tenthPercentage,
-      marksheetFile: raw.tenthMarksheet
-    });
-  }
+  // Validation & Data Preparation
+  for (const entry of allEntries) {
+    const isAnyFieldFilled = entry.year || entry.perc || entry.file;
+    const isBothFilled = entry.year && entry.perc;
 
-  if (raw.twelfthYear || raw.twelfthPercentage || raw.twelfthMarksheet) {
-    educationArray.push({
-      userId: userId,
-      educationName: raw.twelfthName || '12th',
-      passingYear: raw.twelfthYear,
-      percentage: raw.twelfthPercentage,
-      marksheetFile: raw.twelfthMarksheet
-    });
-  }
-
-  if (raw.graduationYear || raw.graduationPercentage || raw.graduationMarksheet) {
-    educationArray.push({
-      userId: userId,
-      educationName: raw.graduationName || 'Graduation',
-      passingYear: raw.graduationYear,
-      percentage: raw.graduationPercentage,
-      marksheetFile: raw.graduationMarksheet
-    });
-  }
-
-  if (raw.postGraduationYear || raw.postGraduationPercentage || raw.postGraduationMarksheet) {
-    educationArray.push({
-      userId: userId,
-      educationName: raw.postGraduationName || 'Post Graduation',
-      passingYear: raw.postGraduationYear,
-      percentage: raw.postGraduationPercentage,
-      marksheetFile: raw.postGraduationMarksheet
-    });
-  }
-
-  // --- DYNAMIC FIELDS (ADD MORE) CHECK ---
-  if (raw.educations && raw.educations.length > 0) {
-    raw.educations.forEach((edu: any) => {
-      if (edu.year || edu.percentage || edu.marksheet) {
-        educationArray.push({
-          userId: userId,
-          educationName: edu.educationName,
-          passingYear: edu.year,
-          percentage: edu.percentage,
-          marksheetFile: edu.marksheet
+    if (isAnyFieldFilled) {
+      // Validation: Agar kuch bhara hai, toh Year aur Percentage dono required hain
+      if (!isBothFilled) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Incomplete Submission',
+          text: `The academic record for ${entry.name} is incomplete. Please ensure both 'Year' and 'Percentage' fields are populated to maintain data integrity. Otherwise, the system will exclude this entry from the final submission. Thank you for your cooperation.`,
+          confirmButtonText: 'Acknowledge'
         });
+        return; // Stop execution if validation fails
       }
-    });
+      
+      // Data push karein
+      educationArray.push({
+        userId: userId,
+        educationName: entry.name,
+        passingYear: entry.year,
+        percentage: entry.perc,
+        marksheetFile: entry.file
+      });
+    }
   }
 
-  // Console me print karke dekh lo array kaisa bana hai
-  console.log('📚 Final Education Array Object:', educationArray);
-
-  if (educationArray.length === 0) {
-    console.log('No education details to save.');
-    return;
-  }
-
-  // 2. FormData banayenge List of Objects bhejne ke liye
+  // 2. Preparing FormData
   const formData = new FormData();
-
-  // Backend API me list receive karne ke liye index based append karna hota hai
   educationArray.forEach((edu, index) => {
-    // Agar API ka model parameter name 'educations' hai:
     formData.append(`educations[${index}].UserId`, edu.userId.toString());
     formData.append(`educations[${index}].EducationName`, edu.educationName || '');
     formData.append(`educations[${index}].PassingYear`, edu.passingYear || '');
     formData.append(`educations[${index}].Percentage`, edu.percentage || '');
 
-    // Image/File append kar rahe hain
     if (edu.marksheetFile instanceof File) {
       formData.append(`educations[${index}].MarksheetFile`, edu.marksheetFile);
     }
   });
 
-  // 3. Alag API par call maarna (Single API call for all educations)
+  // 3. API Call with SweetAlert Loading
   try {
-    // Note: API ka endpoint '/add-multiple' ya jo bhi aapne list ke liye banaya ho wo dalna
+    // Agar koi data nahi hai, toh API call skip karein
+    if (educationArray.length === 0) {
+      console.log('No data to synchronize.');
+      return;
+    }
+
+    Swal.fire({
+      title: 'Data Synchronization',
+      text: 'Please remain patient while we process and validate your academic records...',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
+
     const res = await this.http.post(`${environment.apiUrl}/User/add-multiple-education`, formData).toPromise();
-    console.log('✅ All Education details saved successfully in one go!', res);
+    
+    Swal.fire({
+      icon: 'success',
+      title: 'Operation Completed',
+      text: 'Your academic credentials have been successfully processed and integrated into our database.'
+    });
+    console.log('✅ Saved successfully:', res);
   } catch (err) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Transaction Failed',
+      text: 'We encountered an issue while processing your request. Please verify your connection or contact the technical support team.'
+    });
     console.error('❌ Error saving education details:', err);
   }
 }

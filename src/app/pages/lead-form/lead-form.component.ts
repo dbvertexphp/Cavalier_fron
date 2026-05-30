@@ -2475,18 +2475,20 @@ toggleLeadStatus(lead: any) {
 // salesCoordinators: any[] = [];
 
 // Function ko update kiya
+// Component property
+salesCoordinator: any[] = [];
+
 getsales(): void {
   console.log('Fetching Sales Coordinators from HOD list API...');
 
   this.userServices.getHodList().subscribe({
     next: (data: any[]) => {
-      // Yahan data mil raha hai, hum ise salesCoordinators variable mein dal rahe hain
       console.log('HOD/Sales Coord data received:', data);
       
-      this.salesCoordinators = data; 
-      // UI ko force karein update hone ke liye
-      this.cdr.detectChanges(); 
-      console.log('Data set to salesCoordinators:', this.salesCoordinators);
+      // Dono dropdowns ke liye data yahi set ho gaya
+      this.salesCoordinator = data; 
+      
+      // UI update ke liye detection
       this.cdr.detectChanges(); 
     },
     error: (err) => {

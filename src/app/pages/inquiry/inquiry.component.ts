@@ -464,6 +464,18 @@ this.quotation.shipmentType = 'Ready';
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
     this.quotation.cargoStatusDate = today;
 }
+// Add these to your class
+isOrgModalOpen = false;
+
+openOrgModal() {
+  this.loadAllOrganizations(); // List load karo
+  this.isOrgModalOpen = true; // Modal kholo
+}
+
+selectAndClose(org: any) {
+  this.selectOrganization(org); // Data select karo
+  this.isOrgModalOpen = false; // Modal band karo
+}
 getsales(): void {
   console.log('Fetching Sales Coordinators from HOD list API...');
 

@@ -1077,18 +1077,28 @@
         />
       </div>
 
-      <!-- Service Type Section Added Here -->
-      <label class="text-gray-700 font-bold block mb-1 uppercase text-[11px]">Service Type</label>
-      <div class="flex items-center gap-6 p-2 bg-white border rounded-sm">
-        <label class="flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" [(ngModel)]="quotation.isDirect" class="w-4 h-4 accent-blue-600" />
-          <span class="text-gray-700 font-medium text-[12px]">Direct</span>
-        </label>
-        <label class="flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" [(ngModel)]="quotation.isIndirect" class="w-4 h-4 accent-blue-600" />
-          <span class="text-gray-700 font-medium text-[12px]">Indirect</span>
-        </label>
-      </div>
+      <div class="mb-4">
+  <label class="text-gray-700 font-bold block mb-1 uppercase text-[11px]">Service Type</label>
+  <div class="flex items-center gap-6 p-2 bg-white border border-gray-300 rounded-sm">
+    <label class="flex items-center gap-2 cursor-pointer">
+      <input 
+        type="checkbox" 
+        [(ngModel)]="quotation.isDirect" 
+        name="isDirect"
+        class="w-4 h-4 accent-blue-600" />
+      <span class="text-gray-700 font-medium text-[12px]">Direct</span>
+    </label>
+    
+    <label class="flex items-center gap-2 cursor-pointer">
+      <input 
+        type="checkbox" 
+        [(ngModel)]="quotation.isIndirect" 
+        name="isIndirect"
+        class="w-4 h-4 accent-blue-600" />
+      <span class="text-gray-700 font-medium text-[12px]">Indirect</span>
+    </label>
+  </div>
+</div>
     </div>
 
     <!-- Column 4: Location & Pricing By -->
@@ -1241,7 +1251,7 @@
     </select>
   </div>
 
-  <div *ngIf="isHazard()" class="flex flex-col gap-3">
+  <div *ngIf="isHazardous" class="flex flex-col gap-3">
     <button
       type="button"
       (click)="openDocumentModal()"

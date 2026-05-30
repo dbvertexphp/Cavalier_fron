@@ -3084,14 +3084,28 @@ addCostRow() {
   }
 
   // Calculation Logic: Amount = Rate * Exchange Rate
-calculateCost() {
-  this.costRows.forEach((row: any) => { // Yahan 'any' cast kar diya
-    const basisVal = Number(row.basisValue) || 0;
-    const rate = Number(row.rate) || 0;
+// calculateCost() {
+//   this.costRows.forEach((row: any) => { // Yahan 'any' cast kar diya
+//     const basisVal = Number(row.basisValue) || 0;
+//     const rate = Number(row.rate) || 0;
    
     
-    row.amount = basisVal * rate;
+//     row.amount = basisVal * rate;
+//   });
+// }
+calculateCost() {
+  const chargeableWeight = Number(this.quotation.chargeableWeight) || 0;
+
+  this.costRows.forEach((row: any) => {
+    const rate = Number(row.rate) || 0;
+    const exchangeRate = Number(row.exchangeRate) || 1; // Agar exchange rate empty hai to 1 le lo
+
+    // Sahi formula: Weight * Rate * Ex. Rate
+    row.amount = chargeableWeight * rate * exchangeRate;
   });
+
+  // Agar UI update nahi ho raha, to ye line jaruri hai
+  this.cdr.detectChanges();
 }
 openCalendar(input: HTMLInputElement) {
   try {
@@ -4589,5 +4603,38 @@ toggleColumn(colName: string) {
 //   'Pricing No', 'Organisation', 'Inquiry No', 'Customer', 
 //   'Location', 'Route', 'Incoterm', 'Movement', 'Commodity', 'Status'
 // ];
+// State variables
+isOrgModalOpen = false;
 
+
+// Open Modal
+openOrgModal() {
+  this.loadAllOrganizations();
+  this.isOrgModalOpen = true;
+}
+
+// Select Organization and close
+selectAndClose(org: any) {
+  this.inquiry.organization = org.orgName || org.organizationName;
+  this.isOrgModalOpen = false;
+  this.showDropdown = false;
+  this.showOrgDropdown = false;
+}
+
+// Standard select for dropdown
+
+
+// Input handling
+// onSearchInput() {
+//   const query = this.inquiry.organization;
+//   if (query && query.length >= 3) {
+//     // Apni filtering logic yahan likho
+//     this.filteredOrganizations = this.organizationList.filter(o => 
+//       o.orgName?.toLowerCase().includes(query.toLowerCase())
+//     );
+//     this.showDropdown = this.filteredOrganizations.length > 0;
+//   } else {
+//     this.showDropdown = false;
+//   }
+// }
 }

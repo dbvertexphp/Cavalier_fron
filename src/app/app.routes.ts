@@ -80,6 +80,8 @@ import { SalesStageComponent } from './sales-stage/sales-stage.component';
 import { PriceComponent } from './pages/price/price.component';
 import { authGuard } from './auth.guard';
 import { loginGuard } from './guards/login.guard';
+import { BranchDepartmentComponent } from './pages/branch-department/branch-department.component';
+import { BranchDesignationComponent } from './pages/branch-designation/branch-designation.component';
 
 export const routes: Routes = [
 
@@ -199,6 +201,7 @@ canActivate: [authGuard],
         component: PortOfLoadingComponent ,canActivate: [authGuard],  },      //Port Setup
        { path: 'port-of-discharge', 
         component: PortOfDischargeComponent,canActivate: [authGuard],   }, 
+
          { path: 'list-of-units',                          //list of unit
         component: ListOfUnitComponent,canActivate: [authGuard],   }, 
             { path: 'Employee',                          //list of unit
@@ -209,13 +212,16 @@ canActivate: [authGuard],
         component:ConsigneeComponent,canActivate: [authGuard],  }, 
            { path: 'Price',                          //list of unit
         component:PriceComponent,   }, 
-        
+          { path: 'port-of-discharge', 
+        component: PortOfDischargeComponent,canActivate: [authGuard],   }, 
     
       {
-        path: 'port-of-loading',
-        component: PortOfLoadingComponent,
+        path: 'Branch-Department',
+        component: BranchDepartmentComponent,
         canActivate: [authGuard],
-      },      //Port Setup
+      },      //branch department
+        { path: 'Branch-designation', 
+        component: BranchDesignationComponent,canActivate: [authGuard],   }, 
       {
         path: 'port-of-discharge',
         component: PortOfDischargeComponent,

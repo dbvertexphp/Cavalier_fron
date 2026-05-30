@@ -268,6 +268,7 @@ closeColumnModal(){
 sortOrders:any = {};
   ngOnInit() {
     this.loadPortOfLoadings();
+    this.checkHazardStatus()
   this.loadPortOfDischarges();
     this.loadConnectingPortsData()
     this.loadPricingList();
@@ -1067,6 +1068,10 @@ saveQuotation() {
   // 🔥 MAPPING LOGIC: Frontend variables ko Backend Model keys se match kiya hai
   const payload = {
     ...this.quotation,
+    // ✅ Direct/Indirect added here
+    isDirect: Boolean(this.quotation.isDirect),
+    isIndirect: Boolean(this.quotation.isIndirect),
+
     pricingId: this.quotation.pricingId ? Number(this.quotation.pricingId) : null,
     organisationId: this.quotation.organisationId ? Number(this.quotation.organisationId) : null,
     organisationName: this.quotation.organisationName || this.quotation.organization,
@@ -1216,7 +1221,6 @@ saveQuotation() {
     }
   });
 }
-
 // Naya function: Pehle API call karega fir autofill
 loadQuotationForEdit(id: number) {
   const token = localStorage.getItem('cavalier_token');
@@ -2951,7 +2955,7 @@ getCommodityName(id: any): string {
 isHazard(): boolean {
   // Check if commodity exists and its name is 'HAZARD' (Case insensitive)
   const selected = this.commodityTypes?.find(c => c.id == this.quotation.commodity);
-  return selected?.name?.toUpperCase() === 'HAZARD';
+  return selected?.name?.toUpperCase() === 'HAZARDOUS';
 }
 
 // 2. Modal Handlers
@@ -2979,11 +2983,11 @@ saveDocumentChanges() {
   console.log("Saving docs:", this.documents);
   this.closeDocumentModal();
 }
-onCommodityChange(event: any) {
-  this.quotation.commodity = event.target.value;
-  // UI ko force update karne ke liye agar view update na ho
-  this.cdr.detectChanges(); 
-}
+// onCommodityChange(event: any) {
+//   this.quotation.commodity = event.target.value;
+//   // UI ko force update karne ke liye agar view update na ho
+//   this.cdr.detectChanges(); 
+// }
 onFileSelected(event: any, index: number) {
   const file = event.target.files[0];
   if (!file) return;
@@ -3003,6 +3007,24 @@ onFileSelected(event: any, index: number) {
 }
 // Helper function logic
 
+// Component property
+isHazardous: boolean = false;
+
+onCommodityChange(event: any) {
+  this.quotation.commodity = event.target.value;
+  this.checkHazardStatus();
+}
+
+checkHazardStatus() {
+  if (!this.commodityTypes || !this.quotation.commodity) {
+    this.isHazardous = false;
+    return;
+  }
+  const selected = this.commodityTypes.find(c => String(c.id) === String(this.quotation.commodity));
+  this.isHazardous = selected?.name?.trim().toUpperCase() === 'HAZARD';
+}
+
+// Component initialize hote waqt bhi check karo
 
 // File select hote hi Modal mein refresh karne ke liye
 

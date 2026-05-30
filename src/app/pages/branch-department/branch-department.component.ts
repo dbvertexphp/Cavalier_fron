@@ -1,6 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
+// import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-branch-department',
@@ -8,37 +11,50 @@ import { FormsModule } from '@angular/forms';
   imports: [CommonModule, FormsModule],
   templateUrl: './branch-department.component.html'
 })
-export class BranchDepartmentComponent {
-  departments = [
-    { id: 1, name: 'SALES & MARKETING', count: 12 },
-    { id: 2, name: 'HUMAN RESOURCES', count: 4 }
-  ];
+export class BranchDepartmentComponent implements OnInit {
+  private http = inject(HttpClient);
+  private apiUrl = `${environment.apiUrl}/BranchDepartment`;
 
+  departments: any[] = [];
   isModalOpen = false;
   isEditMode = false;
-  newDept: any = { id: null, name: '', count: 0 };
+  newDept: any = { id: 0, name: '' };
+
+  ngOnInit() {
+    this.loadDepartments();
+  }
+
+  loadDepartments() {
+    this.http.get<any[]>(this.apiUrl).subscribe(res => {
+      this.departments = res;
+    });
+  }
 
   openModal(dept?: any) {
     this.isEditMode = !!dept;
-    this.newDept = dept ? { ...dept } : { id: Date.now(), name: '', count: 0 };
+    this.newDept = dept ? { ...dept } : { id: 0, name: '' };
     this.isModalOpen = true;
   }
 
-  closeModal() { this.isModalOpen = false; }
+  closeModal() { 
+    this.isModalOpen = false; 
+    this.newDept = { id: 0, name: '' };
+  }
 
   saveDepartment() {
-    if (this.isEditMode) {
-      const index = this.departments.findIndex(d => d.id === this.newDept.id);
-      this.departments[index] = { ...this.newDept };
-    } else {
-      this.departments.push({ ...this.newDept });
-    }
-    this.closeModal();
+    if (!this.newDept.name) return;
+
+    this.http.post(this.apiUrl, this.newDept).subscribe(() => {
+      this.loadDepartments();
+      this.closeModal();
+    });
   }
 
   deleteDept(id: number) {
     if (confirm('Delete this department?')) {
-      this.departments = this.departments.filter(d => d.id !== id);
+      this.http.delete(`${this.apiUrl}/${id}`).subscribe(() => {
+        this.loadDepartments();
+      });
     }
   }
 }

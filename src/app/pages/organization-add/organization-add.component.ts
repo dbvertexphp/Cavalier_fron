@@ -479,7 +479,7 @@ landmark: string = '';
       
       // Step A: Puri list load karo (takki background mein table dikhe)
       this.getOrgList();
-
+this.loadAllDepartments();
       // Step B: Direct backend se single record fetch karo Edit mode ke liye
       this.fetchAndEditOrg(this.highlightedOrgId);
     } else {
@@ -2869,6 +2869,13 @@ checkDuplicateOrg() {
       console.error("API Error:", err);
       this.isDuplicate = false; // Error pe safe side false rakhein
     }
+  });
+}
+allDepartments: any[] = [];
+loadAllDepartments() {
+  // environment.apiUrl ka use karke data fetch karo
+  this.http.get<any[]>(`${environment.apiUrl}/BranchDepartment`).subscribe(res => {
+    this.allDepartments = res;
   });
 }
 } 

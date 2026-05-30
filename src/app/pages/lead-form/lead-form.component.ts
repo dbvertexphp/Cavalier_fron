@@ -121,6 +121,7 @@ goToPage(page: number) {
     this.loadLeadOwners();
     this.getSalesProcesses();
     this.getLeadOwners();
+    this.getsales();
     this.getSalesCoordinators();
     this.loadLeadSources();
   this.loadSalesStages();
@@ -2469,5 +2470,28 @@ toggleLeadStatus(lead: any) {
         this.cdr.detectChanges();
       }
     });
+}
+// Component ke upar property define karein
+// salesCoordinators: any[] = [];
+
+// Function ko update kiya
+getsales(): void {
+  console.log('Fetching Sales Coordinators from HOD list API...');
+
+  this.userServices.getHodList().subscribe({
+    next: (data: any[]) => {
+      // Yahan data mil raha hai, hum ise salesCoordinators variable mein dal rahe hain
+      console.log('HOD/Sales Coord data received:', data);
+      
+      this.salesCoordinators = data; 
+      // UI ko force karein update hone ke liye
+      this.cdr.detectChanges(); 
+      console.log('Data set to salesCoordinators:', this.salesCoordinators);
+      this.cdr.detectChanges(); 
+    },
+    error: (err) => {
+      console.error('Error loading HOD list:', err);
+    }
+  });
 }
 }

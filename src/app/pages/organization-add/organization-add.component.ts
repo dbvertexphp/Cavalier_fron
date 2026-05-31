@@ -528,7 +528,7 @@ landmark: string = '';
       
       // Step A: Puri list load karo (takki background mein table dikhe)
       this.getOrgList();
-
+this.loadAllDepartments();
       // Step B: Direct backend se single record fetch karo Edit mode ke liye
       this.fetchAndEditOrg(this.highlightedOrgId);
     } else {
@@ -1018,7 +1018,7 @@ resetFormFields() {
     }
   }
 loaddepartment(){
-  this.http.get(`${environment.apiUrl}/User/departments`).subscribe({
+  this.http.get(`${environment.apiUrl}/BranchDepartment`).subscribe({
     next: (data: any) => {
       this.department = data || [];
       console.log('Departments loaded:', this.department);
@@ -1101,7 +1101,7 @@ saveCompleteOrganization() {
   });
 }
 loadestination(){
-  this.http.get(`${environment.apiUrl}/User/get-designations`).subscribe({
+  this.http.get(`${environment.apiUrl}/BranchDesignation`).subscribe({
     next: (data: any) => {
       this.designation = data || [];
       console.log('Designations loaded:', this.designation);
@@ -2931,6 +2931,14 @@ checkDuplicateOrg() {
       console.error("API Error:", err);
       this.isDuplicate = false; // Error pe safe side false rakhein
     }
+  });
+}
+allDepartments: any[] = [];
+loadAllDepartments() {
+  // environment.apiUrl ka use karke data fetch karo
+  this.http.get<any[]>(`${environment.apiUrl}/BranchDepartment`).subscribe(res => {
+    this.allDepartments = res;
+    console.log("branch Departments loaded:", this.allDepartments);
   });
 }
 } 

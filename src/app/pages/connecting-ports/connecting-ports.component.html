@@ -1,0 +1,50 @@
+<div class="p-6">
+  <div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-bold text-gray-800">CONNECTING PORTS</h2>
+    <div class="flex gap-2">
+      <button (click)="changeTab('AIRPORT')" [class]="activeTab === 'AIRPORT' ? 'bg-[#654E51] text-white' : 'bg-gray-200'" class="px-5 py-2 rounded-lg transition-all">Airports</button>
+      <button (click)="changeTab('SEAPORT')" [class]="activeTab === 'SEAPORT' ? 'bg-[#654E51] text-white' : 'bg-gray-200'" class="px-5 py-2 rounded-lg transition-all">Seaports</button>
+      <button (click)="openModal()" class="bg-green-600 text-white px-5 py-2 rounded-lg ml-4 hover:bg-green-700 transition-all">+ Add Port</button>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="text-center py-10">
+    <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-[#654E51] mx-auto"></div>
+  </div>
+
+  <div *ngIf="!isLoading" class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <table class="w-full text-left">
+      <thead class="bg-gray-50 text-sm uppercase">
+        <tr>
+          <th class="px-6 py-4">#</th>
+          <th class="px-6 py-4">Port Name</th>
+          <th class="px-6 py-4">Code</th>
+          <th class="px-6 py-4 text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100">
+        <tr *ngFor="let p of filteredPorts; let i = index">
+          <td class="px-6 py-4 font-bold text-gray-400">#{{ i + 1 }}</td>
+          <td class="px-6 py-4 font-semibold">{{ p.name }}</td>
+          <td class="px-6 py-4 text-gray-500">{{ p.code }}</td>
+          <td class="px-6 py-4 text-right space-x-2">
+            <button (click)="openModal(p)" class="text-blue-600 hover:underline">Edit</button>
+            <button (click)="deletePort(p.id)" class="text-red-600 hover:underline">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div *ngIf="isModalOpen" class="fixed inset-0 flex items-center justify-center bg-black/50 p-4 z-[9999]">
+  <div class="bg-white w-full max-w-sm rounded-2xl p-6 shadow-2xl">
+    <h3 class="font-bold mb-4 text-lg border-b pb-2">{{ isEditMode ? 'Edit' : 'Add' }} {{ activeTab }}</h3>
+    <input [(ngModel)]="newPort.name" placeholder="Port Name" class="w-full border p-2 mb-3 rounded">
+    <input [(ngModel)]="newPort.code" placeholder="Port Code" class="w-full border p-2 mb-4 rounded">
+    <div class="flex gap-2">
+      <button (click)="closeModal()" class="flex-1 border py-2 rounded hover:bg-gray-50">Cancel</button>
+      <button (click)="savePort()" class="flex-1 bg-[#654E51] text-white py-2 rounded hover:bg-[#96736F]">Save</button>
+    </div>
+  </div>
+</div>

@@ -2794,74 +2794,52 @@ onPricingBlur() {
   setTimeout(() => {
     this.showPricingDropdown = false;
   }, 200);
-}
-allConnectingPorts: any[] = []; 
+}allConnectingPorts: any[] = []; 
 filteredConnectingPorts: any[] = [];
 selectedConnectingPorts: any[] = []; 
 isCPModalOpen: boolean = false;
 cpSearchTerm: string = '';
 
-// 1. Load Data (POL + POD Merge)
+// Load Data (Directly from your single ConnectingPort API)
 loadConnectingPortsData() {
-  const loadingApi = `${environment.apiUrl}/PortOfLoading`;
-  const dischargeApi = `${environment.apiUrl}/PortOfDischarge`;
-
-  this.http.get<any[]>(loadingApi).subscribe({
-    next: (loadingData) => {
-      this.http.get<any[]>(dischargeApi).subscribe({
-        next: (dischargeData) => {
-          const p1 = loadingData.map(p => ({ ...p, cpType: 'Loading', cpDisplayName: `${p.name} (POL)` }));
-          const p2 = dischargeData.map(p => ({ ...p, cpType: 'Discharge', cpDisplayName: `${p.name} (POD)` }));
-          this.allConnectingPorts = [...p1, ...p2];
-          this.filteredConnectingPorts = [...this.allConnectingPorts];
-        }
-      });
+  // Yahan apna correct API URL use karo
+  this.http.get<any[]>(`${environment.apiUrl}/ConnectingPort`).subscribe({
+    next: (data) => {
+      // Data format: { id: 1, name: 'DEL', portType: 'AIRPORT', ... }
+      this.allConnectingPorts = data;
+      this.filteredConnectingPorts = [...this.allConnectingPorts];
     }
   });
 }
 
-// 2. Select/Toggle Port Logic
+// Split View Helper
+getPortsByType(type: string) {
+  return this.filteredConnectingPorts.filter(p => p.portType === type);
+}
+
 selectConnectingPort(port: any) {
-  const index = this.selectedConnectingPorts.findIndex(
-    p => p.id === port.id && p.cpType === port.cpType
-  );
-
-  if (index === -1) {
-    // Agar nahi hai toh add karo
-    this.selectedConnectingPorts.push(port);
-  } else {
-    // Agar pehle se hai toh remove karo (Toggle for Modal)
-    this.selectedConnectingPorts.splice(index, 1);
-  }
+  const index = this.selectedConnectingPorts.findIndex(p => p.id === port.id);
+  if (index === -1) this.selectedConnectingPorts.push(port);
+  else this.selectedConnectingPorts.splice(index, 1);
 }
 
-// 3. Simple Remove
 removeConnectingPort(port: any) {
-  this.selectedConnectingPorts = this.selectedConnectingPorts.filter(
-    p => !(p.id === port.id && p.cpType === port.cpType)
-  );
+  this.selectedConnectingPorts = this.selectedConnectingPorts.filter(p => p.id !== port.id);
 }
 
-// 4. Modal Search
 onSearchingConnectingPorts() {
   const term = this.cpSearchTerm.toLowerCase().trim();
   this.filteredConnectingPorts = this.allConnectingPorts.filter(p => 
-    p.name.toLowerCase().includes(term)
+    p.name.toLowerCase().includes(term) || p.code.toLowerCase().includes(term)
   );
 }
 
-// 5. Toggle Modal
 toggleConnectingPortModal() {
   this.isCPModalOpen = !this.isCPModalOpen;
-  if (this.isCPModalOpen) {
-    this.cpSearchTerm = '';
-    this.filteredConnectingPorts = [...this.allConnectingPorts];
-  }
 }
 
-// Helper to check if port is selected (for Modal UI)
 isPortSelected(port: any): boolean {
-  return this.selectedConnectingPorts.some(p => p.id === port.id && p.cpType === port.cpType);
+  return this.selectedConnectingPorts.some(p => p.id === port.id);
 }
 // 1. Properties declare karein (agar pehle se nahi ki hain)
 // portOfLoadingList: any[] = [];

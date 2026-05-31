@@ -82,6 +82,7 @@ import { authGuard } from './auth.guard';
 import { loginGuard } from './guards/login.guard';
 import { BranchDepartmentComponent } from './pages/branch-department/branch-department.component';
 import { BranchDesignationComponent } from './pages/branch-designation/branch-designation.component';
+import { ConnectingPortsComponent } from './pages/connecting-ports/connecting-ports.component';
 
 export const routes: Routes = [
 
@@ -222,6 +223,8 @@ canActivate: [authGuard],
       },      //branch department
         { path: 'Branch-designation', 
         component: BranchDesignationComponent,canActivate: [authGuard],   }, 
+        { path: 'connecting-ports', 
+        component: ConnectingPortsComponent,canActivate: [authGuard],   }, 
       {
         path: 'port-of-discharge',
         component: PortOfDischargeComponent,

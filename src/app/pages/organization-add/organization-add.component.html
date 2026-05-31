@@ -1505,7 +1505,8 @@
 </select>
          <select [(ngModel)]="contact.departmentId" class="w-full border p-2 rounded text-sm bg-white">
   <option [ngValue]="null" disabled selected>Select Department</option>
-  <option *ngFor="let dept of allDepartments" [value]="dept.id">
+  
+  <option *ngFor="let dept of department" [value]="dept.id">
     {{ dept.name | uppercase }}
   </option>
 </select>

@@ -423,6 +423,7 @@ organizations: any[] = [];
       this.getbranch();
       this.loadQuotations();
       this.portOfLoading();
+       this.loadUomList();
       this.getNextInquiryNumber();
       this.fetchOrganizations();
       this.fetchLeads();
@@ -3168,75 +3169,59 @@ selectCountry(country: any) {
   // showAlert(title: string, id: any) {
   //   alert(`${title}: ${id || 'N/A'}`);
   // }// --- Variables (Same as yours) ---
-allConnectingPorts: any[] = []; 
-filteredConnectingPorts: any[] = [];
-selectedConnectingPorts: any[] = []; 
-isCPModalOpen: boolean = false;
-cpSearchTerm: string = '';
+// quotation: any = { portOfLoading: 'DELHI (DEL)', portOfDestination: 'LONDON (LHR)' }; // Example
+  allConnectingPorts: any[] = [];
+  filteredConnectingPorts: any[] = [];
+  selectedConnectingPorts: any[] = [];
+  cpSearchTerm: string = '';
+  isCPModalOpen = false;
 
-// 1. Load Data (POL + POD Merge)
-loadConnectingPortsData() {
-  const loadingApi = `${environment.apiUrl}/PortOfLoading`;
-  const dischargeApi = `${environment.apiUrl}/PortOfDischarge`;
-
-  this.http.get<any[]>(loadingApi).subscribe({
-    next: (loadingData) => {
-      this.http.get<any[]>(dischargeApi).subscribe({
-        next: (dischargeData) => {
-          const p1 = loadingData.map(p => ({ ...p, cpType: 'Loading', cpDisplayName: `${p.name} (POL)` }));
-          const p2 = dischargeData.map(p => ({ ...p, cpType: 'Discharge', cpDisplayName: `${p.name} (POD)` }));
-          this.allConnectingPorts = [...p1, ...p2];
-          this.filteredConnectingPorts = [...this.allConnectingPorts];
-        }
-      });
-    }
-  });
-}
-
-// 2. Select/Toggle Port Logic
-selectConnectingPort(port: any) {
-  const index = this.selectedConnectingPorts.findIndex(
-    p => p.id === port.id && p.cpType === port.cpType
-  );
-
-  if (index === -1) {
-    // Agar nahi hai toh add karo
-    this.selectedConnectingPorts.push(port);
-  } else {
-    // Agar pehle se hai toh remove karo (Toggle for Modal)
-    this.selectedConnectingPorts.splice(index, 1);
+  // ngOnInit() { this.loadConnectingPortsData(); }
+private apiUrls = `${environment.apiUrl}/ConnectingPort`;
+  loadConnectingPortsData() {
+    this.http.get<any[]>(this.apiUrls).subscribe({
+      next: (data) => {
+        // API se aane wale data mein 'portType' (AIRPORT/SEAPORT) field expect kar raha hoon
+        this.allConnectingPorts = data;
+        this.filteredConnectingPorts = data;
+        console.log("Connecting Ports Loaded:", this.allConnectingPorts);
+        this.cdr.detectChanges();
+      }
+    });
   }
-}
 
-// 3. Simple Remove
-removeConnectingPort(port: any) {
-  this.selectedConnectingPorts = this.selectedConnectingPorts.filter(
-    p => !(p.id === port.id && p.cpType === port.cpType)
-  );
-}
-
-// 4. Modal Search
-onSearchingConnectingPorts() {
-  const term = this.cpSearchTerm.toLowerCase().trim();
-  this.filteredConnectingPorts = this.allConnectingPorts.filter(p => 
-    p.name.toLowerCase().includes(term)
-  );
-}
-
-// 5. Toggle Modal
-toggleConnectingPortModal() {
-  this.isCPModalOpen = !this.isCPModalOpen;
-  if (this.isCPModalOpen) {
-    this.cpSearchTerm = '';
-    this.filteredConnectingPorts = [...this.allConnectingPorts];
+  // Filter helpers
+  getPortsByType(type: string) {
+    return this.filteredConnectingPorts.filter(p => p.portType === type);
   }
-}
 
-// Helper to check if port is selected (for Modal UI)
-isPortSelected(port: any): boolean {
-  return this.selectedConnectingPorts.some(p => p.id === port.id && p.cpType === port.cpType);
-}
-calculateTotalPackages() {
+  selectConnectingPort(port: any) {
+    const index = this.selectedConnectingPorts.findIndex(p => p.id === port.id);
+    if (index === -1) this.selectedConnectingPorts.push(port);
+    else this.selectedConnectingPorts.splice(index, 1);
+    this.cdr.detectChanges();
+  }
+
+  removeConnectingPort(port: any) {
+    this.selectedConnectingPorts = this.selectedConnectingPorts.filter(p => p.id !== port.id);
+  }
+
+  isPortSelected(port: any): boolean {
+    return this.selectedConnectingPorts.some(p => p.id === port.id);
+  }
+
+  onSearchingConnectingPorts() {
+    const term = this.cpSearchTerm.toLowerCase();
+    this.filteredConnectingPorts = this.allConnectingPorts.filter(p => 
+      p.name.toLowerCase().includes(term) || p.code.toLowerCase().includes(term)
+    );
+  }
+
+  toggleConnectingPortModal() {
+    this.isCPModalOpen = !this.isCPModalOpen;
+    if (!this.isCPModalOpen) this.cpSearchTerm = '';
+  }
+  calculateTotalPackages() {
   if (this.dimRows && this.dimRows.length > 0) {
     this.quotation.noOfPkgs = this.dimRows.reduce((total: number, dim: any) => {
       return total + (Number(dim.box) || 0);
@@ -3252,5 +3237,70 @@ updatePreview() {
   this.cdr.detectChanges(); 
   console.log("Updated Dimensions:", this.quotation.dimensions);
 }
+uomList: any[] = [];
+isUomModalOpen: boolean = false;
+selectedUom: any = null;
 
+
+
+// 1. API se Data Load karna
+loadUomList() {
+  this.http.get<any[]>(`${environment.apiUrl}/Uom/list`).subscribe({
+    next: (data) => {
+      this.uomList = data;
+    },
+    error: (err) => console.error("Error loading UOMs:", err)
+  });
+}
+
+// 2. Modal Toggle
+toggleUomModal() {
+  this.isUomModalOpen = !this.isUomModalOpen;
+}
+
+// 3. Modal se Unit Select karna
+selectUom(uom: any) {
+  this.quotation.GrossweightUnit = uom.shortCode; 
+  this.isUomModalOpen = false;
+}
+// Modal toggle state for Net Weight
+isNetUomModalOpen: boolean = false;
+
+toggleNetUomModal() {
+  this.isNetUomModalOpen = !this.isNetUomModalOpen;
+}
+
+// Select function for Net Weight
+selectNetUom(uom: any) {
+  this.quotation.netWeightUnit = uom.shortCode;
+  this.isNetUomModalOpen = false;
+}
+// Modal toggle state for Chargeable Weight
+isChargeableUomModalOpen: boolean = false;
+
+toggleChargeableUomModal() {
+  this.isChargeableUomModalOpen = !this.isChargeableUomModalOpen;
+}
+
+// Select function for Chargeable Weight
+selectChargeableUom(uom: any) {
+  this.quotation.chargeableWeightUnit = uom.shortCode;
+  this.isChargeableUomModalOpen = false;
+}
+// Modal toggle state for Dimension Unit
+isDimUomModalOpen: boolean = false;
+
+toggleDimUomModal() {
+  this.isDimUomModalOpen = !this.isDimUomModalOpen;
+}
+
+// Select function for Dimension Unit (Calculation ke saath)
+selectDimUom(uom: any, dimRow: any) {
+  dimRow.unit = uom.shortCode;
+  this.isDimUomModalOpen = false;
+  
+  // Calculations trigger karna zaroori hai
+  this.calculateVolumeWeight();
+  this.updatePreview();
+}
 }

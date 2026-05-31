@@ -1632,14 +1632,41 @@
                         d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                       />
                     </svg>
-                    <select
-                      [(ngModel)]="quotation.GrossweightUnit"
-                      name="weightUnit"
-                      class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
-                    >
-                      <option value="KGS">KGS</option>
-                      <option value="LBS">LBS</option>
-                    </select>
+                    <div class="flex items-center gap-1 border-b border-gray-300 pb-1 w-fit">
+  <select
+    [(ngModel)]="quotation.GrossweightUnit"
+    name="weightUnit"
+    class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
+  >
+    <option *ngFor="let uom of uomList" [value]="uom.shortCode">
+      {{ uom.shortCode }}
+    </option>
+  </select>
+
+  <button (click)="toggleUomModal()" class="text-gray-400 hover:text-red-700 transition-all">
+    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+    </svg>
+  </button>
+</div>
+
+<div *ngIf="isUomModalOpen" class="fixed inset-0 z-[200] flex items-center justify-center p-4">
+  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" (click)="toggleUomModal()"></div>
+  <div class="relative bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden border">
+    <div class="bg-red-800 p-4 text-white font-black uppercase text-sm">Select Unit</div>
+    <div class="p-2 max-h-[300px] overflow-y-auto">
+      <div *ngFor="let uom of uomList" 
+           (click)="selectUom(uom)"
+           class="p-3 border-b cursor-pointer hover:bg-red-50 flex justify-between items-center">
+        <span class="font-bold text-[13px] text-gray-700">{{ uom.unitName }}</span>
+        <span class="text-[10px] font-black bg-gray-100 px-2 py-1 rounded">{{ uom.shortCode }}</span>
+      </div>
+    </div>
+    <div class="p-3 bg-gray-50 text-right">
+      <button (click)="toggleUomModal()" class="text-[11px] font-bold text-gray-500 uppercase">Cancel</button>
+    </div>
+  </div>
+</div>
                   </div>
                 </div>
               </div>
@@ -1655,14 +1682,41 @@
       placeholder="Enter weight manually"
     />
     <div class="flex items-center border border-l-0 bg-gray-50 px-2 h-[38px]">
-       <select
-        [(ngModel)]="quotation.netWeightUnit"
-        name="netWeightUnit"
-        class="outline-none font-bold text-gray-600 bg-transparent text-[11px]"
-      >
-        <option value="KGS">KGS</option>
-        <option value="LBS">LBS</option>
-      </select>
+       <div class="flex items-center gap-1 border-b border-gray-300 pb-1 w-fit">
+  <select
+    [(ngModel)]="quotation.netWeightUnit"
+    name="netWeightUnit"
+    class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
+  >
+    <option *ngFor="let uom of uomList" [value]="uom.shortCode">
+      {{ uom.shortCode }}
+    </option>
+  </select>
+
+  <button (click)="toggleNetUomModal()" class="text-gray-400 hover:text-red-700 transition-all">
+    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+    </svg>
+  </button>
+</div>
+
+<div *ngIf="isNetUomModalOpen" class="fixed inset-0 z-[200] flex items-center justify-center p-4">
+  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" (click)="toggleNetUomModal()"></div>
+  <div class="relative bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden border">
+    <div class="bg-red-800 p-4 text-white font-black uppercase text-sm">Select Net Weight Unit</div>
+    <div class="p-2 max-h-[300px] overflow-y-auto">
+      <div *ngFor="let uom of uomList" 
+           (click)="selectNetUom(uom)"
+           class="p-3 border-b cursor-pointer hover:bg-red-50 flex justify-between items-center">
+        <span class="font-bold text-[13px] text-gray-700">{{ uom.unitName }}</span>
+        <span class="text-[10px] font-black bg-gray-100 px-2 py-1 rounded">{{ uom.shortCode }}</span>
+      </div>
+    </div>
+    <div class="p-3 bg-gray-50 text-right">
+      <button (click)="toggleNetUomModal()" class="text-[11px] font-bold text-gray-500 uppercase">Cancel</button>
+    </div>
+  </div>
+</div>
     </div>
   </div>
 </div>
@@ -1678,28 +1732,55 @@
                   <div
                     class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1"
                   >
-                    <svg
+                    <!-- <svg
                       xmlns="http://www.w3.org/2000/svg"
                       class="w-3 h-3 text-gray-400"
                       fill="none"
                       viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
+                      stroke="currentColor" -->
+                    <!-- > -->
+                      <!-- <path
                         stroke-linecap="round"
                         stroke-linejoin="round"
                         stroke-width="2"
                         d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      />
-                    </svg>
-                    <select
-                      [(ngModel)]="quotation.chargeableWeightUnit"
-                      name="chargeableWeightUnit"
-                      class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
-                    >
-                      <option value="KGS">KGS</option>
-                      <option value="LBS">LBS</option>
-                    </select>
+                      /> -->
+                    <!-- </svg> -->
+                    <div class="flex items-center gap-1 border-b border-gray-300 pb-1 w-fit">
+  <select
+    [(ngModel)]="quotation.chargeableWeightUnit"
+    name="chargeableWeightUnit"
+    class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
+  >
+    <option *ngFor="let uom of uomList" [value]="uom.shortCode">
+      {{ uom.shortCode }}
+    </option>
+  </select>
+
+  <button (click)="toggleChargeableUomModal()" class="text-gray-400 hover:text-red-700 transition-all">
+    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+    </svg>
+  </button>
+</div>
+
+<div *ngIf="isChargeableUomModalOpen" class="fixed inset-0 z-[200] flex items-center justify-center p-4">
+  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" (click)="toggleChargeableUomModal()"></div>
+  <div class="relative bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden border">
+    <div class="bg-red-800 p-4 text-white font-black uppercase text-sm">Select Chargeable Unit</div>
+    <div class="p-2 max-h-[300px] overflow-y-auto">
+      <div *ngFor="let uom of uomList" 
+           (click)="selectChargeableUom(uom)"
+           class="p-3 border-b cursor-pointer hover:bg-red-50 flex justify-between items-center">
+        <span class="font-bold text-[13px] text-gray-700">{{ uom.unitName }}</span>
+        <span class="text-[10px] font-black bg-gray-100 px-2 py-1 rounded">{{ uom.shortCode }}</span>
+      </div>
+    </div>
+    <div class="p-3 bg-gray-50 text-right">
+      <button (click)="toggleChargeableUomModal()" class="text-[11px] font-bold text-gray-500 uppercase">Cancel</button>
+    </div>
+  </div>
+</div>
                   </div>
                 </div>
               </div>
@@ -1806,14 +1887,41 @@
         class="flex items-center border border-l-0 bg-gray-50 h-[38px] divide-x divide-gray-300"
       >
         <div class="flex items-center px-2 gap-1 cursor-pointer">
-          <select
-            [(ngModel)]="dimRow.unit"
-            (ngModelChange)="calculateVolumeWeight(); updatePreview()"
-            class="outline-none font-bold text-gray-600 bg-transparent text-[11px]"
-          >
-            <option value="CMS">CMS</option>
-            <option value="INCH">INCH</option>
-          </select>
+         <div class="flex items-center gap-1 border-b border-gray-300 pb-1 w-fit">
+  <select
+    [(ngModel)]="dimRow.unit"
+    (ngModelChange)="calculateVolumeWeight(); updatePreview()"
+    class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
+  >
+    <option *ngFor="let uom of uomList" [value]="uom.shortCode">
+      {{ uom.shortCode }}
+    </option>
+  </select>
+
+  <button (click)="toggleDimUomModal()" class="text-gray-400 hover:text-red-700 transition-all">
+    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+    </svg>
+  </button>
+</div>
+
+<div *ngIf="isDimUomModalOpen" class="fixed inset-0 z-[200] flex items-center justify-center p-4">
+  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" (click)="toggleDimUomModal()"></div>
+  <div class="relative bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden border">
+    <div class="bg-red-800 p-4 text-white font-black uppercase text-sm">Select Dimension Unit</div>
+    <div class="p-2 max-h-[300px] overflow-y-auto">
+      <div *ngFor="let uom of uomList" 
+           (click)="selectDimUom(uom, dimRow)" 
+           class="p-3 border-b cursor-pointer hover:bg-red-50 flex justify-between items-center">
+        <span class="font-bold text-[13px] text-gray-700">{{ uom.unitName }}</span>
+        <span class="text-[10px] font-black bg-gray-100 px-2 py-1 rounded">{{ uom.shortCode }}</span>
+      </div>
+    </div>
+    <div class="p-3 bg-gray-50 text-right">
+      <button (click)="toggleDimUomModal()" class="text-[11px] font-bold text-gray-500 uppercase">Cancel</button>
+    </div>
+  </div>
+</div>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="w-3 h-3 text-gray-400"
@@ -2626,79 +2734,70 @@
   </div>
 
   <div class="space-y-2">
-    <!-- 1. Auto-filled Port of Loading -->
-    <div *ngIf="quotation.portOfLoading" class="flex items-center gap-3">
+    <div class="flex items-center gap-3">
       <span class="w-6 font-bold text-red-700 text-[12px]">01</span>
-      <div class="flex-1 border-b border-gray-200 p-2 bg-gray-50 text-[12px] font-bold text-gray-700 uppercase">
-        {{ quotation.portOfLoading }}
-      </div>
+      <div class="flex-1 border-b border-gray-200 p-2 bg-gray-50 text-[12px] font-bold text-gray-700 uppercase">{{ quotation.portOfLoading }}</div>
       <span class="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded">POL</span>
     </div>
 
-    <!-- 2. Dynamically added Connecting Ports -->
     <div *ngFor="let port of selectedConnectingPorts; let i = index" class="flex items-center gap-3 group">
       <span class="w-6 font-bold text-red-700 text-[12px]">0{{ i + 2 }}</span>
-      <div class="flex-1 border-b border-gray-300 p-2 bg-white text-[12px] uppercase text-gray-800">
-        {{ port.name }}
-      </div>
+      <div class="flex-1 border-b border-gray-300 p-2 bg-white text-[12px] uppercase text-gray-800">{{ port.name }}</div>
       <button (click)="removeConnectingPort(port)" class="text-red-400 hover:text-red-700 font-bold text-xl">&times;</button>
     </div>
 
-    <!-- 3. Auto-filled Port of Destination (POD) -->
-    <div *ngIf="quotation.portOfDestination" class="flex items-center gap-3">
+    <div class="flex items-center gap-3">
       <span class="w-6 font-bold text-red-700 text-[12px]">0{{ selectedConnectingPorts.length + 2 }}</span>
-      <div class="flex-1 border-b border-gray-200 p-2 bg-gray-50 text-[12px] font-bold text-gray-700 uppercase">
-        {{ quotation.portOfDestination }}
-      </div>
+      <div class="flex-1 border-b border-gray-200 p-2 bg-gray-50 text-[12px] font-bold text-gray-700 uppercase">{{ quotation.portOfDestination }}</div>
       <span class="text-[10px] font-black text-green-600 bg-green-50 px-2 py-1 rounded">POD</span>
     </div>
   </div>
 </div>
 
-<!-- 🔥 PREMIUM MODAL -->
 <div *ngIf="isCPModalOpen" class="fixed inset-0 z-[200] flex items-center justify-center p-4">
-  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" (click)="toggleConnectingPortModal()"></div>
-
+  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" (click)="toggleConnectingPortModal()"></div>
+  
   <div class="relative bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden border border-gray-200">
-    <!-- Header -->
-    <div class="bg-red-800 p-5 flex justify-between items-center text-white">
+    
+    <div class="bg-red-800 p-4 flex justify-between items-center text-white">
       <div>
-        <h3 class="font-black uppercase tracking-tight">Select Connecting Ports</h3>
-        <p class="text-[10px] text-red-200 uppercase">Manage your shipment route</p>
+        <h3 class="font-black uppercase text-sm tracking-tight">Select Connecting Ports</h3>
       </div>
-      <button (click)="toggleConnectingPortModal()" class="text-2xl hover:text-red-200 transition-all">&times;</button>
+      <button (click)="toggleConnectingPortModal()" class="text-xl hover:text-red-200 transition-all">&times;</button>
     </div>
 
-    <!-- Search -->
-    <div class="p-4 bg-gray-50 border-b">
-      <input type="text" [(ngModel)]="cpSearchTerm" (input)="onSearchingConnectingPorts()"
-        placeholder="Search port name..." 
-        class="w-full border-2 border-gray-200 p-2.5 rounded-lg text-[13px] outline-none focus:border-red-500 uppercase font-semibold">
+    <div class="p-3 bg-gray-50 border-b">
+      <input type="text" [(ngModel)]="cpSearchTerm" (input)="onSearchingConnectingPorts()" 
+             placeholder="Search ports..." 
+             class="w-full border p-2 rounded-lg text-xs outline-none focus:ring-2 focus:ring-red-800 uppercase font-semibold">
     </div>
 
-    <!-- Body -->
-    <div class="p-4 max-h-[400px] overflow-y-auto">
-      <div class="grid grid-cols-2 gap-3">
-        <div *ngFor="let port of filteredConnectingPorts" 
-             (click)="selectConnectingPort(port)"
-             [ngClass]="{'border-red-600 bg-red-50': isPortSelected(port)}"
-             class="p-3 border-2 rounded-xl cursor-pointer hover:border-red-400 transition-all flex flex-col relative group">
-          <span class="text-[13px] font-bold text-gray-800 uppercase group-hover:text-red-700">{{ port.name }}</span>
-          <span class="text-[9px] font-bold text-gray-400 uppercase mt-1">{{ port.cpType }} Port</span>
-          
-          <div *ngIf="isPortSelected(port)" class="absolute top-2 right-2">
-            <div class="w-4 h-4 bg-red-600 rounded-full flex items-center justify-center">
-              <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
-            </div>
+    <div class="flex h-[300px]"> <div class="w-1/2 flex flex-col border-r">
+        <div class="p-2 text-[9px] font-black text-gray-400 bg-gray-100 uppercase border-b">Airports</div>
+        <div class="flex-1 overflow-y-auto p-2 space-y-1">
+          <div *ngFor="let port of getPortsByType('AIRPORT')" (click)="selectConnectingPort(port)" 
+               [class.bg-red-50]="isPortSelected(port)" [class.border-red-600]="isPortSelected(port)"
+               class="p-2 border rounded-lg cursor-pointer hover:bg-red-50 hover:border-red-300 transition-all">
+            <span class="block text-[11px] font-bold uppercase">{{ port.name }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="w-1/2 flex flex-col">
+        <div class="p-2 text-[9px] font-black text-gray-400 bg-gray-100 uppercase border-b">Seaports</div>
+        <div class="flex-1 overflow-y-auto p-2 space-y-1">
+          <div *ngFor="let port of getPortsByType('SEAPORT')" (click)="selectConnectingPort(port)" 
+               [class.bg-red-50]="isPortSelected(port)" [class.border-red-600]="isPortSelected(port)"
+               class="p-2 border rounded-lg cursor-pointer hover:bg-red-50 hover:border-red-300 transition-all">
+            <span class="block text-[11px] font-bold uppercase">{{ port.name }}</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Footer -->
-    <div class="p-4 bg-gray-50 flex justify-between items-center border-t">
-      <span class="text-[12px] font-bold text-gray-500 uppercase">Selected: <span class="text-red-700">{{ selectedConnectingPorts.length }}</span></span>
-      <button (click)="toggleConnectingPortModal()" class="bg-red-800 text-white px-6 py-2 rounded-lg font-bold text-[12px] hover:bg-red-900 shadow-lg">DONE</button>
+    <div class="p-3 bg-gray-50 flex justify-between items-center border-t">
+      <span class="text-[10px] font-bold text-red-800 uppercase">Selected: {{ selectedConnectingPorts.length }}</span>
+      <button (click)="toggleConnectingPortModal()" class="bg-red-800 text-white px-6 py-1.5 rounded-lg font-bold text-[11px] hover:bg-red-900">DONE</button>
     </div>
   </div>
 </div>

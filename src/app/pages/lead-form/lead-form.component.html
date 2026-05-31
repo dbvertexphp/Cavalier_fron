@@ -1066,60 +1066,66 @@ class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
 
 
 <!-- PAGINATION -->
-<div class="flex flex-col items-center mt-8 gap-4" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
+<div class="flex flex-col sm:flex-row items-center justify-between mt-8 gap-4 bg-white shadow-md border rounded-xl px-5 py-3" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
+  
+  <div class="flex items-center gap-4 flex-wrap justify-center sm:justify-start">
+    <div class="flex items-center gap-2">
+      <label class="text-sm font-medium text-gray-600 whitespace-nowrap">Show entries:</label>
+      <select 
+        [(ngModel)]="itemsPerPage" 
+        (change)="onPageSizeChange()"
+        class="bg-gray-50 border border-gray-300 text-gray-700 text-sm rounded-md focus:ring-red-500 focus:border-red-500 p-1 font-bold shadow-sm outline-none cursor-pointer">
+        <option [value]="10">10</option>
+        <option [value]="20">20</option>
+        <option [value]="30">30</option>
+        <option [value]="40">40</option>
+        <option [value]="50">50</option>
 
-  <!-- Showing Entries -->
-  <div class="text-sm text-gray-500">
-    Showing
-    <span class="font-semibold text-gray-700">
-      {{ (currentPage - 1) * itemsPerPage + 1 }}
-    </span>
-    -
-    <span class="font-semibold text-gray-700">
-      {{ (currentPage - 1) * itemsPerPage + paginatedLeads.length }}
-    </span>
-    of
-    <span class="font-semibold text-gray-700">{{ leads.length }}</span>
-    entries
+        <option [value]="100">100</option>
+      </select>
+    </div>
+
+    <div class="text-sm text-gray-500 text-center sm:text-left">
+      Showing
+      <span class="font-semibold text-gray-700">
+        {{ leads.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1 }}
+      </span>
+      -
+      <span class="font-semibold text-gray-700">
+        {{ (currentPage - 1) * itemsPerPage + paginatedLeads.length }}
+      </span>
+      of
+      <span class="font-semibold text-gray-700">{{ leads.length }}</span>
+      entries
+    </div>
   </div>
 
-  <!-- Pagination -->
-  <div class="flex items-center gap-1 bg-white shadow-lg border rounded-xl px-3 py-2">
-
-    <!-- Prev -->
+  <div class="flex items-center gap-1">
     <button
       (click)="previousPage()"
       [disabled]="currentPage === 1"
-      class="px-3 py-1 text-sm rounded-md hover:bg-gray-100 disabled:opacity-40 transition">
+      class="px-3 py-1.5 text-sm rounded-md border bg-white hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition">
       ◀
     </button>
 
-    <!-- Page Numbers -->
-    <ng-container *ngFor="let page of [].constructor(totalPages); let i = index">
-      
-      <button
-        (click)="goToPage(i + 1)"
-        class="px-3 py-1 text-sm rounded-md transition"
-        [ngClass]="
-          currentPage === (i + 1)
-          ? 'bg-blue-500 text-white shadow'
-          : 'hover:bg-gray-100 text-gray-700'
-        ">
-
-        {{ i + 1 }}
-
-      </button>
-
-    </ng-container>
-
-    <!-- Next -->
     <button
-      (click)="nextPage()"
-      [disabled]="currentPage === totalPages"
-      class="px-3 py-1 text-sm rounded-md hover:bg-gray-100 disabled:opacity-40 transition">
-      ▶
+      *ngFor="let page of [].constructor(totalPages); let i = index"
+      (click)="goToPage(i + 1)"
+      class="px-3 py-1.5 text-sm rounded-md font-medium transition"
+      [ngClass]="
+        currentPage === (i + 1)
+        ? 'bg-red-600 text-white shadow font-bold'
+        : 'hover:bg-gray-100 text-gray-700 bg-white border border-gray-200'
+      ">
+      {{ i + 1 }}
     </button>
 
+    <button
+      (click)="nextPage()"
+      [disabled]="currentPage === totalPages || totalPages === 0"
+      class="px-3 py-1.5 text-sm rounded-md border bg-white hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition">
+      ▶
+    </button>
   </div>
 
 </div>

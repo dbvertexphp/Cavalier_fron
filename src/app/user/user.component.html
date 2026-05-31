@@ -242,36 +242,54 @@
 <!-- Table content... -->
 
 <!-- Pagination Controls -->
-<div class="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6 mt-4 rounded-xl shadow-sm">
-  <div class="flex justify-between flex-1 sm:hidden">
-    <button (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 1" class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">Previous</button>
-    <button (click)="onPageChange(currentPage + 1)" [disabled]="(currentPage * pageSize) >= totalRecords" class="relative ml-3 inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">Next</button>
-  </div>
-  <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+
+<div class="flex flex-col sm:flex-row items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6 mt-4 rounded-xl shadow-sm gap-4">
+  
+  <div class="flex items-center gap-4 flex-wrap justify-center sm:justify-start">
+    <div class="flex items-center gap-2">
+      <label class="text-sm font-medium text-slate-600 whitespace-nowrap">Show entries:</label>
+      <select 
+        (change)="onPageSizeChange($event)" 
+        [value]="pageSize"
+        class="bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-1.5 font-bold shadow-sm outline-none">
+        <option value="10">10</option>
+        <option value="20">20</option>
+        <option value="30">30</option>
+        <option value="40">40</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+      </select>
+    </div>
+    
     <div>
-      <p class="text-sm text-gray-700">
-        Showing <span class="font-medium">{{ (currentPage - 1) * pageSize + 1 }}</span> 
+      <p class="text-sm text-gray-700 text-center sm:text-left">
+        Showing <span class="font-medium">{{ totalRecords === 0 ? 0 : (currentPage - 1) * pageSize + 1 }}</span> 
         to <span class="font-medium">{{ currentPage * pageSize > totalRecords ? totalRecords : currentPage * pageSize }}</span> 
         of <span class="font-medium">{{ totalRecords }}</span> results
       </p>
     </div>
-    <div>
-      <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-        <button (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 1" 
-          class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50">
-          Previous
-        </button>
-        
-        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-bold text-blue-600">
-          {{ currentPage }}
-        </span>
+  </div>
 
-        <button (click)="onPageChange(currentPage + 1)" [disabled]="(currentPage * pageSize) >= totalRecords"
-          class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50">
-          Next
-        </button>
-      </nav>
-    </div>
+  <div class="flex items-center justify-center">
+    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+      <button 
+        (click)="onPageChange(currentPage - 1)" 
+        [disabled]="currentPage === 1" 
+        class="relative inline-flex items-center px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+        Previous
+      </button>
+      
+      <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-bold text-blue-600">
+        {{ currentPage }}
+      </span>
+
+      <button 
+        (click)="onPageChange(currentPage + 1)" 
+        [disabled]="(currentPage * pageSize) >= totalRecords"
+        class="relative inline-flex items-center px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+        Next
+      </button>
+    </nav>
   </div>
 </div>
   <div *ngIf="!loading && users.length === 0"

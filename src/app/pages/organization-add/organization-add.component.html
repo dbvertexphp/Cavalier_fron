@@ -454,7 +454,21 @@
                   {{org.selectedRoles}}
                 </span>
               </span>
+<span *ngSwitchCase="'Branches'">
+  <button type="button" 
+          (click)="openBranchesModal(org, $event)"
+          class="bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white border border-blue-200 px-2.5 py-1 rounded text-[11px] font-bold shadow-sm transition-all uppercase flex items-center gap-1">
+    👁️ View ({{ org.branches?.length || 0 }})
+  </button>
+</span>
 
+<span *ngSwitchCase="'Countries'">
+  <button type="button" 
+          (click)="openCountriesModal(org, $event)"
+          class="bg-amber-50 text-amber-700 hover:bg-amber-600 hover:text-white border border-amber-200 px-2.5 py-1 rounded text-[11px] font-bold shadow-sm transition-all uppercase flex items-center gap-1">
+    🌍 View Countries
+  </button>
+</span>
               <span *ngSwitchDefault class="font-medium text-gray-700">
                 {{ org[columnFieldMap[col]] || '-' }}
               </span>
@@ -509,48 +523,67 @@
   </table>
 </div>
 </div>
-        <div class="flex justify-between items-center bg-white p-4 border-t border-gray-200 mt-2 shadow-sm rounded-b-lg no-export" *ngIf="organizations.length > 0">
-      <div class="text-[12px] text-gray-600 font-medium">
-        Showing 
-        <span class="font-bold text-gray-800">{{ (currentPage - 1) * pageSize + 1 }}</span> 
-        to 
-        <span class="font-bold text-gray-800">{{ Math.min(currentPage * pageSize, organizations.length) }}</span> 
-        of 
-        <span class="font-bold text-gray-800">{{ organizations.length }}</span> 
-        Organizations
-      </div>
-
-      <div class="flex items-center gap-2">
-        <button (click)="setPage(1)" [disabled]="currentPage === 1"
-          class="p-2 text-gray-500 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed">
-          ««
-        </button>
-
-        <button (click)="setPage(currentPage - 1)" [disabled]="currentPage === 1"
-          class="px-4 py-1 text-[11px] font-bold uppercase border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
-          Prev
-        </button>
-
-        <div class="flex items-center mx-2 shadow-sm border border-gray-200 rounded">
-          <span class="px-3 py-1 text-[12px] font-black bg-[#4a3f3f] text-white rounded-l">
-            {{currentPage}}
-          </span>
-          <span class="px-3 py-1 text-[12px] font-bold bg-gray-50 text-gray-600 rounded-r">
-            of {{totalPages}}
-          </span>
-        </div>
-
-        <button (click)="setPage(currentPage + 1)" [disabled]="currentPage === totalPages"
-          class="px-4 py-1 text-[11px] font-bold uppercase border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
-          Next
-        </button>
-
-        <button (click)="setPage(totalPages)" [disabled]="currentPage === totalPages"
-          class="p-2 text-gray-500 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed">
-          »»
-        </button>
-      </div>
+      <div class="flex flex-col sm:flex-row items-center justify-between bg-white p-4 border-t border-gray-200 mt-2 shadow-sm rounded-b-lg gap-4 no-export" *ngIf="organizations.length > 0">
+  
+  <div class="flex items-center gap-4 flex-wrap justify-center sm:justify-start">
+    <div class="flex items-center gap-2">
+      <label class="text-[12px] font-bold text-gray-600 whitespace-nowrap">Show entries:</label>
+      <select 
+        [(ngModel)]="pageSize" 
+        (change)="onPageSizeChange()"
+        class="bg-gray-50 border border-gray-300 text-gray-700 text-[12px] font-bold rounded p-1 outline-none shadow-sm cursor-pointer focus:border-red-500 focus:ring-1 focus:ring-red-400">
+        <option [value]="10">10</option>
+        <option [value]="20">20</option>
+        <option [value]="30">30</option>
+        <option [value]="40">40</option>
+        <option [value]="50">50</option>
+        <option [value]="100">100</option>
+      </select>
     </div>
+
+    <div class="text-[12px] text-gray-600 font-medium">
+      Showing 
+      <span class="font-bold text-gray-800">{{ organizations.length === 0 ? 0 : (currentPage - 1) * pageSize + 1 }}</span> 
+      to 
+      <span class="font-bold text-gray-800">{{ Math.min(currentPage * pageSize, organizations.length) }}</span> 
+      of 
+      <span class="font-bold text-gray-800">{{ organizations.length }}</span> 
+      Organizations
+    </div>
+  </div>
+
+  <div class="flex items-center gap-1.5">
+    <button (click)="setPage(1)" [disabled]="currentPage === 1"
+      class="p-1.5 text-gray-500 hover:text-red-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-[11px] font-bold">
+      ««
+    </button>
+
+    <button (click)="setPage(currentPage - 1)" [disabled]="currentPage === 1"
+      class="px-3 py-1 text-[11px] font-bold uppercase border border-gray-300 rounded bg-white hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-xs">
+      Prev
+    </button>
+
+    <div class="flex items-center mx-1 shadow-sm border border-gray-200 rounded overflow-hidden">
+      <span class="px-3 py-1 text-[12px] font-black bg-[#4a3f3f] text-white">
+        {{currentPage}}
+      </span>
+      <span class="px-3 py-1 text-[12px] font-bold bg-gray-50 text-gray-600 border-l border-gray-200">
+        of {{totalPages}}
+      </span>
+    </div>
+
+    <button (click)="setPage(currentPage + 1)" [disabled]="currentPage === totalPages"
+      class="px-3 py-1 text-[11px] font-bold uppercase border border-gray-300 rounded bg-white hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-xs">
+      Next
+    </button>
+
+    <button (click)="setPage(totalPages)" [disabled]="currentPage === totalPages"
+      class="p-1.5 text-gray-500 hover:text-red-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-[11px] font-bold">
+      »»
+    </button>
+  </div>
+
+</div>
       </div>
     </div>
 <div *ngIf="showColumnModal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
@@ -1556,6 +1589,40 @@
 </button>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="showBranchDetailModal" 
+     class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-150">
+  
+  <div class="bg-white rounded shadow-2xl w-full max-w-[400px] overflow-hidden border-t-4 border-blue-600 animate-in zoom-in duration-200">
+    
+    <!-- Modal Header -->
+    <div class="p-3.5 bg-gray-50 border-b flex justify-between items-center">
+      <h3 class="text-[12px] font-bold text-gray-700 uppercase tracking-wider flex items-center gap-1.5">
+        📋 {{ modalModalTitle }}
+      </h3>
+      <button (click)="closeBranchDetailModal()" 
+              class="text-gray-400 hover:text-red-500 text-2xl font-bold leading-none">&times;</button>
+    </div>
+    
+    <!-- Modal Content List -->
+    <div class="p-4 max-h-64 overflow-y-auto custom-scrollbar bg-white">
+      <ul class="list-none p-0 m-0 space-y-1.5">
+        <li *ngFor="let item of modalDataList" 
+            class="px-3 py-2 bg-gray-50 border border-gray-200 rounded-sm text-[12px] font-bold text-gray-700 uppercase tracking-wide shadow-xs flex items-center gap-2">
+          <span class="text-blue-500">•</span> {{ item }}
+        </li>
+      </ul>
+    </div>
+    
+    <!-- Modal Footer -->
+    <div class="p-3 border-t bg-gray-50 flex justify-end">
+      <button (click)="closeBranchDetailModal()" 
+              class="px-5 py-1 bg-[#4a3f3f] text-white text-[11px] font-bold rounded-sm uppercase tracking-wider hover:bg-black shadow-md transition-all">
+        Close
+      </button>
     </div>
   </div>
 </div>

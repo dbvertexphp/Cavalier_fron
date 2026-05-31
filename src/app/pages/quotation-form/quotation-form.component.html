@@ -808,61 +808,73 @@
   </tbody>
 </table>
       </div>
-      <div
-        class="flex flex-col items-center mt-6 gap-3"
-        *ngIf="CheckPermissionService.hasPermission(PermissionID, 'View')"
-      >
-        <!-- Showing entries -->
-        <div class="text-sm text-gray-500">
-          Showing
-          <span class="font-semibold">
-            {{ (currentPage - 1) * pageSize + 1 }}
-          </span>
-          -
-          <span class="font-semibold">
-            {{ (currentPage - 1) * pageSize + paginatedQuotations.length }}
-          </span>
-          of
-          <span class="font-semibold">{{ quotations.length }}</span>
-          entries
-        </div>
+     <div class="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4 bg-white border shadow-md rounded-xl px-5 py-3.5" *ngIf="CheckPermissionService.hasPermission(PermissionID, 'View')">
+  
+  <div class="flex items-center gap-4 flex-wrap justify-center sm:justify-start">
+    <div class="flex items-center gap-2">
+      <label class="text-[12px] font-bold text-gray-600 whitespace-nowrap">Show entries:</label>
+      <select 
+        [(ngModel)]="pageSize" 
+        (change)="onPageSizeChange()"
+        class="bg-gray-50 border border-gray-300 text-gray-700 text-[12px] font-bold rounded p-1 outline-none shadow-sm cursor-pointer focus:border-blue-500 focus:ring-1 focus:ring-blue-400">
+        <option [value]="10">10</option>
+        <option [value]="20">20</option>
+        <option [value]="30">30</option>
+        <option [value]="40">40</option>
+        <option [value]="50">50</option>
+        <option [value]="100">100</option>
+      </select>
+    </div>
 
-        <!-- Pagination Buttons -->
-        <div
-          class="flex items-center gap-1 bg-white border shadow-md rounded-lg px-3 py-2"
-        >
-          <button
-            (click)="previousPage()"
-            [disabled]="currentPage === 1"
-            class="px-3 py-1 rounded hover:bg-gray-100 disabled:opacity-40"
-          >
-            ◀
-          </button>
+    <div class="text-sm text-gray-500 text-center sm:text-left">
+      Showing
+      <span class="font-semibold text-gray-700">
+        {{ quotations.length === 0 ? 0 : (currentPage - 1) * pageSize + 1 }}
+      </span>
+      -
+      <span class="font-semibold text-gray-700">
+        {{ (currentPage - 1) * pageSize + paginatedQuotations.length }}
+      </span>
+      of
+      <span class="font-semibold text-gray-700">{{ quotations.length }}</span>
+      entries
+    </div>
+  </div>
 
-          <ng-container
-            *ngFor="let page of [].constructor(totalPages); let i = index"
-          >
-            <button
-              (click)="goToPage(i + 1)"
-              [ngClass]="{
-                'bg-blue-500 text-white': currentPage === i + 1,
-                'hover:bg-gray-100': currentPage !== i + 1,
-              }"
-              class="px-3 py-1 rounded text-sm min-w-[36px]"
-            >
-              {{ i + 1 }}
-            </button>
-          </ng-container>
+  <div class="flex items-center gap-1">
+    <button (click)="setPage(1)" [disabled]="currentPage === 1"
+      class="px-2.5 py-1 text-xs font-bold rounded bg-white border hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all">
+      ««
+    </button>
 
-          <button
-            (click)="nextPage()"
-            [disabled]="currentPage === totalPages"
-            class="px-3 py-1 rounded hover:bg-gray-100 disabled:opacity-40"
-          >
-            ▶
-          </button>
-        </div>
-      </div>
+    <button (click)="previousPage()" [disabled]="currentPage === 1"
+      class="px-3 py-1 rounded border bg-white text-sm hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all">
+      ◀
+    </button>
+
+    <button
+      *ngFor="let page of [].constructor(totalPages); let i = index"
+      (click)="goToPage(i + 1)"
+      class="px-3 py-1 rounded text-sm min-w-[36px] transition-all font-medium"
+      [ngClass]="{
+        'bg-blue-500 text-white font-bold shadow-md': currentPage === i + 1,
+        'hover:bg-gray-100 text-gray-700 bg-white border border-gray-200': currentPage !== i + 1
+      }">
+      {{ i + 1 }}
+    </button>
+
+    <button (click)="nextPage()" [disabled]="currentPage === totalPages || totalPages === 0"
+      class="px-3 py-1 rounded border bg-white text-sm hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all">
+      ▶
+    </button>
+
+    <button (click)="setPage(totalPages)" [disabled]="currentPage === totalPages || totalPages === 0"
+      class="px-2.5 py-1 text-xs font-bold rounded bg-white border hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all">
+      »»
+    </button>
+  </div>
+
+</div>
     </div>
   </div>
 

@@ -2134,10 +2134,10 @@ protected readonly Math = Math; // Template mein Math use karne ke liye
 // }
 
 setPage(page: number) {
-  if (page < 1 || page > this.totalPages) return;
-  this.currentPage = page;
-  this.cdr.detectChanges();
-}
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+    this.cdr.detectChanges(); // Core frame pipeline refresh sync processing context lock trigger block
+  }
 //line of buisnes go on lob
 onHeaderLOBChange() {
   // 1. Pehle value ko ek variable mein le lo aur check karo
@@ -2166,9 +2166,17 @@ onHeaderLOBChange() {
 }
 
 onPageSizeChange() {
-  this.currentPage = 1; // Size badalne par pehle page par le jao
-  this.cdr.detectChanges();
-}
+    this.pageSize = Number(this.pageSize); // Safe casting processing numerical strings parsing layout context algorithm rules
+    this.currentPage = 1;                  // Revert target display pointers pointer safe mode parameter grid point layer view index 1
+    
+    // Bounds limit matching safeguard mechanism logic tracking check elements structure sequence context loop
+    const maxSafetyPages = Math.ceil(this.quotations.length / this.pageSize) || 1;
+    if (this.currentPage > maxSafetyPages) {
+      this.currentPage = maxSafetyPages;
+    }
+    
+    this.cdr.detectChanges(); // View context changes data execution layer engine updates matrix array cycle block frame reload lock
+  }
 
 showQuotePicker: boolean = false;
 setQuoteQuickDate(type: string) {

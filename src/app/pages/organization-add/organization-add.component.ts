@@ -23,6 +23,9 @@ import Swal from 'sweetalert2';
 })
 export class OrganizationAddComponent implements OnInit {
   allDialCodes: any[] = []; // Saari countries ke dialing codes store karne ke liye
+  showBranchDetailModal: boolean = false;
+modalModalTitle: string = '';
+modalDataList: string[] = []; // Modal mein string ki list dikhane ke liye
   agentCountryCode: string = '';
   agentSelectedLineOfBusiness: any[] = [];
   showAgentLobDropdown: boolean = false;
@@ -238,6 +241,50 @@ getSelectedLobNames(): string {
              .filter(name => name)           // empty names hatao
              .join(', ');
 }
+openBranchesModal(org: any, event: MouseEvent) {
+  event.stopPropagation(); // Row click click hone se rokega
+  
+  this.modalModalTitle = `Branches of ${org.orgName}`;
+  
+  if (org.branches && org.branches.length > 0) {
+    // Saari branches ke naam nikal kar list mein daal diye
+    this.modalDataList = org.branches.map((b: any) => b.branchName || 'UNNAMED BRANCH');
+  } else {
+    this.modalDataList = ['No branches available'];
+  }
+  
+  this.showBranchDetailModal = true;
+  this.cdr.detectChanges();
+}
+
+// 2. Country Button Click Logic
+// 2. Country Button Click Logic (Updated with Branch -> Country Mapping)
+openCountriesModal(org: any, event: MouseEvent) {
+  event.stopPropagation(); // Row click/double-click ko rokega
+  
+  this.modalModalTitle = `Countries linked with ${org.orgName}`;
+  
+  if (org.branches && org.branches.length > 0) {
+    // Har branch ka naam aur uski country ko pair (format) karke list mein daal rahe hain
+    this.modalDataList = org.branches.map((b: any) => {
+      const bName = b.branchName ? b.branchName.toUpperCase().trim() : 'UNNAMED BRANCH';
+      const cName = b.country ? b.country.toUpperCase().trim() : 'NO COUNTRY ASSIGNED';
+      return `${bName} ➔ ${cName}`; // 👈 Format: DELHI ➔ INDIA
+    });
+  } else {
+    this.modalDataList = ['No branch/country data available'];
+  }
+  
+  this.showBranchDetailModal = true;
+  this.cdr.detectChanges();
+}
+
+closeBranchDetailModal() {
+  this.showBranchDetailModal = false;
+  this.modalDataList = [];
+  this.modalModalTitle = '';
+  this.cdr.detectChanges();
+}
 // ==================== DELETE SELECTED BRANCH ====================
 deleteSelectedBranch() {
   if (this.selectedBranchIndex < 0) {
@@ -406,7 +453,8 @@ columnFieldMap: any = {
   'Org Name': 'orgName',
   'Alias': 'alias',
   'Type': 'selectedRoles',
-
+'Branches': 'branches',   // 👈 Naya column key
+  'Countries': 'branches',  // 👈 Naya column key
   'Total Branches': 'branchName',
   'Organization ID': 'organizationId', 
 
@@ -423,7 +471,8 @@ selectedColumns: string[] = [
   'Total Branches',
   'Organization ID',
 
-
+'Branches',  // 👈 Table mein dikhane ke liye
+  'Countries', // 👈 Table mein dikhane ke liye
   'Sales Person', 
   'Collection Exec',
 
@@ -1953,9 +2002,22 @@ get totalPages(): number {
 }
 
 setPage(page: number) {
-  if (page < 1 || page > this.totalPages) return;
-  this.currentPage = page;
-}
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+    this.cdr.detectChanges(); // Direct template UI array frame pipeline cycle guarantee
+  }
+  onPageSizeChange() {
+    this.pageSize = Number(this.pageSize); // Force structural drop parameters parsing array value string validation context
+    this.currentPage = 1;                   // Dynamic execution loop level structural array reset logic grid back track base view index
+    
+    // Quick validation mechanism pattern layer matching structural loop safety tracking bounds logic parameters
+    const maxPossiblePages = Math.ceil(this.organizations.length / this.pageSize) || 1;
+    if (this.currentPage > maxPossiblePages) {
+      this.currentPage = maxPossiblePages;
+    }
+    
+    this.cdr.detectChanges(); // Interface grid layer layout visualization pipeline cycle refresh lock sync trigger
+  }
 // Modal Control
 // Modal Control
 openColumnModal() { 

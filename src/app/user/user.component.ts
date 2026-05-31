@@ -90,11 +90,15 @@ const token = localStorage.getItem('cavalier_token');
     });
   }
 
-  onPageChange(page: number) {
+ onPageChange(page: number) {
     this.currentPage = page;
     this.loadUsers();
   }
-
+onPageSizeChange(event: any) {
+    this.pageSize = Number(event.target.value); // Selected value ko number me convert kiya
+    this.currentPage = 1;                       // Page size badalne par hamesha page 1 par move karein
+    this.loadUsers();                           // Naya data load karein
+  }
   // Filter change hone par page reset karna zaroori hai
   filterUsers(type: string) {
     this.currentPage = 1; 

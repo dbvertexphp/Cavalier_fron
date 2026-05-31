@@ -84,9 +84,10 @@ filteredLeadOwners: string[] = [];
   // filteredHODSuggestions:any[]=[]
   hodUniqueList:any[]=[]
 goToPage(page: number) {
-  this.currentPage = page;
-  this.updatePagination();
-}
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+    this.updatePagination();
+  }
   constructor(
     private fb: FormBuilder,
     private router: Router,
@@ -147,27 +148,27 @@ this.loadColumnSettings();
      // Important: Leads load first to calculate number
   }
   
-  updatePagination() {
+ updatePagination() {
+    // Total pages count recalculate karein
+    this.totalPages = Math.ceil(this.leads.length / this.itemsPerPage);
+    
+    // Safety check agar records khali ho jayein ya filter lage
+    if (this.currentPage > this.totalPages) {
+      this.currentPage = this.totalPages || 1;
+    }
 
-  this.totalPages = Math.ceil(this.leads.length / this.itemsPerPage);
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    const endIndex = startIndex + Number(this.itemsPerPage); // Dropdown value type double check array slice ke liye
 
-  const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-  const endIndex = startIndex + this.itemsPerPage;
-
-  this.paginatedLeads = this.leads.slice(startIndex, endIndex);
-
-}
-nextPage() {
-
-  if (this.currentPage < this.totalPages) {
-
-    this.currentPage++;
-
-    this.updatePagination();
-
+    this.paginatedLeads = this.leads.slice(startIndex, endIndex);
+    this.cdr.detectChanges(); // UI refresh guarantee
   }
-
-}
+nextPage() {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+      this.updatePagination();
+    }
+  }
 // Lead Sources Load
 loadLeadSources() {
   this.http.get<any[]>(`${environment.apiUrl}/LeadSources`)
@@ -356,16 +357,11 @@ getReportingManagers() {
   });
 }
 previousPage() {
-
-  if (this.currentPage > 1) {
-
-    this.currentPage--;
-
-    this.updatePagination();
-
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.updatePagination();
+    }
   }
-
-}
 availableColumns:string[] = [];
 
 selectedColumns:string[] = [];
@@ -1787,9 +1783,10 @@ setPage(page: number) {
 
 // Page size change hone par page 1 par reset karein
 onPageSizeChange() {
-  this.currentPage = 1;
-  this.cdr.detectChanges();
-}
+    this.itemsPerPage = Number(this.itemsPerPage); // Option value string ko safe number banayein
+    this.currentPage = 1;                          // Hamesha page 1 par move karein
+    this.updatePagination();                       // Data recreate karein
+  }
 // Icon Popup ke liye alag variables (Inhe kisi aur logic mein mat use karna)
 iconSearchOrgs: any[] = []; 
 private iconSearchSub?: Subscription;

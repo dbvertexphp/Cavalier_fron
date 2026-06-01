@@ -11,7 +11,7 @@ import { CheckPermissionService } from '../../services/check-permission.service'
 import jsPDF from 'jspdf';
 import * as XLSX from 'xlsx';
 import { leadSchema } from './lead.schema';
-import { Subscription } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
 import { HttpHeaders } from '@angular/common/http'; // Top par import check kar lena
 import { UserService } from '../../services/user.service';
 import { ActivatedRoute } from '@angular/router';
@@ -1536,9 +1536,10 @@ selectLeadSalesStage(stage: string): void {
   this.filteredSalesStages = [];             // Dropdown band
 }
 resetLeadFilters() {
+  // 1. UI ka Object reset karo
   this.leadSearchFilters = {
     leadNo: '',
-    date: '', // 👈 "" hi rakha hai taaki Type Error na aaye
+    date: '', 
     organizationName: '',
     type: 'Any',
     leadOwner: 'Any',
@@ -1551,34 +1552,50 @@ resetLeadFilters() {
     branch: ''
   };
 
+  // 2. Agar Reactive Form use kar rahe ho, toh use bhi reset karo
+  if (this.leadForm) {
+    this.leadForm.patchValue({
+      date: '',
+      branch: ''
+    });
+  }
+
+  // 3. Backend ke liye "Full" Payload bhejo (Jo tumhare API ko chahiye)
   const resetPayload = {
-    leadNo: '',
-    date: null, // Payload mein null bhej sakte hain backend ke liye
-    organizationName: '',
-    type: '',
-    leadOwner: '',
-    salesProcess: '',
-    salesStage: '',
-    team: ''
+    LeadNo: '',
+    OrganizationName: '',
+    Type: '',
+    LeadOwner: '',
+    SalesStage: '',
+    SalesProcess: '',
+    HOD: '',
+    Team: '',
+    Branch: '',     // 👈 Yeh missing tha
+    ReportingManager: '',
+    Status: '',
+    Date: ''        // 👈 Yeh missing tha
   };
 
-  this.http.post<any[]>(`${environment.apiUrl}/Leads/Search`, resetPayload)
+  const token = localStorage.getItem('cavalier_token');
+  const headers = { 'Authorization': `Bearer ${token}` };
+
+  this.http.post<any[]>(`${environment.apiUrl}/Leads/Search`, resetPayload, { headers })
     .subscribe({
       next: (response) => {
         this.leads = response || [];
+        this.paginatedLeads = [...this.leads];
         
-        // 🔥 Ye sabse important hai: Manual Change Detection
-        // Ye UI ke saare inputs (including date) ko forcibly clear dikhayega
+        // UI Refresh
         this.cdr.markForCheck(); 
         this.cdr.detectChanges();
         
-        console.log("✅ Leads Table Restored and Filters Cleared");
+        console.log("✅ Filters cleared and table restored.");
       },
       error: (err) => {
         console.error("❌ Reset failed:", err);
       }
     });
-} 
+}
 // 1. PDF DOWNLOAD LOGIC FOR LEADS
 isExportOpen = false;
 
@@ -1834,29 +1851,29 @@ private hodIconSub?: Subscription;
 // 1. 🔍 Icon par click karne wala logic
 // 1. Icon Search (Modal Open + API Call with Authorization)
 oniconHODSearch() {
-  // Modal toggle logic
   this.isHODModalOpen = true;
   this.modalHODSearchText = '';
-  
-  // Pehle se chal rahi subscription ko unsubscribe karein
   this.hodIconSub?.unsubscribe();
 
-  // Token nikaalein
-  const token = localStorage.getItem('cavalier_token'); 
-  const headers = { 'Authorization': `Bearer ${token}` };
-
-  this.cdr.detectChanges(); 
-
-  // API call
-  this.hodIconSub = this.http.get<any[]>(`${environment.apiUrl}/Leads`, { headers }).subscribe({
+  this.hodIconSub = this.http.get<any[]>(`${environment.apiUrl}/Leads`, { 
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('cavalier_token') || ''}` } 
+  }).subscribe({
     next: (res) => {
       if (res && res.length > 0) {
-        // Unique HODs ki list banana
-        const uniqueHODs = [...new Set(res.map(item => item.hod || item.hodName || item.name || item))]
-          .filter(name => name && typeof name === 'string' && name.trim() !== "");
+        // 1. Sirf 'hod' field uthao
+        // 2. Filter lagao: Sirf wahi rakho jisme letters (a-z) hain (taaki '25', '2' hat jaye)
+        const uniqueHODs = [...new Set(res.map(item => item.hod))]
+          .filter(name => 
+            name && 
+            typeof name === 'string' && 
+            name.trim() !== "" && 
+            /[a-zA-Z]/.test(name) // Yeh sirf Names rakhega, Numbers hata dega
+          );
 
-        this.allHODList = uniqueHODs;          // Base list store ki
-        this.allHODListFiltered = [...this.allHODList]; // Modal display list set ki
+        this.allHODList = uniqueHODs;
+        this.allHODListFiltered = [...this.allHODList];
+        
+        console.log("Cleaned Names for Modal:", this.allHODList);
         
         this.cdr.markForCheck(); 
         this.cdr.detectChanges(); 
@@ -1864,9 +1881,6 @@ oniconHODSearch() {
     },
     error: (err) => {
       console.error("HOD API Error:", err);
-      if (err.status === 401) {
-        console.warn("Unauthorized! Token invalid or expired.");
-      }
       this.allHODList = [];
       this.allHODListFiltered = [];
       this.cdr.detectChanges();
@@ -1944,32 +1958,38 @@ onLeadOwnerIconClick() {
   // Purani subscription clean karein
   this.loIconSub?.unsubscribe();
 
-  // Token nikaalein (Auth logic)
-  const token = localStorage.getItem('cavalier_token'); 
-  const headers = { 'Authorization': `Bearer ${token}` };
-
-  this.cdr.detectChanges(); 
-
   // API Call
-  this.loIconSub = this.http.get<any[]>(`${environment.apiUrl}/Leads`, { headers }).subscribe({
+  this.loIconSub = this.http.get<any[]>(`${environment.apiUrl}/Leads`, { 
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('cavalier_token') || ''}` } 
+  }).subscribe({
     next: (res) => {
       if (res && res.length > 0) {
         // Unique Lead Owners ki list banana
-        const uniqueOwners = [...new Set(res.map(item => item.name || item.firstName || item.leadOwner || item))]
-          .filter(name => name && typeof name === 'string' && name.trim() !== "");
+        // Sirf 'leadOwner' field uthao aur numbers/empty values filter karo
+        const uniqueOwners = [...new Set(res.map(item => item.leadOwner))]
+          .filter(name => 
+            name && 
+            typeof name === 'string' && 
+            name.trim() !== "" && 
+            /[a-zA-Z]/.test(name) // Sirf letters wale names rakho, numbers hata do
+          );
 
-        // FIX: 'allOwnersFiltered' use kiya hai jo teri file mein declare hai
         this.leadOwnerList = uniqueOwners; 
         this.allOwnersFiltered = [...this.leadOwnerList];
 
+        console.log("DEBUG - Cleaned Lead Owners:", this.leadOwnerList);
+
         this.cdr.markForCheck();
         this.cdr.detectChanges();
+      } else {
+        this.leadOwnerList = [];
+        this.allOwnersFiltered = [];
       }
     },
     error: (err) => {
       console.error("Lead Owner API Error:", err);
       if(err.status === 401) {
-        alert("Session expired! Please login again.");
+        console.warn("Session expired! Please login again.");
       }
       this.leadOwnerList = [];
       this.allOwnersFiltered = [];
@@ -1977,7 +1997,6 @@ onLeadOwnerIconClick() {
     }
   });
 }
-
 // 2. Input Search Type (3 Letter Logic for Dropdown)
 onLeadOwnerSearch(event: Event): void {
   const value = (event.target as HTMLInputElement).value.toLowerCase().trim();
@@ -2164,7 +2183,6 @@ isManagerModalOpen: boolean = false;
 modalManagerSearchText: string = '';
 allManagersList: any[] = [];
 rmIconListFiltered: any[] = [];
-
 onManagerIconClick() {
   // Modal Open
   this.isManagerModalOpen = true;
@@ -2175,19 +2193,29 @@ onManagerIconClick() {
   const token = localStorage.getItem('cavalier_token');
   const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
-  // API Call (Wapas tumhare /Leads endpoint par)
+  // API Call
   this.rmIconSub = this.http.get<any[]>(`${environment.apiUrl}/Leads`, { headers }).subscribe({
     next: (res) => {
       if (res && res.length > 0) {
-        // Unique Managers nikalna (Tumhara Original Logic)
+        // Unique Managers nikalna + Number/ID filter karna
         const uniqueManagers = [...new Set(res.map(item => item.reportingManager))]
-          .filter(val => val && typeof val === 'string' && val.trim() !== "");
+          .filter(name => 
+            name && 
+            typeof name === 'string' && 
+            name.trim() !== "" && 
+            /[a-zA-Z]/.test(name) // Sirf letters wale names rakho
+          );
 
         this.allManagersList = uniqueManagers;
         this.rmIconListFiltered = [...this.allManagersList];
 
+        console.log("DEBUG - Cleaned Managers:", this.allManagersList);
+
         this.cdr.markForCheck();
         this.cdr.detectChanges();
+      } else {
+        this.allManagersList = [];
+        this.rmIconListFiltered = [];
       }
     },
     error: (err) => {
@@ -2199,7 +2227,6 @@ onManagerIconClick() {
     }
   });
 }
-
 // Modal filter logic
 filterManagers(event?: any) {
   const query = this.modalManagerSearchText.toLowerCase().trim();

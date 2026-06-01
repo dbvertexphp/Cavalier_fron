@@ -2742,7 +2742,7 @@
 
     <div *ngFor="let port of selectedConnectingPorts; let i = index" class="flex items-center gap-3 group">
       <span class="w-6 font-bold text-red-700 text-[12px]">0{{ i + 2 }}</span>
-      <div class="flex-1 border-b border-gray-300 p-2 bg-white text-[12px] uppercase text-gray-800">{{ port.name }}</div>
+      <div class="flex-1 border-b border-gray-300 p-2 bg-white text-[12px] uppercase text-gray-800">{{ port.portName }}</div>
       <button (click)="removeConnectingPort(port)" class="text-red-400 hover:text-red-700 font-bold text-xl">&times;</button>
     </div>
 
@@ -2758,42 +2758,30 @@
   <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" (click)="toggleConnectingPortModal()"></div>
   
   <div class="relative bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden border border-gray-200">
-    
     <div class="bg-red-800 p-4 flex justify-between items-center text-white">
-      <div>
-        <h3 class="font-black uppercase text-sm tracking-tight">Select Connecting Ports</h3>
-      </div>
+      <h3 class="font-black uppercase text-sm tracking-tight">Select Connecting Ports</h3>
       <button (click)="toggleConnectingPortModal()" class="text-xl hover:text-red-200 transition-all">&times;</button>
     </div>
 
     <div class="p-3 bg-gray-50 border-b">
       <input type="text" [(ngModel)]="cpSearchTerm" (input)="onSearchingConnectingPorts()" 
-             placeholder="Search ports..." 
+             placeholder="Search by port name or code..." 
              class="w-full border p-2 rounded-lg text-xs outline-none focus:ring-2 focus:ring-red-800 uppercase font-semibold">
     </div>
 
-    <div class="flex h-[300px]"> <div class="w-1/2 flex flex-col border-r">
-        <div class="p-2 text-[9px] font-black text-gray-400 bg-gray-100 uppercase border-b">Airports</div>
-        <div class="flex-1 overflow-y-auto p-2 space-y-1">
-          <div *ngFor="let port of getPortsByType('AIRPORT')" (click)="selectConnectingPort(port)" 
-               [class.bg-red-50]="isPortSelected(port)" [class.border-red-600]="isPortSelected(port)"
-               class="p-2 border rounded-lg cursor-pointer hover:bg-red-50 hover:border-red-300 transition-all">
-            <span class="block text-[11px] font-bold uppercase">{{ port.name }}</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="w-1/2 flex flex-col">
-        <div class="p-2 text-[9px] font-black text-gray-400 bg-gray-100 uppercase border-b">Seaports</div>
-        <div class="flex-1 overflow-y-auto p-2 space-y-1">
-          <div *ngFor="let port of getPortsByType('SEAPORT')" (click)="selectConnectingPort(port)" 
-               [class.bg-red-50]="isPortSelected(port)" [class.border-red-600]="isPortSelected(port)"
-               class="p-2 border rounded-lg cursor-pointer hover:bg-red-50 hover:border-red-300 transition-all">
-            <span class="block text-[11px] font-bold uppercase">{{ port.name }}</span>
-          </div>
-        </div>
+    <div class="flex h-[300px]"> 
+  <div class="w-full flex flex-col">
+    <div class="p-2 text-[9px] font-black text-gray-400 bg-gray-100 uppercase border-b">All Available Ports</div>
+    <div class="flex-1 overflow-y-auto p-2 space-y-1">
+      <div *ngFor="let port of filteredConnectingPorts" (click)="selectConnectingPort(port)" 
+           [class.bg-red-50]="isPortSelected(port)" [class.border-red-600]="isPortSelected(port)"
+           class="p-2 border rounded-lg cursor-pointer hover:bg-red-50 hover:border-red-300 transition-all">
+        <span class="block text-[11px] font-bold uppercase">{{ port.portName }}</span>
+        <span class="block text-[9px] text-gray-500">{{ port.portCode }}</span>
       </div>
     </div>
+  </div>
+</div>
 
     <div class="p-3 bg-gray-50 flex justify-between items-center border-t">
       <span class="text-[10px] font-bold text-red-800 uppercase">Selected: {{ selectedConnectingPorts.length }}</span>

@@ -2275,7 +2275,7 @@ cityList: any[] = []; // Full list ke liye
 
 // City fetch karne ke liye (Aapke logic ke hisaab se)
 allCitySearch(type: string) {
-  const url = `${environment.apiUrl}/Organization/list`; // Check your API endpoint
+  const url = `${environment.apiUrl}/OrgBranch/GetByOrg`; // Check your API endpoint
   this.http.get(url).subscribe({
     next: (res: any) => {
       const data = Array.isArray(res) ? res : res.data;
@@ -2602,8 +2602,10 @@ onDefaultChange(currentIndex: number) {
   // 4. MAIN SEARCH LOGIC - Calling your new Backend Endpoint
   onSearchWithBranches() {
     this.loading = true;
+    // Ensure table is shown when search is triggered
+    this.showTable = true; 
+    
     const url = `${environment.apiUrl}/Organization/search-by-branches`;
-
     const token = localStorage.getItem('cavalier_token');
     
     const headers = new HttpHeaders({
@@ -2618,34 +2620,60 @@ onDefaultChange(currentIndex: number) {
 
     const searchDto = {
       SelectedBranchIds: selectedIds,
-      OrgName: "", // <--- Isko empty rakho taaki Branch filter sahi chale
+      OrgName: "", 
       Status: "Active"
     };
 
-    console.log("📤 Sending Payload:", searchDto);
+    console.log("📤 Sending Payload to Branch Search:", searchDto);
 
     this.http.post(url, searchDto, { headers }).subscribe({
       next: (res: any) => {
         console.log("📥 Backend Response Received:", res);
         
-        this.organizations = Array.isArray(res) ? res : [];
+        // Data update
+        this.organizations = Array.isArray(res) ? [...res] : [];
         
+        // Pagination reset if exists
         if (this.hasOwnProperty('currentPage')) {
             (this as any).currentPage = 1;
         }
 
-        this.organizations = [...this.organizations];
-
-        console.log("📊 Table Updated, Count:", this.organizations.length);
         this.loading = false;
+        
+        // Force UI update
+        this.cdr.detectChanges();
+        
+        console.log("📊 Table Updated, Final Count in UI:", this.organizations.length);
       },
       error: (err) => {
         console.error("❌ API Search Failed!", err);
         this.loading = false;
         this.organizations = []; 
+        this.cdr.detectChanges(); // Error case mein bhi UI update hona chahiye
       }
     });
-  }
+}
+// API Call function
+loadOrgData(orgId: number) {
+  this.http.get(`${environment.apiUrl}/OrgBranch/GetByOrg/${orgId}`).subscribe({
+    next: (res: any) => {
+      // res.Branches tumhare database ka data hai
+      const branches = res.Branches || [];
+      
+      // City ki unique list nikalo (Type safety added)
+      const cities = [...new Set(branches.map((b: any) => b.city).filter((c: any) => c))];
+      
+      // cityList ko update karo
+      this.cityList = cities.map((cityName: any) => ({ cityName: cityName }));
+      
+      console.log("🏙️ Cities loaded from API:", this.cityList);
+      
+      // Agar tumne change detection manual rakha hai, toh ye line zaruri hai
+      this.cdr.detectChanges();
+    },
+    error: (err) => console.error("Error loading org data:", err)
+  });
+}
 // Double click handle karne ke liye
 handleOrgDblClick(org: any) {
   this.selectedOrgId = org.id;

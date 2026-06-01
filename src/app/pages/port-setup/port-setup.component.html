@@ -32,7 +32,7 @@
             <th class="px-6 py-3 text-xs font-bold uppercase">City</th>
             <th class="px-6 py-3 text-xs font-bold uppercase">Country</th>
             <th class="px-6 py-3 text-xs font-bold uppercase text-[#654E51]">Pincode</th> <!-- 👈 Naya Header -->
-            <th class="px-6 py-3 text-xs font-bold uppercase">Function</th>
+            <!-- <th class="px-6 py-3 text-xs font-bold uppercase">Function</th> -->
             <th class="px-6 py-3 text-xs font-bold text-center">Actions</th>
           </tr>
         </thead>
@@ -65,9 +65,9 @@
 <td class="px-6 py-3">
   {{ port.pinCode }} <!-- 👈 Table mein pincode dikhao -->
 </td>
-            <td class="px-6 py-3">
+           <!--   <td class="px-6 py-3">
               {{ port.functionName }}
-            </td>
+           </td> -->
 
             <td class="px-6 py-3 text-center">
               <button (click)="editPort(port)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Edit');" class="text-blue-600 mr-2">Edit</button>
@@ -107,7 +107,7 @@
           placeholder="Port Code"
           class="w-full border p-2 rounded">
           <input
-           type="hidden"
+           
     [(ngModel)]="newPort.countryCode"
     placeholder="Country Code"
     readonly
@@ -143,9 +143,9 @@
     type="number"> <!-- Backend mein 'int' hai isliye type number rakho -->
 </div>
 
-        <input [(ngModel)]="newPort.functionName"
+        <!-- <input [(ngModel)]="newPort.functionName"
           placeholder="Function"
-          class="w-full border p-2 rounded">
+          class="w-full border p-2 rounded"> -->
 
       </div>
 

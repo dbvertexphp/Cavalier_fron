@@ -2260,7 +2260,7 @@ Selection Modal Popup
                   </ul>
                 </div>
               </div>
-<div class="mt-6 space-y-3">
+  <div class="mt-6 space-y-3">
   <div class="flex items-center justify-between border-b border-red-200 pb-2">
     <label class="text-red-800 font-black uppercase text-[13px] italic">Connecting Ports Configuration</label>
     <button (click)="toggleConnectingPortModal()" class="bg-red-700 text-white px-3 py-1 rounded text-[11px] font-bold hover:bg-red-800">+ ADD PORTS</button>
@@ -2275,7 +2275,7 @@ Selection Modal Popup
 
     <div *ngFor="let port of selectedConnectingPorts; let i = index" class="flex items-center gap-3">
       <span class="w-6 font-bold text-red-700 text-[12px]">0{{ i + 2 }}</span>
-      <div class="flex-1 border-b p-2 bg-white text-[12px] uppercase">{{ port.name }}</div>
+      <div class="flex-1 border-b p-2 bg-white text-[12px] uppercase">{{ port.portName }}</div>
       <button (click)="removeConnectingPort(port)" class="text-red-400 hover:text-red-700 font-bold text-xl">&times;</button>
     </div>
 
@@ -2297,7 +2297,7 @@ Selection Modal Popup
     </div>
 
     <div class="p-3 bg-gray-50 border-b">
-      <input type="text" [(ngModel)]="cpSearchTerm" (input)="onSearchingConnectingPorts()" placeholder="Search..." 
+      <input type="text" [(ngModel)]="cpSearchTerm" (input)="onSearchingConnectingPorts()" placeholder="Search by name or code..." 
              class="w-full border p-2 rounded-lg text-xs outline-none focus:ring-2 focus:ring-red-800">
     </div>
 
@@ -2308,7 +2308,8 @@ Selection Modal Popup
           <div *ngFor="let port of getPortsByType('AIRPORT')" (click)="selectConnectingPort(port)" 
                [class.bg-red-50]="isPortSelected(port)" [class.border-red-600]="isPortSelected(port)"
                class="p-2 border rounded-lg cursor-pointer hover:bg-red-50 transition-all">
-            <span class="block text-[11px] font-bold uppercase">{{ port.name }}</span>
+            <span class="block text-[11px] font-bold uppercase">{{ port.portName }}</span>
+            <span class="block text-[9px] text-gray-400">{{ port.portCode }}</span>
           </div>
         </div>
       </div>
@@ -2318,7 +2319,8 @@ Selection Modal Popup
           <div *ngFor="let port of getPortsByType('SEAPORT')" (click)="selectConnectingPort(port)" 
                [class.bg-red-50]="isPortSelected(port)" [class.border-red-600]="isPortSelected(port)"
                class="p-2 border rounded-lg cursor-pointer hover:bg-red-50 transition-all">
-            <span class="block text-[11px] font-bold uppercase">{{ port.name }}</span>
+            <span class="block text-[11px] font-bold uppercase">{{ port.portName }}</span>
+            <span class="block text-[9px] text-gray-400">{{ port.portCode }}</span>
           </div>
         </div>
       </div>

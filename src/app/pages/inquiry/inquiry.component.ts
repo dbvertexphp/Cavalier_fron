@@ -13,7 +13,7 @@ import * as XLSX from 'xlsx';
 import { CheckPermissionService } from '../../services/check-permission.service';
 import { moveItemInArray, transferArrayItem, CdkDragDrop } from '@angular/cdk/drag-drop';
 import { DragDropModule } from '@angular/cdk/drag-drop'; // Ye import ensure karein
-import { Subscription } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
 import { BranchService } from '../../services/branch.service';
 import { UserService } from '../../services/user.service';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
@@ -928,12 +928,12 @@ getNextInquiryNumber() {
     }
   });
 }
-    loadQuotations() {
-      this.http.get<any[]>(this.apiUrl).subscribe({
-        next: (res) => (this.quotations = res),
-        error: (err) => console.error('Failed to load inquiries:', err)
-      });
-    }
+      loadQuotations() {
+        this.http.get<any[]>(this.apiUrl).subscribe({
+          next: (res) => (this.quotations = res),
+          error: (err) => console.error('Failed to load inquiries:', err)
+        });
+      }
 
 //     onFileSelected(event: any) {
 //   const file = event.target.files[0];
@@ -1600,39 +1600,26 @@ setQuickDate(type: string) {
 onSearch() {
   console.log("Search button clicked!");
   this.searchDone = true;
-  
-  // 1. Ek naya object banao taaki original filters disturb na hon
+
   const filtersToSend: any = { ...this.searchFilters };
 
-  // 2. Cleaning logic
+  // --- Cleaning Logic ---
   if (filtersToSend.transportMode === 'Any') filtersToSend.transportMode = '';
   if (filtersToSend.cargoStatus === '(Any)') filtersToSend.cargoStatus = '';
-  
-  if (filtersToSend.salesCoordinator === 'null' || !filtersToSend.salesCoordinator) {
-    filtersToSend.salesCoordinator = ""; 
-  }
-
-  // 🔥 NEW STATUS LOGIC:
-  // Agar dropdown "" (Both) hai toh null bhejenge taaki backend filter na kare.
-  // Agar "1" ya "0" hai toh Number mein convert karke bhejenge.
+  if (filtersToSend.salesCoordinator === 'null' || !filtersToSend.salesCoordinator) filtersToSend.salesCoordinator = "";
   if (filtersToSend.status === "" || filtersToSend.status === undefined || filtersToSend.status === null) {
-    filtersToSend.status = null; 
+    filtersToSend.status = null;
   } else {
     filtersToSend.status = Number(filtersToSend.status);
   }
-
-  // 🔥 FIXED BRANCH LOGIC:
   if (this.branchSearchText && this.branchSearchText !== "") {
     const bId = Number(this.searchFilters.branchId);
-    filtersToSend.branchId = isNaN(bId) ? null : bId; 
-    delete filtersToSend.branchName; 
+    filtersToSend.branchId = isNaN(bId) ? null : bId;
+    delete filtersToSend.branchName;
   } else {
     filtersToSend.branchId = null;
   }
 
-  console.log("📡 Final Payload with Status:", filtersToSend);
-
-  // 3. API Call
   const token = localStorage.getItem('cavalier_token');
   const httpOptions = {
     headers: new HttpHeaders({
@@ -1641,51 +1628,38 @@ onSearch() {
     })
   };
 
-  this.http.post<any[]>(`${environment.apiUrl}/Inquiry/Search`, filtersToSend, httpOptions)
-    .subscribe({
-      next: (response) => {
-        if (response && response.length > 0) {
-          this.quotations = response;
-          console.log("Strict Search Result Success:", response);
-          this.cdr.detectChanges();
-        } 
-        else if (filtersToSend.inquiryNo) {
-          // Fallback logic
-          const fallbackFilters = { 
-            inquiryNo: filtersToSend.inquiryNo,
-            branchId: filtersToSend.branchId,
-            status: filtersToSend.status // Fallback mein bhi status bhej rahe hain
-          };
-          this.http.post<any[]>(`${environment.apiUrl}/api/Inquiry/Search`, fallbackFilters, httpOptions)
-            .subscribe({
-              next: (fallbackRes) => {
-                this.quotations = fallbackRes;
-                this.cdr.detectChanges();
-              },
-              error: () => {
-                this.quotations = [];
-                this.cdr.detectChanges();
-              }
-            });
-        } 
-        else {
-          this.quotations = [];
-          this.cdr.detectChanges();
-        }
-      },
-      error: (err) => {
-        console.error("Search failed details:", err);
-        if (err.status === 400) {
-          console.log("Validation Errors:", err.error.errors);
-        }
-        if (err.status === 401) {
-          alert("Unauthorized! Token expired, login again.");
-        } else {
-          alert("Server error while searching!");
-        }
-        this.cdr.detectChanges();
-      }
-    });
+  // --- ForkJoin Implementation ---
+  forkJoin({
+    searchResult: this.http.post<any[]>(`${environment.apiUrl}/Inquiry/Search`, filtersToSend, httpOptions),
+    hodList: this.userServices.getHodList()
+  }).subscribe({
+    next: (res) => {
+      const { searchResult, hodList } = res;
+      
+      // DEBUG: Yahan dekho console mein kya structure aa raha hai
+      console.log("HOD List Structure:", hodList); 
+
+      // MAPPING LOGIC
+      // Agar console mein 'id' ki jagah kuch aur hai (jaise 'userId'), toh niche badal dena
+      const hodMap = new Map(hodList.map((h: any) => [String(h.id), h.name]));
+
+      this.quotations = searchResult.map(item => {
+        const idAsString = String(item.salesCoordinator);
+        return {
+          ...item,
+          // Agar map mein naam milta hai, toh wo show karo, nahi toh ID hi dikhegi
+          salesCoordinator: hodMap.has(idAsString) ? hodMap.get(idAsString) : item.salesCoordinator
+        };
+      });
+
+      console.log("Final Data with Names:", this.quotations);
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error("Search failed:", err);
+      alert("Error loading data!");
+    }
+  });
 }
 // --- Variables ---
 isExportOpen = false;
@@ -2162,37 +2136,40 @@ toggleCoordinatorPopup() {
     return;
   }
 
-  // 1. Token nikaalo
-  const token = localStorage.getItem('cavalier_token'); 
-  if (!token) {
-    console.warn("Bhai login token nahi mila!");
-    return;
-  }
-
-  // 2. Headers mein pass karo
-  const headers = new HttpHeaders({
-    'Authorization': `Bearer ${token}`
-  });
-
+  // 1. API Call (Inquiry list + HOD List)
   this.coordinatorSub?.unsubscribe();
 
-  // 3. API Call with Headers
-  this.coordinatorSub = this.http.get<any[]>(`${environment.apiUrl}/Inquiry`, { headers }).subscribe({
+  // Dono calls parallel mein chalao
+  this.coordinatorSub = forkJoin({
+    inquiries: this.http.get<any[]>(`${environment.apiUrl}/Inquiry`, { 
+      headers: new HttpHeaders({ 'Authorization': `Bearer ${localStorage.getItem('cavalier_token') || ''}` }) 
+    }),
+    hodList: this.userServices.getHodList()
+  }).subscribe({
     next: (res) => {
-      // SalesCoordinator nikalna, empty values filter karna aur Duplicates hatana
-      const uniqueCoords = [...new Set(
-        res
+      const { inquiries, hodList } = res;
+
+      // HOD list ka map (id -> name)
+      const hodMap = new Map(hodList.map((h: any) => [String(h.id), h.name]));
+
+      // 2. SalesCoordinator IDs nikaalo, map se Name lao, aur duplicates/empty hatado
+      const uniqueNames = [...new Set(
+        inquiries
           .filter(item => item.salesCoordinator && item.salesCoordinator.trim() !== "")
-          .map(item => item.salesCoordinator)
+          .map(item => {
+            const coordId = String(item.salesCoordinator);
+            // Agar map mein naam mil gaya toh wo lo, warna original ID hi dikha do
+            return hodMap.get(coordId) || coordId;
+          })
       )];
 
-      this.allCoordinators = uniqueCoords;
+      this.allCoordinators = uniqueNames;
       this.showCoordinatorPopup = true;
-      this.cdr.detectChanges(); 
-      console.log("Coordinator list loaded with token");
+      this.cdr.detectChanges();
+      console.log("Coordinator list loaded with Names");
     },
     error: (err) => {
-      console.error("Error fetching Coordinators", err);
+      console.error("Error fetching data", err);
       this.showCoordinatorPopup = false;
       this.cdr.detectChanges();
     }
@@ -3178,49 +3155,60 @@ selectCountry(country: any) {
 
   // ngOnInit() { this.loadConnectingPortsData(); }
 private apiUrls = `${environment.apiUrl}/ConnectingPort`;
-  loadConnectingPortsData() {
-    this.http.get<any[]>(this.apiUrls).subscribe({
-      next: (data) => {
-        // API se aane wale data mein 'portType' (AIRPORT/SEAPORT) field expect kar raha hoon
-        this.allConnectingPorts = data;
-        this.filteredConnectingPorts = data;
-        console.log("Connecting Ports Loaded:", this.allConnectingPorts);
-        this.cdr.detectChanges();
-      }
-    });
-  }
+loadConnectingPortsData() {
+  const url = `${environment.apiUrl}/PortSetup`; 
 
-  // Filter helpers
-  getPortsByType(type: string) {
-    return this.filteredConnectingPorts.filter(p => p.portType === type);
-  }
+  this.http.get<any[]>(url).subscribe({
+    next: (data) => {
+      // Yahan hum manual 'portType' add kar rahe hain agar wo missing hai
+      this.allConnectingPorts = data.map(p => ({
+        ...p,
+        portType: p.portType || 'AIRPORT' // Agar portType nahi hai, toh default 'AIRPORT' set karo
+      }));
+      
+      this.filteredConnectingPorts = this.allConnectingPorts;
+      console.log("Ports Loaded with Default Type:", this.allConnectingPorts);
+      this.cdr.detectChanges();
+    },
+    error: (err) => console.error("Error loading ports:", err)
+  });
+}
 
-  selectConnectingPort(port: any) {
-    const index = this.selectedConnectingPorts.findIndex(p => p.id === port.id);
-    if (index === -1) this.selectedConnectingPorts.push(port);
-    else this.selectedConnectingPorts.splice(index, 1);
-    this.cdr.detectChanges();
-  }
+// Filter helpers (portType check karega)
+getPortsByType(type: string) {
+  // Console ke hisaab se portType field use hogi
+  return this.filteredConnectingPorts.filter(p => p.portType === type);
+}
 
-  removeConnectingPort(port: any) {
-    this.selectedConnectingPorts = this.selectedConnectingPorts.filter(p => p.id !== port.id);
-  }
+selectConnectingPort(port: any) {
+  const index = this.selectedConnectingPorts.findIndex(p => p.id === port.id);
+  if (index === -1) this.selectedConnectingPorts.push(port);
+  else this.selectedConnectingPorts.splice(index, 1);
+  this.cdr.detectChanges();
+}
 
-  isPortSelected(port: any): boolean {
-    return this.selectedConnectingPorts.some(p => p.id === port.id);
-  }
+removeConnectingPort(port: any) {
+  this.selectedConnectingPorts = this.selectedConnectingPorts.filter(p => p.id !== port.id);
+  this.cdr.detectChanges();
+}
 
-  onSearchingConnectingPorts() {
-    const term = this.cpSearchTerm.toLowerCase();
-    this.filteredConnectingPorts = this.allConnectingPorts.filter(p => 
-      p.name.toLowerCase().includes(term) || p.code.toLowerCase().includes(term)
-    );
-  }
+isPortSelected(port: any): boolean {
+  return this.selectedConnectingPorts.some(p => p.id === port.id);
+}
 
-  toggleConnectingPortModal() {
-    this.isCPModalOpen = !this.isCPModalOpen;
-    if (!this.isCPModalOpen) this.cpSearchTerm = '';
-  }
+onSearchingConnectingPorts() {
+  const term = this.cpSearchTerm.toLowerCase();
+  // Yahan p.name ki jagah p.portName aur p.code ki jagah p.portCode use kiya hai
+  this.filteredConnectingPorts = this.allConnectingPorts.filter(p => 
+    (p.portName?.toLowerCase().includes(term) || false) || 
+    (p.portCode?.toLowerCase().includes(term) || false)
+  );
+}
+
+toggleConnectingPortModal() {
+  this.isCPModalOpen = !this.isCPModalOpen;
+  if (!this.isCPModalOpen) this.cpSearchTerm = '';
+}
   calculateTotalPackages() {
   if (this.dimRows && this.dimRows.length > 0) {
     this.quotation.noOfPkgs = this.dimRows.reduce((total: number, dim: any) => {

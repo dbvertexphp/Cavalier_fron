@@ -3541,17 +3541,21 @@ cpSearchTerm: string = '';
 
 // Load Data (Directly from your single ConnectingPort API)
 loadConnectingPortsData() {
-  // Yahan apna correct API URL use karo
-  this.http.get<any[]>(`${environment.apiUrl}/ConnectingPort`).subscribe({
+  // API URL update kar diya hai
+  this.http.get<any[]>(`${environment.apiUrl}/PortSetup`).subscribe({
     next: (data) => {
-      // Data format: { id: 1, name: 'DEL', portType: 'AIRPORT', ... }
-      this.allConnectingPorts = data;
+      // API se aaye hue data ko map kiya taaki agar portType missing ho toh default 'AIRPORT' mile
+      this.allConnectingPorts = data.map(p => ({
+        ...p,
+        portType: p.portType || 'AIRPORT' 
+      }));
       this.filteredConnectingPorts = [...this.allConnectingPorts];
+      console.log("Ports Loaded:", this.allConnectingPorts);
+      this.cdr.detectChanges();
     }
   });
 }
 
-// Split View Helper
 getPortsByType(type: string) {
   return this.filteredConnectingPorts.filter(p => p.portType === type);
 }
@@ -3560,16 +3564,18 @@ selectConnectingPort(port: any) {
   const index = this.selectedConnectingPorts.findIndex(p => p.id === port.id);
   if (index === -1) this.selectedConnectingPorts.push(port);
   else this.selectedConnectingPorts.splice(index, 1);
+  this.cdr.detectChanges();
 }
 
 removeConnectingPort(port: any) {
   this.selectedConnectingPorts = this.selectedConnectingPorts.filter(p => p.id !== port.id);
+  this.cdr.detectChanges();
 }
 
 onSearchingConnectingPorts() {
   const term = this.cpSearchTerm.toLowerCase().trim();
   this.filteredConnectingPorts = this.allConnectingPorts.filter(p => 
-    p.name.toLowerCase().includes(term) || p.code.toLowerCase().includes(term)
+    p.portName.toLowerCase().includes(term) || p.portCode.toLowerCase().includes(term)
   );
 }
 

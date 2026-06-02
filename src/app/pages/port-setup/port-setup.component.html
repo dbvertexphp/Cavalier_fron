@@ -1,168 +1,71 @@
 <div class="p-3 md:p-6">
-
-  <!-- Header -->
   <div class="flex flex-row justify-between items-center mb-6 gap-2">
     <div class="flex items-center gap-3">
-      <div class="bg-gray-100 p-2.5 rounded-xl hidden sm:flex text-[#654E51]">
-        📦
-      </div>
+      <div class="bg-gray-100 p-2.5 rounded-xl hidden sm:flex text-[#654E51]">📦</div>
       <div>
         <h2 class="text-xl md:text-2xl font-bold text-gray-800">Port Setup</h2>
-        <p class="hidden md:block text-xs text-gray-500 mt-1 uppercase font-semibold">
-          Manage Ports (Country / City / Code)
-        </p>
+        <p class="hidden md:block text-xs text-gray-500 mt-1 uppercase font-semibold">Manage Ports</p>
       </div>
     </div>
-
     <button (click)="openModal()" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Add');"
-      class="bg-[#654E51] text-white px-4 py-2 rounded-lg shadow-md">
-      + Add Port
-    </button>
+      class="bg-[#654E51] text-white px-4 py-2 rounded-lg shadow-md">+ Add Port</button>
   </div>
 
-  <!-- Table -->
   <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
     <div class="overflow-x-auto">
       <table class="w-full text-left">
-
         <thead class="bg-gray-50 border-b">
           <tr>
             <th class="px-6 py-3 text-xs font-bold uppercase">Port</th>
             <th class="px-6 py-3 text-xs font-bold uppercase">Code</th>
             <th class="px-6 py-3 text-xs font-bold uppercase">City</th>
             <th class="px-6 py-3 text-xs font-bold uppercase">Country</th>
-            <th class="px-6 py-3 text-xs font-bold uppercase text-[#654E51]">Pincode</th> <!-- 👈 Naya Header -->
-            <!-- <th class="px-6 py-3 text-xs font-bold uppercase">Function</th> -->
+            <th class="px-6 py-3 text-xs font-bold uppercase">Country Code</th>
+            <th class="px-6 py-3 text-xs font-bold uppercase">Pincode</th>
             <th class="px-6 py-3 text-xs font-bold text-center">Actions</th>
           </tr>
         </thead>
-
         <tbody class="divide-y" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View');">
-
-          <tr *ngIf="allPorts.length === 0">
-            <td colspan="6" class="text-center py-10 text-gray-400">
-              No Ports Found
-            </td>
-          </tr>
-
           <tr *ngFor="let port of allPorts" class="hover:bg-gray-50">
-
-            <td class="px-6 py-3 font-bold uppercase">
-              {{ port.portName }}
-            </td>
-
-            <td class="px-6 py-3">
-              {{ port.portCode }}
-            </td>
-
-            <td class="px-6 py-3">
-              {{ port.cityName }}
-            </td>
-
-            <td class="px-6 py-3">
-              {{ port.countryName }}
-            </td>
-<td class="px-6 py-3">
-  {{ port.pinCode }} <!-- 👈 Table mein pincode dikhao -->
-</td>
-           <!--   <td class="px-6 py-3">
-              {{ port.functionName }}
-           </td> -->
-
+            <td class="px-6 py-3 font-bold">{{ port.portName }}</td>
+            <td class="px-6 py-3">{{ port.portCode }}</td>
+            <td class="px-6 py-3">{{ port.cityName }}</td>
+            <td class="px-6 py-3">{{ port.countryName }}</td>
+            <td class="px-6 py-3">{{ port.countryCode }}</td>
+            <td class="px-6 py-3">{{ port.pinCode }}</td>
             <td class="px-6 py-3 text-center">
               <button (click)="editPort(port)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Edit');" class="text-blue-600 mr-2">Edit</button>
               <button (click)="deletePort(port.id)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Delete');" class="text-red-600">Delete</button>
             </td>
-
           </tr>
-
         </tbody>
-
       </table>
     </div>
   </div>
 
-  <!-- Modal -->
   <div *ngIf="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-
-    <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
-
-      <!-- Header -->
-      <div class="bg-gray-50 px-6 py-4 flex justify-between">
-        <h3 class="font-bold text-lg">
-          {{ isEditMode ? 'Update Port' : 'Create Port' }}
-        </h3>
-        <button (click)="closeModal()">✖</button>
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6">
+      <h3 class="font-bold text-lg mb-4">{{ isEditMode ? 'Update Port' : 'Create Port' }}</h3>
+      
+      <div class="space-y-3">
+        <input [(ngModel)]="newPort.portName" placeholder="Port Name" class="w-full border p-2 rounded" (input)="newPort.portName = newPort.portName.toUpperCase()">
+        <input [(ngModel)]="newPort.portCode" placeholder="Port Code" class="w-full border p-2 rounded">
+        
+        <ng-select [items]="countries" bindLabel="name" [(ngModel)]="selectedCountry" (change)="onCountryChange($event)" placeholder="Select Country" class="w-full"></ng-select>
+        
+        <input [(ngModel)]="newPort.countryCode" placeholder="Country Code" readonly class="w-full border p-2 rounded bg-gray-100 cursor-not-allowed">
+        
+        <ng-select [items]="cities" [(ngModel)]="newPort.cityName" placeholder="Select City" class="w-full"></ng-select>
+        
+        <input [(ngModel)]="newPort.pinCode" placeholder="Pin Code" type="number" class="w-full border p-2 rounded">
       </div>
 
-      <!-- Form -->
-      <div class="p-6 space-y-3">
-
-        <input [(ngModel)]="newPort.portName"
-          placeholder="Port Name"
-          class="w-full border p-2 rounded"
-          (input)="newPort.portName = newPort.portName.toUpperCase()">
-
-        <input [(ngModel)]="newPort.portCode"
-          placeholder="Port Code"
-          class="w-full border p-2 rounded">
-          <input
-           
-    [(ngModel)]="newPort.countryCode"
-    placeholder="Country Code"
-    readonly
-    class="w-full border p-2 rounded bg-gray-100 cursor-not-allowed">
-<!-- Country Dropdown -->
-<!-- Search Input -->
-<!-- 🌍 Country -->
-<ng-select
-  [items]="countries"
-  bindLabel="name"
-  [(ngModel)]="selectedCountry"
-  (change)="onCountryChange($event)"
-  placeholder="Select Country"
-  [searchable]="true"
-  class="w-full mb-3">
-</ng-select>
-
-<!-- 🏙 City -->
-<ng-select
-  [items]="cities"
-  [(ngModel)]="newPort.cityName"
-  placeholder="Select City"
-  [searchable]="true"
-  [clearable]="true"
-  class="w-full">
-</ng-select>
-      <!-- 📮 Pincode Input -->
-<div class="mb-3">
-  <label class="text-xs font-bold text-gray-500 uppercase">Pin Code</label>
-  <input [(ngModel)]="newPort.pinCode" 
-    placeholder="Enter Pin Code"
-    class="w-full border p-2 rounded focus:ring-1 focus:ring-[#654E51] outline-none"
-    type="number"> <!-- Backend mein 'int' hai isliye type number rakho -->
-</div>
-
-        <!-- <input [(ngModel)]="newPort.functionName"
-          placeholder="Function"
-          class="w-full border p-2 rounded"> -->
-
-      </div>
-
-      <!-- Footer -->
-      <div class="px-6 py-4 bg-gray-50 flex gap-2">
-        <button (click)="closeModal()" class="flex-1 bg-gray-200 p-2 rounded">
-          Cancel
-        </button>
-
-        <button (click)="savePort()"
-          [disabled]="!newPort.portName"
-          class="flex-1 bg-[#654E51] text-white p-2 rounded">
+      <div class="flex gap-2 mt-6">
+        <button (click)="closeModal()" class="flex-1 bg-gray-200 p-2 rounded">Cancel</button>
+        <button (click)="savePort()" class="flex-1 bg-[#654E51] text-white p-2 rounded">
           {{ isEditMode ? 'Update' : 'Save' }}
         </button>
       </div>
-
     </div>
   </div>
-
 </div>

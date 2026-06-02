@@ -19,7 +19,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { HostListener } from '@angular/core'; 
 import * as XLSX from 'xlsx';
-import { Subscription } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
 import Swal from 'sweetalert2';
 @Component({
   selector: 'app-quotation-form',
@@ -1743,7 +1743,7 @@ onSearch() {
   });
   // --- Authorization Logic End ---
 
-  // 🔥 Selected Branches collect karo backend ke liye
+  // 🔥 Selected Branches collect karo
   this.selectedBranchIds = this.branchList
     .filter(b => b.isSelected)
     .map(b => b.id || b.branchId);
@@ -1772,15 +1772,12 @@ onSearch() {
     if (filtersToSend.lineOfBusiness === 'Any') filtersToSend.lineOfBusiness = '';
     if (filtersToSend.cargoStatus === 'Any') filtersToSend.cargoStatus = '';
     
-    // --- Status Logic Fix ---
-    const statusValue: any = this.searchFilters.status; // 'any' lagane se error chali jayegi
-    
+    const statusValue: any = this.searchFilters.status;
     if (statusValue == null || statusValue == -1 || statusValue == '-1' || statusValue === '' || statusValue === 'Any') {
         filtersToSend.Status = -1; 
     } else {
         filtersToSend.Status = Number(statusValue); 
     }
-    // ----------------------
 
     if (filtersToSend.showMode === 'all') filtersToSend.showMode = '';
     if (!filtersToSend.validFrom) filtersToSend.validFrom = null;
@@ -1788,27 +1785,41 @@ onSearch() {
 
   delete filtersToSend.status; 
 
-  this.http.post<any[]>(`${this.apiEndpoint}/Search`, filtersToSend, { headers })
-    .subscribe({
-      next: (response) => {
-        this.quotations = response || [];
-        
-        if (searchInput && this.quotations.length > 0) {
-          const lowerInput = searchInput.toLowerCase();
-          this.quotations.sort((a, b) => {
-            const valA = (a.quotationNo || a.QuotationNo || "").toString().toLowerCase();
-            return valA === lowerInput ? -1 : 1;
-          });
-        }
+  // --- ForkJoin ke saath Data aur HOD List fetch karo ---
+  forkJoin({
+    searchResult: this.http.post<any[]>(`${this.apiEndpoint}/Search`, filtersToSend, { headers }),
+    hodList: this.userServices.getHodList()
+  }).subscribe({
+    next: (res) => {
+      const { searchResult, hodList } = res;
+      
+      // HOD map banao (Lookup Table)
+      const hodMap = new Map(hodList.map((h: any) => [String(h.id), h.name]));
 
-        this.cdr.detectChanges();
-        console.log("✅ Data filtered successfully:", this.quotations);
-      },
-      error: (err) => {
-        console.error("❌ API Error:", err);
-        alert("Search failed!");
+      // Mapping Logic: ID ki jagah Name replace karo
+      this.quotations = (searchResult || []).map(item => ({
+        ...item,
+        // Yahan 'salesCoor' field ko update kar rahe hain
+        salesCoor: hodMap.get(String(item.salesCoor)) || item.salesCoor
+      }));
+
+      // Sorting Logic (Original code ka hissa)
+      if (searchInput && this.quotations.length > 0) {
+        const lowerInput = searchInput.toLowerCase();
+        this.quotations.sort((a, b) => {
+          const valA = (a.quotationNo || a.QuotationNo || "").toString().toLowerCase();
+          return valA === lowerInput ? -1 : 1;
+        });
       }
-    });
+
+      this.cdr.detectChanges();
+      console.log("✅ Data filtered with Names:", this.quotations);
+    },
+    error: (err) => {
+      console.error("❌ API Error:", err);
+      alert("Search failed!");
+    }
+  });
 }
 
   
@@ -2344,37 +2355,45 @@ toggleQuotedByPopup() {
   } else {
     this.quotedBySub?.unsubscribe();
 
-    // --- Authorization Logic Start ---
-    const token = localStorage.getItem('cavalier_token');
+    // --- Authorization Logic ---
     const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`,
+      'Authorization': `Bearer ${localStorage.getItem('cavalier_token') || ''}`,
       'Content-Type': 'application/json'
     });
-    // --- Authorization Logic End ---
 
-    // API Call mein headers pass kar diye hain
-    this.quotedBySub = this.http.get<any[]>(`${environment.apiUrl}/Quotations`, { headers }).subscribe({
+    // --- ForkJoin: Quotations + HOD List dono ek saath ---
+    this.quotedBySub = forkJoin({
+      quotations: this.http.get<any[]>(`${environment.apiUrl}/Quotations`, { headers }),
+      hodList: this.userServices.getHodList()
+    }).subscribe({
       next: (res) => {
-        console.log("✅ QuotedBy API Response:", res);
+        const { quotations, hodList } = res;
+        
+        // HOD Map banao (id -> name)
+        const hodMap = new Map(hodList.map((h: any) => [String(h.id), h.name]));
 
-        // 1. Map karke names nikalna aur null/object values ko filter karna
-        const cleanedCoors = res.map(item => {
-          const val = item.salesCoor || item.userName || item;
-          // Agar value khud ek object hai toh use ignore kar dena
+        // 1. Map karke IDs ko Names mein badlo aur saaf karo
+        const cleanedCoors = quotations.map(item => {
+          // item.salesCoor apki ID hai
+          const id = item.salesCoor ? String(item.salesCoor).trim() : null;
+          
+          // Agar ID match ho gayi toh Name lo, nahi toh original ID
+          const val = id ? (hodMap.get(id) || id) : null;
+          
           return (val && typeof val !== 'object') ? val.toString().trim() : null;
         });
 
-        // 2. Duplicates hatana aur "[object Object]" wali galti ko saaf karna
+        // 2. Duplicates hatana aur valid values filter karna
         this.allSalesCoors = [...new Set(cleanedCoors)]
           .filter(val => val !== null && val !== '' && val !== '[object Object]');
 
-        console.log("📂 Final SalesCoors List:", this.allSalesCoors);
+        console.log("📂 Final SalesCoors List with Names:", this.allSalesCoors);
 
         this.showQuotedByPopup = true;
-        this.cdr.detectChanges(); // UI Update
+        this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error("❌ Error fetching SalesCoors", err);
+        console.error("❌ Error fetching data", err);
         this.cdr.detectChanges();
       }
     });

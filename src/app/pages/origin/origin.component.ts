@@ -1,10 +1,11 @@
-import { Permission } from './../employee/employee.component';
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { CheckPermissionService } from '../../services/check-permission.service';
+import Swal from 'sweetalert2'; // Swal import
+
 @Component({
   selector: 'app-origin',
   standalone: true,
@@ -13,110 +14,81 @@ import { CheckPermissionService } from '../../services/check-permission.service'
   styleUrl: './origin.component.css'
 })
 export class OriginComponent implements OnInit {
-  constructor(private http: HttpClient, private cdr: ChangeDetectorRef,public CheckPermissionService:CheckPermissionService) {}
+  constructor(private http: HttpClient, private cdr: ChangeDetectorRef, public CheckPermissionService: CheckPermissionService) {}
   private apiUrl = environment.apiUrl + '/Origin';
 
   isModalOpen = false;
   isEditMode = false;
-  showPopup = false;
-  roleIdToDelete: number | null = null;
-  PermissionID:any;
+  PermissionID: any;
   rolesList: any[] = [];
-  newRole = { id: 0, name: '', status: true };
-
-  // ChangeDetectorRef inject kiya gaya hai
-
+  countries: any[] = [];
+  
+  newRole = { id: 0, name: '', countryName: '', countryCode: '', status: true };
 
   ngOnInit(): void {
     this.PermissionID = Number(localStorage.getItem('permissionID'));
     this.fetchOrigins();
+    this.loadCountries();
   }
 
-  // 1. GET DATA
+  loadCountries() {
+    this.http.get<any>('https://countriesnow.space/api/v0.1/countries/info?returns=dialCode')
+      .subscribe(res => { this.countries = res.data; });
+  }
+
+  onCountrySelect(event: any) {
+    const selectedName = event.target.value;
+    const country = this.countries.find(c => c.name === selectedName);
+    if (country) {
+      this.newRole.countryName = country.name;
+      this.newRole.countryCode = country.dialCode;
+    }
+  }
+
   fetchOrigins() {
     this.http.get<any[]>(this.apiUrl).subscribe({
-      next: (data) => {
-        this.rolesList = data;
-        this.cdr.detectChanges(); // Table refresh ke liye
-      },
-      error: (err) => console.error('Error fetching origins:', err)
+      next: (data) => { this.rolesList = data; this.cdr.detectChanges(); },
+      error: (err) => console.error('Error:', err)
     });
   }
 
-  // 2. SAVE (ADD / EDIT)
   saveRole() {
-    if (this.newRole.name.trim()) {
-      const upperName = this.newRole.name.trim().toUpperCase();
+    if (!this.newRole.name.trim()) return;
 
-      const payload = { 
-        id: this.isEditMode ? this.newRole.id : 0, 
-        name: upperName, 
-        status: this.newRole.status 
-      };
+    const payload = { ...this.newRole, name: this.newRole.name.trim().toUpperCase() };
+    const request = this.isEditMode 
+      ? this.http.put(`${this.apiUrl}/${this.newRole.id}`, payload)
+      : this.http.post(this.apiUrl, payload);
+    
+    request.subscribe({
+      next: () => {
+        Swal.fire('Success', `Origin ${this.isEditMode ? 'updated' : 'created'} successfully!`, 'success');
+        this.fetchOrigins();
+        this.closeModal();
+      },
+      error: () => Swal.fire('Error', 'Something went wrong', 'error')
+    });
+  }
 
-      if (this.isEditMode) {
-        this.http.put(`${this.apiUrl}/${this.newRole.id}`, payload).subscribe({
-          next: () => this.handleSuccess(),
-          error: (err) => console.error('Error updating origin:', err)
-        });
-      } else {
-        this.http.post(this.apiUrl, payload).subscribe({
-          next: () => this.handleSuccess(),
-          error: (err) => console.error('Error adding origin:', err)
+  deleteRole(id: number) {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.http.delete(`${this.apiUrl}/${id}`).subscribe(() => {
+          this.fetchOrigins();
+          Swal.fire('Deleted!', 'The record has been deleted.', 'success');
         });
       }
-    }
+    });
   }
 
-  // Helper function for common logic
-  private handleSuccess() {
-    this.fetchOrigins();
-    this.closeModal();
-    this.cdr.detectChanges();
-  }
-
-  // 3. DELETE
-  confirmDelete() {
-    if (this.roleIdToDelete !== null) {
-      this.http.delete(`${this.apiUrl}/${this.roleIdToDelete}`).subscribe({
-        next: () => {
-          this.fetchOrigins();
-          this.showPopup = false;
-          this.roleIdToDelete = null;
-          this.cdr.detectChanges();
-        }
-      });
-    }
-  }
-
-  // UI Helpers
-  openModal() {
-    this.isEditMode = false;
-    this.newRole = { id: 0, name: '', status: true };
-    this.isModalOpen = true;
-    this.cdr.detectChanges();
-  }
-
-  closeModal() { 
-    this.isModalOpen = false; 
-    this.cdr.detectChanges();
-  }
-
-  editRole(role: any) { 
-    this.isEditMode = true; 
-    this.newRole = { ...role }; 
-    this.isModalOpen = true; 
-    this.cdr.detectChanges();
-  }
-
-  deleteRole(id: number) { 
-    this.roleIdToDelete = id; 
-    this.showPopup = true; 
-    this.cdr.detectChanges();
-  }
-
-  cancelDelete() { 
-    this.showPopup = false; 
-    this.cdr.detectChanges();
-  }
+  openModal() { this.isEditMode = false; this.newRole = { id: 0, name: '', countryName: '', countryCode: '', status: true }; this.isModalOpen = true; }
+  closeModal() { this.isModalOpen = false; }
+  editRole(role: any) { this.isEditMode = true; this.newRole = { ...role }; this.isModalOpen = true; }
 }

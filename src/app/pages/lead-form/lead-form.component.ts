@@ -112,10 +112,7 @@ goToPage(page: number) {
 
       // 3. 🔥 Form auto-fill aur open karne ke liye function call
       this.onEditLead(this.highlightedLeadId);
-    } else {
-      // Agar highlightId nahi hai toh sirf list load karo
-      this.loadLeads();
-    }
+    } 
   });
     this.loadBranchess()
     this.loadDropdownData()

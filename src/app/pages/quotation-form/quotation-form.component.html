@@ -2233,7 +2233,7 @@
                         <th class="px-4 py-4 border-b border-gray-200">Charge Name</th>
                         <th class="px-4 py-4 border-b border-gray-200">Type</th>
                         <th class="px-4 py-4 border-b border-gray-200 bg-blue-50/50 text-blue-950">Chrg. Weight</th>
-                        <th class="px-4 py-4 border-b border-gray-200">Airfreight</th>
+                        <!-- <th class="px-4 py-4 border-b border-gray-200">Airfreight</th> -->
                         <th class="px-4 py-4 border-b border-gray-200">FSC/ISS</th>
                         <th class="px-4 py-4 border-b border-gray-200">Airline</th>
                         <th class="px-4 py-4 border-b border-gray-200">Cut-off</th>
@@ -2282,9 +2282,9 @@
                         <td class="px-2 py-2 bg-blue-50/30 text-center font-bold text-blue-900">
                             {{ quotation.chargeableWeight || 0 }}
                         </td>
-                        <td class="px-2 py-2">
+                        <!-- <td class="px-2 py-2">
                             <input type="number" [(ngModel)]="m.airFreight" name="mair_{{i}}"  class="w-20 text-center font-semibold bg-transparent border-b border-transparent focus:border-gray-300 outline-none" placeholder="0">
-                        </td>
+                        </td> -->
                         <td class="px-2 py-2">
                             <input [(ngModel)]="m.fsc" name="mfsc_{{i}}" class="w-16 text-center bg-transparent border-b border-transparent focus:border-gray-300 outline-none" placeholder="INC">
                         </td>
@@ -2583,7 +2583,7 @@
                         </th>
                         <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Origin</th>
                         <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Currency</th>
-                        <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Airfreight</th>
+                          <!-- <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Airfreight</th> -->
                         <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">FSC/ISS</th>
                         <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Airline</th>
                         <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Type</th>
@@ -2604,7 +2604,7 @@
                         </td>
                         <td class="px-4 py-4 text-center text-sm text-gray-600">{{ carrier.origin || '---' }}</td>
                         <td class="px-4 py-4 text-center text-sm font-mono font-bold text-gray-500">{{ carrier.currency || '---' }}</td>
-                        <td class="px-4 py-4 text-center text-sm font-semibold text-gray-900">{{ carrier.airFreight | number:'1.2-2' }}</td>
+                        <!-- <td class="px-4 py-4 text-center text-sm font-semibold text-gray-900">{{ carrier.airFreight | number:'1.2-2' }}</td> -->
                         <td class="px-4 py-4 text-center text-sm text-gray-600">{{ carrier.fsc || 0 }}</td>
                         <td class="px-4 py-4 text-center text-sm italic text-gray-600">{{ carrier.airline || '---' }}</td>
                         <td class="px-4 py-4 text-center">

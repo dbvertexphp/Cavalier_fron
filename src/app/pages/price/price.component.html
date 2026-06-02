@@ -2517,16 +2517,9 @@ Selection Modal Popup
                 <td class="px-3 py-3">
                     <select [(ngModel)]="row.chargeName" class="w-full bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none italic">
                         <option value="">-- Select Charge Name --</option>
-                        <option value="Freight Charges">Freight Charges</option>
-                        <option value="Fuel Surcharge">Fuel Surcharge</option>
-                        <option value="Customs Clearance">Customs Clearance</option>
-                        <option value="Documentation Fee">Documentation Fee</option>
-                        <option value="Handling Charges">Handling Charges</option>
-                        <option value="Storage Fee">Storage Fee</option>
-                        <option value="Delivery Charges">Delivery Charges</option>
-                        <option value="Insurance">Insurance</option>
-                        <option value="Inspection Fee">Inspection Fee</option>
-                        <option value="Other Charges">Other Charges</option>
+    <option *ngFor="let c of chargesList" [value]="c.name">
+        {{ c.name }}
+    </option>
                     </select>
                 </td>
                 <td class="px-3 py-3">
@@ -2609,7 +2602,7 @@ Selection Modal Popup
                         <th class="px-4 py-4 border-b border-gray-200">Type</th>
                         
                         <th class="px-4 py-4 border-b border-gray-200 bg-blue-50/50">Chrg. Weight</th>
-                        <th class="px-4 py-4 border-b border-gray-200">Airfreight</th>
+                        <!-- <th class="px-4 py-4 border-b border-gray-200">Airfreight</th> -->
                         <th class="px-4 py-4 border-b border-gray-200">FSC/ISS</th>
                         <th class="px-4 py-4 border-b border-gray-200">Airline</th>
                         <th class="px-4 py-4 border-b border-gray-200">Cut-off</th>
@@ -2641,17 +2634,10 @@ Selection Modal Popup
 
                         <td class="px-2 py-2">
                             <select [(ngModel)]="m.chargeName" class="w-36 bg-transparent border-b border-transparent focus:border-amber-500 outline-none italic">
-                                <option value="">-- Select --</option>
-                                <option value="Freight Charges">Freight Charges</option>
-                                <option value="Fuel Surcharge">Fuel Surcharge</option>
-                                <option value="Customs Clearance">Customs Clearance</option>
-                                <option value="Documentation Fee">Documentation Fee</option>
-                                <option value="Handling Charges">Handling Charges</option>
-                                <option value="Storage Fee">Storage Fee</option>
-                                <option value="Delivery Charges">Delivery Charges</option>
-                                <option value="Insurance">Insurance</option>
-                                <option value="Inspection Fee">Inspection Fee</option>
-                                <option value="Other Charges">Other Charges</option>
+                               <option value="">-- Select Charge Name --</option>
+    <option *ngFor="let c of chargesList" [value]="c.name">
+        {{ c.name }}
+    </option>
                             </select>
                         </td>
 
@@ -2666,9 +2652,9 @@ Selection Modal Popup
                             {{ quotation.chargeableWeight || 0 }}
                         </td>
 
-                        <td class="px-2 py-2">
+                        <!-- <td class="px-2 py-2">
                             <input type="number" [(ngModel)]="m.airFreight" (input)="calculateMasterIndirectTotal(i)" class="w-20 text-center font-semibold bg-transparent border-b border-transparent focus:border-gray-300 outline-none" placeholder="0">
-                        </td>
+                        </td> -->
 
                         <td class="px-2 py-2">
                             <input [(ngModel)]="m.fsc" class="w-16 text-center bg-transparent border-b border-transparent focus:border-gray-300 outline-none" placeholder="INC">
@@ -3106,16 +3092,9 @@ Selection Modal Popup
                   class="w-full outline-none p-1 bg-transparent"
                 >
                   <option value="">-- Select Charge Name --</option>
-                        <option value="Freight Charges">Freight Charges</option>
-                        <option value="Fuel Surcharge">Fuel Surcharge</option>
-                        <option value="Customs Clearance">Customs Clearance</option>
-                        <option value="Documentation Fee">Documentation Fee</option>
-                        <option value="Handling Charges">Handling Charges</option>
-                        <option value="Storage Fee">Storage Fee</option>
-                        <option value="Delivery Charges">Delivery Charges</option>
-                        <option value="Insurance">Insurance</option>
-                        <option value="Inspection Fee">Inspection Fee</option>
-                        <option value="Other Charges">Other Charges</option>
+    <option *ngFor="let c of chargesList" [value]="c.name">
+        {{ c.name }}
+    </option>
                 </select>
               </td>
               <td class="border p-1">

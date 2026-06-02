@@ -41,6 +41,7 @@ export interface CostBreakdown {
 export class PriceComponent {
  @ViewChild('cargoDateInput') cargoDateInput!: ElementRef<HTMLInputElement>;
  totalCount: number = 0;
+ chargesList: any[] = [];
 currentPage: number = 1;
 pageSize: number = 10;
     getsalescordinate: any[] = [];
@@ -414,6 +415,7 @@ organizations: any[] = [];
 orgData: any = null;
   isLoading: boolean = true;
     ngOnInit() {
+      this.loadChargeNamesMaster();
       this.route.queryParams.subscribe(params => {
     const editId = params['editId'];
     if (editId) {
@@ -604,6 +606,15 @@ onShipmentTypeChange() {
       }
     }, 120);   // Thoda zyada delay diya hai better result ke liye
   }
+}
+loadChargeNamesMaster() {
+  this.http.get<any[]>(`${environment.apiUrl}/Charge`).subscribe({
+    next: (data) => {
+      this.chargesList = data;
+      this.cdr.detectChanges();
+    },
+    error: (err) => console.error("Error fetching charges:", err)
+  });
 }
   getbranch() {
     this.branchservice.getBranches().subscribe({

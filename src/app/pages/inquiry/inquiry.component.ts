@@ -31,6 +31,15 @@ export interface CostBreakdown {
   exchangeRate: number;
   amount: number;
 }
+interface DimGroup {
+  dimString: string;
+  l: number;
+  w: number;
+  h: number;
+  unit: string;
+  indices: number[];
+  totalBoxQty: number;
+}
 @Component({
   selector: 'app-inquiry',
   standalone: true,
@@ -423,6 +432,8 @@ organizations: any[] = [];
       this.getbranch();
       this.loadQuotations();
       this.portOfLoading();
+      this.quotation.cbmUnit = 'CBM';
+      this.getPackageUnits();
        this.loadUomList();
       this.getNextInquiryNumber();
       this.fetchOrganizations();
@@ -493,8 +504,51 @@ getsales(): void {
     }
   });
 }
+filteredFinalDestinations: any[] = [];
+showFinalDestinationDropdown = false;
+// Naye variables yahan add karein:
+ // 1. Data load karne ka function (agar pehle se nahi hai)
+loadPortsData() {
+  this.http.get<any[]>(`${environment.apiUrl}/PortSetup`).subscribe({
+    next: (data) => {
+      this.portsOfLoading = data; // Yahi master list use hogi
+      console.log("Ports loaded for search:", data);
+    },
+    error: (err) => console.error("Error loading ports:", err)
+  });
+}
+
+// 2. Search logic
+onFinalDestinationSearch() {
+  const searchTerm = (this.quotation.finalDestination || '').toString().trim().toLowerCase();
+
+  if (searchTerm === '') {
+    this.showFinalDestinationDropdown = false;
+    this.filteredFinalDestinations = [];
+    return;
+  }
+
+  // Same master list se filter kar rahe hain
+  this.filteredFinalDestinations = this.portsOfLoading.filter(port => {
+    const portName = port.name || port.portName || port.PortName || port.description || '';
+    return portName.toString().toLowerCase().includes(searchTerm);
+  });
+
+  this.showFinalDestinationDropdown = true;
+}
+
+// 3. Selection logic
+selectFinalDestination(port: any) {
+  if (!port) return;
+  
+  this.quotation.finalDestination = port.name || port.portName || port.PortName || '';
+  this.quotation.finalDestinationCode = port.portCode;
+  
+  this.showFinalDestinationDropdown = false;
+  this.filteredFinalDestinations = [];
+}
 portOfLoading() {
-  this.http.get<any[]>(`${environment.apiUrl}/PortOfLoading`).subscribe({
+  this.http.get<any[]>(`${environment.apiUrl}/PortSetup`).subscribe({
     next: (data) => {
       this.portsOfLoading = data;
       console.log("Port of Loading loaded:", data);
@@ -524,6 +578,7 @@ selectPortOfLoading(port: any) {
   if (!port) return;
   
   this.quotation.portOfLoading = port.name || port.portName || port.PortName || '';
+  this.quotation.portOfLoadingCode = port.portCode;
   this.showPortOfLoadingDropdown = false;
   this.filteredPortsOfLoading = [];
 }
@@ -825,7 +880,7 @@ onAgentSelect(event: any, agent: any) {
     }
   }
 portdischarge() {
-  this.http.get<any[]>(`${environment.apiUrl}/PortOfDischarge`).subscribe({
+  this.http.get<any[]>(`${environment.apiUrl}/PortSetup`).subscribe({
     next: (data) => {
       this.portsOfDischarge = data;
       console.log("Port of Discharge loaded:", data);
@@ -846,6 +901,8 @@ onPortOfDischargeSearch() {
 
   this.filteredPortsOfDischarge = this.portsOfDischarge.filter(port => {
     const portName = port.name || port.portName || port.PortName || port.description || '';
+   this.quotation.portOfDestinationCode = port.portCode;
+   
     return portName.toString().toLowerCase().includes(searchTerm);
   });
 
@@ -855,6 +912,7 @@ selectPortOfDischarge(port: any) {
   if (!port) return;
   
   this.quotation.portOfDestination = port.name || port.portName || port.PortName || '';
+  this.quotation.portOfDestinationCode = port.portCode;
   this.showPortOfDischargeDropdown = false;
   this.filteredPortsOfDischarge = [];
 }
@@ -1142,13 +1200,20 @@ closeDimModal() {
 }
 
 addNewDimRow() {
+  // Check karo ki list load ho gayi hai, agar hai toh pehli unit lo, warna 'CMS'
+  const defaultUnit = (this.uomList && this.uomList.length > 0) 
+                      ? this.uomList[0].shortCode 
+                      : 'CMS';
+
   this.dimRows.push({
     box: 1,
     l: 0,
     w: 0,
     h: 0,
-    unit: 'CMS'
+    unit: defaultUnit // Yahan dynamic value set ho gayi
   });
+
+  // Change Detection zaroori hai agar row show nahi ho rahi
   this.cdr.detectChanges();
 }
 
@@ -3225,6 +3290,37 @@ updatePreview() {
   this.cdr.detectChanges(); 
   console.log("Updated Dimensions:", this.quotation.dimensions);
 }
+getTotalPackageCount() {
+  return this.dimRows.reduce((sum, item) => sum + (Number(item.box) || 0), 0);
+}
+getGroupedDimensions(): DimGroup[] {
+  // Yahan type define kar di taaki TS7034 error na aaye
+  const groups: DimGroup[] = [];
+
+  this.dimRows.forEach((dim: any, index: number) => {
+    const dimString = `${dim.l || 0}x${dim.w || 0}x${dim.h || 0} ${dim.unit || 'CMS'}`;
+    
+    // find() method ab return karega 'DimGroup | undefined'
+    let foundGroup = groups.find(g => g.dimString === dimString);
+    
+    if (foundGroup) {
+      foundGroup.indices.push(index + 1);
+      foundGroup.totalBoxQty += Number(dim.box || 0);
+    } else {
+      groups.push({
+        dimString: dimString,
+        l: dim.l || 0, 
+        w: dim.w || 0, 
+        h: dim.h || 0, 
+        unit: dim.unit || 'CMS',
+        indices: [index + 1],
+        totalBoxQty: Number(dim.box || 0)
+      });
+    }
+  });
+  
+  return groups;
+}
 uomList: any[] = [];
 isUomModalOpen: boolean = false;
 selectedUom: any = null;
@@ -3236,6 +3332,11 @@ loadUomList() {
   this.http.get<any[]>(`${environment.apiUrl}/Uom/list`).subscribe({
     next: (data) => {
       this.uomList = data;
+      
+      // Default unit set karein agar nahi hai
+      if (!this.quotation.volumeWeightUnit && this.uomList.length > 0) {
+        this.quotation.volumeWeightUnit = this.uomList[0].shortCode;
+      }
     },
     error: (err) => console.error("Error loading UOMs:", err)
   });
@@ -3281,14 +3382,43 @@ isDimUomModalOpen: boolean = false;
 toggleDimUomModal() {
   this.isDimUomModalOpen = !this.isDimUomModalOpen;
 }
-
 // Select function for Dimension Unit (Calculation ke saath)
+
 selectDimUom(uom: any, dimRow: any) {
+
   dimRow.unit = uom.shortCode;
+
   this.isDimUomModalOpen = false;
-  
+
+ 
+
   // Calculations trigger karna zaroori hai
+
   this.calculateVolumeWeight();
+
   this.updatePreview();
+
 }
+// Ye function ab UI mein use hoga
+applySelectedUnit(uom: any, dimRow: any) {
+  dimRow.unit = uom.shortCode; 
+  
+  // Calculations aur Preview update karein
+  this.calculateVolumeWeight(); 
+  this.updatePreview(); 
+  
+  // Modal ko close karein
+  this.toggleDimUomModal(); 
+}
+packageUnits: any[] = []; // Yahan API ka data store hoga
+getPackageUnits() {
+    this.http.get(`${environment.apiUrl}/PackageBox/list`).subscribe(
+      (res: any) => {
+        // Assume API format: [{id: 1, name: 'PKGS'}, {id: 2, name: 'BOXES'}]
+        this.packageUnits = res; 
+        console.log("Package Units loaded:", this.packageUnits);
+      },
+      (error) => console.error('Error fetching units', error)
+    );
+  }
 }

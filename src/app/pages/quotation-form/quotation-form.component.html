@@ -1302,7 +1302,7 @@
   </div>
 </div>
 
-             <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2">
   <label class="w-40 font-bold text-gray-700">Gross Weight</label>
   <div class="flex flex-1">
     <input
@@ -1312,75 +1312,127 @@
       (ngModelChange)="updatePreview()"
       class="w-full border p-2 outline-none"
     />
-    <div
-      class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1"
-    >
+    
+    <div class="flex items-center border border-l-0 bg-gray-50 px-2 gap-2">
+      <div (click)="toggleUomModal()" class="cursor-pointer">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400 hover:text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      </div>
+
+     <select
+  name="grossWeightUnit"
+  [(ngModel)]="quotation.grossWeightUnit"
+  (ngModelChange)="updatePreview()"
+  class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
+>
+  <option *ngFor="let uom of uomList" 
+          [value]="uom.shortCode" 
+          [selected]="quotation.grossWeightUnit === uom.shortCode">
+    {{ uom.shortCode }}
+  </option>
+</select>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="isUomModalOpen" (click)="isUomModalOpen = false" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+  <div (click)="$event.stopPropagation()" class="bg-white p-6 w-64 rounded-xl shadow-2xl">
+    <h3 class="font-bold mb-4">Select Unit</h3>
+    <div *ngFor="let uom of uomList" 
+         (click)="selectUom(uom)" 
+         class="p-2 border-b cursor-pointer hover:bg-gray-100">
+      {{ uom.shortCode }}
+    </div>
+  </div>
+</div>
+
+<div class="flex items-center gap-2">
+  <label class="w-40 font-bold text-gray-700">Net Weight</label>
+  <div class="flex flex-1">
+    <input
+      type="number"
+      name="netWeight"
+      [(ngModel)]="quotation.netWeight"
+      class="w-full border p-2 outline-none"
+    />
+    
+    <div class="flex items-center border border-l-0 bg-gray-50 px-2 gap-2">
+      <div (click)="toggleNetUomModal()" class="cursor-pointer">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400 hover:text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      </div>
+
       <select
-        name="grossWeightUnit"
-        [(ngModel)]="quotation.grossWeightUnit"
-        (ngModelChange)="updatePreview()"
+        name="netWeightUnit"
+        [(ngModel)]="quotation.netWeightUnit"
         class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
       >
-        <option value="KGS">KGS</option>
-        <option value="LBS">LBS</option>
+        <option *ngFor="let uom of uomList" [value]="uom.shortCode">
+          {{ uom.shortCode }}
+        </option>
       </select>
     </div>
   </div>
 </div>
 
+<div *ngIf="isNetUomModalOpen" (click)="isNetUomModalOpen = false" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+  <div (click)="$event.stopPropagation()" class="bg-white p-6 w-64 rounded-xl shadow-2xl">
+    <h3 class="font-bold mb-4">Select Net Unit</h3>
+    <div *ngFor="let uom of uomList" 
+         (click)="selectNetUom(uom)" 
+         class="p-2 border-b cursor-pointer hover:bg-gray-100 text-sm">
+      {{ uom.shortCode }}
+    </div>
+  </div>
+</div>
               <div class="flex items-center gap-2">
-                <label class="w-40 font-bold text-gray-700">Net Weight</label>
-                <div class="flex flex-1">
-                  <input
-                    type="number"
-                    name="netWeight"
-                    [(ngModel)]="quotation.netWeight"
-                    class="w-full border p-2 outline-none"
-                  />
-                  <div
-                    class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1"
-                  >
-                    <select
-                      name="netWeightUnit"
-                      [(ngModel)]="quotation.netWeightUnit"
-                      class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
-                    >
-                      <option value="KGS">KGS</option>
-                      <option value="LBS">LBS</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
+  <label class="w-40 font-bold text-gray-700">Chrg. Weight</label>
+  <div class="flex flex-1">
+    <input
+      type="number"
+      name="chargeableWeight"
+      [(ngModel)]="quotation.chargeableWeight"
+      class="w-full border p-2 outline-none"
+    />
+    
+    <div class="flex items-center border border-l-0 bg-gray-50 px-2 gap-2">
+      <div (click)="isChargeableUomModalOpen = true" class="cursor-pointer">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400 hover:text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      </div>
 
-              <div class="flex items-center gap-2">
-                <label class="w-40 font-bold text-gray-700">Chrg. Weight</label>
-                <div class="flex flex-1">
-                  <input
-                    type="number"
-                    name="chargeableWeight"
-                    [(ngModel)]="quotation.chargeableWeight"
-                    class="w-full border p-2 outline-none"
-                  />
-                  <div
-                    class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1"
-                  >
-                    <select
-                      name="chargeableWeightUnit"
-                      [(ngModel)]="quotation.chargeableWeightUnit"
-                      class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
-                    >
-                      <option value="KGS">KGS</option>
-                      <option value="LBS">LBS</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
+      <select
+        name="chargeableWeightUnit"
+        [(ngModel)]="quotation.chargeableWeightUnit"
+        class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
+      >
+        <option *ngFor="let uom of uomList" [value]="uom.shortCode">
+          {{ uom.shortCode }}
+        </option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="isChargeableUomModalOpen" (click)="isChargeableUomModalOpen = false" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+  <div (click)="$event.stopPropagation()" class="bg-white p-6 w-64 rounded-xl shadow-2xl">
+    <h3 class="font-bold mb-4">Select Chrg. Unit</h3>
+    <div *ngFor="let uom of uomList" 
+         (click)="quotation.chargeableWeightUnit = uom.shortCode; isChargeableUomModalOpen = false" 
+         class="p-2 border-b cursor-pointer hover:bg-gray-100 text-sm">
+      {{ uom.shortCode }}
+    </div>
+  </div>
+</div>
             </div>
 
             <div class="space-y-3">
-      <div class="flex items-center gap-2">
+     <div class="flex items-center gap-2">
   <label class="w-40 font-bold text-gray-700">Num of Packages</label>
-
+  
   <div class="flex flex-1">
     <input
       type="number"
@@ -1389,137 +1441,121 @@
       (ngModelChange)="updatePreview()"
       class="w-full border p-2 outline-none"
     />
+    
     <div class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1">
+      <svg
+        (click)="mySelect.click()"
+        xmlns="http://www.w3.org/2000/svg"
+        class="w-3 h-3 text-gray-400"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+        />
+      </svg>
+      
       <select
+        #mySelect
         name="pkgUnit"
         [(ngModel)]="quotation.pkgUnit"
         (ngModelChange)="updatePreview()"
         class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
       >
-        <option value="PKGS">PKGS</option>
-        <option value="BOXES">BOXES</option>
+        <option *ngFor="let item of packageUnits" [value]="item.name">
+          {{ item.name }}
+        </option>
       </select>
     </div>
   </div>
 </div>
 
-      <div class="flex items-center gap-2">
+     <div class="flex items-center gap-2">
   <label class="w-40 font-bold text-gray-700">Dimensions</label>
   <div class="flex flex-1 items-center gap-1">
-    <input
-      type="number"
-      name="dimBox"
-      [(ngModel)]="quotation.dimBox"
-      (ngModelChange)="syncOuterBoxToFirstRow(); updatePreview()"
-      placeholder="BOX"
-      class="w-full border p-2 outline-none text-center"
-    />
-    <input
-      type="number"
-      name="dimL"
-      [(ngModel)]="quotation.dimL"
-      (ngModelChange)="updatePreview()"
-      placeholder="L"
-      class="w-full border p-2 outline-none text-center"
-    />
+    <input type="number" name="dimBox" [(ngModel)]="quotation.dimBox" (ngModelChange)="syncOuterBoxToFirstRow(); updatePreview()" placeholder="BOX" class="w-full border p-2 outline-none text-center rounded-l-sm" />
+    <input type="number" name="dimL" [(ngModel)]="quotation.dimL" (ngModelChange)="updatePreview()" placeholder="L" class="w-full border p-2 outline-none text-center" />
     <span class="text-gray-400 font-bold">x</span>
-    <input
-      type="number"
-      name="dimW"
-      [(ngModel)]="quotation.dimW"
-      (ngModelChange)="updatePreview()"
-      placeholder="W"
-      class="w-full border p-2 outline-none text-center"
-    />
+    <input type="number" name="dimW" [(ngModel)]="quotation.dimW" (ngModelChange)="updatePreview()" placeholder="W" class="w-full border p-2 outline-none text-center" />
     <span class="text-gray-400 font-bold">x</span>
-    <input
-      type="number"
-      name="dimH"
-      [(ngModel)]="quotation.dimH"
-      (ngModelChange)="updatePreview()"
-      placeholder="H"
-      class="w-full border p-2 outline-none text-center"
-    />
-    <button
-      type="button"
-      (click)="openDimModal()"
-      class="bg-green-600 hover:bg-green-700 text-white p-[5px] h-[30px] flex items-center justify-center transition-colors shadow-inner rounded-sm"
-      title="Add more dimensions"
-    >
+    <input type="number" name="dimH" [(ngModel)]="quotation.dimH" (ngModelChange)="updatePreview()" placeholder="H" class="w-full border p-2 outline-none text-center" />
+    
+    <select [(ngModel)]="quotation.dimUnit" (change)="updatePreview()" class="border p-2 bg-gray-50 text-[11px] font-bold outline-none">
+      <option *ngFor="let uom of uomList" [value]="uom.shortCode">{{ uom.shortCode }}</option>
+    </select>
+
+    <button type="button" (click)="openDimModal()" class="bg-green-600 hover:bg-green-700 text-white p-[5px] h-[38px] flex items-center justify-center transition-colors shadow-inner rounded-sm" title="Add more dimensions">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
       </svg>
     </button>
+  </div>
 
-    <div *ngIf="isDimModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div class="bg-white w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-        <div class="bg-gray-800 text-white px-6 py-4 flex justify-between items-center">
-          <h3 class="font-bold text-lg uppercase tracking-wider">Add Multiple Dimensions</h3>
-          <button type="button" (click)="closeDimModal()" class="text-white hover:text-red-400 text-2xl">&times;</button>
-        </div>
+  <div *ngIf="isDimModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div class="bg-white w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden">
+      <div class="bg-gray-800 text-white px-6 py-4 flex justify-between items-center">
+        <h3 class="font-bold text-lg uppercase">Add Multiple Dimensions</h3>
+        <button type="button" (click)="closeDimModal()" class="text-white">&times;</button>
+      </div>
 
-        <div class="p-6 max-h-[60vh] overflow-y-auto">
-          <div *ngFor="let dim of dimRows; let i = index" class="flex items-center gap-2 mb-4 group">
-            <label class="w-24 font-bold text-gray-700 text-xs uppercase">Dim {{ i + 1 }}</label>
-            <div class="flex flex-1 items-center gap-1">
-              <input type="number" [name]="'box' + i" [(ngModel)]="dim.box" (ngModelChange)="updateTotalPackagesFromDims(); updatePreview()" placeholder="BOX" class="w-full border p-2 outline-none text-center rounded-sm text-sm" />
-              <input type="number" [name]="'l' + i" [(ngModel)]="dim.l" (ngModelChange)="updatePreview()" placeholder="L" class="w-full border p-2 outline-none text-center rounded-sm text-sm" />
-              <span class="text-gray-400 font-bold text-xs">x</span>
-              <input type="number" [name]="'w' + i" [(ngModel)]="dim.w" (ngModelChange)="updatePreview()" placeholder="W" class="w-full border p-2 outline-none text-center text-sm" />
-              <span class="text-gray-400 font-bold text-xs">x</span>
-              <input type="number" [name]="'h' + i" [(ngModel)]="dim.h" (ngModelChange)="updatePreview()" placeholder="H" class="w-full border p-2 outline-none text-center text-sm" />
-              <div class="flex items-center border bg-gray-50 h-[38px] px-2 rounded-sm">
-                <select [name]="'unit' + i" [(ngModel)]="dim.unit" (ngModelChange)="updatePreview()" class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer appearance-none">
-                  <option value="CMS">CMS</option>
-                  <option value="INCH">INCH</option>
-                </select>
-              </div>
-              <button type="button" *ngIf="dimRows.length > 1" (click)="removeDimRow(i); updatePreview()" class="text-red-400 hover:text-red-600 p-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
-            </div>
+      <div class="p-6 max-h-[60vh] overflow-y-auto">
+        <div *ngFor="let dim of dimRows; let i = index" class="flex items-center gap-2 mb-4">
+          <label class="w-24 font-bold text-gray-700 text-xs uppercase">Dim {{ i + 1 }}</label>
+          <div class="flex flex-1 items-center gap-1">
+            <input type="number" [(ngModel)]="dim.box" placeholder="BOX" class="w-full border p-2 text-center text-sm" />
+            <input type="number" [(ngModel)]="dim.l" placeholder="L" class="w-full border p-2 text-center text-sm" />
+            <span class="text-gray-400 font-bold">x</span>
+            <input type="number" [(ngModel)]="dim.w" placeholder="W" class="w-full border p-2 text-center text-sm" />
+            <span class="text-gray-400 font-bold">x</span>
+            <input type="number" [(ngModel)]="dim.h" placeholder="H" class="w-full border p-2 text-center text-sm" />
+            
+            <select [(ngModel)]="dim.unit" class="border p-2 bg-gray-50 text-[11px] font-bold">
+              <option *ngFor="let uom of uomList" [value]="uom.shortCode">{{ uom.shortCode }}</option>
+            </select>
+
+            <button type="button" (click)="removeDimRow(i)" class="text-red-400 p-2">🗑️</button>
           </div>
-          <button type="button" (click)="addNewDimRow(); updatePreview()" class="mt-2 text-blue-600 font-bold text-xs flex items-center gap-1 hover:underline">
-            <span class="text-lg">+</span> Add Another Dimension
-          </button>
         </div>
+        
+        <button type="button" (click)="addNewDimRow()" class="text-blue-600 font-bold text-xs">+ Add Another Dimension</button>
+      </div>
 
-        <div class="p-4 bg-gray-50 border-t flex justify-end gap-3">
-          <button type="button" (click)="closeDimModal()" class="px-6 py-2 text-gray-600 font-bold text-sm">Cancel</button>
-          <button type="button" (click)="saveDimensions(); updatePreview()" class="px-8 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 shadow-lg text-sm transition-all">Apply Dimensions</button>
-        </div>
+      <div class="p-4 bg-gray-50 border-t flex justify-end gap-3">
+        <button type="button" (click)="closeDimModal()" class="px-6 py-2">Cancel</button>
+        <button type="button" (click)="saveDimensions()" class="px-8 py-2 bg-blue-600 text-white rounded">Apply</button>
       </div>
     </div>
   </div>
 </div>
 
               <div class="flex items-center gap-2">
-                <label class="w-40 font-bold text-gray-700"
-                  >Volume Weight</label
-                >
-                <div class="flex flex-1">
-                  <input
-                    type="number"
-                    name="chargeableWeightKg"
-                    [(ngModel)]="quotation.chargeableWeightKg"
-                    class="w-full border p-2 outline-none"
-                  />
-                  <div
-                    class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1"
-                  >
-                    <select
-                      name="volumeWeightUnit"
-                      [(ngModel)]="quotation.volumeWeightUnit"
-                      class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
-                    >
-                      <option value="KGS">KGS</option>
-                      <option value="CBM">CBM</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
+  <label class="w-40 font-bold text-gray-700">Volume Weight</label>
+  <div class="flex flex-1">
+    <input
+      type="number"
+      name="chargeableWeightKg"
+      [(ngModel)]="quotation.chargeableWeightKg"
+      (ngModelChange)="updatePreview()"
+      class="w-full border p-2 outline-none"
+    />
+    <div class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1">
+      <select
+        name="volumeWeightUnit"
+        [(ngModel)]="quotation.volumeWeightUnit"
+        (ngModelChange)="updatePreview()"
+        class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
+      >
+        <option *ngFor="let uom of uomList" [value]="uom.shortCode">
+          {{ uom.shortCode }}
+        </option>
+      </select>
+    </div>
+  </div>
+</div>
               <div class="flex items-start mt-2">
                  
                 <label class="w-40 font-bold text-gray-700 mt-2"
@@ -1568,7 +1604,7 @@
                              
                       <option value="CBM">CBM</option>
                              
-                      <option value="KGS">KGS</option>
+                      <!-- <option value="KGS">KGS</option> -->
                            
                     </select>
                        
@@ -1600,459 +1636,203 @@
       <!---   seocnd phase -->
 
       <div class="border border-gray-300">
-        <div
-          class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px] flex justify-between"
-        >
-          <span>+ Forwarding & Movement</span>
-          <label
-            class="text-[12px] font-normal flex items-center gap-1 cursor-pointer"
-          >
-            <input
-              type="checkbox"
-              name="serviceForwarding"
-              [(ngModel)]="quotation.serviceForwarding"
-            />
-            Service Required
-          </label>
+  <!-- Header -->
+  <div class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px] flex justify-between items-center">
+    <span>+ Forwarding & Movement</span>
+    <label class="text-[12px] font-normal flex items-center gap-1 cursor-pointer">
+      <input type="checkbox" name="serviceForwarding" [(ngModel)]="quotation.serviceForwarding" />
+      Service Required
+    </label>
+  </div>
+
+  <!-- Main Content Grid -->
+  <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-10 bg-white">
+    <!-- Left Column -->
+    <div class="space-y-3">
+      <div class="flex items-center">
+        <label class="w-40 font-bold text-gray-700">IncoTerms</label>
+        <select [(ngModel)]="quotation.incoterm" (ngModelChange)="onIncotermChange($event); updatePreview()" name="incoterm" class="flex-1 border p-2 outline-none">
+          <option value="" disabled>-- Select IncoTerm --</option>
+          <option *ngFor="let term of incoTerms" [value]="term.name">{{ term.name }}</option>
+        </select>
+      </div>
+
+      <div class="flex items-center">
+        <label class="w-40 font-bold text-gray-700">Carrier Name</label>
+        <input name="awbIssuedBy" [(ngModel)]="quotation.awbIssuedBy" class="flex-1 border p-2 outline-none" />
+      </div>
+
+      <div class="flex items-center">
+        <label class="w-40 font-bold text-gray-700">Transit Dest</label>
+        <div class="flex flex-1 gap-1">
+          <input name="transitDest" [(ngModel)]="quotation.transitDest" class="flex-1 border p-2 outline-none" />
+          <input name="transitDays" [(ngModel)]="quotation.transitDays" placeholder="Days" class="w-16 border p-2 outline-none" />
         </div>
-        <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-10 bg-white">
-          <div class="space-y-3">
-           <div class="flex items-center">
-  <label class="w-40 font-bold text-gray-700">IncoTerms</label>
-  <select
-    [(ngModel)]="quotation.incoterm"
-    (ngModelChange)="onIncotermChange($event); updatePreview()"
-    name="incoterm"
-    class="flex-1 border p-2 outline-none"
-  >
-    <option value="" disabled>-- Select IncoTerm --</option>
-    <option *ngFor="let term of incoTerms" [value]="term.name">
-      {{ term.name }}
-    </option>
-  </select>
-</div>
+      </div>
 
-            <div class="flex items-center">
-              <label class="w-40 font-bold text-gray-700">Carrier Name</label>
-              <input
-                name="awbIssuedBy"
-                [(ngModel)]="quotation.awbIssuedBy"
-                class="flex-1 border p-2 outline-none"
-              />
-            </div>
-            <div class="flex items-center">
-              <label class="w-40 font-bold text-gray-700">Transit Dest</label>
-              <div class="flex flex-1 gap-1">
-                <input
-                  name="transitDest"
-                  [(ngModel)]="quotation.transitDest"
-                  class="flex-1 border p-2 outline-none"
-                />
-                <input
-                  name="transitDays"
-                  [(ngModel)]="quotation.transitDays"
-                  placeholder="Days"
-                  class="w-16 border p-2 outline-none"
-                />
-              </div>
-            </div>
-            <div class="flex items-center text-red-700 font-bold">
-              <label class="w-40">Place of Receipt</label>
-              <input
-                name="placeOfReceipt"
-                [(ngModel)]="quotation.placeOfReceipt"
-                class="flex-1 border p-2 border-red-300 outline-none"
-              />
-            </div>
+      <div class="flex items-center text-red-700 font-bold">
+        <label class="w-40">Place of Receipt</label>
+        <input name="placeOfReceipt" [(ngModel)]="quotation.placeOfReceipt" class="flex-1 border p-2 border-red-300 outline-none" />
+      </div>
 
-            <div class="flex items-center text-red-700 font-bold">
-              <label class="w-40">Origin</label>
-              <div class="flex flex-1 gap-1"></div>
-              <input
-                name="origin"
-                [(ngModel)]="quotation.originPOL"
-                class="ml-10 flex-1 border p-2 border-red-300 outline-none"
-              />
+      <div class="flex items-center text-red-700 font-bold">
+        <label class="w-40">Origin</label>
+        <input name="origin" [(ngModel)]="quotation.originPOL" class="ml-10 flex-1 border p-2 border-red-300 outline-none" />
+      </div>
 
- <!-- === POL SECTION === -->
-<label class="w-40 ml-4">POL</label>
-<select
-  name="portOfLoading"
-  [(ngModel)]="quotation.portOfLoadingId"
-  (change)="onPolChange()"
-  class="w-60 border p-2 border-red-300 outline-none"
->
-  <option [ngValue]="null">-- Select POL --</option>
-  <option *ngFor="let port of portOfLoadingList" [value]="port.id">
-    {{ port.portName || port.name }}
-  </option>
-</select>
-            </div>
-          </div>
-
-          <div class="space-y-3">
-            <div class="flex items-center">
-              <label class="w-40 font-bold text-red-700">Movement</label>
-              <select
-                [(ngModel)]="quotation.movementType"
-                name="movementType"
-                class="flex-1 border p-2 outline-none"
-              >
-                <option value="" disabled>-- Select Movement Type --</option>
-                <option *ngFor="let move of movementTypes" [value]="move.name">
-                  <!-- string value -->
-                  {{ move.name }}
-                </option>
-              </select>
-            </div>
-            <div class="flex items-center">
-              <label class="w-40 font-bold text-gray-700"
-                >Carrier / Agent</label
-              >
-              <input
-                name="carrierAgent"
-                [(ngModel)]="quotation.carrierAgent"
-                class="flex-1 border p-2 outline-none"
-              />
-            </div>
-            <div class="flex items-center gap-3">
-              <label class="w-40 font-bold text-gray-700">Cargo Value</label>
-
-              <div
-                class="flex flex-1 border border-gray-300 rounded-md overflow-hidden focus-within:border-blue-500"
-              >
-                <!-- Currency Dropdown with Symbol -->
-                <select
-                  name="currency"
-                  [(ngModel)]="quotation.currency"
-                  class="border-r p-2 outline-none bg-gray-50 text-gray-700 w-52"
-                >
-                  <option value="">Select Currency</option>
-
-                  <!-- Major Currencies (Recommended first) -->
-                  <option value="₹ INR - Indian Rupee">
-                    ₹ INR - Indian Rupee
-                  </option>
-                  <option value="$ USD - United States Dollar">
-                    $ USD - United States Dollar
-                  </option>
-                  <option value="€ EUR - Euro">€ EUR - Euro</option>
-                  <option value="£ GBP - British Pound Sterling">
-                    £ GBP - British Pound Sterling
-                  </option>
-                  <option value="د.إ AED - UAE Dirham">
-                    د.إ AED - UAE Dirham
-                  </option>
-                  <option value="$ SGD - Singapore Dollar">
-                    $ SGD - Singapore Dollar
-                  </option>
-                  <option value="$ CAD - Canadian Dollar">
-                    $ CAD - Canadian Dollar
-                  </option>
-                  <option value="$ AUD - Australian Dollar">
-                    $ AUD - Australian Dollar
-                  </option>
-                  <option value="¥ JPY - Japanese Yen">
-                    ¥ JPY - Japanese Yen
-                  </option>
-                  <option value="¥ CNY - Chinese Yuan">
-                    ¥ CNY - Chinese Yuan
-                  </option>
-
-                  <!-- Other Currencies (scrollable) -->
-                  <option value="؋ AFN - Afghan Afghani">
-                    ؋ AFN - Afghan Afghani
-                  </option>
-                  <option value="$ ARS - Argentine Peso">
-                    $ ARS - Argentine Peso
-                  </option>
-                  <option value="R$ BRL - Brazilian Real">
-                    R$ BRL - Brazilian Real
-                  </option>
-                  <option value="CHF - Swiss Franc">CHF - Swiss Franc</option>
-                  <option value="$ HKD - Hong Kong Dollar">
-                    $ HKD - Hong Kong Dollar
-                  </option>
-                  <option value="Rp IDR - Indonesian Rupiah">
-                    Rp IDR - Indonesian Rupiah
-                  </option>
-                  <option value="₩ KRW - South Korean Won">
-                    ₩ KRW - South Korean Won
-                  </option>
-                  <option value="$ MXN - Mexican Peso">
-                    $ MXN - Mexican Peso
-                  </option>
-                  <option value="RM MYR - Malaysian Ringgit">
-                    RM MYR - Malaysian Ringgit
-                  </option>
-                  <option value="kr NOK - Norwegian Krone">
-                    kr NOK - Norwegian Krone
-                  </option>
-                  <option value="$ NZD - New Zealand Dollar">
-                    $ NZD - New Zealand Dollar
-                  </option>
-                  <option value="₱ PHP - Philippine Peso">
-                    ₱ PHP - Philippine Peso
-                  </option>
-                  <option value="₨ PKR - Pakistani Rupee">
-                    ₨ PKR - Pakistani Rupee
-                  </option>
-                  <option value="₽ RUB - Russian Ruble">
-                    ₽ RUB - Russian Ruble
-                  </option>
-                  <option value="﷼ SAR - Saudi Riyal">
-                    ﷼ SAR - Saudi Riyal
-                  </option>
-                  <option value="kr SEK - Swedish Krona">
-                    kr SEK - Swedish Krona
-                  </option>
-                  <option value="฿ THB - Thai Baht">฿ THB - Thai Baht</option>
-                  <option value="₺ TRY - Turkish Lira">
-                    ₺ TRY - Turkish Lira
-                  </option>
-                  <option value="R ZAR - South African Rand">
-                    R ZAR - South African Rand
-                  </option>
-
-                  <!-- Ab baaki currencies bhi same format mein -->
-
-                  <option value="A$ AUD - Australian Dollar">
-                    A$ AUD - Australian Dollar
-                  </option>
-                  <option value="R$ BRL - Brazilian Real">
-                    R$ BRL - Brazilian Real
-                  </option>
-                  <option value="CA$ CAD - Canadian Dollar">
-                    CA$ CAD - Canadian Dollar
-                  </option>
-                  <option value="¥ CNY - Chinese Yuan">
-                    ¥ CNY - Chinese Yuan
-                  </option>
-                  <option value="€ EUR - Euro">€ EUR - Euro</option>
-                  <option value="£ GBP - British Pound Sterling">
-                    £ GBP - British Pound Sterling
-                  </option>
-                  <option value="₹ INR - Indian Rupee">
-                    ₹ INR - Indian Rupee
-                  </option>
-                  <option value="¥ JPY - Japanese Yen">
-                    ¥ JPY - Japanese Yen
-                  </option>
-                  <option value="₩ KRW - South Korean Won">
-                    ₩ KRW - South Korean Won
-                  </option>
-                  <option value="RM MYR - Malaysian Ringgit">
-                    RM MYR - Malaysian Ringgit
-                  </option>
-                  <option value="$ USD - US Dollar">$ USD - US Dollar</option>
-                  <option value="AED - United Arab Emirates Dirham">
-                    AED - United Arab Emirates Dirham
-                  </option>
-                  <option value="BDT - Bangladeshi Taka">
-                    BDT - Bangladeshi Taka
-                  </option>
-                  <option value="EGP - Egyptian Pound">
-                    EGP - Egyptian Pound
-                  </option>
-                  <option value="GHS - Ghanaian Cedi">
-                    GHS - Ghanaian Cedi
-                  </option>
-                  <option value="IDR - Indonesian Rupiah">
-                    IDR - Indonesian Rupiah
-                  </option>
-                  <option value="KES - Kenyan Shilling">
-                    KES - Kenyan Shilling
-                  </option>
-                  <option value="LKR - Sri Lankan Rupee">
-                    LKR - Sri Lankan Rupee
-                  </option>
-                  <option value="MAD - Moroccan Dirham">
-                    MAD - Moroccan Dirham
-                  </option>
-                  <option value="NGN - Nigerian Naira">
-                    NGN - Nigerian Naira
-                  </option>
-                  <option value="PHP - Philippine Peso">
-                    PHP - Philippine Peso
-                  </option>
-                  <option value="PKR - Pakistani Rupee">
-                    PKR - Pakistani Rupee
-                  </option>
-                  <option value="RUB - Russian Ruble">
-                    RUB - Russian Ruble
-                  </option>
-                  <option value="SAR - Saudi Riyal">SAR - Saudi Riyal</option>
-                  <option value="SGD - Singapore Dollar">
-                    SGD - Singapore Dollar
-                  </option>
-                  <option value="TRY - Turkish Lira">TRY - Turkish Lira</option>
-                  <option value="ZAR - South African Rand">
-                    ZAR - South African Rand
-                  </option>
-                  <!-- Agar aur chahiye toh pehle wale message se copy kar sakte ho -->
-                </select>
-
-                <!-- Amount Input -->
-                <input
-                  type="number"
-                  name="cargoValue"
-                  [(ngModel)]="quotation.cargoValue"
-                  class="flex-1 p-3 outline-none text-right"
-                  placeholder="0.00"
-                  min="0"
-                  step="0.01"
-                />
-              </div>
-            </div>
-            <div class="flex items-center text-red-700 font-bold">
-              <label class="w-40">Place of Delivery</label>
-              <input
-                name="placeOfDelivery"
-                [(ngModel)]="quotation.placeOfDelivery"
-                class="flex-1 border p-2 border-red-300 outline-none"
-              />
-            </div>
-
-            <div class="flex items-center text-red-700 font-bold">
-          <<!-- === POD SECTION === -->
-<label class="w-40">POD</label>
-<div class="flex flex-1 gap-1"></div>
-<select
-  name="portOfDischarge"
-  [(ngModel)]="quotation.portOfDischargeId"
-  (change)="onPodChange()"
-  class="ml-9 flex-1 border p-2 border-red-300 outline-none"
->
-  <option [ngValue]="null">-- Select POD --</option>
-  <option *ngFor="let port of portOfDischargeList" [value]="port.id">
-    {{ port.portName || port.name }}
-  </option>
-</select>
-              <label class="w-40 ml-6">Final Dest</label>
-              <input
-                name="finalDestination"
-                [(ngModel)]="quotation.podFinalDest"
-                class="w-60 border p-2 border-red-300 outline-none"
-              />
-            </div>
+      <!-- POL Section -->
+      <div class="flex items-center text-red-700 font-bold">
+        <label class="w-40 ml-4 font-bold text-gray-700">POL</label>
+        <div class="flex flex-1 items-center gap-2">
+          <select name="portOfLoading" [(ngModel)]="quotation.portOfLoadingId" (change)="onPolChange()" class="w-60 border p-2 border-red-300 outline-none">
+            <option [ngValue]="null">-- Select POL --</option>
+            <option *ngFor="let port of portOfLoadingList" [value]="port.id">{{ port.portName || port.name }}</option>
+          </select>
+          <div *ngIf="quotation.portOfLoadingId" class="flex items-center gap-2">
+            <span class="text-gray-400">|</span>
+            <input [(ngModel)]="quotation.portOfLoadingCode" name="portOfLoadingCode" placeholder="Code" readonly class="w-20 border p-2 border-red-300 outline-none text-[12px] bg-gray-50 text-center" />
           </div>
         </div>
-        <div class="grid grid-cols-2 gap-6 p-4 bg-gray-50 border-t">
-          <div class="border p-3 bg-white shadow-sm">
-  <div
-    class="bg-gray-200 text-[#4a3f3f] px-3 py-1 mb-2 font-bold uppercase text-[11px]"
-  >
-    Pickup Address
-  </div>
-  <input
-    name="pickupOrg"
-    placeholder="Organization"
-    [(ngModel)]="quotation.pickupOrg"
-    (ngModelChange)="updatePreview()"
-    class="w-full border p-2 mb-2 outline-none"
-  />
-  <textarea
-    name="pickupAddress"
-    placeholder="Full Address"
-    [(ngModel)]="quotation.pickupAddress"
-    (ngModelChange)="updatePreview()"
-    class="w-full border p-2 h-16 outline-none"
-  ></textarea>
-</div>
-          <div class="border p-3 bg-white shadow-sm">
-            <div
-              class="bg-gray-200 text-[#4a3f3f] px-3 py-1 mb-2 font-bold uppercase text-[11px]"
-            >
-              Delivery Address
-            </div>
-            <input
-              name="deliveryOrg"
-              placeholder="Organization"
-              [(ngModel)]="quotation.deliveryOrg"
-              class="w-full border p-2 mb-2 outline-none"
-            />
-            <textarea
-              name="deliveryAddress"
-              placeholder="Full Address"
-              [(ngModel)]="quotation.deliveryAddress"
-              class="w-full border p-2 h-16 outline-none"
-            ></textarea>
+      </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="space-y-3">
+      <div class="flex items-center">
+        <label class="w-40 font-bold text-red-700">Movement</label>
+        <select [(ngModel)]="quotation.movementType" name="movementType" class="flex-1 border p-2 outline-none">
+          <option value="" disabled>-- Select Movement Type --</option>
+          <option *ngFor="let move of movementTypes" [value]="move.name">{{ move.name }}</option>
+        </select>
+      </div>
+
+      <div class="flex items-center">
+        <label class="w-40 font-bold text-gray-700">Carrier / Agent</label>
+        <input name="carrierAgent" [(ngModel)]="quotation.carrierAgent" class="flex-1 border p-2 outline-none" />
+      </div>
+
+      <div class="flex items-center gap-3">
+        <label class="w-40 font-bold text-gray-700">Cargo Value</label>
+        <div class="flex flex-1 border border-gray-300 rounded-md overflow-hidden focus-within:border-blue-500">
+          <select name="currency" [(ngModel)]="quotation.currency" class="border-r p-2 outline-none bg-gray-50 text-gray-700 w-52">
+            <option value="">Select Currency</option>
+            <option value="₹ INR - Indian Rupee">₹ INR - Indian Rupee</option>
+            <option value="$ USD - United States Dollar">$ USD - United States Dollar</option>
+            <option value="€ EUR - Euro">€ EUR - Euro</option>
+            <!-- Add remaining options here as per your original code -->
+          </select>
+          <input type="number" name="cargoValue" [(ngModel)]="quotation.cargoValue" class="flex-1 p-3 outline-none text-right" placeholder="0.00" min="0" step="0.01" />
+        </div>
+      </div>
+
+      <div class="flex items-center text-red-700 font-bold">
+        <label class="w-40">Place of Delivery</label>
+        <input name="placeOfDelivery" [(ngModel)]="quotation.placeOfDelivery" class="flex-1 border p-2 border-red-300 outline-none" />
+      </div>
+
+      <!-- POD Section -->
+      <div class="flex items-center text-red-700 font-bold">
+        <label class="w-40">POD</label>
+        <div class="flex flex-1 items-center gap-2">
+          <select name="portOfDischarge" [(ngModel)]="quotation.portOfDischargeId" (change)="onPodChange()" class="flex-1 border p-2 border-red-300 outline-none">
+            <option [ngValue]="null">-- Select POD --</option>
+            <option *ngFor="let port of portOfDischargeList" [value]="port.id">{{ port.portName || port.name }}</option>
+          </select>
+          <input *ngIf="quotation.portOfDischargeId" [(ngModel)]="quotation.portOfDischargeCode" name="portOfDischargeCode" placeholder="Code" class="w-20 border p-2 border-red-300 outline-none text-[12px] text-center" />
+        </div>
+      </div>
+
+      <!-- Final Dest -->
+      <div class="flex items-center text-red-700 font-bold">
+        <label class="w-40 ml-6 font-bold text-gray-700">Final Dest</label>
+        <div class="flex flex-1 items-center gap-2">
+          <div class="relative w-60">
+            <input name="finalDestination" [(ngModel)]="quotation.podFinalDest" (input)="onFinalDestinationSearch()" placeholder="Search Final Dest..." class="w-full border p-2 border-red-300 outline-none text-[12px]" />
+            <ul *ngIf="showFinalDestinationDropdown" class="absolute top-full left-0 z-10 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto text-gray-700 text-[12px]">
+              <li *ngFor="let port of filteredFinalDestinations" (click)="selectFinalDestination(port)" class="p-2 hover:bg-gray-100 cursor-pointer">{{ port.portName || port.name }} ({{ port.portCode }})</li>
+            </ul>
           </div>
-      <!-- 🔥 SIMPLE ROUTE DISPLAY (Input Style) -->
-<div class="mt-6 space-y-3">
-  <div class="flex items-center justify-between border-b border-red-200 pb-2">
-    <label class="text-red-800 font-black uppercase text-[13px] italic">Connecting Ports Configuration</label>
-    <button (click)="toggleConnectingPortModal()" class="bg-red-700 text-white px-3 py-1 rounded text-[11px] font-bold hover:bg-red-800">+ ADD PORTS</button>
+          <input [(ngModel)]="quotation.finalDestinationCode" name="finalDestinationCode" placeholder="Code" class="w-20 border p-2 border-red-300 outline-none text-[12px] text-center" />
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="space-y-2">
-    <div class="flex items-center gap-3">
-      <span class="w-6 font-bold text-red-700 text-[12px]">01</span>
-      <div class="flex-1 border-b p-2 bg-gray-50 text-[12px] font-bold uppercase">{{ quotation.portOfLoading }}</div>
-      <span class="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded">POL</span>
+  <!-- Address Sections -->
+  <div class="grid grid-cols-2 gap-6 p-4 bg-gray-50 border-t">
+    <div class="border p-3 bg-white shadow-sm">
+      <div class="bg-gray-200 text-[#4a3f3f] px-3 py-1 mb-2 font-bold uppercase text-[11px]">Pickup Address</div>
+      <input name="pickupOrg" placeholder="Organization" [(ngModel)]="quotation.pickupOrg" (ngModelChange)="updatePreview()" class="w-full border p-2 mb-2 outline-none" />
+      <textarea name="pickupAddress" placeholder="Full Address" [(ngModel)]="quotation.pickupAddress" (ngModelChange)="updatePreview()" class="w-full border p-2 h-16 outline-none"></textarea>
     </div>
-
-    <div *ngFor="let port of selectedConnectingPorts; let i = index" class="flex items-center gap-3">
-      <span class="w-6 font-bold text-red-700 text-[12px]">0{{ i + 2 }}</span>
-      <div class="flex-1 border-b p-2 bg-white text-[12px] uppercase">{{ port.portName }}</div>
-      <button (click)="removeConnectingPort(port)" class="text-red-400 hover:text-red-700 font-bold text-xl">&times;</button>
+    <div class="border p-3 bg-white shadow-sm">
+      <div class="bg-gray-200 text-[#4a3f3f] px-3 py-1 mb-2 font-bold uppercase text-[11px]">Delivery Address</div>
+      <input name="deliveryOrg" placeholder="Organization" [(ngModel)]="quotation.deliveryOrg" class="w-full border p-2 mb-2 outline-none" />
+      <textarea name="deliveryAddress" placeholder="Full Address" [(ngModel)]="quotation.deliveryAddress" class="w-full border p-2 h-16 outline-none"></textarea>
     </div>
+  </div>
 
-    <div class="flex items-center gap-3">
-      <span class="w-6 font-bold text-red-700 text-[12px]">0{{ selectedConnectingPorts.length + 2 }}</span>
-      <div class="flex-1 border-b p-2 bg-gray-50 text-[12px] font-bold uppercase">{{ quotation.portOfDestination }}</div>
-      <span class="text-[10px] font-black text-green-600 bg-green-50 px-2 py-1 rounded">POD</span>
+  <!-- Connecting Ports -->
+  <div class="p-4 border-t">
+    <div class="flex items-center justify-between border-b border-red-200 pb-2 mb-3">
+      <label class="text-red-800 font-black uppercase text-[13px] italic">Connecting Ports Configuration</label>
+      <button (click)="toggleConnectingPortModal()" class="bg-red-700 text-white px-3 py-1 rounded text-[11px] font-bold">+ ADD PORTS</button>
+    </div>
+    <div class="space-y-2">
+      <div class="flex items-center gap-3">
+        <span class="w-6 font-bold text-red-700 text-[12px]">01</span>
+        <div class="flex-1 border-b p-2 bg-gray-50 text-[12px] font-bold uppercase">{{ quotation.portOfLoading }}</div>
+        <span class="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded">POL</span>
+      </div>
+      <div *ngFor="let port of selectedConnectingPorts; let i = index" class="flex items-center gap-3">
+        <span class="w-6 font-bold text-red-700 text-[12px]">0{{ i + 2 }}</span>
+        <div class="flex-1 border-b p-2 bg-white text-[12px] uppercase">{{ port.portName }}</div>
+        <button (click)="removeConnectingPort(port)" class="text-red-400 hover:text-red-700 font-bold text-xl">&times;</button>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="w-6 font-bold text-red-700 text-[12px]">0{{ selectedConnectingPorts.length + 2 }}</span>
+        <div class="flex-1 border-b p-2 bg-gray-50 text-[12px] font-bold uppercase">{{ quotation.portOfDestination }}</div>
+        <span class="text-[10px] font-black text-green-600 bg-green-50 px-2 py-1 rounded">POD</span>
+      </div>
     </div>
   </div>
 </div>
 
+<!-- Modal -->
 <div *ngIf="isCPModalOpen" class="fixed inset-0 z-[200] flex items-center justify-center p-4">
   <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" (click)="toggleConnectingPortModal()"></div>
   <div class="relative bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden border">
-    
     <div class="bg-red-800 p-4 flex justify-between items-center text-white">
       <h3 class="font-black uppercase text-sm">Select Connecting Ports</h3>
       <button (click)="toggleConnectingPortModal()" class="text-xl">&times;</button>
     </div>
-
     <div class="p-3 bg-gray-50 border-b">
-      <input type="text" [(ngModel)]="cpSearchTerm" (input)="onSearchingConnectingPorts()" placeholder="Search by name or code..." 
-             class="w-full border p-2 rounded-lg text-xs outline-none focus:ring-2 focus:ring-red-800">
+      <input type="text" [(ngModel)]="cpSearchTerm" (input)="onSearchingConnectingPorts()" placeholder="Search by name or code..." class="w-full border p-2 rounded-lg text-xs outline-none">
     </div>
-
     <div class="flex h-[320px]">
       <div class="w-1/2 flex flex-col border-r overflow-hidden">
         <div class="p-2 text-[9px] font-black text-gray-400 bg-gray-100 uppercase border-b">Airports</div>
         <div class="flex-1 overflow-y-auto p-2 space-y-1">
-          <div *ngFor="let port of getPortsByType('AIRPORT')" (click)="selectConnectingPort(port)" 
-               [class.bg-red-50]="isPortSelected(port)" [class.border-red-600]="isPortSelected(port)"
-               class="p-2 border rounded-lg cursor-pointer hover:bg-red-50 transition-all">
+          <div *ngFor="let port of getPortsByType('AIRPORT')" (click)="selectConnectingPort(port)" [class.bg-red-50]="isPortSelected(port)" class="p-2 border rounded-lg cursor-pointer hover:bg-red-50">
             <span class="block text-[11px] font-bold uppercase">{{ port.portName }}</span>
-            <span class="block text-[9px] text-gray-400">{{ port.portCode }}</span>
           </div>
         </div>
       </div>
       <div class="w-1/2 flex flex-col overflow-hidden">
         <div class="p-2 text-[9px] font-black text-gray-400 bg-gray-100 uppercase border-b">Seaports</div>
         <div class="flex-1 overflow-y-auto p-2 space-y-1">
-          <div *ngFor="let port of getPortsByType('SEAPORT')" (click)="selectConnectingPort(port)" 
-               [class.bg-red-50]="isPortSelected(port)" [class.border-red-600]="isPortSelected(port)"
-               class="p-2 border rounded-lg cursor-pointer hover:bg-red-50 transition-all">
+          <div *ngFor="let port of getPortsByType('SEAPORT')" (click)="selectConnectingPort(port)" [class.bg-red-50]="isPortSelected(port)" class="p-2 border rounded-lg cursor-pointer hover:bg-red-50">
             <span class="block text-[11px] font-bold uppercase">{{ port.portName }}</span>
-            <span class="block text-[9px] text-gray-400">{{ port.portCode }}</span>
           </div>
         </div>
       </div>
     </div>
-
     <div class="p-3 bg-gray-50 border-t flex justify-between items-center">
       <span class="text-[10px] font-bold text-red-800 uppercase">Selected: {{ selectedConnectingPorts.length }}</span>
       <button (click)="toggleConnectingPortModal()" class="bg-red-800 text-white px-6 py-1.5 rounded-lg font-bold text-[11px]">DONE</button>
     </div>
   </div>
 </div>
-        </div>
-      </div>
 
       <div class="border border-gray-300 shadow-sm rounded-sm mt-4">
         <div
@@ -2233,7 +2013,7 @@
                         <th class="px-4 py-4 border-b border-gray-200">Charge Name</th>
                         <th class="px-4 py-4 border-b border-gray-200">Type</th>
                         <th class="px-4 py-4 border-b border-gray-200 bg-blue-50/50 text-blue-950">Chrg. Weight</th>
-                        <!-- <th class="px-4 py-4 border-b border-gray-200">Airfreight</th> -->
+                        <th class="px-4 py-4 border-b border-gray-200">Airfreight</th>
                         <th class="px-4 py-4 border-b border-gray-200">FSC/ISS</th>
                         <th class="px-4 py-4 border-b border-gray-200">Airline</th>
                         <th class="px-4 py-4 border-b border-gray-200">Cut-off</th>
@@ -2282,9 +2062,9 @@
                         <td class="px-2 py-2 bg-blue-50/30 text-center font-bold text-blue-900">
                             {{ quotation.chargeableWeight || 0 }}
                         </td>
-                        <!-- <td class="px-2 py-2">
+                        <td class="px-2 py-2">
                             <input type="number" [(ngModel)]="m.airFreight" name="mair_{{i}}"  class="w-20 text-center font-semibold bg-transparent border-b border-transparent focus:border-gray-300 outline-none" placeholder="0">
-                        </td> -->
+                        </td>
                         <td class="px-2 py-2">
                             <input [(ngModel)]="m.fsc" name="mfsc_{{i}}" class="w-16 text-center bg-transparent border-b border-transparent focus:border-gray-300 outline-none" placeholder="INC">
                         </td>
@@ -2583,7 +2363,7 @@
                         </th>
                         <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Origin</th>
                         <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Currency</th>
-                          <!-- <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Airfreight</th> -->
+                        <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Airfreight</th>
                         <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">FSC/ISS</th>
                         <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Airline</th>
                         <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Type</th>
@@ -2604,7 +2384,7 @@
                         </td>
                         <td class="px-4 py-4 text-center text-sm text-gray-600">{{ carrier.origin || '---' }}</td>
                         <td class="px-4 py-4 text-center text-sm font-mono font-bold text-gray-500">{{ carrier.currency || '---' }}</td>
-                        <!-- <td class="px-4 py-4 text-center text-sm font-semibold text-gray-900">{{ carrier.airFreight | number:'1.2-2' }}</td> -->
+                        <td class="px-4 py-4 text-center text-sm font-semibold text-gray-900">{{ carrier.airFreight | number:'1.2-2' }}</td>
                         <td class="px-4 py-4 text-center text-sm text-gray-600">{{ carrier.fsc || 0 }}</td>
                         <td class="px-4 py-4 text-center text-sm italic text-gray-600">{{ carrier.airline || '---' }}</td>
                         <td class="px-4 py-4 text-center">
@@ -2737,15 +2517,23 @@
             </tr>
             <tr>
 <td class="p-3 bg-gray-50 font-bold text-gray-600 uppercase">Dimensions</td>
-  <td class="p-3 font-medium">
-    <div *ngIf="quotation.dimBox">
-      {{ quotation.dimBox }} Box: {{ quotation.dimL }} x {{ quotation.dimW }} x {{ quotation.dimH }}
+  <td class="p-3 text-sm text-gray-700 align-top">
+  <div class="space-y-2">
+    <div *ngFor="let group of getGroupedDimensionsFromQuotation()" 
+         class="bg-gray-50 p-2 rounded border border-gray-200">
+      
+      <div class="text-[11px] font-bold text-gray-900 leading-tight">
+        Dimensions {{ group.indices.join(', ') }} 
+        <span class="text-blue-600">= {{ group.totalBoxQty }} Boxes</span>
+      </div>
+      
+      <div class="text-[12px] text-gray-600 mt-0.5">
+        {{ group.l }} x {{ group.w }} x {{ group.h }} {{ group.unit }}
+      </div>
+      
     </div>
-    
-    <div *ngFor="let dim of quotation.allDimensions" class="text-xs text-gray-500 mt-1">
-      {{ dim.box || 0 }} Box: {{ dim.l || 0 }} x {{ dim.w || 0 }} x {{ dim.h || 0 }} ({{ dim.unit }})
-    </div>
-  </td>
+  </div>
+</td>
             </tr>
             <tr>
               <td class="p-3 bg-gray-50 font-bold text-gray-600 uppercase">Total Revenue</td>

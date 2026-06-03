@@ -16,11 +16,11 @@
       <table class="w-full text-left">
         <thead class="bg-gray-50 border-b">
           <tr>
-            <th class="px-6 py-3 text-xs font-bold uppercase">Port</th>
-            <th class="px-6 py-3 text-xs font-bold uppercase">Code</th>
+            <th class="px-6 py-3 text-xs font-bold uppercase">AirPort Name</th>
+            <th class="px-6 py-3 text-xs font-bold uppercase">AirPort Code</th>
             <th class="px-6 py-3 text-xs font-bold uppercase">City</th>
             <th class="px-6 py-3 text-xs font-bold uppercase">Country</th>
-            <th class="px-6 py-3 text-xs font-bold uppercase">Country Code</th>
+            <th class="px-6 py-3 text-xs font-bold uppercase">Code / ISO</th>
             <th class="px-6 py-3 text-xs font-bold uppercase">Pincode</th>
             <th class="px-6 py-3 text-xs font-bold text-center">Actions</th>
           </tr>
@@ -31,7 +31,7 @@
             <td class="px-6 py-3">{{ port.portCode }}</td>
             <td class="px-6 py-3">{{ port.cityName }}</td>
             <td class="px-6 py-3">{{ port.countryName }}</td>
-            <td class="px-6 py-3">{{ port.countryCode }}</td>
+            <td class="px-6 py-3">{{ port.countryCode }} / {{ port.isoCode }}</td>
             <td class="px-6 py-3">{{ port.pinCode }}</td>
             <td class="px-6 py-3 text-center">
               <button (click)="editPort(port)" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Edit');" class="text-blue-600 mr-2">Edit</button>
@@ -53,10 +53,12 @@
         
         <ng-select [items]="countries" bindLabel="name" [(ngModel)]="selectedCountry" (change)="onCountryChange($event)" placeholder="Select Country" class="w-full"></ng-select>
         
-        <input [(ngModel)]="newPort.countryCode" placeholder="Country Code" readonly class="w-full border p-2 rounded bg-gray-100 cursor-not-allowed">
+        <div class="flex gap-2">
+            <input [(ngModel)]="newPort.countryCode" placeholder="Dial Code" class="w-full border p-2 rounded bg-gray-50">
+            <input [(ngModel)]="newPort.isoCode" placeholder="ISO Code" class="w-full border p-2 rounded bg-gray-50">
+        </div>
         
         <ng-select [items]="cities" [(ngModel)]="newPort.cityName" placeholder="Select City" class="w-full"></ng-select>
-        
         <input [(ngModel)]="newPort.pinCode" placeholder="Pin Code" type="number" class="w-full border p-2 rounded">
       </div>
 

@@ -505,7 +505,7 @@ getsales(): void {
   });
 }
 portOfLoading() {
-  this.http.get<any[]>(`${environment.apiUrl}/PortOfLoading`).subscribe({
+  this.http.get<any[]>(`${environment.apiUrl}/PortSetup`).subscribe({
     next: (data) => {
       this.portsOfLoading = data;
       console.log("Port of Loading loaded:", data);
@@ -853,7 +853,7 @@ onAgentSelect(event: any, agent: any) {
     }
   }
 portdischarge() {
-  this.http.get<any[]>(`${environment.apiUrl}/PortOfDischarge`).subscribe({
+  this.http.get<any[]>(`${environment.apiUrl}/PortSetup`).subscribe({
     next: (data) => {
       this.portsOfDischarge = data;
       console.log("Port of Discharge loaded:", data);
@@ -3585,7 +3585,7 @@ toggleConnectingPortModal() {
 
 isPortSelected(port: any): boolean {
   return this.selectedConnectingPorts.some(p => p.id === port.id);
-}
+} 
 // public invoices: any[] = [];
 commodityDocuments: any[] = [];
   packageOrInvoiceDocuments: any[] = [];

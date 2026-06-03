@@ -2876,7 +2876,7 @@ loadPortOfLoadings() {
   const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
   // 📝 Direct environment.apiEndpoint use kiya hai bina kisi service ke
-  this.http.get(`${environment.apiUrl}/PortOfLoading`, { headers }).subscribe({
+  this.http.get(`${environment.apiUrl}/PortSetup`, { headers }).subscribe({
     next: (data: any) => {
       this.portOfLoadingList = data || [];
       console.log("⚓ POL Data Loaded directly from Environment:", this.portOfLoadingList);
@@ -2890,7 +2890,7 @@ loadPortOfDischarges() {
   const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
   // 📝 Direct environment.apiEndpoint use kiya hai bina kisi service ke
-  this.http.get(`${environment.apiUrl}/PortOfDischarge`, { headers }).subscribe({
+  this.http.get(`${environment.apiUrl}/PortSetup`, { headers }).subscribe({
     next: (data: any) => {
       this.portOfDischargeList = data || [];
       console.log("⚓ POD Data Loaded directly from Environment:", this.portOfDischargeList);

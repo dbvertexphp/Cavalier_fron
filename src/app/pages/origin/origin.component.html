@@ -13,7 +13,7 @@
           <th class="px-6 py-4 text-xs font-semibold uppercase">S.No</th>
           <th class="px-6 py-4 text-xs font-semibold uppercase">Name</th>
           <th class="px-6 py-4 text-xs font-semibold uppercase">Country</th>
-          <th class="px-6 py-4 text-xs font-semibold uppercase">Code</th>
+          <th class="px-6 py-4 text-xs font-semibold uppercase">Code / ISO</th>
           <th class="px-6 py-4 text-xs font-semibold uppercase text-center">Actions</th>
         </tr>
       </thead>
@@ -22,7 +22,7 @@
           <td class="px-6 py-4">{{ i + 1 }}</td>
           <td class="px-6 py-4 uppercase font-bold">{{role.name}}</td>
           <td class="px-6 py-4">{{role.countryName}}</td>
-          <td class="px-6 py-4">{{role.countryCode}}</td>
+          <td class="px-6 py-4">{{role.countryCode}} / {{role.isoCode}}</td>
           <td class="px-6 py-4 text-center">
             <button (click)="editRole(role)" class="text-blue-600 mr-4 font-semibold">Edit</button>
             <button (click)="deleteRole(role.id)" class="text-red-600 font-semibold">Delete</button>
@@ -36,14 +36,18 @@
     <div class="bg-white w-full max-w-md rounded-2xl p-6 space-y-4">
       <h3 class="font-bold text-lg">{{isEditMode ? 'Edit' : 'Create'}} Origin</h3>
       <input [(ngModel)]="newRole.name" class="w-full p-2 border rounded" placeholder="Origin Name">
+      
       <select (change)="onCountrySelect($event)" class="w-full p-2 border rounded">
         <option value="">Select Country</option>
         <option *ngFor="let c of countries" [value]="c.name" [selected]="c.name === newRole.countryName">{{c.name}}</option>
       </select>
+
       <div class="flex gap-2">
         <input [(ngModel)]="newRole.countryName" readonly class="w-full p-2 border rounded bg-gray-100" placeholder="Country Name">
         <input [(ngModel)]="newRole.countryCode" readonly class="w-full p-2 border rounded bg-gray-100" placeholder="Code">
+        <input [(ngModel)]="newRole.isoCode" readonly class="w-full p-2 border rounded bg-gray-100" placeholder="ISO">
       </div>
+      
       <div class="flex gap-2 pt-4">
         <button (click)="closeModal()" class="flex-1 p-2 bg-gray-200 rounded">Cancel</button>
         <button (click)="saveRole()" class="flex-1 p-2 bg-[#654E51] text-white rounded">Save</button>

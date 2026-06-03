@@ -4,14 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { CheckPermissionService } from '../../services/check-permission.service';
-import Swal from 'sweetalert2'; // Swal import
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-origin',
   standalone: true,
   imports: [CommonModule, FormsModule, HttpClientModule],
   templateUrl: './origin.component.html',
-  styleUrl: './origin.component.css'
 })
 export class OriginComponent implements OnInit {
   constructor(private http: HttpClient, private cdr: ChangeDetectorRef, public CheckPermissionService: CheckPermissionService) {}
@@ -23,7 +22,8 @@ export class OriginComponent implements OnInit {
   rolesList: any[] = [];
   countries: any[] = [];
   
-  newRole = { id: 0, name: '', countryName: '', countryCode: '', status: true };
+  // newRole mein isoCode add kiya
+  newRole = { id: 0, name: '', countryName: '', countryCode: '', isoCode: '', status: true };
 
   ngOnInit(): void {
     this.PermissionID = Number(localStorage.getItem('permissionID'));
@@ -32,7 +32,8 @@ export class OriginComponent implements OnInit {
   }
 
   loadCountries() {
-    this.http.get<any>('https://countriesnow.space/api/v0.1/countries/info?returns=dialCode')
+    // API se iso2 bhi fetch kar rahe hain
+    this.http.get<any>('https://countriesnow.space/api/v0.1/countries/info?returns=dialCode,iso2')
       .subscribe(res => { this.countries = res.data; });
   }
 
@@ -42,6 +43,7 @@ export class OriginComponent implements OnInit {
     if (country) {
       this.newRole.countryName = country.name;
       this.newRole.countryCode = country.dialCode;
+      this.newRole.isoCode = country.iso2; // ISO code set ho gaya
     }
   }
 
@@ -88,7 +90,7 @@ export class OriginComponent implements OnInit {
     });
   }
 
-  openModal() { this.isEditMode = false; this.newRole = { id: 0, name: '', countryName: '', countryCode: '', status: true }; this.isModalOpen = true; }
+  openModal() { this.isEditMode = false; this.newRole = { id: 0, name: '', countryName: '', countryCode: '', isoCode: '', status: true }; this.isModalOpen = true; }
   closeModal() { this.isModalOpen = false; }
   editRole(role: any) { this.isEditMode = true; this.newRole = { ...role }; this.isModalOpen = true; }
 }

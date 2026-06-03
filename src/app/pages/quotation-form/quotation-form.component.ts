@@ -21,6 +21,15 @@ import { HostListener } from '@angular/core';
 import * as XLSX from 'xlsx';
 import { forkJoin, Subscription } from 'rxjs';
 import Swal from 'sweetalert2';
+interface DimGroup {
+  dimString: string;
+  l: number;
+  w: number;
+  h: number;
+  unit: string;
+  indices: number[];
+  totalBoxQty: number;
+}
 @Component({
   selector: 'app-quotation-form',
   standalone: true,
@@ -237,7 +246,9 @@ currencies = [
     { box: null, l: null, w: null, h: null, unit: 'CMS' }
   ];
 
-
+portsOfLoading: any[] = []; // Yahan API ka data save hoga
+filteredFinalDestinations: any[] = [];
+showFinalDestinationDropdown = false;
   showAdvanceFilter: boolean = false;
 quotedByList: string[] = []; // Suggestions ke liye
 organizationList: string[] = [];
@@ -267,8 +278,15 @@ closeColumnModal(){
 }
 sortOrders:any = {};
   ngOnInit() {
+    this.loadPortsFromApi();
     this.loadPortOfLoadings();
+    this.initializeAllUnits();
+    this.getPackageUnits();
     this.checkHazardStatus()
+    if (!this.quotation.grossWeightUnit) this.quotation.grossWeightUnit = 'KGS';
+    if (!this.quotation.netWeightUnit) this.quotation.netWeightUnit = 'KGS';
+    this.setDefaultUnits()
+    this.loadUomList();
   this.loadPortOfDischarges();
     this.loadConnectingPortsData()
     this.loadPricingList();
@@ -1525,27 +1543,39 @@ prepareQuotationPayload() {
 
   // --- Dimension Modal Methods (Fixes 'openDimModal', 'addNewDimRow' etc.) ---
 openDimModal() {
-  // Agar pehle se saved dimensions hain toh unhe load karo
+  // Agar pehle se dimensions hain, unhe copy karo; warna ek empty row banao
   if (this.quotation.allDimensions && this.quotation.allDimensions.length > 0) {
     this.dimRows = JSON.parse(JSON.stringify(this.quotation.allDimensions));
+  } else {
+    // Default empty row structure
+    this.dimRows = [{ box: 0, l: 0, w: 0, h: 0, unit: 'CMS' }];
   }
   this.isDimModalOpen = true;
-}  closeDimModal() { this.isDimModalOpen = false; }
+}
+
+saveDimensions() {
+  // Modal ke data ko quotation mein save karo
+  this.quotation.allDimensions = JSON.parse(JSON.stringify(this.dimRows));
   
-  addNewDimRow() {
-    this.dimRows.push({ box: null, l: null, w: null, h: null, unit: 'CMS' });
-  }
+  // UI update aur logic
+  this.updateTotalPackagesFromDims();
+  this.updatePreview();
+  this.closeDimModal();
+}
+
+// Ye helper function zarur check karna
+addNewDimRow() {
+  this.dimRows.push({ box: 0, l: 0, w: 0, h: 0, unit: 'KGS' });
+}
+ closeDimModal() { this.isDimModalOpen = false; }
+  
+
 
   removeDimRow(index: number) {
     if (this.dimRows.length > 1) this.dimRows.splice(index, 1);
   }
 
-  saveDimensions() {
-    this.appliedDimensions = [...this.dimRows];
-    this.closeDimModal();
-    this.updateTotalPackagesFromDims();
-    this.updatePreview();
-  }
+  
 
   // onFileSelected(event: any) {
   //   console.log("File selected", event.target.files[0]);
@@ -2934,6 +2964,7 @@ syncOuterBoxToFirstRow() {
 onPolChange() {
   const selectedPol = this.portOfLoadingList.find(p => p.id == this.quotation.portOfLoadingId);
   this.quotation.portOfLoading = selectedPol ? (selectedPol.portName || selectedPol.name) : '';
+   this.quotation.portOfLoadingCode = selectedPol ? selectedPol.portCode : '';
   this.cdr.detectChanges();
 }
 
@@ -2942,6 +2973,7 @@ onPodChange() {
   const selectedPod = this.portOfDischargeList.find(p => p.id == this.quotation.portOfDischargeId);
   this.quotation.portOfDischarge = selectedPod ? (selectedPod.portName || selectedPod.name) : '';
   this.quotation.portOfDestination = this.quotation.portOfDischarge; // Syncing
+  this.quotation.portOfDischargeCode = selectedPod ? selectedPod.portCode : '';
   this.cdr.detectChanges();
 }
 updatePreview() {
@@ -3038,5 +3070,180 @@ checkHazardStatus() {
 // Component initialize hote waqt bhi check karo
 
 // File select hote hi Modal mein refresh karne ke liye
+getTotalPackageCount() {
+  return this.dimRows.reduce((sum, item) => sum + (Number(item.box) || 0), 0);
+}
+getGroupedDimensionsFromQuotation(): DimGroup[] {
+  const allDims = [];
+  
+  // 1. Pehle main dimension row add karo
+  if (this.quotation.dimBox) {
+    allDims.push({
+      box: this.quotation.dimBox,
+      l: this.quotation.dimL,
+      w: this.quotation.dimW,
+      h: this.quotation.dimH,
+      unit: this.quotation.dimUnit || 'CMS'
+    });
+  }
+  
+  // 2. Baki dimensions add karo
+  if (this.quotation.allDimensions && this.quotation.allDimensions.length > 0) {
+    allDims.push(...this.quotation.allDimensions);
+  }
 
+  const groups: DimGroup[] = [];
+  
+  allDims.forEach((dim, index) => {
+    const dimString = `${dim.l || 0}x${dim.w || 0}x${dim.h || 0} ${dim.unit || 'CMS'}`;
+    let foundGroup = groups.find(g => g.dimString === dimString);
+    
+    if (foundGroup) {
+      foundGroup.indices.push(index + 1);
+      foundGroup.totalBoxQty += Number(dim.box || 0);
+    } else {
+      groups.push({
+        dimString: dimString,
+        l: dim.l || 0, w: dim.w || 0, h: dim.h || 0, unit: dim.unit || 'CMS',
+        indices: [index + 1],
+        totalBoxQty: Number(dim.box || 0)
+      });
+    }
+  });
+  
+  return groups;
+}
+uomList: any[] = [];
+loadUomList() {
+  this.http.get<any[]>(`${environment.apiUrl}/Uom/list`).subscribe({
+    next: (data) => {
+      this.uomList = data;
+      
+      // Default set karein agar unit abhi null/empty hai
+      if (!this.quotation.grossWeightUnit && this.uomList.length > 0) {
+        // Aap yahan check kar sakte ho ki 'KGS' list mein hai ya nahi
+        const kgUnit = this.uomList.find(u => u.shortCode === 'KGS');
+        this.quotation.grossWeightUnit = kgUnit ? 'KGS' : this.uomList[0].shortCode;
+        this.updatePreview(); // Unit set hone ke baad preview update karein
+        this.setDefaultVolumeUnit();
+      }
+    },
+    error: (err) => console.error("Error loading UOMs:", err)
+  });
+}
+isUomModalOpen: boolean = false;
+
+toggleUomModal() {
+  this.isUomModalOpen = !this.isUomModalOpen;
+}
+
+selectUom(uom: any) {
+  this.quotation.grossWeightUnit = uom.shortCode;
+  this.isUomModalOpen = false;
+  this.updatePreview(); // Preview update karne ke liye
+}
+initializeAllUnits() {
+  if (this.uomList.length > 0) {
+    const defaultUnit = 'KGS'; 
+    
+    // Check agar 'KGS' list mein available hai, nahi toh list ki pehli value le lo
+    const targetUnit = this.uomList.some(u => u.shortCode === defaultUnit) 
+                       ? defaultUnit 
+                       : this.uomList[0].shortCode;
+
+    // Har field ke liye logic
+    if (!this.quotation.grossWeightUnit) this.quotation.grossWeightUnit = targetUnit;
+    if (!this.quotation.netWeightUnit) this.quotation.netWeightUnit = targetUnit;
+    if (!this.quotation.chargeableWeightUnit) this.quotation.chargeableWeightUnit = targetUnit;
+    if (!this.quotation.volumeWeightUnit) this.quotation.volumeWeightUnit = targetUnit;
+    if (!this.quotation.cbmUnit) this.quotation.cbmUnit = 'CBM'; // CBM ke liye fix
+  }
+}
+// 1. Modal State
+isNetUomModalOpen: boolean = false;
+
+// 2. Toggle Function
+toggleNetUomModal() {
+  this.isNetUomModalOpen = !this.isNetUomModalOpen;
+}
+
+// 3. Selection Function
+selectNetUom(uom: any) {
+  this.quotation.netWeightUnit = uom.shortCode;
+  this.isNetUomModalOpen = false;
+}
+
+// 4. Update the initialization logic (Inside setDefaultUnits)
+// Aapka pehle se bana hua setDefaultUnits function update karein
+setDefaultUnits() {
+  if (this.uomList && this.uomList.length > 0) {
+    // Default KGS set karne ka logic
+    if (!this.quotation.grossWeightUnit) this.quotation.grossWeightUnit = 'KGS';
+    if (!this.quotation.netWeightUnit) this.quotation.netWeightUnit = 'KGS';
+    // ... baaki fields
+  }
+}
+isChargeableUomModalOpen: boolean = false;
+isVolumeUomModalOpen: boolean = false;
+setDefaultVolumeUnit() {
+  // Check karein agar unit pehle se set nahi hai
+  if (!this.quotation.volumeWeightUnit && this.uomList.length > 0) {
+    // KGS dhoondo ya pehli unit set karo
+    const kgs = this.uomList.find(u => u.shortCode === 'KGS');
+    this.quotation.volumeWeightUnit = kgs ? 'KGS' : this.uomList[0].shortCode;
+  }
+}
+packageUnits: any[] = [];
+getPackageUnits() {
+    this.http.get(`${environment.apiUrl}/PackageBox/list`).subscribe((res: any) => {
+      // API response se list set karo
+      this.packageUnits = res; 
+    });
+  }
+  // 1. Data load karne ka function (API Call)
+loadPortsFromApi() {
+  this.http.get<any[]>(`${environment.apiUrl}/PortSetup`).subscribe({
+    next: (data) => {
+      // API ka data 'portsOfLoading' master list mein store ho jayega
+      this.portsOfLoading = data; 
+      console.log("Final Destination API Data Loaded:", data);
+    },
+    error: (err) => {
+      console.error("Error loading ports from API:", err);
+      Swal.fire('Error', 'Unable to fetch port data.', 'error');
+    }
+  });
+}
+
+// 2. Search logic (Search term ke basis par filter karega)
+onFinalDestinationSearch() {
+  const searchTerm = (this.quotation.podFinalDest || '').toString().trim().toLowerCase();
+
+  if (searchTerm === '') {
+    this.showFinalDestinationDropdown = false;
+    this.filteredFinalDestinations = [];
+    return;
+  }
+
+  // Master list se filter
+  this.filteredFinalDestinations = this.portsOfLoading.filter(port => {
+    const portName = port.name || port.portName || port.PortName || port.description || '';
+    return portName.toString().toLowerCase().includes(searchTerm);
+  });
+
+  this.showFinalDestinationDropdown = true;
+}
+
+// 3. Selection logic
+selectFinalDestination(port: any) {
+  if (!port) return;
+  
+  // Name aur Code dono set ho jayenge
+  this.quotation.podFinalDest = port.name || port.portName || port.PortName || '';
+  this.quotation.finalDestinationCode = port.portCode || '';
+  
+  // Dropdown band karein
+  this.showFinalDestinationDropdown = false;
+  this.filteredFinalDestinations = [];
+}
 }

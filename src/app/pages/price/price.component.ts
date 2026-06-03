@@ -30,6 +30,15 @@ export interface CostBreakdown {
   exchangeRate: number;
   amount: number;
 }
+interface DimGroup {
+  dimString: string;
+  l: number;
+  w: number;
+  h: number;
+  unit: string;
+  indices: number[];
+  totalBoxQty: number;
+}
 @Component({
   selector: 'app-price',
   standalone: true,
@@ -41,6 +50,7 @@ export interface CostBreakdown {
 export class PriceComponent {
  @ViewChild('cargoDateInput') cargoDateInput!: ElementRef<HTMLInputElement>;
  totalCount: number = 0;
+ chargesList: any[] = [];
 currentPage: number = 1;
 pageSize: number = 10;
     getsalescordinate: any[] = [];
@@ -215,7 +225,7 @@ openDocumentPreview(doc: any) {
 // ================== VOLUME WEIGHT CALCULATION ==================
 // InquiryComponent.ts mein ye add karein
 // 1. Single row jo bahar dikhti hai
-dimRow: any = { box: 1, l: 0, w: 0, h: 0, unit: 'CMS' };
+dimRow: any = { box: 1, l: 0, w: 0, h: 0, unit: 'kgs' };
 dimRows: any[] = [];
 
 // Component initialize hote hi dimRow ko array mein daal dein
@@ -410,10 +420,11 @@ organizations: any[] = [];
   searchDone: boolean = false; // Shuru mein false rahega
   uploadedDocuments: any[] = [];
     // Ye line add karein
-    constructor(private http: HttpClient, private router: Router,private cdr: ChangeDetectorRef,private branchservice:BranchService,public userServices:UserService,public CheckPermissionService:CheckPermissionService,private sanitizer: DomSanitizer,private eRef: ElementRef,private route: ActivatedRoute) {}
+    constructor(private http: HttpClient, private router: Router,private el: ElementRef,private cdr: ChangeDetectorRef,private branchservice:BranchService,public userServices:UserService,public CheckPermissionService:CheckPermissionService,private sanitizer: DomSanitizer,private eRef: ElementRef,private route: ActivatedRoute) {}
 orgData: any = null;
   isLoading: boolean = true;
     ngOnInit() {
+      this.loadChargeNamesMaster();
       this.route.queryParams.subscribe(params => {
     const editId = params['editId'];
     if (editId) {
@@ -441,10 +452,18 @@ orgData: any = null;
    this.getsales();
    this.loadConnectingPortsData();
       this.getbranch();
-      
+      this.quotation.chargeableWeightUnit = 'KGS';
+      this.quotation.netWeightUnit = 'KGS';
+      if (!this.quotation.GrossweightUnit) this.quotation.GrossweightUnit = 'KGS';
+      this.quotation.volumeWeightUnit = 'KGS';
+      if (!this.quotation.cbmUnit) {
+  this.quotation.cbmUnit = 'CBM';
+}
+this.getPackageUnits();
       this.loadQuotations();
       this.loadPricingNumbers();
       this.portOfLoading();
+    this.loadUomList();
       this.getNextInquiryNumber();
       this.fetchOrganizations();
       this.fetchLeads();
@@ -567,8 +586,46 @@ selectPortOfLoading(port: any) {
   if (!port) return;
   
   this.quotation.portOfLoading = port.name || port.portName || port.PortName || '';
+  // 2. Port Code auto-fill karein
+  this.quotation.portOfLoadingCode = port.portCode || '';
   this.showPortOfLoadingDropdown = false;
   this.filteredPortsOfLoading = [];
+}
+// Final Destination Search Logic
+// Add these with your other class-level variables
+filteredFinalDestinations: any[] = [];
+showFinalDestinationDropdown = false;
+onFinalDestinationSearch() {
+  const searchTerm = (this.quotation.finalDestination || '').toString().trim().toLowerCase();
+
+  if (searchTerm === '') {
+    this.showFinalDestinationDropdown = false;
+    this.filteredFinalDestinations = [];
+    return;
+  }
+
+  // Wahi 'portsOfLoading' master list use ho rahi hai jo aapne API se fetch ki thi
+  this.filteredFinalDestinations = this.portsOfLoading.filter(port => {
+    const portName = port.name || port.portName || port.PortName || port.description || '';
+    return portName.toString().toLowerCase().includes(searchTerm);
+  });
+
+  this.showFinalDestinationDropdown = true;
+}
+
+// Final Destination Selection Logic
+selectFinalDestination(port: any) {
+  if (!port) return;
+  
+  // 1. Destination Name update
+  this.quotation.finalDestination = port.name || port.portName || port.PortName || '';
+  
+  // 2. Destination Code auto-fill
+  this.quotation.finalDestinationCode = port.portCode || '';
+  
+  // 3. Cleanup
+  this.showFinalDestinationDropdown = false;
+  this.filteredFinalDestinations = [];
 }
 // Jab user Ready ya Ready By select kare
 onShipmentTypeChange() {
@@ -604,6 +661,15 @@ onShipmentTypeChange() {
       }
     }, 120);   // Thoda zyada delay diya hai better result ke liye
   }
+}
+loadChargeNamesMaster() {
+  this.http.get<any[]>(`${environment.apiUrl}/Charge`).subscribe({
+    next: (data) => {
+      this.chargesList = data;
+      this.cdr.detectChanges();
+    },
+    error: (err) => console.error("Error fetching charges:", err)
+  });
 }
   getbranch() {
     this.branchservice.getBranches().subscribe({
@@ -883,6 +949,7 @@ selectPortOfDischarge(port: any) {
   if (!port) return;
   
   this.quotation.portOfDestination = port.name || port.portName || port.PortName || '';
+  this.quotation.portOfDestinationCode = port.portCode || '';
   this.showPortOfDischargeDropdown = false;
   this.filteredPortsOfDischarge = [];
 }
@@ -4622,4 +4689,149 @@ selectAndClose(org: any) {
 //     this.showDropdown = false;
 //   }
 // }
+// Component mein ye function use karein
+getTotalPackageCount() {
+  return this.dimRows.reduce((sum, item) => sum + (Number(item.box) || 0), 0);
+}
+getCombinedGroupedDimensions(): DimGroup[] {
+  const allDims = [];
+  
+  // 1. Pehle main dimRow add karo
+  if (this.dimRow && this.dimRow.l) {
+    allDims.push({ ...this.dimRow, isMain: true });
+  }
+  // 2. Phir baki dimRows add karo
+  if (this.dimRows && this.dimRows.length > 0) {
+    allDims.push(...this.dimRows);
+  }
+
+  const groups: DimGroup[] = [];
+  
+  allDims.forEach((dim, index) => {
+    const dimString = `${dim.l || 0}x${dim.w || 0}x${dim.h || 0} ${dim.unit || 'CMS'}`;
+    let foundGroup = groups.find(g => g.dimString === dimString);
+    
+    if (foundGroup) {
+      foundGroup.indices.push(index + 1);
+      foundGroup.totalBoxQty += Number(dim.box || 0);
+    } else {
+      groups.push({
+        dimString: dimString,
+        l: dim.l || 0, w: dim.w || 0, h: dim.h || 0, unit: dim.unit || 'CMS',
+        indices: [index + 1],
+        totalBoxQty: Number(dim.box || 0)
+      });
+    }
+  });
+  return groups;
+}
+// quotation: any = { grossWeightKg: '', GrossweightUnit: 'KGS' }; // Default KGS
+  unitsList: any[] = [];
+  showModal: boolean = false;
+ // Variables
+uomList: any[] = [];
+isUomModalOpen: boolean = false;
+// ... baaki modals bhi yahan define hain
+
+loadUomList() {
+  this.http.get<any[]>(`${environment.apiUrl}/Uom/list`).subscribe({
+    next: (data) => {
+      this.uomList = data; // Yahan ensure karein ki data array format mein aaye
+    },
+    error: (err) => console.error("Error loading UOMs:", err)
+  });
+}
+// isUomModalOpen: boolean = false; 
+
+  // Ye function public hona chahiye
+  toggleUomModal() {
+    this.isUomModalOpen = !this.isUomModalOpen;
+  }
+// Gross Weight ke liye select
+selectUom(uom: any) {
+  this.quotation.GrossweightUnit = uom.shortCode; 
+  this.isUomModalOpen = false;
+  this.calculateVolumeWeightLogic(); // Calculation update karna zaroori hai
+}
+// Net Weight ke liye modal state
+isNetUomModalOpen: boolean = false;
+
+// Net Weight select function
+selectNetUom(uom: any) {
+  this.quotation.netWeightUnit = uom.shortCode;
+  this.isNetUomModalOpen = false;
+}
+
+// Toggle function
+toggleNetUomModal() {
+  this.isNetUomModalOpen = !this.isNetUomModalOpen;
+}
+// Variable initialize karein
+isChargeableUomModalOpen: boolean = false;
+
+// Toggle function
+toggleChargeableUomModal() {
+  this.isChargeableUomModalOpen = !this.isChargeableUomModalOpen;
+}
+
+// Select function
+selectChargeableUom(uom: any) {
+  this.quotation.chargeableWeightUnit = uom.shortCode;
+  this.isChargeableUomModalOpen = false;
+  // Agar koi calculation hai toh yahan call karein
+}
+// Modal state
+isVolumeUomModalOpen: boolean = false;
+
+// Toggle function
+toggleVolumeUomModal() {
+  this.isVolumeUomModalOpen = !this.isVolumeUomModalOpen;
+}
+
+// Select function
+selectVolumeUom(uom: any) {
+  this.quotation.volumeWeightUnit = uom.shortCode;
+  this.isVolumeUomModalOpen = false;
+  this.calculateVolumeWeightLogic(); // Calculation trigger
+}
+// Naya row add karne ke liye function
+addNewDimensionRow() {
+  this.dimRows.push({ box: 0, l: 0, w: 0, h: 0, unit: 'KGS' }); // Default KGS
+  this.updatePreview();
+}
+
+// Modal Toggle
+toggleDimModal() {
+  this.isDimModalOpen = !this.isDimModalOpen;
+}
+fixExistingRows() {
+  if (this.dimRows && this.dimRows.length > 0) {
+    this.dimRows.forEach(row => {
+      // Agar unit set nahi hai, toh default KGS de do
+      if (!row.unit) {
+        row.unit = 'KGS';
+      }
+    });
+  }
+}
+packageUnits: any[] = [];
+  // isModalOpen = false;
+  getPackageUnits() {
+    this.http.get(`${environment.apiUrl}/PackageBox/list`).subscribe((res: any) => {
+      this.packageUnits = res;
+    });
+  }
+isUnitModalOpen = false;
+toggleUnitModal(event: Event) {
+    event.stopPropagation(); // Click event ko bubble hone se rokne ke liye
+    this.isUnitModalOpen = !this.isUnitModalOpen;
+  }
+
+  // Click outside to close modal
+  @HostListener('document:click', ['$event'])
+  clickout(event: any) {
+    if (!this.el.nativeElement.contains(event.target)) {
+      this.isUnitModalOpen = false;
+    }
+  }
 }

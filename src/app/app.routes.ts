@@ -83,6 +83,8 @@ import { loginGuard } from './guards/login.guard';
 import { BranchDepartmentComponent } from './pages/branch-department/branch-department.component';
 import { BranchDesignationComponent } from './pages/branch-designation/branch-designation.component';
 import { ConnectingPortsComponent } from './pages/connecting-ports/connecting-ports.component';
+import { ChargeComponent } from './charge/charge.component';
+import { PackageBoxesComponent } from './pages/package-boxes/package-boxes.component';
 
 export const routes: Routes = [
 
@@ -221,6 +223,11 @@ canActivate: [authGuard],
         component: BranchDepartmentComponent,
         canActivate: [authGuard],
       },      //branch department
+        {
+        path: 'add-packaegBox',
+        component: PackageBoxesComponent,
+        canActivate: [authGuard],
+      }, 
         { path: 'Branch-designation', 
         component: BranchDesignationComponent,canActivate: [authGuard],   }, 
         { path: 'connecting-ports', 
@@ -228,6 +235,11 @@ canActivate: [authGuard],
       {
         path: 'port-of-discharge',
         component: PortOfDischargeComponent,
+        canActivate: [authGuard],
+      },
+      {
+        path: 'charge-name',
+        component: ChargeComponent,
         canActivate: [authGuard],
       },
       {

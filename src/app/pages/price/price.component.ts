@@ -640,7 +640,7 @@ loadChargeNamesMaster() {
       error: (err) => console.error('Error fetching Movement Types:', err)
     });
   }
- onLOBChange(event: any) {
+onLOBChange(event: any) {
   const selectedId = event.target.value;
   const selectedService = this.companyServices.find(s => s.id == selectedId);
 
@@ -649,16 +649,19 @@ loadChargeNamesMaster() {
   const fullName = selectedService.serviceName.trim();
   this.quotation.lineOfBusinessName = fullName;
 
-  // 🔥 NAYA LOGIC: Table (costRows) mein LOB auto-fill karne ke liye
+  // Single Carrier Table (costRows) auto-fill logic
   if (this.costRows && this.costRows.length > 0) {
-    // Agar aap chahte hain ki sirf pehli row update ho:
     this.costRows[0].lob = fullName;
-
-    // Ya agar aap chahte hain ki table ki saari rows ka LOB badal jaye:
-    // this.costRows.forEach(row => row.lob = fullName);
   }
 
-  // Baaki aapka purana logic (Transport Mode wagera wala) yahan niche rahega...
+  // 🔥 CORE REQUIREMENT: Multi-Carrier Matrix Table entries synchronizer
+  if (this.multiCarrierRows && this.multiCarrierRows.length > 0) {
+    this.multiCarrierRows.forEach((row: any) => {
+      row.lob = fullName; // Matrix UI option dropdown values synced instantly
+    });
+  }
+
+  // Existing Transport Mode allocation module
   const parts = fullName.split(/[\s\-]+/);
   if (parts.length >= 1) {
     const modeName = parts[0];
@@ -668,7 +671,7 @@ loadChargeNamesMaster() {
     }
   }
   
-  this.cdr.detectChanges();
+  this.cdr.detectChanges(); // Direct UI transformation broadcast
 }
     getIncoTerms() {
     this.http.get<any[]>(`${environment.apiUrl}/IncoTerms`).subscribe({
@@ -795,23 +798,31 @@ onOriginSearchInput() {
 
 
   // --- Selection Logic ---
- selectOrigin(origin: any) {
-  // 1. Basic UI aur Selection update
+selectOrigin(origin: any) {
+  // Basic model parameters mapping sequence
   this.originsaveid = origin.id;
   this.originpinCode = origin.countryCode;
   this.inquiry.origin = origin.portName; 
   this.showOriginDropdown = false;
 
+  console.log("Selected Origin Meta-Data Sequence:", origin);
 
-  console.log("Selected Origin pinCode:", origin);
+  // 🔥 CORE REQUIREMENT: Multi-Carrier Grid structure data population
+  if (this.multiCarrierRows && this.multiCarrierRows.length > 0) {
+    this.multiCarrierRows.forEach((row: any) => {
+      row.origin = origin.portName; // Real-time entry data binding
+    });
+  }
 
-  // 2. Agar pinCode valid hai toh API call karein
+  // Core background postal tracking framework agent calling mechanism
   if (this.originpinCode) {
     this.fetchAgentByPostCode(this.originpinCode);
   } else {
-    this.agentDetail = []; // Clear array if no pincode
-    console.warn("Pincode missing for this origin!");
+    this.agentDetail = [];
+    console.warn("Operational validation flag anomaly: Pincode reference omitted!");
   }
+  
+  this.cdr.detectChanges(); // Multi-carrier dataset visual buffer refresh
 }
 fetchAgentByPostCode(postCode: string | number) {
   const url = `${environment.apiUrl}/OrgBranch/GetByPostCodeAgent/${postCode}`;
@@ -3198,8 +3209,19 @@ calculateMasterIndirectTotal(index: number) {
   }
   this.cdr.detectChanges();
 }
- addMultiCarrierRow() {
-  this.multiCarrierRows.push(this.createEmptyRow());
+addMultiCarrierRow() {
+  const emptyRow = this.createEmptyRow();
+  
+  // 🔥 EXTENSION SECURITY: Nayi row bante hi existing active master filters check karega
+  if (this.quotation.lineOfBusinessName) {
+    emptyRow.lob = this.quotation.lineOfBusinessName; // Auto-selects active LOB inside new cell
+  }
+  if (this.inquiry.origin) {
+    emptyRow.origin = this.inquiry.origin; // Direct validation match for origin
+  }
+  
+  this.multiCarrierRows.push(emptyRow);
+  this.cdr.detectChanges();
 }
 
   removeMultiCarrierRow(index: number) {

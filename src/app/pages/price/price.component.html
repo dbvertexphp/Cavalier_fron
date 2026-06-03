@@ -2623,14 +2623,26 @@ Selection Modal Popup
                         </td>
 
                         <td class="px-2 py-2">
-                            <input [(ngModel)]="m.origin" class="w-20 text-center outline-none border-b border-transparent focus:border-gray-300 bg-transparent uppercase" placeholder="Origin">
-                        </td>
+        <input 
+          [(ngModel)]="m.origin" 
+          name="mOrigin-{{i}}"
+          class="w-20 text-center outline-none border-b border-transparent focus:border-gray-300 bg-transparent uppercase font-medium transition-colors" 
+          placeholder="Origin"
+        />
+    </td>
 
                         <td class="px-2 py-2">
-                            <select [(ngModel)]="m.lob" class="w-32 bg-transparent border-b border-transparent focus:border-amber-500 outline-none font-medium">
-                            <option *ngFor="let service of companyServices" [value]="service.serviceName"> {{ service.serviceName }}</option>
-                            </select>
-                        </td>
+        <select 
+          [(ngModel)]="m.lob" 
+          name="mLob-{{i}}"
+          class="w-32 bg-transparent border-b border-transparent focus:border-amber-500 outline-none font-medium transition-colors"
+        >
+            <option value="" disabled>Select LOB</option>
+            <option *ngFor="let service of companyServices" [value]="service.serviceName">
+                {{ service.serviceName }}
+            </option>
+        </select>
+    </td>
 
                         <td class="px-2 py-2">
                             <select [(ngModel)]="m.chargeName" class="w-36 bg-transparent border-b border-transparent focus:border-amber-500 outline-none italic">

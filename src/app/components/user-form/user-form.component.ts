@@ -72,6 +72,7 @@ public baseUrl: string ='';
   }
 
 ngOnInit(): void {
+  
   console.log(this.initialData);
  
   this.getuser();

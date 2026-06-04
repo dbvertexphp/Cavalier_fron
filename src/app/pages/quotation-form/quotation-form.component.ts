@@ -254,7 +254,7 @@ quotedByList: string[] = []; // Suggestions ke liye
 organizationList: string[] = [];
   quotationNoList: string[] = [];
 quotationss: any = this.resetQuotationModel();
-  constructor(private http: HttpClient, private router: Router, private cdr: ChangeDetectorRef,public CheckPermissionService:CheckPermissionService,public userServices:UserService) {
+  constructor(private http: HttpClient, private router: Router, private cdr: ChangeDetectorRef,public CheckPermissionService:CheckPermissionService,public userServices:UserService, private eRef: ElementRef) {
     this.initTableRows();
   }
   showColumnModal = false;
@@ -280,6 +280,7 @@ sortOrders:any = {};
   ngOnInit() {
     this.loadPortsFromApi();
     this.loadPortOfLoadings();
+    this.fetchOrigins();
     this.initializeAllUnits();
     this.getPackageUnits();
     this.checkHazardStatus()
@@ -3245,5 +3246,61 @@ selectFinalDestination(port: any) {
   // Dropdown band karein
   this.showFinalDestinationDropdown = false;
   this.filteredFinalDestinations = [];
+}
+origins: any[] = [];
+  countries: any[] = []; // Agar alag se country list chahiye
+  filteredOrigins: any[] = [];
+  filteredCountries: any[] = [];
+  showOriginDropdown = false;
+  showCountryDropdown = false;
+// --- Origin Logic ---
+fetchOrigins() {
+    const url = `${environment.apiUrl}/origin/all`;
+    this.http.get<any[]>(url).subscribe({
+      next: (data) => {
+        this.origins = data;
+        this.filteredOrigins = data; // Initally saara data dikha sakte hain
+      },
+      error: (err) => console.error('Error fetching origins:', err)
+    });
+  }
+onOriginSearch() {
+  const term = (this.quotation.originPOL || '').toLowerCase();
+  this.filteredOrigins = this.origins.filter(o => o.name.toLowerCase().includes(term));
+  this.showOriginDropdown = true;
+}
+
+selectOrigin(org: any) {
+  this.quotation.originPOL = org.name;
+  this.quotation.country = org.countryName; // Origin se country apne aap fill hogi
+  this.showOriginDropdown = false;
+  this.showCountryDropdown = false;
+}
+
+onOriginKeyDown(event: any) {
+  if (event.key === 'Enter' && this.filteredOrigins.length > 0) {
+    this.selectOrigin(this.filteredOrigins[0]);
+  }
+}
+
+// --- Country Logic (Separate) ---
+onCountrySearch() {
+  const term = (this.quotation.country || '').toLowerCase();
+  this.filteredCountries = this.countries.filter(c => c.name.toLowerCase().includes(term));
+  this.showCountryDropdown = true;
+}
+
+selectCountry(country: any) {
+  this.quotation.country = country.name;
+  this.showCountryDropdown = false;
+}
+
+// --- Click Outside to Close ---
+@HostListener('document:click', ['$event'])
+clickout(event: any) {
+  if (!this.eRef.nativeElement.contains(event.target)) {
+    this.showOriginDropdown = false;
+    this.showCountryDropdown = false;
+  }
 }
 }

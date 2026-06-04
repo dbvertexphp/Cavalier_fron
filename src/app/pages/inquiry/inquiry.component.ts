@@ -517,36 +517,75 @@ loadPortsData() {
     error: (err) => console.error("Error loading ports:", err)
   });
 }
+// Add these variables
+// showFinalDestinationDropdown = false;
+// filteredFinalDestinations = [];
+activeFDIndex = -1; // Keyboard nav ke liye
 
-// 2. Search logic
-onFinalDestinationSearch() {
-  const searchTerm = (this.quotation.finalDestination || '').toString().trim().toLowerCase();
+onFinalDestinationSearch(type: 'name' | 'code') {
+  const searchTerm = type === 'name' 
+    ? (this.quotation.finalDestination || '').toLowerCase()
+    : (this.quotation.finalDestinationCode || '').toLowerCase();
 
-  if (searchTerm === '') {
-    this.showFinalDestinationDropdown = false;
+  if (!searchTerm) {
     this.filteredFinalDestinations = [];
+    this.showFinalDestinationDropdown = false;
+    this.activeFDIndex = -1;
     return;
   }
 
-  // Same master list se filter kar rahe hain
   this.filteredFinalDestinations = this.portsOfLoading.filter(port => {
-    const portName = port.name || port.portName || port.PortName || port.description || '';
-    return portName.toString().toLowerCase().includes(searchTerm);
+    const pName = (port.name || port.portName || port.PortName || '').toLowerCase();
+    const pCode = (port.portCode || '').toLowerCase();
+    return pName.includes(searchTerm) || pCode.includes(searchTerm);
   });
 
-  this.showFinalDestinationDropdown = true;
+  this.showFinalDestinationDropdown = this.filteredFinalDestinations.length > 0;
+  this.activeFDIndex = -1;
 }
 
-// 3. Selection logic
 selectFinalDestination(port: any) {
   if (!port) return;
-  
   this.quotation.finalDestination = port.name || port.portName || port.PortName || '';
   this.quotation.finalDestinationCode = port.portCode;
-  
   this.showFinalDestinationDropdown = false;
   this.filteredFinalDestinations = [];
+  this.activeFDIndex = -1;
 }
+
+onFDKeyDown(event: KeyboardEvent) {
+  if (!this.showFinalDestinationDropdown) return;
+
+  if (event.key === 'ArrowDown') {
+    event.preventDefault();
+    if (this.activeFDIndex < this.filteredFinalDestinations.length - 1) {
+      this.activeFDIndex++;
+      this.scrollToActiveFD();
+    }
+  } else if (event.key === 'ArrowUp') {
+    event.preventDefault();
+    if (this.activeFDIndex > 0) {
+      this.activeFDIndex--;
+      this.scrollToActiveFD();
+    }
+  } else if (event.key === 'Enter') {
+    event.preventDefault();
+    if (this.activeFDIndex >= 0) {
+      this.selectFinalDestination(this.filteredFinalDestinations[this.activeFDIndex]);
+    } else if (this.filteredFinalDestinations.length > 0) {
+      this.selectFinalDestination(this.filteredFinalDestinations[0]);
+    }
+  }
+}
+
+private scrollToActiveFD() {
+  setTimeout(() => {
+    const activeElement = document.querySelector('.bg-red-100');
+    if (activeElement) activeElement.scrollIntoView({ block: 'nearest' });
+  }, 0);
+}
+
+
 portOfLoading() {
   this.http.get<any[]>(`${environment.apiUrl}/PortSetup`).subscribe({
     next: (data) => {
@@ -558,30 +597,86 @@ portOfLoading() {
     }
   });
 }
-onPortOfLoadingSearch() {
-  const searchTerm = (this.quotation.portOfLoading || '').toString().trim().toLowerCase();
+// Add these variables if missing
+// showPortOfLoadingDropdown = false;
+// filteredPortsOfLoading = [];
 
-  if (searchTerm === '') {
-    this.showPortOfLoadingDropdown = false;
+// Combined search logic (Code aur Name dono ke liye)
+// 1. Variable initialize zaroor karna
+activeIndex = -1;
+
+// 2. Search Logic
+onPortOfLoadingSearch(type: 'name' | 'code') {
+  const searchTerm = type === 'name' 
+    ? (this.quotation.portOfLoading || '').toLowerCase()
+    : (this.quotation.portOfLoadingCode || '').toLowerCase();
+
+  if (!searchTerm) {
     this.filteredPortsOfLoading = [];
+    this.showPortOfLoadingDropdown = false;
+    this.activeIndex = -1;
     return;
   }
 
   this.filteredPortsOfLoading = this.portsOfLoading.filter(port => {
-    const portName = port.name || port.portName || port.PortName || port.description || '';
-    return portName.toString().toLowerCase().includes(searchTerm);
+    const pName = (port.name || port.portName || port.PortName || '').toLowerCase();
+    const pCode = (port.portCode || '').toLowerCase();
+    return pName.includes(searchTerm) || pCode.includes(searchTerm);
   });
 
-  this.showPortOfLoadingDropdown = true;
+  this.showPortOfLoadingDropdown = this.filteredPortsOfLoading.length > 0;
+  this.activeIndex = -1; // Search karte hi index reset
 }
+
+// 3. Select Logic
 selectPortOfLoading(port: any) {
   if (!port) return;
-  
   this.quotation.portOfLoading = port.name || port.portName || port.PortName || '';
   this.quotation.portOfLoadingCode = port.portCode;
   this.showPortOfLoadingDropdown = false;
   this.filteredPortsOfLoading = [];
+  this.activeIndex = -1;
 }
+
+// 4. Keyboard Navigation (Up/Down/Enter)
+onPolKeyDown(event: KeyboardEvent) {
+  if (!this.showPortOfLoadingDropdown) return;
+
+  if (event.key === 'ArrowDown') {
+    event.preventDefault();
+    if (this.activeIndex < this.filteredPortsOfLoading.length - 1) {
+      this.activeIndex++;
+      this.scrollToActive();
+    }
+  } else if (event.key === 'ArrowUp') {
+    event.preventDefault();
+    if (this.activeIndex > 0) {
+      this.activeIndex--;
+      this.scrollToActive();
+    }
+  } else if (event.key === 'Enter') {
+    event.preventDefault();
+    if (this.activeIndex >= 0) {
+      this.selectPortOfLoading(this.filteredPortsOfLoading[this.activeIndex]);
+    } else if (this.filteredPortsOfLoading.length > 0) {
+      // Agar koi select nahi kiya par list khuli hai, toh pehla select karlo
+      this.selectPortOfLoading(this.filteredPortsOfLoading[0]);
+    }
+  }
+}
+
+// Auto-Scroll helper function
+private scrollToActive() {
+  setTimeout(() => {
+    const activeElement = document.querySelector('.bg-red-100');
+    if (activeElement) {
+      activeElement.scrollIntoView({ block: 'nearest' });
+    }
+  }, 0);
+}
+
+// Outside click logic
+
 // Jab user Ready ya Ready By select kare
 onShipmentTypeChange() {
   if (this.quotation.shipmentType === 'Ready') {
@@ -764,14 +859,7 @@ getShipmentTypes() {
     });
   }
        // --- Fetch Origins List --
-  fetchOrigins() {
-    // API Path: /api/Origin
-    const url = `${environment.apiUrl}/PortSetup`;
-    this.http.get<any[]>(url).subscribe(data => {
-      this.origins = data;
-      console.log(data)
-    });
-  }
+  
 
 fetchCompanyServices() {
     const url = `${environment.apiUrl}/CompanyService`;
@@ -786,8 +874,18 @@ fetchCompanyServices() {
     });
 }
  
-
+fetchOrigins() {
+  const url = `${environment.apiUrl}/origin/all`;
+  this.http.get<any[]>(url).subscribe({
+    next: (data) => {
+      this.origins = data;
+      console.log('API se data mila: origin ka ', data); // <--- Yeh check karein browser console mein
+    },
+    error: (err) => console.error('API Error:', err)
+  });
+}
   // --- Search Logic ---
+// --- Search Logic ---
 onOriginSearchInput() {
   const searchTerm = (this.inquiry.origin || '').toString().trim().toLowerCase();
 
@@ -797,32 +895,52 @@ onOriginSearchInput() {
     return;
   }
 
+  // Ab 'name' field ke basis par filter hoga
   this.filteredOrigins = this.origins.filter(org => {
-    // API response ke mutabiq 'portName' use karein
-    const originName = org.portName || ''; 
-    return originName.toLowerCase().includes(searchTerm);
+    return (org.name || '').toLowerCase().includes(searchTerm) || 
+           (org.countryName || '').toLowerCase().includes(searchTerm);
   });
 
   this.showOriginDropdown = true;
 }
 
+// 1. Click outside handle karne ke liye (ya toh blur use karein ya HostListener)
+// Yahan hum `(blur)` ka use kar rahe hain input par taaki focus hatne par list band ho.
 
-  // --- Selection Logic ---
- selectOrigin(origin: any) {
-  // 1. Basic UI aur Selection update
+selectOrigin(origin: any) {
   this.originsaveid = origin.id;
-  this.originpinCode = origin.pinCode;
-  this.inquiry.origin = origin.portName; 
-  this.showOriginDropdown = false;
+  this.inquiry.origin = origin.name;
+  
+  if (this.quotation) {
+    this.quotation.country = origin.countryName;
+  }
+  
+  this.showOriginDropdown = false; // List band
+  if (origin.pinCode) this.fetchAgentByPostCode(origin.pinCode);
+}
 
-  console.log("Selected Origin pinCode:", this.originpinCode);
-
-  // 2. Agar pinCode valid hai toh API call karein
-  if (this.originpinCode) {
-    this.fetchAgentByPostCode(this.originpinCode);
-  } else {
-    this.agentDetail = []; // Clear array if no pincode
-    console.warn("Pincode missing for this origin!");
+// Enter key press karne par pehla filtered result select karne ke liye
+onOriginKeyDown(event: any) {
+  if (event.key === 'Enter' && this.filteredOrigins.length > 0) {
+    event.preventDefault(); // Form submit hone se rokne ke liye
+    this.selectOrigin(this.filteredOrigins[0]);
+  }
+}
+// Global Click Listener: Agar click component ke bahar hua, toh list band
+@HostListener('document:click', ['$event'])
+clickout(event: any) {
+  if(!this.eRef.nativeElement.contains(event.target)) {
+    this.showOriginDropdown = false;
+  }
+  const clickedInside = this.eRef.nativeElement.contains(event.target);
+  if (!clickedInside) {
+    this.showPortOfDischargeDropdown = false;
+  }
+    if (this.eRef && !this.eRef.nativeElement.contains(event.target)) {
+    this.showPortOfLoadingDropdown = false;
+  }
+    if (this.eRef && !this.eRef.nativeElement.contains(event.target)) {
+    this.showFinalDestinationDropdown = false;
   }
 }
 fetchAgentByPostCode(postCode: string | number) {
@@ -890,32 +1008,47 @@ portdischarge() {
     }
   });
 }
-onPortOfDischargeSearch() {
-  const searchTerm = (this.quotation.portOfDestination || '').toString().trim().toLowerCase();
+// Add this variable in your class
+// showPortOfDischargeDropdown = false;
 
-  if (searchTerm === '') {
+// 1. Search Logic (Works for both Code and Name)
+onPortOfDischargeSearch(type: 'name' | 'code') {
+  const searchTerm = type === 'name' 
+    ? (this.quotation.portOfDestination || '').toLowerCase()
+    : (this.quotation.portOfDestinationCode || '').toLowerCase();
+
+  if (!searchTerm) {
     this.showPortOfDischargeDropdown = false;
-    this.filteredPortsOfDischarge = [];
     return;
   }
 
   this.filteredPortsOfDischarge = this.portsOfDischarge.filter(port => {
-    const portName = port.name || port.portName || port.PortName || port.description || '';
-   this.quotation.portOfDestinationCode = port.portCode;
-   
-    return portName.toString().toLowerCase().includes(searchTerm);
+    const pName = (port.name || port.portName || port.PortName || '').toLowerCase();
+    const pCode = (port.portCode || '').toLowerCase();
+    return pName.includes(searchTerm) || pCode.includes(searchTerm);
   });
 
-  this.showPortOfDischargeDropdown = true;
+  this.showPortOfDischargeDropdown = this.filteredPortsOfDischarge.length > 0;
 }
+
+// 2. Select Method
 selectPortOfDischarge(port: any) {
   if (!port) return;
-  
-  this.quotation.portOfDestination = port.name || port.portName || port.PortName || '';
+  this.quotation.portOfDestination = port.name || port.portName || port.PortName;
   this.quotation.portOfDestinationCode = port.portCode;
   this.showPortOfDischargeDropdown = false;
-  this.filteredPortsOfDischarge = [];
 }
+
+// 3. Enter Key handler
+onPortOfDischargeKeyDown(event: KeyboardEvent) {
+  if (event.key === 'Enter' && this.filteredPortsOfDischarge.length > 0) {
+    this.selectPortOfDischarge(this.filteredPortsOfDischarge[0]);
+    event.preventDefault();
+  }
+}
+
+// 4. Close dropdown on outside click
+
 
   // --- Selection Logic ---
  selectLead(lead: any) {

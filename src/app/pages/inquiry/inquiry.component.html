@@ -2459,142 +2459,94 @@
               </div>
 
               <!-- Origin -->
-              <div class="flex items-center text-red-700 font-bold">
-                <label class="w-40">Origin</label>
-                <div class="relative flex-1 flex items-center">
-                  <input
-                    [(ngModel)]="inquiry.origin"
-                    name="origin"
-                    placeholder="Search Origin..."
-                    (input)="onOriginSearchInput()"
-                    class="w-full border p-2 border-red-300 outline-none pr-8 text-[12px] text-gray-700 font-normal"
-                  />
-
-                  <button
-                    class="absolute right-2 text-gray-500 hover:text-black"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="w-3 h-3"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      />
-                    </svg>
-                  </button>
-
-                  <!-- Dropdown -->
-                  <ul
-                    *ngIf="showOriginDropdown"
-                    class="absolute top-full left-0 z-10 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto text-gray-700 font-normal"
-                  >
-                    <!-- Agar results hain -->
-                    <li
-                      *ngFor="let origin of filteredOrigins"
-                      (click)="selectOrigin(origin)"
-                      class="p-2 hover:bg-gray-100 cursor-pointer text-[12px]"
-                    >
-                      {{ origin.portName }}
-                    </li>
-
-                    <!-- Agar koi result nahi mila -->
-                    <li
-                      *ngIf="showOriginDropdown && filteredOrigins.length === 0"
-                      class="p-3 text-center text-red-500 text-[12px] font-medium"
-                    >
-                      No Origin Found
-                    </li>
-                  </ul>
-                </div>
-              </div>
-<div class="flex items-center text-red-700 font-bold mt-2">
-  <label class="w-40">Country</label>
-
+     <div class="flex items-center text-red-700 font-bold">
+  <label class="w-40">Origin</label>
   <div class="relative flex-1 flex items-center">
     <input
-      [(ngModel)]="quotation.country"
-      name="country"
-      placeholder="Search Country..."
-      (input)="onCountrySearch()"
-      (focus)="showCountryDropdown = true"
-      class="w-full border p-2 border-red-300 outline-none pr-8 text-[12px]"
+      [(ngModel)]="inquiry.origin"
+      name="origin"
+      placeholder="Search Origin..."
+      (input)="onOriginSearchInput()"
+      (focus)="showOriginDropdown = true"
+      
+      (keydown.enter)="onOriginKeyDown($event)"
+      class="w-full border p-2 border-red-300 outline-none pr-8 text-[12px] text-gray-700 font-normal"
     />
 
-    <button class="absolute right-2 text-gray-500 hover:text-black">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-      </svg>
-    </button>
-
-    <!-- Dropdown -->
     <ul
-      *ngIf="showCountryDropdown"
-      class="absolute top-full left-0 z-10 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto text-gray-700 text-[12px]"
+      *ngIf="showOriginDropdown"
+      class="absolute top-full left-0 z-10 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto text-gray-700 font-normal"
+      (mousedown)="$event.preventDefault()" 
     >
       <li
-        *ngFor="let c of filteredCountries"
-        (click)="selectCountry(c)"
-        class="p-2 hover:bg-gray-100 cursor-pointer"
+        *ngFor="let origin of filteredOrigins"
+        (click)="selectOrigin(origin)"
+        class="p-2 hover:bg-gray-100 cursor-pointer text-[12px] border-b border-gray-100"
       >
-        {{ c.name }}
-      </li>
-
-      <!-- No Data Found -->
-      <li
-        *ngIf="showCountryDropdown && filteredCountries.length === 0"
-        class="p-3 text-center text-red-500 italic"
-      >
-        No Country Found
+        <div class="font-bold">{{ origin.name }}</div>
+        <div class="text-[10px] text-gray-500">{{ origin.countryName }} ({{ origin.isoCode }})</div>
       </li>
     </ul>
   </div>
 </div>
 
+<div class="flex items-center text-red-700 font-bold mt-2">
+  <label class="w-40">Country</label>
+  <div class="relative flex-1 flex items-center">
+    <input
+      [(ngModel)]="quotation.country"
+      name="country"
+      placeholder="Country"
+      
+      class="w-full border p-2 border-red-300 outline-none text-[12px] bg-gray-50"
+    />
+  </div>
+</div>
 
               <!-- Port of Loading -->
-              <div class="flex items-center text-red-700 font-bold">
+     <div class="flex items-center text-red-700 font-bold" #polContainer>
   <label class="w-40">Port of Loading</label>
 
-  <div class="flex flex-1 gap-2">
+  <div class="flex flex-1 gap-2 relative">
+    
+    <input
+      [(ngModel)]="quotation.portOfLoadingCode"
+      name="portOfLoadingCode"
+      placeholder="Code"
+      (input)="onPortOfLoadingSearch('code')"
+      (focus)="showPortOfLoadingDropdown = true"
+      (keydown)="onPolKeyDown($event)"
+      class="w-20 border p-2 border-red-300 text-[12px] text-center outline-none"
+    />
+
     <div class="relative flex-1">
       <input
         [(ngModel)]="quotation.portOfLoading"
         name="portOfLoading"
         placeholder="Search Port..."
-        (input)="onPortOfLoadingSearch()"
+        (input)="onPortOfLoadingSearch('name')"
+        (focus)="showPortOfLoadingDropdown = true"
+        (keydown)="onPolKeyDown($event)"
         class="w-full border p-2 border-red-300 outline-none text-[12px]"
       />
       
-      <ul
-        *ngIf="showPortOfLoadingDropdown"
-        class="absolute top-full left-0 z-10 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto text-gray-700 text-[12px]"
-      >
-        <li
-          *ngFor="let port of filteredPortsOfLoading"
-          (click)="selectPortOfLoading(port)"
-          class="p-2 hover:bg-gray-100 cursor-pointer"
-        >
-          {{ port.portName }} ({{ port.portCode }})
-        </li>
-        <li *ngIf="showPortOfLoadingDropdown && filteredPortsOfLoading.length === 0" class="p-3 text-center text-red-500 italic">
-          No Port Found
-        </li>
-      </ul>
-    </div>
+      <ul *ngIf="showPortOfLoadingDropdown"
+    class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 shadow-xl max-h-48 overflow-y-auto text-[12px] rounded-b-md custom-scrollbar">
+  
+  <li *ngFor="let port of filteredPortsOfLoading; let i = index" 
+      (click)="selectPortOfLoading(port)" 
+      [class.bg-red-100]="i === activeIndex"
+      class="px-4 py-2.5 cursor-pointer border-b border-gray-50 flex items-center gap-2 hover:bg-red-50 transition-colors duration-150">
+    
+    <span class="font-bold text-gray-400 w-12">{{ port.portCode }}</span>
+    <span class="text-gray-700">{{ port.name || port.portName || port.PortName }}</span>
+  </li>
 
-    <input
-      [(ngModel)]="quotation.portOfLoadingCode"
-      name="portOfLoadingCode"
-      placeholder="Code"
-      
-      class="w-20 border p-2 border-red-300 bg-gray-50 text-[12px] text-center"
-    />
+  <li *ngIf="filteredPortsOfLoading.length === 0" class="p-4 text-center text-gray-400 italic">
+    No Port Found
+  </li>
+</ul>
+    </div>
   </div>
 </div>
 
@@ -2638,43 +2590,44 @@
               </div>
 
               <!-- Port of Discharge -->
-      <div class="flex items-center text-red-700 font-bold">
+     <div class="flex items-center text-red-700 font-bold" #podContainer>
   <label class="w-40">Port of Discharge</label>
 
-  <div class="flex flex-1 gap-2">
+  <div class="flex flex-1 gap-2 relative">
+    
+    <input
+      [(ngModel)]="quotation.portOfDestinationCode"
+      name="portOfDestinationCode"
+      placeholder="Code"
+      (input)="onPortOfDischargeSearch('code')"
+      (focus)="showPortOfDischargeDropdown = true"
+      (keydown)="onPortOfDischargeKeyDown($event)"
+      class="w-20 border p-2 border-red-300 text-[12px] text-center outline-none"
+    />
+
     <div class="relative flex-1">
       <input
         [(ngModel)]="quotation.portOfDestination"
         name="portOfDestination"
         placeholder="Search Port of Discharge..."
-        (input)="onPortOfDischargeSearch()"
+        (input)="onPortOfDischargeSearch('name')"
+        (focus)="showPortOfDischargeDropdown = true"
+        (keydown)="onPortOfDischargeKeyDown($event)"
         class="w-full border p-2 border-red-300 outline-none text-[12px]"
       />
-
-      <ul
-        *ngIf="showPortOfDischargeDropdown"
-        class="absolute top-full left-0 z-10 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto text-gray-700 text-[12px]"
-      >
-        <li
-          *ngFor="let port of filteredPortsOfDischarge"
-          (click)="selectPortOfDischarge(port)"
-          class="p-2 hover:bg-gray-100 cursor-pointer"
-        >
-          {{ port.portName }} ({{ port.portCode }})
-        </li>
-        <li *ngIf="showPortOfDischargeDropdown && filteredPortsOfDischarge.length === 0" class="p-3 text-center text-red-500 italic">
-          No Port Found
-        </li>
-      </ul>
     </div>
 
-    <input
-      [(ngModel)]="quotation.portOfDestinationCode"
-      name="portOfDestinationCode"
-      placeholder="Code"
-      readonly
-      class="w-20 border p-2 border-red-300 bg-gray-100 text-[12px] text-center"
-    />
+    <ul *ngIf="showPortOfDischargeDropdown"
+        class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto text-gray-700 text-[12px]">
+      <li *ngFor="let port of filteredPortsOfDischarge"
+          (click)="selectPortOfDischarge(port)"
+          class="p-2 hover:bg-gray-100 cursor-pointer border-b">
+        {{ port.portName }} ({{ port.portCode }})
+      </li>
+      <li *ngIf="filteredPortsOfDischarge.length === 0" class="p-3 text-center text-red-500 italic">
+        No Port Found
+      </li>
+    </ul>
   </div>
 </div>
 <!-- 🔥 SIMPLE ROUTE DISPLAY (Input Style) -->
@@ -2743,46 +2696,45 @@
   </div>
 </div>
               <!-- Final Destination -->
-              <div class="flex items-center text-red-700 font-bold">
+              <div class="flex items-center text-red-700 font-bold" #fdContainer>
   <label class="w-40">Final Destination</label>
 
-  <div class="flex flex-1 gap-2">
+  <div class="flex flex-1 gap-2 relative">
+    <input
+      [(ngModel)]="quotation.finalDestinationCode"
+      name="finalDestinationCode"
+      placeholder="Code"
+      (input)="onFinalDestinationSearch('code')"
+      (focus)="showFinalDestinationDropdown = true"
+      (keydown)="onFDKeyDown($event)"
+      class="w-20 border p-2 border-red-300 text-[12px] text-center outline-none"
+    />
+
     <div class="relative flex-1">
       <input
         [(ngModel)]="quotation.finalDestination"
         name="finalDestination"
         placeholder="Search Final Destination..."
-        (input)="onFinalDestinationSearch()"
+        (input)="onFinalDestinationSearch('name')"
+        (focus)="showFinalDestinationDropdown = true"
+        (keydown)="onFDKeyDown($event)"
         class="w-full border p-2 border-red-300 outline-none text-[12px]"
       />
 
-      <ul
-        *ngIf="showFinalDestinationDropdown"
-        class="absolute top-full left-0 z-10 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto text-gray-700 text-[12px]"
-      >
-        <li
-          *ngFor="let port of filteredFinalDestinations"
-          (click)="selectFinalDestination(port)"
-          class="p-2 hover:bg-gray-100 cursor-pointer"
-        >
-          {{ port.portName }} ({{ port.portCode }})
+      <ul *ngIf="showFinalDestinationDropdown"
+          class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 shadow-xl max-h-48 overflow-y-auto text-[12px] rounded-b-md custom-scrollbar">
+        <li *ngFor="let port of filteredFinalDestinations; let i = index" 
+            (click)="selectFinalDestination(port)" 
+            [class.bg-red-100]="i === activeFDIndex"
+            class="px-4 py-2.5 cursor-pointer border-b border-gray-50 flex items-center gap-2 hover:bg-red-50 transition-colors duration-150">
+          <span class="font-bold text-gray-400 w-12">{{ port.portCode }}</span>
+          <span class="text-gray-700">{{ port.name || port.portName || port.PortName }}</span>
         </li>
-        <li
-          *ngIf="showFinalDestinationDropdown && filteredFinalDestinations.length === 0"
-          class="p-3 text-center text-red-500 italic"
-        >
+        <li *ngIf="filteredFinalDestinations.length === 0" class="p-4 text-center text-gray-400 italic">
           No Port Found
         </li>
       </ul>
     </div>
-
-    <input
-      [(ngModel)]="quotation.finalDestinationCode"
-      name="finalDestinationCode"
-      placeholder="Code"
-      readonly
-      class="w-20 border p-2 border-red-300 bg-gray-50 text-[12px] text-center"
-    />
   </div>
 </div>
 
@@ -3155,7 +3107,7 @@
         <div class="text-[11px] text-gray-700 font-semibold mb-1">
           <!-- Dimensions {{ group.indices.join(', ') }}  -->
            Dimensions
-          <span class="text-blue-600 font-bold ml-1">= {{ group.totalBoxQty }} Boxes</span>
+          <span class="text-blue-600 font-bold ml-1">= {{ group.totalBoxQty }} {{ quotation.noOfPkgsUnit || 'Packages' }}</span>
         </div>
         
         <div class="text-[12px] font-bold text-gray-900 bg-gray-50 px-1 rounded">

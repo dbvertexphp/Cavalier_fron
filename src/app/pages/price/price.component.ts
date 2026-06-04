@@ -566,67 +566,134 @@ loadPricingForEdit(id: any) {
     }
   });
 }
-onPortOfLoadingSearch() {
-  const searchTerm = (this.quotation.portOfLoading || '').toString().trim().toLowerCase();
+// Add these variables in your class
+// showPortOfLoadingDropdown = false;x
+// filteredPortsOfLoading: any[] = [];
+activePOLIndex = -1;
+
+// 1. Unified Search Logic
+onPortOfLoadingSearch(type: 'name' | 'code') {
+  const searchTerm = (type === 'name' 
+    ? (this.quotation.portOfLoading || '') 
+    : (this.quotation.portOfLoadingCode || '')).toString().trim().toLowerCase();
 
   if (searchTerm === '') {
-    this.showPortOfLoadingDropdown = false;
     this.filteredPortsOfLoading = [];
+    this.showPortOfLoadingDropdown = false;
+    this.activePOLIndex = -1;
     return;
   }
 
   this.filteredPortsOfLoading = this.portsOfLoading.filter(port => {
-    const portName = port.name || port.portName || port.PortName || port.description || '';
-    return portName.toString().toLowerCase().includes(searchTerm);
+    const pName = (port.name || port.portName || port.PortName || port.description || '').toLowerCase();
+    const pCode = (port.portCode || '').toLowerCase();
+    return pName.includes(searchTerm) || pCode.includes(searchTerm);
   });
 
-  this.showPortOfLoadingDropdown = true;
+  this.showPortOfLoadingDropdown = this.filteredPortsOfLoading.length > 0;
+  this.activePOLIndex = -1;
 }
+
+// 2. Select Logic
 selectPortOfLoading(port: any) {
   if (!port) return;
-  
   this.quotation.portOfLoading = port.name || port.portName || port.PortName || '';
-  // 2. Port Code auto-fill karein
   this.quotation.portOfLoadingCode = port.portCode || '';
   this.showPortOfLoadingDropdown = false;
   this.filteredPortsOfLoading = [];
+  this.activePOLIndex = -1;
 }
-// Final Destination Search Logic
+
+// 3. Keyboard Navigation
+onPOLKeyDown(event: KeyboardEvent) {
+  if (!this.showPortOfLoadingDropdown) return;
+
+  if (event.key === 'ArrowDown') {
+    event.preventDefault();
+    if (this.activePOLIndex < this.filteredPortsOfLoading.length - 1) this.activePOLIndex++;
+  } else if (event.key === 'ArrowUp') {
+    event.preventDefault();
+    if (this.activePOLIndex > 0) this.activePOLIndex--;
+  } else if (event.key === 'Enter') {
+    event.preventDefault();
+    const selected = this.activePOLIndex >= 0 ? this.filteredPortsOfLoading[this.activePOLIndex] : this.filteredPortsOfLoading[0];
+    this.selectPortOfLoading(selected);
+  }
+}
+
+// 4. Outside Click
+// inal Destination Search Logic
 // Add these with your other class-level variables
-filteredFinalDestinations: any[] = [];
+// Add variables
 showFinalDestinationDropdown = false;
-onFinalDestinationSearch() {
-  const searchTerm = (this.quotation.finalDestination || '').toString().trim().toLowerCase();
+filteredFinalDestinations: any[] = [];
+activeFDIndex = -1;
+
+// 1. Unified Search Logic (Supports Name & Code)
+onFinalDestinationSearch(type: 'name' | 'code') {
+  const searchTerm = (type === 'name' 
+    ? (this.quotation.finalDestination || '') 
+    : (this.quotation.finalDestinationCode || '')).toString().trim().toLowerCase();
 
   if (searchTerm === '') {
-    this.showFinalDestinationDropdown = false;
     this.filteredFinalDestinations = [];
+    this.showFinalDestinationDropdown = false;
+    this.activeFDIndex = -1;
     return;
   }
 
-  // Wahi 'portsOfLoading' master list use ho rahi hai jo aapne API se fetch ki thi
   this.filteredFinalDestinations = this.portsOfLoading.filter(port => {
-    const portName = port.name || port.portName || port.PortName || port.description || '';
-    return portName.toString().toLowerCase().includes(searchTerm);
+    const pName = (port.name || port.portName || port.PortName || port.description || '').toLowerCase();
+    const pCode = (port.portCode || '').toLowerCase();
+    return pName.includes(searchTerm) || pCode.includes(searchTerm);
   });
 
-  this.showFinalDestinationDropdown = true;
+  this.showFinalDestinationDropdown = this.filteredFinalDestinations.length > 0;
+  this.activeFDIndex = -1;
 }
 
-// Final Destination Selection Logic
+// 2. Selection Logic
 selectFinalDestination(port: any) {
   if (!port) return;
-  
-  // 1. Destination Name update
   this.quotation.finalDestination = port.name || port.portName || port.PortName || '';
-  
-  // 2. Destination Code auto-fill
   this.quotation.finalDestinationCode = port.portCode || '';
-  
-  // 3. Cleanup
   this.showFinalDestinationDropdown = false;
   this.filteredFinalDestinations = [];
+  this.activeFDIndex = -1;
 }
+
+// 3. Keyboard Navigation
+onFDKeyDown(event: KeyboardEvent) {
+  if (!this.showFinalDestinationDropdown) return;
+
+  if (event.key === 'ArrowDown') {
+    event.preventDefault();
+    if (this.activeFDIndex < this.filteredFinalDestinations.length - 1) {
+      this.activeFDIndex++;
+      this.scrollToActiveFD();
+    }
+  } else if (event.key === 'ArrowUp') {
+    event.preventDefault();
+    if (this.activeFDIndex > 0) {
+      this.activeFDIndex--;
+      this.scrollToActiveFD();
+    }
+  } else if (event.key === 'Enter') {
+    event.preventDefault();
+    const selected = this.activeFDIndex >= 0 ? this.filteredFinalDestinations[this.activeFDIndex] : this.filteredFinalDestinations[0];
+    this.selectFinalDestination(selected);
+  }
+}
+
+private scrollToActiveFD() {
+  setTimeout(() => {
+    const activeElement = document.querySelector('.bg-gray-100');
+    if (activeElement) activeElement.scrollIntoView({ block: 'nearest' });
+  }, 0);
+}
+
+// 4. Outside Click
+
 // Jab user Ready ya Ready By select kare
 onShipmentTypeChange() {
   if (this.quotation.shipmentType === 'Ready') {
@@ -806,14 +873,7 @@ getShipmentTypes() {
     });
   }
        // --- Fetch Origins List --
-  fetchOrigins() {
-    // API Path: /api/Origin
-    const url = `${environment.apiUrl}/PortSetup`;
-    this.http.get<any[]>(url).subscribe(data => {
-      this.origins = data;
-      console.log(data)
-    });
-  }
+  
 
 fetchCompanyServices() {
     const url = `${environment.apiUrl}/CompanyService`;
@@ -830,44 +890,59 @@ fetchCompanyServices() {
  
 
   // --- Search Logic ---
-onOriginSearchInput() {
-  const searchTerm = (this.inquiry.origin || '').toString().trim().toLowerCase();
+// PriceComponent mein sirf ek hi `clickout` hona chahiye:
 
-  if (searchTerm === '') {
+
+
+  // 2. Fetch API Updated
+  fetchOrigins() {
+    const url = `${environment.apiUrl}/origin/all`;
+    this.http.get<any[]>(url).subscribe(data => {
+      this.origins = data;
+    });
+  }
+
+  // 3. Search Logic
+  onOriginSearchInput() {
+    const searchTerm = (this.inquiry.origin || '').toString().trim().toLowerCase();
+    if (searchTerm === '') {
+      this.showOriginDropdown = false;
+      this.filteredOrigins = [];
+      return;
+    }
+
+    this.filteredOrigins = this.origins.filter(org => {
+      return (org.name || '').toLowerCase().includes(searchTerm) || 
+             (org.countryName || '').toLowerCase().includes(searchTerm);
+    });
+    this.showOriginDropdown = true;
+  }
+
+  // 4. Selection Logic
+  selectOrigin(origin: any) {
+    this.originsaveid = origin.id;
+    this.inquiry.origin = origin.name;
+    
+    // Country field fill karna
+    if (this.quotation) {
+      this.quotation.country = origin.countryName;
+    }
+    
     this.showOriginDropdown = false;
-    this.filteredOrigins = [];
-    return;
+    this.showCountryDropdown = false; // Country dropdown bhi band
+
+    if (origin.countryCode) {
+      this.fetchAgentByPostCode(origin.countryCode);
+    }
   }
 
-  this.filteredOrigins = this.origins.filter(org => {
-    // API response ke mutabiq 'portName' use karein
-    const originName = org.portName || ''; 
-    return originName.toLowerCase().includes(searchTerm);
-  });
-
-  this.showOriginDropdown = true;
-}
-
-
-  // --- Selection Logic ---
- selectOrigin(origin: any) {
-  // 1. Basic UI aur Selection update
-  this.originsaveid = origin.id;
-  this.originpinCode = origin.countryCode;
-  this.inquiry.origin = origin.portName; 
-  this.showOriginDropdown = false;
-
-
-  console.log("Selected Origin pinCode:", origin);
-
-  // 2. Agar pinCode valid hai toh API call karein
-  if (this.originpinCode) {
-    this.fetchAgentByPostCode(this.originpinCode);
-  } else {
-    this.agentDetail = []; // Clear array if no pincode
-    console.warn("Pincode missing for this origin!");
+  // Enter Key support
+  onOriginKeyDown(event: any) {
+    if (event.key === 'Enter' && this.filteredOrigins.length > 0) {
+      event.preventDefault();
+      this.selectOrigin(this.filteredOrigins[0]);
+    }
   }
-}
 fetchAgentByPostCode(postCode: string | number) {
   const url = `${environment.apiUrl}/OrgBranch/GetByPostCodeAgent/${postCode}`;
   
@@ -929,30 +1004,63 @@ portdischarge() {
     }
   });
 }
-onPortOfDischargeSearch() {
-  const searchTerm = (this.quotation.portOfDestination || '').toString().trim().toLowerCase();
+// Variables
+// showPortOfDischargeDropdown = false;
+// filteredPortsOfDischarge: any[] = [];
+activePODIndex = -1;
+
+// 1. Unified Search Logic
+onPortOfDischargeSearch(type: 'name' | 'code') {
+  const searchTerm = (type === 'name' 
+    ? (this.quotation.portOfDestination || '') 
+    : (this.quotation.portOfDestinationCode || '')).toString().trim().toLowerCase();
 
   if (searchTerm === '') {
-    this.showPortOfDischargeDropdown = false;
     this.filteredPortsOfDischarge = [];
+    this.showPortOfDischargeDropdown = false;
+    this.activePODIndex = -1;
     return;
   }
 
   this.filteredPortsOfDischarge = this.portsOfDischarge.filter(port => {
-    const portName = port.name || port.portName || port.PortName || port.description || '';
-    return portName.toString().toLowerCase().includes(searchTerm);
+    const pName = (port.name || port.portName || port.PortName || port.description || '').toLowerCase();
+    const pCode = (port.portCode || '').toLowerCase();
+    return pName.includes(searchTerm) || pCode.includes(searchTerm);
   });
 
-  this.showPortOfDischargeDropdown = true;
+  this.showPortOfDischargeDropdown = this.filteredPortsOfDischarge.length > 0;
+  this.activePODIndex = -1;
 }
+
+// 2. Select Logic
 selectPortOfDischarge(port: any) {
   if (!port) return;
-  
   this.quotation.portOfDestination = port.name || port.portName || port.PortName || '';
   this.quotation.portOfDestinationCode = port.portCode || '';
   this.showPortOfDischargeDropdown = false;
   this.filteredPortsOfDischarge = [];
+  this.activePODIndex = -1;
 }
+
+// 3. Keyboard Navigation
+onPODKeyDown(event: KeyboardEvent) {
+  if (!this.showPortOfDischargeDropdown) return;
+
+  if (event.key === 'ArrowDown') {
+    event.preventDefault();
+    if (this.activePODIndex < this.filteredPortsOfDischarge.length - 1) this.activePODIndex++;
+  } else if (event.key === 'ArrowUp') {
+    event.preventDefault();
+    if (this.activePODIndex > 0) this.activePODIndex--;
+  } else if (event.key === 'Enter') {
+    event.preventDefault();
+    const selected = this.activePODIndex >= 0 ? this.filteredPortsOfDischarge[this.activePODIndex] : this.filteredPortsOfDischarge[0];
+    this.selectPortOfDischarge(selected);
+  }
+}
+
+// 4. Outside Click (Ensure ElementRef is injected)
+
 
   // --- Selection Logic ---
 //  selectLead(lead: any) {
@@ -4832,6 +4940,17 @@ toggleUnitModal(event: Event) {
   clickout(event: any) {
     if (!this.el.nativeElement.contains(event.target)) {
       this.isUnitModalOpen = false;
+        this.showOriginDropdown = false;
+    this.showCountryDropdown = false;
     }
+      if (this.el && !this.el.nativeElement.contains(event.target)) {
+    this.showPortOfLoadingDropdown = false;
+  }
+    if (this.el && !this.el.nativeElement.contains(event.target)) {
+    this.showPortOfDischargeDropdown = false;
+  }
+    if (this.el && !this.el.nativeElement.contains(event.target)) {
+    this.showFinalDestinationDropdown = false;
+  }
   }
 }

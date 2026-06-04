@@ -38,4 +38,8 @@ export class AuthService {
       })
     );
   }
+  // auth.service.ts
+changePassword(data: any): Observable<any> {
+  return this.http.post(`${environment.apiUrl}/Auth/change-password`, data);
+}
 }

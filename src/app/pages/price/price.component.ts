@@ -321,7 +321,7 @@ AllSearch(){
   this.cdr.detectChanges();
 }
 testing(){
- this.loadPricings();
+ this.onSearch(); 
   this.cdr.detectChanges();
 }
 calculateNetWeight() {
@@ -698,7 +698,8 @@ loadChargeNamesMaster() {
 onLOBChange(event: any) {
   const selectedId = event.target.value;
   const selectedService = this.companyServices.find(s => s.id == selectedId);
-
+console.log(selectedId);
+this.fetchAgentByLobId(selectedId);
   if (!selectedService) return;
 
   const fullName = selectedService.serviceName.trim();
@@ -870,12 +871,7 @@ selectOrigin(origin: any) {
   }
 
   // Core background postal tracking framework agent calling mechanism
-  if (this.originpinCode) {
-    this.fetchAgentByPostCode(this.originpinCode);
-  } else {
-    this.agentDetail = [];
-    console.warn("Operational validation flag anomaly: Pincode reference omitted!");
-  }
+  
   
   this.cdr.detectChanges(); // Multi-carrier dataset visual buffer refresh
 }
@@ -895,9 +891,28 @@ fetchAgentByPostCode(postCode: string | number) {
     }
   });
 }
+
+fetchAgentByLobId(lobId: string | number) {
+  // Pincode ki jagah ab sirf lobId jaayega URL mein
+  const url = `${environment.apiUrl}/OrgBranch/GetByLobIdAgent/${lobId}`;
+  
+  this.http.get<any[]>(url).subscribe({
+    next: (res) => {
+      this.agentDetail = res; // API ka pura data array mein save
+      
+      // Force change detection agar zarurat ho
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error("Agent fetch fail ho gaya bhai:", err);
+      this.agentDetail = []; // Error aane par array clear
+    }
+  });
+}
 onAgentSelect(event: any, agent: any) {
-  const email = agent.email || agent.Email;
-  const branch = agent.branchName || agent.BranchName || "Global";
+  console.log("Agent selection event:", agent);
+  const email = agent.emailAddress || agent.emailAddress;
+  const branch = agent.branchName || agent.branchName || "Global";
 
   if (!email) return;
 
@@ -1896,7 +1911,7 @@ onSearch() {
 
   if (isBlank) {
     this.currentPage = 1; 
-    this.loadPricings(); 
+    this.onSearch();  
     return;
   }
 
@@ -1972,7 +1987,7 @@ onPageChange(page: number) {
     this.paginatedPricings = this.pricings.slice(startIndex, startIndex + this.pageSize);
   } else {
     // Server-side pagination (All data ke liye API call karo)
-    this.loadPricings();
+    this.onSearch(); 
   }
   
   this.cdr.detectChanges();
@@ -3317,7 +3332,7 @@ loadPricings() {
 setPage(page: number) {
   if (page < 1 || page > this.totalPages) return;
   this.currentPage = page;
-  this.loadPricings(); // Fetch new data from server
+  this.onSearch();  // Fetch new data from server
 }
 
 get totalPages(): number {
@@ -3464,7 +3479,7 @@ saveQuotation() {
     next: (res: any) => {
       this.sendBulkEmails(res.id);
       Swal.fire('Saved!', 'Pricing, Commodity docs, and Invoices saved successfully!', 'success');
-      this.loadPricings(); 
+      this.onSearch();  
       this.isFormOpen = false;
       this.cdr.detectChanges();
     },
@@ -3679,6 +3694,7 @@ isPortSelected(port: any): boolean {
 commodityDocuments: any[] = [];
   packageOrInvoiceDocuments: any[] = [];
 selectInquiry(inq: any) {
+
   if (!inq || !inq.inquiryNo) {
     console.error("❌ Inquiry No missing!");
     return;
@@ -3734,8 +3750,10 @@ selectInquiry(inq: any) {
 
       // --- 3. Line of Business (LOB) ---
       this.quotation.lineOfBusinessId = data.lineOfBusinessId ? Number(data.lineOfBusinessId) : null;
-
-      // --- 4. Transport Mode & Type ---
+      
+// if (this.quotation.lineOfBusinessId) {
+//     this.fetchAgentByLobId(this.quotation.lineOfBusinessId);
+// }      // --- 4. Transport Mode & Type ---
       if (data.transportMode) {
         const modeObj = this.transportModes.find(m =>
           m.name.toLowerCase() === data.transportMode.toLowerCase() ||
@@ -4496,7 +4514,7 @@ sendBulkEmails(inqId: number) {
 //     this.http.delete(`${environment.apiUrl}/api/Pricing/${id}`, httpOptions).subscribe({
 //       next: () => {
 //         alert("Pricing deleted successfully!");
-//         this.loadPricings(); // Table refresh karein
+//         this.onSearch();  // Table refresh karein
 //       },
 //       error: (err) => {
 //         console.error("Delete Error:", err);

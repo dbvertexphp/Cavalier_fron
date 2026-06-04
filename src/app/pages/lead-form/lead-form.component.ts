@@ -144,6 +144,35 @@ this.loadColumnSettings();
     this.getReportingManagers(); // Isse call karna mat bhulna!
      // Important: Leads load first to calculate number
   }
+  fetchNextLeadNoFromApi(): void {
+  // Safe execution checker: Agar edit state active hai toh backend mapping block execute nahi hoga
+  const highlightId = this.route.snapshot.queryParams['highlightId'];
+  if (this.isEditMode || highlightId) {
+    return;
+  }
+
+  const token = localStorage.getItem('cavalier_token');
+  const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+
+  // LeadsController ka naya endpoint target kiya hai
+  this.http.get<any>(`${environment.apiUrl}/Leads/nextLeadNo`, { headers }).subscribe({
+    next: (res) => {
+      if (res && res.nextLeadNo) {
+        this.nextLeadNo = res.nextLeadNo;
+        console.log(res.nextLeadNo);
+        // Form controls ko safe dynamic path assignment mapping updates handle karne ke liye
+       
+        this.cdr.detectChanges();
+        console.log('Backend standard lead no fetched:', this.nextLeadNo);
+      }
+    },
+    error: (err) => {
+      console.error('Error fetching next lead number from server API:', err);
+      // Fallback architecture system safety handle
+      this.calculateNextLeadNo();
+    }
+  });
+}
   
  updatePagination() {
     // Total pages count recalculate karein
@@ -582,7 +611,7 @@ onDeleteLead(id: any) {
           
           // 2. Alert ko baad mein dikhao taaki UI na ruke
           setTimeout(() => {
-            this.loadLeads(); // Backend se sync
+            this.onLeadSearch(); // Backend se sync
             this.cdr.detectChanges();
             console.log('Lead Deleted Successfully!');
           }, 100);
@@ -590,11 +619,11 @@ onDeleteLead(id: any) {
         error: (err) => {
           console.error('Delete Error:', err);
           if (err.status === 200) {
-            this.loadLeads();
+            this.onLeadSearch();
             this.cdr.detectChanges();
           } else {
             alert('Delete fail !');
-            this.loadLeads(); // Fail hone par wapas laao
+            this.onLeadSearch(); // Fail hone par wapas laao
             this.cdr.detectChanges();
           }
         }
@@ -703,6 +732,14 @@ selectOrg(org: any) {
 
   toggleForm() {
     this.isFormOpen = !this.isFormOpen;
+    this.isEditMode = false;
+  this.selectedLeadId = null;
+  this.leadForm.reset();
+  this.nextLeadNo = '';
+  
+  this.initForm();  
+  this.fetchNextLeadNoFromApi();
+    
   }
 
 
@@ -890,7 +927,8 @@ resetFormAfterSave() {
   this.nextLeadNo = '';
   
   this.initForm();        // Default values reset karne ke liye
-  this.loadLeads();       // Table refresh
+   this.onLeadSearch();               // Turant search trigger (Jaise Inq/Quo mein hota hai)
+       // Table refresh
 }
 clearFilters() {
   this.leadForm.reset();

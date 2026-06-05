@@ -775,29 +775,38 @@ onLOBChange(event: any) {
   const fullName = selectedService.serviceName.trim();
   this.quotation.lineOfBusinessName = fullName;
 
-  // Single Carrier Table (costRows) auto-fill logic
+  // 1. Existing sync logic
   if (this.costRows && this.costRows.length > 0) {
     this.costRows[0].lob = fullName;
   }
 
-  // 🔥 CORE REQUIREMENT: Multi-Carrier Matrix Table entries synchronizer
   if (this.multiCarrierRows && this.multiCarrierRows.length > 0) {
     this.multiCarrierRows.forEach((row: any) => {
-      row.lob = fullName; // Matrix UI option dropdown values synced instantly
+      row.lob = fullName;
     });
   }
 
-  // Existing Transport Mode allocation module
-  const parts = fullName.split(/[\s\-]+/);
+  // 2. Enhanced Logic: Auto-detect Transport Mode AND Transport Type
+  // Explicitly defined type string[] to avoid TS7006 error
+  const parts: string[] = fullName.split(/[\s\-]+/); 
+  
   if (parts.length >= 1) {
+    // Mode Detect (e.g., Air, Sea)
     const modeName = parts[0];
     const modeObj = this.transportModes.find(m => m.name.toLowerCase() === modeName.toLowerCase());
     if (modeObj) {
       this.quotation.TransportMode = modeObj.id;
     }
+
+    // Type Detect (e.g., Export, Import)
+    const typeKeyword = parts.find(p => ['export', 'import'].includes(p.toLowerCase()));
+    if (typeKeyword) {
+      // First letter capital karke save karein (Export/Import)
+      this.quotation.TransportType = typeKeyword.charAt(0).toUpperCase() + typeKeyword.slice(1).toLowerCase();
+    }
   }
   
-  this.cdr.detectChanges(); // Direct UI transformation broadcast
+  this.cdr.detectChanges(); 
 }
     getIncoTerms() {
     this.http.get<any[]>(`${environment.apiUrl}/IncoTerms`).subscribe({
@@ -928,25 +937,28 @@ fetchCompanyServices() {
 
   // --- Selection Logic ---
 selectOrigin(origin: any) {
-  // Basic model parameters mapping sequence
+  // Mapping logic
   this.originsaveid = origin.id;
   this.originpinCode = origin.countryCode;
-  this.inquiry.origin = origin.portName; 
+
+  // FIX: Input (inquiry.origin) mein wahi property daalein jo UI (origin.name) mein hai
+  this.inquiry.origin = origin.name; 
+  
+  // Country auto-fill
+  this.quotation.country = origin.countryName || origin.country; 
+  
   this.showOriginDropdown = false;
 
-  console.log("Selected Origin Meta-Data Sequence:", origin);
+  console.log("Selected Origin:", origin);
 
-  // 🔥 CORE REQUIREMENT: Multi-Carrier Grid structure data population
+  // Multi-Carrier Grid update
   if (this.multiCarrierRows && this.multiCarrierRows.length > 0) {
     this.multiCarrierRows.forEach((row: any) => {
-      row.origin = origin.portName; // Real-time entry data binding
+      row.origin = origin.name; 
     });
   }
 
-  // Core background postal tracking framework agent calling mechanism
-  
-  
-  this.cdr.detectChanges(); // Multi-carrier dataset visual buffer refresh
+  this.cdr.detectChanges(); 
 }
 onOriginKeyDown(event: any) {
     if (event.key === 'Enter' && this.filteredOrigins.length > 0) {

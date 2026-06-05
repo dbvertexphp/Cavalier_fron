@@ -1272,7 +1272,7 @@ Selection Modal Popup
                   name="lineOfBusinessId"
                   class="border p-1.5 bg-white outline-none"
                 >
-                  <option [value]="null" disabled>Select Business Lines</option>
+                  <option [value]="null" disabled>Select Business Line</option>
 
                   <option
                     *ngFor="let service of companyServices"
@@ -1729,7 +1729,7 @@ Selection Modal Popup
 
     <div class="flex flex-1 items-center">
       <div class="flex flex-1 items-center gap-1">
-        <input type="number" placeholder="BOX" [(ngModel)]="dimRow.box" (input)="calculateVolumeWeight(); updatePreview()" class="w-full border p-2 outline-none text-center rounded-l-sm" />
+        <input type="number" placeholder="BOX" [(ngModel)]="dimRow.box" (input)="calculateVolumeWeight(); updatePreview(); calculateTotalPackages()" class="w-full border p-2 outline-none text-center rounded-l-sm" />
         <input type="number" placeholder="L" [(ngModel)]="dimRow.l" (input)="calculateVolumeWeight(); updatePreview()" class="w-full border p-2 outline-none text-center" />
         <span class="text-gray-400 font-bold">x</span>
         <input type="number" placeholder="W" [(ngModel)]="dimRow.w" (input)="calculateVolumeWeight(); updatePreview()" class="w-full border p-2 outline-none text-center" />
@@ -1743,9 +1743,9 @@ Selection Modal Popup
         </select>
         
         <button type="button" (click)="isDimModalOpen = true" class="bg-green-600 hover:bg-green-700 text-white px-3 h-full flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
-          </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+  </svg>
         </button>
       </div>
 
@@ -2053,7 +2053,7 @@ Selection Modal Popup
               </div>
 
               <!-- Origin -->
-      <div class="flex items-center text-red-700 font-bold">
+     <div class="flex items-center text-red-700 font-bold">
   <label class="w-40">Origin</label>
   <div class="relative flex-1 flex items-center">
     <input
@@ -2062,6 +2062,7 @@ Selection Modal Popup
       placeholder="Search Origin..."
       (input)="onOriginSearchInput()"
       (focus)="showOriginDropdown = true"
+      (blur)="showOriginDropdown = false" 
       (keydown.enter)="onOriginKeyDown($event)"
       class="w-full border p-2 border-red-300 outline-none pr-8 text-[12px] text-gray-700 font-normal"
     />
@@ -2072,13 +2073,13 @@ Selection Modal Popup
     >
       <li
         *ngFor="let origin of filteredOrigins"
-        (click)="selectOrigin(origin)"
+        (mousedown)="selectOrigin(origin)" 
         class="p-2 hover:bg-gray-100 cursor-pointer text-[12px] border-b border-gray-100"
       >
         <div class="font-bold">{{ origin.name }}</div>
         <div class="text-[10px] text-gray-500">{{ origin.countryName }} ({{ origin.isoCode }})</div>
       </li>
-      <li *ngIf="showOriginDropdown && filteredOrigins.length === 0" class="p-3 text-center text-red-500 text-[12px] font-medium">
+      <li *ngIf="filteredOrigins.length === 0" class="p-3 text-center text-red-500 text-[12px] font-medium">
         No Origin Found
       </li>
     </ul>
@@ -2093,20 +2094,14 @@ Selection Modal Popup
       name="country"
       placeholder="Search Country..."
       (input)="onCountrySearch()"
-      (focus)="onCountrySearch()"
+      (focus)="showCountryDropdown = true"
       class="w-full border p-2 border-red-300 outline-none pr-8 text-[12px]"
-      autocomplete="off"
     />
-    
     <ul
-      *ngIf="showCountryDropdown && filteredCountries.length > 0"
-      class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto text-gray-700 text-[12px]"
+      *ngIf="showCountryDropdown"
+      class="absolute top-full left-0 z-10 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto text-gray-700 text-[12px]"
     >
-      <li 
-        *ngFor="let c of filteredCountries" 
-        (click)="selectCountry(c)" 
-        class="p-2 hover:bg-gray-100 cursor-pointer transition-colors duration-150"
-      >
+      <li *ngFor="let c of filteredCountries" (click)="selectCountry(c)" class="p-2 hover:bg-gray-100 cursor-pointer">
         {{ c.name }}
       </li>
     </ul>
@@ -2631,26 +2626,14 @@ Selection Modal Popup
                         </td>
 
                         <td class="px-2 py-2">
-        <input 
-          [(ngModel)]="m.origin" 
-          name="mOrigin-{{i}}"
-          class="w-20 text-center outline-none border-b border-transparent focus:border-gray-300 bg-transparent uppercase font-medium transition-colors" 
-          placeholder="Origin"
-        />
-    </td>
+                            <input [(ngModel)]="m.origin" class="w-20 text-center outline-none border-b border-transparent focus:border-gray-300 bg-transparent uppercase" placeholder="Origin">
+                        </td>
 
                         <td class="px-2 py-2">
-        <select 
-          [(ngModel)]="m.lob" 
-          name="mLob-{{i}}"
-          class="w-32 bg-transparent border-b border-transparent focus:border-amber-500 outline-none font-medium transition-colors"
-        >
-            <option value="" disabled>Select LOB</option>
-            <option *ngFor="let service of companyServices" [value]="service.serviceName">
-                {{ service.serviceName }}
-            </option>
-        </select>
-    </td>
+                            <select [(ngModel)]="m.lob" class="w-32 bg-transparent border-b border-transparent focus:border-amber-500 outline-none font-medium">
+                            <option *ngFor="let service of companyServices" [value]="service.serviceName"> {{ service.serviceName }}</option>
+                            </select>
+                        </td>
 
                         <td class="px-2 py-2">
                             <select [(ngModel)]="m.chargeName" class="w-36 bg-transparent border-b border-transparent focus:border-amber-500 outline-none italic">
@@ -2784,272 +2767,137 @@ Selection Modal Popup
             </button>
           </div>
         </div>
-        <div class="main-content-area">
-          <div
-            *ngIf="isPreviewMode"
-            class="fixed inset-0 z-[1050] flex items-center justify-center p-2 md:p-4 bg-black/80 backdrop-blur-sm"
+       <div class="main-content-area">
+  <div
+    *ngIf="isPreviewMode"
+    class="fixed inset-0 z-[1050] flex items-center justify-center p-2 md:p-4 bg-black/80 backdrop-blur-sm"
+  >
+    <div
+      class="relative w-full max-w-4xl mx-auto shadow-2xl animate-in fade-in zoom-in duration-200"
+    >
+      <!-- Modal Container fixed to 75vh -->
+      <div
+        class="relative flex flex-col w-full bg-gray-50 border-4 border-dashed border-[#4a3f3f] h-[75vh] overflow-hidden rounded-sm"
+      >
+        <!-- Header: Sticky -->
+        <div
+          class="shrink-0 sticky top-0 z-50 bg-gray-50 px-4 md:px-6 py-4 border-b-2 border-[#4a3f3f] flex justify-between items-center"
+        >
+          <h3
+            class="text-lg md:text-2xl font-black text-[#4a3f3f] uppercase tracking-tighter italic flex items-center gap-2"
           >
-            <div
-              class="relative w-full max-w-4xl mx-auto shadow-2xl animate-in fade-in zoom-in duration-200"
+            <span>🔍</span> INQUIRY DETAILS
+          </h3>
+          <div class="flex items-center gap-2 md:gap-4">
+            <span class="hidden sm:block bg-[#4a3f3f] text-white px-3 py-1 text-[10px] font-bold uppercase italic tracking-widest">
+              Cavalier Logistics
+            </span>
+            <button
+              (click)="backToEdit()"
+              class="text-[#4a3f3f] hover:text-red-600 transition-all hover:rotate-90 text-3xl font-bold leading-none p-1"
             >
-              <div
-                class="relative flex flex-col w-full bg-gray-50 border-4 border-dashed border-[#4a3f3f] max-h-[92vh] overflow-hidden rounded-sm"
-              >
-                <div
-                  class="sticky top-0 z-50 bg-gray-50 px-4 md:px-6 py-4 border-b-2 border-[#4a3f3f] flex justify-between items-center"
-                >
-                  <h3
-                    class="text-lg md:text-2xl font-black text-[#4a3f3f] uppercase tracking-tighter italic flex items-center gap-2"
-                  >
-                    <span>🔍</span> INQUIRY DETAILS
-                  </h3>
-
-                  <div class="flex items-center gap-2 md:gap-4">
-                    <span
-                      class="hidden sm:block bg-[#4a3f3f] text-white px-3 py-1 text-[10px] font-bold uppercase italic tracking-widest"
-                    >
-                      Cavalier Logistics
-                    </span>
-                    <button
-                      (click)="backToEdit()"
-                      class="text-[#4a3f3f] hover:text-red-600 transition-all hover:rotate-90 text-3xl font-bold leading-none p-1"
-                    >
-                      &times;
-                    </button>
-                  </div>
-                </div>
-
-                <div
-                  class="p-4 md:p-8 overflow-y-auto custom-scrollbar bg-gray-50"
-                >
-                  <div
-                    class="bg-white border-2 border-gray-200 overflow-hidden shadow-sm"
-                  >
-                    <table class="w-full text-left border-collapse">
-                      <tbody class="divide-y divide-gray-200">
-                        <tr>
-                          <td
-                            class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase w-1/3"
-                          >
-                            Line of Business
-                          </td>
-                          <td
-                            class="p-3 md:p-4 text-gray-800 text-sm font-semibold"
-                          >
-                            {{
-                              quotation.lineOfBusinessName ||
-                                getLabel(
-                                  companyServices,
-                                  quotation.lineOfBusinessId
-                                )
-                            }}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td
-                            class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase"
-                          >
-                            Cargo Status
-                          </td>
-                          <td
-                            class="p-3 md:p-4 text-orange-600 font-black text-sm uppercase italic"
-                          >
-                            {{ quotation.cargoStatusType || "Pending" }}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td
-                            class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase"
-                          >
-                            Commodity
-                          </td>
-                          <td
-                            class="p-3 md:p-4 text-gray-800 text-sm font-medium"
-                          >
-                            {{
-                              quotation.commodityName ||
-                                getLabel(
-                                  commodityTypes,
-                                  quotation.commodityId
-                                ) ||
-                                "General Cargo"
-                            }}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td
-                            class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase"
-                          >
-                            No. of Pkgs
-                          </td>
-                          <td class="p-3 md:p-4 text-gray-800 text-sm">
-                            {{ quotation.noOfPkgs }}
-                            {{ quotation.packageUnit || "PKGS" }}
-                          </td>
-                        </tr>
-                        <tr>
-  <td class="p-3 bg-gray-50 font-bold text-gray-600 uppercase text-xs">Dimensions Log</td>
-  <td class="p-3 text-sm text-gray-700 align-top">
-  <div class="font-bold text-gray-800 border-b pb-1 mb-2 text-xs uppercase">
-    Total Packages: {{ getTotalPackageCount() }}
-  </div>
-
-  <div class="space-y-2">
-    <div *ngFor="let group of getCombinedGroupedDimensions()" 
-         class="bg-gray-50 p-2 rounded border border-gray-200">
-      
-      <div class="text-[11px] font-bold text-gray-900">
-        Dimensions 
-        <span class="text-blue-600">= {{ group.totalBoxQty }} {{ quotation.noOfPkgsUnit || 'Packages' }}</span>
-      </div>
-      
-      <div class="text-[12px] text-gray-600 mt-0.5">
-        {{ group.l }} x {{ group.w }} x {{ group.h }} {{ group.unit }}
-      </div>
-      
-    </div>
-  </div>
-</td>
-</tr>
-                        <tr>
-                          <td
-                            class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase"
-                          >
-                            Gross Weight
-                          </td>
-                          <td
-                            class="p-3 md:p-4 text-gray-800 text-sm font-bold"
-                          >
-                            {{ quotation.grossWeightKg }}
-                            {{ quotation.weightUnit || "KGS" }}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td
-                            class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase"
-                          >
-                            Volume Weight
-                          </td>
-                          <td class="p-3 md:p-4 text-gray-800 text-sm">
-                            {{ quotation.volumeWeight }}
-                            {{ quotation.volumeUnit || "KGS" }}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td
-                            class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase"
-                          >
-                            Chg. Weight
-                          </td>
-                          <td
-                            class="p-3 md:p-4 text-[#4a3f3f] font-black text-base"
-                          >
-                            {{ quotation.chargeableWeight }}
-                            {{ quotation.weightUnit || "KGS" }}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td
-                            class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase"
-                          >
-                            Inco-Term
-                          </td>
-                          <td class="p-3 md:p-4 text-gray-800 text-sm">
-                            {{ showincoterms || "N/A" }}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td
-                            class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase"
-                          >
-                            Origin / Final Destination
-                          </td>
-                          <td
-                            class="p-3 md:p-4 text-gray-800 text-xs md:text-sm font-bold flex items-center gap-2"
-                          >
-                            {{ inquiry.origin }}
-                            <span class="text-orange-500">➜</span>
-                            {{ quotation.finalDestination }}
-                          </td>
-                        </tr>
-                        <!-- <tr>
-                          <td
-                            class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase border-b-0"
-                          >
-                            Pick-up Address
-                          </td>
-                          <td
-                            class="p-3 md:p-4 text-gray-800 text-xs italic border-b-0"
-                          >
-                            {{ quotation.pickupAddress || "N/A" }}
-                          </td>
-                        </tr> -->
-                      </tbody>
-                    </table>
-                  </div>
-<!-- 🔥 AGENT & COORDINATION SECTION (Clean Vertical Stack Design) -->
-<!-- 🔥 AGENT BRANCH LIST ONLY -->
- <div class="mt-8 border-t-4 border-[#4a3f3f] pt-6">
-  <h3 class="text-lg md:text-2xl font-black text-[#4a3f3f] uppercase tracking-tighter italic mb-6 flex items-center gap-2">
-    <span>🕵️</span> ASSIGNED BRANCHES
-  </h3>
-  
-  <div class="bg-white p-6 border-2 border-gray-200 shadow-sm rounded-sm">
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      
-      <!-- Loop through agentDetail array -->
-      <label *ngFor="let agent of agentDetail" 
-        class="flex items-center gap-4 cursor-pointer group p-4 border border-gray-100 hover:bg-gray-50 hover:border-[#4a3f3f] rounded-lg transition-all shadow-sm">
-        
-        <!-- Checkbox -->
-        <div class="flex items-center justify-center">
-          <input type="checkbox" (change)="onAgentSelect($event, agent)"
-            class="w-5 h-5 accent-[#4a3f3f] cursor-pointer rounded border-gray-300 focus:ring-[#4a3f3f]">
-        </div>
-        
-        <!-- Branch Name Only -->
-        <div class="flex flex-col">
-          <span class="text-sm md:text-base font-black text-gray-800 group-hover:text-[#4a3f3f] uppercase tracking-tight">
-            {{ agent.branchName }}
-          </span>
-          <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">
-            Designated Branch
-          </span>
+              &times;
+            </button>
+          </div>
         </div>
 
-      </label>
+        <!-- Scrollable Content Area -->
+        <div class="flex-1 overflow-y-auto custom-scrollbar bg-gray-50 p-4 md:p-8">
+          <!-- Inquiry Table -->
+          <div class="bg-white border-2 border-gray-200 overflow-hidden shadow-sm">
+            <table class="w-full text-left border-collapse">
+              <tbody class="divide-y divide-gray-200">
+                <tr>
+                  <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase w-1/3">Line of Business</td>
+                  <td class="p-3 md:p-4 text-gray-800 text-sm font-semibold">{{ quotation.lineOfBusinessName || getLabel(companyServices, quotation.lineOfBusinessId) }}</td>
+                </tr>
+                <tr>
+                  <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Cargo Status</td>
+                  <td class="p-3 md:p-4 text-orange-600 font-black text-sm uppercase italic">{{ quotation.cargoStatusType || "Pending" }}</td>
+                </tr>
+                <tr>
+                  <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Commodity</td>
+                  <td class="p-3 md:p-4 text-gray-800 text-sm font-medium">{{ quotation.commodityName || getLabel(commodityTypes, quotation.commodityId) || "General Cargo" }}</td>
+                </tr>
+                <tr>
+                  <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">No. of Pkgs</td>
+                  <td class="p-3 md:p-4 text-gray-800 text-sm">{{ quotation.noOfPkgs }} {{ quotation.noOfPkgsUnit || "PKGS" }}</td>
+                </tr>
+                <tr>
+                  <td class="p-3 bg-gray-50 font-bold text-gray-600 uppercase text-xs">Dimensions Log</td>
+                  <td class="p-3 text-sm text-gray-700 align-top">
+                    <div class="font-bold text-gray-800 border-b pb-1 mb-2 text-xs uppercase">Total Packages: {{ getTotalPackageCount() }}</div>
+                    <div class="space-y-2">
+                      <div *ngFor="let group of getCombinedGroupedDimensions()" class="bg-gray-50 p-2 rounded border border-gray-200">
+                        <div class="text-[11px] font-bold text-gray-900">Dimensions <span class="text-blue-600">= {{ group.totalBoxQty }} {{ quotation.noOfPkgsUnit || 'Packages' }}</span></div>
+                        <div class="text-[12px] text-gray-600 mt-0.5">{{ group.l }} x {{ group.w }} x {{ group.h }} {{ group.unit }}</div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Gross Weight</td>
+                  <td class="p-3 md:p-4 text-gray-800 text-sm font-bold">{{ quotation.grossWeightKg }} {{ quotation.weightUnit || "KGS" }}</td>
+                </tr>
+                <tr>
+                  <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Volume Weight</td>
+                  <td class="p-3 md:p-4 text-gray-800 text-sm">{{ quotation.volumeWeight }} {{ quotation.volumeUnit || "KGS" }}</td>
+                </tr>
+                <tr>
+                  <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Chg. Weight</td>
+                  <td class="p-3 md:p-4 text-[#4a3f3f] font-black text-base">{{ quotation.chargeableWeight }} {{ quotation.weightUnit || "KGS" }}</td>
+                </tr>
+                <tr>
+                  <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Inco-Term</td>
+                  <td class="p-3 md:p-4 text-gray-800 text-sm">{{ showincoterms || "N/A" }}</td>
+                </tr>
+                <tr>
+                  <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Origin / Final Destination</td>
+                  <td class="p-3 md:p-4 text-gray-800 text-xs md:text-sm font-bold flex items-center gap-2">
+                    {{ inquiry.origin }} <span class="text-orange-500">➜</span> {{ quotation.finalDestination }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-      <!-- Empty State agar data na ho -->
-      <div *ngIf="agentDetail.length === 0" class="col-span-full py-10 text-center border-2 border-dashed border-gray-100 rounded-xl">
-        <p class="text-gray-400 font-bold italic uppercase text-sm tracking-widest">
-          No Branches Found for this Pincode
-        </p>
-      </div>
-
-    </div>
-  </div>
-</div> 
-                  <div
-                    class="mt-8 flex flex-col sm:flex-row justify-end gap-3 md:gap-4"
-                  >
-                    <button
-                      (click)="backToEdit()"
-                      class="order-2 sm:order-1 bg-white border-4 border-orange-500 text-orange-600 px-6 md:px-10 py-2.5 font-black hover:bg-orange-500 hover:text-white transition-all duration-300 uppercase text-xs md:text-sm"
-                    >
-                      Edit Data
-                    </button>
-                    <button
-                      (click)="saveQuotation()"
-                      class="order-1 sm:order-2 bg-[#4a3f3f] text-white px-8 md:px-16 py-2.5 font-black shadow-lg hover:bg-black transition-all duration-300 uppercase tracking-widest border-4 border-[#4a3f3f] text-xs md:text-sm"
-                    >
-                      Confirm & Submit
-                    </button>
+          <!-- Agent Selection Section -->
+          <div class="mt-8 border-t-4 border-[#4a3f3f] pt-6">
+            <h3 class="text-lg md:text-2xl font-black text-[#4a3f3f] uppercase tracking-tighter italic mb-6 flex items-center gap-2">
+              <span>🕵️</span> ASSIGNED BRANCHES
+            </h3>
+            <div class="bg-white p-6 border-2 border-gray-200 shadow-sm rounded-sm">
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <label *ngFor="let agent of agentDetail" class="flex items-center gap-4 cursor-pointer group p-4 border border-gray-100 hover:bg-gray-50 hover:border-[#4a3f3f] rounded-lg transition-all shadow-sm">
+                  <div class="flex items-center justify-center">
+                    <input type="checkbox" (change)="onAgentSelect($event, agent)" class="w-5 h-5 accent-[#4a3f3f] cursor-pointer rounded border-gray-300 focus:ring-[#4a3f3f]">
                   </div>
+                  <div class="flex flex-col">
+                    <span class="text-sm md:text-base font-black text-gray-800 group-hover:text-[#4a3f3f] uppercase tracking-tight">{{ agent.branchName }}</span>
+                    <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Designated Branch</span>
+                  </div>
+                </label>
+                <div *ngIf="agentDetail.length === 0" class="col-span-full py-10 text-center border-2 border-dashed border-gray-100 rounded-xl">
+                  <p class="text-gray-400 font-bold italic uppercase text-sm tracking-widest">No Branches Found for this Pincode</p>
                 </div>
               </div>
             </div>
           </div>
+
+          <!-- Action Buttons -->
+          <div class="mt-8 flex flex-col sm:flex-row justify-end gap-3 md:gap-4 pb-4">
+            <button (click)="backToEdit()" class="order-2 sm:order-1 bg-white border-4 border-orange-500 text-orange-600 px-6 md:px-10 py-2.5 font-black hover:bg-orange-500 hover:text-white transition-all duration-300 uppercase text-xs md:text-sm">
+              Edit Data
+            </button>
+            <button (click)="saveQuotation()" class="order-1 sm:order-2 bg-[#4a3f3f] text-white px-8 md:px-16 py-2.5 font-black shadow-lg hover:bg-black transition-all duration-300 uppercase tracking-widest border-4 border-[#4a3f3f] text-xs md:text-sm">
+              Confirm & Submit
+            </button>
+          </div>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
       </div>
     </div>
   </div>

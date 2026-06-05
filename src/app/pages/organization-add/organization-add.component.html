@@ -587,16 +587,17 @@
       </div>
     </div>
 <div *ngIf="showColumnModal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-  <div class="bg-white rounded-xl shadow-2xl w-full max-w-[600px] overflow-hidden animate-in fade-in zoom-in duration-200">
-    <div class="p-4 bg-gray-100 border-b flex justify-between items-center font-bold text-gray-700">
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-[600px] flex flex-col max-h-[75vh] animate-in fade-in zoom-in duration-200">
+    
+    <div class="shrink-0 p-4 bg-gray-100 border-b flex justify-between items-center font-bold text-gray-700 rounded-t-xl">
       <span class="flex items-center gap-2">⚙️ Manage Table Columns</span>
       <button (click)="closeColumnModal()" class="text-2xl hover:text-red-500">&times;</button>
     </div>
     
-    <div class="p-6 grid grid-cols-2 gap-6" cdkDropListGroup>
+    <div class="flex-1 overflow-y-auto p-6 grid grid-cols-2 gap-6" cdkDropListGroup>
       <div>
         <p class="text-[10px] uppercase font-black text-gray-400 mb-2 tracking-widest">Available (Hidden)</p>
-        <div cdkDropList [cdkDropListData]="availableColumns" (cdkDropListDropped)="drop($event)" class="min-h-[300px] border-2 border-dashed border-gray-200 rounded-lg p-2 bg-gray-50">
+        <div cdkDropList [cdkDropListData]="availableColumns" (cdkDropListDropped)="drop($event)" class="min-h-[250px] border-2 border-dashed border-gray-200 rounded-lg p-2 bg-gray-50">
           <div *ngFor="let col of availableColumns" cdkDrag class="bg-white border p-3 mb-2 rounded shadow-sm cursor-move text-[12px] font-bold text-gray-600 hover:border-blue-400">
             {{ col }}
           </div>
@@ -604,7 +605,7 @@
       </div>
       <div>
         <p class="text-[10px] uppercase font-black text-blue-500 mb-2 tracking-widest">Visible In Table</p>
-        <div cdkDropList [cdkDropListData]="selectedColumns" (cdkDropListDropped)="drop($event)" class="min-h-[300px] border-2 border-blue-100 rounded-lg p-2 bg-blue-50">
+        <div cdkDropList [cdkDropListData]="selectedColumns" (cdkDropListDropped)="drop($event)" class="min-h-[250px] border-2 border-blue-100 rounded-lg p-2 bg-blue-50">
           <div *ngFor="let col of selectedColumns" cdkDrag class="bg-white border-blue-200 border p-3 mb-2 rounded shadow-sm cursor-move text-[12px] font-bold text-blue-700 hover:bg-blue-100">
             {{ col }}
           </div>
@@ -612,7 +613,7 @@
       </div>
     </div>
     
-    <div class="p-4 bg-gray-100 border-t flex justify-end gap-3">
+    <div class="shrink-0 p-4 bg-gray-100 border-t flex justify-end gap-3 rounded-b-xl">
       <button (click)="closeColumnModal()" class="bg-blue-600 text-white px-8 py-2 rounded-lg font-bold shadow-lg hover:bg-blue-700 transition-all">Save Changes</button>
     </div>
   </div>

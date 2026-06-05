@@ -1763,17 +1763,45 @@
       </div>
 
       <div class="flex items-center text-red-700 font-bold">
-        <label class="w-40 ml-6 font-bold text-gray-700">Final Dest</label>
-        <div class="flex flex-1 items-center gap-2">
-          <div class="relative w-60">
-            <input name="finalDestination" [(ngModel)]="quotation.podFinalDest" (input)="onFinalDestinationSearch()" placeholder="Search Final Dest..." class="w-full border p-2 border-red-300 outline-none text-[12px]" />
-            <ul *ngIf="showFinalDestinationDropdown" class="absolute top-full left-0 z-10 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto text-gray-700 text-[12px]">
-              <li *ngFor="let port of filteredFinalDestinations" (click)="selectFinalDestination(port)" class="p-2 hover:bg-gray-100 cursor-pointer">{{ port.portName || port.name }} ({{ port.portCode }})</li>
-            </ul>
-          </div>
-          <input [(ngModel)]="quotation.finalDestinationCode" name="finalDestinationCode" placeholder="Code" class="w-20 border p-2 border-red-300 outline-none text-[12px] text-center" />
-        </div>
-      </div>
+  <label class="w-40 ml-6 font-bold text-gray-700">Final Dest</label>
+  <div class="flex flex-1 items-center gap-2">
+    
+    <div class="relative w-20">
+      <input 
+        [(ngModel)]="quotation.finalDestinationCode" 
+        (input)="onCodeInput()"
+        (focus)="showFinalDestinationDropdown = true"
+        (blur)="showFinalDestinationDropdown = false"
+        name="finalDestinationCode" 
+        placeholder="Code" 
+        class="w-full border p-2 border-red-300 outline-none text-[12px] text-center" 
+      />
+    </div>
+
+    <div class="relative w-60">
+      <input 
+        name="finalDestination" 
+        [(ngModel)]="quotation.podFinalDest" 
+        (input)="onFinalDestinationSearch()" 
+        (keydown)="onFinalKeyDown($event)"
+        (focus)="showFinalDestinationDropdown = true"
+        (blur)="showFinalDestinationDropdown = false"
+        placeholder="Search Name..." 
+        class="w-full border p-2 border-red-300 outline-none text-[12px]" 
+      />
+      
+      <ul *ngIf="showFinalDestinationDropdown" 
+          class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto text-gray-700 text-[12px]">
+        <li *ngFor="let port of filteredFinalDestinations; let i = index" 
+            (mousedown)="selectFinalDestination(port)"
+            [class.bg-blue-100]="i === highlightedIndex"
+            class="p-2 hover:bg-blue-50 cursor-pointer border-b">
+          {{ port.portCode }} - {{ port.portName || port.name }}
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
     </div>
   </div>
 

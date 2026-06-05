@@ -3217,36 +3217,81 @@ loadPortsFromApi() {
 }
 
 // 2. Search logic (Search term ke basis par filter karega)
+// Variables
+highlightedIndex: number = -1;
+
+// 1. Search Logic (Name aur Code dono ke liye)
 onFinalDestinationSearch() {
   const searchTerm = (this.quotation.podFinalDest || '').toString().trim().toLowerCase();
-
-  if (searchTerm === '') {
-    this.showFinalDestinationDropdown = false;
-    this.filteredFinalDestinations = [];
-    return;
-  }
-
-  // Master list se filter
-  this.filteredFinalDestinations = this.portsOfLoading.filter(port => {
-    const portName = port.name || port.portName || port.PortName || port.description || '';
-    return portName.toString().toLowerCase().includes(searchTerm);
-  });
-
-  this.showFinalDestinationDropdown = true;
+  this.performSearch(searchTerm);
 }
 
-// 3. Selection logic
+// 2. Code Input Logic (Auto-fill + List show)
+onCodeInput() {
+  const code = (this.quotation.finalDestinationCode || '').toString().trim().toLowerCase();
+  
+  // Auto-fill logic
+  const match = this.portsOfLoading.find(p => p.portCode?.toString().toLowerCase() === code);
+  if (match) {
+    this.quotation.podFinalDest = match.portName || match.name;
+  }
+  
+  // Dropdown show logic
+  if (code !== '') {
+    this.performSearch(code);
+  } else {
+    this.showFinalDestinationDropdown = false;
+  }
+}
+
+// Common Search Helper
+performSearch(term: string) {
+  this.highlightedIndex = -1;
+  this.filteredFinalDestinations = this.portsOfLoading.filter(port => {
+    const name = (port.name || port.portName || '').toLowerCase();
+    const code = (port.portCode || '').toLowerCase();
+    return name.includes(term) || code.includes(term);
+  });
+  this.showFinalDestinationDropdown = this.filteredFinalDestinations.length > 0;
+}
+
+// // Selection Logic
 selectFinalDestination(port: any) {
   if (!port) return;
-  
-  // Name aur Code dono set ho jayenge
-  this.quotation.podFinalDest = port.name || port.portName || port.PortName || '';
+  this.quotation.podFinalDest = port.portName || port.name || '';
   this.quotation.finalDestinationCode = port.portCode || '';
-  
-  // Dropdown band karein
   this.showFinalDestinationDropdown = false;
   this.filteredFinalDestinations = [];
+  this.highlightedIndex = -1;
 }
+
+// 3. Keyboard Navigation
+onFinalKeyDown(event: KeyboardEvent) {
+  if (!this.showFinalDestinationDropdown) return;
+
+  if (event.key === 'ArrowDown') {
+    event.preventDefault();
+    if (this.highlightedIndex < this.filteredFinalDestinations.length - 1) this.highlightedIndex++;
+  } else if (event.key === 'ArrowUp') {
+    event.preventDefault();
+    if (this.highlightedIndex > 0) this.highlightedIndex--;
+  } else if (event.key === 'Enter') {
+    event.preventDefault();
+    if (this.highlightedIndex > -1) {
+      this.selectFinalDestination(this.filteredFinalDestinations[this.highlightedIndex]);
+    }
+  }
+}
+
+// 4. Selection Logic
+// selectFinalDestination(port: any) {
+//   if (!port) return;
+//   this.quotation.podFinalDest = port.portName || port.name || '';
+//   this.quotation.finalDestinationCode = port.portCode || '';
+//   this.showFinalDestinationDropdown = false;
+//   this.filteredFinalDestinations = [];
+//   this.highlightedIndex = -1;
+// }
 origins: any[] = [];
   countries: any[] = []; // Agar alag se country list chahiye
   filteredOrigins: any[] = [];

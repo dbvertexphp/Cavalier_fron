@@ -1361,18 +1361,21 @@ onTransportModeChange(){
 
 // 4. Save button par calculation trigger karna
 saveDimensions() {
+  // 1. Filter valid dimensions
   this.appliedDimensions = this.dimRows.filter(d => d.l > 0 && d.w > 0 && d.h > 0);
   
-  // Modal save hote hi total weight ko field mein daal do
+  // 2. Calculations
   this.quotation.volumeWeight = this.getTotalVolumeWeight();
   this.calculateCBM();
   this.calculateNetWeight();
   this.calculateVolumeWeightLogic();
   this.syncFinalData();
-  this.calculateTotalPackages(); // Ye line add ki hai
-  this.quotation.dimensions = [...this.dimRows];
   
-  // 2. Preview ko update karne ke liye call karein
+  // 3. Yahan total packages update ho jayenge
+  this.calculateTotalPackages(); 
+  
+  // 4. Save and Update UI
+  this.quotation.dimensions = [...this.dimRows];
   this.updatePreview();
   this.closeDimModal();
 }
@@ -3407,7 +3410,7 @@ toggleConnectingPortModal() {
   this.isCPModalOpen = !this.isCPModalOpen;
   if (!this.isCPModalOpen) this.cpSearchTerm = '';
 }
-  calculateTotalPackages() {
+calculateTotalPackages() {
   if (this.dimRows && this.dimRows.length > 0) {
     this.quotation.noOfPkgs = this.dimRows.reduce((total: number, dim: any) => {
       return total + (Number(dim.box) || 0);

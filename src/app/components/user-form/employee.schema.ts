@@ -35,10 +35,15 @@ dateOfJoining: z.string()
   // Mapped to your TS names
 
 paN_No: z.string()
-  .min(1, "PAN No required ")
-  // Bas uppercase mein convert karega, format ki tension nahi
-  .transform((val) => val.toUpperCase()),
-  aadhaarNo: z.string().regex(/^[0-9]{12}$/, "Invalid Aadhaar"),
+  .min(1, "PAN No required")
+  .trim() // Pehle aage-piche ki khali jagah (spaces) hatayega
+  .toUpperCase() // Zod ka in-built string method jo direct uppercase kar deta hai
+  .regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, "Invalid PAN format (Required: 5 Letters + 4 Numbers + 1 Letter)"),
+
+  // ================= AADHAAR STRICT VALIDATION =================
+  aadhaarNo: z.string()
+    .min(1, "Aadhaar No required")
+    .regex(/^[0-9]{12}$/, "Invalid Aadhaar. Must be exactly 12 numeric digits"),
   
   ctc_Monthly: z.preprocess((val) => String(val), z.string().regex(/^[0-9.]+$/, "CTC must be number")),
 

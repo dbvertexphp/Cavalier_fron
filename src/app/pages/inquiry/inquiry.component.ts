@@ -367,7 +367,7 @@ columnFieldMap: any = {
   'Date': 'receivedDate',
   'Customer': 'customerName',
   'Mode': 'transportMode',
-  // 'Origin': 'origin',
+  'Origin': 'originName',
   'Destination': 'finalDestination', // 'finalDestination' property map kar di
   'Status': 'cargoStatus',
   'Sales Person': 'salesCoordinator'   // 'salesCoordinator' property map kar di
@@ -1832,24 +1832,33 @@ onSearch() {
   // --- ForkJoin Implementation ---
   forkJoin({
     searchResult: this.http.post<any[]>(`${environment.apiUrl}/Inquiry/Search`, filtersToSend, httpOptions),
-    hodList: this.userServices.getHodList()
+    hodList: this.userServices.getHodList(),
+    originList: this.http.get<any[]>(`${environment.apiUrl}/origin/all`, httpOptions)
   }).subscribe({
     next: (res) => {
-      const { searchResult, hodList } = res;
+      const { searchResult, hodList, originList } = res;
       
-      // DEBUG: Yahan dekho console mein kya structure aa raha hai
-      console.log("HOD List Structure:", hodList); 
+      console.log("HOD List:", hodList); 
+      console.log("Origin List:", originList);
+      console.log("First item of Search Result:", searchResult[0]); // Ye zaroor check karna
 
-      // MAPPING LOGIC
-      // Agar console mein 'id' ki jagah kuch aur hai (jaise 'userId'), toh niche badal dena
       const hodMap = new Map(hodList.map((h: any) => [String(h.id), h.name]));
+      
+      // Map creation: ID -> Name
+      const originMap = new Map(originList.map((o: any) => [String(o.id), o.name])); 
 
       this.quotations = searchResult.map(item => {
         const idAsString = String(item.salesCoordinator);
+        
+        // Yahan 'item.originId' check karo. Agar aapke data mein origin ki id 'origin' 
+        // naam ke field mein hai, toh 'item.origin' use karna.
+        const originId = String(item.originId || item.name || ''); 
+        
         return {
           ...item,
-          // Agar map mein naam milta hai, toh wo show karo, nahi toh ID hi dikhegi
-          salesCoordinator: hodMap.has(idAsString) ? hodMap.get(idAsString) : item.salesCoordinator
+          salesCoordinator: hodMap.has(idAsString) ? hodMap.get(idAsString) : item.salesCoordinator,
+          // Agar map mein ID mil gayi toh naam show hoga
+          originName: originMap.has(originId) ? originMap.get(originId) : (item.originName || item.name)
         };
       });
 

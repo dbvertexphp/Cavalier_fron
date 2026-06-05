@@ -11,6 +11,9 @@ import { RouterModule } from '@angular/router';
 import { ThemeToggleButtonComponent } from '../../components/common/theme-toggle/theme-toggle-button.component';
 import { NotificationDropdownComponent } from '../../components/header/notification-dropdown/notification-dropdown.component';
 import { UserDropdownComponent } from '../../components/header/user-dropdown/user-dropdown.component';
+import { NotificationService } from '../../../services/notification.service';
+import { ToastrService } from 'ngx-toastr';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-header',
@@ -18,7 +21,6 @@ import { UserDropdownComponent } from '../../components/header/user-dropdown/use
   imports: [
     CommonModule,
     RouterModule,
-  
     NotificationDropdownComponent,
     UserDropdownComponent,
   ],
@@ -30,10 +32,17 @@ export class AppHeaderComponent implements OnInit, OnDestroy {
   isFullScreen = false;
 
   readonly isMobileOpen$;
+  
+  // 🔥 Live communication memory snapshot trace stream mapping
+  private fcmSubscription!: Subscription;
 
   @ViewChild('searchInput') searchInput!: ElementRef<HTMLInputElement>;
 
-  constructor(public sidebarService: SidebarService) {
+  constructor(
+    public sidebarService: SidebarService,
+    private notificationService: NotificationService,
+    private toastr: ToastrService
+  ) {
     this.isMobileOpen$ = this.sidebarService.isMobileOpen$;
   }
 
@@ -45,16 +54,39 @@ export class AppHeaderComponent implements OnInit, OnDestroy {
   };
 
   ngOnInit() {
-    // icon state restore
-    // this.isFullScreen = localStorage.getItem('isFullScreen') === 'true';
+    // Icon state restore handling tracking sequence
+    this.isFullScreen = localStorage.getItem('isFullScreen') === 'true';
+    document.addEventListener('fullscreenchange', this.fullScreenHandler);
+    document.addEventListener('keydown', this.handleKeyDown);
 
-    // document.addEventListener('fullscreenchange', this.fullScreenHandler);
-    // document.addEventListener('keydown', this.handleKeyDown);
+    // 🔥 REALTIME TOASTER STREAM TRIGGER: Connect into the shared notification pipeline channel
+    this.fcmSubscription = this.notificationService.currentMessage.subscribe((msg) => {
+      if (msg && msg.notification) {
+        console.log("🎯 Header intercepted foreground payload banner request:", msg);
+        
+        const title = msg.notification.title || 'Cavalier Update Link';
+        const body = msg.notification.body || '';
+
+        // Launching premium styled ngx-toastr dynamic view banner box layout
+        this.toastr.info(body, title, {
+          timeOut: 4500,
+          progressBar: true,
+          positionClass: 'toast-top-right',
+          closeButton: true,
+          enableHtml: true
+        });
+      }
+    });
   }
 
   ngOnDestroy() {
     document.removeEventListener('fullscreenchange', this.fullScreenHandler);
     document.removeEventListener('keydown', this.handleKeyDown);
+    
+    // 🔒 Memory Leak Safeguard context loop stream flush
+    if (this.fcmSubscription) {
+      this.fcmSubscription.unsubscribe();
+    }
   }
 
   // ================= Sidebar =================

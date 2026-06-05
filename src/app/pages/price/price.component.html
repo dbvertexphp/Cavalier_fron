@@ -2093,14 +2093,20 @@ Selection Modal Popup
       name="country"
       placeholder="Search Country..."
       (input)="onCountrySearch()"
-      (focus)="showCountryDropdown = true"
+      (focus)="onCountrySearch()"
       class="w-full border p-2 border-red-300 outline-none pr-8 text-[12px]"
+      autocomplete="off"
     />
+    
     <ul
-      *ngIf="showCountryDropdown"
-      class="absolute top-full left-0 z-10 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto text-gray-700 text-[12px]"
+      *ngIf="showCountryDropdown && filteredCountries.length > 0"
+      class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto text-gray-700 text-[12px]"
     >
-      <li *ngFor="let c of filteredCountries" (click)="selectCountry(c)" class="p-2 hover:bg-gray-100 cursor-pointer">
+      <li 
+        *ngFor="let c of filteredCountries" 
+        (click)="selectCountry(c)" 
+        class="p-2 hover:bg-gray-100 cursor-pointer transition-colors duration-150"
+      >
         {{ c.name }}
       </li>
     </ul>

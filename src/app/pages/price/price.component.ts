@@ -51,6 +51,10 @@ export class PriceComponent {
  @ViewChild('cargoDateInput') cargoDateInput!: ElementRef<HTMLInputElement>;
  totalCount: number = 0;
  chargesList: any[] = [];
+ showCountryDropdown: boolean = false;
+countriesList: any[] = []; 
+filteredCountries: any[] = [];
+selectedCountryName: string = '';
 currentPage: number = 1;
 pageSize: number = 10;
     getsalescordinate: any[] = [];
@@ -765,8 +769,7 @@ loadChargeNamesMaster() {
 onLOBChange(event: any) {
   const selectedId = event.target.value;
   const selectedService = this.companyServices.find(s => s.id == selectedId);
-console.log(selectedId);
-this.fetchAgentByLobId(selectedId);
+
   if (!selectedService) return;
 
   const fullName = selectedService.serviceName.trim();
@@ -968,22 +971,75 @@ fetchAgentByPostCode(postCode: string | number) {
   });
 }
 
-fetchAgentByLobId(lobId: string | number) {
-  // Pincode ki jagah ab sirf lobId jaayega URL mein
-  const url = `${environment.apiUrl}/OrgBranch/GetByLobIdAgent/${lobId}`;
+fetchAgentByLobId(lobId: string | number, countryName: string) {
+  if (!lobId) {
+    console.warn("⚠️ Operation blocked: Line of Business ID missing.");
+    return;
+  }
+
+  // Fallback structure sequence filtering array
+  const safeCountry = countryName ? encodeURIComponent(countryName.trim()) : '';
+  
+  // API URL compilation layout routing template architecture
+  // Resulting format: api/OrgBranch/GetByLobIdAgent/25?country=India
+  const url = `${environment.apiUrl}/OrgBranch/GetByLobIdAgent/${lobId}?country=${safeCountry}`;
+  console.log("📡 Dispatching Combined Agent Query Payload:", url);
   
   this.http.get<any[]>(url).subscribe({
     next: (res) => {
-      this.agentDetail = res; // API ka pura data array mein save
-      
-      // Force change detection agar zarurat ho
-      this.cdr.detectChanges();
+      this.agentDetail = res || []; // Master display buffer snapshot update
+      this.cdr.detectChanges();     // Force layout visual frame modification refresh
+      console.log("✅ Agents/Branches synced for review sequence:", this.agentDetail);
     },
     error: (err) => {
-      console.error("Agent fetch fail ho gaya bhai:", err);
-      this.agentDetail = []; // Error aane par array clear
+      console.error("❌ Agent dynamic fetch protocol failed:", err);
+      this.agentDetail = [];        // Safe error state resetting logic sequential stream
+      this.cdr.detectChanges();
     }
   });
+}
+addToLocalReview() {
+  console.log("--- Review Button Clicked ---");
+
+  if (!this.inquiry.organization) {
+    Swal.fire('Warning', 'First save or select an organization name!', 'warning');
+    return;
+  }
+
+  let finalDimensions = [];
+  if (this.dimRows && this.dimRows.length > 0) {
+    finalDimensions = this.dimRows.filter(d => d.l || d.w || d.h);
+  } 
+  
+  if (finalDimensions.length === 0 && this.appliedDimensions && this.appliedDimensions.length > 0) {
+    finalDimensions = [...this.appliedDimensions];
+  }
+
+  // Compiling readable data stream summary block mapping matrix array layout configuration
+  const completeData = {
+    lineOfBusiness: this.getLabel(this.companyServices, this.quotation.lineOfBusinessId),
+    commodity: this.getLabel(this.commodityTypes, this.quotation.commodityId),
+    incoTerm: this.quotation.incoterm || 'N/A',
+    cargoStatus: this.quotation.cargoStatusType || 'Pending',
+    noOfPkgs: this.quotation.noOfPkgs || 0,
+    grossWeight: this.quotation.grossWeightKg || 0,
+    chargeableWeight: this.quotation.chargeableWeight || 0,
+    origin: this.inquiry.origin || 'N/A',
+    finalDestination: this.quotation.finalDestination || 'N/A',
+    pickupAddress: this.quotation.pickupAddress || 'N/A',
+    dimensions: finalDimensions
+  };
+
+  this.localInquiryList = [completeData];
+  
+  // 🔥 CORE INTEGRATION MODULE: Fire network hit using the current form configuration parameter keys
+  const activeLobId = this.quotation.lineOfBusinessId;
+  const currentCountry = this.quotation.country || this.selectedCountryName || '';
+  
+  this.fetchAgentByLobId(activeLobId, currentCountry);
+
+  this.isPreviewMode = true;
+  this.cdr.detectChanges();
 }
 onAgentSelect(event: any, agent: any) {
   console.log("Agent selection event:", agent);
@@ -2588,14 +2644,8 @@ isPreviewMode = false;
 
 // 2. Review Mode toggle karne ka function
 toggleReview() {
-  if (!this.inquiry.organization) {
-    alert("firstly save org");
-    
-    return;
-  }
-  console.log('testing of ids', this.organizationIds);
-  this.isPreviewMode = true;
-  
+  // Calling the unified structural dynamic data flow layout matrix system architecture
+  this.addToLocalReview();
 }
 
 // 3. Wapas edit mode mein jaane ke liye
@@ -2610,58 +2660,58 @@ localInquiryList: any[] = [];
 // isPreviewMode: boolean = false;
 
 // 2. Review Mode toggle karne ka function (With Data Mapping)
-addToLocalReview() {
-  console.log("--- Review Button Clicked ---");
+// addToLocalReview() {
+//   console.log("--- Review Button Clicked ---");
 
-  if (!this.inquiry.organization) {
-    alert("firstly save org");
-    return;
-  }
+//   if (!this.inquiry.organization) {
+//     alert("firstly save org");
+//     return;
+//   }
 
-  // 1. Check Modal Data (dimRows)
-  console.log("1. Raw dimRows from Modal:", this.dimRows);
+//   // 1. Check Modal Data (dimRows)
+//   console.log("1. Raw dimRows from Modal:", this.dimRows);
 
-  // 2. Check Applied Data (appliedDimensions)
-  console.log("2. Raw appliedDimensions:", this.appliedDimensions);
+//   // 2. Check Applied Data (appliedDimensions)
+//   console.log("2. Raw appliedDimensions:", this.appliedDimensions);
 
-  let finalDimensions = [];
+//   let finalDimensions = [];
 
-  // Agar dimRows array hai aur usme data hai
-  if (this.dimRows && this.dimRows.length > 0) {
-    // Filter kar rhe hain taaki khali rows na aayein
-    finalDimensions = this.dimRows.filter(d => d.l || d.w || d.h);
-    console.log("3. Filtered Dimensions from dimRows:", finalDimensions);
-  } 
+//   // Agar dimRows array hai aur usme data hai
+//   if (this.dimRows && this.dimRows.length > 0) {
+//     // Filter kar rhe hain taaki khali rows na aayein
+//     finalDimensions = this.dimRows.filter(d => d.l || d.w || d.h);
+//     console.log("3. Filtered Dimensions from dimRows:", finalDimensions);
+//   } 
   
-  // Agar dimRows khali tha, toh appliedDimensions check karo
-  if (finalDimensions.length === 0 && this.appliedDimensions && this.appliedDimensions.length > 0) {
-    finalDimensions = [...this.appliedDimensions];
-    console.log("4. Using appliedDimensions instead:", finalDimensions);
-  }
+//   // Agar dimRows khali tha, toh appliedDimensions check karo
+//   if (finalDimensions.length === 0 && this.appliedDimensions && this.appliedDimensions.length > 0) {
+//     finalDimensions = [...this.appliedDimensions];
+//     console.log("4. Using appliedDimensions instead:", finalDimensions);
+//   }
 
-  if (finalDimensions.length === 0) {
-    console.warn("⚠️ No dimensions found anywhere!");
-  }
+//   if (finalDimensions.length === 0) {
+//     console.warn("⚠️ No dimensions found anywhere!");
+//   }
 
-  const completeData = {
-    lineOfBusiness: this.getLabel(this.companyServices, this.quotation.lineOfBusinessId),
-    commodity: this.getLabel(this.commodityTypes, this.quotation.commodityId),
-    incoTerm: this.quotation.incoTerm || 'N/A',
-    cargoStatus: this.quotation.cargoStatus || 'Pending',
-    noOfPkgs: this.quotation.noOfPkgs || 0,
-    grossWeight: this.quotation.grossWeightKg || 0,
-    chargeableWeight: this.quotation.chargeableWeight || 0,
-    origin: this.inquiry.origin || 'N/A',
-    finalDestination: this.quotation.finalDestination || 'N/A',
-    pickupAddress: this.quotation.pickupAddress || 'N/A',
-    dimensions: finalDimensions // Snapshot mein save kiya
-  };
+//   const completeData = {
+//     lineOfBusiness: this.getLabel(this.companyServices, this.quotation.lineOfBusinessId),
+//     commodity: this.getLabel(this.commodityTypes, this.quotation.commodityId),
+//     incoTerm: this.quotation.incoTerm || 'N/A',
+//     cargoStatus: this.quotation.cargoStatus || 'Pending',
+//     noOfPkgs: this.quotation.noOfPkgs || 0,
+//     grossWeight: this.quotation.grossWeightKg || 0,
+//     chargeableWeight: this.quotation.chargeableWeight || 0,
+//     origin: this.inquiry.origin || 'N/A',
+//     finalDestination: this.quotation.finalDestination || 'N/A',
+//     pickupAddress: this.quotation.pickupAddress || 'N/A',
+//     dimensions: finalDimensions // Snapshot mein save kiya
+//   };
 
-  this.localInquiryList = [completeData];
-  console.log("5. Final Snapshot Saved:", this.localInquiryList);
+//   this.localInquiryList = [completeData];
+//   console.log("5. Final Snapshot Saved:", this.localInquiryList);
   
-  this.isPreviewMode = true;
-}
+//   this.isPreviewMode = true;
+// }
 
   // Readable Snapshot banana (IDs ko Labels mein convert karke)
 //   const completeData = {
@@ -3692,55 +3742,86 @@ toggleStatus(q: any) {
     }
   });
 }// --- Variables Section ---
-showCountryDropdown: boolean = false;
-countriesList: any[] = []; 
-filteredCountries: any[] = [];
 
-// 🔥 Ye variable declare karna zaroori tha error hatane ke liye
-selectedCountryName: string = ''; 
 
 fetchAllCountries() {
-  const apiUrl = 'https://restcountries.com/v3.1/all';
-  
+  const apiUrl = 'https://restcountries.com/v3.1/all?fields=name,cca2'; // Specific fields mangayi taaki payload fast load ho
+  console.log("📡 Triggering External Country API Fetch Sequence...");
+
   this.http.get<any[]>(apiUrl).subscribe({
     next: (data) => {
-      // Data format: Name aur Code nikal rahe hain
-      this.countriesList = data.map(country => ({
-        name: country.name.common,
-        id: country.cca2 
-      })).sort((a, b) => a.name.localeCompare(b.name));
-      
-      this.filteredCountries = this.countriesList;
+      if (data && Array.isArray(data)) {
+        this.countriesList = data.map(country => ({
+          name: country.name?.common || '',
+          id: country.cca2 || ''
+        }))
+        .filter(c => c.name !== '') // Khali data filter out kiya
+        .sort((a, b) => a.name.localeCompare(b.name));
+        
+        console.log(`✅ Total ${this.countriesList.length} Countries successfully cached in memory.`);
+      } else {
+        this.loadFallbackCountries();
+      }
     },
     error: (err) => {
-      console.error('Country API failed:', err);
-      // Fallback
-      this.countriesList = [{ id: 'IN', name: 'India' }];
-      this.filteredCountries = this.countriesList;
+      console.error('⚠️ Country API Failed, turning on secure local fallback list. Reason:', err);
+      this.loadFallbackCountries(); // API fail hone par system automatic is list ko active kar dega
     }
   });
 }
 
-// 🔍 Search Function
+// 📦 Hardcoded Fallback Master List - Agar internet down ho ya API block ho, toh yeh backup chalega
+loadFallbackCountries() {
+  const fallback = [
+    { id: 'IN', name: 'India' }, { id: 'US', name: 'United States' }, 
+    { id: 'AE', name: 'United Arab Emirates' }, { id: 'GB', name: 'United Kingdom' },
+    { id: 'SA', name: 'Saudi Arabia' }, { id: 'QA', name: 'Qatar' }, 
+    { id: 'OM', name: 'Oman' }, { id: 'KW', name: 'Kuwait' },
+    { id: 'DE', name: 'Germany' }, { id: 'FR', name: 'France' }, 
+    { id: 'CA', name: 'Canada' }, { id: 'AU', name: 'Australia' },
+    { id: 'SG', name: 'Singapore' }, { id: 'MY', name: 'Malaysia' }, 
+    { id: 'CN', name: 'China' }, { id: 'JP', name: 'Japan' },
+    { id: 'ZA', name: 'South Africa' }, { id: 'NL', name: 'Netherlands' }, 
+    { id: 'IT', name: 'Italy' }, { id: 'ES', name: 'Spain' }
+  ];
+  this.countriesList = fallback.sort((a, b) => a.name.localeCompare(b.name));
+  console.log("🔒 Fallback Dataset successfully mounted onto the framework configuration.");
+}
+
+// 🔍 2. Pura dynamic local filtering logic (Jo bina delay ke output dega)
 onCountrySearch() {
-  const searchTerm = this.quotation.country?.toLowerCase() || '';
-  this.showCountryDropdown = true;
+  const searchTerm = this.quotation.country?.trim().toLowerCase() || '';
   
+  // Agar user input delete karke poora khali kar de
+  if (!searchTerm) {
+    this.filteredCountries = [];
+    this.showCountryDropdown = false;
+    return;
+  }
+
+  // Pure data filter flow mapping
   this.filteredCountries = this.countriesList.filter(c => 
     c.name.toLowerCase().includes(searchTerm)
   );
+
+  // Suggestions list sirf tabhi khulegi jab elements match honge
+  this.showCountryDropdown = this.filteredCountries.length > 0;
+  this.cdr.detectChanges(); // UI tracking broadcast engine trigger
 }
 
-// ✅ Selection Function (Updated with selection logic)
+// ✅ 3. Option Selection Handler
 selectCountry(country: any) {
-  this.quotation.country = country.name;     // UI Input box ke liye
-  this.quotation.countryId = country.id;     // Backend ID ke liye
+  if (!country) return;
+
+  this.quotation.country = country.name;     // UI input template mapping
+  this.quotation.countryId = country.id;     // Database parameters tracking mapping
+  this.selectedCountryName = country.name;   // Payload payload tracking parameter synchronization
   
-  // 🔥 Ye line saveQuotation() ke payload mein data bhejegi
-  this.selectedCountryName = country.name; 
+  this.showCountryDropdown = false;          // Instant close dropdown menu
+  this.filteredCountries = [];               // Stream flush
   
-  this.showCountryDropdown = false;
-  console.log("Country Selected for Save:", this.selectedCountryName);
+  console.log("🎯 Selected Country metadata compilation active:", this.selectedCountryName);
+  this.cdr.detectChanges();                  // View update forced
 }
   // 🎯 Alert dikhane ka function (Lead/Org ID ke liye)
   // showAlert(title: string, id: any) {

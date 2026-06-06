@@ -3,48 +3,81 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 import { environment } from '../../environments/environment';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs'; // 🔥 BehaviorSubject import kiya
 
 @Injectable({
   providedIn: 'root'
 })
 export class NotificationService {
   private messaging: any;
+  
+  // 🔥 CORE ADDITION: Is stream se hi AppHeaderComponent ko live message milega
+  public currentMessage = new BehaviorSubject<any>(null);
 
   constructor(private http: HttpClient) {}
 
   async init(): Promise<string | null> {
     try {
+      console.log("🛠️ [FCM INIT]: Starting Firebase initialization...");
       const app = getApps().length ? getApp() : initializeApp(environment.firebase);
       this.messaging = getMessaging(app);
 
+      console.log("🛠️ [FCM INIT]: Requesting browser notification permission...");
       const permission = await Notification.requestPermission();
+      console.log("🛠️ [FCM INIT]: Permission status is:", permission);
 
       if (permission !== 'granted') {
-        console.log('Notification permission denied');
+        console.warn('⚠️ [FCM INIT]: Notification permission denied by user.');
         return null;
       }
 
-      const registration = await navigator.serviceWorker.ready;
+      console.log("🛠️ [FCM INIT]: Checking Service Worker readiness state...");
+      
+      let registration = await navigator.serviceWorker.getRegistration();
+      
+      if (!registration) {
+        console.log("🛠️ [FCM INIT]: SW not registered yet, registering now standard path...");
+        registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+      }
 
+      await navigator.serviceWorker.ready;
+      console.log("🛠️ [FCM INIT]: Service Worker is 100% READY:", registration);
+
+      console.log("🛠️ [FCM INIT]: Attempting to fetch Token from Firebase Cloud Messaging...");
       const fcmToken = await getToken(this.messaging, {
         vapidKey: environment.vapidKey,
         serviceWorkerRegistration: registration
       });
 
-      console.log('FCM TOKEN:', fcmToken);
-      return fcmToken;
+      if (fcmToken) {
+        console.log('🚀 [FCM INIT] SUCCESS -> TOKEN RETRIEVED:', fcmToken);
+        
+        this.sendFcmToken(fcmToken).subscribe({
+          next: (res) => {
+            console.log('💾 [FCM BACKEND]: Token successfully updated in database table layer:', res);
+          },
+          error: (err) => {
+            console.error('❌ [FCM BACKEND]: Token save request rejected by server:', err);
+          }
+        });
+        
+        return fcmToken;
+      } else {
+        console.warn('⚠️ [FCM INIT]: Token generated as empty string or null value.');
+        return null;
+      }
+
     } catch (err) {
-      console.error('FCM error:', err);
+      console.error('❌ [FCM INIT] CRITICAL EXCEPTION DROPPED:', err);
       return null;
     }
   }
 
   sendFcmToken(fcmToken: string): Observable<any> {
     const jwtToken = localStorage.getItem('cavalier_token');
-
     const headers = new HttpHeaders({
-      Authorization: `Bearer ${jwtToken}`
+      'Authorization': `Bearer ${jwtToken}`,
+      'Content-Type': 'application/json'
     });
 
     return this.http.post(
@@ -56,17 +89,17 @@ export class NotificationService {
 
   listen() {
     if (!this.messaging) return;
-
     onMessage(this.messaging, (payload) => {
-      console.log('Foreground message:', payload);
+      console.log('📥 Live Foreground Message Intercepted:', payload);
+      
+      // 🔥 CRITICAL FIX: Payload ko stream mein push kiya taaki Header components ko data live mil sake
+      this.currentMessage.next(payload);
 
-      const title = payload.notification?.title || 'Notification';
+      const title = payload.notification?.title || 'Cavalier Update';
       const body = payload.notification?.body || '';
 
-      new Notification(title, {
-        body,
-        icon: '/favicon.ico'
-      });
+      // Yeh native browser notification hai, isko as it is rehne diya
+      new Notification(title, { body, icon: '/favicon.ico' });
     });
   }
 }

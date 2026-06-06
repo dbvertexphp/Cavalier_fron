@@ -601,6 +601,7 @@ onPortOfLoadingSearch(type: 'name' | 'code') {
 // 2. Select Logic
 selectPortOfLoading(port: any) {
   if (!port) return;
+  this.quotation.portOfLoadingId = Number(port.id || port.Id);
   this.quotation.portOfLoading = port.name || port.portName || port.PortName || '';
   this.quotation.portOfLoadingCode = port.portCode || '';
   this.showPortOfLoadingDropdown = false;
@@ -1130,6 +1131,7 @@ onPortOfDischargeSearch(type: 'name' | 'code') {
 // 2. Select Logic
 selectPortOfDischarge(port: any) {
   if (!port) return;
+  this.quotation.portOfDischargeId = Number(port.id || port.Id);
   this.quotation.portOfDestination = port.name || port.portName || port.PortName || '';
   this.quotation.portOfDestinationCode = port.portCode || '';
   this.showPortOfDischargeDropdown = false;
@@ -3522,65 +3524,47 @@ saveQuotation() {
     return;
   }
 
-  // Cost Breakdowns Payload mapping
+  // Cost Breakdowns & MultiCarrier Payload mapping
   const costData = (this.costRows && this.costRows.length > 0 ? this.costRows : (this.costBreakdowns || [])).map((cb: any) => ({
-    lob: cb.lob || '', 
-    chargeType: cb.chargeType || 'Prepaid',
-    basis: cb.basis || '',
-    chargeName: cb.chargeName || cb.charge || '',
-    currency: cb.currency || 'INR',
-    rate: Number(cb.rate) || 0,
-    exchangeRate: Number(cb.exchangeRate) || 1, 
-    amount: Number(cb.amount) || 0
+    lob: cb.lob || '', chargeType: cb.chargeType || 'Prepaid', basis: cb.basis || '',
+    chargeName: cb.chargeName || cb.charge || '', currency: cb.currency || 'INR',
+    rate: Number(cb.rate) || 0, exchangeRate: Number(cb.exchangeRate) || 1, amount: Number(cb.amount) || 0
   }));
 
-  // MultiCarrier Payload mapping
   const multiCarrierData = (this.multiCarrierRows || []).map((mcb: any) => ({
-    id: Number(mcb.id) || 0,
-    forwarder: mcb.forwarder || '',
-    origin: mcb.origin || '',
-    lob: mcb.lob || 'Standard',
-    chargeName: mcb.chargeName || '',
-    chargeType: mcb.chargeType || 'Prepaid',
-    currency: mcb.currency || 'USD',
-    airFreight: Number(mcb.airFreight) || 0,
-    fsc: mcb.fsc || '',
-    airline: mcb.airline || '',
-    type: mcb.type || 'INDIRECT',
-    cutoff: mcb.cutoff || '',
-    schedule: mcb.schedule || '',
-    exWorks: Number(mcb.exWorks) || 0,
-    doCharges: Number(mcb.doCharges) || 0,
-    ccFee: Number(mcb.ccFee) || 0,
-    rate: Number(mcb.rate) || 0,
-    exchangeRate: Number(mcb.exchangeRate) || 1,
-    totalCost: Number(mcb.totalCost) || 0,
-    remark: mcb.remark || ''
+    id: Number(mcb.id) || 0, forwarder: mcb.forwarder || '', origin: mcb.origin || '',
+    lob: mcb.lob || 'Standard', chargeName: mcb.chargeName || '', chargeType: mcb.chargeType || 'Prepaid',
+    currency: mcb.currency || 'USD', airFreight: Number(mcb.airFreight) || 0, fsc: mcb.fsc || '',
+    airline: mcb.airline || '', type: mcb.type || 'INDIRECT', cutoff: mcb.cutoff || '',
+    schedule: mcb.schedule || '', exWorks: Number(mcb.exWorks) || 0, doCharges: Number(mcb.doCharges) || 0,
+    ccFee: Number(mcb.ccFee) || 0, rate: Number(mcb.rate) || 0, exchangeRate: Number(mcb.exchangeRate) || 1,
+    totalCost: Number(mcb.totalCost) || 0, remark: mcb.remark || ''
   }));
 
-  // --- 1. Process Commodity Documents ---
-  const processedDocuments = (this.documents || []).map(d => ({
-    name: d.name,
-    documentPath: (d.documentPath && !d.isReplacing) ? d.documentPath : null
-  }));
-
-  // --- 2. Process Package/Invoice Documents ---
-  const processedInvoices = (this.invoices || []).map(i => ({
-    name: i.name,
-    documentPath: (i.documentPath && !i.isReplacing) ? i.documentPath : null 
-  }));
+  const processedDocuments = (this.documents || []).map(d => ({ name: d.name, documentPath: (d.documentPath && !d.isReplacing) ? d.documentPath : null }));
+  const processedInvoices = (this.invoices || []).map(i => ({ name: i.name, documentPath: (i.documentPath && !i.isReplacing) ? i.documentPath : null }));
 
   // Parent Payload Object
   const payload: any = {
     ...this.quotation, 
-    // --- Nayi Field Add Kar Di ---
     invoiceList: this.quotation.invoiceList || '', 
     
-    transportMode: (this.quotation.transportMode || this.inquiry.transportMode || "").toString(), 
-    transportType: (this.quotation.transportType || this.quotation.TransportType || this.inquiry.transportType || "").toString(),
-    serviceType: (this.quotation.transportType || this.quotation.TransportType || this.inquiry.transportType || "").toString(), 
+    // Port Code Mapping
+    CodeOfPOL: this.quotation.portOfLoadingCode || '',
+    CodeOfPOD: this.quotation.portOfDestinationCode || '',
+    CodeOfFinalDest: this.quotation.finalDestinationCode || '',
+    
+    inquiryNo: String(this.quotation.inquiryNo || this.inquiry.inquiryNo || ''),
+    referenceByInquiryNo: this.referenceByInquiryNo || this.quotation.inquiryNo || this.inquiry.inquiryNo || null,
+    
+    transportMode: String(this.quotation.TransportMode || this.quotation.transportMode || ''), 
+    transportType: String(this.quotation.TransportType || this.quotation.transportType || ''),
+    serviceType: String(this.quotation.TransportType || this.quotation.transportType || ''), 
+    
     shipmentType: (this.quotation.shipmentType || this.inquiry.shipmentType || "").toString(),
-    countryName: (this.selectedCountryName || this.quotation.countryName || this.inquiry.country || "").toString(),
+    // --- FIX: Ensure country is mapped correctly ---
+// saveQuotation() ke andar payload mapping:
+countryName: (this.quotation.countryName || this.selectedCountryName || "").toString(),    
     connectingPortIds: Array.isArray(this.quotation.connectingPortIds) ? this.quotation.connectingPortIds.join(',') : (this.quotation.connectingPortIds || ""),
     
     OrganisationId: this.organisationId || 0,
@@ -3588,7 +3572,6 @@ saveQuotation() {
     customerName: this.inquiry.organization,
     InquiryId: this.InquiryId || 0,
     pricingNo: this.quotation.pricingNo || null,
-    referenceByInquiryNo: this.referenceByInquiryNo || null,
     originName: this.inquiry.origin || this.quotation.originPOL,
 
     portOfLoadingId: this.quotation.portOfLoadingId ? Number(this.quotation.portOfLoadingId) : null,
@@ -3617,26 +3600,15 @@ saveQuotation() {
     createdBy: 'admin@cavalierlogistic.in'
   };
 
-  const keysToDelete = ['TransportMode', 'TransportType', 'SalesCoordinator', 'GrossWeight', 'GrossweightUnit', 'CountryName', 'costBreakdowns', 'multiCarrierBreakdowns', 'existingInvoices'];
+  // --- FIX: Removed 'CountryName' from keysToDelete ---
+  const keysToDelete = ['TransportMode', 'TransportType', 'SalesCoordinator', 'GrossWeight', 'GrossweightUnit', 'costBreakdowns', 'multiCarrierBreakdowns', 'existingInvoices'];
   keysToDelete.forEach(key => delete payload[key]);
 
   const formData = new FormData();
   formData.append('pricingData', JSON.stringify(payload));
 
-  // --- Upload Files Handling ---
-  this.documents.forEach((d) => {
-    if (d.file) {
-      formData.append('docFiles', d.file);
-      formData.append('docTypes', 'Commodity');
-    }
-  });
-
-  this.invoices.forEach((i) => {
-    if (i.file) {
-      formData.append('docFiles', i.file);
-      formData.append('docTypes', 'Invoice');
-    }
-  });
+  this.documents.forEach((d) => { if (d.file) { formData.append('docFiles', d.file); formData.append('docTypes', 'Commodity'); }});
+  this.invoices.forEach((i) => { if (i.file) { formData.append('invoiceFiles', i.file); formData.append('invoiceNames', i.name || i.fileName); }});
 
   const token = localStorage.getItem('cavalier_token');
   const httpOptions = { headers: { Authorization: `Bearer ${token}` } };
@@ -3649,7 +3621,7 @@ saveQuotation() {
   action.subscribe({
     next: (res: any) => {
       this.sendBulkEmails(res.id);
-      Swal.fire('Saved!', 'Pricing, Commodity docs, and Invoices saved successfully!', 'success');
+      Swal.fire('Saved!', 'Pricing saved successfully!', 'success');
       this.onSearch();  
       this.isFormOpen = false;
       this.cdr.detectChanges();
@@ -3824,7 +3796,7 @@ onCountrySearch() {
 // ✅ 3. Option Selection Handler
 selectCountry(country: any) {
   if (!country) return;
-
+this.quotation.countryName = country.name; // Ye line verify karo
   this.quotation.country = country.name;     // UI input template mapping
   this.quotation.countryId = country.id;     // Database parameters tracking mapping
   this.selectedCountryName = country.name;   // Payload payload tracking parameter synchronization

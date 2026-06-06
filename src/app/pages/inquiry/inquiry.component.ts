@@ -366,7 +366,7 @@ columnFieldMap: any = {
   'Inquiry No': 'inquiryNo',
   'Date': 'receivedDate',
   'Customer': 'customerName',
-  'Mode': 'transportMode',
+  'Mode': 'transportModeName', // 'transportModeName' ya 'transportMode' dono me se jo bhi aapke data me hai use karo
   'Origin': 'originName',
   'Destination': 'finalDestination', // 'finalDestination' property map kar di
   'Status': 'cargoStatus',
@@ -548,6 +548,7 @@ selectFinalDestination(port: any) {
   if (!port) return;
   this.quotation.finalDestination = port.name || port.portName || port.PortName || '';
   this.quotation.finalDestinationCode = port.portCode;
+  this.quotation.codeOfFinalDest = port.portCode
   this.showFinalDestinationDropdown = false;
   this.filteredFinalDestinations = [];
   this.activeFDIndex = -1;
@@ -631,8 +632,10 @@ onPortOfLoadingSearch(type: 'name' | 'code') {
 // 3. Select Logic
 selectPortOfLoading(port: any) {
   if (!port) return;
+  this.quotation.portOfLoadingId = port.id;
   this.quotation.portOfLoading = port.name || port.portName || port.PortName || '';
   this.quotation.portOfLoadingCode = port.portCode;
+  this.quotation.codeOfPOL = port.portCode;
   this.showPortOfLoadingDropdown = false;
   this.filteredPortsOfLoading = [];
   this.activeIndex = -1;
@@ -736,47 +739,40 @@ onShipmentTypeChange() {
       error: (err) => console.error('Error fetching Movement Types:', err)
     });
   }
-  onLOBChange(event: any) {
-    // alert('lob changed'+this.quotation.lineOfBusinessId);
+ onLOBChange(event: any) {
   const selectedId = event.target.value;
-  
-
-
   const selectedService = this.companyServices.find(s => s.id == selectedId);
 
-  if (!selectedService || !selectedService.serviceName) {
-    console.warn("No service found for ID:", selectedId);
-    return;
-  }
+  if (!selectedService || !selectedService.serviceName) return;
 
   const fullName = selectedService.serviceName.trim();
-  
   this.quotation.lineOfBusinessName = fullName;
 
   const parts = fullName.split(/[\s\-]+/);
 
   if (parts.length >= 1) {
-    const modeName = parts[0]; // AIR
+    const modeName = parts[0]; // e.g., "SEA"
 
-    // 🔥 Yaha main fix hai
+    // Transport Mode Mapping
     const modeObj = this.transportModes.find(
       m => m.name.toLowerCase() === modeName.toLowerCase()
     );
 
     if (modeObj) {
-      this.quotation.TransportMode = modeObj.id; // ✅ ID set hoga
-    } else {
-      console.warn("Mode not found:", modeName);
+      // ✅ Forcefully ID update karein
+      this.quotation.TransportMode = modeObj.id; 
+      console.log("Updated TransportMode ID to:", this.quotation.TransportMode);
     }
 
     if (parts.length >= 2) {
-      let lastWord = parts[parts.length - 1];
-      this.quotation.TransportType =
-        lastWord.charAt(0).toUpperCase() + lastWord.slice(1).toLowerCase();
+      // ✅ Transport Type update karein
+      let typeName = parts[1].toLowerCase();
+      // Yahan ensure karein ki aapka variable `quotation.TransportType` wahi string hai 
+      // jo aapke dropdown/radio button mein value hai
+      this.quotation.TransportType = typeName.charAt(0).toUpperCase() + typeName.slice(1);
+      console.log("Updated TransportType to:", this.quotation.TransportType);
     }
   }
-
-  console.log(`Auto Filled → Mode ID: ${this.quotation.TransportMode}`);
 }
     getIncoTerms() {
     this.http.get<any[]>(`${environment.apiUrl}/IncoTerms`).subscribe({
@@ -1034,8 +1030,11 @@ onPortOfDischargeSearch(type: 'name' | 'code') {
 // 2. Select Method
 selectPortOfDischarge(port: any) {
   if (!port) return;
+  this.quotation.portOfDischargeId = port.id;
+  this.quotation.portOfDischargeId = port.id || port.PortId || port.Id;
   this.quotation.portOfDestination = port.name || port.portName || port.PortName;
   this.quotation.portOfDestinationCode = port.portCode;
+  this.quotation.codeOfPOD = port.portCode;
   this.showPortOfDischargeDropdown = false;
 }
 
@@ -1400,22 +1399,39 @@ editQuotation(q: any) {
   }
 
   try {
+    // 1. Quotation object ko copy karein
     this.quotation = { ...q };
 
+    // --- LEAD NO FIX (Auto-fill) ---
+    const leadValue = q.leadName || q.leadNo || q.LeadName || q.LeadNo || '';
+    this.quotation.leadNo = leadValue; 
+    this.inquiry.leadNo = leadValue;
+
+    // --- C# MODEL KE HISSAAB SE MAPPING ---
+    this.quotation.leadNo = q.leadNo || q.LeadNo || this.quotation.leadName || this.quotation.leadId || '';
+    this.quotation.codeOfPOL = q.codeOfPOL;
+    this.quotation.portOfLoadingCode = q.codeOfPOL || q.CodeOfPOL || '';
+    
+    this.quotation.codeOfPOD = q.codeOfPOD;
+    this.quotation.portOfDestinationCode = q.codeOfPOD || q.CodeOfPOD || '';
+    
+    this.quotation.codeOfFinalDest = q.codeOfFinalDest;
+    this.quotation.finalDestinationCode = q.codeOfFinalDest || q.CodeOfFinalDest || '';
+    
+    this.quotation.cargoStatusType = q.cargoStatus || 'Ready';
+    this.quotation.isDirect = !!q.isDirect;
+    this.quotation.isIndirect = !!q.isIndirect;
+
     // --- DOCUMENTS MAPPING ---
-    // 1. Backend response se list fill karo
     this.commodityDocuments = q.commodityDocuments || [];
     this.packageOrInvoiceDocuments = q.packageOrInvoiceDocuments || [];
     
-    // 2. Commodity Modal ke liye mapping
     this.documents = (q.commodityDocuments || []).map((doc: any) => ({
       id: doc.id,
       name: doc.name,
       documentPath: doc.documentPath,
       isExisting: true 
     }));
-
-    // 3. Invoice Modal ke liye mapping (Yeh add kiya hai)
     this.invoices = (q.packageOrInvoiceDocuments || []).map((doc: any) => ({
       id: doc.id,
       name: doc.name,
@@ -1433,20 +1449,47 @@ editQuotation(q: any) {
       if (modeObj) this.quotation.TransportMode = modeObj.id;
     }
 
-    // Sales Coordinator Mapping
-    if (q.salesCoordinator) {
-      this.quotation.salesCoordinator = q.salesCoordinator.toString();
+    // --- SALES COORDINATOR FIX ---
+    const scValue = q.salesCoordinator || q.SalesCoordinator;
+
+    if (scValue) {
       if (this.getsalescordinate && Array.isArray(this.getsalescordinate)) {
-        const coordinatorExists = this.getsalescordinate.find(sc => sc && sc.id && sc.id.toString() === q.salesCoordinator.toString());
-        if (coordinatorExists) this.quotation.salesCoordinator = coordinatorExists.id.toString();
+        const coordinatorExists = this.getsalescordinate.find(sc => 
+          sc.id.toString() === scValue.toString() || 
+          (sc.name && sc.name.toString().toLowerCase() === scValue.toString().toLowerCase())
+        );
+
+        if (coordinatorExists) {
+          this.quotation.salesCoordinator = coordinatorExists.id.toString();
+        } else {
+          this.quotation.salesCoordinator = scValue.toString();
+          console.warn("Sales Coordinator ID ya Name match nahi mila:", scValue);
+        }
+      } else {
+        this.quotation.salesCoordinator = scValue.toString();
       }
     }
 
+    // --- ORIGIN FIX ---
+    const oId = q.originId || q.OriginId;
+    if (oId) {
+      this.originsaveid = Number(oId);
+      this.quotation.originId = this.originsaveid;
+      if (this.origins && Array.isArray(this.origins)) {
+        const originObj = this.origins.find(o => o.id == oId);
+        if (originObj) {
+            this.inquiry.origin = originObj.name;
+            this.quotation.country = originObj.countryName;
+        }
+      }
+    }
+
+    // Commodity & Port IDs mapping
     this.quotation.commodity = q.commodityId ? Number(q.commodityId) : null;
     this.quotation.currency = q.cargoCurrency; 
-    this.originsaveid = q.originId ? Number(q.originId) : 0;
     this.quotation.country = q.countryName; 
     this.selectedCountryName = q.countryName; 
+    
     this.quotation.portOfLoadingId = q.portOfLoadingId ? Number(q.portOfLoadingId) : null;
     this.quotation.portOfDischargeId = q.portOfDischargeId ? Number(q.portOfDischargeId) : null;
 
@@ -1459,29 +1502,33 @@ editQuotation(q: any) {
       if (pod) this.quotation.portOfDestination = pod.name || pod.portName;
     }
 
-    this.inquiry = { ...this.inquiry, inquiryNo: q.inquiryNo, organization: q.organisationName || q.customerName, origin: q.location || q.originName || q.origin, leadNo: q.leadName || q.leadNo };
-    this.quotation.branchName = q.branchId ? q.branchId.toString() : q.branchName;
-    this.quotation.salesCoordinator = q.salesCoordinator ? q.salesCoordinator.toString() : '';
+    // Inquiry Mapping
+    this.inquiry = { 
+      ...this.inquiry, 
+      inquiryNo: q.inquiryNo, 
+      // organization: q.organisationName || q.customerName, 
+      organization: q.organisationName || q.customerName || this.inquiry.organization,
+      origin: q.originName || q.origin || this.inquiry.origin, 
+      leadNo: leadValue
+    };
     
-    // --- CONNECTING PORTS MAPPING ---
+    this.quotation.branchName = q.branchId ? q.branchId.toString() : q.branchName;
+    
+    // --- CONNECTING PORTS ---
     const rawPorts = q.connectingPortIds || q.ConnectingPortIds;
     const portIdsArray = typeof rawPorts === 'string' ? rawPorts.split(',').map(Number) : (Array.isArray(rawPorts) ? rawPorts : []);
     this.quotation.connectingPortIds = portIdsArray;
-
     const allKnownPorts = [...(this.portsOfLoading || []), ...(this.portsOfDischarge || [])];
     this.selectedConnectingPorts = allKnownPorts.filter(p => portIdsArray.includes(Number(p.id)));
-    
-    // Set commodity value for UI logic
     this.selectcommodityvalue = q.commodityName || '';
     
-    // Date Parsing
+    // Date & Dimensions Parsing
     try {
       if (q.receivedDate) this.quotation.receivedDate = new Date(q.receivedDate).toISOString().split('T')[0];
       if (q.cargoStatusDate) this.quotation.cargoStatusDate = new Date(q.cargoStatusDate).toISOString().split('T')[0];
       if (q.repliedDate && q.repliedDate !== '2000-02-12T00:00:00') this.quotation.repliedDate = new Date(q.repliedDate).toISOString().split('T')[0];
     } catch (dateErr) { console.error('Date parsing issue:', dateErr); }
 
-    // Dimensions
     if (q.dimensions && q.dimensions.length > 0) {
       this.appliedDimensions = [...q.dimensions];
       this.dimRows = [...q.dimensions];
@@ -1496,10 +1543,9 @@ editQuotation(q: any) {
     this.isDeliveryEnabled = ['DDP', 'DDU', 'DAP'].includes(incoterm);
     this.showincoterms = incoterm;
 
-    // 🔥 Force UI refresh
     this.isFormOpen = true;
     this.cdr.detectChanges(); 
-    setTimeout(() => this.cdr.detectChanges(), 300);
+    setTimeout(() => this.cdr.detectChanges(), 500);
 
   } catch (mainError) {
     console.error("🛑 Internal logic crash:", mainError);
@@ -1829,36 +1875,35 @@ onSearch() {
     })
   };
 
-  // --- ForkJoin Implementation ---
+  // --- ForkJoin Implementation (Added TransportModes API) ---
   forkJoin({
     searchResult: this.http.post<any[]>(`${environment.apiUrl}/Inquiry/Search`, filtersToSend, httpOptions),
     hodList: this.userServices.getHodList(),
-    originList: this.http.get<any[]>(`${environment.apiUrl}/origin/all`, httpOptions)
+    originList: this.http.get<any[]>(`${environment.apiUrl}/origin/all`, httpOptions),
+    transportList: this.http.get<any[]>(`${environment.apiUrl}/TransportModes`, httpOptions)
   }).subscribe({
     next: (res) => {
-      const { searchResult, hodList, originList } = res;
+      const { searchResult, hodList, originList, transportList } = res;
       
       console.log("HOD List:", hodList); 
-      console.log("Origin List:", originList);
-      console.log("First item of Search Result:", searchResult[0]); // Ye zaroor check karna
+      console.log("Transport List:", transportList);
 
+      // Maps creation
       const hodMap = new Map(hodList.map((h: any) => [String(h.id), h.name]));
-      
-      // Map creation: ID -> Name
       const originMap = new Map(originList.map((o: any) => [String(o.id), o.name])); 
+      const transportMap = new Map(transportList.map((t: any) => [String(t.id), t.name]));
 
       this.quotations = searchResult.map(item => {
-        const idAsString = String(item.salesCoordinator);
-        
-        // Yahan 'item.originId' check karo. Agar aapke data mein origin ki id 'origin' 
-        // naam ke field mein hai, toh 'item.origin' use karna.
-        const originId = String(item.originId || item.name || ''); 
+        const scId = String(item.salesCoordinator || '');
+        const originId = String(item.originId || ''); 
+        const transId = String(item.transportMode || ''); // Item mein jo ID aa rahi hai
         
         return {
           ...item,
-          salesCoordinator: hodMap.has(idAsString) ? hodMap.get(idAsString) : item.salesCoordinator,
-          // Agar map mein ID mil gayi toh naam show hoga
-          originName: originMap.has(originId) ? originMap.get(originId) : (item.originName || item.name)
+          salesCoordinator: hodMap.has(scId) ? hodMap.get(scId) : item.salesCoordinator,
+          originName: originMap.has(originId) ? originMap.get(originId) : (item.originName || item.origin || ''),
+          // Transport Mode Name Mapping
+          transportModeName: transportMap.has(transId) ? transportMap.get(transId) : item.transportMode 
         };
       });
 
@@ -3091,118 +3136,103 @@ costRows: CostBreakdown[] = [
   this.showMultiCarrierTable = false;
   alert('Carrier details added to Inquiry!');
 }
-
 saveQuotation() {
-  // Basic validation
   if (!this.inquiry.organization) { 
     alert("Organization Name is required!");
     return;
   }
 
-  // 1. JSON Payload Taiyaar Karna
-  const payload = {
-    ...this.quotation, // Purana saara data uthaya
-    inquiryNo: this.inquiry.inquiryNo || '',
-    customerName: this.inquiry.organization,
-    organization: this.inquiry.organization,
-    shipmentType: this.quotation.shipmentType?.toString() || '',
-    leadNo: this.inquiry.leadNo || '',
-    leadId: this.LeadId,
-    OrganisationId: this.OrganisationId,
-    LeadName: this.LeadName,
-    OrganisationName: this.OrganisationName,
-    origin: this.inquiry.origin || '',
-    TransportMode: this.quotation.transportMode,
-    TransportType: this.quotation.TransportType,
+  // --- CLEAN PAYLOAD MAPPING ---
+  const payload: any = {
+    ...this.quotation, 
+    
+    TransportMode: String(this.quotation.TransportMode || this.quotation.transportMode || ''),
+    TransportType: String(this.quotation.TransportType || this.quotation.transportType || ''),
+    inquiryNo: String(this.inquiry.inquiryNo || ''),
+    
+    // --- FALLBACK LOGIC FOR ORGANIZATION ---
+    customerName: String(this.inquiry.organization || this.quotation.customerName || ''),
+    organization: String(this.inquiry.organization || this.quotation.organization || ''),
+    OrganisationName: String(this.OrganisationName || this.inquiry.organization || this.quotation.organization || ''),
+    OrganisationId: Number(this.OrganisationId || this.quotation.organisationId || 0),
+    
+    shipmentType: String(this.quotation.shipmentType || ''),
+    leadNo: String(this.inquiry.leadNo || this.quotation.leadNo || ''),
+    leadId: Number(this.LeadId || this.quotation.leadId || 0),
+    LeadName: String(this.LeadName || this.quotation.leadName || this.quotation.leadNo || ''),
+    
+    origin: String(this.inquiry.origin || this.quotation.origin || ''),
 
     HazardDocPath: this.quotation.hazardDocPath || null,
-    weightUnit: this.quotation.GrossweightUnit || 'KGS',
-    cargocurrency: this.quotation.currency || 'INR',
-    cargoValue: this.quotation.cargoValue?.toString() || "0",
-    lineOfBusinessId: this.quotation.lineOfBusinessId ? Number(this.quotation.lineOfBusinessId) : null,
-    lineOfBusinessName: this.quotation.lineOfBusinessName || null,
-    commodityId: this.quotation.commodity, 
-    originId: this.originsaveid,
-    portOfLoadingId: !isNaN(Number(this.quotation.portOfLoadingId)) && Number(this.quotation.portOfLoadingId) > 0 ? Number(this.quotation.portOfLoadingId) : null,
-    portOfDischargeId: !isNaN(Number(this.quotation.portOfDischargeId)) && Number(this.quotation.portOfDischargeId) > 0 ? Number(this.quotation.portOfDischargeId) : null,
-    cargoStatus: this.quotation.cargoStatusType || 'Ready',
+    weightUnit: String(this.quotation.GrossweightUnit || 'KGS'),
+    cargocurrency: String(this.quotation.currency || 'INR'),
+    cargoValue: String(this.quotation.cargoValue || "0"),
+    lineOfBusinessId: (this.quotation.lineOfBusinessId && Number(this.quotation.lineOfBusinessId) > 0) ? Number(this.quotation.lineOfBusinessId) : null,
+    lineOfBusinessName: String(this.quotation.lineOfBusinessName || ''),
+    commodityId: (this.quotation.commodity && Number(this.quotation.commodity) > 0) ? Number(this.quotation.commodity) : null, 
+    originId: (this.originsaveid && Number(this.originsaveid) > 0) ? Number(this.originsaveid) : null,
+    
+    portOfLoadingId: (this.quotation.portOfLoadingId && Number(this.quotation.portOfLoadingId) > 0) ? Number(this.quotation.portOfLoadingId) : null,
+    portOfDischargeId: (this.quotation.portOfDischargeId && Number(this.quotation.portOfDischargeId) > 0) ? Number(this.quotation.portOfDischargeId) : null, 
+    
+    portOfLoading: null, 
+    portOfDischarge: null,
+    
+    codeOfPOD: String(this.quotation.codeOfPOD || ''),
+    codeOfFinalDest: String(this.quotation.codeOfFinalDest || ''),
+
+    cargoStatus: String(this.quotation.cargoStatusType || 'Ready'),
     createdBy: 'admin@cavalierlogistic.in', 
-    qtnId: this.quotation.qtnId || ('QTN-' + Math.floor(1000 + Math.random() * 9000)),
+    qtnId: String(this.quotation.qtnId || ('QTN-' + Math.floor(1000 + Math.random() * 9000))),
     createdDate: new Date().toISOString(),
     dimensions: this.appliedDimensions || [],
-
-    countryName: this.selectedCountryName || this.quotation.country || null,
-    connectingPortIds: this.selectedConnectingPorts && this.selectedConnectingPorts.length > 0 
-                        ? this.selectedConnectingPorts.map((p: any) => p.id).join(',') 
+    countryName: String(this.selectedCountryName || this.quotation.country || ''),
+    
+    connectingPortIds: (this.selectedConnectingPorts && this.selectedConnectingPorts.length > 0) 
+                        ? String(this.selectedConnectingPorts.map((p: any) => p.id).join(',')) 
                         : null,
 
-    // 🔥 SERVICE TYPE FIX (Sabse niche rakha hai taaki overwrite na ho) 🔥
-    // Inhe forcefully boolean mein convert kiya hai jo aapne checkbox tick kiya hai wahi jayega
-    isDirect: Boolean(this.quotation.isDirect),
-    isIndirect: Boolean(this.quotation.isIndirect),
-    serviceType: (this.searchFilters?.transportMode || this.quotation.serviceType || "").toString()
+    isDirect: this.quotation.serviceType === 'Direct' || Boolean(this.quotation.isDirect),
+    isIndirect: this.quotation.serviceType === 'Indirect' || Boolean(this.quotation.isIndirect),
+    serviceType: String(this.searchFilters?.transportMode || this.quotation.serviceType || "")
   };
 
-  console.log("FINAL PAYLOAD BEFORE SENDING:", payload); // Console mein check kar lena ek baar
+  // --- DELETE NULL KEYS ---
+  Object.keys(payload).forEach(key => {
+    if (payload[key] === null || payload[key] === undefined) {
+      delete payload[key];
+    }
+  });
 
-  // 2. FormData Create Karna (No Cost/Multi-Carrier as per your requirement)
+  console.log("FINAL PAYLOAD BEFORE SENDING:", payload);
+
   const formData = new FormData();
   formData.append('inquiryData', JSON.stringify(payload));
 
-  // 3. Documents Logic
-  if (this.documents && this.documents.length > 0) {
-    this.documents.forEach((doc) => {
-      if (doc.file) {
-        formData.append('commodityFiles', doc.file);
-        formData.append('documentNames', doc.name || doc.fileName);
-      }
-    });
+  if (this.documents?.length) {
+    this.documents.forEach(doc => { if (doc.file) { formData.append('commodityFiles', doc.file); formData.append('documentNames', doc.name || doc.fileName); }});
   }
-  if (this.invoices && this.invoices.length > 0) {
-    this.invoices.forEach((inv) => {
-      if (inv.file) {
-        formData.append('invoiceFiles', inv.file);
-        formData.append('invoiceNames', inv.name || inv.fileName);
-      }
-    });
+  if (this.invoices?.length) {
+    this.invoices.forEach(inv => { if (inv.file) { formData.append('invoiceFiles', inv.file); formData.append('invoiceNames', inv.name || inv.fileName); }});
   }
 
-  // 4. Headers
   const token = localStorage.getItem('cavalier_token');
-  const httpOptions = {
-    headers: { Authorization: `Bearer ${token}` }
-  };
-
-  // 5. Backend Call
-  const action = this.quotation.id > 0 
+  const httpOptions = { headers: { Authorization: `Bearer ${token}` } };
+  
+  const action = (this.quotation.id && this.quotation.id > 0) 
     ? this.http.put(`${this.apiUrl}/${this.quotation.id}`, formData, httpOptions)
     : this.http.post(this.apiUrl, formData, httpOptions);
 
   action.subscribe({
     next: () => {
       alert("Success: Saved in CavalierDB!");
-      
       this.isFormOpen = false;
-      this.showMultiCarrierTable = false; 
-      this.showCostTable = false; 
-      
-      this.documents = []; 
-      this.invoices = [];
-      this.multiCarrierRows = []; 
-      this.costRows = []; 
-
       this.loadQuotations();
-      
-      if (this.toggleForm) {
-        this.toggleForm();
-      }
-      
-      this.getNextInquiryNumber();
       this.cdr.detectChanges();
     },
     error: (err) => {
-       console.error("Post Error Details:", err);
-       alert("Failed to save: " + (err.error?.message || "Check Backend Connection."));
+       console.error("Backend Error Details:", err);
+       alert("Failed: Database FK Conflict. Check if Port IDs exist in PortSetup/PortDischarge tables.");
     }
   });
 }

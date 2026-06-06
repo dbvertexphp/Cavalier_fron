@@ -1068,6 +1068,7 @@
 
   <div class="relative flex border border-gray-300 rounded overflow-hidden">
     <input
+    [ngModelOptions]="{standalone: true}"
       [(ngModel)]="inquiry.leadNo"
       name="leadNo"
       placeholder="Search Lead..."
@@ -2504,7 +2505,7 @@
 </div>
 
               <!-- Port of Loading -->
-     <div class="flex items-center text-red-700 font-bold" #polContainer>
+      <div class="flex items-center text-red-700 font-bold" #polContainer>
   <label class="w-40">Port of Loading</label>
 
   <div class="flex flex-1 gap-2 relative">
@@ -2531,21 +2532,21 @@
       />
       
       <ul *ngIf="showPortOfLoadingDropdown"
-    class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 shadow-xl max-h-48 overflow-y-auto text-[12px] rounded-b-md custom-scrollbar">
-  
-  <li *ngFor="let port of filteredPortsOfLoading; let i = index" 
-      (click)="selectPortOfLoading(port)" 
-      [class.bg-red-100]="i === activeIndex"
-      class="px-4 py-2.5 cursor-pointer border-b border-gray-50 flex items-center gap-2 hover:bg-red-50 transition-colors duration-150">
-    
-    <span class="font-bold text-gray-400 w-12">{{ port.portCode }}</span>
-    <span class="text-gray-700">{{ port.name || port.portName || port.PortName }}</span>
-  </li>
+          class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 shadow-xl max-h-48 overflow-y-auto text-[12px] rounded-b-md custom-scrollbar">
 
-  <li *ngIf="filteredPortsOfLoading.length === 0" class="p-4 text-center text-gray-400 italic">
-    No Port Found
-  </li>
-</ul>
+        <li *ngFor="let port of filteredPortsOfLoading; let i = index" 
+            (click)="selectPortOfLoading(port)" 
+            [class.bg-red-100]="i === activeIndex"
+            class="px-4 py-2.5 cursor-pointer border-b border-gray-50 flex items-center gap-2 hover:bg-red-50 transition-colors duration-150">
+          
+          <span class="font-bold text-gray-400 w-12">{{ port.portCode }}</span>
+          <span class="text-gray-700">{{ port.name || port.portName || port.PortName }}</span>
+        </li>
+
+        <li *ngIf="filteredPortsOfLoading.length === 0" class="p-4 text-center text-gray-400 italic">
+          No Port Found
+        </li>
+      </ul>
     </div>
   </div>
 </div>
@@ -2615,19 +2616,22 @@
         (keydown)="onPortOfDischargeKeyDown($event)"
         class="w-full border p-2 border-red-300 outline-none text-[12px]"
       />
-    </div>
 
-    <ul *ngIf="showPortOfDischargeDropdown"
-        class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto text-gray-700 text-[12px]">
-      <li *ngFor="let port of filteredPortsOfDischarge"
-          (click)="selectPortOfDischarge(port)"
-          class="p-2 hover:bg-gray-100 cursor-pointer border-b">
-        {{ port.portName }} ({{ port.portCode }})
-      </li>
-      <li *ngIf="filteredPortsOfDischarge.length === 0" class="p-3 text-center text-red-500 italic">
-        No Port Found
-      </li>
-    </ul>
+      <ul *ngIf="showPortOfDischargeDropdown"
+          class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto text-gray-700 text-[12px]">
+        
+        <li *ngFor="let port of filteredPortsOfDischarge"
+            (click)="selectPortOfDischarge(port)"
+            class="p-2 hover:bg-gray-100 cursor-pointer border-b flex items-center justify-between">
+          <span>{{ port.portName || port.name || port.PortName }}</span>
+          <span class="font-bold text-gray-400">({{ port.portCode }})</span>
+        </li>
+
+        <li *ngIf="filteredPortsOfDischarge.length === 0" class="p-3 text-center text-red-500 italic">
+          No Port Found
+        </li>
+      </ul>
+    </div>
   </div>
 </div>
 <!-- 🔥 SIMPLE ROUTE DISPLAY (Input Style) -->
@@ -2696,10 +2700,11 @@
   </div>
 </div>
               <!-- Final Destination -->
-              <div class="flex items-center text-red-700 font-bold" #fdContainer>
+      <div class="flex items-center text-red-700 font-bold" #fdContainer>
   <label class="w-40">Final Destination</label>
 
   <div class="flex flex-1 gap-2 relative">
+    
     <input
       [(ngModel)]="quotation.finalDestinationCode"
       name="finalDestinationCode"
@@ -2723,13 +2728,16 @@
 
       <ul *ngIf="showFinalDestinationDropdown"
           class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 shadow-xl max-h-48 overflow-y-auto text-[12px] rounded-b-md custom-scrollbar">
+        
         <li *ngFor="let port of filteredFinalDestinations; let i = index" 
             (click)="selectFinalDestination(port)" 
             [class.bg-red-100]="i === activeFDIndex"
             class="px-4 py-2.5 cursor-pointer border-b border-gray-50 flex items-center gap-2 hover:bg-red-50 transition-colors duration-150">
+          
           <span class="font-bold text-gray-400 w-12">{{ port.portCode }}</span>
           <span class="text-gray-700">{{ port.name || port.portName || port.PortName }}</span>
         </li>
+
         <li *ngIf="filteredFinalDestinations.length === 0" class="p-4 text-center text-gray-400 italic">
           No Port Found
         </li>

@@ -327,83 +327,40 @@
 
         <div class="space-y-2">
           <div class="flex items-center relative">
-            <label class="w-24 font-bold text-gray-600 text-[12px]">Date</label>
+  <label class="w-24 font-bold text-gray-600 text-[12px]">Date</label>
 
-            <div
-              class="flex-1 flex border border-gray-300 items-center pr-2 cursor-pointer bg-white relative h-[30px]"
-              (click)="
-                datePicker.showPicker(); showCustomPicker = !showCustomPicker
-              "
-            >
-              <input
-                #datePicker
-                type="date"
-                [(ngModel)]="searchFilters.receivedDate"
-                class="w-full p-1 outline-none text-[12px] cursor-pointer"
-                (focus)="datePicker.showPicker()"
-                (change)="onSearch(); showCustomPicker = false"
-              />
+  <div class="flex-1 flex border border-gray-300 items-center pr-2 cursor-pointer bg-white relative h-[30px]"
+       (click)="showCustomPicker = !showCustomPicker">
+    
+    <div *ngIf="searchFilters.startDate" class="flex w-full items-center px-1 text-[11px]">
+      <input type="date" [(ngModel)]="searchFilters.startDate" (click)="$event.stopPropagation()" (change)="onSearch()" class="w-full outline-none" />
+      <span class="px-1 text-gray-400">to</span>
+      <input type="date" [(ngModel)]="searchFilters.endDate" (click)="$event.stopPropagation()" (change)="onSearch()" class="w-full outline-none" />
+    </div>
 
-              <span class="text-[14px]">📅</span>
+    <input *ngIf="!searchFilters.startDate"
+      #datePicker
+      type="date"
+      [(ngModel)]="searchFilters.receivedDate"
+      class="w-full p-1 outline-none text-[12px] cursor-pointer"
+      (focus)="datePicker.showPicker()"
+      (change)="onSearch(); showCustomPicker = false"
+    />
 
-              <div
-                *ngIf="showCustomPicker"
-                (mouseleave)="showCustomPicker = false"
-                class="absolute top-0 right-full z-[1001] bg-white shadow-xl border border-gray-300 flex flex-col w-[115px] rounded-sm overflow-hidden mr-[-1px]"
-              >
-                <div
-                  class="bg-gray-100 px-2 py-1 text-[9px] font-bold text-gray-500 uppercase border-b"
-                >
-                  Quick Select
-                </div>
+    <span class="text-[14px]">📅</span>
 
-                <div
-                  (click)="setQuickDate('today'); $event.stopPropagation()"
-                  class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 transition-colors"
-                >
-                  Today
-                </div>
-                <div
-                  (click)="setQuickDate('tomorrow'); $event.stopPropagation()"
-                  class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 text-blue-700 font-semibold"
-                >
-                  Tomorrow
-                </div>
-                <div
-                  (click)="setQuickDate('yesterday'); $event.stopPropagation()"
-                  class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 transition-colors"
-                >
-                  Yesterday
-                </div>
-
-                <div
-                  (click)="setQuickDate('nextWeek'); $event.stopPropagation()"
-                  class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 transition-colors"
-                >
-                  Next Week
-                </div>
-                <div
-                  (click)="setQuickDate('lastWeek'); $event.stopPropagation()"
-                  class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 transition-colors"
-                >
-                  Last Week
-                </div>
-
-                <div
-                  (click)="setQuickDate('nextMonth'); $event.stopPropagation()"
-                  class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 transition-colors"
-                >
-                  Next Month
-                </div>
-                <div
-                  (click)="setQuickDate('lastMonth'); $event.stopPropagation()"
-                  class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer transition-colors"
-                >
-                  Last Month
-                </div>
-              </div>
-            </div>
-          </div>
+    <div *ngIf="showCustomPicker" (mouseleave)="showCustomPicker = false"
+         class="absolute top-0 right-full z-[1001] bg-white shadow-xl border border-gray-300 flex flex-col w-[115px] rounded-sm overflow-hidden mr-[-1px]">
+      <div class="bg-gray-100 px-2 py-1 text-[9px] font-bold text-gray-500 uppercase border-b">Quick Select</div>
+      
+      <div (click)="setQuickDate('today'); $event.stopPropagation()" class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b">Today</div>
+      <div (click)="setQuickDate('yesterday'); $event.stopPropagation()" class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b">Yesterday</div>
+      <div (click)="setQuickDate('lastWeek'); $event.stopPropagation()" class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b">Last Week</div>
+      <div (click)="setQuickDate('lastMonth'); $event.stopPropagation()" class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b">Last Month</div>
+      <div (click)="searchFilters.startDate=''; searchFilters.receivedDate=''; $event.stopPropagation()" class="p-2 text-[11px] text-red-500 cursor-pointer">Clear</div>
+    </div>
+  </div>
+</div>
           <div class="flex items-center relative">
   <label class="w-24 font-bold text-gray-600 text-[12px]">Inquiry By</label>
 
@@ -1607,184 +1564,94 @@
 </div>
 
               <div class="flex items-center gap-2">
-                <label class="w-40 font-bold text-gray-700">Gross Weight</label>
-                <div class="flex flex-1">
-                  <input
-                    type="number"
-                    [(ngModel)]="quotation.grossWeightKg"
-                    (ngModelChange)="calculateVolumeWeightLogic()"
-                    name="grossWeightKg"
-                    class="w-full border p-2 outline-none"
-                  />
-                  <div
-                    class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="w-3 h-3 text-gray-400"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      />
-                    </svg>
-                    <div class="flex items-center gap-1 border-b border-gray-300 pb-1 w-fit">
-  <select
-    [(ngModel)]="quotation.GrossweightUnit"
-    name="weightUnit"
-    class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
-  >
-    <option *ngFor="let uom of uomList" [value]="uom.shortCode">
-      {{ uom.shortCode }}
-    </option>
-  </select>
-
-  <button (click)="toggleUomModal()" class="text-gray-400 hover:text-red-700 transition-all">
-    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-    </svg>
-  </button>
-</div>
-
-<div *ngIf="isUomModalOpen" class="fixed inset-0 z-[200] flex items-center justify-center p-4">
-  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" (click)="toggleUomModal()"></div>
-  <div class="relative bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden border">
-    <div class="bg-red-800 p-4 text-white font-black uppercase text-sm">Select Unit</div>
-    <div class="p-2 max-h-[300px] overflow-y-auto">
-      <div *ngFor="let uom of uomList" 
-           (click)="selectUom(uom)"
-           class="p-3 border-b cursor-pointer hover:bg-red-50 flex justify-between items-center">
-        <span class="font-bold text-[13px] text-gray-700">{{ uom.unitName }}</span>
-        <span class="text-[10px] font-black bg-gray-100 px-2 py-1 rounded">{{ uom.shortCode }}</span>
+  <label class="w-40 font-bold text-gray-700">Gross Weight</label>
+  <div class="flex flex-1">
+    <input type="number" [(ngModel)]="quotation.grossWeightKg" (ngModelChange)="calculateVolumeWeightLogic()" name="grossWeightKg" class="w-full border p-2 outline-none" />
+    <div class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1">
+      <div class="flex items-center gap-1 border-b border-gray-300 pb-1 w-fit">
+        <select [(ngModel)]="quotation.GrossWeightUnit" name="GrossWeightUnit" class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
+          <option *ngFor="let uom of uomList" [ngValue]="uom.shortCode">{{ uom.shortCode }}</option>
+        </select>
+        <button (click)="toggleUomModal()" class="text-gray-400 hover:text-red-700 transition-all">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </button>
       </div>
-    </div>
-    <div class="p-3 bg-gray-50 text-right">
-      <button (click)="toggleUomModal()" class="text-[11px] font-bold text-gray-500 uppercase">Cancel</button>
+      <div *ngIf="isUomModalOpen" class="fixed inset-0 z-[200] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" (click)="toggleUomModal()"></div>
+        <div class="relative bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden border">
+          <div class="bg-red-800 p-4 text-white font-black uppercase text-sm">Select Unit</div>
+          <div class="p-2 max-h-[300px] overflow-y-auto">
+            <div *ngFor="let uom of uomList" (click)="selectUom(uom)" class="p-3 border-b cursor-pointer hover:bg-red-50 flex justify-between items-center">
+              <span class="font-bold text-[13px] text-gray-700">{{ uom.unitName }}</span>
+              <span class="text-[10px] font-black bg-gray-100 px-2 py-1 rounded">{{ uom.shortCode }}</span>
+            </div>
+          </div>
+          <div class="p-3 bg-gray-50 text-right"><button (click)="toggleUomModal()" class="text-[11px] font-bold text-gray-500 uppercase">Cancel</button></div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
-                  </div>
-                </div>
-              </div>
-            <div class="flex items-center gap-2">
+
+<div class="flex items-center gap-2">
   <label class="w-40 font-bold text-gray-700">Net Weight</label>
   <div class="flex flex-1">
-    <!-- Simple input field, koi automatic calculation nahi -->
-    <input
-      type="number"
-      [(ngModel)]="quotation.netWeight"
-      name="netWeight"
-      class="w-full border p-2 outline-none focus:border-blue-400"
-      placeholder="Enter weight manually"
-    />
+    <input type="number" [(ngModel)]="quotation.netWeight" name="netWeight" class="w-full border p-2 outline-none focus:border-blue-400" placeholder="Enter weight manually" />
     <div class="flex items-center border border-l-0 bg-gray-50 px-2 h-[38px]">
-       <div class="flex items-center gap-1 border-b border-gray-300 pb-1 w-fit">
-  <select
-    [(ngModel)]="quotation.netWeightUnit"
-    name="netWeightUnit"
-    class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
-  >
-    <option *ngFor="let uom of uomList" [value]="uom.shortCode">
-      {{ uom.shortCode }}
-    </option>
-  </select>
-
-  <button (click)="toggleNetUomModal()" class="text-gray-400 hover:text-red-700 transition-all">
-    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-    </svg>
-  </button>
-</div>
-
-<div *ngIf="isNetUomModalOpen" class="fixed inset-0 z-[200] flex items-center justify-center p-4">
-  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" (click)="toggleNetUomModal()"></div>
-  <div class="relative bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden border">
-    <div class="bg-red-800 p-4 text-white font-black uppercase text-sm">Select Net Weight Unit</div>
-    <div class="p-2 max-h-[300px] overflow-y-auto">
-      <div *ngFor="let uom of uomList" 
-           (click)="selectNetUom(uom)"
-           class="p-3 border-b cursor-pointer hover:bg-red-50 flex justify-between items-center">
-        <span class="font-bold text-[13px] text-gray-700">{{ uom.unitName }}</span>
-        <span class="text-[10px] font-black bg-gray-100 px-2 py-1 rounded">{{ uom.shortCode }}</span>
+      <div class="flex items-center gap-1 border-b border-gray-300 pb-1 w-fit">
+        <select [(ngModel)]="quotation.NetWeightUnit" name="NetWeightUnit" class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
+          <option *ngFor="let uom of uomList" [value]="uom.shortCode">{{ uom.shortCode }}</option>
+        </select>
+        <button (click)="toggleNetUomModal()" class="text-gray-400 hover:text-red-700 transition-all">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </button>
+      </div>
+      <div *ngIf="isNetUomModalOpen" class="fixed inset-0 z-[200] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" (click)="toggleNetUomModal()"></div>
+        <div class="relative bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden border">
+          <div class="bg-red-800 p-4 text-white font-black uppercase text-sm">Select Net Weight Unit</div>
+          <div class="p-2 max-h-[300px] overflow-y-auto">
+            <div *ngFor="let uom of uomList" (click)="selectNetUom(uom)" class="p-3 border-b cursor-pointer hover:bg-red-50 flex justify-between items-center">
+              <span class="font-bold text-[13px] text-gray-700">{{ uom.unitName }}</span>
+              <span class="text-[10px] font-black bg-gray-100 px-2 py-1 rounded">{{ uom.shortCode }}</span>
+            </div>
+          </div>
+          <div class="p-3 bg-gray-50 text-right"><button (click)="toggleNetUomModal()" class="text-[11px] font-bold text-gray-500 uppercase">Cancel</button></div>
+        </div>
       </div>
     </div>
-    <div class="p-3 bg-gray-50 text-right">
-      <button (click)="toggleNetUomModal()" class="text-[11px] font-bold text-gray-500 uppercase">Cancel</button>
-    </div>
   </div>
 </div>
-    </div>
-  </div>
-</div>
-              <div class="flex items-center gap-2">
-                <label class="w-40 font-bold text-gray-700">Chrg. Weight</label>
-                <div class="flex flex-1">
-                  <input
-                    type="number"
-                    [(ngModel)]="quotation.chargeableWeight"
-                    name="chargeableWeight"
-                    class="w-full border p-2 outline-none"
-                  />
-                  <div
-                    class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1"
-                  >
-                    <!-- <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="w-3 h-3 text-gray-400"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor" -->
-                    <!-- > -->
-                      <!-- <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      /> -->
-                    <!-- </svg> -->
-                    <div class="flex items-center gap-1 border-b border-gray-300 pb-1 w-fit">
-  <select
-    [(ngModel)]="quotation.chargeableWeightUnit"
-    name="chargeableWeightUnit"
-    class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
-  >
-    <option *ngFor="let uom of uomList" [value]="uom.shortCode">
-      {{ uom.shortCode }}
-    </option>
-  </select>
 
-  <button (click)="toggleChargeableUomModal()" class="text-gray-400 hover:text-red-700 transition-all">
-    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-    </svg>
-  </button>
-</div>
-
-<div *ngIf="isChargeableUomModalOpen" class="fixed inset-0 z-[200] flex items-center justify-center p-4">
-  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" (click)="toggleChargeableUomModal()"></div>
-  <div class="relative bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden border">
-    <div class="bg-red-800 p-4 text-white font-black uppercase text-sm">Select Chargeable Unit</div>
-    <div class="p-2 max-h-[300px] overflow-y-auto">
-      <div *ngFor="let uom of uomList" 
-           (click)="selectChargeableUom(uom)"
-           class="p-3 border-b cursor-pointer hover:bg-red-50 flex justify-between items-center">
-        <span class="font-bold text-[13px] text-gray-700">{{ uom.unitName }}</span>
-        <span class="text-[10px] font-black bg-gray-100 px-2 py-1 rounded">{{ uom.shortCode }}</span>
+<div class="flex items-center gap-2">
+  <label class="w-40 font-bold text-gray-700">Chrg. Weight</label>
+  <div class="flex flex-1">
+    <input type="number" [(ngModel)]="quotation.chargeableWeight" name="chargeableWeight" class="w-full border p-2 outline-none" />
+    <div class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1">
+      <div class="flex items-center gap-1 border-b border-gray-300 pb-1 w-fit">
+        <select [(ngModel)]="quotation.ChargeWeightUnit" name="ChargeWeightUnit" class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer">
+          <option *ngFor="let uom of uomList" [value]="uom.shortCode">{{ uom.shortCode }}</option>
+        </select>
+        <button (click)="toggleChargeableUomModal()" class="text-gray-400 hover:text-red-700 transition-all">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </button>
+      </div>
+      <div *ngIf="isChargeableUomModalOpen" class="fixed inset-0 z-[200] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" (click)="toggleChargeableUomModal()"></div>
+        <div class="relative bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden border">
+          <div class="bg-red-800 p-4 text-white font-black uppercase text-sm">Select Chargeable Unit</div>
+          <div class="p-2 max-h-[300px] overflow-y-auto">
+            <div *ngFor="let uom of uomList" (click)="selectChargeableUom(uom)" class="p-3 border-b cursor-pointer hover:bg-red-50 flex justify-between items-center">
+              <span class="font-bold text-[13px] text-gray-700">{{ uom.unitName }}</span>
+              <span class="text-[10px] font-black bg-gray-100 px-2 py-1 rounded">{{ uom.shortCode }}</span>
+            </div>
+          </div>
+          <div class="p-3 bg-gray-50 text-right"><button (click)="toggleChargeableUomModal()" class="text-[11px] font-bold text-gray-500 uppercase">Cancel</button></div>
+        </div>
       </div>
     </div>
-    <div class="p-3 bg-gray-50 text-right">
-      <button (click)="toggleChargeableUomModal()" class="text-[11px] font-bold text-gray-500 uppercase">Cancel</button>
-    </div>
   </div>
 </div>
-                  </div>
-                </div>
-              </div>
             </div>
 
             <div class="space-y-3">
@@ -2084,77 +1951,53 @@
   </div>
 </div>
               <div class="flex items-center gap-2">
-                <label class="w-40 font-bold text-gray-700"
-                  >Volume Weight</label
-                >
-                <div class="flex flex-1">
-                  <input
-                    type="number"
-                    [(ngModel)]="quotation.volumeWeight"
-                    (ngModelChange)="calculateVolumeWeightLogic()"
-                    name="volumeWeight"
-                    class="w-full border p-2 outline-none"
-                  />
+  <label class="w-40 font-bold text-gray-700">Volume Weight</label>
+  <div class="flex flex-1">
+    <input
+      type="number"
+      [(ngModel)]="quotation.volumeWeight"
+      (ngModelChange)="calculateVolumeWeightLogic()"
+      name="volumeWeight"
+      class="w-full border p-2 outline-none"
+    />
+    <div class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1">
+      <select
+        [(ngModel)]="quotation.VolumeWeightUnit"
+        name="VolumeWeightUnit"
+        class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
+      >
+        <option value="KGS">KGS</option>
+        <option value="CBM">CBM</option>
+      </select>
+    </div>
+  </div>
+</div>
 
-                  <div
-                    class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1"
-                  >
-                    <select
-                      [(ngModel)]="quotation.volumeWeightUnit"
-                      name="volumeWeightUnit"
-                      class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
-                    >
-                      <option value="KGS">KGS</option>
-                      <option value="CBM">CBM</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              <div class="flex items-start mt-2">
-                <label class="w-40 font-bold text-gray-700 mt-2"
-                  >CBM Weight</label
-                >
-
-                <div class="flex-1 flex items-center gap-2">
-                  <input
-                    type="number"
-                    [(ngModel)]="quotation.cbm"
-                    name="cbm"
-                    readonly
-                    class="flex-1 border p-2 outline-none bg-gray-50 focus:border-blue-500 h-10 font-medium"
-                    placeholder="0.000"
-                  />
-
-                  <div
-                    class="flex items-center border border-l-0 bg-gray-50 px-2 h-10 cursor-pointer gap-1"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="w-3 h-3 text-gray-400"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      />
-                    </svg>
-
-                    <select
-  [(ngModel)]="quotation.cbmUnit"
-  name="cbmUnit"
-  class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
->
-  <option value="CBM" selected>CBM</option>
-  <!-- <option value="KGS">KGS</option> -->
-</select>
-                  </div>
-                </div>
-              </div>
+<div class="flex items-start mt-2">
+  <label class="w-40 font-bold text-gray-700 mt-2">CBM Weight</label>
+  <div class="flex-1 flex items-center gap-2">
+    <input
+      type="number"
+      [(ngModel)]="quotation.cbm"
+      name="cbm"
+      readonly
+      class="flex-1 border p-2 outline-none bg-gray-50 focus:border-blue-500 h-10 font-medium"
+      placeholder="0.000"
+    />
+    <div class="flex items-center border border-l-0 bg-gray-50 px-2 h-10 cursor-pointer gap-1">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+      </svg>
+      <select
+        [(ngModel)]="quotation.CbmWeightUnit"
+        name="CbmWeightUnit"
+        class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
+      >
+        <option value="CBM">CBM</option>
+      </select>
+    </div>
+  </div>
+</div>
               <div class="flex items-start">
                 <label class="w-40 font-bold text-gray-700 mt-2"
                   >Description</label

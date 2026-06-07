@@ -852,18 +852,20 @@ onSave() {
         control.setErrors({ zod: errors[field as keyof typeof errors]?.[0] });
       }
     });
-    alert("Please Fix the error input fields!");
+    Swal.fire({
+      icon: 'error',
+      title: 'Validation Failed',
+      text: 'Please fix the error input fields!',
+    });
     return;
   }
 
-  // 2. OrganisationId Fix (Isko pakka Number banana hai)
-  // Variable check karega ya form control se uthayega
+  // 2. OrganisationId Fix
   const orgIdValue = this.OrganisationId || rawValue.organizationId;
   const finalOrgId = (orgIdValue && orgIdValue !== "") ? Number(orgIdValue) : null;
 
-  // 3. Payload Build (Directly as per LeadDto)
+  // 3. Payload Build
   const payload: any = {
-    // Agar Edit mode hai toh purana LeadNo, warna naya wala
     LeadNo: this.isEditMode ? rawValue.leadNo : this.nextLeadNo,
     Date: rawValue.date ? new Date(rawValue.date).toISOString() : null,
     ExpectedValidity: rawValue.expectedValidity ? new Date(rawValue.expectedValidity).toISOString() : null,
@@ -880,8 +882,6 @@ onSave() {
     Location: rawValue.location,
     Area: rawValue.area,
     OrganizationName: rawValue.organization || rawValue.organizationName,
-    
-    // DTO mein [JsonPropertyName("organizationId")] hai
     organizationId: finalOrgId 
   };
 
@@ -893,13 +893,22 @@ onSave() {
     this.http.put(`${environment.apiUrl}/Leads/${this.selectedLeadId}`, payload, { headers })
       .subscribe({
         next: () => {
-          alert("Lead Updated Successfully!");
+          Swal.fire({
+            icon: 'success',
+            title: 'Updated!',
+            text: 'Lead Updated Successfully!',
+            timer: 2000
+          });
           this.resetFormAfterSave();
-          this.OrganisationId = null; // Resetting
+          this.OrganisationId = null;
         },
         error: (err) => {
           console.error("Update Error:", err);
-          alert("Failed to update lead!");
+          Swal.fire({
+            icon: 'error',
+            title: 'Update Failed',
+            text: err.error?.message || 'Something went wrong during update!'
+          });
         }
       });
 
@@ -908,13 +917,23 @@ onSave() {
     this.http.post(`${environment.apiUrl}/Leads`, payload, { headers })
       .subscribe({
         next: () => {
-          alert("Lead Created Successfully!");
+          Swal.fire({
+            icon: 'success',
+            title: 'Created!',
+            text: 'Lead Created Successfully!',
+            timer: 2000
+          });
           this.resetFormAfterSave();
-          this.OrganisationId = null; // Resetting
+          this.OrganisationId = null;
         },
         error: (err) => {
           console.error("Create Error:", err);
-          alert("Failed to create lead!");
+          // Yahan backend se aane wala duplicate organization ka message dikhega
+          Swal.fire({
+            icon: 'error',
+            title: 'Create Failed',
+            text: err.error?.message || 'Failed to create lead!'
+          });
         }
       });
   }

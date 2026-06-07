@@ -2931,6 +2931,12 @@ toggleOrgStatus(org: any) {
 isDuplicate: boolean = false;
 
 checkDuplicateOrg() {
+  // Agar Edit mode hai, toh duplicate check run hi mat karo
+  if (this.isOrgEditMode) {
+    this.isDuplicate = false;
+    return;
+  }
+
   if (!this.orgName || this.orgName.trim() === '') {
     this.isDuplicate = false;
     return;

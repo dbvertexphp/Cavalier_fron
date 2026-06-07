@@ -2661,173 +2661,61 @@ selectPricing(prc: any) {
     return;
   }
 
-  // Initial basic info
-  console.log(prc, "Selected Pricing Data:");
-  this.quotation.referencePricingNo = prc.pricingNo || '';
-  this.quotation.customerName = prc.customerName || '';
-  this.quotation.pricingId = prc.id;
-  this.quotation.organisationId = prc.organisationId || prc.OrganisationId;
-  this.quotation.organisationName = prc.organisationName;
-  this.quotation.organization = prc.organisationName || ''; 
-
   this.showPricingDropdown = false;
-  this.cdr.detectChanges(); 
+  this.cdr.detectChanges();
 
   const pricingNo = prc.pricingNo?.trim();
-  const encodedNo = encodeURIComponent(pricingNo);
-  const url = `${environment.apiUrl}/Pricing/GetByPricingNo/${encodedNo}`;
+  const url = `${environment.apiUrl}/Pricing/GetByPricingNo/${encodeURIComponent(pricingNo)}`;
 
   this.http.get<any>(url).subscribe({
-    next: (fullData) => {
-      console.log("✅ FULL DATA FROM API RECEIVED:", fullData);
+    next: (p) => {
+      console.log("✅ API FULL DATA:", p);
 
-      // --- ADDED: Documents Mapping ---
-      const allDocs = fullData.pricingDocuments || fullData.PricingDocuments || [];
-      console.log("DEBUG: Total Docs found:", allDocs.length);
-
-      this.documents = allDocs
-        .filter((d: any) => (d.docType || d.DocType) === 'Commodity')
-        .map((d: any) => ({
-          id: d.docId || d.DocId,
-          name: d.docType || d.DocType,
-          documentPath: d.docPath || d.DocPath,
-          isExisting: true
-        }));
-
-      this.invoices = allDocs
-        .filter((d: any) => (d.docType || d.DocType) === 'Invoice')
-        .map((d: any) => ({
-          id: d.docId || d.DocId,
-          name: d.docType || d.DocType,
-          documentPath: d.docPath || d.DocPath,
-          isExisting: true
-        }));
-
-      console.log("DEBUG: Filtered Commodity Docs:", this.documents);
-      console.log("DEBUG: Filtered Invoice Docs:", this.invoices);
-      // ---------------------------------
-
-      // --- 1. Transport & Mode Logic ---
-      if (fullData.transportMode) {
-        const modeFromApi = fullData.transportMode.trim();
-        const matchedMode = this.transportModes?.find(m => 
-          m.name.toLowerCase() === modeFromApi.toLowerCase()
-        );
-        this.quotation.transportMode = matchedMode ? matchedMode.name : modeFromApi;
-      }
-      this.quotation.transportType = fullData.transportType || '';
-      this.quotation.shipmentType = fullData.shipmentType || '';
-      this.quotation.movementType = fullData.movementType || '';
-      this.quotation.isDirect = !!fullData.isDirect;
-      this.quotation.isIndirect = !!fullData.isIndirect;
-
-      // --- 2. Weights & Packages ---
-      this.quotation.noOfPkgs = Number(fullData.noOfPkgs) || 0;
-      this.quotation.grossWeightKg = Number(fullData.grossWeightKg) || 0;
-      this.quotation.netWeight = Number(fullData.netWeight) || 0;
-      this.quotation.grossWeightUnit = fullData.grossWeightUnit || 'KGS';
-      this.quotation.volumeWeightUnit = fullData.grossWeightUnit || 'KGS';
-      this.quotation.chargeableWeight = Number(fullData.chargeableWeight) || 0;
-      this.quotation.chargeableWeightKg = Number(fullData.volumeWeight) || 0;
-      this.quotation.volumeWeight = Number(fullData.volumeWeight) || 0; 
+      // --- 1. Basic Info ---
+      this.quotation.referencePricingNo = p.pricingNo || prc.pricingNo || '';
+      this.quotation.customerName = p.customerName || prc.customerName || '';
+      this.quotation.pricingId = p.id || p.pricingId || prc.id;
       
-      if (this.quotation.volumeWeight > 0) {
-        this.quotation.cbm = parseFloat((this.quotation.volumeWeight / 167).toFixed(3));
-      }
-
-      // --- 3. Route & Locations ---
-      this.quotation.originPOL = fullData.originName || '';
-      this.quotation.podFinalDest = fullData.finalDestination || '';
-      this.quotation.placeOfDelivery = fullData.placeOfDelivery || '';
-      this.quotation.location = fullData.location || '';
-
-      // POL & POD IDs Mapping
-      this.quotation.portOfLoadingId = fullData.portOfLoadingId ? Number(fullData.portOfLoadingId) : null;
-      this.quotation.portOfDischargeId = fullData.portOfDischargeId ? Number(fullData.portOfDischargeId) : null;
-
-      // --- 4. Connecting Ports ---
-      this.selectedConnectingPorts = []; 
-      this.quotation.connectingPortIds = []; 
-      if (fullData.connectingPortIds) {
-        const idsArray = fullData.connectingPortIds.toString().split(',').map((x: any) => x.trim()).filter((x: any) => x !== '');
-        this.quotation.connectingPortIds = idsArray.map((id: any) => Number(id));
-
-        this.selectedConnectingPorts = idsArray.map((id: any) => {
-          const trimmedId = id.toString().trim();
-          const masterPort = this.filteredConnectingPorts?.find(p => p.id.toString() === trimmedId);
-          return {
-            id: trimmedId,
-            name: masterPort ? masterPort.name : `Port ID: ${trimmedId}`,
-            cpType: 'Transit'
-          };
-        });
-      }
-
-      // --- 5. Cargo & General Info ---
-      this.quotation.incoterm = fullData.incoterm || '';
-      this.quotation.description = fullData.description || '';
-      this.quotation.currency = (fullData.cargoCurrency || '').trim();
-      this.quotation.cargoValue = fullData.cargoValue || '';
-      this.quotation.commodity = fullData.commodityId ? Number(fullData.commodityId) : null;
-      this.quotation.lineOfBusiness = fullData.lineOfBusinessId || ''; 
-      this.quotation.pricingBy = fullData.pricingDoneBy || '';
-      this.quotation.businessDimensions = fullData.businessDimensions || ''; 
-      this.quotation.cargoStatus = fullData.cargoStatus || ''; 
+      // --- 2. Transport & Mode (Fallback chain) ---
+      const transportMode = p.transportMode || p.TransportMode || '';
+      const matchedMode = this.transportModes?.find(m => m.name.toLowerCase() === transportMode.toLowerCase());
+      this.quotation.transportMode = matchedMode ? matchedMode.name : transportMode;
       
-      if (fullData.salesCoordinator) {
-        this.quotation.salesCoordinator = isNaN(fullData.salesCoordinator) ? fullData.salesCoordinator : Number(fullData.salesCoordinator);
+      this.quotation.transportType = p.transportType || p.TransportType || '';
+      this.quotation.shipmentType = p.shipmentType || p.ShipmentType || '';
+
+      // --- 3. Cargo Value, Commodity & Currency ---
+      this.quotation.cargoValue = p.cargoValue || p.CargoValue || p.value || 0;
+      this.quotation.currency = (p.cargoCurrency || p.Currency || p.currency || '').trim();
+      this.quotation.commodity = Number(p.commodityId || p.CommodityId || p.commodity || 0);
+
+      // --- 4. Route, Country & Location ---
+      this.quotation.originPOL = p.originName || p.origin || '';
+      this.quotation.podFinalDest = p.finalDestination || p.FinalDestination || '';
+      this.quotation.placeOfDelivery = p.placeOfDelivery || p.PlaceOfDelivery || '';
+      
+      // Country logic
+      this.quotation.country = p.countryName || p.CountryName || '';
+      this.quotation.countryId = p.countryId || p.CountryId || null;
+
+      // --- 5. Connecting Ports ---
+      const cpIds = p.connectingPortIds || p.ConnectingPortIds;
+      if (cpIds) {
+        const idsArray = cpIds.toString().split(',').map((x: any) => Number(x.trim())).filter((x: any) => !isNaN(x));
+        this.quotation.connectingPortIds = idsArray;
+        this.selectedConnectingPorts = this.filteredConnectingPorts?.filter(port => idsArray.includes(Number(port.id))) || [];
       }
 
-      this.quotation.branchId = fullData.branchId || '';
-      this.quotation.branchName = fullData.branchName || '';
+      // --- 6. Weights & CBM ---
+      this.quotation.grossWeightKg = Number(p.grossWeightKg || p.GrossWeightKg || 0);
+      this.quotation.volumeWeight = Number(p.volumeWeight || p.VolumeWeight || 0);
+      this.quotation.cbm = parseFloat(Number(p.cbm || p.TotalCbm || 0).toFixed(3));
 
-      const statusDate = fullData.cargoStatusDate ? fullData.cargoStatusDate.split('T')[0] : null;
-      setTimeout(() => { 
-        this.quotation.cargoReadyDate = statusDate; 
-        this.cdr.detectChanges(); 
-      }, 0);
-
-      // --- 6. Dimensions ---
-      if (fullData.dimensions && fullData.dimensions.length > 0) {
-        this.dimRows = fullData.dimensions.map((d: any) => ({
-          box: d.box || d.pcs || d.Box || null,
-          l: d.l || d.length || d.L || null,
-          w: d.w || d.width || d.W || null,
-          h: d.h || d.height || d.H || null,
-          unit: d.unit || d.Unit || 'CMS'
-        }));
-
-        const first = this.dimRows[0];
-        this.quotation.dimBox = first.box;
-        this.quotation.dimL = first.l;
-        this.quotation.dimW = first.w;
-        this.quotation.dimH = first.h;
-        this.quotation.dimUnit = first.unit || 'CMS';
-      }
-
-      // --- 7. Multi-Carrier & Costs ---
-      if (fullData.multiCarrierBreakdowns) {
-        this.multiCarrierRows = fullData.multiCarrierBreakdowns.map((mc: any) => ({
-          ...mc,
-          airFreight: Number(mc.airFreight) || 0,
-          totalCost: Number(mc.totalCost) || 0
-        }));
-      }
-
-      if (fullData.costBreakdowns) {
-        this.costRows = fullData.costBreakdowns.map((cost: any) => ({
-          ...cost,
-          rate: Number(cost.rate) || 0,
-          amount: Number(cost.amount) || 0
-        }));
-      }
-
-      // --- TRIGGER UI UPDATES ---
+      // --- Trigger UI Events ---
       this.onPolChange();
       this.onPodChange();
-
-      this.cdr.detectChanges(); 
-      if (this.calculateAll) { this.calculateAll(); }
+      this.cdr.detectChanges();
+      if (this.calculateAll) this.calculateAll();
       this.cdr.markForCheck();
     },
     error: (err) => console.error("❌ API Error:", err)

@@ -942,18 +942,19 @@ selectOrigin(origin: any) {
   this.originsaveid = origin.id;
   this.originpinCode = origin.countryCode;
 
-  // FIX: Input (inquiry.origin) mein wahi property daalein jo UI (origin.name) mein hai
+  // Origin field update
   this.inquiry.origin = origin.name; 
   
-  // Country auto-fill
-  this.quotation.country = origin.countryName || origin.country; 
+  // FIX: Country auto-fill for BOTH properties (display and underlying data)
+  this.quotation.countryName = origin.countryName || origin.country; // Ye template ke liye zaroori hai
+  this.quotation.country = origin.countryName || origin.country;     // Ye backend/logic ke liye
   
   this.showOriginDropdown = false;
 
-  console.log("Selected Origin:", origin);
+  console.log("Selected Origin and Country:", origin);
 
   // Multi-Carrier Grid update
-  if (this.multiCarrierRows && this.multiCarrierRows.length > 0) {
+  if (this.multiCarrierRows?.length > 0) {
     this.multiCarrierRows.forEach((row: any) => {
       row.origin = origin.name; 
     });
@@ -3868,7 +3869,6 @@ isPortSelected(port: any): boolean {
 commodityDocuments: any[] = [];
   packageOrInvoiceDocuments: any[] = [];
 selectInquiry(inq: any) {
-
   if (!inq || !inq.inquiryNo) {
     console.error("❌ Inquiry No missing!");
     return;
@@ -3895,93 +3895,86 @@ selectInquiry(inq: any) {
       this.quotation.location = data.location || '';
       this.quotation.partyRole = data.partyRole || '';
 
-      // --- 2. Documents Mapping & UI Sync ---
-      // Backend response se lists fill karo
+      // --- 2. Documents ---
       this.commodityDocuments = data.commodityDocuments || [];
       this.packageOrInvoiceDocuments = data.packageOrInvoiceDocuments || [];
-
-      // Commodity Modal ke liye mapping
       this.documents = (data.commodityDocuments || []).map((doc: any) => ({
-        id: doc.id,
-        name: doc.name || 'Document',
-        documentPath: doc.documentPath,
-        isExisting: true,
-        file: null,
-        isReplacing: false
+        id: doc.id, name: doc.name || 'Document', documentPath: doc.documentPath,
+        isExisting: true, file: null, isReplacing: false
       }));
-
-      // Invoice Modal ke liye mapping
       this.invoices = (data.packageOrInvoiceDocuments || []).map((doc: any) => ({
-        id: doc.id,
-        name: doc.name || 'Document',
-        documentPath: doc.documentPath,
-        isExisting: true,
-        file: null,
-        isReplacing: false
+        id: doc.id, name: doc.name || 'Document', documentPath: doc.documentPath,
+        isExisting: true, file: null, isReplacing: false
       }));
-
       this.quotation.invoiceList = (this.invoices.length > 0) ? 'Available' : 'Not Available';
 
-      // --- 3. Line of Business (LOB) ---
+      // --- 3. LOB & Transport ---
       this.quotation.lineOfBusinessId = data.lineOfBusinessId ? Number(data.lineOfBusinessId) : null;
-      
-// if (this.quotation.lineOfBusinessId) {
-//     this.fetchAgentByLobId(this.quotation.lineOfBusinessId);
-// }      // --- 4. Transport Mode & Type ---
       if (data.transportMode) {
         const modeObj = this.transportModes.find(m =>
-          m.name.toLowerCase() === data.transportMode.toLowerCase() ||
-          m.id == data.transportMode
+          m.name.toLowerCase() === data.transportMode.toLowerCase() || m.id == data.transportMode
         );
         this.quotation.TransportMode = modeObj ? modeObj.id : data.transportMode;
       }
       this.quotation.TransportType = data.transportType || '';
 
-      // --- 5. Other IDs & Pricing ---
+      // --- 4. Pricing ---
       this.quotation.salesCoordinator = data.salesCoordinator ? Number(data.salesCoordinator) : null;
       this.quotation.commodity = data.commodityId ? Number(data.commodityId) : null;
       this.quotation.pricingDoneBy = data.pricingDoneBy || '';
       this.quotation.qtnDoneBy = data.qtnDoneBy || '';
       this.quotation.businessDimensions = data.businessDimensions || '';
 
-      // --- 6. Movement & Ports ---
+      // --- 5. Movement & Ports ---
       this.quotation.shipmentType = data.shipmentType?.toString() || '';
       this.quotation.movementType = data.movementType || '';
-      this.quotation.originPOL = data.originName || '';
-      this.quotation.portOfLoading = data.portOfLoadingName || '';
-      this.quotation.portOfDischarge = data.portOfDischargeName || '';
-      this.quotation.podFinalDest = data.finalDestination || '';
-      this.quotation.placeOfDelivery = data.placeOfDelivery || '';
-      this.quotation.portOfDestination = data.portOfDischargeName || '';
+      this.inquiry.origin = data.originName || '';
+      this.originsaveid = data.originId || null;
+      this.originpinCode = data.originCountryCode || '';
+
+      // POL
+      this.quotation.portOfLoadingId = data.portOfLoadingId ? Number(data.portOfLoadingId) : null;
+      this.quotation.portOfLoadingCode = data.codeOfPOL || '';
+      const polMatch = this.portsOfLoading?.find(p => p && Number(p.id) === Number(data.portOfLoadingId));
+      this.quotation.portOfLoading = polMatch ? (polMatch.portName || polMatch.name) : (data.portOfLoadingName || '');
+
+      // POD
+      this.quotation.portOfDischargeId = data.portOfDischargeId ? Number(data.portOfDischargeId) : null;
+      this.quotation.portOfDestinationCode = data.codeOfPOD || '';
+      const podMatch = this.portsOfDischarge?.find(p => p && Number(p.id) === Number(data.portOfDischargeId));
+      this.quotation.portOfDestination = podMatch ? (podMatch.portName || podMatch.name) : (data.portOfDischargeName || '');
+
       this.quotation.finalDestination = data.finalDestination || '';
+      this.quotation.finalDestinationCode = data.codeOfFinalDest || '';
       this.quotation.isDirect = data.isDirect === true;
       this.quotation.isIndirect = data.isIndirect === true;
 
-      // --- 7. Connecting Ports Auto-fill ---
+      // --- 6. Connecting Ports (FIXED MAPPING) ---
       this.selectedConnectingPorts = [];
       this.quotation.connectingPortIds = [];
       const rawCP = data.connectingPortIds || data.ConnectingPortIds;
       if (rawCP) {
-        const idsArray = Array.isArray(rawCP) ? rawCP : rawCP.toString().split(',');
-        this.quotation.connectingPortIds = idsArray.map((id: any) => Number(id));
-        this.selectedConnectingPorts = idsArray.map((id: any) => {
-          const trimmedId = id.toString().trim();
-          const masterPort = this.filteredConnectingPorts.find(p => p.id.toString() === trimmedId);
+        const idsArray = Array.isArray(rawCP) ? rawCP : rawCP.toString().split(',').map(Number);
+        this.quotation.connectingPortIds = idsArray;
+        
+        this.selectedConnectingPorts = idsArray.map((id: number) => {
+          const masterPort = this.filteredConnectingPorts?.find(p => Number(p.id) === id);
           return {
-            id: trimmedId,
-            name: masterPort ? masterPort.name : `Port ID: ${trimmedId}`,
-            cpType: 'Transit'
+            id: id,
+            portName: masterPort ? (masterPort.portName || masterPort.name) : `Port ID: ${id}`,
+            portCode: masterPort ? masterPort.portCode : 'N/A'
           };
         });
       }
-
-      // --- 8. IncoTerms ---
+ try {
+      if (data.receivedDate) this.quotation.receivedDate = new Date(data.receivedDate).toISOString().split('T')[0];
+      if (data.cargoStatusDate) this.quotation.cargoStatusDate = new Date(data.cargoStatusDate).toISOString().split('T')[0];
+      if (data.repliedDate && data.repliedDate !== '2000-02-12T00:00:00') this.quotation.repliedDate = new Date(data.repliedDate).toISOString().split('T')[0];
+    } catch (dateErr) { console.error('Date parsing issue:', dateErr); }
+      // --- 7. Rest of Logic ---
       this.quotation.incoterm = data.incoterm || '';
-      if (this.quotation.incoterm) {
-        this.onIncotermChange({ target: { value: this.quotation.incoterm } });
-      }
+      if (this.quotation.incoterm) this.onIncotermChange({ target: { value: this.quotation.incoterm } });
 
-      // --- 9. Weights & Dimensions ---
       this.quotation.noOfPkgs = data.noOfPkgs || 0;
       this.quotation.grossWeightKg = data.grossWeightKg || 0;
       this.quotation.chargeableWeight = data.chargeableWeight || 0;
@@ -3990,18 +3983,10 @@ selectInquiry(inq: any) {
       this.quotation.cargoValue = data.cargoValue || '';
       this.quotation.currency = data.cargoCurrency || '';
 
-      if (data.cargoStatusDate) {
-        this.quotation.cargoReadyDate = data.cargoStatusDate.split('T')[0];
-      }
+      if (data.cargoStatusDate) this.quotation.cargoReadyDate = data.cargoStatusDate.split('T')[0];
 
-      if (data.dimensions && Array.isArray(data.dimensions) && data.dimensions.length > 0) {
-        this.dimRows = data.dimensions.map((d: any) => ({
-          box: d.box || 0,
-          l: d.l || 0,
-          w: d.w || 0,
-          h: d.h || 0,
-          unit: d.unit || 'CMS'
-        }));
+      if (data.dimensions?.length > 0) {
+        this.dimRows = data.dimensions.map((d: any) => ({ box: d.box || 0, l: d.l || 0, w: d.w || 0, h: d.h || 0, unit: d.unit || 'CMS' }));
         this.dimRow = { ...this.dimRows[0] };
       } else {
         this.dimRow = { box: 0, l: 0, w: 0, h: 0, unit: 'CMS' };
@@ -4009,21 +3994,19 @@ selectInquiry(inq: any) {
       }
       this.calculateVolumeWeight();
 
-      // --- 10. Country & Final UI Refresh ---
+      this.quotation.countryName = data.countryName || '';
       this.quotation.country = data.countryName || '';
+      this.quotation.countryId = data.countryId || null;
+
       this.showInquiryDropdown = false;
       this.showCountryDropdown = false;
       this.showPortOfDischargeDropdown = false;
+      this.showOriginDropdown = false;
 
       this.cdr.detectChanges(); 
+      if (this.quotation.lineOfBusinessId) this.onLOBChange({ target: { value: this.quotation.lineOfBusinessId } });
 
-      if (this.quotation.lineOfBusinessId) {
-        this.onLOBChange({ target: { value: this.quotation.lineOfBusinessId } });
-      }
-
-      setTimeout(() => {
-        this.cdr.detectChanges();
-      }, 200);
+      setTimeout(() => { this.cdr.detectChanges(); }, 200);
     },
     error: (err) => console.error("❌ API Error:", err)
   });
@@ -4437,7 +4420,6 @@ editPricing(pricing: any) {
   console.log("Editing Pricing Entry Data:", pricing);
   if (!pricing) return;
 
-  // 1. FRESH DATA FETCH (API se pura object documents ke saath)
   const pricingId = pricing.id || pricing.PricingId;
   const fullDataUrl = `${environment.apiUrl}/Pricing/${pricingId}`;
 
@@ -4445,87 +4427,88 @@ editPricing(pricing: any) {
     (fullData: any) => {
       console.log("DEBUG: Full Data fetched from API:", fullData);
       
-      // Update the pricing object with full data from API
-      pricing = fullData; 
+      pricing = fullData; // Updated with full data
 
-      // --- Documents Mapping ---
+      // --- Documents Mapping (Original) ---
       const allDocs = pricing.pricingDocuments || pricing.PricingDocuments || [];
-      console.log("DEBUG: Total Docs from API:", allDocs.length);
-
       this.documents = allDocs
         .filter((d: any) => (d.docType || d.DocType || '').toLowerCase() === 'commodity')
-        .map((d: any) => ({
-          id: d.docId || d.DocId,
-          name: 'Commodity Document',
-          documentPath: d.docPath || d.DocPath,
-          isExisting: true
-        }));
+        .map((d: any) => ({ id: d.docId || d.DocId, name: 'Commodity Document', documentPath: d.docPath || d.DocPath, isExisting: true }));
 
       this.invoices = allDocs
         .filter((d: any) => (d.docType || d.DocType || '').toLowerCase() === 'invoice')
-        .map((d: any) => ({
-          id: d.docId || d.DocId,
-          name: 'Invoice Document',
-          documentPath: d.docPath || d.DocPath,
-          isExisting: true
-        }));
-
-      console.log("DEBUG: Final Array (Commodity):", this.documents);
-      console.log("DEBUG: Final Array (Invoices):", this.invoices);
+        .map((d: any) => ({ id: d.docId || d.DocId, name: 'Invoice Document', documentPath: d.docPath || d.DocPath, isExisting: true }));
       
-      // UI Force Refresh
       this.cdr.detectChanges();
 
-      // --- BAAKI KA PURA LOGIC (Same as before) ---
+      // --- BAAKI KA PURA LOGIC ---
       const rawCbm = pricing.cbm || pricing.volume || pricing.totalCbm || pricing.cbmWeight || pricing.cbm_weight;
       const rawVolWeight = pricing.volumeWeight || pricing.volume_weight || pricing.volumetricWeight || (this.quotation && this.quotation.volumeWeight);
       const rawCommodityId = pricing.commodityId || pricing.commodityID || pricing.commodity_id || pricing.commodity;
       const rawCommodityName = pricing.commodityName || pricing.commodity_name || pricing.commodity || '';
 
-      // 1. Data Copying (Deep Merge Safety)
       if (!this.quotation) this.quotation = {};
       this.quotation = { ...this.quotation, ...pricing };
 
-      // 2. Transport Mode Fix
       if (pricing.transportMode && this.transportModes) {
         const modeObj = this.transportModes.find(m => m && m.name && m.name.toLowerCase() === pricing.transportMode.toLowerCase());
         this.quotation.TransportMode = modeObj ? modeObj.id : pricing.transportMode;
       }
 
-      // 3. Transport Type & Currency Fix
       this.quotation.TransportType = pricing.transportType;
       this.quotation.currency = pricing.cargoCurrency;
 
-      // 4. Origin Display
       if (!this.inquiry) this.inquiry = {};
       this.inquiry.origin = pricing.originName || pricing.origin;
       this.originsaveid = pricing.originId;
 
-      // 5. DB SPECIFIC AUTOFILL FIELDS
+      // --- POL / POD / FINAL DESTINATION MAPPING ---
       const dbPortOfLoadingId = pricing['[PortOfLoadingId]'] || pricing.portOfLoadingId || pricing.PortOfLoadingId || null;
       const dbPortOfDischargeId = pricing['[PortOfDischargeId]'] || pricing.portOfDischargeId || pricing.PortOfDischargeId || null;
-      const dbPlaceOfDelivery = pricing['[PlaceOfDelivery]'] || pricing.placeOfDelivery || pricing.PlaceOfDelivery || "";
-      const dbCountryName = pricing['[CountryName]'] || pricing.countryName || pricing.CountryName || "";
-
+      
       this.quotation.portOfLoadingId = dbPortOfLoadingId ? dbPortOfLoadingId.toString() : null;
       this.quotation.portOfDischargeId = dbPortOfDischargeId ? dbPortOfDischargeId.toString() : null;
       
-      this.quotation.originPOL = pricing.originName || pricing.origin || "";
-      this.quotation.placeOfDelivery = dbPlaceOfDelivery;
-      this.quotation.country = dbCountryName; 
-      this.quotation.countryName = dbCountryName;
-      this.quotation.countryId = pricing.countryId || null;
+      // Code Mapping
+      this.quotation.portOfLoadingCode = pricing.codeOfPOL || pricing.CodeOfPOL || "";
+      this.quotation.portOfDestinationCode = pricing.codeOfPOD || pricing.CodeOfPOD || "";
+      this.quotation.finalDestinationCode = pricing.codeOfFinalDest || pricing.CodeOfFinalDest || "";
+      this.quotation.finalDestination = pricing.finalDestination || "";
 
-      if (dbPortOfLoadingId && this.filteredConnectingPorts) {
+      this.quotation.originPOL = pricing.originName || pricing.origin || "";
+      this.quotation.placeOfDelivery = pricing['[PlaceOfDelivery]'] || pricing.placeOfDelivery || pricing.PlaceOfDelivery || "";
+      this.quotation.country = pricing['[CountryName]'] || pricing.countryName || pricing.CountryName || ""; 
+      this.quotation.countryName = this.quotation.country;
+      this.quotation.countryId = pricing.countryId || null;
+// --- 7. Dates (Updated with Replied Date Logic) ---
+      try {
+        if (pricing.receivedDate) 
+          this.quotation.receivedDate = new Date(pricing.receivedDate).toISOString().split('T')[0];
+        
+        if (pricing.cargoStatusDate) 
+          this.quotation.cargoStatusDate = new Date(pricing.cargoStatusDate).toISOString().split('T')[0];
+        
+        // Yahan 'repliedDate' check ho raha hai
+        if (pricing.repliedDate && pricing.repliedDate !== '2000-02-12T00:00:00' && pricing.repliedDate !== '0001-01-01T00:00:00') {
+          this.quotation.repliedDate = new Date(pricing.repliedDate).toISOString().split('T')[0];
+        } else {
+          this.quotation.repliedDate = null; // Agar date valid nahi hai to null kar do
+        }
+      } catch (dateErr) { 
+        console.error('Date parsing issue:', dateErr); 
+      }
+      // POL Logic: Check list first, fallback to API name
+      if (dbPortOfLoadingId && this.filteredConnectingPorts && this.filteredConnectingPorts.length > 0) {
         const foundPol = this.filteredConnectingPorts.find(p => p.id.toString() === dbPortOfLoadingId.toString());
-        this.quotation.portOfLoading = foundPol ? foundPol.name : (pricing.portOfLoadingName || '');
+        this.quotation.portOfLoading = foundPol ? (foundPol.portName || foundPol.name) : (pricing.portOfLoadingName || '');
       } else {
         this.quotation.portOfLoading = pricing.portOfLoadingName || "";
       }
 
-      if (dbPortOfDischargeId && this.filteredConnectingPorts) {
+      // POD Logic: Check list first, fallback to API name
+      if (dbPortOfDischargeId && this.filteredConnectingPorts && this.filteredConnectingPorts.length > 0) {
         const foundPod = this.filteredConnectingPorts.find(p => p.id.toString() === dbPortOfDischargeId.toString());
-        this.quotation.portOfDischarge = foundPod ? foundPod.name : (pricing.portOfDischargeName || '');
+        this.quotation.portOfDischarge = foundPod ? (foundPod.portName || foundPod.name) : (pricing.portOfDischargeName || '');
         this.quotation.portOfDestination = this.quotation.portOfDischarge;
       } else {
         this.quotation.portOfDischarge = pricing.portOfDischargeName || "";
@@ -4534,21 +4517,24 @@ editPricing(pricing: any) {
 
       // Connecting Ports
       const rawCP = pricing.connectingPortIds || pricing.ConnectingPortIds;
-      const cPortIds = typeof rawCP === 'string' ? rawCP.split(',').map(id => Number(id.trim())) : (Array.isArray(rawCP) ? rawCP : []);
+      const cPortIds = typeof rawCP === 'string' ? rawCP.split(',').map((id: any) => Number(id.trim())) : (Array.isArray(rawCP) ? rawCP : []);
       this.quotation.connectingPortIds = cPortIds;
-      if (this.filteredConnectingPorts) {
-        this.selectedConnectingPorts = this.filteredConnectingPorts.filter(p => cPortIds.includes(Number(p.id)));
+      if (this.filteredConnectingPorts && this.filteredConnectingPorts.length > 0) {
+        this.selectedConnectingPorts = this.filteredConnectingPorts
+          .filter(p => cPortIds.includes(Number(p.id)))
+          .map(p => ({
+            id: p.id,
+            portName: p.portName || p.name,
+            portCode: p.portCode || '---'
+          }));
       }
 
-      // 6. Org & Ref
       this.inquiry.organization = pricing.organisationName || pricing.customerName;
       this.quotation.referenceByInquiry = pricing.referenceByInquiryNo;
 
-      // 7. Dates
       if (pricing.receivedDate) this.quotation.receivedDate = pricing.receivedDate.split('T')[0];
       if (pricing.cargoStatusDate) this.quotation.cargoStatusDate = pricing.cargoStatusDate.split('T')[0];
 
-      // 8. Commodity & CBM
       if (rawCommodityId) this.quotation.commodity = Number(rawCommodityId);
       this.selectcommodityvalue = rawCommodityName;
 
@@ -4556,8 +4542,7 @@ editPricing(pricing: any) {
       if (rawCbm && Number(rawCbm) > 0) {
         this.quotation.cbm = parseFloat(Number(rawCbm).toFixed(3));
       } else if (this.quotation.volumeWeight && Number(this.quotation.volumeWeight) > 0) {
-        const calc = Number(this.quotation.volumeWeight) / 167;
-        this.quotation.cbm = parseFloat(calc.toFixed(3));
+        this.quotation.cbm = parseFloat((Number(this.quotation.volumeWeight) / 167).toFixed(3));
       } else {
         this.quotation.cbm = 0;
       }
@@ -4565,11 +4550,9 @@ editPricing(pricing: any) {
       this.quotation.weight = pricing.weight || pricing.grossWeightKg || pricing.grossWeight || 0;
       this.quotation.cbmUnit = pricing.cbmUnit || 'CBM';
 
-      // 10. Tables
       this.costRows = pricing.costBreakdowns && pricing.costBreakdowns.length > 0 ? [...pricing.costBreakdowns] : [{ lob: 'Standard', chargeName: '', chargeType: 'Prepaid', basis: 'Per KG', currency: 'INR', rate: 0, exchangeRate: 1, amount: 0 }];
       this.multiCarrierRows = pricing.multiCarrierBreakdowns && pricing.multiCarrierBreakdowns.length > 0 ? [...pricing.multiCarrierBreakdowns] : [this.createEmptyRow()];
 
-      // 11. Dimensions
       if (pricing.dimensions && Array.isArray(pricing.dimensions) && pricing.dimensions.length > 0) {
         this.dimRows = [...pricing.dimensions];
         this.dimRow = { ...pricing.dimensions[0] };
@@ -4583,35 +4566,10 @@ editPricing(pricing: any) {
       this.isFormOpen = true;
       this.cdr.detectChanges();
 
-      // ========================================================
-      // 🎯 ULTIMATE TEMPLATE SYNC 
-      // ========================================================
       setTimeout(() => {
-        if (rawCommodityId) this.quotation.commodity = Number(rawCommodityId);
-        this.selectcommodityvalue = rawCommodityName;
-        const freshVolWeight = this.quotation.volumeWeight || rawVolWeight;
-        if (rawCbm && Number(rawCbm) > 0) {
-          this.quotation.cbm = parseFloat(Number(rawCbm).toFixed(3));
-        } else if (freshVolWeight && Number(freshVolWeight) > 0) {
-          this.quotation.cbm = parseFloat((Number(freshVolWeight) / 167).toFixed(3));
-        }
-        if (dbPortOfLoadingId) this.quotation.portOfLoadingId = dbPortOfLoadingId.toString();
-        if (dbPortOfDischargeId) this.quotation.portOfDischargeId = dbPortOfDischargeId.toString();
-        if (dbPlaceOfDelivery) this.quotation.placeOfDelivery = dbPlaceOfDelivery;
-        if (dbCountryName) {
-          this.quotation.country = dbCountryName; 
-          this.quotation.countryName = dbCountryName;
-        }
-        if (this.filteredConnectingPorts) {
-          this.selectedConnectingPorts = this.filteredConnectingPorts.filter(p => this.quotation.connectingPortIds.includes(Number(p.id)));
-        }
-        if (pricing.countryId && typeof this.selectCountry === 'function') {
-          this.selectCountry({ id: pricing.countryId, name: dbCountryName });
-        }
-        console.log("🔥 Sync Finished!");
         this.cdr.detectChanges();
+        console.log("🔥 Sync Finished!");
       }, 400);
-
     },
     (err) => console.error("Error fetching full data:", err)
   );

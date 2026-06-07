@@ -419,50 +419,75 @@ organizations: any[] = [];
     constructor(private http: HttpClient, private router: Router,private route: ActivatedRoute,private cdr: ChangeDetectorRef,private branchservice:BranchService,public userServices:UserService,public CheckPermissionService:CheckPermissionService,private sanitizer: DomSanitizer,private eRef: ElementRef,) {}
 
     ngOnInit() {
-      this.PermissionID = Number(localStorage.getItem('permissionID'));
+    // 1. Sabse pehle init aur basic setup
+    this.quotation = {};
+    // Yahan hardcode karke dekho, agar ye dikh gaya toh samajh lo data binding sahi hai
+    this.quotation.GrossweightUnit = 'KGS';
+    this.PermissionID = Number(localStorage.getItem('permissionID'));
+    
+    // 2. Default values jo app ko shuru mein chahiye
+    this.quotation.GrossweightUnit = 'KGS';
+    this.quotation.netWeightUnit = 'KGS';
+    this.quotation.chargeableWeightUnit = 'KGS';
+    this.quotation.cbmUnit = 'CBM';
+    this.quotation.shipmentType = 'Ready';
+
+    // 3. Routing aur Data Fetching
     this.route.queryParams.subscribe(params => {
-    const editId = params['editId'];
-    if (editId) {
-      console.log('Fetching data for Inquiry ID:', editId);
-      this.loadInquiryById(Number(editId));
-    }
-  });
-   this.getsales();
-   this.loadConnectingPortsData();
-      this.getbranch();
-      this.loadQuotations();
-      this.portOfLoading();
-      this.quotation.cbmUnit = 'CBM';
-      this.getPackageUnits();
-       this.loadUomList();
-      this.getNextInquiryNumber();
-      this.fetchOrganizations();
-      this.fetchLeads();
-      this.fetchOrigins();
-      this.loadDropdownData();
+        const editId = params['editId'];
+        if (editId) {
+            console.log('Fetching data for Inquiry ID:', editId);
+            this.loadInquiryById(Number(editId));
+        }
+    });
+
+    // Timeout wala logic preserve kiya hai (jaisa aapne manga tha)
+    setTimeout(() => {
+        this.quotation.GrossweightUnit = this.quotation.GrossweightUnit || 'KGS';
+        this.quotation.netWeightUnit = this.quotation.netWeightUnit || 'KGS';
+        this.quotation.chargeableWeightUnit = this.quotation.chargeableWeightUnit || 'KGS';
+    }, 500);
+
+    this.getsales();
+    this.loadConnectingPortsData();
+    this.getbranch();
+    this.loadQuotations();
+    this.portOfLoading();
+    this.getPackageUnits();
+    this.loadUomList();
+    
+    setTimeout(() => {
+        this.setDefaultUnits();
+    }, 500);
+
+    this.getNextInquiryNumber();
+    this.fetchOrganizations();
+    this.fetchLeads();
+    this.fetchOrigins();
+    this.loadDropdownData();
     this.loadAllLeadss();
     this.loadInquiryNumbers();
-    this.loadCoordinators(); 
+    this.loadCoordinators();
     this.loadBranches();
     this.loadInquirySettings();
     this.fetchCompanyServices();
     this.getTransportModes();
     this.fetchAllCountries();
-this.getShipmentTypes();
-this.portdischarge();
-this.getIncoTerms();
-this.getMovementTypes();
-this.getCommodityTypes();
-console.log("🚀 Page Loading...");
-  this.loadBranchess();
-  if (this.dimRows.length === 0) {
-    this.dimRows = [this.dimRow];
-  }
-this.quotation.shipmentType = 'Ready';
+    this.getShipmentTypes();
+    this.portdischarge();
+    this.getIncoTerms();
+    this.getMovementTypes();
+    this.getCommodityTypes();
     
+    console.log("🚀 Page Loading...");
+    this.loadBranchess();
+    
+    if (this.dimRows.length === 0) {
+        this.dimRows = [this.dimRow];
+    }
     
     this.setTodayDate();
-    }
+}
     getCommodityTypes() {
     // Hits: https://localhost:xxxx/api/CommodityType
     this.http.get<any[]>(`${environment.apiUrl}/CommodityType`).subscribe({
@@ -1805,43 +1830,41 @@ showCustomPicker: boolean = false;
 // 2. Logic for all shortcuts
 setQuickDate(type: string) {
   const today = new Date();
-  let targetDate = new Date();
+  
+  // Pehle sab purana clear kar do
+  this.searchFilters.receivedDate = '';
+  this.searchFilters.startDate = '';
+  this.searchFilters.endDate = '';
 
-  switch (type) {
-    case 'tomorrow':
-      targetDate.setDate(today.getDate() + 1);
-      break;
-    case 'yesterday':
-      targetDate.setDate(today.getDate() - 1);
-      break;
-    case 'nextWeek':
-      targetDate.setDate(today.getDate() + 7);
-      break;
-    case 'lastWeek':
-      targetDate.setDate(today.getDate() - 7);
-      break;
-    case 'nextMonth':
-      targetDate.setMonth(today.getMonth() + 1);
-      break;
-    case 'lastMonth':
-      targetDate.setMonth(today.getMonth() - 1);
-      break;
-    default:
-      // Default 'today' rahega
-      targetDate = today;
+  const formatDate = (date: Date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
+  if (type === 'today' || type === 'tomorrow' || type === 'yesterday') {
+    let target = new Date();
+    if (type === 'tomorrow') target.setDate(today.getDate() + 1);
+    if (type === 'yesterday') target.setDate(today.getDate() - 1);
+    this.searchFilters.receivedDate = formatDate(target);
+  } else {
+    // Range Logic
+    let start = new Date();
+    let end = new Date();
+    if (type === 'lastWeek') start.setDate(today.getDate() - 7);
+    if (type === 'nextWeek') end.setDate(today.getDate() + 7);
+    if (type === 'lastMonth') start.setMonth(today.getMonth() - 1);
+    if (type === 'nextMonth') end.setMonth(today.getMonth() + 1);
+    
+    this.searchFilters.startDate = formatDate(start);
+    this.searchFilters.endDate = formatDate(end);
   }
 
-  // Proper YYYY-MM-DD format build karein
-  const year = targetDate.getFullYear();
-  const month = String(targetDate.getMonth() + 1).padStart(2, '0');
-  const day = String(targetDate.getDate()).padStart(2, '0');
-  
-  this.searchFilters.receivedDate = `${year}-${month}-${day}`;
-  
-  // Panel band karein aur search trigger karein
   this.showCustomPicker = false;
   this.onSearch();
 }
+// Component class ke andar
 
 //-----/////
 onSearch() {
@@ -1850,15 +1873,31 @@ onSearch() {
 
   const filtersToSend: any = { ...this.searchFilters };
 
-  // --- Cleaning Logic ---
+  // --- Date Cleaning Logic (YE ZAROORI HAI) ---
+  // Agar Range mode active hai, toh single receivedDate ko null/delete kar dein
+  if (filtersToSend.startDate && filtersToSend.endDate) {
+    filtersToSend.receivedDate = null; 
+  } else {
+    // Agar single date mode hai, toh empty string ko null bhejien
+    if (!filtersToSend.receivedDate || filtersToSend.receivedDate === "") {
+      filtersToSend.receivedDate = null;
+    }
+    // Range fields ko null bhejien
+    filtersToSend.startDate = null;
+    filtersToSend.endDate = null;
+  }
+
+  // --- Baki Cleaning Logic ---
   if (filtersToSend.transportMode === 'Any') filtersToSend.transportMode = '';
   if (filtersToSend.cargoStatus === '(Any)') filtersToSend.cargoStatus = '';
   if (filtersToSend.salesCoordinator === 'null' || !filtersToSend.salesCoordinator) filtersToSend.salesCoordinator = "";
+  
   if (filtersToSend.status === "" || filtersToSend.status === undefined || filtersToSend.status === null) {
     filtersToSend.status = null;
   } else {
     filtersToSend.status = Number(filtersToSend.status);
   }
+  
   if (this.branchSearchText && this.branchSearchText !== "") {
     const bId = Number(this.searchFilters.branchId);
     filtersToSend.branchId = isNaN(bId) ? null : bId;
@@ -1875,7 +1914,6 @@ onSearch() {
     })
   };
 
-  // --- ForkJoin Implementation (Added TransportModes API) ---
   forkJoin({
     searchResult: this.http.post<any[]>(`${environment.apiUrl}/Inquiry/Search`, filtersToSend, httpOptions),
     hodList: this.userServices.getHodList(),
@@ -1885,10 +1923,6 @@ onSearch() {
     next: (res) => {
       const { searchResult, hodList, originList, transportList } = res;
       
-      console.log("HOD List:", hodList); 
-      console.log("Transport List:", transportList);
-
-      // Maps creation
       const hodMap = new Map(hodList.map((h: any) => [String(h.id), h.name]));
       const originMap = new Map(originList.map((o: any) => [String(o.id), o.name])); 
       const transportMap = new Map(transportList.map((t: any) => [String(t.id), t.name]));
@@ -1896,23 +1930,21 @@ onSearch() {
       this.quotations = searchResult.map(item => {
         const scId = String(item.salesCoordinator || '');
         const originId = String(item.originId || ''); 
-        const transId = String(item.transportMode || ''); // Item mein jo ID aa rahi hai
+        const transId = String(item.transportMode || '');
         
         return {
           ...item,
           salesCoordinator: hodMap.has(scId) ? hodMap.get(scId) : item.salesCoordinator,
           originName: originMap.has(originId) ? originMap.get(originId) : (item.originName || item.origin || ''),
-          // Transport Mode Name Mapping
           transportModeName: transportMap.has(transId) ? transportMap.get(transId) : item.transportMode 
         };
       });
 
-      console.log("Final Data with Names:", this.quotations);
       this.cdr.detectChanges();
     },
     error: (err) => {
       console.error("Search failed:", err);
-      alert("Error loading data!");
+      alert("Error loading data! Please check your date filters.");
     }
   });
 }
@@ -3165,6 +3197,16 @@ saveQuotation() {
 
     HazardDocPath: this.quotation.hazardDocPath || null,
     weightUnit: String(this.quotation.GrossweightUnit || 'KGS'),
+    
+    // --- UNITS MAPPING ADDED ---
+    GrossWeightUnit: String(this.quotation.GrossWeightUnit || this.quotation.GrossweightUnit || 'KGS'),
+    NetWeightUnit: String(this.quotation.NetWeightUnit || 'KGS'),
+    ChargeWeightUnit: String(this.quotation.ChargeWeightUnit || 'KGS'),
+    VolumeWeightUnit: String(this.quotation.VolumeWeightUnit || 'CBM'),
+    CbmWeightUnit: String(this.quotation.CbmWeightUnit || 'CBM'),
+    NoOfPkgsUnit: String(this.quotation.NoOfPkgsUnit || ''),
+    // ---------------------------
+
     cargocurrency: String(this.quotation.currency || 'INR'),
     cargoValue: String(this.quotation.cargoValue || "0"),
     lineOfBusinessId: (this.quotation.lineOfBusinessId && Number(this.quotation.lineOfBusinessId) > 0) ? Number(this.quotation.lineOfBusinessId) : null,
@@ -3508,15 +3550,27 @@ loadUomList() {
     next: (data) => {
       this.uomList = data;
       
-      // Default unit set karein agar nahi hai
-      if (!this.quotation.volumeWeightUnit && this.uomList.length > 0) {
-        this.quotation.volumeWeightUnit = this.uomList[0].shortCode;
-      }
+      // setTimeout isliye taaki Angular ka change detection cycle khatam hone ke baad value set ho
+      setTimeout(() => {
+        if (this.uomList && this.uomList.length > 0) {
+          // Check karein ki quotation object exists karta hai ya nahi
+          if (!this.quotation) {
+            this.quotation = {}; 
+          }
+          
+          // Agar value pehle se set nahi hai, toh pehla item daal do
+          if (!this.quotation.GrossweightUnit) {
+            this.quotation.GrossweightUnit = this.uomList[0].shortCode;
+          }
+          if (!this.quotation.volumeWeightUnit) {
+            this.quotation.volumeWeightUnit = this.uomList[0].shortCode;
+          }
+        }
+      }, 0);
     },
     error: (err) => console.error("Error loading UOMs:", err)
   });
 }
-
 // 2. Modal Toggle
 toggleUomModal() {
   this.isUomModalOpen = !this.isUomModalOpen;
@@ -3595,5 +3649,12 @@ getPackageUnits() {
       },
       (error) => console.error('Error fetching units', error)
     );
-  }
+ 
+ }
+setDefaultUnits() {
+  // Sirf tabhi set karein agar value empty ho
+  if (!this.quotation.GrossweightUnit) this.quotation.GrossweightUnit = 'KGS';
+  if (!this.quotation.netWeightUnit) this.quotation.netWeightUnit = 'KGS';
+  if (!this.quotation.chargeableWeightUnit) this.quotation.chargeableWeightUnit = 'KGS';
+}
 }

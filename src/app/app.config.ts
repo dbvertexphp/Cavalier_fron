@@ -1,27 +1,39 @@
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 
-// 🔥 1. 'withInterceptors' ko import me add karo
+// 🔥 HttpClient aur Interceptor imports
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { authInterceptor } from './interceptors/auth.interceptor';
 
-// 1. Import the Chart providers
+// Chart.js global providers
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 
-import { routes } from './app.routes';
+// 🔥 REALTIME TOASTR CONFIGURATION IMPORTS
+import { provideAnimations } from '@angular/platform-browser/animations';
+import { provideToastr } from 'ngx-toastr';
 
-// 🔥 2. Apne authInterceptor ko import karo 
-// (Dhyan rakhna: Apne folder ka path sahi daalna jahan tumne interceptor banaya hai)
-import { authInterceptor } from './interceptors/auth.interceptor';
+import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
 
-    // 🔥 3. Yahan provideHttpClient ke andar interceptor register karo
+    // Yahan provideHttpClient ke andar interceptor registered hai
     provideHttpClient(withInterceptors([authInterceptor])),
 
-    // 2. Add this line to register Chart.js components globally
-    provideCharts(withDefaultRegisterables())
+    // Register Chart.js components globally
+    provideCharts(withDefaultRegisterables()),
+
+    // 🔥 REALTIME NOTIFICATION TOASTER CONFIGURATION LAYER
+    provideAnimations(), // System elements ke slide/fade transitions ke liye
+    provideToastr({
+      timeOut: 4500,                    // Message display duration (4.5 seconds)
+      positionClass: 'toast-top-right', // Screen position layout
+      preventDuplicates: true,          // Same messages spam blocking protection
+      progressBar: true,                // Premium aesthetic timing bar layout loader
+      closeButton: true,                // Manual clear cross button active
+      enableHtml: true                  // HTML layout structures ko parse karne ke liye
+    })
   ]
 };

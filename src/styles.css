@@ -1,9 +1,10 @@
-@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap")
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
 
-layer(base);
+
 
 @import "tailwindcss";
 @import "swiper/css/bundle";
+@import "ngx-toastr/toastr"; /* 🔥 Toastr dynamic styles pipeline enabled */
 
 @custom-variant dark (&:is(.dark *));
 
@@ -136,7 +137,6 @@ layer(base);
   --color-warning-950: #4e1d09;
 
   --color-theme-pink-500: #ee46bc;
-
   --color-theme-purple-500: #7a5af8;
 
   --shadow-theme-md: 0px 4px 8px -2px rgba(16, 24, 40, 0.1),
@@ -167,14 +167,6 @@ layer(base);
   --z-index-999999: 999999;
 }
 
-/*
-  The default border color has changed to `currentColor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
-
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
 @layer base {
   *,
   ::after,
@@ -270,12 +262,11 @@ layer(base);
 }
 
 @utility no-scrollbar {
-  /* Chrome, Safari and Opera */
   &::-webkit-scrollbar {
     display: none;
   }
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 @utility custom-scrollbar {
   &::-webkit-scrollbar {
@@ -296,7 +287,6 @@ layer(base);
 }
 
 @layer utilities {
-  /* For Remove Date Icon */
   input[type="date"]::-webkit-inner-spin-button,
   input[type="time"]::-webkit-inner-spin-button,
   input[type="date"]::-webkit-calendar-picker-indicator,
@@ -771,7 +761,7 @@ span.flatpickr-weekday,
 }
 
 .task {
-  transition: all 0.2s ease; /* Smooth transition for visual effects */
+  transition: all 0.2s ease;
 }
 
 .task {
@@ -779,7 +769,7 @@ span.flatpickr-weekday,
   box-shadow: 0px 1px 3px 0px rgba(16, 24, 40, 0.1),
     0px 1px 2px 0px rgba(16, 24, 40, 0.06);
   opacity: 0.8;
-  cursor: grabbing; /* Changes the cursor to indicate dragging */
+  cursor: grabbing;
 }
 
 .custom-calendar .fc-h-event {
@@ -1014,4 +1004,121 @@ pre[class*="language-"].line-numbers {
 /* checkbox bhi */
 .readonly-mode input[type="checkbox"] {
   accent-color: gray;
+}
+/* ==========================================================================
+   CAVALIER LOGISTICS - HIGH-END DYNAMIC TOASTR OVERRIDES
+   ========================================================================== */
+
+/* Outer Box Layout Container */
+#toast-container > .cavalier-premium-toast {
+  background-color: #0c111d !important; /* Deep Dark Space Palette */
+  color: #ffffff !important;
+  border: 1px solid rgba(70, 95, 255, 0.2) !important; /* Brand Neon Ring Glow Boundary */
+  border-left: 5px solid #465fff !important; /* Sharp Brand Identity Strip */
+  border-radius: 16px !important;
+  padding: 16px 20px !important;
+  box-shadow: 0px 24px 48px -12px rgba(70, 95, 255, 0.18), 
+              0px 12px 24px -4px rgba(0, 0, 0, 0.6) !important;
+  opacity: 1 !important;
+  font-family: 'Outfit', sans-serif !important;
+  min-width: 360px;
+  backdrop-filter: blur(8px) !important;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+}
+
+/* Slick Hover Lift Effect */
+#toast-container > .cavalier-premium-toast:hover {
+  transform: translateY(-4px) scale(1.02);
+  border-color: rgba(70, 95, 255, 0.4) !important;
+  box-shadow: 0px 32px 64px -12px rgba(70, 95, 255, 0.25), 
+              0px 16px 32px -4px rgba(0, 0, 0, 0.7) !important;
+}
+
+/* Flex Architecture Wrapper */
+.cavalier-toast-wrapper {
+  display: flex !important;
+  align-items: center !important;
+  gap: 16px !important;
+  width: 100%;
+}
+
+/* Glow Effect Icon Box */
+.cavalier-toast-icon-glow {
+  background: linear-gradient(135deg, #465fff, #3641f5) !important;
+  border-radius: 12px;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0px 0px 12px rgba(70, 95, 255, 0.5) !important;
+}
+
+/* SVG Pulse Vector Styling */
+.cavalier-toast-icon-glow .toast-pulse-svg {
+  width: 22px !important;
+  height: 22px !important;
+  color: #ffffff !important;
+  animation: toastIconPulse 2s infinite ease-in-out;
+}
+
+/* Content Container Alignments */
+.cavalier-toast-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-grow: 1;
+}
+
+/* Dynamic Bold Title Styling */
+.cavalier-toast-title-text {
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  letter-spacing: 0.4px !important;
+  line-height: 20px !important;
+}
+
+/* Soft Subdued Subtext */
+.cavalier-toast-body-text {
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  color: #98a2b3 !important; /* Premium neutral slate gray line spacing */
+  line-height: 18px !important;
+}
+
+/* Linear Timing Progress Slider Overrides */
+.cavalier-premium-toast .toast-progress {
+  background: linear-gradient(90deg, #465fff, #ee46bc) !important; /* Beautiful Purple-Pink Transition Gradient */
+  height: 4px !important;
+  opacity: 1 !important;
+  border-bottom-right-radius: 16px;
+}
+
+/* Universal Cross Dismiss Trigger Styles */
+.cavalier-premium-toast .toast-close-button {
+  top: 16px !important;
+  right: 16px !important;
+  color: #667085 !important;
+  text-shadow: none !important;
+  font-size: 20px !important;
+  font-weight: 300 !important;
+  transition: all 0.2s ease-in-out;
+}
+
+.cavalier-premium-toast .toast-close-button:hover {
+  color: #f04438 !important; /* Neon Red highlights when attempting closure actions */
+  transform: rotate(90deg);
+}
+
+/* Keyframe Vector Animations */
+@keyframes toastIconPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.9;
+  }
 }

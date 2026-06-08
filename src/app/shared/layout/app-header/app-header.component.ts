@@ -23,6 +23,7 @@ import { Subscription } from 'rxjs';
     RouterModule,
     NotificationDropdownComponent,
     UserDropdownComponent,
+    ThemeToggleButtonComponent 
   ],
   templateUrl: './app-header.component.html',
 })
@@ -41,7 +42,7 @@ export class AppHeaderComponent implements OnInit, OnDestroy {
   constructor(
     public sidebarService: SidebarService,
     private notificationService: NotificationService,
-    private toastr: ToastrService
+    private toastr: ToastrService // 👈 Service injected properly
   ) {
     this.isMobileOpen$ = this.sidebarService.isMobileOpen$;
   }
@@ -53,13 +54,21 @@ export class AppHeaderComponent implements OnInit, OnDestroy {
     localStorage.setItem('isFullScreen', String(active));
   };
 
+  // ================= Search Shortcut Key Handler =================
+  private handleKeyDown = (event: KeyboardEvent) => {
+    if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
+      event.preventDefault();
+      this.searchInput?.nativeElement.focus();
+    }
+  };
+
   ngOnInit() {
     // Icon state restore handling tracking sequence
     this.isFullScreen = localStorage.getItem('isFullScreen') === 'true';
     document.addEventListener('fullscreenchange', this.fullScreenHandler);
     document.addEventListener('keydown', this.handleKeyDown);
 
-    // 🔥 REALTIME TOASTER STREAM TRIGGER: Connect into the shared notification pipeline channel
+    // 🔥 REALTIME TOASTER STREAM TRIGGER: Shared notification pipeline channel context hook
     this.fcmSubscription = this.notificationService.currentMessage.subscribe((msg) => {
       if (msg && msg.notification) {
         console.log("🎯 Header intercepted foreground payload banner request:", msg);
@@ -67,7 +76,7 @@ export class AppHeaderComponent implements OnInit, OnDestroy {
         const title = msg.notification.title || 'Cavalier Update Link';
         const body = msg.notification.body || '';
 
-        // Launching premium styled ngx-toastr dynamic view banner box layout
+        // 🔥 Dynamic custom parameters runtime overrides (Aapne jo config di thi)
         this.toastr.info(body, title, {
           timeOut: 4500,
           progressBar: true,
@@ -80,6 +89,7 @@ export class AppHeaderComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    // Remove listeners to avoid memory leaks
     document.removeEventListener('fullscreenchange', this.fullScreenHandler);
     document.removeEventListener('keydown', this.handleKeyDown);
     
@@ -89,7 +99,7 @@ export class AppHeaderComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ================= Sidebar =================
+  // ================= Sidebar Control =================
   handleToggle() {
     if (window.innerWidth >= 1280) {
       this.sidebarService.toggleExpanded();
@@ -102,15 +112,7 @@ export class AppHeaderComponent implements OnInit, OnDestroy {
     this.isApplicationMenuOpen = !this.isApplicationMenuOpen;
   }
 
-  // ================= Search Shortcut =================
-  handleKeyDown = (event: KeyboardEvent) => {
-    if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
-      event.preventDefault();
-      this.searchInput?.nativeElement.focus();
-    }
-  };
-
-  // ================= FULLSCREEN =================
+  // ================= FULLSCREEN ACTIONS =================
   toggleFullScreen() {
     if (!document.fullscreenElement) {
       this.enterFullScreen();

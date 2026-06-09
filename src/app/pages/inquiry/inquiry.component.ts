@@ -3182,6 +3182,9 @@ saveQuotation() {
     TransportType: String(this.quotation.TransportType || this.quotation.transportType || ''),
     inquiryNo: String(this.inquiry.inquiryNo || ''),
     
+    // --- INDEPENDENT FIELD ADDED HERE ---
+    podOrigin: String(this.quotation.podOrigin || ''), 
+    
     // --- FALLBACK LOGIC FOR ORGANIZATION ---
     customerName: String(this.inquiry.organization || this.quotation.customerName || ''),
     organization: String(this.inquiry.organization || this.quotation.organization || ''),
@@ -3198,15 +3201,14 @@ saveQuotation() {
     HazardDocPath: this.quotation.hazardDocPath || null,
     weightUnit: String(this.quotation.GrossweightUnit || 'KGS'),
     
-    // --- UNITS MAPPING ADDED ---
+    // --- UNITS MAPPING ---
     GrossWeightUnit: String(this.quotation.GrossWeightUnit || this.quotation.GrossweightUnit || 'KGS'),
     NetWeightUnit: String(this.quotation.NetWeightUnit || 'KGS'),
     ChargeWeightUnit: String(this.quotation.ChargeWeightUnit || 'KGS'),
     VolumeWeightUnit: String(this.quotation.VolumeWeightUnit || 'CBM'),
     CbmWeightUnit: String(this.quotation.CbmWeightUnit || 'CBM'),
     NoOfPkgsUnit: String(this.quotation.NoOfPkgsUnit || ''),
-    // ---------------------------
-
+    
     cargocurrency: String(this.quotation.currency || 'INR'),
     cargoValue: String(this.quotation.cargoValue || "0"),
     lineOfBusinessId: (this.quotation.lineOfBusinessId && Number(this.quotation.lineOfBusinessId) > 0) ? Number(this.quotation.lineOfBusinessId) : null,
@@ -3228,11 +3230,12 @@ saveQuotation() {
     qtnId: String(this.quotation.qtnId || ('QTN-' + Math.floor(1000 + Math.random() * 9000))),
     createdDate: new Date().toISOString(),
     dimensions: this.appliedDimensions || [],
-    countryName: String(this.selectedCountryName || this.quotation.country || ''),
+  // saveQuotation() ke andar payload object mein:
+countryName: String(this.quotation.country || ''),
     
     connectingPortIds: (this.selectedConnectingPorts && this.selectedConnectingPorts.length > 0) 
-                        ? String(this.selectedConnectingPorts.map((p: any) => p.id).join(',')) 
-                        : null,
+                      ? String(this.selectedConnectingPorts.map((p: any) => p.id).join(',')) 
+                      : null,
 
     isDirect: this.quotation.serviceType === 'Direct' || Boolean(this.quotation.isDirect),
     isIndirect: this.quotation.serviceType === 'Indirect' || Boolean(this.quotation.isIndirect),

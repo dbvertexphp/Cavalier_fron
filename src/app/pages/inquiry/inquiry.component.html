@@ -2333,12 +2333,25 @@
     </ul>
   </div>
 </div>
+<div class="flex items-center text-red-700 font-bold">
+  <label class="w-40">POD (Origin)</label>
+  <div class="relative flex-1">
+    <input
+      type="text"
+      [(ngModel)]="quotation.podOrigin" 
+      name="podOrigin"
+      placeholder="Enter POD Origin"
+      class="w-full border p-2 border-red-300 outline-none text-[12px] text-gray-700 font-normal"
+    />
+  </div>
+</div>
 
 <div class="flex items-center text-red-700 font-bold mt-2">
   <label class="w-40">Country</label>
   <div class="relative flex-1 flex items-center">
     <input
       [(ngModel)]="quotation.country"
+      
       name="country"
       placeholder="Country"
       
@@ -2886,6 +2899,12 @@
                   </td>
                 </tr>
                 <tr>
+  <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">POD (Origin)</td>
+  <td class="p-3 md:p-4 text-gray-800 text-sm font-bold">
+    {{ quotation.podOrigin || 'N/A' }}
+  </td>
+</tr>
+                <tr>
                   <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Cargo Status</td>
                   <td class="p-3 md:p-4 text-orange-600 font-black text-sm uppercase italic">
                     {{ quotation.cargoStatusType || "Pending" }}
@@ -2930,17 +2949,24 @@
                   </td>
                 </tr>
                 <tr>
-                  <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Volume Weight</td>
-                  <td class="p-3 md:p-4 text-gray-800 text-sm">
-                    {{ quotation.volumeWeight }} {{ quotation.volumeUnit || "KGS" }}
-                  </td>
-                </tr>
-                <tr>
+  <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Volume Weight (CBM</td>
+  <td class="p-3 md:p-4 text-gray-800 text-sm font-bold">
+    {{ quotation.cbm || '0.000' }} {{ quotation.CbmWeightUnit || 'CBM' }}
+  </td>
+</tr>
+
+<tr>
+  <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Pickup Address</td>
+  <td class="p-3 md:p-4 text-gray-800 text-sm">
+    {{ quotation.pickupAddress || 'N/A' }}
+  </td>
+</tr>
+                <!-- <tr>
                   <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Chg. Weight</td>
                   <td class="p-3 md:p-4 text-[#4a3f3f] font-black text-base">
                     {{ quotation.chargeableWeight }} {{ quotation.weightUnit || "KGS" }}
                   </td>
-                </tr>
+                </tr> -->
                 <tr>
                   <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Inco-Term</td>
                   <td class="p-3 md:p-4 text-gray-800 text-sm">{{ showincoterms || "N/A" }}</td>

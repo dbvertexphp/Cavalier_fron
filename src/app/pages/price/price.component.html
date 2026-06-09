@@ -2085,7 +2085,18 @@ Selection Modal Popup
     </ul>
   </div>
 </div>
-
+<div class="flex items-center text-red-700 font-bold">
+  <label class="w-40">POD (Origin)</label>
+  <div class="relative flex-1">
+    <input
+      type="text"
+      [(ngModel)]="quotation.podOrigin" 
+      name="podOrigin"
+      placeholder="Enter POD Origin"
+      class="w-full border p-2 border-red-300 outline-none text-[12px] text-gray-700 font-normal"
+    />
+  </div>
+</div>
 <div class="flex items-center text-red-700 font-bold mt-2">
   <label class="w-40">Country</label>
   <div class="relative flex-1 flex items-center">
@@ -2817,6 +2828,12 @@ Selection Modal Popup
                   <td class="p-3 md:p-4 text-orange-600 font-black text-sm uppercase italic">{{ quotation.cargoStatusType || "Pending" }}</td>
                 </tr>
                 <tr>
+  <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">POD (Origin)</td>
+  <td class="p-3 md:p-4 text-gray-800 text-sm font-bold">
+    {{ quotation.podOrigin || 'N/A' }}
+  </td>
+</tr>
+                <tr>
                   <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Commodity</td>
                   <td class="p-3 md:p-4 text-gray-800 text-sm font-medium">{{ quotation.commodityName || getLabel(commodityTypes, quotation.commodityId) || "General Cargo" }}</td>
                 </tr>
@@ -2825,29 +2842,48 @@ Selection Modal Popup
                   <td class="p-3 md:p-4 text-gray-800 text-sm">{{ quotation.noOfPkgs }} {{ quotation.noOfPkgsUnit || "PKGS" }}</td>
                 </tr>
                 <tr>
-                  <td class="p-3 bg-gray-50 font-bold text-gray-600 uppercase text-xs">Dimensions Log</td>
-                  <td class="p-3 text-sm text-gray-700 align-top">
-                    <div class="font-bold text-gray-800 border-b pb-1 mb-2 text-xs uppercase">Total Packages: {{ getTotalPackageCount() }}</div>
-                    <div class="space-y-2">
-                      <div *ngFor="let group of getCombinedGroupedDimensions()" class="bg-gray-50 p-2 rounded border border-gray-200">
-                        <div class="text-[11px] font-bold text-gray-900">Dimensions <span class="text-blue-600">= {{ group.totalBoxQty }} {{ quotation.noOfPkgsUnit || 'Packages' }}</span></div>
-                        <div class="text-[12px] text-gray-600 mt-0.5">{{ group.l }} x {{ group.w }} x {{ group.h }} {{ group.unit }}</div>
-                      </div>
-                    </div>
-                  </td>
-                </tr>
+  <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Dimensions</td>
+  <td class="p-3 font-medium text-sm align-top">
+    <div class="max-w-[280px] w-full">
+      <div class="font-bold text-gray-800 border-b pb-1 mb-2 text-xs uppercase">
+        Total Packages: {{ getTotalPackageCount() }}
+      </div>
+      
+      <div class="flex flex-col gap-2">
+        <div *ngFor="let group of getGroupedDimensions()" class="border border-gray-200 rounded p-2 bg-white shadow-sm">
+          <div class="text-[11px] text-gray-700 font-semibold mb-1">
+            Dimensions 
+            <span class="text-blue-600 font-bold ml-1">= {{ group.totalBoxQty }} {{ quotation.noOfPkgsUnit || 'Packages' }}</span>
+          </div>
+          <div class="text-[12px] font-bold text-gray-900 bg-gray-50 px-1 rounded">
+            {{ group.l }} x {{ group.w }} x {{ group.h }} {{ group.unit }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </td>
+</tr>
                 <tr>
                   <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Gross Weight</td>
                   <td class="p-3 md:p-4 text-gray-800 text-sm font-bold">{{ quotation.grossWeightKg }} {{ quotation.weightUnit || "KGS" }}</td>
                 </tr>
                 <tr>
-                  <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Volume Weight</td>
-                  <td class="p-3 md:p-4 text-gray-800 text-sm">{{ quotation.volumeWeight }} {{ quotation.volumeUnit || "KGS" }}</td>
-                </tr>
-                <tr>
+  <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Volume Weight(CBM)</td>
+  <td class="p-3 md:p-4 text-gray-800 text-sm font-bold">
+    {{ quotation.cbm || '0.000' }} {{ quotation.cbmUnit || 'CBM' }}
+  </td>
+</tr>
+
+<tr>
+  <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Pickup Address</td>
+  <td class="p-3 md:p-4 text-gray-800 text-sm italic break-words">
+    {{ quotation.pickupAddress || 'N/A' }}
+  </td>
+</tr>
+                <!-- <tr>
                   <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Chg. Weight</td>
                   <td class="p-3 md:p-4 text-[#4a3f3f] font-black text-base">{{ quotation.chargeableWeight }} {{ quotation.weightUnit || "KGS" }}</td>
-                </tr>
+                </tr> -->
                 <tr>
                   <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Inco-Term</td>
                   <td class="p-3 md:p-4 text-gray-800 text-sm">{{ showincoterms || "N/A" }}</td>

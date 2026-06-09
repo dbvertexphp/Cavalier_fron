@@ -3555,6 +3555,9 @@ saveQuotation() {
     CodeOfPOD: this.quotation.portOfDestinationCode || '',
     CodeOfFinalDest: this.quotation.finalDestinationCode || '',
     
+    // POD Origin mapping added here
+    podOrigin: String(this.quotation.podOrigin || ''),
+    
     inquiryNo: String(this.quotation.inquiryNo || this.inquiry.inquiryNo || ''),
     referenceByInquiryNo: this.referenceByInquiryNo || this.quotation.inquiryNo || this.inquiry.inquiryNo || null,
     
@@ -3563,9 +3566,7 @@ saveQuotation() {
     serviceType: String(this.quotation.TransportType || this.quotation.transportType || ''), 
     
     shipmentType: (this.quotation.shipmentType || this.inquiry.shipmentType || "").toString(),
-    // --- FIX: Ensure country is mapped correctly ---
-// saveQuotation() ke andar payload mapping:
-countryName: (this.quotation.countryName || this.selectedCountryName || "").toString(),    
+    countryName: (this.quotation.countryName || this.selectedCountryName || "").toString(),     
     connectingPortIds: Array.isArray(this.quotation.connectingPortIds) ? this.quotation.connectingPortIds.join(',') : (this.quotation.connectingPortIds || ""),
     
     OrganisationId: this.organisationId || 0,
@@ -3601,7 +3602,6 @@ countryName: (this.quotation.countryName || this.selectedCountryName || "").toSt
     createdBy: 'admin@cavalierlogistic.in'
   };
 
-  // --- FIX: Removed 'CountryName' from keysToDelete ---
   const keysToDelete = ['TransportMode', 'TransportType', 'SalesCoordinator', 'GrossWeight', 'GrossweightUnit', 'costBreakdowns', 'multiCarrierBreakdowns', 'existingInvoices'];
   keysToDelete.forEach(key => delete payload[key]);
 
@@ -3948,7 +3948,8 @@ selectInquiry(inq: any) {
       this.quotation.finalDestinationCode = data.codeOfFinalDest || '';
       this.quotation.isDirect = data.isDirect === true;
       this.quotation.isIndirect = data.isIndirect === true;
-
+// --- 5. Movement & Ports wale section mein add karein ---
+this.quotation.podOrigin = data.podOrigin || ''; // Yeh line add karein
       // --- 6. Connecting Ports (FIXED MAPPING) ---
       this.selectedConnectingPorts = [];
       this.quotation.connectingPortIds = [];
@@ -4865,22 +4866,14 @@ selectAndClose(org: any) {
 getTotalPackageCount() {
   return this.dimRows.reduce((sum, item) => sum + (Number(item.box) || 0), 0);
 }
-getCombinedGroupedDimensions(): DimGroup[] {
-  const allDims = [];
-  
-  // 1. Pehle main dimRow add karo
-  if (this.dimRow && this.dimRow.l) {
-    allDims.push({ ...this.dimRow, isMain: true });
-  }
-  // 2. Phir baki dimRows add karo
-  if (this.dimRows && this.dimRows.length > 0) {
-    allDims.push(...this.dimRows);
-  }
-
+getGroupedDimensions(): DimGroup[] {
+  // Yahan type define kar di taaki TS7034 error na aaye
   const groups: DimGroup[] = [];
-  
-  allDims.forEach((dim, index) => {
+
+  this.dimRows.forEach((dim: any, index: number) => {
     const dimString = `${dim.l || 0}x${dim.w || 0}x${dim.h || 0} ${dim.unit || 'CMS'}`;
+    
+    // find() method ab return karega 'DimGroup | undefined'
     let foundGroup = groups.find(g => g.dimString === dimString);
     
     if (foundGroup) {
@@ -4889,12 +4882,16 @@ getCombinedGroupedDimensions(): DimGroup[] {
     } else {
       groups.push({
         dimString: dimString,
-        l: dim.l || 0, w: dim.w || 0, h: dim.h || 0, unit: dim.unit || 'CMS',
+        l: dim.l || 0, 
+        w: dim.w || 0, 
+        h: dim.h || 0, 
+        unit: dim.unit || 'CMS',
         indices: [index + 1],
         totalBoxQty: Number(dim.box || 0)
       });
     }
   });
+  
   return groups;
 }
 // quotation: any = { grossWeightKg: '', GrossweightUnit: 'KGS' }; // Default KGS

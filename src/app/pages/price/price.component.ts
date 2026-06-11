@@ -2034,45 +2034,28 @@ onClear() {
 showCustomPicker: boolean = false;
 
 // 2. Logic for all shortcuts
-setQuickDate(type: string) {
-  const today = new Date();
-  let targetDate = new Date();
+// Add these variables in your class
+showDateDropdown = false;
 
-  switch (type) {
-    case 'tomorrow':
-      targetDate.setDate(today.getDate() + 1);
-      break;
-    case 'yesterday':
-      targetDate.setDate(today.getDate() - 1);
-      break;
-    case 'nextWeek':
-      targetDate.setDate(today.getDate() + 7);
-      break;
-    case 'lastWeek':
-      targetDate.setDate(today.getDate() - 7);
-      break;
-    case 'nextMonth':
-      targetDate.setMonth(today.getMonth() + 1);
-      break;
-    case 'lastMonth':
-      targetDate.setMonth(today.getMonth() - 1);
-      break;
-    default:
-      targetDate = today;
+setQuickDate(range: string) {
+  const today = new Date();
+  let from = new Date();
+  let to = new Date();
+
+  switch (range) {
+    case 'today': break;
+    case 'yesterday': from.setDate(today.getDate() - 1); to.setDate(today.getDate() - 1); break;
+    case 'lastWeek': from.setDate(today.getDate() - 7); break;
+    case 'lastMonth': from.setMonth(today.getMonth() - 1); break;
+    case 'lastYear': from.setFullYear(today.getFullYear() - 1); break;
   }
 
-  const year = targetDate.getFullYear();
-  const month = String(targetDate.getMonth() + 1).padStart(2, '0');
-  const day = String(targetDate.getDate()).padStart(2, '0');
+  // Format YYYY-MM-DD for input fields
+  this.searchFilters.fromDate = from.toISOString().split('T')[0];
+  this.searchFilters.toDate = to.toISOString().split('T')[0];
   
-  // Value assign ki
-  this.searchFilters.receivedDate = `${year}-${month}-${day}`;
-  
-  this.showCustomPicker = false;
-
-  // Change detect karke search call karein taaki payload updated date le
-  this.cdr.detectChanges(); 
-  this.onSearch();
+  this.showDateDropdown = false;
+  this.onSearch(); // Auto search after selection
 }
 pricings: any[] = [];             // Master display list
      // Table mein jo loop ho raha hai
@@ -2103,12 +2086,13 @@ onSearch() {
                   !this.searchFilters.transportMode && 
                   !this.searchFilters.organisationName && 
                   (this.searchFilters.status === "" || this.searchFilters.status === null) && 
-                  !this.searchFilters.receivedDate && 
+                  !this.searchFilters.fromDate && 
+                  !this.searchFilters.toDate &&
                   (!this.searchFilters.branchIds || this.searchFilters.branchIds.length === 0);
 
   if (isBlank) {
     this.currentPage = 1; 
-    this.onSearch();  
+    // Yahan apni default loading method call karein, e.g., this.loadPricings();
     return;
   }
 
@@ -2129,7 +2113,8 @@ onSearch() {
     transportMode: this.searchFilters.transportMode || "",
     organisationName: this.searchFilters.organisationName || "",
     status: statusValue,
-    receivedDate: this.searchFilters.receivedDate || null,
+    fromDate: this.searchFilters.fromDate || null,
+    toDate: this.searchFilters.toDate || null,
     branchIds: this.searchFilters.branchIds && this.searchFilters.branchIds.length > 0 ? this.searchFilters.branchIds : []
   };
 
@@ -2138,7 +2123,6 @@ onSearch() {
       next: (res: any) => {
         const rawData = Array.isArray(res) ? res : (res.data || []);
         
-        // Data Mapping
         this.pricings = rawData.map((item: any) => ({
           ...item,
           pricingNo: item.pricingNo || item.PricingNo || 'N/A',
@@ -2149,13 +2133,11 @@ onSearch() {
           branchName: item.branchName || 'N/A'
         }));
 
-        // 🔥 PAGINATION HANDLE KARNE KA LOGIC:
-        this.currentPage = 1; // Search karte hi 1st page set karo
-        this.totalCount = this.pricings.length; // Total records set karo
-        this.paginatedPricings = this.pricings.slice(0, this.pageSize); // Sirf pehle page ka data slice karo
+        this.currentPage = 1;
+        this.totalCount = this.pricings.length;
+        this.paginatedPricings = this.pricings.slice(0, this.pageSize);
         
         this.cdr.detectChanges();
-        console.log("✅ Results found:", this.totalCount);
       },
       error: (err) => {
         console.error("❌ Search failed:", err);

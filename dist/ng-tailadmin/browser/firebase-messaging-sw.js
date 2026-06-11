@@ -12,17 +12,16 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+// Background message handler
 messaging.onBackgroundMessage(function(payload) {
+  console.log("📥 [SW Background Message Received]:", payload);
 
-  console.log("Background message:", payload);
-
-  const title = payload.notification.title;
-
+  // Payload structure normalization (Notification OR Data fields check)
+  const title = payload.notification?.title || payload.data?.title || 'Cavalier Update';
   const options = {
-    body: payload.notification.body,
+    body: payload.notification?.body || payload.data?.body || '',
     icon: "/favicon.ico"
   };
 
-  self.registration.showNotification(title, options);
-
+  return self.registration.showNotification(title, options);
 });

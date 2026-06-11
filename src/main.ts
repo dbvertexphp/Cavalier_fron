@@ -12,8 +12,17 @@ import { routes } from './app/app.routes';
 import { register as registerSwiperElements } from 'swiper/element/bundle';
 import { environment } from './environments/environment';
 
+// 👇 Firebase imports foreground notifications handling ke liye
+import { initializeApp } from 'firebase/app';
+import { getMessaging, onMessage } from 'firebase/messaging';
+import { NotificationService } from './app/services/notification.service'; // Ensure strict valid path here
+
 console.log('Current Environment:', environment.apiUrl);
 registerSwiperElements();
+
+// 🔥 1. Initialize Firebase App for Foreground Listening context channel
+const firebaseApp = initializeApp(environment.firebase);
+const messaging = getMessaging(firebaseApp);
 
 bootstrapApplication(AppComponent, {
   providers: [
@@ -33,4 +42,24 @@ bootstrapApplication(AppComponent, {
       closeButton: true            // Standard user explicit manually clear cross active
     })
   ]
-}).catch(err => console.error(err));
+})
+.then((appRef) => {
+  // 🔥 2. App successfully bootstrap hone ke baad injector se NotificationService nikalna
+  const notificationService = appRef.injector.get(NotificationService);
+
+  // 🔥 3. FOREGROUND MESSAGING LISTENER TRACE HOOK
+  onMessage(messaging, (payload) => {
+    console.log('🎯 main.ts intercepted raw foreground payload bundle:', payload);
+    
+    // Aapke notification service ke BehaviorSubject/Subject ka channel stream pass logic
+    // Yeh method aapke common pipeline me data push karega jisse header read karega
+    if (notificationService && typeof notificationService.changeMessage === 'function') {
+      notificationService.changeMessage(payload);
+    } else if (notificationService && notificationService.currentMessage) {
+      // Alternate custom setup checking parameter wrapper logic logic
+      // Agar direct subject access handle hota hai toh data trace trigger
+      (notificationService.currentMessage as any).next(payload);
+    }
+  });
+})
+.catch(err => console.error(err));

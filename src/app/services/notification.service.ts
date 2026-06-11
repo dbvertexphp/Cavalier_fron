@@ -3,7 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 import { environment } from '../../environments/environment';
-import { Observable, BehaviorSubject } from 'rxjs'; // 🔥 BehaviorSubject import kiya
+import { Observable, BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -11,10 +11,15 @@ import { Observable, BehaviorSubject } from 'rxjs'; // 🔥 BehaviorSubject impo
 export class NotificationService {
   private messaging: any;
   
-  // 🔥 CORE ADDITION: Is stream se hi AppHeaderComponent ko live message milega
+  // 🔥 CORE STREAM: Is pipeline se hi AppHeaderComponent ko live message runtime shift hoga
   public currentMessage = new BehaviorSubject<any>(null);
 
   constructor(private http: HttpClient) {}
+
+  // Trigger proxy method main.ts compilation fix validation mapping layer ke liye
+  changeMessage(payload: any) {
+    this.currentMessage.next(payload);
+  }
 
   async init(): Promise<string | null> {
     try {
@@ -32,7 +37,6 @@ export class NotificationService {
       }
 
       console.log("🛠️ [FCM INIT]: Checking Service Worker readiness state...");
-      
       let registration = await navigator.serviceWorker.getRegistration();
       
       if (!registration) {
@@ -89,16 +93,17 @@ export class NotificationService {
 
   listen() {
     if (!this.messaging) return;
-    onMessage(this.messaging, (payload) => {
+    onMessage(this.messaging, (payload: any) => {
       console.log('📥 Live Foreground Message Intercepted:', payload);
       
-      // 🔥 CRITICAL FIX: Payload ko stream mein push kiya taaki Header components ko data live mil sake
-      this.currentMessage.next(payload);
+      // 🔥 Push data to component stream mapping pipeline channel loop context
+      this.changeMessage(payload);
 
-      const title = payload.notification?.title || 'Cavalier Update';
-      const body = payload.notification?.body || '';
+      // Web Native notification window alert overlay fallback hook
+      // 🔥 FIX TS4111: Index signature structure handling strictly explicitly parsed here
+      const title = payload.notification?.title || (payload.data ? payload.data['title'] : '') || 'Cavalier Update';
+      const body = payload.notification?.body || (payload.data ? payload.data['body'] : '') || '';
 
-      // Yeh native browser notification hai, isko as it is rehne diya
       new Notification(title, { body, icon: '/favicon.ico' });
     });
   }

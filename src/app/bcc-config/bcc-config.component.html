@@ -1,0 +1,83 @@
+<div class="p-6">
+  <div class="flex justify-between items-center mb-6">
+    <h2 class="text-xl font-black uppercase tracking-wider text-gray-800">🕵️ Manage BCC Configs</h2>
+    <button (click)="openModal()" class="bg-[#4a3f3f] text-white px-5 py-2.5 rounded-lg hover:bg-black text-xs font-bold uppercase shadow-sm transition-all">+ Add BCC Configuration</button> 
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <table class="w-full text-left text-[12px] border-collapse">
+      <thead class="bg-gray-50 text-gray-600 uppercase font-bold border-b">
+        <tr>
+          <th class="px-6 py-4 w-16">#</th>
+          <th class="px-6 py-4">BCC Email Lists</th>
+          <th class="px-6 py-4 w-32 text-center">Status</th>
+          <th class="px-6 py-4 text-right w-40">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100">
+        <tr *ngFor="let bcc of bccList; let i = index" class="hover:bg-gray-50 transition-colors">
+          <td class="px-6 py-4 font-bold text-gray-400">#{{ i + 1 }}</td>
+          <td class="px-6 py-4 font-semibold text-gray-800 break-all select-all">{{ bcc.bccName }}</td>
+          
+          <td class="px-6 py-4 text-center">
+            <button 
+              (click)="toggleStatus(bcc)"
+              class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold shadow-sm border transition-all"
+              [ngClass]="bcc.status ? 'bg-green-50 text-green-600 border-green-200 hover:bg-green-600 hover:text-white' : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-600 hover:text-white'">
+              <span class="relative flex h-1.5 w-1.5">
+                <span *ngIf="bcc.status" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span [class]="bcc.status ? 'bg-green-500' : 'bg-gray-500'" class="relative inline-flex rounded-full h-1.5 w-1.5"></span>
+              </span>
+              <span>{{ bcc.status ? 'Active' : 'Inactive' }}</span>
+            </button>
+          </td>
+
+          <td class="px-6 py-4 text-right space-x-2">
+            <button (click)="openModal(bcc)" class="text-blue-600 hover:underline px-2 font-bold">Edit</button>
+            <button (click)="deleteBcc(bcc.id)" class="text-red-600 hover:underline px-2 font-bold">Delete</button>
+          </td>
+        </tr>
+        
+        <tr *ngIf="bccList.length === 0">
+          <td colspan="4" class="p-10 text-center text-gray-400 italic">No BCC configuration records found.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div *ngIf="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+  <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden border">
+    <div class="bg-[#4a3f3f] text-white px-6 py-4 font-bold uppercase text-xs tracking-wider">
+      {{ isEditMode ? 'Edit BCC Configuration' : 'Create New BCC Configuration' }}
+    </div>
+    
+    <div class="p-6 space-y-4">
+      <div>
+        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">BCC Email Recipients</label>
+        <input 
+    type="text"
+    [(ngModel)]="newBccData.bccName" 
+    class="w-full px-4 py-2 h-10 border rounded-lg text-xs outline-none focus:border-blue-500 bg-white" 
+    placeholder="E.g. audit@cavalier.com, archive@cavalier.com"
+    autocomplete="off"
+  />
+      </div>
+
+      <div class="flex items-center gap-3 pt-2">
+        <input 
+          type="checkbox" 
+          id="modalStatus" 
+          [(ngModel)]="newBccData.status" 
+          class="w-4 h-4 accent-[#4a3f3f] cursor-pointer"
+        />
+        <label for="modalStatus" class="text-xs font-bold text-gray-600 cursor-pointer uppercase">Set Configuration Active</label>
+      </div>
+    </div>
+    
+    <div class="px-6 py-4 bg-gray-50 flex gap-3 border-t">
+      <button (click)="closeModal()" class="flex-1 px-4 py-2 border rounded-lg text-xs font-bold uppercase hover:bg-gray-100 transition-colors">Cancel</button>
+      <button (click)="saveBccConfig()" class="flex-1 px-4 py-2 bg-[#4a3f3f] text-white rounded-lg text-xs font-bold uppercase hover:bg-black transition-colors">Save Details</button>
+    </div>
+  </div>
+</div>

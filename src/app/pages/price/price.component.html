@@ -2899,27 +2899,47 @@ Selection Modal Popup
           </div>
 
           <!-- Agent Selection Section -->
-          <div class="mt-8 border-t-4 border-[#4a3f3f] pt-6">
-            <h3 class="text-lg md:text-2xl font-black text-[#4a3f3f] uppercase tracking-tighter italic mb-6 flex items-center gap-2">
-              <span>🕵️</span> ASSIGNED BRANCHES
-            </h3>
-            <div class="bg-white p-6 border-2 border-gray-200 shadow-sm rounded-sm">
-              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                <label *ngFor="let agent of agentDetail" class="flex items-center gap-4 cursor-pointer group p-4 border border-gray-100 hover:bg-gray-50 hover:border-[#4a3f3f] rounded-lg transition-all shadow-sm">
-                  <div class="flex items-center justify-center">
-                    <input type="checkbox" (change)="onAgentSelect($event, agent)" class="w-5 h-5 accent-[#4a3f3f] cursor-pointer rounded border-gray-300 focus:ring-[#4a3f3f]">
-                  </div>
-                  <div class="flex flex-col">
-                    <span class="text-sm md:text-base font-black text-gray-800 group-hover:text-[#4a3f3f] uppercase tracking-tight">{{ agent.branchName }}</span>
-                    <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Designated Branch</span>
-                  </div>
-                </label>
-                <div *ngIf="agentDetail.length === 0" class="col-span-full py-10 text-center border-2 border-dashed border-gray-100 rounded-xl">
-                  <p class="text-gray-400 font-bold italic uppercase text-sm tracking-widest">No Branches Found for this Pincode</p>
-                </div>
-              </div>
-            </div>
-          </div>
+         <div class="mt-8 border-t-4 border-[#4a3f3f] pt-6">
+  <div class="flex items-center justify-between mb-6">
+    <h3 class="text-lg md:text-2xl font-black text-[#4a3f3f] uppercase tracking-tighter italic flex items-center gap-2 m-0">
+      <span>🕵️</span> ASSIGNED BRANCHES
+    </h3>
+
+    <label *ngIf="agentDetail && agentDetail.length > 0" class="flex items-center gap-2 cursor-pointer bg-gray-100 hover:bg-gray-200 px-4 py-2 border border-gray-300 rounded shadow-sm transition-all">
+      <input 
+        type="checkbox" 
+        [checked]="isAllAgentsSelected()" 
+        (change)="toggleSelectAllAgents($event)" 
+        class="w-4 h-4 accent-[#4a3f3f] cursor-pointer"
+      />
+      <span class="text-xs font-bold text-gray-700 uppercase tracking-wider">Select All</span>
+    </label>
+  </div>
+
+  <div class="bg-white p-6 border-2 border-gray-200 shadow-sm rounded-sm">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      
+      <label *ngFor="let agent of agentDetail" class="flex items-center gap-4 cursor-pointer group p-4 border border-gray-100 hover:bg-gray-50 hover:border-[#4a3f3f] rounded-lg transition-all shadow-sm">
+        <div class="flex items-center justify-center">
+          <input 
+            type="checkbox" 
+            [checked]="agent.isSelected"
+            (change)="onAgentSelect($event, agent)" 
+            class="w-5 h-5 accent-[#4a3f3f] cursor-pointer rounded border-gray-300 focus:ring-[#4a3f3f]"
+          >
+        </div>
+        <div class="flex flex-col">
+          <span class="text-sm md:text-base font-black text-gray-800 group-hover:text-[#4a3f3f] uppercase tracking-tight">{{ agent.branchName }}</span>
+          <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Designated Branch</span>
+        </div>
+      </label>
+
+      <div *ngIf="agentDetail.length === 0" class="col-span-full py-10 text-center border-2 border-dashed border-gray-100 rounded-xl">
+        <p class="text-gray-400 font-bold italic uppercase text-sm tracking-widest">No Branches Found for this Pincode</p>
+      </div>
+    </div>
+  </div>
+</div>
 
           <!-- Action Buttons -->
           <div class="mt-8 flex flex-col sm:flex-row justify-end gap-3 md:gap-4 pb-4">

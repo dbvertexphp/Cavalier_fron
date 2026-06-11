@@ -984,7 +984,24 @@ fetchAgentByPostCode(postCode: string | number) {
     }
   });
 }
-
+toggleSelectAllAgents(event: any): void {
+  const isChecked = event.target.checked;
+  
+  this.agentDetail.forEach(agent => {
+    agent.isSelected = isChecked;
+    
+    // Agar aapka puraana 'onAgentSelect' logic kuch aur fields ya arrays populate karta hai, 
+    // toh use bhi yahan sync mein rakhne ke liye pseudo-event bana kar call kar sakte hain:
+    const mockEvent = { target: { checked: isChecked } };
+    this.onAgentSelect(mockEvent, agent);
+  });
+}
+isAllAgentsSelected(): boolean {
+  if (!this.agentDetail || this.agentDetail.length === 0) {
+    return false;
+  }
+  return this.agentDetail.every(agent => agent.isSelected);
+}
 fetchAgentByLobId(lobId: string | number, countryName: string) {
   if (!lobId) {
     console.warn("⚠️ Operation blocked: Line of Business ID missing.");

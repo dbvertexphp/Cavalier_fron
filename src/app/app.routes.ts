@@ -22,7 +22,7 @@ import { CalenderComponent } from './pages/calender/calender.component';
 import { UserComponent } from './user/user.component';
 import { BranchComponent } from './branch/branch.component';
 import { UserFormComponent } from './components/user-form/user-form.component';
-
+import {CcComponent} from './cc/cc.component';
 import { RolesComponent } from './dashboard/roles/roles.component';
 import { DepartmentsComponent } from './dashboard/departments/departments.component';
 import { DesignationsComponent } from './dashboard/designations/designations.component';
@@ -85,7 +85,7 @@ import { BranchDesignationComponent } from './pages/branch-designation/branch-de
 import { ConnectingPortsComponent } from './pages/connecting-ports/connecting-ports.component';
 import { ChargeComponent } from './charge/charge.component';
 import { PackageBoxesComponent } from './pages/package-boxes/package-boxes.component';
-
+import { BccConfigComponent } from './bcc-config/bcc-config.component';
 export const routes: Routes = [
 
   // 1. AUTH & ROLE SELECTION (Root Pages)
@@ -180,6 +180,11 @@ canActivate: [authGuard],
         canActivate: [authGuard],
       },
       {
+        path: 'email-cc',
+        component: CcComponent,
+        canActivate: [authGuard],
+      },
+      {
         path: 'cargotype',
         component: CargoTypeComponent ,
         canActivate: [authGuard],        //cargo type
@@ -193,6 +198,11 @@ canActivate: [authGuard],
       {
         path: 'partyrole',
         component: PartyRoleComponent,
+        canActivate: [authGuard],         //Party role
+      },
+      {
+        path: 'email-bcc',
+        component: BccConfigComponent,
         canActivate: [authGuard],         //Party role
       },
       {

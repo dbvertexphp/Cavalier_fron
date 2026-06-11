@@ -1310,7 +1310,8 @@ if (allAgentsPayloads.length === 0) {
           // this.getOrgList();
       }
   }
-editOrg(org: any) {
+
+  editOrg(org: any) {
   console.log('Editing Organization:', org);
 
   this.isFormOpen = true;

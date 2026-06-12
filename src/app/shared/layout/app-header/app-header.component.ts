@@ -31,10 +31,8 @@ export class AppHeaderComponent implements OnInit, OnDestroy {
 
   isApplicationMenuOpen = false;
   isFullScreen = false;
-
   readonly isMobileOpen$;
   
-  // 🔥 Live communication memory snapshot trace stream mapping
   private fcmSubscription!: Subscription;
 
   @ViewChild('searchInput') searchInput!: ElementRef<HTMLInputElement>;
@@ -42,19 +40,17 @@ export class AppHeaderComponent implements OnInit, OnDestroy {
   constructor(
     public sidebarService: SidebarService,
     private notificationService: NotificationService,
-    private toastr: ToastrService // 👈 Service injected properly
+    private toastr: ToastrService
   ) {
     this.isMobileOpen$ = this.sidebarService.isMobileOpen$;
   }
 
-  // 🔥 FULLSCREEN STATE SYNC
   private fullScreenHandler = () => {
     const active = !!document.fullscreenElement;
     this.isFullScreen = active;
     localStorage.setItem('isFullScreen', String(active));
   };
 
-  // ================= Search Shortcut Key Handler =================
   private handleKeyDown = (event: KeyboardEvent) => {
     if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
       event.preventDefault();
@@ -63,20 +59,23 @@ export class AppHeaderComponent implements OnInit, OnDestroy {
   };
 
   ngOnInit() {
-    // Icon state restore handling tracking sequence
     this.isFullScreen = localStorage.getItem('isFullScreen') === 'true';
     document.addEventListener('fullscreenchange', this.fullScreenHandler);
     document.addEventListener('keydown', this.handleKeyDown);
 
-    // 🔥 REALTIME TOASTER STREAM TRIGGER: Shared notification pipeline channel context hook
+    // 🔥 1. Sabse pehle Firebase system ko initialize karo aur listeners start karo
+    this.initializeNotificationSystem();
+
+    // 🔥 2. REALTIME TOASTR STREAM SUBSCRIPTION
     this.fcmSubscription = this.notificationService.currentMessage.subscribe((msg) => {
-      if (msg && msg.notification) {
+      if (msg) {
         console.log("🎯 Header intercepted foreground payload banner request:", msg);
         
-        const title = msg.notification.title || 'Cavalier Update Link';
-        const body = msg.notification.body || '';
+        // Payload extraction (chahe notification obj ho ya pure data attributes)
+        const title = msg.notification?.title || msg.data?.title || 'Cavalier Update';
+        const body = msg.notification?.body || msg.data?.body || '';
 
-        // 🔥 Dynamic custom parameters runtime overrides (Aapne jo config di thi)
+        // Toastr invocation trigger
         this.toastr.info(body, title, {
           timeOut: 4500,
           progressBar: true,
@@ -88,18 +87,26 @@ export class AppHeaderComponent implements OnInit, OnDestroy {
     });
   }
 
+  // Async helper to orchestrate token and live listeners safely
+  async initializeNotificationSystem() {
+    const token = await this.notificationService.init();
+    if (token) {
+      console.log('✅ [FCM COMPONENT]: Token captured, activating foreground tracking loops...');
+      this.notificationService.listen();
+    } else {
+      console.warn('⚠️ [FCM COMPONENT]: System init returned null token. Verification rejected.');
+    }
+  }
+
   ngOnDestroy() {
-    // Remove listeners to avoid memory leaks
     document.removeEventListener('fullscreenchange', this.fullScreenHandler);
     document.removeEventListener('keydown', this.handleKeyDown);
     
-    // 🔒 Memory Leak Safeguard context loop stream flush
     if (this.fcmSubscription) {
       this.fcmSubscription.unsubscribe();
     }
   }
 
-  // ================= Sidebar Control =================
   handleToggle() {
     if (window.innerWidth >= 1280) {
       this.sidebarService.toggleExpanded();
@@ -112,7 +119,6 @@ export class AppHeaderComponent implements OnInit, OnDestroy {
     this.isApplicationMenuOpen = !this.isApplicationMenuOpen;
   }
 
-  // ================= FULLSCREEN ACTIONS =================
   toggleFullScreen() {
     if (!document.fullscreenElement) {
       this.enterFullScreen();
@@ -124,17 +130,13 @@ export class AppHeaderComponent implements OnInit, OnDestroy {
   enterFullScreen() {
     const elem = document.documentElement;
     if (elem.requestFullscreen) {
-      elem.requestFullscreen().catch(err =>
-        console.log('Fullscreen error:', err)
-      );
+      elem.requestFullscreen().catch(err => console.log('Fullscreen error:', err));
     }
   }
 
   exitFullScreen() {
     if (document.fullscreenElement) {
-      document.exitFullscreen().catch(err =>
-        console.log('Exit fullscreen error:', err)
-      );
+      document.exitFullscreen().catch(err => console.log('Exit fullscreen error:', err));
     }
   }
 }

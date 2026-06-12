@@ -16,11 +16,11 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage(function(payload) {
   console.log("📥 [SW Background Message Received]:", payload);
 
-  // Payload structure normalization (Notification OR Data fields check)
   const title = payload.notification?.title || payload.data?.title || 'Cavalier Update';
   const options = {
     body: payload.notification?.body || payload.data?.body || '',
-    icon: "/favicon.ico"
+    icon: "/favicon.ico",
+    data: payload.data // data object ko preserve rakha hai click tracking ke liye
   };
 
   return self.registration.showNotification(title, options);

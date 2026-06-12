@@ -173,7 +173,7 @@ onNewBranch() {
   // Toh sabse pehle current form ki STRICT VALIDATION check hogi.
   if (this.branchList.length > 0 || this.isEditMode) {
     
-    // Tumhara apna function jo check karega: Branch, Country, State, City, Dept, Designation
+    // Check karega: Branch, Country, State, City, Dept, Designation
     const isCurrentValid = this.validateCurrentBranch();
 
     if (!isCurrentValid) {
@@ -187,12 +187,14 @@ onNewBranch() {
   // 🔥 2. NAYA KHALI FORM BANANE KI PROCESS (Yeh tabhi chalega jab upar sab PASS hoga)
   this.isEditMode = true; // Readonly hata dega
   this.selectedBranchIndex = -1;
-  this.resetBranchFormOnly(); // Form screen ko ekdum fresh/khali karega
+  
+  this.resetBranchFormOnly(); // Branch screen ko ekdum fresh/khali karega
+  this.resetAgentFormOnly();  // 🔥 CRITICAL FIX: Naye branch par click karte hi Agent ka purana data saaf!
 
   // Ekdum naya khali object (Fields clear rakhi hain)
   const newBlankBranch = {
     id: 0,
-    branchName: 'Default Branch', // Khali rakha hai
+    branchName: 'Default Branch', // Nayi branch ka naam khali rakhein taaki user fill kare
     address: '',
     country: '',
     stateProvince: '',
@@ -213,7 +215,27 @@ onNewBranch() {
     contactName: '',
     mobile: '',
     whatsapp: '',
-    emailId: ''
+    emailId: '',
+    
+    // Naye branch object ke andar uska apna fresh empty agentData structure
+    agentData: {
+      agentBranchName: '',
+      agentAddress: '',
+      agentArea: '',
+      agentLandmark: '',
+      agentCountry: '',
+      agentState: '',
+      agentCity: '',
+      agentPostalCode: '',
+      agentTelephone: '',
+      agentFax: '',
+      agentWebsite: '',
+      agentEmail: '',
+      agentSelectedLineOfBusiness: [],
+      agentContacts: [{
+        contactName: '', designationId: null, departmentId: null, mobile: '', whatsapp: '', email: ''
+      }]
+    }
   };
 
   // Naya form array me daala
@@ -927,7 +949,8 @@ saveAllLocalBranches(orgId: number) {
     }
 
     return {
-      Id: branch.id || 0,
+      Id: branch.id || branch.BranchId || branch.branchId || 0,
+      BranchId: branch.id || branch.BranchId || branch.branchId || 0, 
       BranchName: branch.branchName?.trim() || "",
       OrganizationId: orgId,
       LobIds: finalLobIds,
@@ -939,7 +962,7 @@ saveAllLocalBranches(orgId: number) {
       City: branch.city?.trim() || "",
       PostalCode: branch.postalCode?.trim() || "",
       Telephone: branch.telephone?.trim() || "",
-      Fax: branch.website?.trim() || "",
+      Fax: branch.fax?.trim() || "",
       WebSite: branch.website?.trim() || "",
       EmailAddress: branch.email?.trim() || branch.emailAddress?.trim() || "",
       EmailId: branch.emailId?.trim() || branch.email?.trim() || "",
@@ -954,9 +977,9 @@ saveAllLocalBranches(orgId: number) {
       IsHOD: false,
       IsSales: false,
       IsMarketing: false,
-      // ✅ FIXED: Hardcoded array ki jagah 'this.contacts' ka array bhej rahe hain
       Contacts: (this.contacts && this.contacts.length > 0) 
         ? this.contacts.map((c: any) => ({
+            BranchId: branch.id || branch.branchId || 0,
             ContactName: c.contactName?.trim() || "",
             Mobile: c.mobile?.trim() || "",
             Whatsapp: c.whatsapp?.trim() || "",
@@ -968,15 +991,41 @@ saveAllLocalBranches(orgId: number) {
     };
   });
 
+  console.log("📤 Sending Branches to backend API...");
+
   this.http.post(`${environment.apiUrl}/OrgBranch/SaveBranches/${orgId}`, payloadArray).subscribe({
-    next: (res) => {
-      console.log(`✅ Branches and contacts saved successfully.`);
-      this.http.get<any>(`${environment.apiUrl}/OrgBranch/GetByOrg/${orgId}`).subscribe({
-        next: (freshRes) => {
-          this.branchList = freshRes.branches || [];
-          this.saveAllAgentsForBranches(orgId, this.branchList);
-        }
-      });
+    next: (res: any) => {
+      console.log("✅ Branches saved on backend. Full controller response received:", res);
+      
+      // 🔥 CRITICAL FIX: Backend controller se fresh assigned IDs wala list uthao
+      const freshBranchesFromDB = res.branches || [];
+
+      if (freshBranchesFromDB && freshBranchesFromDB.length > 0) {
+        
+        // Local runtime branch representation array layer ke elements ko nayi persistent identity keys se enrich karo
+        this.branchList = this.branchList.map(localBranch => {
+          // Name framework coordination checking target mapping engine
+          const dbMatch = freshBranchesFromDB.find(
+            (dbB: any) => dbB.branchName?.toLowerCase().trim() === localBranch.branchName?.toLowerCase().trim()
+          );
+          
+          if (dbMatch) {
+            console.log(`🔗 Syncing structural object IDs for ${localBranch.branchName}: Local 0 ➔ Database Key: ${dbMatch.id || dbMatch.branchId}`);
+            return {
+              ...localBranch,
+              id: dbMatch.id || dbMatch.branchId // 👈 Local state configuration updated smoothly!
+            };
+          }
+          return localBranch;
+        });
+
+        // 🔥 AB TARGET AGENT SUBSCRIPTION KO REAL SYNCED LIST PASS KARENGE
+        console.log("🚀 Launching saveAllAgentsForBranches with fully validated runtime entities list:", this.branchList);
+        this.saveAllAgentsForBranches(orgId, this.branchList);
+      } else {
+        // Fallback context structure
+        this.saveAllAgentsForBranches(orgId, this.branchList);
+      }
     },
     error: (err) => {
       console.error(`❌ Failed to save branches`, err);
@@ -1198,7 +1247,7 @@ proceedToSave() {
           this.selectedOrgId = finalOrgId;
           this.saveAllLocalBranches(finalOrgId); 
           alert(this.isOrgEditMode ? "✅ Organization Updated Successfully!" : "✅ Organization + Branches Saved Successfully!");
-          this.router.navigate(['/dashboard/organization-add']); 
+          // this.router.navigate(['/dashboard/organization-add']); 
         }
       },
       error: (err) => {
@@ -1214,95 +1263,83 @@ proceedToSave() {
  
 // 🔥 Puraane saveAgentWithOrganisation() ko is naye function se Replace kar do
 // 🔥 ==================== NEW METHOD: SAVE MULTIPLE AGENTS (WITH ARRAY LOG) ====================
- saveAllAgentsForBranches(orgId: number, freshBranchesFromDB: any[]) {
-    const allAgentsPayloads: any[] = [];
-    let agentsToSaveCount = 0;
-    let agentsSavedCount = 0;
+saveAllAgentsForBranches(orgId: number, freshBranchesFromDB: any[]) {
+  const allAgentsPayloads: any[] = [];
 
-    this.branchList.forEach(localBranch => {
-      if (localBranch.agentData && localBranch.agentData.agentBranchName?.trim()) {
+  freshBranchesFromDB.forEach(localBranch => {
+    if (localBranch.agentData && localBranch.agentData.agentBranchName?.trim()) {
+      
+      // Safety primary key identity fallback validation
+      const realBranchId = localBranch.id || localBranch.branchId || 0;
+
+      console.log(`🎯 Mapping Agent payload for: ${localBranch.branchName} ➔ Bound Database BranchId: ${realBranchId}`);
+
+      const agentPayload = {
+        organisationId: orgId,
+        branchId: realBranchId, // 🔥 Guaranteed non-zero value during first execution lifecycle context!
         
-        // 🔥 MAGIC: Local branch ke naam se Database ki fresh branch ko dhundo taaki REAL ID mil sake
-        const matchedDbBranch = freshBranchesFromDB.find(
-            (dbB: any) => dbB.branchName?.toLowerCase() === localBranch.branchName?.toLowerCase()
-        );
+        lineOfBusinessId: localBranch.agentData.agentSelectedLineOfBusiness && localBranch.agentData.agentSelectedLineOfBusiness.length > 0 
+          ? localBranch.agentData.agentSelectedLineOfBusiness.map((item:any) => item.id).join(',') 
+          : "",
+        countryCode: localBranch.countryCode || "",
+        branchName: localBranch.agentData.agentBranchName.trim(),
+        address: localBranch.agentData.agentAddress?.trim() || '',
+        area: localBranch.agentData.agentArea?.trim() || '',
+        landmark: localBranch.agentData.agentLandmark?.trim() || '',
+        country: localBranch.agentData.agentCountry?.trim() || '',
+        state: localBranch.agentData.agentState?.trim() || '',
+        city: localBranch.agentData.agentCity?.trim() || '',
+        postalCode: localBranch.agentData.agentPostalCode?.trim() || '',
+        telephone: localBranch.agentData.agentTelephone?.trim() || '',
+        fax: localBranch.agentData.agentFax?.trim() || '',
+        website: localBranch.agentData.agentWebsite?.trim() || '',
+        email: localBranch.agentData.agentEmail?.trim() || '',
 
-        // Agar mil gayi toh Database ID use karo, warna old ID
-        const realBranchId = matchedDbBranch ? (matchedDbBranch.id || matchedDbBranch.branchId) : localBranch.id;
+        contacts: localBranch.agentData.agentContacts.map((contact:any) => ({
+          contactName: contact.contactName?.trim() || '',
+          designationId: contact.designationId ? contact.designationId.toString() : "",
+          departmentId: contact.departmentId ? contact.departmentId.toString() : "",
+          mobile: contact.mobile?.trim() || '',
+          whatsapp: contact.whatsapp?.trim() || '',
+          email: contact.email?.trim() || ''
+        }))
+      };
 
-        const agentPayload = {
-          organisationId: orgId,
-          branchId: realBranchId, // 🔥 AB YAHAN ZERO NAHI, REAL DATABASE ID JAYEGI!
-          
-          lineOfBusinessId: localBranch.agentData.agentSelectedLineOfBusiness && localBranch.agentData.agentSelectedLineOfBusiness.length > 0 
-            ? localBranch.agentData.agentSelectedLineOfBusiness.map((item:any) => item.id).join(',') 
-            : "",
-            countryCode: localBranch.countryCode,
-          branchName: localBranch.agentData.agentBranchName.trim(),
-          address: localBranch.agentData.agentAddress?.trim() || '',
-          area: localBranch.agentData.agentArea?.trim() || '',
-          landmark: localBranch.agentData.agentLandmark?.trim() || '',
-          country: localBranch.agentData.agentCountry?.trim() || '',
-          state: localBranch.agentData.agentState?.trim() || '',
-          city: localBranch.agentData.agentCity?.trim() || '',
-          postalCode: localBranch.agentData.agentPostalCode?.trim() || '',
-          telephone: localBranch.agentData.agentTelephone?.trim() || '',
-          fax: localBranch.agentData.agentFax?.trim() || '',
-          website: localBranch.agentData.agentWebsite?.trim() || '',
-          email: localBranch.agentData.agentEmail?.trim() || '',
-
-         contacts: localBranch.agentData.agentContacts.map((contact:any) => ({
-            contactName: contact.contactName?.trim() || '',
-            
-            // 🔥 FIX: Backend ko strictly string chahiye, isliye .toString() lagaya hai
-            designationId: contact.designationId ? contact.designationId.toString() : "",
-            departmentId: contact.departmentId ? contact.departmentId.toString() : "",
-            
-            mobile: contact.mobile?.trim() || '',
-            whatsapp: contact.whatsapp?.trim() || '',
-            email: contact.email?.trim() || ''
-          }))
-        };
-
-        allAgentsPayloads.push(agentPayload);
-      }
-    });
-if (allAgentsPayloads.length === 0) {
-        alert("✅ Organization and Branches saved successfully!");
-        window.location.href = "/dashboard/organization-add";
-        return;
+      allAgentsPayloads.push(agentPayload);
     }
-    const totalAgentsToSave = allAgentsPayloads.length;
-    let agentsSavedSoFar = 0;
-    // if (allAgentsPayloads.length === 0) {
-    //     window.location.href = "/dashboard/organization-add";
-    //     return;
-    // }
+  });
 
-    console.log("🚀 ======== SABHI AGENTS KA DATA (WITH REAL BRANCH ID) ======== 🚀");
-    console.table(allAgentsPayloads);
-
-    // Saare agents ko backend par bhej do
-    allAgentsPayloads.forEach(payload => {
-        agentsToSaveCount++;
-        this.http.post(`${environment.apiUrl}/OrganisationAgent/SaveAgent`, payload).subscribe({
-            next: () => {
-                agentsSavedCount++;
-               this.checkAndRedirect(agentsSavedSoFar, totalAgentsToSave);
-            },
-            error: () => {
-               agentsSavedSoFar++; 
-                this.checkAndRedirect(agentsSavedSoFar, totalAgentsToSave);
-            }
-        });
-    });
+  if (allAgentsPayloads.length === 0) {
+      alert("✅ Organization and Branches saved successfully!");
+      window.location.href = "/dashboard/organization-add";
+      return;
   }
+
+  const totalAgentsToSave = allAgentsPayloads.length;
+  let agentsSavedSoFar = 0;
+
+  console.log("🚀 Sending final checked agent collection list stream payload:", allAgentsPayloads);
+
+  allAgentsPayloads.forEach(payload => {
+      this.http.post(`${environment.apiUrl}/OrganisationAgent/SaveAgent`, payload).subscribe({
+          next: () => {
+              agentsSavedSoFar++;
+              this.checkAndRedirect(agentsSavedSoFar, totalAgentsToSave);
+          },
+          error: (err) => {
+              console.error("❌ Agent insert failed", err);
+              agentsSavedSoFar++; 
+              this.checkAndRedirect(agentsSavedSoFar, totalAgentsToSave);
+          }
+      });
+  });
+}
   checkAndRedirect(savedCount: number, totalCount: number) {
       if (savedCount === totalCount) {
           alert("✅ Organization, Branches, and Agents Saved Successfully!");
           
           // Page Redirect/Reload yahan hoga sabkuch completely finish hone ke baad
-          window.location.href = "/dashboard/organization-add";
+          // window.location.href = "/dashboard/organization-add";
           
           // Note: Agar aap angular ka smooth reload chahte ho bina page refresh ke,
           // toh upar wali line hata kar ye 2 line likh dena:

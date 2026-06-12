@@ -16,7 +16,6 @@ export class NotificationService {
 
   constructor(private http: HttpClient) {}
 
-  // Trigger proxy method main.ts compilation fix validation mapping layer ke liye
   changeMessage(payload: any) {
     this.currentMessage.next(payload);
   }
@@ -40,14 +39,14 @@ export class NotificationService {
       let registration = await navigator.serviceWorker.getRegistration();
       
       if (!registration) {
-        console.log("🛠️ [FCM INIT]: SW not registered yet, registering now standard path...");
+        console.log("🛠️ [FCM INIT]: SW not registered yet, registering now...");
         registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
       }
 
       await navigator.serviceWorker.ready;
       console.log("🛠️ [FCM INIT]: Service Worker is 100% READY:", registration);
 
-      console.log("🛠️ [FCM INIT]: Attempting to fetch Token from Firebase Cloud Messaging...");
+      console.log("🛠️ [FCM INIT]: Attempting to fetch Token from FCM...");
       const fcmToken = await getToken(this.messaging, {
         vapidKey: environment.vapidKey,
         serviceWorkerRegistration: registration
@@ -56,9 +55,10 @@ export class NotificationService {
       if (fcmToken) {
         console.log('🚀 [FCM INIT] SUCCESS -> TOKEN RETRIEVED:', fcmToken);
         
+        // Server par token save karna
         this.sendFcmToken(fcmToken).subscribe({
           next: (res) => {
-            console.log('💾 [FCM BACKEND]: Token successfully updated in database table layer:', res);
+            console.log('💾 [FCM BACKEND]: Token successfully updated in database:', res);
           },
           error: (err) => {
             console.error('❌ [FCM BACKEND]: Token save request rejected by server:', err);
@@ -91,19 +91,22 @@ export class NotificationService {
     );
   }
 
+  // Foreground messaging listener setup
   listen() {
     if (!this.messaging) return;
+    
+    console.log('📡 [FCM LISTEN]: Foreground listener activated.');
     onMessage(this.messaging, (payload: any) => {
       console.log('📥 Live Foreground Message Intercepted:', payload);
       
-      // 🔥 Push data to component stream mapping pipeline channel loop context
+      // Push data to component stream mapping pipeline
       this.changeMessage(payload);
 
-      // Web Native notification window alert overlay fallback hook
-      // 🔥 FIX TS4111: Index signature structure handling strictly explicitly parsed here
+      // Web Native notification fallback overlay button
       const title = payload.notification?.title || (payload.data ? payload.data['title'] : '') || 'Cavalier Update';
       const body = payload.notification?.body || (payload.data ? payload.data['body'] : '') || '';
 
+      // Agar user screen par hai fir bhi native browser popup dikhana chahte ho:
       new Notification(title, { body, icon: '/favicon.ico' });
     });
   }

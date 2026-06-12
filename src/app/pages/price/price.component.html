@@ -2531,6 +2531,10 @@ Selection Modal Popup
                 <td class="px-4 py-3 text-right font-black text-[#4a3f3f] bg-amber-50/50 italic">
                     {{ row.amount | number:'1.2-2' }}
                 </td>
+                <td class="px-4 py-3 text-right font-black text-[#4a3f3f] bg-amber-50/50 italic">
+                                        <input type="text" placeholder="Enter Remark"  class="w-full text-right bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none">
+
+                </td>
                 
                 <td class="px-3 py-3 text-center">
                     <button (click)="removeCostRow(i)" class="text-gray-400 hover:text-red-500">
@@ -2669,6 +2673,10 @@ Selection Modal Popup
 
                         <td class="px-4 py-2 text-right font-black text-[#4a3f3f] bg-amber-50 italic border-l border-r border-amber-200">
                             {{ (m.totalCost || 0) | number:'1.2-2' }}
+                        </td>
+                        <td class="px-4 py-2 text-right font-black text-[#4a3f3f] bg-amber-50 italic border-l border-r border-amber-200">
+                                                                    <input type="text" placeholder="Enter Remark"  class="w-full text-right bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none">
+
                         </td>
 
                         <td class="px-3 py-2 text-center">

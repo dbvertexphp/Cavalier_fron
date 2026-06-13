@@ -666,49 +666,42 @@ sortColumn(column:string){
 
   this.cdr.detectChanges();
 }
- onIncotermChange(event: any) {
-  const selectedIncoterm = event.target.value?.toUpperCase().trim();
-
+onIncotermChange(selectedIncoterm: any) {
+  // Check karo agar value null/undefined toh nahi
   if (!selectedIncoterm) return;
 
-  this.quotation.incoterm = selectedIncoterm;
+  // Value ko process karo
+  const val = selectedIncoterm.toUpperCase().trim();
+  this.quotation.incoterm = val;
 
-  console.log(`Incoterm changed to: ${selectedIncoterm}`);
-  if(selectedIncoterm === 'DDP' || selectedIncoterm === 'DDU' || selectedIncoterm === 'DAP'){ 
+  console.log(`Incoterm changed to: ${val}`);
+
+  // Delivery enabled logic
+  if (val === 'DDP' || val === 'DDU' || val === 'DAP') {
     this.isDeliveryEnabled = true;
-  } 
-  else {
+  } else {
     this.isDeliveryEnabled = false;
     this.quotation.deliveryAddress = '';
   }
 
-
-  // 🔥 Updated Logic as per your requirement
-  switch (selectedIncoterm) {
-    
-    // PORT TO PORT
+  // Switch Case logic
+  switch (val) {
     case 'FOB':
-    
       this.quotation.movementType = 'PORT TO PORT';
       this.isPickupEnabled = false;
-      this.quotation.pickupAddress='';
+      this.quotation.pickupAddress = '';
       break;
 
-    // DOOR TO PORT
     case 'EXWORK':
-      
       this.quotation.movementType = 'DOOR TO PORT';
       this.isPickupEnabled = true;
       break;
 
-    // DOOR TO DOOR (Default for everything else)
     default:
       this.quotation.movementType = 'DOOR TO DOOR';
       this.isPickupEnabled = false;
-      this.quotation.pickupAddress='';
+      this.quotation.pickupAddress = '';
   }
-
-  console.log(`→ Movement Type Auto Selected: ${this.quotation.movementType}`);
 }
   // 2. Search Logic
 onInquirySearchInput() {
@@ -1544,14 +1537,22 @@ prepareQuotationPayload() {
 
   // --- Dimension Modal Methods (Fixes 'openDimModal', 'addNewDimRow' etc.) ---
 openDimModal() {
-  // Agar pehle se dimensions hain, unhe copy karo; warna ek empty row banao
-  if (this.quotation.allDimensions && this.quotation.allDimensions.length > 0) {
-    this.dimRows = JSON.parse(JSON.stringify(this.quotation.allDimensions));
-  } else {
-    // Default empty row structure
-    this.dimRows = [{ box: 0, l: 0, w: 0, h: 0, unit: 'CMS' }];
-  }
-  this.isDimModalOpen = true;
+    // 1. Agar API se data dimRows mein aa chuka hai, toh use chhedo mat!
+    // Sirf tab update karo jab dimRows khali ho.
+    if (this.dimRows && this.dimRows.length > 0) {
+        // Data pehle se hai, kuch mat karo.
+    } 
+    // 2. Agar API se data nahi aaya, tab hi quotation wali backup values dekho
+    else if (this.quotation.allDimensions && this.quotation.allDimensions.length > 0) {
+        this.dimRows = JSON.parse(JSON.stringify(this.quotation.allDimensions));
+    } 
+    // 3. Agar kuch bhi nahi hai, tab hi default row dikhao
+    else {
+        this.dimRows = [{ box: 0, l: 0, w: 0, h: 0, unit: 'CMS' }];
+    }
+
+    this.isDimModalOpen = true;
+    this.cdr.detectChanges();
 }
 
 saveDimensions() {
@@ -2633,7 +2634,12 @@ loadPricingList() {
     error: (err) => console.error("Error fetching pricing list", err)
   });
 }
-
+onBlur() {
+  // 200ms ka gap rakhein taaki click/mousedown trigger ho sake
+  setTimeout(() => {
+    this.showPricingDropdown = false;
+  }, 200);
+}
 // 2. Search filter logic (Jab user type kare)
 onPricingSearchInput() {
   this.showPricingDropdown = true;
@@ -2655,6 +2661,16 @@ inquiry: any;
 isLoadingPricing: boolean = false; // Variable declare karein
 documents: any[] = [];
   invoices: any[] = [];
+ calculateCBM() {
+  // Yahan check karo ki tum chargeableWeightKg use kar rahe ho ya volumeWeight
+  const volWeight = Number(this.quotation.chargeableWeightKg) || 0;
+  
+  if (volWeight > 0) {
+    this.quotation.cbm = parseFloat((volWeight / 167).toFixed(3));
+  } else {
+    this.quotation.cbm = 0;
+  }
+}
 selectPricing(prc: any) {
   if (!prc || !prc.pricingNo) {
     console.error("Invalid pricing data");
@@ -2672,19 +2688,250 @@ selectPricing(prc: any) {
       console.log("✅ API FULL DATA:", p);
 
       // --- 1. Basic Info ---
-      this.quotation.referencePricingNo = p.pricingNo || prc.pricingNo || '';
-      this.quotation.customerName = p.customerName || prc.customerName || '';
+      this.quotation.referencePricingNo = p.PricingNo || prc.pricingNo || '';
+      this.quotation.customerName = p.OrganisationName || prc.customerName || '';
+      this.quotation.organization = p.organisationName || '';
+      this.quotation.organizationId = p.organisationId || null;
       this.quotation.pricingId = p.id || p.pricingId || prc.id;
       
-      // --- 2. Transport & Mode (Fallback chain) ---
-      const transportMode = p.transportMode || p.TransportMode || '';
-      const matchedMode = this.transportModes?.find(m => m.name.toLowerCase() === transportMode.toLowerCase());
-      this.quotation.transportMode = matchedMode ? matchedMode.name : transportMode;
+      this.quotation.salesCoordinator = Number(p.SalesCoordinatorId || p.salesCoordinator || 0);
+      
+      // --- Pricing By (Fixed) ---
+      setTimeout(() => {
+        this.quotation.pricingBy = p.pricingDoneBy || p.PricingDoneBy || '';
+        this.cdr.detectChanges();
+      }, 100);
+
+      // --- Business Dimensions ---
+      this.quotation.businessDimensions = p.businessDimensions || p.BusinessDimensions || ''; 
+
+      // --- 2. Transport & Mode (FIXED) ---
+      // Agar API ID bhej raha hai (1002), to use name mein convert karna padega
+      const apiMode = p.transportMode || p.TransportMode || '';
+      const matchedMode = this.transportModes?.find(m => m.id == apiMode || m.name.toLowerCase() == apiMode.toLowerCase());
+      this.quotation.transportMode = matchedMode ? matchedMode.name : apiMode;
       
       this.quotation.transportType = p.transportType || p.TransportType || '';
       this.quotation.shipmentType = p.shipmentType || p.ShipmentType || '';
+// --- 6. Weights, Packages & CBM ---
+this.quotation.grossWeightKg = Number(p.grossWeightKg || 0);
+this.quotation.volumeWeight = Number(p.volumeWeight || 0);
+this.quotation.cbm = parseFloat(Number(p.cbm || 0).toFixed(3));
+this.quotation.netWeight = Number(p.netWeight || p.NetWeight || 0);
+    this.quotation.netWeightUnit = p.netWeightUnit || p.NetWeightUnit || 'KGS';
+console.log("🚀 API se aaya data:", p);
 
-      // --- 3. Cargo Value, Commodity & Currency ---
+    // 1. Cargo Value
+// Cargo Value set karo
+    this.quotation.cargoValue = p.cargoValue || p.CargoValue || 0;
+
+    // Currency Logic
+    const apiCurrency = (p.cargoCurrency || p.Currency || p.currency || '').trim();
+    
+    const options = [
+        "₹ INR - Indian Rupee", "$ USD - United States Dollar", "€ EUR - Euro",
+        "£ GBP - British Pound Sterling", "د.إ AED - UAE Dirham", "$ SGD - Singapore Dollar",
+        "$ CAD - Canadian Dollar", "$ AUD - Australian Dollar", "¥ JPY - Japanese Yen",
+        "¥ CNY - Chinese Yuan", "CHF - Swiss Franc", "R$ BRL - Brazilian Real"
+    ];
+
+    const match = options.find(o => o.includes(apiCurrency));
+    const finalCurrency = match ? match : apiCurrency;
+
+    // 🔥 TIMEOUT ZARURI HAI
+    setTimeout(() => {
+        this.quotation.currency = finalCurrency;
+        this.cdr.detectChanges(); // UI Refresh
+    }, 100);
+    console.log("Currency set to:", this.quotation.currency);
+    // 2. Currency (Jo tumne dropdown mein options rakhe hain)
+    // Agar API sirf "USD" bhej raha hai, toh humein dropdown ke value se match karana hoga
+    // const apiCurrency = p.currency || p.cargoCurrency || ''; 
+    
+    // // Logic: Agar API se "USD" aaya hai, toh dropdown ki " $ USD - United States Dollar" wali value set karo
+    // if (apiCurrency) {
+    //     const found = [
+    //         "₹ INR - Indian Rupee", "$ USD - United States Dollar", "€ EUR - Euro",
+    //         "£ GBP - British Pound Sterling", "د.إ AED - UAE Dirham", "$ SGD - Singapore Dollar",
+    //         "$ CAD - Canadian Dollar", "$ AUD - Australian Dollar", "¥ JPY - Japanese Yen",
+    //         "¥ CNY - Chinese Yuan", "CHF - Swiss Franc"
+    //     ].find(val => val.includes(apiCurrency));
+        
+    //     this.quotation.currency = found || apiCurrency;
+    // }
+
+    // 3. Force UI Update
+    this.cdr.detectChanges();
+    // --- Place of Delivery Mapping ---
+// API response object 'p' mein check karo ki key kya hai. 
+// Aksar 'placeOfDelivery', 'PlaceOfDelivery', ya 'deliveryPlace' hoti hai.
+this.quotation.placeOfDelivery = p.placeOfDelivery || p.PlaceOfDelivery || p.deliveryPlace || '';
+// --- POL Mapping ---
+// 1. ID Map karo
+const polId = p.portOfLoadingId || p.PortOfLoadingId || null;
+this.quotation.portOfLoadingId = polId;
+
+// 2. Code Map karo (Agar API mein code aa raha hai)
+this.quotation.portOfLoadingCode = p.portOfLoadingCode || p.PortOfLoadingCode || '';
+
+// 3. IMPORTANT: Agar POL change hone par API se kuch trigger hota hai (jaise rates fetch karna), 
+// toh onPolChange() ko manually call karo
+if (polId) {
+    this.onPolChange();
+}
+
+// 4. Force Update
+this.cdr.detectChanges();
+// Force UI Update
+// --- POD & Final Destination Mapping ---
+
+// 1. POD Mapping
+const podId = p.portOfDischargeId || p.PortOfDischargeId || null;
+this.quotation.portOfDischargeId = podId;
+this.quotation.portOfDischargeCode = p.portOfDischargeCode || p.PortOfDischargeCode || '';
+
+// Agar POD change hone par kuch logic trigger hota hai (jaise rates), toh function call karo
+if (podId) {
+    this.onPodChange();
+}
+
+// 2. Final Destination Mapping
+// Yahan hum code aur name dono set kar rahe hain
+this.quotation.finalDestinationCode = p.CodeOfFinalDest || p.codeOfFinalDest || ''; 
+console.log("Final Destination Code Set To:", this.quotation.finalDestinationCode);
+this.quotation.podFinalDest = p.podFinalDest || p.FinalDestination || '';
+
+// 3. Force UI Update
+this.cdr.detectChanges();
+// Documents Mapping Logic
+    const allDocs = p.pricingDocuments || p.PricingDocuments || [];
+    
+    // Sirf 'Commodity' type ke docs ko 'this.documents' mein daal rahe hain
+    this.documents = allDocs
+        .filter((d: any) => (d.docType || d.DocType || '').toLowerCase() === 'commodity')
+        .map((d: any) => ({ 
+            id: d.docId || d.DocId, 
+            name: d.documentName || 'Commodity Document', // Agar API se name aa raha hai
+            documentPath: d.docPath || d.DocPath, 
+            isExisting: true 
+        }));
+
+    this.cdr.detectChanges();
+// DIMENSIONS ARRAY MAPPING (Modal aur Inputs dono ke liye)
+    if (p.dimensions && p.dimensions.length > 0) {
+        this.quotation.dimBox = p.dimensions[0].box;
+        this.quotation.dimL = p.dimensions[0].l;
+        this.quotation.dimW = p.dimensions[0].w;
+        this.quotation.dimH = p.dimensions[0].h;
+        this.quotation.dimUnit = p.dimensions[0].unit;
+
+        this.dimRows = p.dimensions.map((d: any) => ({
+            box: d.box, l: d.l, w: d.w, h: d.h, unit: d.unit
+        }));
+    } else {
+        this.dimRows = [{ box: 0, l: 0, w: 0, h: 0, unit: 'CMS' }];
+    }
+
+    // 3. UI Refresh
+    this.cdr.detectChanges();
+    if (p.dimensions && p.dimensions.length > 0) {
+        
+        // --- A. Main Screen ke inputs ke liye ---
+        const firstDim = p.dimensions[0];
+        this.quotation.dimBox = firstDim.box;
+        this.quotation.dimL = firstDim.l;
+        this.quotation.dimW = firstDim.w;
+        this.quotation.dimH = firstDim.h;
+        this.quotation.dimUnit = firstDim.unit;
+
+        // --- B. Modal (dimRows) ke liye ---
+        // Hum map karke naya array reference bana rahe hain taaki Angular detect kare
+        this.dimRows = p.dimensions.map((d: any) => ({
+            box: d.box,
+            l: d.l,
+            w: d.w,
+            h: d.h,
+            unit: d.unit
+        }));
+
+    } else {
+        // Agar dimensions khali hain
+        this.dimRows = [{ box: 0, l: 0, w: 0, h: 0, unit: 'CMS' }];
+    }
+
+    // 2. Force Sync & Refresh (Zaroori hai)
+    this.syncOuterBoxToFirstRow(); 
+    this.updatePreview();
+    
+    // Angular ke Change Detection ko batana padega ki data change hua hai
+    this.cdr.detectChanges();
+this.cdr.detectChanges();
+
+    // Chargeable Weight mapping
+    this.quotation.chargeableWeight = Number(p.chargeableWeight || p.ChargeableWeight || 0);
+    this.quotation.chargeableWeightUnit = p.chargeableWeightUnit || p.ChargeableWeightUnit || 'KGS';
+
+    // Calculation (Agar Chargeable Weight change hone par CBM update karna ho)
+    // this.calculateCBM(); 
+
+    // UI Update force karo
+    this.cdr.detectChanges();
+// Package mapping (Small case keys)
+this.quotation.noOfPkgs = Number(p.noOfPkgs || 0);
+
+// PkgUnit ke liye case-insensitive match (taaki dropdown select ho jaye)
+const apiUnit = p.noOfPkgsUnit || '';
+const matchedUnit = this.packageUnits?.find(u => u.name.toLowerCase() === apiUnit.toLowerCase());
+this.quotation.pkgUnit = matchedUnit ? matchedUnit.name : apiUnit;
+// --- 6. Weights, Volume & CBM ---
+/// --- 6. Weights & CBM ---
+this.quotation.chargeableWeightKg = Number(p.volumeWeight || p.ChargeableWeight || 0);
+this.quotation.volumeWeightUnit = p.chargeWeightUnit || p.VolumeWeightUnit || 'KGS';
+// --- Description Mapping ---
+    this.quotation.description = p.description || p.Description || '';
+
+    // ... (baki code) ...
+
+    // UI Refresh
+    this.cdr.detectChanges();
+    const apiInco = p.incoterm || p.Incoterm || '';
+
+// Logic: Agar API se ID aa rahi hai ya Name, ye match kar lega
+const matchedInco = this.incoTerms?.find(i => 
+    i.name.toLowerCase() === apiInco.toString().toLowerCase() || 
+    i.id == apiInco
+);
+
+this.quotation.incoterm = matchedInco ? matchedInco.name : apiInco;
+
+// --- IMPORTANT: Trigger Change Event ---
+// Kyunki tumne (ngModelChange) mein onIncotermChange() call kiya hai, 
+// use API load hone ke baad bhi manually trigger karna padega:
+this.onIncotermChange(this.quotation.incoterm);
+this.updatePreview();
+// --- Movement Type Mapping ---
+const apiMove = p.movementType || p.MovementType || '';
+
+// Logic: API value ko movementTypes array mein search karo
+const matchedMove = this.movementTypes?.find(m => 
+    m.name.toLowerCase() === apiMove.toString().toLowerCase()
+);
+
+// Agar match mila toh name set karo, nahi toh API wali value hi rehne do
+this.quotation.movementType = matchedMove ? matchedMove.name : apiMove;
+console.log("Movement Type Set To:", this.quotation.movementType);
+// API se aaye hue data ko use karke CBM ko 0.1 second baad update karenge
+setTimeout(() => {
+    this.calculateCBM(); // Calculation logic
+    this.updatePreview(); // Preview update
+    this.cdr.detectChanges(); // View force refresh
+}, 100);
+
+// UI Update force karo
+
+// Trigger preview update after setting values
+this.updatePreview();
+      // --- 3. Cargo, Commodity & Currency ---
       this.quotation.cargoValue = p.cargoValue || p.CargoValue || p.value || 0;
       this.quotation.currency = (p.cargoCurrency || p.Currency || p.currency || '').trim();
       this.quotation.commodity = Number(p.commodityId || p.CommodityId || p.commodity || 0);
@@ -2693,10 +2940,9 @@ selectPricing(prc: any) {
       this.quotation.originPOL = p.originName || p.origin || '';
       this.quotation.podFinalDest = p.finalDestination || p.FinalDestination || '';
       this.quotation.placeOfDelivery = p.placeOfDelivery || p.PlaceOfDelivery || '';
-      
-      // Country logic
       this.quotation.country = p.countryName || p.CountryName || '';
       this.quotation.countryId = p.countryId || p.CountryId || null;
+      this.quotation.location = p.location || p.Location || '';
 
       // --- 5. Connecting Ports ---
       const cpIds = p.connectingPortIds || p.ConnectingPortIds;
@@ -2711,11 +2957,28 @@ selectPricing(prc: any) {
       this.quotation.volumeWeight = Number(p.volumeWeight || p.VolumeWeight || 0);
       this.quotation.cbm = parseFloat(Number(p.cbm || p.TotalCbm || 0).toFixed(3));
 
-      // --- Trigger UI Events ---
+      // --- 7. Business & Sales Info ---
+      this.quotation.lineOfBusiness = p.lineOfBusinessId || p.LineOfBusinessId || '';
+      this.quotation.cargoStatus = p.cargoStatus || p.CargoStatus || 'Ready';
+      
+      if (p.cargoReadyDate || p.CargoReadyDate) {
+        const rawDate = p.cargoReadyDate || p.CargoReadyDate;
+        this.quotation.cargoReadyDate = new Date(rawDate).toISOString().split('T')[0];
+      }
+      
+      this.quotation.isDirect = p.isDirect !== undefined ? p.isDirect : (p.IsDirect || false);
+      this.quotation.isIndirect = p.isIndirect !== undefined ? p.isIndirect : (p.IsIndirect || false);
+      
+      // --- 8. Trigger UI Events ---
       this.onPolChange();
       this.onPodChange();
-      this.cdr.detectChanges();
+      this.onHeaderLOBChange();
+      this.onCargoStatusChange2();
+      this.updatePreview();
+      
       if (this.calculateAll) this.calculateAll();
+      
+      this.cdr.detectChanges();
       this.cdr.markForCheck();
     },
     error: (err) => console.error("❌ API Error:", err)

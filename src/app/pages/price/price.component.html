@@ -2872,7 +2872,7 @@ Selection Modal Popup
           </div>
 
           <!-- Agent Selection Section -->
-         <div class="mt-8 border-t-4 border-[#4a3f3f] pt-6">
+      <div class="mt-8 border-t-4 border-[#4a3f3f] pt-6">
   <div class="flex items-center justify-between mb-6">
     <h3 class="text-lg md:text-2xl font-black text-[#4a3f3f] uppercase tracking-tighter italic flex items-center gap-2 m-0">
       <span>🕵️</span> ASSIGNED AGENTS
@@ -2892,8 +2892,8 @@ Selection Modal Popup
   <div class="bg-white p-6 border-2 border-gray-200 shadow-sm rounded-sm">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       
-      <label *ngFor="let agent of agentDetail" class="flex items-center gap-4 cursor-pointer group p-4 border border-gray-100 hover:bg-gray-50 hover:border-[#4a3f3f] rounded-lg transition-all shadow-sm">
-        <div class="flex items-center justify-center">
+      <label *ngFor="let agent of agentDetail" class="flex items-start gap-4 cursor-pointer group p-4 border border-gray-100 hover:bg-gray-50 hover:border-[#4a3f3f] rounded-lg transition-all shadow-sm">
+        <div class="flex items-center justify-center mt-1">
           <input 
             type="checkbox" 
             [checked]="agent.isSelected"
@@ -2901,9 +2901,20 @@ Selection Modal Popup
             class="w-5 h-5 accent-[#4a3f3f] cursor-pointer rounded border-gray-300 focus:ring-[#4a3f3f]"
           >
         </div>
-        <div class="flex flex-col">
-          <span class="text-sm md:text-base font-black text-gray-800 group-hover:text-[#4a3f3f] uppercase tracking-tight">{{ agent.branchName }}</span>
-          <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Designated Branch</span>
+        
+        <div class="flex flex-col flex-1 min-w-0">
+          <span class="text-sm md:text-base font-black text-gray-800 group-hover:text-[#4a3f3f] uppercase tracking-tight truncate">
+            {{ agent.agentName?.trim() ? agent.agentName : 'UNNAMED AGENT' }}
+          </span>
+          
+          <span class="text-[12px] font-bold text-blue-700 uppercase mt-0.5 truncate">
+            🏢 {{ agent.orgName }}
+          </span>
+
+          <div class="flex items-center justify-between mt-2 text-[10px] text-gray-400 font-bold uppercase tracking-wider border-t pt-1 border-gray-100">
+            <span>Branch: {{ agent.branchName }}</span>
+            <span class="text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">{{ agent.city }}</span>
+          </div>
         </div>
       </label>
 

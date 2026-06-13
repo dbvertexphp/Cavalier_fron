@@ -1332,6 +1332,15 @@
 
     <div class="flex items-center gap-4">
       <!-- Branch Name -->
+       <div class="flex items-center gap-2 flex-1">
+    <label class="w-32 text-red-700 font-bold text-[12px]">Agent Name</label>
+    <input type="text" 
+           [(ngModel)]="agentName" 
+           (input)="agentName = $event.target.value.toUpperCase()"
+           class="flex-1 border border-gray-300 p-1.5 outline-none focus:border-[#4a3f3f] text-[12px]"
+           placeholder="Enter Agent Name..." />
+           
+  </div>
       <div class="flex items-center gap-2 flex-1">
         <label class="w-32 text-red-700 font-bold text-[12px]">Branch Name</label>
         <input type="text" 

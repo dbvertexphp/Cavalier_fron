@@ -1073,15 +1073,16 @@ addToLocalReview() {
   this.cdr.detectChanges();
 }
 onAgentSelect(event: any, agent: any) {
-  console.log("Agent selection event:", agent);
-  const email = agent.emailAddress || agent.emailAddress;
-  const branch = agent.branchName || agent.branchName || "Global";
 
+  const email = agent.email || agent.email;
+  const branch = agent.branchName || agent.branchName || "Global";
+ 
   if (!email) return;
 
   if (event.target.checked) {
     this.selectedEmails.add(email);
-    this.lastSelectedBranch = branch; // Latest branch ko save kar liya
+    this.lastSelectedBranch = branch;
+     console.log("Agent selection event:", this.selectedEmails); // Latest branch ko save kar liya
   } else {
     this.selectedEmails.delete(email);
   }

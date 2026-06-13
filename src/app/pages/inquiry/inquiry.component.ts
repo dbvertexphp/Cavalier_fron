@@ -1406,6 +1406,7 @@ saveDimensions() {
 
 // Jab Modal Open ho
 openDimModal() {
+  this.dimRows = [JSON.parse(JSON.stringify(this.dimRow))];
   // Agar modal pehli baar khul raha hai, toh bahar wali row ka data modal mein copy kar do
   if (!this.dimRows || this.dimRows.length === 0) {
     this.dimRows = [{ ...this.dimRow }];
@@ -2486,7 +2487,39 @@ toggleReview() {
   this.isPreviewMode = true;
   
 }
-
+// Isse call karein jab modal ke andar 1st row change ho
+syncFirstRow() {
+  if (this.dimRows && this.dimRows.length > 0) {
+    this.dimRow.box = this.dimRows[0].box;
+    this.dimRow.l = this.dimRows[0].l;
+    this.dimRow.w = this.dimRows[0].w;
+    this.dimRow.h = this.dimRows[0].h;
+    this.dimRow.unit = this.dimRows[0].unit;
+    
+    // Baaki calculations jo aapne pehle se banayi hain
+    this.calculateVolumeWeight();
+    this.updatePreview();
+  }
+}
+syncToMainRow() {
+  if (this.dimRows && this.dimRows.length > 0) {
+    // 1st row ka data bahar wale object mein copy karein
+    this.dimRow.box = this.dimRows[0].box;
+    this.dimRow.l = this.dimRows[0].l;
+    this.dimRow.w = this.dimRows[0].w;
+    this.dimRow.h = this.dimRows[0].h;
+    this.dimRow.unit = this.dimRows[0].unit;
+    
+    // Calculations trigger karein
+    this.calculateVolumeWeight();
+    this.updatePreview();
+    
+    // Agar calculateTotalPackages bhi bahar ki main row ke liye chahiye:
+    if (typeof this.calculateTotalPackages === 'function') {
+      this.calculateTotalPackages();
+    }
+  }
+}
 // 3. Wapas edit mode mein jaane ke liye
 // backToEdit() {
 //   this.isPreviewMode = false;

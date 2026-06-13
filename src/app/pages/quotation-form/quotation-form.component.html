@@ -907,55 +907,54 @@
     <div class="md:col-span-1">
       <div class="grid grid-cols-2 gap-2 mb-3">
         <!-- Pricing Reference Selection -->
-        <div>
-          <label class="text-gray-700 font-bold block mb-1 uppercase text-[11px]">
-            Reference by Pricing
-          </label>
-          <div class="relative">
-            <input
-              type="text"
-              name="referencePricingNo"
-              [(ngModel)]="quotation.referencePricingNo"
-              (input)="onPricingSearchInput()"
-              placeholder="Search Pricing No..."
-              class="w-full border p-2 bg-white outline-none pr-7 text-[12px]"
-              autocomplete="off"
-            />
-            <!-- Search Icon -->
-            <span
-              (click)="loadPricingList()"
-              class="absolute right-1 top-2.5 text-gray-400 cursor-pointer p-1 hover:text-blue-500 transition-all"
-              title="Load All Pricings"
-            >
-              🔍
-            </span>
-            <!-- Suggestions Dropdown -->
-            <ul
-              *ngIf="showPricingDropdown && filteredPricings.length > 0"
-              class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-48 overflow-y-auto mt-1"
-            >
-              <li
-                *ngFor="let prc of filteredPricings"
-                (click)="selectPricing(prc)"
-                class="p-2 hover:bg-blue-50 cursor-pointer text-[12px] border-b border-gray-100 last:border-0"
-              >
-                <div class="font-bold text-blue-700">
-                  {{ prc.pricingNo }}
-                </div>
-                <div *ngIf="prc.organisationName" class="text-gray-500 text-[10px]">
-                  {{ prc.organisationName }}
-                </div>
-              </li>
-            </ul>
-            <!-- No Results Message -->
-            <ul
-              *ngIf="showPricingDropdown && filteredPricings.length === 0 && quotation.referencePricingNo"
-              class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 rounded-sm shadow-lg p-3 mt-1"
-            >
-              <li class="text-gray-400 text-[11px] italic text-center">No matching pricing found.</li>
-            </ul>
-          </div>
+      <div>
+  <label class="text-gray-700 font-bold block mb-1 uppercase text-[11px]">
+    Reference by Pricing
+  </label>
+  <div class="relative">
+    <input
+      type="text"
+      name="referencePricingNo"
+      [(ngModel)]="quotation.referencePricingNo"
+      (input)="onPricingSearchInput()"
+      (blur)="onBlur()"
+      placeholder="Search Pricing No..."
+      class="w-full border p-2 bg-white outline-none pr-7 text-[12px]"
+      autocomplete="off"
+    />
+    
+    <span
+      (mousedown)="$event.preventDefault(); loadPricingList()"
+      class="absolute right-1 top-2.5 text-gray-400 cursor-pointer p-1 hover:text-blue-500 transition-all"
+      title="Load All Pricings"
+    >
+      🔍
+    </span>
+    
+    <ul
+      *ngIf="showPricingDropdown && filteredPricings.length > 0"
+      class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-48 overflow-y-auto mt-1"
+    >
+      <li
+        *ngFor="let prc of filteredPricings"
+        (mousedown)="selectPricing(prc)"
+        class="p-2 hover:bg-blue-50 cursor-pointer text-[12px] border-b border-gray-100 last:border-0"
+      >
+        <div class="font-bold text-blue-700">{{ prc.pricingNo }}</div>
+        <div *ngIf="prc.organisationName" class="text-gray-500 text-[10px]">
+          {{ prc.organisationName }}
         </div>
+      </li>
+    </ul>
+
+    <ul
+      *ngIf="showPricingDropdown && filteredPricings.length === 0 && quotation.referencePricingNo"
+      class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 rounded-sm shadow-lg p-3 mt-1"
+    >
+      <li class="text-gray-400 text-[11px] italic text-center">No matching pricing found.</li>
+    </ul>
+  </div>
+</div>
 
         <div>
           <label class="text-gray-700 font-bold block mb-1 uppercase text-[11px]">Quotation No</label>
@@ -1118,6 +1117,7 @@
       <input
         name="pricingBy"
         [(ngModel)]="quotation.pricingBy"
+        [ngModelOptions]="{standalone: true}"
         class="w-full border p-2 mb-2 outline-none"
       />
 
@@ -1539,7 +1539,7 @@
       type="number"
       name="chargeableWeightKg"
       [(ngModel)]="quotation.chargeableWeightKg"
-      (ngModelChange)="updatePreview()"
+      (ngModelChange)="calculateCBM();updatePreview()"
       class="w-full border p-2 outline-none"
     />
     <div class="flex items-center border border-l-0 bg-gray-50 px-2 cursor-pointer gap-1">
@@ -1567,6 +1567,7 @@
                   <input
                     type="number"
                     [(ngModel)]="quotation.cbm"
+                    
                     name="cbm"
                     readonly
                     class="flex-1 border p-2 outline-none bg-gray-50 focus:border-blue-500 h-10 font-medium"
@@ -2583,7 +2584,7 @@
 
         <div class="mt-8 border-t-4 border-[#4a3f3f] pt-6">
           <h3 class="text-lg md:text-2xl font-black text-[#4a3f3f] uppercase tracking-tighter italic mb-6 flex items-center gap-2">
-            <span>🕵️</span> ASSIGNED BRANCHES
+            <span>🕵️</span> ASSIGNED AGENTS
           </h3>
           <div class="bg-white p-6 border-2 border-gray-200 shadow-sm rounded-sm">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">

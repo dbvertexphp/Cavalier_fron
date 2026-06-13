@@ -1744,41 +1744,41 @@
         class="flex items-center border border-l-0 bg-gray-50 h-[38px] divide-x divide-gray-300"
       >
         <div class="flex items-center px-2 gap-1 cursor-pointer">
-         <div class="flex items-center gap-1 border-b border-gray-300 pb-1 w-fit">
-  <select
-    [(ngModel)]="dimRow.unit"
-    (ngModelChange)="calculateVolumeWeight(); updatePreview()"
-    class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
-  >
-    <option *ngFor="let uom of uomList" [value]="uom.shortCode">
-      {{ uom.shortCode }}
-    </option>
-  </select>
+          <div class="flex items-center gap-1 border-b border-gray-300 pb-1 w-fit">
+            <select
+              [(ngModel)]="dimRow.unit"
+              (ngModelChange)="calculateVolumeWeight(); updatePreview()"
+              class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
+            >
+              <option *ngFor="let uom of uomList" [value]="uom.shortCode">
+                {{ uom.shortCode }}
+              </option>
+            </select>
 
-  <button (click)="toggleDimUomModal()" class="text-gray-400 hover:text-red-700 transition-all">
-    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-    </svg>
-  </button>
-</div>
+            <button (click)="toggleDimUomModal()" class="text-gray-400 hover:text-red-700 transition-all">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+            </button>
+          </div>
 
-<div *ngIf="isDimUomModalOpen" class="fixed inset-0 z-[200] flex items-center justify-center p-4">
-  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" (click)="toggleDimUomModal()"></div>
-  <div class="relative bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden border">
-    <div class="bg-red-800 p-4 text-white font-black uppercase text-sm">Select Dimension Unit</div>
-    <div class="p-2 max-h-[300px] overflow-y-auto">
-      <div *ngFor="let uom of uomList" 
-           (click)="selectDimUom(uom, dimRow)" 
-           class="p-3 border-b cursor-pointer hover:bg-red-50 flex justify-between items-center">
-        <span class="font-bold text-[13px] text-gray-700">{{ uom.unitName }}</span>
-        <span class="text-[10px] font-black bg-gray-100 px-2 py-1 rounded">{{ uom.shortCode }}</span>
-      </div>
-    </div>
-    <div class="p-3 bg-gray-50 text-right">
-      <button (click)="toggleDimUomModal()" class="text-[11px] font-bold text-gray-500 uppercase">Cancel</button>
-    </div>
-  </div>
-</div>
+          <div *ngIf="isDimUomModalOpen" class="fixed inset-0 z-[200] flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" (click)="toggleDimUomModal()"></div>
+            <div class="relative bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden border">
+              <div class="bg-red-800 p-4 text-white font-black uppercase text-sm">Select Dimension Unit</div>
+              <div class="p-2 max-h-[300px] overflow-y-auto">
+                <div *ngFor="let uom of uomList" 
+                     (click)="selectDimUom(uom, dimRow)" 
+                     class="p-3 border-b cursor-pointer hover:bg-red-50 flex justify-between items-center">
+                  <span class="font-bold text-[13px] text-gray-700">{{ uom.unitName }}</span>
+                  <span class="text-[10px] font-black bg-gray-100 px-2 py-1 rounded">{{ uom.shortCode }}</span>
+                </div>
+              </div>
+              <div class="p-3 bg-gray-50 text-right">
+                <button (click)="toggleDimUomModal()" class="text-[11px] font-bold text-gray-500 uppercase">Cancel</button>
+              </div>
+            </div>
+          </div>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="w-3 h-3 text-gray-400"
@@ -1817,135 +1817,135 @@
         </button>
 
         <div
-  *ngIf="isDimModalOpen"
-  class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
->
-  <div
-    class="bg-white w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200"
-  >
-    <div
-      class="bg-gray-800 text-white px-6 py-4 flex justify-between items-center"
-    >
-      <h3 class="font-bold text-lg uppercase tracking-wider">
-        Add Multiple Dimensions
-      </h3>
-      <button
-        (click)="closeDimModal()"
-        class="text-white hover:text-red-400 text-2xl"
-      >
-        &times;
-      </button>
-    </div>
-
-    <div class="p-6 max-h-[50vh] overflow-y-auto">
-      <div
-        *ngFor="let dim of dimRows; let i = index"
-        class="flex items-center gap-2 mb-4 group"
-      >
-        <label class="w-24 font-bold text-gray-700 text-xs uppercase"
-          >Dim {{ i + 1 }}</label
+          *ngIf="isDimModalOpen"
+          class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
         >
-
-        <div class="flex flex-1 items-center gap-1">
-          <input
-            type="number"
-            [(ngModel)]="dim.box"
-            (ngModelChange)="updatePreview()"
-            placeholder="BOX"
-            class="w-full border p-2 text-center rounded-sm text-sm"
-          />
-          <input
-            type="number"
-            [(ngModel)]="dim.l"
-            (ngModelChange)="updatePreview()"
-            placeholder="L"
-            class="w-full border p-2 text-center rounded-sm text-sm"
-          />
-          <span class="text-gray-400 font-bold text-xs">x</span>
-          <input
-            type="number"
-            [(ngModel)]="dim.w"
-            (ngModelChange)="updatePreview()"
-            placeholder="W"
-            class="w-full border p-2 text-center text-sm"
-          />
-          <span class="text-gray-400 font-bold text-xs">x</span>
-          <input
-            type="number"
-            [(ngModel)]="dim.h"
-            (ngModelChange)="updatePreview()"
-            placeholder="H"
-            class="w-full border p-2 text-center text-sm"
-          />
-
-          <select
-            [(ngModel)]="dim.unit"
-            (ngModelChange)="updatePreview()"
-            class="border p-2 bg-gray-50 text-[11px] font-bold"
+          <div
+            class="bg-white w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200"
           >
-            <option *ngFor="let uom of uomList" [value]="uom.shortCode">
-              {{ uom.shortCode }}
-            </option>
-          </select>
-
-          <button
-            *ngIf="dimRows.length > 1"
-            (click)="removeDimRow(i); updatePreview()"
-            class="text-red-400 p-2"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-4 h-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+            <div
+              class="bg-gray-800 text-white px-6 py-4 flex justify-between items-center"
             >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-              />
-            </svg>
-          </button>
+              <h3 class="font-bold text-lg uppercase tracking-wider">
+                Add Multiple Dimensions
+              </h3>
+              <button
+                (click)="closeDimModal()"
+                class="text-white hover:text-red-400 text-2xl"
+              >
+                &times;
+              </button>
+            </div>
+
+            <div class="p-6 max-h-[50vh] overflow-y-auto">
+              <div
+                *ngFor="let dim of dimRows; let i = index"
+                class="flex items-center gap-2 mb-4 group"
+              >
+                <label class="w-24 font-bold text-gray-700 text-xs uppercase"
+                  >Dim {{ i + 1 }}</label
+                >
+
+                <div class="flex flex-1 items-center gap-1">
+                  <input
+                    type="number"
+                    [(ngModel)]="dim.box"
+                    (ngModelChange)="i === 0 ? syncToMainRow() : updatePreview()"
+                    placeholder="BOX"
+                    class="w-full border p-2 text-center rounded-sm text-sm"
+                  />
+                  <input
+                    type="number"
+                    [(ngModel)]="dim.l"
+                    (ngModelChange)="i === 0 ? syncToMainRow() : updatePreview()"
+                    placeholder="L"
+                    class="w-full border p-2 text-center rounded-sm text-sm"
+                  />
+                  <span class="text-gray-400 font-bold text-xs">x</span>
+                  <input
+                    type="number"
+                    [(ngModel)]="dim.w"
+                    (ngModelChange)="i === 0 ? syncToMainRow() : updatePreview()"
+                    placeholder="W"
+                    class="w-full border p-2 text-center text-sm"
+                  />
+                  <span class="text-gray-400 font-bold text-xs">x</span>
+                  <input
+                    type="number"
+                    [(ngModel)]="dim.h"
+                    (ngModelChange)="i === 0 ? syncToMainRow() : updatePreview()"
+                    placeholder="H"
+                    class="w-full border p-2 text-center text-sm"
+                  />
+
+                  <select
+                    [(ngModel)]="dim.unit"
+                    (ngModelChange)="i === 0 ? syncToMainRow() : updatePreview()"
+                    class="border p-2 bg-gray-50 text-[11px] font-bold"
+                  >
+                    <option *ngFor="let uom of uomList" [value]="uom.shortCode">
+                      {{ uom.shortCode }}
+                    </option>
+                  </select>
+
+                  <button
+                    *ngIf="dimRows.length > 1"
+                    (click)="removeDimRow(i); updatePreview()"
+                    class="text-red-400 p-2"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="w-4 h-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <button
+                (click)="addNewDimRow(); updatePreview()"
+                class="mt-2 text-blue-600 font-bold text-xs flex items-center gap-1"
+              >
+                + Add Another Dimension
+              </button>
+            </div>
+
+            <div
+              class="px-6 py-3 bg-blue-50 border-t flex justify-between items-center"
+            >
+              <span class="text-blue-700 font-bold text-sm"
+                >TOTAL CALCULATED WEIGHT:</span
+              >
+              <span class="text-blue-900 font-black text-lg"
+                >{{ getTotalVolumeWeight() }} KG</span
+              >
+            </div>
+
+            <div class="p-4 bg-gray-100 border-t flex justify-end gap-3">
+              <button
+                (click)="closeDimModal()"
+                class="px-6 py-2 text-gray-600 font-bold text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                (click)="saveDimensions(); updatePreview()"
+                class="px-8 py-2 bg-blue-600 text-white font-bold rounded-lg text-sm"
+              >
+                Apply Dimensions
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
-
-      <button
-        (click)="addNewDimRow(); updatePreview()"
-        class="mt-2 text-blue-600 font-bold text-xs flex items-center gap-1"
-      >
-        + Add Another Dimension
-      </button>
-    </div>
-
-    <div
-      class="px-6 py-3 bg-blue-50 border-t flex justify-between items-center"
-    >
-      <span class="text-blue-700 font-bold text-sm"
-        >TOTAL CALCULATED WEIGHT:</span
-      >
-      <span class="text-blue-900 font-black text-lg"
-        >{{ getTotalVolumeWeight() }} KG</span
-      >
-    </div>
-
-    <div class="p-4 bg-gray-100 border-t flex justify-end gap-3">
-      <button
-        (click)="closeDimModal()"
-        class="px-6 py-2 text-gray-600 font-bold text-sm"
-      >
-        Cancel
-      </button>
-      <button
-        (click)="saveDimensions(); updatePreview()"
-        class="px-8 py-2 bg-blue-600 text-white font-bold rounded-lg text-sm"
-      >
-        Apply Dimensions
-      </button>
-    </div>
-  </div>
-</div>
       </div>
     </div>
   </div>

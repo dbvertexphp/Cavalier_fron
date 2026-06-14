@@ -424,7 +424,13 @@ organizations: any[] = [];
     // Yahan hardcode karke dekho, agar ye dikh gaya toh samajh lo data binding sahi hai
     this.quotation.GrossweightUnit = 'KGS';
     this.PermissionID = Number(localStorage.getItem('permissionID'));
-    
+    if (!this.quotation.ChargeWeightUnit && this.uomList && this.uomList.length > 0) {
+    // Default value set kar do, jaise 'KG'
+    this.quotation.ChargeWeightUnit = 'KGS'; 
+}
+if (!this.quotation.NetWeightUnit && this.uomList && this.uomList.length > 0) {
+    this.quotation.NetWeightUnit = 'KGS';
+  }
     // 2. Default values jo app ko shuru mein chahiye
     this.quotation.GrossweightUnit = 'KGS';
     this.quotation.netWeightUnit = 'KGS';
@@ -457,7 +463,7 @@ organizations: any[] = [];
     this.loadUomList();
     
     setTimeout(() => {
-        this.setDefaultUnits();
+        this.setDefaults();
     }, 500);
 
     this.getNextInquiryNumber();
@@ -1356,8 +1362,20 @@ closeDimModal() {
   this.isDimModalOpen = false; 
 }
 
+openDimModal() {
+  // Sync: Agar dimRows nahi hai ya khali hai, toh main screen se load karo
+  if (!this.dimRows || this.dimRows.length === 0) {
+    this.dimRows = [JSON.parse(JSON.stringify(this.dimRow))];
+  } else {
+    // Sync: Modal kholte waqt 1st row ko main screen ke data se update rakho
+    this.dimRows[0] = JSON.parse(JSON.stringify(this.dimRow));
+  }
+  
+  this.isDimModalOpen = true;
+  this.cdr.detectChanges();
+}
+
 addNewDimRow() {
-  // Check karo ki list load ho gayi hai, agar hai toh pehli unit lo, warna 'CMS'
   const defaultUnit = (this.uomList && this.uomList.length > 0) 
                       ? this.uomList[0].shortCode 
                       : 'CMS';
@@ -1367,52 +1385,53 @@ addNewDimRow() {
     l: 0,
     w: 0,
     h: 0,
-    unit: defaultUnit // Yahan dynamic value set ho gayi
+    unit: defaultUnit
   });
 
-  // Change Detection zaroori hai agar row show nahi ho rahi
   this.cdr.detectChanges();
 }
 
 removeDimRow(i: number) {
+  // 0th row (Main Row) ko delete hone se bachane ke liye condition check
   if (this.dimRows.length > 1) {
     this.dimRows.splice(i, 1);
+  } else {
+    // Agar sirf 1 row bachi hai toh usey sirf reset kar do, delete mat karo
+    this.dimRows[0] = { box: 1, l: 0, w: 0, h: 0, unit: 'CMS' };
   }
 }
-onTransportModeChange(){
-  alert(this.quotation.TransportMode)
-}
-
-// 4. Save button par calculation trigger karna
 saveDimensions() {
-  // 1. Filter valid dimensions
+  // 1. 1st row ka data wapas main screen (dimRow) mein push karo (Critical for Sync)
+  if (this.dimRows && this.dimRows.length > 0) {
+    this.dimRow = JSON.parse(JSON.stringify(this.dimRows[0]));
+  }
+
+  // 2. Filter valid dimensions for processing
   this.appliedDimensions = this.dimRows.filter(d => d.l > 0 && d.w > 0 && d.h > 0);
   
-  // 2. Calculations
+  // 3. Save all dimensions to quotation object
+  this.quotation.dimensions = [...this.dimRows];
+  
+  // 4. Calculations
   this.quotation.volumeWeight = this.getTotalVolumeWeight();
   this.calculateCBM();
   this.calculateNetWeight();
   this.calculateVolumeWeightLogic();
   this.syncFinalData();
   
-  // 3. Yahan total packages update ho jayenge
+  // 5. Total packages update (This will now use the complete dimRows list)
   this.calculateTotalPackages(); 
   
-  // 4. Save and Update UI
-  this.quotation.dimensions = [...this.dimRows];
+  // 6. UI Update and Close
   this.updatePreview();
   this.closeDimModal();
 }
-
-// Jab Modal Open ho
-openDimModal() {
-  this.dimRows = [JSON.parse(JSON.stringify(this.dimRow))];
-  // Agar modal pehli baar khul raha hai, toh bahar wali row ka data modal mein copy kar do
-  if (!this.dimRows || this.dimRows.length === 0) {
-    this.dimRows = [{ ...this.dimRow }];
-  }
-  this.isDimModalOpen = true;
+onTransportModeChange(){
+  alert(this.quotation.TransportMode)
 }
+
+// 4. Save button par calculation trigger karna
+
     // ✅ Ye declare karna zaroori hai
   commodityDocuments: any[] = [];
   packageOrInvoiceDocuments: any[] = [];
@@ -3687,10 +3706,14 @@ getPackageUnits() {
     );
  
  }
-setDefaultUnits() {
-  // Sirf tabhi set karein agar value empty ho
-  if (!this.quotation.GrossweightUnit) this.quotation.GrossweightUnit = 'KGS';
-  if (!this.quotation.netWeightUnit) this.quotation.netWeightUnit = 'KGS';
-  if (!this.quotation.chargeableWeightUnit) this.quotation.chargeableWeightUnit = 'KGS';
+// Jab bhi uomList load ho jaye, ye logic chalao
+setDefaults() {
+  // Check karo ki list mein 'KGS' exist karta hai ya nahi
+  const hasKgs = this.uomList.some(uom => uom.shortCode === 'KGS');
+  
+  // Agar unit abhi tak empty hai, toh use KGS set kar do
+  if (!this.quotation.NetWeightUnit && hasKgs) {
+    this.quotation.NetWeightUnit = 'KGS';
+  }
 }
 }

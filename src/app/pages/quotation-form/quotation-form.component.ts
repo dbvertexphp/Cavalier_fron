@@ -278,6 +278,17 @@ closeColumnModal(){
 }
 sortOrders:any = {};
   ngOnInit() {
+    // Data load hone ke baad ye logic chalao
+if (!this.quotation.grossWeightUnit) {
+  this.quotation.grossWeightUnit = 'KGS';
+}
+if (!this.quotation.netWeightUnit) {
+      this.quotation.netWeightUnit = 'KGS';
+  }
+  // Data milne ke baad ye check zaroor lagao
+if (!this.quotation.chargeableWeightUnit) {
+  this.quotation.chargeableWeightUnit = 'KGS'; 
+}
     this.loadPortsFromApi();
     this.loadPortOfLoadings();
     this.fetchOrigins();
@@ -1083,6 +1094,11 @@ saveQuotation() {
     // ✅ Direct/Indirect added here
     isDirect: Boolean(this.quotation.isDirect),
     isIndirect: Boolean(this.quotation.isIndirect),
+    
+// 🔥 NAYI FIELDS ADDED TO PAYLOAD
+    country: this.quotation.country || "",
+    finalDestinationCode: this.quotation.finalDestinationCode || "",
+    podOrigin: this.quotation.podOrigin || "",
 
     pricingId: this.quotation.pricingId ? Number(this.quotation.pricingId) : null,
     organisationId: this.quotation.organisationId ? Number(this.quotation.organisationId) : null,
@@ -1125,7 +1141,7 @@ saveQuotation() {
     totalProfit: this.totalProfitFinal,
     lineOfBusiness: String(this.quotation.lineOfBusiness),
     commodity: String(this.quotation.commodity),
-
+documents: this.documents.map(d => ({ fileName: d.name, filePath: d.documentPath })),
     // ✅ FIXED PLACEMENT: Inko object ke sabse aakhiri mein rakha hai taaki ...this.quotation ki string values is numeric conversion ko override na kar sakein.
     portOfLoadingId: (this.quotation.portOfLoadingId !== null && this.quotation.portOfLoadingId !== undefined && this.quotation.portOfLoadingId !== '') ? Number(this.quotation.portOfLoadingId) : null,
     portOfDischargeId: (this.quotation.portOfDischargeId !== null && this.quotation.portOfDischargeId !== undefined && this.quotation.portOfDischargeId !== '') ? Number(this.quotation.portOfDischargeId) : null,
@@ -1213,7 +1229,8 @@ saveQuotation() {
                     timer: 2000,
                     showConfirmButton: false
                   });
-
+// ✅ YE LINE ADD KI HAI
+                  setTimeout(() => { window.location.reload(); }, 2000);
                   this.loadQuotations();
                   this.toggleForm();
                   this.cdr.detectChanges();
@@ -1285,31 +1302,34 @@ editQuotation(q: any) {
   };
 
   // 3. Connecting Ports Mapping (Auto-populate for UI)
-  console.log("🔍 Debugging Connecting Ports Input:", q.connectingPortIds);
-  this.selectedConnectingPorts = [];
-  this.quotation.connectingPortIds = []; // Ensure model is also updated
+ // 3. Connecting Ports Mapping (Auto-populate for UI)
+console.log("🔍 Debugging Connecting Ports Input:", q.connectingPortIds);
+this.selectedConnectingPorts = [];
+this.quotation.connectingPortIds = []; 
 
-  if (q.connectingPortIds) {
-    const idsArray = typeof q.connectingPortIds === 'string' 
-      ? q.connectingPortIds.split(',').map((x: any) => x.trim()).filter((x: any) => x !== '')
-      : (Array.isArray(q.connectingPortIds) ? q.connectingPortIds : [q.connectingPortIds]);
+if (q.connectingPortIds) {
+  const idsArray = typeof q.connectingPortIds === 'string' 
+    ? q.connectingPortIds.split(',').map((x: any) => x.trim()).filter((x: any) => x !== '')
+    : (Array.isArray(q.connectingPortIds) ? q.connectingPortIds : [q.connectingPortIds]);
 
-    this.quotation.connectingPortIds = idsArray.map((id: any) => Number(id));
+  this.quotation.connectingPortIds = idsArray.map((id: any) => Number(id));
 
-    this.selectedConnectingPorts = idsArray.map((id: any) => {
-      const trimmedId = id.toString().trim();
-      const masterPort = this.filteredConnectingPorts?.find(p => p.id.toString() === trimmedId);
-      
-      const portObj = {
-        id: trimmedId,
-        name: masterPort ? masterPort.name : `Port ID: ${trimmedId}`,
-        cpType: 'Transit'
-      };
-      return portObj;
-    });
-    console.log("✅ Populated selectedConnectingPorts:", this.selectedConnectingPorts);
-  }
-
+  this.selectedConnectingPorts = idsArray.map((id: any) => {
+    const trimmedId = id.toString().trim();
+    // Yahan ensure karo ki filteredConnectingPorts available ho
+    const masterPort = this.filteredConnectingPorts?.find(p => p.id.toString() === trimmedId);
+    
+    // 🔥 FIX: Yahan 'portName' use karo taaki HTML mein show ho
+    const portObj = {
+      id: trimmedId,
+      portName: masterPort ? masterPort.portName || masterPort.name : `Port ID: ${trimmedId}`,
+      portCode: masterPort ? masterPort.portCode : '',
+      cpType: 'Transit'
+    };
+    return portObj;
+  });
+  console.log("✅ Populated selectedConnectingPorts:", this.selectedConnectingPorts);
+}
   // 4. Cargo Value Splitting
   if (q.cargoValue) {
     const amountMatch = q.cargoValue.match(/(\d+(\.\d+)?)/);
@@ -1322,7 +1342,18 @@ editQuotation(q: any) {
     this.quotation.currency = '';
     this.quotation.cargoValue = null;
   }
-
+// q.documents database se aayega, hum use local 'documents' array mein load kar rahe hain
+  if (q.documents && Array.isArray(q.documents)) {
+    this.documents = q.documents.map((doc: any) => ({
+      id: doc.id,
+      name: doc.fileName, // Backend se 'fileName' aa raha hai
+      documentPath: doc.filePath, // Backend se 'filePath' aa raha hai
+      file: null, // Edit karte waqt purani file null rehti hai
+      isReplacing: false
+    }));
+  } else {
+    this.documents = []; // Agar koi document nahi hai
+  }
   // 5. Transit Destination & Days
   if (q.transitDest && q.transitDest.includes('(')) {
     const daysMatch = q.transitDest.match(/\((.*?) Days\)/);
@@ -1555,29 +1586,69 @@ openDimModal() {
     this.cdr.detectChanges();
 }
 
-saveDimensions() {
-  // Modal ke data ko quotation mein save karo
-  this.quotation.allDimensions = JSON.parse(JSON.stringify(this.dimRows));
-  
-  // UI update aur logic
-  this.updateTotalPackagesFromDims();
-  this.updatePreview();
-  this.closeDimModal();
-}
+
 
 // Ye helper function zarur check karna
-addNewDimRow() {
-  this.dimRows.push({ box: 0, l: 0, w: 0, h: 0, unit: 'KGS' });
-}
+
  closeDimModal() { this.isDimModalOpen = false; }
   
 
 
-  removeDimRow(index: number) {
-    if (this.dimRows.length > 1) this.dimRows.splice(index, 1);
+
+
+  // 1. Main screen se 1st row mein sync karne ke liye
+syncOuterBoxToFirstRow() {
+  // Ensure array initialized hai
+  if (!this.dimRows || this.dimRows.length === 0) {
+    this.dimRows = [{ box: 0, l: 0, w: 0, h: 0, unit: 'CMS' }];
   }
 
-  
+  // 1st row ko screen ke values se update karo
+  this.dimRows[0].box = this.quotation.dimBox;
+  this.dimRows[0].l = this.quotation.dimL;
+  this.dimRows[0].w = this.quotation.dimW;
+  this.dimRows[0].h = this.quotation.dimH;
+  this.dimRows[0].unit = this.quotation.dimUnit;
+
+  // Calculation update
+  if (this.updateTotalPackagesFromDims) this.updateTotalPackagesFromDims();
+  this.updatePreview();
+}
+
+// 2. Nayi row add karne ke liye
+addNewDimRow() {
+  this.dimRows.push({ box: 0, l: 0, w: 0, h: 0, unit: 'CMS' });
+}
+
+// 3. Modal Save karne ke liye
+saveDimensions() {
+  if (this.dimRows && this.dimRows.length > 0) {
+    // 1st row ka data wapas main quotation fields mein daalo
+    this.quotation.dimBox = this.dimRows[0].box;
+    this.quotation.dimL = this.dimRows[0].l;
+    this.quotation.dimW = this.dimRows[0].w;
+    this.quotation.dimH = this.dimRows[0].h;
+    this.quotation.dimUnit = this.dimRows[0].unit;
+
+    // Full array save karo
+    this.quotation.allDimensions = JSON.parse(JSON.stringify(this.dimRows));
+  }
+
+  // UI aur Calculations refresh
+  if (this.updateTotalPackagesFromDims) this.updateTotalPackagesFromDims();
+  this.updatePreview();
+  this.closeDimModal();
+}
+
+// 4. Row remove karne ke liye (Safety check ke saath)
+removeDimRow(index: number) {
+  if (this.dimRows.length > 1) {
+    this.dimRows.splice(index, 1);
+  } else {
+    // Agar last row hai toh clear kar do, delete mat karo
+    this.dimRows[0] = { box: 0, l: 0, w: 0, h: 0, unit: 'CMS' };
+  }
+}
 
   // onFileSelected(event: any) {
   //   console.log("File selected", event.target.files[0]);
@@ -2655,6 +2726,7 @@ onPricingSearchInput() {
     this.showPricingDropdown = false;
   }
 }
+
 inquiry: any; 
   multiCarrierRows: any[] = [];
 // 3. Item select hone par data fetch aur auto-fill karne ke liye
@@ -2693,7 +2765,7 @@ selectPricing(prc: any) {
       this.quotation.organization = p.organisationName || '';
       this.quotation.organizationId = p.organisationId || null;
       this.quotation.pricingId = p.id || p.pricingId || prc.id;
-      
+      this.quotation.podOrigin=p.podOrigin || p.PodOrigin || '';
       this.quotation.salesCoordinator = Number(p.SalesCoordinatorId || p.salesCoordinator || 0);
       
       // --- Pricing By (Fixed) ---
@@ -2701,7 +2773,87 @@ selectPricing(prc: any) {
         this.quotation.pricingBy = p.pricingDoneBy || p.PricingDoneBy || '';
         this.cdr.detectChanges();
       }, 100);
+// 2. Multi-Carrier Breakdown Mapping (Backend Table Match)
+    if (p.multiCarrierBreakdowns && Array.isArray(p.multiCarrierBreakdowns)) {
+        this.multiCarrierRows = p.multiCarrierBreakdowns.map((m: any) => ({
+            forwarder: m.forwarder || m.Forwarder || '',
+            origin: m.origin || m.Origin || '',
+            currency: m.currency || m.Currency || '',
+            airFreight: Number(m.airFreight || m.AirFreight || 0),
+            fsc: Number(m.fsc || m.Fsc || 0),
+            airline: m.airline || m.Airline || '',
+            type: m.type || m.Type || '',
+            cutoff: m.cutoff || m.Cutoff || '',
+            schedule: m.schedule || m.Schedule || '',
+            exWorks: Number(m.exWorks || m.ExWorks || 0),
+            doCharges: Number(m.doCharges || m.DoCharges || 0),
+            ccFee: Number(m.ccFee || m.CcFee || 0),
+            totalCost: Number(m.totalCost || m.TotalCost || 0),
+            remark: m.remark || m.Remark || ''
+        }));
+    } else {
+        this.multiCarrierRows = [];
+    }
 
+    // 3. Single Carrier Cost Mapping
+    if (p.costBreakdowns && Array.isArray(p.costBreakdowns)) {
+        this.costRows = p.costBreakdowns.map((c: any) => ({
+            lob: c.lob || c.Lob || '',
+            chargeName: c.chargeName || c.ChargeName || '',
+            chargeType: c.chargeType || c.ChargeType || '',
+            currency: c.currency || c.Currency || '',
+            rate: Number(c.rate || c.Rate || 0),
+            amount: Number(c.amount || c.Amount || 0)
+        }));
+    }
+
+    // Force UI Refresh
+    this.cdr.detectChanges();
+    console.log("MultiCarrier Data Loaded:", this.multiCarrierRows);
+    // 1. Multi-Carrier Breakdown Mapping (With all new fields)
+    if (p.multiCarrierBreakdowns && Array.isArray(p.multiCarrierBreakdowns)) {
+        this.multiCarrierRows = p.multiCarrierBreakdowns.map((m: any) => ({
+            forwarder: m.forwarder || m.Forwarder || '',
+            origin: m.origin || m.Origin || '',
+            lob: m.lob || m.Lob || '', // Naya field add kiya
+            chargeName: m.chargeName || m.ChargeName || '',
+            chargeType: m.chargeType || m.ChargeType || '',
+            // chargeableWeight ko main screen se utha rahe hain (jaisa HTML mein hai)
+            airFreight: Number(m.airFreight || m.AirFreight || 0),
+            fsc: m.fsc || m.Fsc || '',
+            airline: m.airline || m.Airline || '',
+            cutoff: m.cutoff || m.Cutoff || '',
+            schedule: m.schedule || m.Schedule || '', // Date format handle karna
+            currency: m.currency || m.Currency || '',
+            rate: Number(m.rate || m.Rate || 0),
+            exchangeRate: Number(m.exchangeRate || m.ExchangeRate || 1), // Default 1
+            totalCost: Number(m.totalCost || m.TotalCost || 0),
+            remark: m.remark || m.Remark || ''
+        }));
+    }
+
+    // 2. Single Carrier Cost Mapping (CostBreakdowns table)
+    if (p.costBreakdowns && Array.isArray(p.costBreakdowns)) {
+        this.costRows = p.costBreakdowns.map((c: any) => ({
+            lob: c.lob || c.Lob || '',
+            chargeName: c.chargeName || c.ChargeName || '',
+            chargeType: c.chargeType || c.ChargeType || '',
+            currency: c.currency || c.Currency || '',
+            rate: Number(c.rate || c.Rate || 0),
+            exchangeRate: Number(c.exchangeRate || c.ExchangeRate || 1), // Naya field
+            amount: Number(c.amount || c.Amount || 0)
+        }));
+    } else {
+        // Default empty row agar data na ho
+        this.costRows = [{ lob: '', chargeName: '', chargeType: '', currency: '', rate: 0, exchangeRate: 1, amount: 0 }];
+    }
+
+    // --- IMPORTANT: Logic Trigger ---
+    // API se data load hone ke baad calculations trigger karna zaroori hai
+    this.calculateCost(); 
+    
+    this.cdr.detectChanges();
+    console.log("Tables Updated:", { cost: this.costRows, multi: this.multiCarrierRows });
       // --- Business Dimensions ---
       this.quotation.businessDimensions = p.businessDimensions || p.BusinessDimensions || ''; 
 
@@ -2995,7 +3147,8 @@ onPricingBlur() {
   setTimeout(() => {
     this.showPricingDropdown = false;
   }, 200);
-}allConnectingPorts: any[] = []; 
+}
+ allConnectingPorts: any[] = []; 
 filteredConnectingPorts: any[] = [];
 selectedConnectingPorts: any[] = []; 
 isCPModalOpen: boolean = false;
@@ -3083,35 +3236,32 @@ loadPortOfDischarges() {
 }
 // 1. Jab modal ke andar boxes badlenge - tab bahar wale num of packages aur first element box ko autofill karega
 updateTotalPackagesFromDims() {
-  if (this.dimRows && this.dimRows.length > 0) {
-    // Pehli row ka value outer view variables ke sath maintain rakhne ke liye
-    if (this.dimRows[0]) {
-      this.quotation.dimBox = this.dimRows[0].box;
-    }
+  if (!this.dimRows || this.dimRows.length === 0) return;
 
-    // Pura mathematical loop validation check ke sath
-    const totalBoxes = this.dimRows.reduce((sum, row) => {
-      return sum + (row && row.box ? Number(row.box) : 0);
-    }, 0);
+  // 1. Sync Logic: 1st row hamesha outer view ke sath match honi chahiye
+  // Isse UI aur Data sync rahenge
+  this.dimRows[0].box = this.quotation.dimBox || 0;
+  this.dimRows[0].l = this.quotation.dimL || 0;
+  this.dimRows[0].w = this.quotation.dimW || 0;
+  this.dimRows[0].h = this.quotation.dimH || 0;
+  this.dimRows[0].unit = this.quotation.dimUnit || 'CMS';
 
-    // Dynamic state refresh
-    this.quotation.noOfPkgs = totalBoxes;
+  // 2. Calculation Logic: Sirf dimRows ka use karein
+  const totalBoxes = this.dimRows.reduce((sum, row) => {
+    return sum + (row && row.box ? Number(row.box) : 0);
+  }, 0);
 
-    if (this.cdr) {
-      this.cdr.detectChanges();
-    }
+  // 3. Update main state
+  this.quotation.noOfPkgs = totalBoxes;
+
+  // 4. UI Refresh
+  if (this.cdr) {
+    this.cdr.detectChanges();
   }
 }
 
 // 2. Agar koi direct main UI screen par "Dimensions BOX" change kare toh modal ki pehli row update ho jaye
-syncOuterBoxToFirstRow() {
-  if (!this.dimRows || this.dimRows.length === 0) {
-    this.dimRows = [{ box: 0, l: 0, w: 0, h: 0, unit: 'CMS' }];
-  }
-  
-  this.dimRows[0].box = this.quotation.dimBox;
-  this.updateTotalPackagesFromDims(); // Isse calculation recalculate ho jayegi automatically
-}
+
 // Jab POL dropdown change ho
 onPolChange() {
   const selectedPol = this.portOfLoadingList.find(p => p.id == this.quotation.portOfLoadingId);
@@ -3166,17 +3316,16 @@ closeDocumentModal() {
 
 // 3. Document Array Management
 addDocument() {
-  this.documents.push({ name: '', documentPath: '', isReplacing: false });
+  this.documents.push({ id: 0, name: '', file: null, documentPath: '', isReplacing: false });
 }
 
 removeDocument(index: number) {
   this.documents.splice(index, 1);
 }
-
 saveDocumentChanges() {
-  // Yahan apna API save logic likho
-  console.log("Saving docs:", this.documents);
+  // Is logic se files temporary store ho jayengi, main saveQuotation ke time upload hogi
   this.closeDocumentModal();
+  Swal.fire('Success', 'Documents prepared for saving.', 'success');
 }
 // onCommodityChange(event: any) {
 //   this.quotation.commodity = event.target.value;
@@ -3184,21 +3333,9 @@ saveDocumentChanges() {
 //   this.cdr.detectChanges(); 
 // }
 onFileSelected(event: any, index: number) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  console.log("File selected for index:", index, "File:", file);
-
-  // 1. Agar tum file ko specific index wale document ke saath map karna chahte ho:
-  // this.documents[index].file = file; // Example agar tumhara documents array handle kar raha hai
-
-  // 2. Yahan apna upload logic call karo
-  /* this.uploadService.upload(file).subscribe((res: any) => {
-      this.documents[index].documentPath = res.path;
-      this.documents[index].isReplacing = false;
-      this.cdr.detectChanges();
-  });
-  */
+  if (event.target.files.length > 0) {
+    this.documents[index].file = event.target.files[0];
+  }
 }
 // Helper function logic
 
@@ -3216,7 +3353,7 @@ checkHazardStatus() {
     return;
   }
   const selected = this.commodityTypes.find(c => String(c.id) === String(this.quotation.commodity));
-  this.isHazardous = selected?.name?.trim().toUpperCase() === 'HAZARD';
+  this.isHazardous = selected?.name?.trim().toUpperCase() === 'HAZARDOUS';
 }
 
 // Component initialize hote waqt bhi check karo
@@ -3228,18 +3365,23 @@ getTotalPackageCount() {
 getGroupedDimensionsFromQuotation(): DimGroup[] {
   const allDims = [];
   
-  // 1. Pehle main dimension row add karo
-  if (this.quotation.dimBox) {
-    allDims.push({
-      box: this.quotation.dimBox,
-      l: this.quotation.dimL,
-      w: this.quotation.dimW,
-      h: this.quotation.dimH,
-      unit: this.quotation.dimUnit || 'CMS'
-    });
+  // 1. MAIN SCREEN DATA IGNORED: 
+  // Yeh pehla block ab sirf tab chalega jab allDimensions empty ho (fallback).
+  // Agar aap chahte hain ki main screen ka data ALWAYS ignore ho, 
+  // toh is block ko hata dein ya false kar dein.
+  if (!this.quotation.allDimensions || this.quotation.allDimensions.length === 0) {
+    if (this.quotation.dimBox) {
+      allDims.push({
+        box: this.quotation.dimBox,
+        l: this.quotation.dimL,
+        w: this.quotation.dimW,
+        h: this.quotation.dimH,
+        unit: this.quotation.dimUnit || 'CMS'
+      });
+    }
   }
   
-  // 2. Baki dimensions add karo
+  // 2. Baki dimensions (Modal wala data) add karo
   if (this.quotation.allDimensions && this.quotation.allDimensions.length > 0) {
     allDims.push(...this.quotation.allDimensions);
   }
@@ -3271,14 +3413,21 @@ loadUomList() {
     next: (data) => {
       this.uomList = data;
       
-      // Default set karein agar unit abhi null/empty hai
-      if (!this.quotation.grossWeightUnit && this.uomList.length > 0) {
-        // Aap yahan check kar sakte ho ki 'KGS' list mein hai ya nahi
-        const kgUnit = this.uomList.find(u => u.shortCode === 'KGS');
-        this.quotation.grossWeightUnit = kgUnit ? 'KGS' : this.uomList[0].shortCode;
-        this.updatePreview(); // Unit set hone ke baad preview update karein
-        this.setDefaultVolumeUnit();
+      // Default Unit Logic
+      if (!this.quotation.grossWeightUnit) {
+        this.quotation.grossWeightUnit = 'KGS';
       }
+      if (!this.quotation.netWeightUnit) {
+        this.quotation.netWeightUnit = 'KGS';
+      }
+      if (!this.quotation.chargeableWeightUnit) {
+        this.quotation.chargeableWeightUnit = 'KGS';
+      }
+
+      this.updatePreview();
+      
+      // UI ko force update karne ke liye
+      this.cdr.detectChanges(); 
     },
     error: (err) => console.error("Error loading UOMs:", err)
   });
@@ -3499,4 +3648,5 @@ clickout(event: any) {
     this.showCountryDropdown = false;
   }
 }
+
 }

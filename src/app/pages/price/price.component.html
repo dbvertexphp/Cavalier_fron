@@ -1510,15 +1510,16 @@ Selection Modal Popup
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
       </svg>
       
-      <select
-        [(ngModel)]="quotation.GrossweightUnit"
-        name="weightUnit"
-        class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
-      >
-        <option *ngFor="let uom of uomList" [value]="uom.shortCode">
-          {{ uom.shortCode }}
-        </option>
-      </select>
+     <select 
+  [ngModel]="quotation.GrossweightUnit || 'KGS'" 
+  (ngModelChange)="quotation.GrossweightUnit = $event"
+  name="weightUnit" 
+  class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
+>
+  <option *ngFor="let uom of uomList" [value]="uom.shortCode">
+    {{ uom.shortCode }}
+  </option>
+</select>
     </div>
   </div>
 </div>
@@ -1555,15 +1556,16 @@ Selection Modal Popup
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
       </svg>
       
-      <select
-        [(ngModel)]="quotation.netWeightUnit"
-        name="netWeightUnit"
-        class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
-      >
-        <option *ngFor="let uom of uomList" [value]="uom.shortCode">
-          {{ uom.shortCode }}
-        </option>
-      </select>
+      <select 
+  [ngModel]="quotation.netWeightUnit || 'KGS'" 
+  (ngModelChange)="quotation.netWeightUnit = $event"
+  name="netWeightUnit" 
+  class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
+>
+  <option *ngFor="let uom of uomList" [value]="uom.shortCode">
+    {{ uom.shortCode }}
+  </option>
+</select>
     </div>
   </div>
 </div>
@@ -1600,15 +1602,16 @@ Selection Modal Popup
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
       </svg>
       
-      <select
-        [(ngModel)]="quotation.chargeableWeightUnit"
-        name="chargeableWeightUnit"
-        class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
-      >
-        <option *ngFor="let uom of uomList" [value]="uom.shortCode">
-          {{ uom.shortCode }}
-        </option>
-      </select>
+     <select 
+  [ngModel]="quotation.chargeableWeightUnit || 'KGS'" 
+  (ngModelChange)="quotation.chargeableWeightUnit = $event"
+  name="chargeableWeightUnit" 
+  class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
+>
+  <option *ngFor="let uom of uomList" [value]="uom.shortCode">
+    {{ uom.shortCode }}
+  </option>
+</select>
     </div>
   </div>
 </div>
@@ -1675,16 +1678,19 @@ Selection Modal Popup
         />
       </svg>
       
-      <select
-        #selectElement
-        [(ngModel)]="quotation.noOfPkgsUnit"
-        name="noOfPkgsUnit"
-        class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
-      >
-        <option *ngFor="let item of packageUnits" [value]="item.name">
-          {{ item.name }}
-        </option>
-      </select>
+     <select
+  #selectElement
+  [ngModel]="quotation.noOfPkgsUnit || 'PKG'"
+  (ngModelChange)="quotation.noOfPkgsUnit = $event"
+  name="noOfPkgsUnit"
+  class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
+>
+  <option *ngFor="let item of packageUnits" [value]="item.name">
+    {{ item.name }}
+  </option>
+
+  <option value="PKG" *ngIf="!packageUnits || packageUnits.length === 0">PKG</option>
+</select>
     </div>
   </div>
 </div>
@@ -1703,9 +1709,17 @@ Selection Modal Popup
       </div>
 
       <div class="flex items-center border border-l-0 bg-gray-50 h-[38px]">
-        <select [(ngModel)]="dimRow.unit" (change)="calculateVolumeWeight(); updatePreview()" class="p-2 font-bold text-[11px] bg-transparent outline-none cursor-pointer">
-          <option *ngFor="let uom of uomList" [value]="uom.shortCode">{{ uom.shortCode }}</option>
-        </select>
+       <select
+  [ngModel]="dimRow.unit || 'KGS'"
+  (ngModelChange)="dimRow.unit = $event; calculateVolumeWeight(); updatePreview()"
+  class="p-2 font-bold text-[11px] bg-transparent outline-none cursor-pointer"
+>
+  <option *ngFor="let uom of uomList" [value]="uom.shortCode">
+    {{ uom.shortCode }}
+  </option>
+  
+  <option value="KGS" *ngIf="!uomList?.length">KGS</option>
+</select>
         
         <button type="button" (click)="isDimModalOpen = true" class="bg-green-600 hover:bg-green-700 text-white px-3 h-full flex items-center">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1767,15 +1781,18 @@ Selection Modal Popup
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
       </svg>
       
-      <select
-        [(ngModel)]="quotation.volumeWeightUnit"
-        name="volumeWeightUnit"
-        class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
-      >
-        <option *ngFor="let uom of uomList" [value]="uom.shortCode">
-          {{ uom.shortCode }}
-        </option>
-      </select>
+     <select 
+  [ngModel]="quotation.volumeWeightUnit || 'KGS'" 
+  (ngModelChange)="quotation.volumeWeightUnit = $event"
+  name="volumeWeightUnit" 
+  class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
+>
+  <option *ngFor="let uom of uomList" [value]="uom.shortCode">
+    {{ uom.shortCode }}
+  </option>
+  
+  <option value="KGS" *ngIf="!uomList || uomList.length === 0">KGS</option>
+</select>
     </div>
   </div>
 </div>
@@ -1831,12 +1848,13 @@ Selection Modal Popup
                         />
                       </svg> -->
 
-                      <select
-  [(ngModel)]="quotation.cbmUnit"
-  name="cbmUnit"
+         <select 
+  [ngModel]="quotation.cbmUnit || 'CBM'" 
+  (ngModelChange)="quotation.cbmUnit = $event"
+  name="cbmUnit" 
   class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
 >
-  <option value="CBM" selected>CBM</option>
+  <option value="CBM">CBM</option>
 </select>
                     </div>
                   </div>
@@ -2211,25 +2229,36 @@ Selection Modal Popup
   <div class="mt-6 space-y-3">
   <div class="flex items-center justify-between border-b border-red-200 pb-2">
     <label class="text-red-800 font-black uppercase text-[13px] italic">Connecting Ports Configuration</label>
-    <button (click)="toggleConnectingPortModal()" class="bg-red-700 text-white px-3 py-1 rounded text-[11px] font-bold hover:bg-red-800">+ ADD PORTS</button>
+    <button (click)="toggleConnectingPortModal()" class="bg-red-700 text-white px-3 py-1 rounded text-[11px] font-bold hover:bg-red-800 transition-all">
+      + ADD PORTS
+    </button>
   </div>
 
   <div class="space-y-2">
     <div class="flex items-center gap-3">
       <span class="w-6 font-bold text-red-700 text-[12px]">01</span>
-      <div class="flex-1 border-b p-2 bg-gray-50 text-[12px] font-bold uppercase">{{ quotation.portOfLoading }}</div>
+      <div class="flex-1 p-2 bg-gray-50 text-[12px] font-bold text-gray-700 rounded flex gap-2">
+        <span class="text-red-700">{{ quotation.portOfLoadingCode }}</span>
+        <span class="uppercase">{{ quotation.portOfLoading }}</span>
+      </div>
       <span class="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded">POL</span>
     </div>
 
     <div *ngFor="let port of selectedConnectingPorts; let i = index" class="flex items-center gap-3">
       <span class="w-6 font-bold text-red-700 text-[12px]">0{{ i + 2 }}</span>
-      <div class="flex-1 border-b p-2 bg-white text-[12px] uppercase">{{ port.portName }}</div>
+      <div class="flex-1 p-2 bg-white border border-gray-200 rounded text-[12px] flex gap-2">
+        <span class="font-bold text-red-700">{{ port.portCode }}</span>
+        <span class="uppercase text-gray-800">{{ port.portName }}</span>
+      </div>
       <button (click)="removeConnectingPort(port)" class="text-red-400 hover:text-red-700 font-bold text-xl">&times;</button>
     </div>
 
     <div class="flex items-center gap-3">
       <span class="w-6 font-bold text-red-700 text-[12px]">0{{ selectedConnectingPorts.length + 2 }}</span>
-      <div class="flex-1 border-b p-2 bg-gray-50 text-[12px] font-bold uppercase">{{ quotation.portOfDestination }}</div>
+      <div class="flex-1 p-2 bg-gray-50 text-[12px] font-bold text-gray-700 rounded flex gap-2">
+        <span class="text-red-700">{{ quotation.portOfDestinationCode }}</span>
+        <span class="uppercase">{{ quotation.portOfDestination }}</span>
+      </div>
       <span class="text-[10px] font-black text-green-600 bg-green-50 px-2 py-1 rounded">POD</span>
     </div>
   </div>

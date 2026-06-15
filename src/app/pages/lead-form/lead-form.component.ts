@@ -1,10 +1,9 @@
-import { ChangeDetectorRef, Component, ElementRef, HostListener, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-// --- ADDED: Validators import ---
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 import { CheckPermissionService } from '../../services/check-permission.service';
@@ -12,517 +11,468 @@ import jsPDF from 'jspdf';
 import * as XLSX from 'xlsx';
 import { leadSchema } from './lead.schema';
 import { forkJoin, Subscription } from 'rxjs';
-import { HttpHeaders } from '@angular/common/http'; // Top par import check kar lena
 import { UserService } from '../../services/user.service';
 import { ActivatedRoute } from '@angular/router';
 import Swal from 'sweetalert2';
+
 @Component({
   selector: 'app-lead-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule,FormsModule, DragDropModule ],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, DragDropModule],
   templateUrl: './lead-form.component.html',
   styleUrl: './lead-form.component.css',
-   
 })
-
 export class LeadFormComponent implements OnInit {
-// Aapka data array
-// PAGINATION VARIABLES
-// Modal control variable
-isHODModalOpen: boolean = false;
+  @ViewChild('deptInput') deptInput!: ElementRef;
+  @ViewChild('desigInput') desigInput!: ElementRef;
 
-// Search text for modal input
-modalHODSearchText: string = '';
-
-// Main list of HODs (API se jo aayegi)
-allHODList: string[] = []; 
-
-// Filtered list jo modal mein dikhegi
-allHODListFiltered: string[] = [];
-
-// Dropdown suggestions (input type par jo dikhti hain)
-filteredHODSuggestions: string[] = [];
-leadSources: any[] = [];     // Lead Source ke liye
-salesStages: any[] = [];
-isEditMode: boolean = false;
-selectedLeadId: number | null = null;
-OrganisationId: any;
-salesProcesses: any[] = [];
-highlightedLeadId: number | null = null;
-leadOwners: any[] = [];
-salesCoordinators: any[] = [];
-reportingManagers: any[] = [];
-branches: any[] = [];
-currentPage: number = 1;
-itemsPerPage: number = 10;
-totalPages: number = 0;
- PermissionID:any;
-paginatedLeads: any[] = [];
-showModal: boolean = false;
+  showTable: boolean = false; 
+  isHODModalOpen: boolean = false;
+  modalHODSearchText: string = '';
+  allHODList: string[] = []; 
+  allHODListFiltered: string[] = [];
+  filteredHODSuggestions: string[] = [];
+  leadSources: any[] = [];     
+  salesStages: any[] = [];
+  isEditMode: boolean = false;
+  selectedLeadId: number | null = null;
+  OrganisationId: any;
+  salesProcesses: any[] = [];
+  highlightedLeadId: number | null = null;
+  leadOwners: any[] = [];
+  salesCoordinators: any[] = [];
+  reportingManagers: any[] = [];
+  branches: any[] = [];
+  currentPage: number = 1;
+  itemsPerPage: number = 10;
+  totalPages: number = 0;
+  PermissionID: any;
+  paginatedLeads: any[] = [];
+  showModal: boolean = false;
   leadForm!: FormGroup;
   searchForm!: FormGroup;
-  showCustomPicker: boolean = false; // Shortcuts menu dikhane ke liye
+  showCustomPicker: boolean = false; 
   isFormOpen = false;
-allLeads: any[] = [];       // original backup
-// sortOrders: { [key: string]: string } = {};
-  // --- CHANGED: Initialized as empty array ---
+  allLeads: any[] = [];       
   leads: any[] = []; 
-
-  // --- ADDED: Variable to store next lead number ---
   nextLeadNo: string = '0001';
-
   hodList: any[] = [];
   teamList: any[] = [];
   organizations: any[] = [];
   filteredOrganizations: any[] = [];
-  // Variables for Lead Owner
-isLeadOwnerModalOpen: boolean = false;
-modalOwnerSearchText: string = '';
-allOwnersList: string[] = [];           // API se aane wali main list
-allOwnersFiltered: string[] = [];       // Modal display ke liye
-filteredLeadOwners: string[] = [];
-  // filteredHODSuggestions:any[]=[]
-  hodUniqueList:any[]=[]
-goToPage(page: number) {
-    if (page < 1 || page > this.totalPages) return;
-    this.currentPage = page;
-    this.updatePagination();
-  }
+  isLeadOwnerModalOpen: boolean = false;
+  modalOwnerSearchText: string = '';
+  allOwnersFiltered: any[] = [];       
+  filteredLeadOwners: string[] = [];
+  hodUniqueList: any[] = [];
+  managerUniqueList: string[] = [];
+
+  leadSearchFilters = {
+    date: "",
+    organizationName: '',
+    type: 'Any',
+    leadNo: '',
+    salesProcess: '',
+    salesStage: '',
+    branch: '',
+    leadOwner: 'Any',
+    hod: '',
+    team: '',
+    reportingManager: '',
+    status: 'Any'
+  };
+
+  leadNoList: string[] = [];
+  leadOrgList: string[] = [];
+  leadOwnerList: string[] = [];
+  filteredLeads: any[] = [];
+  filteredSalesStages: any[] = [];
+  filteredDates: string[] = [];
+  allDates: string[] = [];
+  filteredSalesProcesses: string[] = [];
+  allSalesProcesses: string[] = [];
+  filteredTeams: any[] = [];
+  filteredManagers: string[] = [];
+  statusList: string[] = ['Inquiry Received', 'Qualified', 'Proposal Sent', 'Sales Closed', 'Lost'];
+  filteredStatusSuggestions: string[] = [];
+  isExportOpen = false;
+  isLNModalOpen: boolean = false;
+  modalLNSearchText: string = '';
+  allLNList: any[] = [];         
+  allLNFiltered: any[] = [];     
+  iconSearchOrgs: any[] = []; 
+  private iconSearchSub?: Subscription;
+  private hodIconSub?: Subscription;
+  loIconList: string[] = []; 
+  private loIconSub?: Subscription;
+  lnIconList: any[] = []; 
+  private lnIconSub?: Subscription;
+  tmIconList: any[] = []; 
+  private tmIconSub?: Subscription;
+  isTeamModalOpen: boolean = false;
+  modalTeamSearchText: string = '';
+  allTeamsList: any[] = []; 
+  tmIconListFiltered: any[] = [];
+  rmIconList: string[] = []; 
+  private rmIconSub?: Subscription;
+  isManagerModalOpen: boolean = false;
+  modalManagerSearchText: string = '';
+  allManagersList: any[] = [];
+  rmIconListFiltered: any[] = [];
+  orgList: any[] = [];
+  showOrgDropdown: boolean = false;
+  quotation: any = {}; 
+  showInquiryDropdown = true;
+  iconHODList: string[] = [];
+  branchList: any[] = [];           
+  filteredBranchSuggestions: any[] = []; 
+  isBranchModalOpen: boolean = false;
+  branchSearchText: string = '';
+  showRowModal = false;
+  salesCoordinator: any[] = [];
+  availableColumns: string[] = [];
+  selectedColumns: string[] = [];
+  sortOrders: any = {};
+
+  columnFieldMap: any = {
+    'Lead No': 'leadNo',
+    'Organization': 'organizationName',
+    'Source': 'leadSource',
+    'Sales Process': 'salesProcess',
+    'Sales Stage': 'salesStage',
+    'Owner': 'leadOwner',
+    'Location': 'location',
+    'Branch': 'branch',
+    'Area': 'area',
+    'Team': 'team',
+    'Type': 'type',
+    'Date': 'date',
+    'Expected Validity': 'expectedValidity',
+    'Reporting Manager': 'reportingManager',
+    'Sales Coordinator': 'salesCoordinator',
+    'HOD': 'hod',
+    'Created At': 'createdAt',
+    'Updated At': 'updatedAt'
+  };
+
   constructor(
     private fb: FormBuilder,
     private router: Router,
     private http: HttpClient,
     private cdr: ChangeDetectorRef,
-    public CheckPermissionService:CheckPermissionService,
-    public userServices:UserService,
+    public CheckPermissionService: CheckPermissionService,
+    public userServices: UserService,
     private eRef: ElementRef,
     private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
-    const highlightId = params['highlightId'];
-
-    if (highlightId) {
-      // 1. Highlight ID set karo table ke liye
-      this.highlightedLeadId = +highlightId;
-
-      // 2. Puri list load karo background mein
-      this.loadLeads();
-
-      // 3. 🔥 Form auto-fill aur open karne ke liye function call
-      this.onEditLead(this.highlightedLeadId);
-    } 
-  });
-    this.loadBranchess()
-    this.loadDropdownData()
+      const highlightId = params['highlightId'];
+      if (highlightId) {
+        this.highlightedLeadId = +highlightId;
+        this.loadLeads();
+        this.onEditLead(this.highlightedLeadId);
+      } 
+    });
+    this.loadBranchess();
+    this.loadDropdownData();
     this.loadLeadOwners();
     this.getSalesProcesses();
     this.getLeadOwners();
     this.getsales();
     this.getSalesCoordinators();
     this.loadLeadSources();
-  this.loadSalesStages();
+    this.loadSalesStages();
     this.getBranches();
-        this.PermissionID = Number(localStorage.getItem('permissionID'));
+    this.PermissionID = Number(localStorage.getItem('permissionID'));
     this.initForm();
-this.loadColumnSettings();
-    this.http.get(`${environment.apiUrl}/Hod`)
-      .subscribe((res: any) => {
-        this.hodList = res;
-      });
+    this.loadColumnSettings();
 
-    this.http.get(`${environment.apiUrl}/Teams`)
-      .subscribe((res: any) => {
-        this.teamList = res;
-      });
-
+    this.http.get(`${environment.apiUrl}/Hod`).subscribe((res: any) => this.hodList = res);
+    this.http.get(`${environment.apiUrl}/Teams`).subscribe((res: any) => this.teamList = res);
     this.loadOrganizations();
-    
     this.initSearchForm();
     this.loadLeadSuggestions();
-    this.getReportingManagers(); // Isse call karna mat bhulna!
-     // Important: Leads load first to calculate number
+    this.getReportingManagers();
+
+    // DYNAMIC AUTO-FILL: Team validation logic block trigger
+   
   }
+ 
   fetchNextLeadNoFromApi(): void {
-  // Safe execution checker: Agar edit state active hai toh backend mapping block execute nahi hoga
-  const highlightId = this.route.snapshot.queryParams['highlightId'];
-  if (this.isEditMode || highlightId) {
-    return;
-  }
+    const highlightId = this.route.snapshot.queryParams['highlightId'];
+    if (this.isEditMode || highlightId) return;
 
-  const token = localStorage.getItem('cavalier_token');
-  const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+    const token = localStorage.getItem('cavalier_token');
+    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
-  // LeadsController ka naya endpoint target kiya hai
-  this.http.get<any>(`${environment.apiUrl}/Leads/nextLeadNo`, { headers }).subscribe({
-    next: (res) => {
-      if (res && res.nextLeadNo) {
-        this.nextLeadNo = res.nextLeadNo;
-        console.log(res.nextLeadNo);
-        // Form controls ko safe dynamic path assignment mapping updates handle karne ke liye
-       
-        this.cdr.detectChanges();
-        console.log('Backend standard lead no fetched:', this.nextLeadNo);
+    this.http.get<any>(`${environment.apiUrl}/Leads/nextLeadNo`, { headers }).subscribe({
+      next: (res) => {
+        if (res && res.nextLeadNo) {
+          this.nextLeadNo = res.nextLeadNo;
+          this.cdr.detectChanges();
+        }
+      },
+      error: (err) => {
+        console.error(err);
+        this.calculateNextLeadNo();
       }
-    },
-    error: (err) => {
-      console.error('Error fetching next lead number from server API:', err);
-      // Fallback architecture system safety handle
-      this.calculateNextLeadNo();
-    }
-  });
-}
+    });
+  }
   
- updatePagination() {
-    // Total pages count recalculate karein
+  updatePagination() {
     this.totalPages = Math.ceil(this.leads.length / this.itemsPerPage);
-    
-    // Safety check agar records khali ho jayein ya filter lage
     if (this.currentPage > this.totalPages) {
       this.currentPage = this.totalPages || 1;
     }
-
     const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-    const endIndex = startIndex + Number(this.itemsPerPage); // Dropdown value type double check array slice ke liye
-
+    const endIndex = startIndex + Number(this.itemsPerPage);
     this.paginatedLeads = this.leads.slice(startIndex, endIndex);
-    this.cdr.detectChanges(); // UI refresh guarantee
+    this.cdr.detectChanges();
   }
-nextPage() {
+
+  goToPage(page: number) {
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+    this.updatePagination();
+  }
+// 🔥 Is naye function ko class me kahin bhi paste kar do bhai (ngOnInit se bahar):
+onTeamChange(event: any) {
+  const selectedTeamName = event.target.value;
+  console.log('🚀 HTML (change) event triggered for team:', selectedTeamName);
+
+  if (selectedTeamName && selectedTeamName !== '') {
+    // 1. Team list me se matching object dhoodhkar uska id nikalte hain
+    const matchedTeam = this.teamList.find(t => (t.teamName || t.name || t) === selectedTeamName);
+    const teamId = matchedTeam ? matchedTeam.id : null;
+
+    if (teamId) {
+      // 2. Direct HTTP GET API Call hit hogi
+      this.http.get<any>(`${environment.apiUrl}/Teams/${teamId}/details`).subscribe({
+        next: (res) => {
+          console.log('✅ Dynamic Team Details Received via Event:', res);
+          
+          const combinedMembers: any[] = [];
+          if (res.salesCoordinators) combinedMembers.push(...res.salesCoordinators);
+          if (res.hods) combinedMembers.push(...res.hods);
+          if (res.reportingManagers) combinedMembers.push(...res.reportingManagers);
+
+          // Unique filtration logic
+          const uniqueMap = new Map();
+          combinedMembers.forEach(m => uniqueMap.set(m.id, m));
+          
+          // Dropdown options list update
+          this.salesCoordinator = Array.from(uniqueMap.values());
+
+          // Form controls auto-patch configurations
+          const patchObj: any = {};
+          if (res.salesCoordinators && res.salesCoordinators.length > 0) {
+            patchObj.salesCoordinator = res.salesCoordinators[0].id;
+            patchObj.leadOwner = res.salesCoordinators[0].id; 
+          }
+          if (res.hods && res.hods.length > 0) {
+            patchObj.hod = res.hods[0].id;
+          }
+          if (res.reportingManagers && res.reportingManagers.length > 0) {
+            patchObj.reportingManager = res.reportingManagers[0].id;
+          }
+
+          // Fields auto-fill patch execution
+          this.leadForm.patchValue(patchObj);
+          this.cdr.detectChanges(); // UI render trigger
+        },
+        error: (err) => {
+          console.error('❌ Details API Error:', err);
+          this.salesCoordinator = [];
+          this.cdr.detectChanges();
+        }
+      });
+    }
+  } else {
+    // 🛑 Clear condition handles
+    this.salesCoordinator = [];
+    this.leadForm.patchValue({
+      salesCoordinator: '',
+      reportingManager: '',
+      hod: ''
+    });
+    this.cdr.detectChanges();
+  }
+}
+  nextPage() {
     if (this.currentPage < this.totalPages) {
       this.currentPage++;
       this.updatePagination();
     }
   }
-// Lead Sources Load
-loadLeadSources() {
-  this.http.get<any[]>(`${environment.apiUrl}/LeadSources`)
-    .subscribe({
-      next: (res) => {
-        this.leadSources = res;
-      },
-      error: (err) => console.error('Error loading Lead Sources', err)
-    });
-}
 
-// Sales Stages Load
-loadSalesStages() {
-  this.http.get<any[]>(`${environment.apiUrl}/SalesStages`)
-    .subscribe({
-      next: (res) => {
-        this.salesStages = res;
-      },
-      error: (err) => console.error('Error loading Sales Stages', err)
-    });
-}
-@HostListener('document:click', ['$event'])
-onDocumentClick(event: MouseEvent) {
-  const target = event.target as HTMLElement;
-
-  // NEW button ignore
-  if (target.closest('button')?.textContent?.trim() === 'NEW') {
-    return;
-  }
-
-  // Agar click dropdown ke andar hai toh band mat karo
-  const dropdownClicked = 
-    target.closest('ul') || 
-    target.closest('.absolute.z-50') || 
-    target.closest('input[formControlName="organization"]');
-
-  if (dropdownClicked) {
-    return;
-  }
-
-  // Bahar click → sab band
-  this.closeAllDropdowns();
-}
-
-// Close sab dropdowns
-closeAllDropdowns() {
-  this.showOrgDropdown = false;
-  this.filteredOrganizations = [];     // ← Yeh line missing thi!
-  this.cdr.detectChanges();
-}
-
-// Focus pe bhi dropdown khol sakte ho (optional but better UX)
-onOrganizationFocus() {
-  if (this.filteredOrganizations.length === 0 && this.organizations.length > 0) {
-    // Optionally show all or keep typing based
-  }
-}
-// initial value false rakhein
-showTable: boolean = false;
-AllLeadSearch(){
-  
-this.loadLeads();
-this.showTable = true;
-}
-  // NEW button function
-  navigateToNewOrg(event?: MouseEvent) {
-    if (event) {
-      event.stopImmediatePropagation();
-    }
-
-    this.closeAllDropdowns();   // NEW click karte hi dropdown band
-
-    this.router.navigate(['/dashboard/organization-add'], {
-      state: { isFormOpen: true }
-    });
-  }
-getLeadOwners() {
-  this.http.get<any[]>(`${environment.apiUrl}/LeadOwners`).subscribe({
-    next: (res) => {
-      this.leadOwners = res;
-    },
-    error: (err) => console.error('Error fetching lead owners', err)
-  });
-}
-getSalesCoordinators() {
-  this.http.get<any[]>(`${environment.apiUrl}/SalesCoordinators`).subscribe({
-    next: (res) => {
-      this.salesCoordinators = res;
-      console.log('API Response:', res); // Check karo array hai ya object
-  this.salesCoordinators = res;
-    },
-    error: (err) => console.error('Sales Coordinator load karne mein error:', err)
-  });
-}
-onEditLead(id: any) {
-  if (!id || id <= 0) {
-    alert("Invalid Lead ID");
-    return;
-  }
-
-  const url = `${environment.apiUrl}/Leads/${id}`;
-
-  this.http.get<any>(url).subscribe({
-    next: (lead) => {
-      console.log("Lead data received:", lead);   // Debugging ke liye
-
-      this.isEditMode = true;
-      this.selectedLeadId = id;
-
-      // Form Autofill
-      this.leadForm.patchValue({
-        date: lead.date ? lead.date.split('T')[0] : '',
-        expectedValidity: lead.expectedValidity ? lead.expectedValidity.split('T')[0] : '',
-
-        type: lead.type || '',
-        leadOwner: lead.leadOwner || '',
-        salesProcess: lead.salesProcess || '',
-        salesCoordinator: lead.salesCoordinator || '',
-        salesStage: lead.salesStage || '',
-
-        branch: lead.branch || '',
-        reportingManager: lead.reportingManager || '',
-        team: lead.team || '',
-        hod: lead.hod || '',
-
-        location: lead.location || '',
-        area: lead.area || '',
-        organization: lead.organizationName || '',     // Backend mein OrganizationName hai
-        source: lead.leadSource || ''                 // Agar form mein source naam hai
-      });
-
-      this.nextLeadNo = lead.leadNo || '';
-
-      // Form kholo
-      this.isFormOpen = true;
-      this.cdr.detectChanges(); // UI ko turant update karne ke liye
-    },
-
-    error: (err) => {
-      console.error('Error fetching lead:', err);
-
-      if (err.status === 404) {
-        alert(`Lead with ID ${id} not found!`);
-      } else {
-        alert('Failed to load lead details. Please try again later.');
-      }
-    }
-  });
-}
-// Organization name par click hone par alert dikhayega
-onOrgClick(orgId: any, orgName: string) {
-  if (orgId) {
-    // Navigating with query parameter
-    this.router.navigate(['/dashboard/organization-add'], { 
-      queryParams: { highlightId: orgId } 
-    });
-  } else {
-    Swal.fire({
-      icon: 'error',
-      title: 'Identification Anomaly',
-      text: 'The system failed to retrieve a valid organizational identifier; the requested record appears to be non-existent or absent from the current registry.',
-      confirmButtonText: 'Acknowledge'
-    });
-  }
-}
-getBranches() {
-  this.http.get<any[]>(`${environment.apiUrl}/branch/list`).subscribe(res => {
-    console.log("Branch Data:", res); // 👈 Ye check karo console mein ki 'name' ki jagah kya likha hai
-    this.branches = res;
-  });
-}
-getSalesProcesses() {
-  this.http.get<any[]>(`${environment.apiUrl}/SalesProcesses`).subscribe({
-    next: (res) => {
-      this.salesProcesses = res;
-    },
-    error: (err) => console.error('Error fetching sales processes', err)
-  });
-}
-getReportingManagers() {
-  this.http.get<any[]>(`${environment.apiUrl}/ReportingManagers`).subscribe({
-    next: (res) => {
-      this.reportingManagers = res;
-    },
-    error: (err) => console.error('Reporting Manager fetch error:', err)
-  });
-}
-previousPage() {
+  previousPage() {
     if (this.currentPage > 1) {
       this.currentPage--;
       this.updatePagination();
     }
   }
-availableColumns:string[] = [];
 
-selectedColumns:string[] = [];
-
-sortOrders:any = {};
-
-drop(event: CdkDragDrop<string[]>) {
-
-if (event.previousContainer === event.container) {
-
-moveItemInArray(
-event.container.data,
-event.previousIndex,
-event.currentIndex
-);
-
-} else {
-
-transferArrayItem(
-event.previousContainer.data,
-event.container.data,
-event.previousIndex,
-event.currentIndex
-);
-
-}
-console.log("Available Columns:", this.availableColumns);
-console.log("Selected Columns:", this.selectedColumns);
-
-// 🔥 table turant refresh
-this.cdr.detectChanges();
- const payload = {
-    availableColumns: JSON.stringify(this.availableColumns),
-    selectedColumns: JSON.stringify(this.selectedColumns)
-  };
-
-  console.log("Available Columns:", this.availableColumns);
-  console.log("Selected Columns:", this.selectedColumns);
-
-  this.http.post(`${environment.apiUrl}/LeadColumnSettings/save`, payload)
-  .subscribe({
-    next:(res)=>{
-      console.log("Column Settings Saved:", res);
-    },
-    error:(err)=>{
-      console.error("Save error",err);
-    }
-  });
-
-}
-columnFieldMap:any = {
-  'Lead No': 'leadNo',
-  'Organization': 'organizationName',
-  'Source': 'leadSource',
-  'Sales Process': 'salesProcess',
-  'Sales Stage': 'salesStage',
-  'Owner': 'leadOwner',
-  'Location': 'location',
-  'Branch': 'branch',
-  'Area': 'area',
-  'Team': 'team',
-  'Type': 'type',
-  'Date': 'date',
-  'Expected Validity': 'expectedValidity',
-  'Reporting Manager': 'reportingManager',
-  'Sales Coordinator': 'salesCoordinator',
-  'HOD': 'hod',
-  'Created At': 'createdAt',
-  'Updated At': 'updatedAt'
-};
-sortColumn(column:string){
-
-  const field = this.columnFieldMap[column];
-
-  if(!this.sortOrders[column]){
-    this.sortOrders[column] = 'asc';
-  }else{
-    this.sortOrders[column] = this.sortOrders[column] === 'asc' ? 'desc' : 'asc';
+  loadLeadSources() {
+    this.http.get<any[]>(`${environment.apiUrl}/LeadSources`).subscribe({
+      next: (res) => this.leadSources = res,
+      error: (err) => console.error(err)
+    });
   }
 
-  const order = this.sortOrders[column];
+  loadSalesStages() {
+    this.http.get<any[]>(`${environment.apiUrl}/SalesStages`).subscribe({
+      next: (res) => this.salesStages = res,
+      error: (err) => console.error(err)
+    });
+  }
 
-  this.leads.sort((a:any,b:any)=>{
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (target.closest('button')?.textContent?.trim() === 'NEW') return;
+    const dropdownClicked = target.closest('ul') || target.closest('.absolute.z-50') || target.closest('input[formControlName="organization"]');
+    if (dropdownClicked) return;
+    this.closeAllDropdowns();
+  }
 
-    let valA = a[field];
-    let valB = b[field];
+  closeAllDropdowns() {
+    this.showOrgDropdown = false;
+    this.filteredOrganizations = [];
+    this.cdr.detectChanges();
+  }
 
-    if(valA == null) return 1;
-    if(valB == null) return -1;
+  AllLeadSearch(){
+    this.loadLeads();
+    this.showTable = true;
+  }
 
-    if(typeof valA === 'string'){
-      valA = valA.toLowerCase();
-      valB = valB.toLowerCase();
+  navigateToNewOrg(event?: MouseEvent) {
+    if (event) event.stopImmediatePropagation();
+    this.closeAllDropdowns();
+    this.router.navigate(['/dashboard/organization-add'], { state: { isFormOpen: true } });
+  }
+
+  getLeadOwners() {
+    this.http.get<any[]>(`${environment.apiUrl}/LeadOwners`).subscribe({
+      next: (res) => this.leadOwners = res,
+      error: (err) => console.error(err)
+    });
+  }
+
+  getSalesCoordinators() {
+    this.http.get<any[]>(`${environment.apiUrl}/SalesCoordinators`).subscribe({
+      next: (res) => this.salesCoordinators = res,
+      error: (err) => console.error(err)
+    });
+  }
+
+  onEditLead(id: any) {
+    if (!id || id <= 0) return;
+    this.http.get<any>(`${environment.apiUrl}/Leads/${id}`).subscribe({
+      next: (lead) => {
+        this.isEditMode = true;
+        this.selectedLeadId = id;
+        this.leadForm.patchValue({
+          date: lead.date ? lead.date.split('T')[0] : '',
+          expectedValidity: lead.expectedValidity ? lead.expectedValidity.split('T')[0] : '',
+          type: lead.type || '',
+          leadOwner: lead.leadOwner || '',
+          salesProcess: lead.salesProcess || '',
+          salesCoordinator: lead.salesCoordinator || '',
+          salesStage: lead.salesStage || '',
+          branch: lead.branch || '',
+          reportingManager: lead.reportingManager || '',
+          team: lead.team || '',
+          hod: lead.hod || '',
+          location: lead.location || '',
+          area: lead.area || '',
+          organization: lead.organizationName || '',     
+          source: lead.leadSource || ''                 
+        });
+        this.nextLeadNo = lead.leadNo || '';
+        this.isFormOpen = true;
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error(err)
+    });
+  }
+
+  onOrgClick(orgId: any, orgName: string) {
+    if (orgId) {
+      this.router.navigate(['/dashboard/organization-add'], { queryParams: { highlightId: orgId } });
+    } else {
+      Swal.fire({ icon: 'error', title: 'Identification Anomaly', text: 'The record is missing an organization reference.' });
     }
+  }
 
-    if(order === 'asc'){
-      return valA > valB ? 1 : -1;
-    }else{
-      return valA < valB ? 1 : -1;
+  getBranches() {
+    this.http.get<any[]>(`${environment.apiUrl}/branch/list`).subscribe(res => this.branches = res);
+  }
+
+  getSalesProcesses() {
+    this.http.get<any[]>(`${environment.apiUrl}/SalesProcesses`).subscribe({
+      next: (res) => this.salesProcesses = res,
+      error: (err) => console.error(err)
+    });
+  }
+
+  getReportingManagers() {
+    this.http.get<any[]>(`${environment.apiUrl}/ReportingManagers`).subscribe({
+      next: (res) => this.reportingManagers = res,
+      error: (err) => console.error(err)
+    });
+  }
+
+  drop(event: CdkDragDrop<string[]>) {
+    if (event.previousContainer === event.container) {
+      moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
+    } else {
+      transferArrayItem(event.previousContainer.data, event.container.data, event.previousIndex, event.currentIndex);
     }
+    this.cdr.detectChanges();
+    const payload = {
+      availableColumns: JSON.stringify(this.availableColumns),
+      selectedColumns: JSON.stringify(this.selectedColumns)
+    };
+    this.http.post(`${environment.apiUrl}/LeadColumnSettings/save`, payload).subscribe({
+      error: (err) => console.error(err)
+    });
+  }
 
-  });
+  sortColumn(column: string) {
+    const field = this.columnFieldMap[column];
+    this.sortOrders[column] = !this.sortOrders[column] || this.sortOrders[column] === 'desc' ? 'asc' : 'desc';
+    const order = this.sortOrders[column];
 
-  this.cdr.detectChanges();
-}
-loadColumnSettings() {
-
-  this.http.get<any>(`${environment.apiUrl}/LeadColumnSettings`)
-  .subscribe({
-
-    next: (res) => {
-
-      if(res){
-
-        // API se string aa rahi hai → JSON.parse
-        this.availableColumns = JSON.parse(res.availableColumns || '[]');
-        this.selectedColumns = JSON.parse(res.selectedColumns || '[]');
-
+    this.leads.sort((a: any, b: any) => {
+      let valA = a[field];
+      let valB = b[field];
+      if (valA == null) return 1;
+      if (valB == null) return -1;
+      if (typeof valA === 'string') {
+        valA = valA.toLowerCase();
+        valB = valB.toLowerCase();
       }
+      return order === 'asc' ? (valA > valB ? 1 : -1) : (valA < valB ? 1 : -1);
+    });
+    this.cdr.detectChanges();
+  }
 
-      this.cdr.detectChanges();
+  loadColumnSettings() {
+    this.http.get<any>(`${environment.apiUrl}/LeadColumnSettings`).subscribe({
+      next: (res) => {
+        if (res) {
+          this.availableColumns = JSON.parse(res.availableColumns || '[]');
+          this.selectedColumns = JSON.parse(res.selectedColumns || '[]');
+        }
+        this.cdr.detectChanges();
+      }
+    });
+  }
 
-      console.log("Available Columns:", this.availableColumns);
-      console.log("Selected Columns:", this.selectedColumns);
-
-    },
-
-    error:(err)=>{
-      console.error("Column setting load error",err);
-    }
-
-  });
-
-}
-initSearchForm() {
+  initSearchForm() {
     this.searchForm = this.fb.group({
       organizationName: [''],
       salesProcess: [''],
@@ -530,175 +480,91 @@ initSearchForm() {
       salesStage: ['']
     });
   }
-  // --- UPDATED: Clear Filters ---
- 
- loadLeads(): void {
-  const token = localStorage.getItem('cavalier_token');
 
-  const headers = {
-    Authorization: `Bearer ${token}`
-  };
-
-  this.http.get<any[]>(`${environment.apiUrl}/Leads`, { headers }) 
-    .subscribe({
+  loadLeads(): void {
+    const token = localStorage.getItem('cavalier_token');
+    const headers = { Authorization: `Bearer ${token}` };
+    this.http.get<any[]>(`${environment.apiUrl}/Leads`, { headers }).subscribe({
       next: (res) => {
         this.leads = res; 
         this.currentPage = 1;
-
         this.updatePagination();
-        this.cdr.detectChanges(); // Ensure UI updates after data load
-        console.log('Leads loaded:', res);
-
-        // Next Lead Number calculate
         this.calculateNextLeadNo();
       },
-      error: (err) => {
-        console.error('Error fetching leads:', err);
+      error: (err) => console.error(err)
+    });
+  }
 
-        if (err.status === 401) {
-          alert("Unauthorized! Please login again.");
+  calculateNextLeadNo(): void {
+    const highlightId = this.route.snapshot.queryParams['highlightId'];
+    if (this.isEditMode || highlightId) return;
+
+    if (!this.leads || this.leads.length === 0) {
+      this.nextLeadNo = 'CAV/LEAD/0001';
+      this.leadForm.patchValue({ leadNo: this.nextLeadNo });
+      return;
+    }
+
+    let maxNumber = 0;
+    this.leads.forEach((lead: any) => {
+      if (lead?.leadNo) {
+        const match = lead.leadNo.toString().match(/CAV\/LEAD\/(\d+)/i);
+        if (match && match[1]) {
+          const currentNumber = parseInt(match[1], 10);
+          if (currentNumber > maxNumber) maxNumber = currentNumber;
         }
       }
     });
-}
 
-  // --- ADDED: Logic to calculate next lead number ---
- calculateNextLeadNo(): void {
-  // 🔥 Sirf ye logic add karo: Hyperlink (highlightId) ya Edit mode mein calculation mat karo
-  const highlightId = this.route.snapshot.queryParams['highlightId'];
-  if (this.isEditMode || highlightId) {
-    return; // Yahan se function band ho jayega, niche ka logic nahi chalega
-  }
-
-  // --- Aapka original logic yahan se shuru hota hai (No changes below) ---
-  if (!this.leads || this.leads.length === 0) {
-    this.nextLeadNo = 'CAV/LEAD/0001';
+    this.nextLeadNo = `CAV/LEAD/${(maxNumber + 1).toString().padStart(4, '0')}`;
     this.leadForm.patchValue({ leadNo: this.nextLeadNo });
-    return;
   }
 
-  let maxNumber = 0;
-
-  this.leads.forEach((lead: any) => {
-    if (lead?.leadNo) {
-      const match = lead.leadNo.toString().match(/CAV\/LEAD\/(\d+)/i);
-      if (match && match[1]) {
-        const currentNumber = parseInt(match[1], 10);
-        if (currentNumber > maxNumber) {
-          maxNumber = currentNumber;
+  onDeleteLead(id: any) {
+    if (confirm('Do you want to delete this lead?')) {
+      this.leads = this.leads.filter((l: any) => l.id !== id);
+      this.updatePagination();
+      this.http.delete(`${environment.apiUrl}/Leads/${id}`, { responseType: 'text' }).subscribe({
+        next: () => this.onLeadSearch(),
+        error: (err) => {
+          console.error(err);
+          this.onLeadSearch();
         }
-      }
+      });
     }
-  });
-
-  const nextNumber = maxNumber + 1;
-  this.nextLeadNo = `CAV/LEAD/${nextNumber.toString().padStart(4, '0')}`;
-  this.leadForm.patchValue({ leadNo: this.nextLeadNo });
-  console.log('Next Lead No generated:', this.nextLeadNo);
-}
-
-onDeleteLead(id: any) {
-  if (confirm('Do you want to delete this lead')) {
-    // 1. Pehle hi list se hata do (Optimistic Update)
-    // Maan lo aapki leads 'leads' array mein hain:
-    this.leads = this.leads.filter((l: any) => l.id !== id);
-    this.cdr.detectChanges(); // Turant table se gayab ho jayega
-
-    this.http.delete(`${environment.apiUrl}/Leads/${id}`, { responseType: 'text' })
-      .subscribe({
-        next: (res) => {
-          console.log('Delete response:', res);
-          
-          // 2. Alert ko baad mein dikhao taaki UI na ruke
-          setTimeout(() => {
-            this.onLeadSearch(); // Backend se sync
-            this.cdr.detectChanges();
-            console.log('Lead Deleted Successfully!');
-          }, 100);
-        },
-        error: (err) => {
-          console.error('Delete Error:', err);
-          if (err.status === 200) {
-            this.onLeadSearch();
-            this.cdr.detectChanges();
-          } else {
-            alert('Delete fail !');
-            this.onLeadSearch(); // Fail hone par wapas laao
-            this.cdr.detectChanges();
-          }
-        }
-      });
   }
-}
+
   private loadOrganizations(): void {
-    this.http
-      .get<any[]>(`${environment.apiUrl}/Organization/List`)
-      .subscribe({
-        next: (res) => {
-          this.organizations = res;
-        },
-        error: (err) => {
-          console.error('Organization API Error:', err);
-        }
-      });
+    this.http.get<any[]>(`${environment.apiUrl}/Organization/List`).subscribe({
+      next: (res) => this.organizations = res,
+      error: (err) => console.error(err)
+    });
   }
 
   onOrganizationSearch(event: Event): void {
     const value = (event.target as HTMLInputElement).value.toLowerCase();
-
     if (!value) {
       this.filteredOrganizations = [];
       return;
     }
-
-    this.filteredOrganizations = this.organizations.filter(org =>
-      org.orgName.toLowerCase().includes(value)
-    );
+    this.filteredOrganizations = this.organizations.filter(org => org.orgName.toLowerCase().includes(value));
   }
-selectOrganization(org: any): void {
-  this.OrganisationId = org.id; // Organization ID store kar lo
-  this.leadForm.patchValue({
-    organization: org.orgName,
-    organizationId: org.id
-  });
 
-  this.filteredOrganizations = [];
-}
-
-selectOrg(org: any) {
-  // Purana logic: quotation update karna
-  if (this.quotation) {
-    this.quotation.organizationName = org.orgName; 
+  selectOrganization(org: any): void {
+    this.OrganisationId = org.id;
+    this.leadForm.patchValue({ organization: org.orgName, organizationId: org.id });
+    this.filteredOrganizations = [];
   }
-  
-  // LeadSearchFilters bhi update kar dete hain safety ke liye
-  this.leadSearchFilters.organizationName = org.orgName;
-  
-  // ID set karna zaroori hai backend ke liye
-  this.OrganisationId = org.id; 
 
-  this.leadForm.patchValue({
-    organization: org.orgName,
-    organizationId: org.id // Form control mein bhi ID daal di
-  });
-
-  // 2. Dropdown ko band karein
-  this.showOrgDropdown = false;
-
-  // 3. (Optional) Filtered list ko khali karein taaki purana data na dikhe
-  this.orgList = [];
-  this.showOrgDropdown = false;
-  this.cdr.detectChanges(); 
-}
-  // selectOrganization(org: any): void {
-  //   this.OrganisationId = org.id; // Organization ID store kar lo (agar zarurat ho toh)
-  //   this.leadForm.patchValue({
-  //     organization: org.orgName,
-  //     organizationId: org.id
-  //   });
-
-  //   this.filteredOrganizations = [];
-  // }
+  selectOrg(org: any) {
+    if (this.quotation) this.quotation.organizationName = org.orgName; 
+    this.leadSearchFilters.organizationName = org.orgName;
+    this.OrganisationId = org.id; 
+    this.leadForm.patchValue({ organization: org.orgName, organizationId: org.id });
+    this.showOrgDropdown = false;
+    this.orgList = [];
+    this.cdr.detectChanges(); 
+  }
 
   initForm() {
     const today = new Date();
@@ -707,10 +573,8 @@ selectOrg(org: any) {
 
     this.leadForm = this.fb.group({
       organizationName: [''],
-      // --- CHANGED: Bind to nextLeadNo ---
-      // --- CHANGED: Added Validators.required to critical fields ---
-      leadId:[""],
-      leadNo: [{value: this.nextLeadNo, disabled: true}], // Disable for editing
+      leadId: [""],
+      leadNo: [{value: this.nextLeadNo, disabled: true}], 
       type: ['New Business', Validators.required],
       source: ['', Validators.required],
       salesProcess: ['', Validators.required],
@@ -733,782 +597,360 @@ selectOrg(org: any) {
   toggleForm() {
     this.isFormOpen = !this.isFormOpen;
     this.isEditMode = false;
-  this.selectedLeadId = null;
-  this.leadForm.reset();
-  this.nextLeadNo = '';
-  
-  this.initForm();  
-  this.fetchNextLeadNoFromApi();
-    
+    this.selectedLeadId = null;
+    this.leadForm.reset();
+    this.nextLeadNo = '';
+    this.initForm();  
+    this.fetchNextLeadNoFromApi();
   }
-
-
 
   private toISODate(date: Date): string {
     return date.toISOString().substring(0, 10);
   }
-// --- ADDED: Variable to store filtered leads ---
-filteredLeads: any[] = [];
 
-// --- ADDED: Search logic for Lead No ---
-onLeadNoSearch(event: Event): void {
-  const value = (event.target as HTMLInputElement).value.toLowerCase();
+  onLeadNoSearch(event: Event): void {
+    const value = (event.target as HTMLInputElement).value.toLowerCase();
+    if (!value) {
+      this.filteredLeads = [];
+      return;
+    }
+    this.filteredLeads = this.leads.filter(lead => lead.leadNo.toLowerCase().includes(value));
+  }
 
-  if (!value) {
+  selectLead(lead: any): void {
+    this.leadForm.patchValue({
+      leadNo: lead.leadNo,
+      type: lead.type,
+      source: lead.leadSource,
+      salesProcess: lead.salesProcess,
+      salesCoordinator: lead.salesCoordinator,
+      branch: lead.branch,
+      date: this.toISODate(new Date(lead.date)),
+      expectedValidity: this.toISODate(new Date(lead.expectedValidity)),
+      salesStage: lead.salesStage,
+      reportingManager: lead.reportingManager,
+      hod: lead.hod,
+      team: lead.team,
+      organization: lead.organizationName,
+      location: lead.location,
+      area: lead.area
+    });
     this.filteredLeads = [];
-    return;
   }
 
-  // leads array mein se search karo
-  this.filteredLeads = this.leads.filter(lead =>
-    
-    lead.leadNo.toLowerCase().includes(value)
-  );
-}
-
-// --- ADDED: Selection logic for Lead No ---
-selectLead(lead: any): void {
-  // Form ko select ki gayi lead ki values se update karo
-  this.leadForm.patchValue({
-    leadNo: lead.leadNo,
-    type: lead.type,
-    source: lead.leadSource,
-    salesProcess: lead.salesProcess,
-    salesCoordinator: lead.salesCoordinator,
-    branch: lead.branch,
-    date: this.toISODate(new Date(lead.date)),
-    expectedValidity: this.toISODate(new Date(lead.expectedValidity)),
-    salesStage: lead.salesStage,
-    reportingManager: lead.reportingManager,
-    hod: lead.hod,
-    team: lead.team,
-    organization: lead.organizationName,
-    location: lead.location,
-    area: lead.area
-  });
-
-  // Dropdown list ko band karo
-  this.filteredLeads = [];
-}
-// --- ADDED: Variables for filtering Sales Stages ---
-filteredSalesStages: any[] = [];
-
-
-// --- ADDED: Search logic for Sales Stage ---
-onSalesStageSearch(event: Event): void {
-  const value = (event.target as HTMLInputElement).value.toLowerCase();
-  
-  if (!value) {
-    this.filteredSalesStages = [];
-    return;
-  }
-  
-  // salesStages array mein se search karo
-  this.filteredSalesStages = this.salesStages.filter(stage =>
-    stage.toLowerCase().includes(value)
-  );
-}
-
-// --- ADDED: Selection logic for Sales Stage ---
-selectSalesStage(stage: string): void {
-  // Form ko select kiye gaye stage se update karo
-  this.leadForm.patchValue({
-    salesStage: stage
-  });
-  
-  // Dropdown list ko band karo
-  this.filteredSalesStages = []; 
-}
-// --- ADDED: Variables for filtering Dates ---
-filteredDates: string[] = [];
-allDates: string[] = []; // Saari leads ki dates yahan store hongi
-
-// --- ADDED: Load dates from leads ---
-loadLeadDates(): void {
-  // leads array se saari unique dates nikal lo aur format karo
-  this.allDates = [...new Set(this.leads.map(lead => this.toISODate(new Date(lead.date))))];
-}
-
-// --- ADDED: Selection logic for Date ---
-selectDate(date: string): void {
-  // Form ko select ki gayi date se update karo
-  this.leadForm.patchValue({
-    date: date
-  });
-
-  // Dropdown list ko band karo
-  this.filteredDates = [];
-}
-onSave() {
-  const rawValue = this.leadForm.getRawValue();
-
-  // 1. Zod Validation
-  const validation = leadSchema.safeParse(rawValue);
-  if (!validation.success) {
-    const errors = validation.error.flatten().fieldErrors;
-    Object.keys(errors).forEach((field: string) => {
-      const control = this.leadForm.get(field);
-      if (control) {
-        control.setErrors({ zod: errors[field as keyof typeof errors]?.[0] });
-      }
-    });
-    Swal.fire({
-      icon: 'error',
-      title: 'Validation Failed',
-      text: 'Please fix the error input fields!',
-    });
-    return;
+  onSalesStageSearch(event: Event): void {
+    const value = (event.target as HTMLInputElement).value.toLowerCase();
+    if (!value) {
+      this.filteredSalesStages = [];
+      return;
+    }
+    this.filteredSalesStages = this.salesStages.filter(stage => stage.toLowerCase().includes(value));
   }
 
-  // 2. OrganisationId Fix
-  const orgIdValue = this.OrganisationId || rawValue.organizationId;
-  const finalOrgId = (orgIdValue && orgIdValue !== "") ? Number(orgIdValue) : null;
-
-  // 3. Payload Build
-  const payload: any = {
-    LeadNo: this.isEditMode ? rawValue.leadNo : this.nextLeadNo,
-    Date: rawValue.date ? new Date(rawValue.date).toISOString() : null,
-    ExpectedValidity: rawValue.expectedValidity ? new Date(rawValue.expectedValidity).toISOString() : null,
-    Type: rawValue.type,
-    LeadOwner: String(rawValue.leadOwner || ""),
-    LeadSource: String(rawValue.source || ""),
-    SalesProcess: rawValue.salesProcess,
-    SalesCoordinator: String(rawValue.salesCoordinator || ""),
-    SalesStage: String(rawValue.salesStage || ""),
-    Branch: String(rawValue.branch || ""),
-    ReportingManager: String(rawValue.reportingManager || ""),
-    Team: rawValue.team,
-    HOD: String(rawValue.hod || ""),
-    Location: rawValue.location,
-    Area: rawValue.area,
-    OrganizationName: rawValue.organization || rawValue.organizationName,
-    organizationId: finalOrgId 
-  };
-
-  const token = localStorage.getItem('cavalier_token');
-  const headers = { Authorization: `Bearer ${token}` };
-
-  if (this.isEditMode && this.selectedLeadId) {
-    // ==================== UPDATE (PUT) ====================
-    this.http.put(`${environment.apiUrl}/Leads/${this.selectedLeadId}`, payload, { headers })
-      .subscribe({
-        next: () => {
-          Swal.fire({
-            icon: 'success',
-            title: 'Updated!',
-            text: 'Lead Updated Successfully!',
-            timer: 2000
-          });
-          this.resetFormAfterSave();
-          this.OrganisationId = null;
-        },
-        error: (err) => {
-          console.error("Update Error:", err);
-          Swal.fire({
-            icon: 'error',
-            title: 'Update Failed',
-            text: err.error?.message || 'Something went wrong during update!'
-          });
-        }
-      });
-
-  } else {
-    // ==================== CREATE (POST) ====================
-    this.http.post(`${environment.apiUrl}/Leads`, payload, { headers })
-      .subscribe({
-        next: () => {
-          Swal.fire({
-            icon: 'success',
-            title: 'Created!',
-            text: 'Lead Created Successfully!',
-            timer: 2000
-          });
-          this.resetFormAfterSave();
-          this.OrganisationId = null;
-        },
-        error: (err) => {
-          console.error("Create Error:", err);
-          // Yahan backend se aane wala duplicate organization ka message dikhega
-          Swal.fire({
-            icon: 'error',
-            title: 'Create Failed',
-            text: err.error?.message || 'Failed to create lead!'
-          });
-        }
-      });
-  }
-}
-resetFormAfterSave() {
-  this.isFormOpen = false;
-  this.isEditMode = false;
-  this.selectedLeadId = null;
-  this.leadForm.reset();
-  this.nextLeadNo = '';
-  
-  this.initForm();        // Default values reset karne ke liye
-   this.onLeadSearch();               // Turant search trigger (Jaise Inq/Quo mein hota hai)
-       // Table refresh
-}
-clearFilters() {
-  this.leadForm.reset();
-;// normal GET API call
-}
-
-onOrgSearchForFilters(event: Event): void {
-  const value = (event.target as HTMLInputElement).value.toLowerCase();
-
-  // 1. Agar input khali hai, toh dropdown aur table reset karein
-  if (!value) {
-    this.filteredOrganizations = [];
-    this.loadLeads(); // Table wapas load karein
-    return;
+  selectSalesStage(stage: string): void {
+    this.leadForm.patchValue({ salesStage: stage });
+    this.filteredSalesStages = []; 
   }
 
-  // 2. Sirf dropdown suggestions filter karein, API call na karein yahan
-  this.filteredOrganizations = this.organizations.filter(org =>
-    org.orgName.toLowerCase().includes(value)
-  );
-}
-
-// --- ADDED: Method for selection in search form ---
-selectOrgForFilters(org: any): void {
-  // 1. --- CHANGED: Direct control access for faster update ---
-  this.searchForm.controls['organizationName'].setValue(org.orgName);
-  console.log("Selected Organization for Filter:", org.orgName);
-
-  // 2. Dropdown suggestions ko khali karein
-  this.filteredOrganizations = [];
-
-  // --- ADDED: Force Angular to update UI immediately ---
-  this.cdr.detectChanges();
-
-  // 3. API Call to filter table immediately
-  this.filterTableByOrganization(org.orgName);
-}
-
-// --- ADDED: Method to call search API for filtering table ---
-filterTableByOrganization(orgName: string) {
-  this.http.get<any[]>(`${environment.apiUrl}/Leads/search-leads`, {
-    params: { organizationName: orgName }
-  })
-  .subscribe(res => {
-    this.leads = res; // Main table update ho jayegi
-  });
-}
-// Lead No ke liye variables
-isLNModalOpen: boolean = false;
-modalLNSearchText: string = '';
-allLNList: any[] = [];         // API se aane wala sara data
-allLNFiltered: any[] = [];     // Modal mein dikhne wala filtered data
-// filteredLeads: any[] = [];     // Input ke niche dikhne wala dropdown data
-// ... rest of the code
-// // --- ADDED: Method for input event in Lead No search bar ---
-
-
-// --- Variables ---
-filteredTeams: any[] = []; // Search results ke liye
-
-// 1. Team Search Logic (3 characters threshold)
-onTeamSearch(event: Event): void {
-  const value = (event.target as HTMLInputElement).value.toLowerCase().trim();
-
-  // 🔥 3 characters condition
-  if (!value || value.length < 3) {
-    this.filteredTeams = [];
-    return;
+  loadLeadDates(): void {
+    this.allDates = [...new Set(this.leads.map(lead => this.toISODate(new Date(lead.date))))];
   }
 
-  // teamList se filter karein (Jo backend se aayi hai)
-  // Note: Agar teamList strings ki array hai toh 't.teamName' hata kar sirf 't' likhein
-  this.filteredTeams = this.teamList.filter(t => {
-    const teamName = (t.teamName || t.name || t || '').toString().toLowerCase();
-    return teamName.includes(value);
-  });
-}
-
-// 2. Selection Logic
-selectTeam(team: any): void {
-  // Agar team object hai toh team.teamName, agar string hai toh direct team
-  const selectedName = team.teamName || team.name || team;
-  
-  this.leadSearchFilters.team = selectedName; // Object property update
-  this.filteredTeams = [];                    // Dropdown band
-  this.cdr.detectChanges();
-}
-
-
-// selectLeadForFilters(lead: any): void {
-//   // 1. Update search form control
-//   this.searchForm.controls['leadNo'].setValue(lead.leadNo);
-
-// --- ADDED: Method for input event in Sales Stage search bar ---
-onSalesStageSearchForFilters(event: Event): void {
-  const value = (event.target as HTMLInputElement).value.toLowerCase();
-
-  if (!value) {
-    this.filteredSalesStages = [];
-    this.loadLeads(); // Reset table
-    return;
-  }
-
-  // Filter dropdown suggestions from the predefined salesStages array
-  this.filteredSalesStages = this.salesStages.filter(stage =>
-    stage.toLowerCase().includes(value)
-  );
-}
-
-// --- ADDED: Method for selection in Sales Stage search bar ---
-selectSalesStageForFilters(stage: string): void {
-  // 1. Update search form control
-  this.searchForm.controls['salesStage'].setValue(stage);
-
-  // 2. Hide dropdown
-  this.filteredSalesStages = [];
-
-  // 3. --- Force UI update ---
-  this.cdr.detectChanges();
-
-  // 4. API Call to filter table immediately
-  this.filterTableBySalesStage(stage);
-}
-
-// --- ADDED: Method to call search API for Table ---
-filterTableBySalesStage(stage: string) {
-  this.http.get<any[]>(`${environment.apiUrl}/Leads/search-leads`, {
-    params: { salesStage: stage }
-  })
-  .subscribe(res => {
-    this.leads = res; // Update table
-  });
-}
-// --- ADDED: Array to store filtered processes ---
-filteredSalesProcesses: string[] = [];
-
-// --- ADDED: Array to store all available processes (load this on init) ---
-allSalesProcesses: string[] = ['Process A', 'Process B', 'Process C']; // Replace with actual API data
-
-// --- ADDED: Method for input event in Sales Process search bar ---
-onSalesProcessSearchForFilters(event: Event): void {
-  const value = (event.target as HTMLInputElement).value.toLowerCase();
-
-  if (!value) {
-    this.filteredSalesProcesses = [];
-    this.loadLeads(); // Reset table
-    return;
-  }
-
-  // Filter dropdown suggestions from allSalesProcesses array
-  this.filteredSalesProcesses = this.allSalesProcesses.filter(process =>
-    process.toLowerCase().includes(value)
-  );
-}
-
-// --- ADDED: Method for selection in Sales Process search bar ---
-selectSalesProcessForFilters(process: string): void {
-  // 1. Update search form control
-  this.searchForm.controls['salesProcess'].setValue(process);
-
-  // 2. Hide dropdown
-  this.filteredSalesProcesses = [];
-
-  // 3. --- Force UI update ---
-  this.cdr.detectChanges();
-
-  // 4. API Call to filter table immediately
-  this.filterTableBySalesProcess(process);
-}
-
-// --- ADDED: Method to call search API for Table ---
-filterTableBySalesProcess(process: string) {
-  this.http.get<any[]>(`${environment.apiUrl}/Leads/search-leads`, {
-    params: { salesProcess: process }
-  })
-  .subscribe(res => {
-    this.leads = res; // Update table
-  });
-}
-// Component ke upar define karein
-// Search Filters ka main object
-leadSearchFilters = {
-  date: "",
-  organizationName: '',
-  type: 'Any',
-  leadNo: '',
-  salesProcess: '',
-  salesStage: '',
-  branch: '',
-  leadOwner: 'Any',hod: '',
-  team: '',
-  reportingManager: '',
-  status: 'Any'
-
-};
-// Dropdown lists for suggestions
-leadNoList: string[] = [];
-leadOrgList: string[] = [];
-leadOwnerList: string[] = [];
-
-// Date select karne par filter trigger ho
-// Date select karne ke liye unique function
-selectLeadDate(date: any): void {
-  this.leadSearchFilters.date = date; // Object update (string value set ho jayegi)
-  this.filteredDates = [];           // Dropdown suggestions band
-  this.onLeadSearch();               // Turant search trigger (Jaise Inq/Quo mein hota hai)
-}
-
-// Date search logic (Saari leads ki unique dates mein se filter)
-onDateSearch(event: Event): void {
-  const value = (event.target as HTMLInputElement).value;
-  if (!value) {
+  selectDate(date: string): void {
+    this.leadForm.patchValue({ date: date });
     this.filteredDates = [];
-    return;
   }
-  // allDates hum loadLeads() ke waqt fill kar lenge
-  this.filteredDates = this.allDates.filter(d => d.includes(value));
-}
 
-// 1. Dropdown filter karne ke liye (Same rahega)
-onLeadOrgSearch(event: Event): void {
-  const value = (event.target as HTMLInputElement).value.toLowerCase();
-  
-  // 🔥 Logic: 3 letter se kam hone par list khali kar do aur function rok do
-  if (!value || value.length < 4) {
+  onSave() {
+    const rawValue = this.leadForm.getRawValue();
+    const validation = leadSchema.safeParse(rawValue);
+    if (!validation.success) {
+      const errors = validation.error.flatten().fieldErrors;
+      Object.keys(errors).forEach((field: string) => {
+        const control = this.leadForm.get(field);
+        if (control) control.setErrors({ zod: errors[field as keyof typeof errors]?.[0] });
+      });
+      Swal.fire({ icon: 'error', title: 'Validation Failed', text: 'Please fix the error input fields!' });
+      return;
+    }
+
+    const orgIdValue = this.OrganisationId || rawValue.organizationId;
+    const finalOrgId = (orgIdValue && orgIdValue !== "") ? Number(orgIdValue) : null;
+
+    const payload: any = {
+      LeadNo: this.isEditMode ? rawValue.leadNo : this.nextLeadNo,
+      Date: rawValue.date ? new Date(rawValue.date).toISOString() : null,
+      ExpectedValidity: rawValue.expectedValidity ? new Date(rawValue.expectedValidity).toISOString() : null,
+      Type: rawValue.type,
+      LeadOwner: String(rawValue.leadOwner || ""),
+      LeadSource: String(rawValue.source || ""),
+      SalesProcess: rawValue.salesProcess,
+      SalesCoordinator: String(rawValue.salesCoordinator || ""),
+      SalesStage: String(rawValue.salesStage || ""),
+      Branch: String(rawValue.branch || ""),
+      ReportingManager: String(rawValue.reportingManager || ""),
+      Team: rawValue.team,
+      HOD: String(rawValue.hod || ""),
+      Location: rawValue.location,
+      Area: rawValue.area,
+      OrganizationName: rawValue.organization || rawValue.organizationName,
+      organizationId: finalOrgId 
+    };
+
+    const token = localStorage.getItem('cavalier_token');
+    const headers = { Authorization: `Bearer ${token}` };
+
+    if (this.isEditMode && this.selectedLeadId) {
+      this.http.put(`${environment.apiUrl}/Leads/${this.selectedLeadId}`, payload, { headers }).subscribe({
+        next: () => {
+          Swal.fire({ icon: 'success', title: 'Updated!', text: 'Lead Updated Successfully!', timer: 2000 });
+          this.resetFormAfterSave();
+          this.OrganisationId = null;
+        },
+        error: (err) => Swal.fire({ icon: 'error', title: 'Update Failed', text: err.error?.message || 'Something went wrong!' })
+      });
+    } else {
+      this.http.post(`${environment.apiUrl}/Leads`, payload, { headers }).subscribe({
+        next: () => {
+          Swal.fire({ icon: 'success', title: 'Created!', text: 'Lead Created Successfully!', timer: 2000 });
+          this.resetFormAfterSave();
+          this.OrganisationId = null;
+        },
+        error: (err) => Swal.fire({ icon: 'error', title: 'Create Failed', text: err.error?.message || 'Failed to create lead!' })
+      });
+    }
+  }
+
+  resetFormAfterSave() {
+    this.isFormOpen = false;
+    this.isEditMode = false;
+    this.selectedLeadId = null;
+    this.leadForm.reset();
+    this.nextLeadNo = '';
+    this.initForm();        
+    this.onLeadSearch();               
+  }
+
+  clearFilters() {
+    this.leadForm.reset();
+  }
+
+  onOrgCheckForFilters(event: Event): void {
+    const value = (event.target as HTMLInputElement).value.toLowerCase();
+    if (!value) {
+      this.filteredOrganizations = [];
+      this.loadLeads(); 
+      return;
+    }
+    this.filteredOrganizations = this.organizations.filter(org => org.orgName.toLowerCase().includes(value));
+  }
+
+  selectOrgForFilters(org: any): void {
+    this.searchForm.controls['organizationName'].setValue(org.orgName);
     this.filteredOrganizations = [];
-    return;
+    this.cdr.detectChanges();
+    this.filterTableByOrganization(org.orgName);
   }
 
-  // 3 letters pure hone par hi filter chalega
-  this.filteredOrganizations = this.organizations.filter(org =>
-    org.orgName.toLowerCase().includes(value)
-  );
-}
-
-
-
-
-
-// --- ADDED: Date Shortcut Logic for Lead Form ---
-setLeadQuickDate(type: string) {
-  const today = new Date();
-  let targetDate = new Date();
-
-  switch (type) {
-    case 'tomorrow': targetDate.setDate(today.getDate() + 1); break;
-    case 'yesterday': targetDate.setDate(today.getDate() - 1); break;
-    case 'nextWeek': targetDate.setDate(today.getDate() + 7); break;
-    case 'lastWeek': targetDate.setDate(today.getDate() - 7); break;
-    case 'nextMonth': targetDate.setMonth(today.getMonth() + 1); break;
-    case 'lastMonth': targetDate.setMonth(today.getMonth() - 1); break;
-    default: targetDate = today; // Today
+  filterTableByOrganization(orgName: string) {
+    this.http.get<any[]>(`${environment.apiUrl}/Leads/search-leads`, { params: { organizationName: orgName } }).subscribe(res => this.leads = res);
   }
 
-  const year = targetDate.getFullYear();
-  const month = String(targetDate.getMonth() + 1).padStart(2, '0');
-  const day = String(targetDate.getDate()).padStart(2, '0');
-  const formattedDate = `${year}-${month}-${day}`;
+  onTeamSearch(event: Event): void {
+    const value = (event.target as HTMLInputElement).value.toLowerCase().trim();
+    if (!value || value.length < 3) {
+      this.filteredTeams = [];
+      return;
+    }
+    this.filteredTeams = this.teamList.filter(t => {
+      const teamName = (t.teamName || t.name || t || '').toString().toLowerCase();
+      return teamName.includes(value);
+    });
+  }
 
-  // 1. Form mein value set karo
-  this.leadForm.patchValue({ date: formattedDate });
+  selectTeam(team: any): void {
+    const selectedName = team.teamName || team.name || team;
+    this.leadSearchFilters.team = selectedName; 
+    this.filteredTeams = [];                    
+    this.cdr.detectChanges();
+  }
 
-  // 2. 🔥 Filters object ko bhi update karo taaki search function ise utha sake
-  this.leadSearchFilters.date = formattedDate;
+  onSalesStageSearchForFilters(event: Event): void {
+    const value = (event.target as HTMLInputElement).value.toLowerCase();
+    if (!value) {
+      this.filteredSalesStages = [];
+      this.loadLeads(); 
+      return;
+    }
+    this.filteredSalesStages = this.salesStages.filter(stage => stage.toLowerCase().includes(value));
+  }
 
-  this.showCustomPicker = false; 
-  this.cdr.detectChanges();      
+  selectSalesStageForFilters(stage: string): void {
+    this.searchForm.controls['salesStage'].setValue(stage);
+    this.filteredSalesStages = [];
+    this.cdr.detectChanges();
+    this.filterTableBySalesStage(stage);
+  }
 
-  // 3. 🔥 Click karte hi search trigger karo
-  this.onLeadSearch();
-}
+  filterTableBySalesStage(stage: string) {
+    this.http.get<any[]>(`${environment.apiUrl}/Leads/search-leads`, { params: { salesStage: stage } }).subscribe(res => this.leads = res);
+  }
 
+  onSalesProcessSearchForFilters(event: Event): void {
+    const value = (event.target as HTMLInputElement).value.toLowerCase();
+    if (!value) {
+      this.filteredSalesProcesses = [];
+      this.loadLeads(); 
+      return;
+    }
+    this.filteredSalesProcesses = this.allSalesProcesses.filter(process => process.toLowerCase().includes(value));
+  }
 
+  selectSalesProcessForFilters(process: string): void {
+    this.searchForm.controls['salesProcess'].setValue(process);
+    this.filteredSalesProcesses = [];
+    this.cdr.detectChanges();
+    this.filterTableBySalesProcess(process);
+  }
 
+  filterTableBySalesProcess(process: string) {
+    this.http.get<any[]>(`${environment.apiUrl}/Leads/search-leads`, { params: { salesProcess: process } }).subscribe(res => this.leads = res);
+  }
 
+  selectLeadDate(date: any): void {
+    this.leadSearchFilters.date = date; 
+    this.filteredDates = [];           
+    this.onLeadSearch();               
+  }
 
+  onDateSearch(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    if (!value) {
+      this.filteredDates = [];
+      return;
+    }
+    this.filteredDates = this.allDates.filter(d => d.includes(value));
+  }
 
+  onLeadOrgSearch(event: Event): void {
+    const value = (event.target as HTMLInputElement).value.toLowerCase();
+    if (!value || value.length < 4) {
+      this.filteredOrganizations = [];
+      return;
+    }
+    this.filteredOrganizations = this.organizations.filter(org => org.orgName.toLowerCase().includes(value));
+  }
 
+  setLeadQuickDate(type: string) {
+    const today = new Date();
+    let targetDate = new Date();
+    switch (type) {
+      case 'tomorrow': targetDate.setDate(today.getDate() + 1); break;
+      case 'yesterday': targetDate.setDate(today.getDate() - 1); break;
+      case 'nextWeek': targetDate.setDate(today.getDate() + 7); break;
+      case 'lastWeek': targetDate.setDate(today.getDate() - 7); break;
+      case 'nextMonth': targetDate.setMonth(today.getMonth() + 1); break;
+      case 'lastMonth': targetDate.setMonth(today.getMonth() - 1); break;
+      default: targetDate = today;
+    }
+    const formattedDate = `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, '0')}-${String(targetDate.getDate()).padStart(2, '0')}`;
+    this.leadForm.patchValue({ date: formattedDate });
+    this.leadSearchFilters.date = formattedDate;
+    this.showCustomPicker = false; 
+    this.cdr.detectChanges();      
+    this.onLeadSearch();
+  }
 
-// 2. Dropdown se select karne par (Ab SEARCH CALL NAHI HOGA)
-selectLeadOrg(org: any): void {
-  this.leadSearchFilters.organizationName = org.orgName; // Bas value update hogi
-  this.filteredOrganizations = [];                      // Dropdown band hoga
-  // Yahan se this.onLeadSearch() hata diya gaya hai taaki auto-search na ho
-}
-// 1. Dropdown filter logic (Custom Div style)
+  selectLeadOrg(org: any): void {
+    this.leadSearchFilters.organizationName = org.orgName; 
+    this.filteredOrganizations = [];                      
+  }
 
-
-// Selection logic
-
-// --- Is function ko class ke andar kahin bhi paste kar dein ---
-
-// --- Variables (Aapke paas pehle se honge, bas check kar lein) ---
-// filteredLeadOwners: string[] = []; 
-
-// 1. Search Logic for Lead Owner
-
-
-// 2. Selection Logic
-
-loadLeadSuggestions() {
-  this.http.get<any[]>(`${environment.apiUrl}/Leads`)
-    .subscribe({
+  loadLeadSuggestions() {
+    this.http.get<any[]>(`${environment.apiUrl}/Leads`).subscribe({
       next: (data) => {
         if (Array.isArray(data)) {
-          // 1. Lead Numbers
           this.leadNoList = [...new Set(data.map(l => l.leadNo).filter(val => val))];
-          // 2. Organizations
           this.leadOrgList = [...new Set(data.map(l => l.organizationName).filter(val => val))];
-          // 3. Owners
           this.leadOwnerList = [...new Set(data.map(l => l.leadOwner).filter(val => val))];
-          // 4. Sales Processes
           this.allSalesProcesses = [...new Set(data.map(l => l.salesProcess).filter(val => val))];
-
-          // 🔥 FIXED: HOD unique list load karna zaroori hai suggestions ke liye
-          this.hodUniqueList = [...new Set(data
-            .map(l => l.hod)
-            .filter(val => val && val.toString().trim() !== '')
-          )];
-          // loadLeadSuggestions function ke andar ye add karein:
-this.managerUniqueList = [...new Set(data
-  .map(l => l.reportingManager || l.ReportingManager)
-  .filter(val => val && val.toString().trim() !== '')
-)];
-
-          console.log("✅ HOD Unique List Loaded:", this.hodUniqueList);
-          console.log("✅ owner Unique List Loaded:", this.leadOwnerList);
+          this.hodUniqueList = [...new Set(data.map(l => l.hod).filter(val => val && val.toString().trim() !== ''))];
+          this.managerUniqueList = [...new Set(data.map(l => l.reportingManager || l.ReportingManager).filter(val => val && val.toString().trim() !== ''))];
           this.cdr.detectChanges(); 
         }
-      },
-      error: (err) => console.error("Leads Suggestions Fetch Error:", err)
+      }
     }); 
-}
-// 2. Variables for suggestions
-filteredManagers: string[] = [];
-// Aapki leads se nikali hui master list (loadLeadSuggestions mein bhari jayegi)
-managerUniqueList: string[] = []; 
+  }
 
-// 3. Reporting Manager Search Logic
-onManagerSearch(event: Event): void {
-  const value = (event.target as HTMLInputElement).value.toLowerCase().trim();
+  onManagerSearch(event: Event): void {
+    const value = (event.target as HTMLInputElement).value.toLowerCase().trim();
+    if (!value || value.length < 3) {
+      this.filteredManagers = [];
+      return;
+    }
+    this.filteredManagers = this.managerUniqueList.filter(m => m.toLowerCase().includes(value));
+  }
 
-  if (!value || value.length < 3) {
+  selectManager(managerName: string): void {
+    this.leadSearchFilters.reportingManager = managerName;
     this.filteredManagers = [];
-    return;
+    this.cdr.detectChanges();
   }
 
-  // Filter from master list
-  this.filteredManagers = this.managerUniqueList.filter(m =>
-    m.toLowerCase().includes(value)
-  );
-}
+  onStatusSearch(event: Event): void {
+    const value = (event.target as HTMLInputElement).value.toLowerCase().trim();
+    if (!value || value.length < 3) {
+      this.filteredStatusSuggestions = [];
+      return;
+    }
+    this.filteredStatusSuggestions = this.statusList.filter(s => s.toLowerCase().includes(value));
+  }
 
-// 4. Selection Logic
-selectManager(managerName: string): void {
-  this.leadSearchFilters.reportingManager = managerName;
-  this.filteredManagers = [];
-  this.cdr.detectChanges();
-}
-// 1. Dropdown se select karte waqt sirf value set karo, search mat chalao
-
-filteredStatusSuggestions: string[] = [];
-// Predefined list (Kyunki status aksar fixed hote hain)
-statusList: string[] = ['Inquiry Received', 'Qualified', 'Proposal Sent', 'Sales Closed', 'Lost'];
-
-// 3. Search Logic (3 characters ke baad)
-onStatusSearch(event: Event): void {
-  const value = (event.target as HTMLInputElement).value.toLowerCase().trim();
-
-  if (!value || value.length < 3) {
+  selectStatus(status: string): void {
+    this.leadSearchFilters.salesStage = status;
     this.filteredStatusSuggestions = [];
-    return;
+    this.cdr.detectChanges();
   }
 
-  this.filteredStatusSuggestions = this.statusList.filter(s =>
-    s.toLowerCase().includes(value)
-  );
-}
+  onLeadSearch() {
+    this.showTable = true;
+    const searchInput = this.leadSearchFilters.leadNo?.toString().trim();
+    let rawDate = this.leadForm.get('date')?.value || this.leadSearchFilters.date || ""; 
 
-// 4. Selection Logic
-selectStatus(status: string): void {
-  this.leadSearchFilters.salesStage = status;
-  this.filteredStatusSuggestions = [];
-  this.cdr.detectChanges();
-}
-// // 2. Main Search Button Function
-// onLeadSearch() {
-//   // 1. Pehle search Input lo
-//   const searchInput = this.leadSearchFilters.leadNo?.toString().trim();
-  
-//   // 2. Date ko Form se uthao
-//   let searchDate = this.leadForm.get('date')?.value || this.leadSearchFilters.date || ""; 
+    const today = new Date();
+    const todayFormatted = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`; 
+    let searchDate = rawDate;
 
-//   // --- 🔥 Logic: Agar Date "Aaj" ki hai, toh use empty kar do ---
-//   const today = new Date();
-//   const year = today.getFullYear();
-//   const month = String(today.getMonth() + 1).padStart(2, '0');
-//   const day = String(today.getDate()).padStart(2, '0');
-//   const todayFormatted = `${year}-${month}-${day}`; 
+    if (searchDate === todayFormatted) {
+      searchDate = ""; 
+    }
 
-//   if (searchDate === todayFormatted) {
-//     console.log("📅 Today's date detected, sending empty to show all data.");
-//     searchDate = ""; 
-//   }
+    let filtersToSend: any = {};
+    if (searchInput && searchInput !== "") {
+      filtersToSend = {
+        LeadNo: searchInput, OrganizationName: '', Type: '', LeadOwner: '', SalesStage: '', SalesProcess: '', HOD: '', Team: '', Branch: '', ReportingManager: '', Status: '', Date: '' 
+      };
+    } else {
+      filtersToSend = {
+        LeadNo: '',
+        OrganizationName: this.leadSearchFilters.organizationName || "",
+        Type: this.leadSearchFilters.type === 'Any' ? "" : this.leadSearchFilters.type,
+        LeadOwner: this.leadSearchFilters.leadOwner === 'Any' ? "" : this.leadSearchFilters.leadOwner,
+        SalesStage: this.leadSearchFilters.salesStage || "",
+        SalesProcess: this.leadSearchFilters.salesProcess || "",
+        HOD: this.leadSearchFilters.hod || "",
+        Team: this.leadSearchFilters.team || "",
+        Branch: this.leadSearchFilters.branch || "", 
+        ReportingManager: this.leadSearchFilters.reportingManager || "",
+        Status: (this.leadSearchFilters.status === 'Any' || !this.leadSearchFilters.status) ? "" : this.leadSearchFilters.status.toString().toLowerCase(),
+        Date: searchDate 
+      };
+    }
 
-//   let filtersToSend: any = {};
-
-//   if (searchInput && searchInput !== "") {
-//     // 🎯 Priority Search: Agar LeadNo hai toh baaki sab empty
-//     filtersToSend = {
-//       LeadNo: searchInput,
-//       OrganizationName: '',
-//       Type: '',
-//       LeadOwner: '',
-//       SalesStage: '',
-//       SalesProcess: '',
-//       HOD: '',
-//       Team: '',
-//       Branch: '', 
-//       ReportingManager: '',
-//       Status: '',
-//       Date: '' 
-//     };
-//     console.log("🎯 Hard Searching for Lead No only:", searchInput);
-//   } else {
-//     // 🔍 Multi-Filter Search
-//     filtersToSend = {
-//       LeadNo: '',
-//       OrganizationName: this.leadSearchFilters.organizationName || "",
-//       Type: this.leadSearchFilters.type === 'Any' ? "" : this.leadSearchFilters.type,
-//       LeadOwner: this.leadSearchFilters.leadOwner === 'Any' ? "" : this.leadSearchFilters.leadOwner,
-//       SalesStage: this.leadSearchFilters.salesStage || "",
-//       SalesProcess: this.leadSearchFilters.salesProcess || "",
-//       HOD: this.leadSearchFilters.hod || "",
-//       Team: this.leadSearchFilters.team || "",
-//       Branch: this.leadSearchFilters.branch || "", 
-//       ReportingManager: this.leadSearchFilters.reportingManager || "",
-      
-//       // 🔥 FIX: 'Status' (Capital S) backend ke liye hai, 'status' (Small s) tere frontend object ke liye
-//       Status: (this.leadSearchFilters.status === 'Any' || !this.leadSearchFilters.status) 
-//                ? "" 
-//                : this.leadSearchFilters.status.toString().toLowerCase(),
-      
-//       Date: searchDate 
-//     };
-//     console.log("🔍 Normal Filter Search Triggered with Branch:", this.leadSearchFilters.branch);
-//   }
-
-//   // --- API Call ---
-//   const token = localStorage.getItem('cavalier_token');
-//   const headers = { 'Authorization': `Bearer ${token}` };
-
-//   this.http.post<any[]>(`${environment.apiUrl}/Leads/Search`, filtersToSend, { headers })
-//     .subscribe({
-//       next: (response) => {
-//         let results = response ? [...response] : [];
-        
-//         // Sorting logic
-//         if (searchInput && results.length > 0) {
-//           results.sort((a: any, b: any) => {
-//             const valA = (a.leadNo || a.LeadNo || "").toString().trim();
-//             const valB = (b.leadNo || b.LeadNo || "").toString().trim();
-//             if (valA === searchInput) return -1;
-//             if (valB === searchInput) return 1;
-//             return 0;
-//           });
-//         }
-        
-//         this.leads = results;
-//         this.paginatedLeads = [...results]; 
-//         setTimeout(() => { this.cdr.detectChanges(); }, 0);
-        
-//         if (this.leads.length === 0) {
-//           alert("No data found In db.");
-//         }
-//       },
-//       error: (err) => {
-//         console.error("❌ API Error:", err);
-//         alert("Search failed!");
-//       }
-//     });
-// }
-// 1. Apne class ke variables mein ye add karein
-// showTable: boolean = false; 
-
-// 2. Aapka Function jaisa tha waisa hi hai
-onLeadSearch() {
-  this.showTable = true;
-
-  // 1. LeadNo input
-  const searchInput = this.leadSearchFilters.leadNo?.toString().trim();
-  
-  // 2. Date picking
-  let rawDate = this.leadForm.get('date')?.value || this.leadSearchFilters.date || ""; 
-  console.log("📅 [DEBUG] Original Date from Form/Filter:", rawDate);
-
-  // --- Logic: Check for Today ---
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
-  const todayFormatted = `${year}-${month}-${day}`; 
-
-  let searchDate = rawDate;
-
-  // 🚩 YAHAN DIKKAT HAI: Agar aaj ki date search karni ho, toh ye usey hata deta hai.
-  // Agar tumhe aaj ki search karni hai, toh ye if block hata dena chahiye.
-  if (searchDate === todayFormatted) {
-    console.warn("⚠️ [DEBUG] Today's date detected! Setting to EMPTY string. (Isi wajah se aaj ki search nahi ho rahi)");
-    searchDate = ""; 
-  }
-
-  let filtersToSend: any = {};
-
-  if (searchInput && searchInput !== "") {
-    filtersToSend = {
-      LeadNo: searchInput,
-      OrganizationName: '',
-      Type: '',
-      LeadOwner: '',
-      SalesStage: '',
-      SalesProcess: '',
-      HOD: '',
-      Team: '',
-      Branch: '', 
-      ReportingManager: '',
-      Status: '',
-      Date: '' 
-    };
-    console.log("🎯 [DEBUG] Sending Priority LeadNo Search:", filtersToSend);
-  } else {
-    filtersToSend = {
-      LeadNo: '',
-      OrganizationName: this.leadSearchFilters.organizationName || "",
-      Type: this.leadSearchFilters.type === 'Any' ? "" : this.leadSearchFilters.type,
-      LeadOwner: this.leadSearchFilters.leadOwner === 'Any' ? "" : this.leadSearchFilters.leadOwner,
-      SalesStage: this.leadSearchFilters.salesStage || "",
-      SalesProcess: this.leadSearchFilters.salesProcess || "",
-      HOD: this.leadSearchFilters.hod || "",
-      Team: this.leadSearchFilters.team || "",
-      Branch: this.leadSearchFilters.branch || "", 
-      ReportingManager: this.leadSearchFilters.reportingManager || "",
-      Status: (this.leadSearchFilters.status === 'Any' || !this.leadSearchFilters.status) 
-               ? "" 
-               : this.leadSearchFilters.status.toString().toLowerCase(),
-      Date: searchDate 
-    };
-    console.log("🔍 [DEBUG] Sending Multi-Filter Search:", filtersToSend);
-  }
-
-  const token = localStorage.getItem('cavalier_token');
-  const headers = { 'Authorization': `Bearer ${token}` };
-
-  console.log("🚀 [DEBUG] Final Payload being sent to API:", JSON.stringify(filtersToSend));
-
-  this.http.post<any[]>(`${environment.apiUrl}/Leads/Search`, filtersToSend, { headers })
-    .subscribe({
+    const headers = { 'Authorization': `Bearer ${localStorage.getItem('cavalier_token')}` };
+    this.http.post<any[]>(`${environment.apiUrl}/Leads/Search`, filtersToSend, { headers }).subscribe({
       next: (response) => {
-        console.log("✅ [DEBUG] API Response Count:", response ? response.length : 0);
         let results = response ? [...response] : [];
-        
         if (searchInput && results.length > 0) {
           results.sort((a: any, b: any) => {
             const valA = (a.leadNo || a.LeadNo || "").toString().trim();
@@ -1518,1060 +960,327 @@ onLeadSearch() {
             return 0;
           });
         }
-        
         this.leads = results;
-        this.paginatedLeads = [...results]; 
-        setTimeout(() => { this.cdr.detectChanges(); }, 0);
-        
-        if (this.leads.length === 0) {
-          console.warn("ℹ️ [DEBUG] No leads found for these filters.");
-          alert("No data found In db.");
-        }
+        this.updatePagination();
+        if (this.leads.length === 0) alert("No data found In db.");
       },
-      error: (err) => {
-        console.error("❌ [DEBUG] API Error Details:", err);
-        alert("Search failed!");
-      }
+      error: () => alert("Search failed!")
     });
-}
-// Global Search Function (Filters + Sorting)
-private executeGlobalSearch(targetNo: string | null) {
-  let filters: any = {};
-  
-  // Baaki saare filters load karo
-  if (this.leadSearchFilters.organizationName) filters.organizationName = this.leadSearchFilters.organizationName;
-  if (this.leadSearchFilters.type && this.leadSearchFilters.type !== 'Any') filters.type = this.leadSearchFilters.type;
-  if (this.leadSearchFilters.leadOwner && this.leadSearchFilters.leadOwner !== 'Any') filters.leadOwner = this.leadSearchFilters.leadOwner;
-  if (this.leadSearchFilters.salesProcess) filters.salesProcess = this.leadSearchFilters.salesProcess;
-  if (this.leadSearchFilters.salesStage) filters.salesStage = this.leadSearchFilters.salesStage;
-  if (this.leadSearchFilters.date) filters.date = new Date(this.leadSearchFilters.date).toISOString();
+  }
 
-  this.http.post<any[]>(`${environment.apiUrl}/Leads/Search`, filters)
-    .subscribe({
-      next: (response) => {
-        let results = response || [];
+  onLeadSalesStageSearch(event: Event): void {
+    const value = (event.target as HTMLInputElement).value.toLowerCase();
+    if (!value) {
+      this.filteredSalesStages = [];
+      return;
+    }
+    this.filteredSalesStages = this.salesStages.filter(stage => stage.toLowerCase().includes(value));
+  }
 
-        // Sorting Logic: Agar targetNo match kare toh TOP par
-        if (targetNo && results.length > 0) {
-          const lowerTarget = targetNo.toLowerCase();
-          results.sort((a, b) => {
-            const aNo = a.leadNo?.toString().toLowerCase() || '';
-            const bNo = b.leadNo?.toString().toLowerCase() || '';
-            if (aNo === lowerTarget) return -1;
-            if (bNo === lowerTarget) return 1;
-            return 0;
-          });
-        }
-
-        this.leads = results;
-        this.cdr.detectChanges();
-        console.log("🌐 Global Search complete. Leads sorted by priority.");
-      }
-    });
-}
-// 1. Input filter logic
-onLeadSalesStageSearch(event: Event): void {
-  const value = (event.target as HTMLInputElement).value.toLowerCase();
-  
-  if (!value) {
+  selectLeadSalesStage(stage: string): void {
+    this.leadSearchFilters.salesStage = stage;
     this.filteredSalesStages = [];
-    return;
   }
 
-  // salesStages list (jo loadLeadSuggestions mein bhari gayi thi) se filter karein
-  this.filteredSalesStages = this.salesStages.filter(stage =>
-    stage.toLowerCase().includes(value)
-  );
-}
+  resetLeadFilters() {
+    this.leadSearchFilters = {
+      leadNo: '', date: '', organizationName: '', type: 'Any', leadOwner: 'Any', salesProcess: '', salesStage: '', hod: '', team: '', reportingManager: '', status: 'Any', branch: ''
+    };
+    if (this.leadForm) this.leadForm.patchValue({ date: '', branch: '' });
 
-// 2. Selection logic (Sirf value bharega, search tabhi hoga jab 🔍 click hoga)
-selectLeadSalesStage(stage: string): void {
-  this.leadSearchFilters.salesStage = stage; // UI update
-  this.filteredSalesStages = [];             // Dropdown band
-}
-resetLeadFilters() {
-  // 1. UI ka Object reset karo
-  this.leadSearchFilters = {
-    leadNo: '',
-    date: '', 
-    organizationName: '',
-    type: 'Any',
-    leadOwner: 'Any',
-    salesProcess: '',
-    salesStage: '',
-    hod: '',
-    team: '',
-    reportingManager: '',
-    status: 'Any',
-    branch: ''
-  };
-
-  // 2. Agar Reactive Form use kar rahe ho, toh use bhi reset karo
-  if (this.leadForm) {
-    this.leadForm.patchValue({
-      date: '',
-      branch: ''
-    });
-  }
-
-  // 3. Backend ke liye "Full" Payload bhejo (Jo tumhare API ko chahiye)
-  const resetPayload = {
-    LeadNo: '',
-    OrganizationName: '',
-    Type: '',
-    LeadOwner: '',
-    SalesStage: '',
-    SalesProcess: '',
-    HOD: '',
-    Team: '',
-    Branch: '',     // 👈 Yeh missing tha
-    ReportingManager: '',
-    Status: '',
-    Date: ''        // 👈 Yeh missing tha
-  };
-
-  const token = localStorage.getItem('cavalier_token');
-  const headers = { 'Authorization': `Bearer ${token}` };
-
-  this.http.post<any[]>(`${environment.apiUrl}/Leads/Search`, resetPayload, { headers })
-    .subscribe({
+    const headers = { 'Authorization': `Bearer ${localStorage.getItem('cavalier_token')}` };
+    this.http.post<any[]>(`${environment.apiUrl}/Leads/Search`, { 
+      LeadNo: '', OrganizationName: '', Type: '', LeadOwner: '', SalesStage: '', SalesProcess: '', HOD: '', Team: '', Branch: '', ReportingManager: '', Status: '', Date: '' 
+    }, { headers }).subscribe({
       next: (response) => {
         this.leads = response || [];
-        this.paginatedLeads = [...this.leads];
-        
-        // UI Refresh
-        this.cdr.markForCheck(); 
-        this.cdr.detectChanges();
-        
-        console.log("✅ Filters cleared and table restored.");
-      },
-      error: (err) => {
-        console.error("❌ Reset failed:", err);
+        this.updatePagination();
       }
     });
-}
-// 1. PDF DOWNLOAD LOGIC FOR LEADS
-isExportOpen = false;
-
-
-downloadLeadsPDF() {
-  this.isExportOpen = false;
-
-  // Leads array check (Aapke component mein 'leads' naam ka array hai)
-  if (!this.leads || this.leads.length === 0) {
-    alert("Table mein data nahi hai!");
-    return;
   }
 
-  const doc = new jsPDF('l', 'mm', 'a4');
-  const startX = 10;
-  let startY = 25;
-  const colCount = this.selectedColumns.length;
-  const colWidth = 277 / (colCount || 1);
-
-  // Title
-  doc.setFontSize(16);
-  doc.setTextColor(74, 63, 63);
-  doc.text("LEAD RECORDS SUMMARY", 110, 15);
-
-  // Header Background
-  doc.setFillColor(74, 63, 63);
-  doc.rect(startX, startY, 277, 10, 'F');
-
-  // Header Text
-  doc.setFontSize(7);
-  doc.setTextColor(255, 255, 255);
-
-  this.selectedColumns.forEach((col, i) => {
-    doc.text(col.toUpperCase(), startX + (i * colWidth) + 2, startY + 7);
-  });
-
-  // Table Body
-  doc.setTextColor(0, 0, 0);
-  startY += 10;
-
-  // Loop through 'leads' array
-  this.leads.forEach((l, rowIndex) => {
-    if (startY > 185) {
-      doc.addPage();
-      startY = 20;
-    }
-
-    if (rowIndex % 2 === 0) {
-      doc.setFillColor(245, 245, 245);
-      doc.rect(startX, startY, 277, 8, 'F');
-    }
-
-    this.selectedColumns.forEach((col, colIndex) => {
-      const fieldKey = this.columnFieldMap[col] || col; 
-      let val = l[fieldKey];
-
-      let displayVal = (val !== null && val !== undefined) ? val.toString() : '-';
-      
-      if (displayVal.length > 20) displayVal = displayVal.substring(0, 17) + "...";
-      
-      doc.text(displayVal, startX + (colIndex * colWidth) + 2, startY + 5);
-      
-      doc.setDrawColor(220, 220, 220);
-      doc.line(startX + (colIndex * colWidth), startY, startX + (colIndex * colWidth), startY + 8);
-    });
-
-    doc.line(startX, startY + 8, startX + 277, startY + 8);
-    startY += 8;
-  });
-
-  doc.save(`Leads_Report_${new Date().getTime()}.pdf`);
-}
-
-// 2. PRINT LOGIC FOR LEADS
-printLeads() {
-  this.isExportOpen = false;
-
-  if (!this.leads || this.leads.length === 0) {
-    alert("Print karne ke liye data nahi hai!");
-    return;
-  }
-
-  const activeCols = this.selectedColumns;
-  let tableHeader = `<tr style="background-color: #4a3f3f; color: white;">`;
-  activeCols.forEach(col => {
-    tableHeader += `<th style="padding: 10px; border: 1px solid #ddd; text-align: left; font-size: 12px;">${col}</th>`;
-  });
-  tableHeader += `</tr>`;
-
-  let tableRows = '';
-  this.leads.forEach((l) => {
-    tableRows += `<tr>`;
-    activeCols.forEach(col => {
-      const fieldKey = this.columnFieldMap[col] || col;
-      let val = l[fieldKey] !== null && l[fieldKey] !== undefined ? l[fieldKey] : '-';
-      
-      if (typeof val === 'string' && val.includes('T') && !isNaN(Date.parse(val))) {
-        val = new Date(val).toLocaleDateString('en-GB');
-      }
-      tableRows += `<td style="padding: 8px; border: 1px solid #eee; font-size: 11px;">${val}</td>`;
-    });
-    tableRows += `</tr>`;
-  });
-
-  const printWindow = window.open('', '_blank');
-  if (printWindow) {
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Lead Records Print</title>
-          <style>
-            body { font-family: sans-serif; padding: 20px; }
-            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            h2 { text-align: center; color: #4a3f3f; }
-            .footer { margin-top: 20px; text-align: right; font-size: 10px; color: #666; }
-          </style>
-        </head>
-        <body>
-          <h2>LEAD RECORDS SUMMARY</h2>
-          <p style="text-align: center; font-size: 12px;">Generated on: ${new Date().toLocaleString()}</p>
-          <table>
-            <thead>${tableHeader}</thead>
-            <tbody>${tableRows}</tbody>
-          </table>
-          <div class="footer">Cavalier Logistics - Internal Document</div>
-        </body>
-      </html>
-    `);
-
-    printWindow.document.close();
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 500);
-  }
-}
-downloadLeadsExcel() {
-  // 1. Check karein ki data hai ya nahi
-  if (!this.leads || this.leads.length === 0) {
-    alert("Excel export ke liye table mein data hona zaroori hai!");
-    return;
-  }
-
-  // 2. Data Prepare karein (Sirf selected columns ke basis par)
-  const excelData = this.leads.map(lead => {
-    let row: any = {};
+  downloadLeadsPDF() {
+    this.isExportOpen = false;
+    if (!this.leads || this.leads.length === 0) return;
+    const doc = new jsPDF('l', 'mm', 'a4');
+    const colWidth = 277 / (this.selectedColumns.length || 1);
+    doc.setFontSize(16); doc.text("LEAD RECORDS SUMMARY", 110, 15);
+    doc.setFillColor(74, 63, 63); doc.rect(10, 25, 277, 10, 'F');
+    doc.setFontSize(7); doc.setTextColor(255, 255, 255);
+    this.selectedColumns.forEach((col, i) => doc.text(col.toUpperCase(), 10 + (i * colWidth) + 2, 32));
     
-    // selectedColumns array par loop chalayein (e.g. ['Lead No', 'Organization'])
-    this.selectedColumns.forEach(col => {
-      // columnFieldMap se backend key nikalein (e.g. 'Lead No' -> 'leadNo')
-      const fieldKey = this.columnFieldMap[col] || col;
-      let val = lead[fieldKey];
-
-      // Date formatting check (agar ISO string hai toh readable banayein)
-      if (val && typeof val === 'string' && val.includes('T') && !isNaN(Date.parse(val))) {
-        val = new Date(val).toLocaleDateString('en-GB');
-      }
-
-      // Row mein data set karein
-      row[col] = (val !== null && val !== undefined) ? val : '-';
+    let y = 45;
+    doc.setTextColor(0, 0, 0);
+    this.leads.forEach((l, rIndex) => {
+      if (y > 185) { doc.addPage(); y = 20; }
+      if (rIndex % 2 === 0) { doc.setFillColor(245, 245, 245); doc.rect(10, y - 5, 277, 8, 'F'); }
+      this.selectedColumns.forEach((col, cIndex) => {
+        let val = l[this.columnFieldMap[col]] || '-';
+        doc.text(val.toString().substring(0, 17), 10 + (cIndex * colWidth) + 2, y);
+      });
+      y += 8;
     });
-    
-    return row;
-  });
-
-  // 3. Worksheet aur Workbook banayein
-  const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(excelData);
-  const wb: XLSX.WorkBook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Leads Data');
-
-  // 4. Column width auto-adjust (optional par achha lagta hai)
-  const colWidths = this.selectedColumns.map(() => ({ wch: 20 }));
-  ws['!cols'] = colWidths;
-
-  // 5. File Save karein
-  XLSX.writeFile(wb, `Lead_Report_${new Date().getTime()}.xlsx`);
-  
-  console.log("✅ Excel Downloaded Successfully");
-}
-// --- Pagination Variables ---
-// currentPage: number = 1;
-// pageSize: number = 10; // Default records per page
-// protected readonly Math = Math;
-
-// Computed Property: Table mein isi ko loop karein
-// get paginatedLeads(): any[] {
-//   const startIndex = (this.currentPage - 1) * this.pageSize;
-//   return this.leads.slice(startIndex, startIndex + this.pageSize);
-// }
-
-// Total pages calculate karein
-// get totalPages(): number {
-//   return Math.ceil(this.leads.length / this.pageSize) || 1;
-// }
-
-// Page change handler
-setPage(page: number) {
-  if (page < 1 || page > this.totalPages) return;
-  this.currentPage = page;
-  this.cdr.detectChanges();
-}
-
-// Page size change hone par page 1 par reset karein
-onPageSizeChange() {
-    this.itemsPerPage = Number(this.itemsPerPage); // Option value string ko safe number banayein
-    this.currentPage = 1;                          // Hamesha page 1 par move karein
-    this.updatePagination();                       // Data recreate karein
+    doc.save(`Leads_Report_${Date.now()}.pdf`);
   }
-// Icon Popup ke liye alag variables (Inhe kisi aur logic mein mat use karna)
-iconSearchOrgs: any[] = []; 
-private iconSearchSub?: Subscription;
 
-// 1. Sirf Icon (🔍) click par chalne wala logic
-oniconLeadSearch() {
-  // Agar list pehle se khuli hai toh toggling (band karna)
-  if (this.iconSearchOrgs.length > 0) {
+  printLeads() {
+    this.isExportOpen = false;
+    if (!this.leads || this.leads.length === 0) return;
+    let header = '<tr style="background-color: #4a3f3f; color: white;">';
+    this.selectedColumns.forEach(c => header += `<th style="padding:10px; border:1px solid #ddd;">${c}</th>`);
+    header += '</tr>';
+    let rows = '';
+    this.leads.forEach(l => {
+      rows += '<tr>';
+      this.selectedColumns.forEach(c => {
+        let v = l[this.columnFieldMap[c]] ?? '-';
+        rows += `<td style="padding:8px; border:1px solid #eee;">${v}</td>`;
+      });
+      rows += '</tr>';
+    });
+    const w = window.open('', '_blank');
+    w?.document.write(`<html><body><h2>LEAD RECORDS SUMMARY</h2><table style="width:100%; border-collapse:collapse;"><thead>${header}</thead><tbody>${rows}</tbody></table></body></html>`);
+    w?.document.close();
+    setTimeout(() => { w?.print(); w?.close(); }, 500);
+  }
+
+  downloadLeadsExcel() {
+    if (!this.leads || this.leads.length === 0) return;
+    const data = this.leads.map(lead => {
+      let r: any = {};
+      this.selectedColumns.forEach(c => r[c] = lead[this.columnFieldMap[c]] ?? '-');
+      return r;
+    });
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Leads');
+    XLSX.writeFile(wb, `Lead_Report_${Date.now()}.xlsx`);
+  }
+
+  setPage(page: number) {
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+    this.updatePagination();
+  }
+
+  onPageSizeChange() {
+    this.itemsPerPage = Number(this.itemsPerPage);
+    this.currentPage = 1;
+    this.updatePagination();
+  }
+
+  oniconLeadSearch() {
+    if (this.iconSearchOrgs.length > 0) { this.iconSearchOrgs = []; return; }
+    this.iconSearchSub = this.http.get<any[]>(`${environment.apiUrl}/Leads`).subscribe(res => {
+      const u = [...new Set(res.map(i => i.organizationName))].filter(n => n);
+      this.iconSearchOrgs = u.map(n => ({ orgName: n }));
+    });
+  }
+
+  selectIconOrg(org: any) {
+    this.leadSearchFilters.organizationName = org.orgName;
     this.iconSearchOrgs = [];
-    this.cdr.detectChanges();
-    return;
   }
 
-  this.iconSearchSub?.unsubscribe();
-
-  this.iconSearchSub = this.http.get<any[]>(`${environment.apiUrl}/Leads`).subscribe({
-    next: (res) => {
-      if (res && res.length > 0) {
-        // Strict Uniqueness check using Set
-        const uniqueNames = [...new Set(res.map(item => item.organizationName))]
-          .filter(name => name && name.trim() !== "");
-
-        // Mapping to object as per your HTML requirement
-        this.iconSearchOrgs = uniqueNames.map(name => ({ orgName: name }));
-        
-        this.cdr.detectChanges(); 
-      }
-    },
-    error: (err) => {
-      console.error("Icon Search Error:", err);
-      this.cdr.detectChanges();
-    }
-  });
-}
-
-// 2. Icon wali list se select karne par
-selectIconOrg(org: any) {
-  this.leadSearchFilters.organizationName = org.orgName;
-  this.iconSearchOrgs = []; // Sirf icon wali list band hogi
-  this.cdr.detectChanges();
-}// Variables wahi rahenge
-iconHODList: string[] = []; 
-private hodIconSub?: Subscription;
-
-// 1. 🔍 Icon par click karne wala logic
-// 1. Icon Search (Modal Open + API Call with Authorization)
-oniconHODSearch() {
-  this.isHODModalOpen = true;
-  this.modalHODSearchText = '';
-  this.hodIconSub?.unsubscribe();
-
-  this.hodIconSub = this.http.get<any[]>(`${environment.apiUrl}/Leads`, { 
-    headers: { 'Authorization': `Bearer ${localStorage.getItem('cavalier_token') || ''}` } 
-  }).subscribe({
-    next: (res) => {
-      if (res && res.length > 0) {
-        // 1. Sirf 'hod' field uthao
-        // 2. Filter lagao: Sirf wahi rakho jisme letters (a-z) hain (taaki '25', '2' hat jaye)
-        const uniqueHODs = [...new Set(res.map(item => item.hod))]
-          .filter(name => 
-            name && 
-            typeof name === 'string' && 
-            name.trim() !== "" && 
-            /[a-zA-Z]/.test(name) // Yeh sirf Names rakhega, Numbers hata dega
-          );
-
-        this.allHODList = uniqueHODs;
-        this.allHODListFiltered = [...this.allHODList];
-        
-        console.log("Cleaned Names for Modal:", this.allHODList);
-        
-        this.cdr.markForCheck(); 
-        this.cdr.detectChanges(); 
-      }
-    },
-    error: (err) => {
-      console.error("HOD API Error:", err);
-      this.allHODList = [];
-      this.allHODListFiltered = [];
-      this.cdr.detectChanges();
-    }
-  });
-}
-
-// 2. Input Search Type (3 Letter Logic for Dropdown)
-onHODSearchType(event: Event): void {
-  const value = (event.target as HTMLInputElement).value.toLowerCase().trim();
-  
-  // 3 letters condition
-  if (!value || value.length < 3) {
-    this.filteredHODSuggestions = [];
-    return;
+  oniconHODSearch() {
+    this.isHODModalOpen = true; this.modalHODSearchText = '';
+    this.http.get<any[]>(`${environment.apiUrl}/Leads`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('cavalier_token')}` } }).subscribe(res => {
+      this.allHODList = [...new Set(res.map(i => i.hod))].filter(n => n && typeof n === 'string' && /[a-zA-Z]/.test(n));
+      this.allHODListFiltered = [...this.allHODList];
+    });
   }
 
-  // Filter directly from our main list
-  this.filteredHODSuggestions = this.allHODList.filter(hod =>
-    hod.toLowerCase().includes(value)
-  );
-
-  console.log("🎯 HOD Matches Found:", this.filteredHODSuggestions);
-}
-
-// 3. Selection Logic (Dono Dropdown aur Modal ke liye common)
-selectHOD(hodName: string): void {
-  // Filtered value ko search filter object mein set karein
-  this.leadSearchFilters.hod = hodName; 
-
-  // Sab kuch reset/close karein
-  this.filteredHODSuggestions = []; 
-  this.isHODModalOpen = false;
-  this.modalHODSearchText = '';
-
-  // Angular ko batayein ki UI update karni hai
-  this.cdr.detectChanges();
-
-  console.log("HOD Selected:", hodName);
-}
-
-// 4. Modal Inner Search (Modal ke andar filtering ke liye)
-filterHODModalList() {
-  const query = this.modalHODSearchText.toLowerCase().trim();
-  if (query) {
-    this.allHODListFiltered = this.allHODList.filter(hod => 
-      hod.toLowerCase().includes(query)
-    );
-  } else {
-    this.allHODListFiltered = [...this.allHODList];
-  }
-  this.cdr.detectChanges();
-}
-// 2. Icon wali list se select karne par
-selectHODFromIcon(name: string) {
-  this.leadSearchFilters.hod = name;
-  this.iconHODList = []; 
-  
-  setTimeout(() => {
-    this.cdr.detectChanges();
-  }, 0);
-}
-// Lead Owner Icon Popup ke liye UNIQUE variables
-loIconList: string[] = []; 
-private loIconSub?: Subscription;
-
-// 1. UNIQUE Function name: onLeadOwnerIconClick
-// 1. Icon Click (Modal Open + API Call with Bearer Token)
-// 1. Icon Click (Modal Open + API Call with Bearer Token)
-onLeadOwnerIconClick() {
-  // Modal control variables
-  this.isLeadOwnerModalOpen = true;
-  this.modalOwnerSearchText = '';
-  
-  // Purani subscription clean karein
-  this.loIconSub?.unsubscribe();
-
-  // API Call
-  this.loIconSub = this.http.get<any[]>(`${environment.apiUrl}/Leads`, { 
-    headers: { 'Authorization': `Bearer ${localStorage.getItem('cavalier_token') || ''}` } 
-  }).subscribe({
-    next: (res) => {
-      if (res && res.length > 0) {
-        // Unique Lead Owners ki list banana
-        // Sirf 'leadOwner' field uthao aur numbers/empty values filter karo
-        const uniqueOwners = [...new Set(res.map(item => item.leadOwner))]
-          .filter(name => 
-            name && 
-            typeof name === 'string' && 
-            name.trim() !== "" && 
-            /[a-zA-Z]/.test(name) // Sirf letters wale names rakho, numbers hata do
-          );
-
-        this.leadOwnerList = uniqueOwners; 
-        this.allOwnersFiltered = [...this.leadOwnerList];
-
-        console.log("DEBUG - Cleaned Lead Owners:", this.leadOwnerList);
-
-        this.cdr.markForCheck();
-        this.cdr.detectChanges();
-      } else {
-        this.leadOwnerList = [];
-        this.allOwnersFiltered = [];
-      }
-    },
-    error: (err) => {
-      console.error("Lead Owner API Error:", err);
-      if(err.status === 401) {
-        console.warn("Session expired! Please login again.");
-      }
-      this.leadOwnerList = [];
-      this.allOwnersFiltered = [];
-      this.cdr.detectChanges();
-    }
-  });
-}
-// 2. Input Search Type (3 Letter Logic for Dropdown)
-onLeadOwnerSearch(event: Event): void {
-  const value = (event.target as HTMLInputElement).value.toLowerCase().trim();
-
-  // 3 letters se kam par dropdown nahi dikhega
-  if (!value || value.length < 3) {
-    this.filteredLeadOwners = [];
-    return;
+  onHODSearchType(event: Event): void {
+    const v = (event.target as HTMLInputElement).value.toLowerCase().trim();
+    this.filteredHODSuggestions = v.length >= 3 ? this.allHODList.filter(h => h.toLowerCase().includes(v)) : [];
   }
 
-  // leadOwnerList se filter karein
-  this.filteredLeadOwners = this.leadOwnerList.filter(owner =>
-    owner.toLowerCase().includes(value)
-  );
-}
-
-// 3. Selection Logic (Common for Dropdown & Modal)
-selectLeadOwner(ownerName: string): void {
-  this.leadSearchFilters.leadOwner = ownerName; // Filter object update
-  
-  // UI Clean-up
-  this.filteredLeadOwners = [];      // Dropdown band
-  this.isLeadOwnerModalOpen = false; // Modal band
-  this.modalOwnerSearchText = '';    // Modal search clear
-  
-  this.cdr.detectChanges();
-  console.log("Owner Selected:", ownerName);
-}
-
-// 4. Modal Inner Search (Modal ke andar filtering ke liye)
-filterOwnerModalList() {
-  const query = this.modalOwnerSearchText.toLowerCase().trim();
-  if (query) {
-    this.allOwnersFiltered = this.leadOwnerList.filter(owner => 
-      owner.toLowerCase().includes(query)
-    );
-  } else {
-    this.allOwnersFiltered = [...this.leadOwnerList];
-  }
-  this.cdr.detectChanges();
-}
-// Selection logic
-selectLoFromIcon(owner: string) {
-  this.leadSearchFilters.leadOwner = owner;
-  this.loIconList = []; 
-  
-  // Close hone par bhi detect change zaroori hai
-  this.cdr.detectChanges();
-}
-
-// Error handle karne ke liye empty function (agar tum filter baad mein likhna chaho)
-filterLeadOwners(event: any) {
-  // Add your filtering logic here if needed
-}
-// Lead No Icon Popup ke liye UNIQUE variables
-lnIconList: any[] = []; 
-private lnIconSub?: Subscription;
-
-onLeadNoIconClick() {
-  this.isLNModalOpen = true; // Modal khulega
-  this.modalLNSearchText = ''; // Search khali rahegi
-  
-  const token = localStorage.getItem('cavalier_token'); 
-  const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
-
-  this.http.get<any[]>(`${environment.apiUrl}/Leads`, { headers }).subscribe({
-    next: (res) => {
-      if (res && res.length > 0) {
-        const uniqueNos = [...new Set(res.map(item => item.inquiryNo || item.leadNo || item))]
-          .filter(val => val && val.toString().trim() !== "");
-
-        this.allLNList = uniqueNos; 
-        this.allLNFiltered = [...this.allLNList]; // Modal mein dikhane ke liye
-        this.cdr.detectChanges();
-      }
-    },
-    error: (err) => {
-      console.error("Error fetching leads", err);
-      this.allLNList = [];
-      this.allLNFiltered = [];
-      this.cdr.detectChanges();
-    }
-  });
-}
-
-onLeadNoSearchForFilters(event: any): void {
-  const value = (event.target as HTMLInputElement).value.toLowerCase().trim();
-  if (value.length < 3) {
-    this.filteredLeads = [];
-    return;
-  }
-  // Dropdown ke liye filter
-  this.filteredLeads = this.allLNList.filter(ln => 
-    ln.toString().toLowerCase().includes(value)
-  );
-}
-
-selectLeadForFilters(lead: any): void {
-  // Agar object hai toh leadNo lo, varna direct value
-  const val = lead.leadNo ? lead.leadNo : lead;
-  this.leadSearchFilters.leadNo = val;
-  
-  this.isLNModalOpen = false; // Modal band
-  this.filteredLeads = [];    // Dropdown band
-  this.cdr.detectChanges();
-}
-
-// 2. Selection function
-selectLeadNoFromIcon(val: any) {
-  this.leadSearchFilters.leadNo = val;
-  this.lnIconList = []; // Popup close
-  
-  // Instant UI update
-  this.cdr.detectChanges();
-}
-
-// Search filter error na de isliye
-// Function ke andar 'event?' laga do taaki argument optional ho jaye
-filterLeadNumbers(event?: any) {
-  const query = this.modalLNSearchText.toLowerCase().trim();
-  
-  if (query) {
-    this.allLNFiltered = this.allLNList.filter(ln => 
-      ln.toString().toLowerCase().includes(query)
-    );
-  } else {
-    this.allLNFiltered = [...this.allLNList];
-  }
-  this.cdr.detectChanges();
-}
-// Team Icon Popup ke liye UNIQUE variables
-tmIconList: any[] = []; 
-private tmIconSub?: Subscription;
-isTeamModalOpen: boolean = false;
-modalTeamSearchText: string = '';
-allTeamsList: any[] = []; // Ye backup list hogi
-tmIconListFiltered: any[] = [];
-// 1. UNIQUE Function: onTeamIconClick
-onTeamIconClick() {
-  this.isTeamModalOpen = true;
-  this.modalTeamSearchText = '';
-  
-  const token = localStorage.getItem('cavalier_token');
-  const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
-
-  this.http.get<any[]>(`${environment.apiUrl}/Teams`, { headers }).subscribe({
-    next: (res) => {
-      if (res) {
-        // Data format set karna
-        const teams = res.map(t => t.teamName || t.name || t);
-        this.allTeamsList = [...new Set(teams)]; // Unique teams
-        this.tmIconListFiltered = [...this.allTeamsList];
-        this.cdr.detectChanges();
-      }
-    }
-  });
-}
-
-// 3. Modal Filter
-filterTeams(event: any) {
-  const query = this.modalTeamSearchText.toLowerCase().trim();
-  this.tmIconListFiltered = this.allTeamsList.filter(t => 
-    t.toString().toLowerCase().includes(query)
-  );
-  this.cdr.detectChanges();
-}
-
-// 4. Selection
-selectTmFromIcon(team: any) {
-  this.leadSearchFilters.team = team;
-  this.isTeamModalOpen = false;
-  this.cdr.detectChanges();
-}
-
-// 2. UNIQUE Selection function: selectTmFromIcon
-
-// Reporting Manager Icon Popup ke liye UNIQUE variables
-rmIconList: string[] = []; 
-private rmIconSub?: Subscription;
-
-// 1. UNIQUE Function: onManagerIconClick
-// Variables
-isManagerModalOpen: boolean = false;
-modalManagerSearchText: string = '';
-allManagersList: any[] = [];
-rmIconListFiltered: any[] = [];
-onManagerIconClick() {
-  // Modal Open
-  this.isManagerModalOpen = true;
-  this.modalManagerSearchText = '';
-  
-  this.rmIconSub?.unsubscribe();
-
-  const token = localStorage.getItem('cavalier_token');
-  const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
-
-  // API Call
-  this.rmIconSub = this.http.get<any[]>(`${environment.apiUrl}/Leads`, { headers }).subscribe({
-    next: (res) => {
-      if (res && res.length > 0) {
-        // Unique Managers nikalna + Number/ID filter karna
-        const uniqueManagers = [...new Set(res.map(item => item.reportingManager))]
-          .filter(name => 
-            name && 
-            typeof name === 'string' && 
-            name.trim() !== "" && 
-            /[a-zA-Z]/.test(name) // Sirf letters wale names rakho
-          );
-
-        this.allManagersList = uniqueManagers;
-        this.rmIconListFiltered = [...this.allManagersList];
-
-        console.log("DEBUG - Cleaned Managers:", this.allManagersList);
-
-        this.cdr.markForCheck();
-        this.cdr.detectChanges();
-      } else {
-        this.allManagersList = [];
-        this.rmIconListFiltered = [];
-      }
-    },
-    error: (err) => {
-      console.error("Manager API Error:", err);
-      this.allManagersList = [];
-      this.rmIconListFiltered = [];
-      this.isManagerModalOpen = false;
-      this.cdr.detectChanges();
-    }
-  });
-}
-// Modal filter logic
-filterManagers(event?: any) {
-  const query = this.modalManagerSearchText.toLowerCase().trim();
-  this.rmIconListFiltered = this.allManagersList.filter(m => 
-    m.toString().toLowerCase().includes(query)
-  );
-  this.cdr.detectChanges();
-}
-
-// Select function
-selectRmFromIcon(manager: any) {
-  this.leadSearchFilters.reportingManager = manager;
-  this.isManagerModalOpen = false;
-  this.cdr.detectChanges();
-}
-
-// 2. UNIQUE Selection function: selectRmFromIcon
-
-// 1. In variables ko aise define karein
-orgList: any[] = [];
-showOrgDropdown: boolean = false;
-
-// Quotation ko Array ki jagah Object banayein {}
-quotation: any = {}; 
-showInquiryDropdown=true
-loadOrganizationList() {
-  // Toggle logic same rakha hai
-  if (this.showOrgDropdown) {
-    this.showOrgDropdown = false;
-    this.cdr.detectChanges();
-    return;
+  selectHOD(hodName: string): void {
+    this.leadSearchFilters.hod = hodName; this.filteredHODSuggestions = []; this.isHODModalOpen = false;
   }
 
-  // 1. Token nikalo
-  const token = localStorage.getItem('cavalier_token'); 
-  if (!token) {
-    console.warn("Bhai login token nahi mila!");
-    return;
+  filterHODModalList() {
+    const q = this.modalHODSearchText.toLowerCase().trim();
+    this.allHODListFiltered = q ? this.allHODList.filter(h => h.toLowerCase().includes(q)) : [...this.allHODList];
   }
 
-  // 2. Headers set karo
-  const headers = new HttpHeaders({
-    'Authorization': `Bearer ${token}`
-  });
+  selectHODFromIcon(name: string) {
+    this.leadSearchFilters.hod = name; this.iconHODList = [];
+  }
 
-  const url = `${environment.apiUrl}/Organization/List`;
-  
-  // 3. API Call with Token
-  this.http.get<any[]>(url, { headers }).subscribe({
-    next: (res) => {
-      this.orgList = res; 
-      this.showOrgDropdown = true; 
-      this.cdr.detectChanges(); 
-      console.log(res, "Organization list loaded with token");
-    },
-    error: (err) => {
-      console.error("Organization fetch error:", err);
-      this.showOrgDropdown = false;
-      this.cdr.detectChanges();
-    }
-  });
-}
+  onLeadOwnerIconClick() {
+    this.isLeadOwnerModalOpen = true; this.modalOwnerSearchText = '';
+    this.http.get<any[]>(`${environment.apiUrl}/Leads`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('cavalier_token')}` } }).subscribe(res => {
+      this.leadOwnerList = [...new Set(res.map(i => i.leadOwner))].filter(n => n && typeof n === 'string' && /[a-zA-Z]/.test(n));
+      this.allOwnersFiltered = [...this.leadOwnerList];
+    });
+  }
 
-// selectOrg(org: any) {
-//   // Purana logic: quotation update karna
-//   if (this.quotation) {
-//     this.quotation.organizationName = org.orgName; 
-//   }
-  
-//   // LeadSearchFilters bhi update kar dete hain safety ke liye
-//   this.leadSearchFilters.organizationName = org.orgName;
-// this.leadForm.patchValue({
-//     organization: org.orgName
-//   });
+  onLeadOwnerSearch(event: Event): void {
+    const v = (event.target as HTMLInputElement).value.toLowerCase().trim();
+    this.filteredLeadOwners = v.length >= 3 ? this.leadOwnerList.filter(o => o.toLowerCase().includes(v)) : [];
+  }
 
-//   // 2. Dropdown ko band karein
-//   this.showOrgDropdown = false;
+  selectLeadOwner(ownerName: string): void {
+    this.leadSearchFilters.leadOwner = ownerName; this.filteredLeadOwners = []; this.isLeadOwnerModalOpen = false;
+  }
 
-//   // 3. (Optional) Filtered list ko khali karein taaki purana data na dikhe
-//   this.orgList = [];
-//   this.showOrgDropdown = false;
-//   this.cdr.detectChanges(); 
-// }
-filterHODs(event: any) {
-  // Baad mein logic likh lena
-}
+  filterOwnerModalList() {
+    const q = this.modalOwnerSearchText.toLowerCase().trim();
+    this.allOwnersFiltered = q ? this.leadOwnerList.filter(o => o.toLowerCase().includes(q)) : [...this.leadOwnerList];
+  }
 
-filterLeads(event: any) {
-  // Baad mein logic likh lena
-}
+  selectLeadNoFromIcon(val: any) { this.leadSearchFilters.leadNo = val; this.lnIconList = []; }
+  selectLoFromIcon(owner: string) { this.leadSearchFilters.leadOwner = owner; this.loIconList = []; }
+  filterLeadOwners(event: any) {}
 
+  onLeadNoIconClick() {
+    this.isLNModalOpen = true; this.modalLNSearchText = '';
+    this.http.get<any[]>(`${environment.apiUrl}/Leads`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('cavalier_token')}` } }).subscribe(res => {
+      this.allLNList = [...new Set(res.map(i => i.inquiryNo || i.leadNo || i))].filter(v => v);
+      this.allLNFiltered = [...this.allLNList];
+    });
+  }
 
-filterOrgList(event: any) {
-  // Baad mein logic likh lena
-}
-// Is function ka naam wahi rakho jo HTML mang raha hai: selectLnFromIcon
-selectLnFromIcon(val: any) {
-  this.leadSearchFilters.leadNo = val; // Tumhara logic
-  this.lnIconList = []; // Modal close karne ke liye
-  
-  // Instant UI update taaki modal turant band ho jaye
-  this.cdr.detectChanges();
-}
-loadLeadOwners(): void {
-  // Aapki batayi hui API call
-  this.userServices.getHodList().subscribe({
-    next: (res: any) => {
-      // Data assign kiya jo virtual scroll handle karega
-      this.hodList = res; 
-      
-      console.log('HOD List Loaded:', res);
-      
-      // UI update karne ke liye
-      this.cdr.detectChanges(); 
-    },
-    error: (err) => {
-      console.error('HOD load error:', err);
-    }
-  });
-}
-loadDropdownData(): void {
-  this.userServices.getUsers('onlyuserdata').subscribe({
-    next: (data: any) => {
-      // Data assign kiya
-      this.leadOwners = data;
-      this.salesCoordinators = data;
-      this.reportingManagers = data;
-      this.hodList = data;
-      
-      console.log('Data loaded, triggering change detection...');
+  onLeadNoSearchForFilters(event: any): void {
+    const v = (event.target as HTMLInputElement).value.toLowerCase().trim();
+    this.filteredLeads = v.length >= 3 ? this.allLNList.filter(ln => ln.toString().toLowerCase().includes(v)) : [];
+  }
 
-      // 3. Ye magic line hai jo UI turant update kar degi
-      this.cdr.detectChanges(); 
-    },
-    error: (err) => {
-      console.error('API Error:', err);
-    }
-  });
-}
+  selectLeadForFilters(lead: any): void {
+    this.leadSearchFilters.leadNo = lead.leadNo ? lead.leadNo : lead;
+    this.isLNModalOpen = false; this.filteredLeads = [];
+  }
 
-branchList: any[] = [];           
-  filteredBranchSuggestions: any[] = []; 
-  isBranchModalOpen: boolean = false;
-  branchSearchText: string = '';
-  loadBranchess() {
-    // Yahan apna pura URL direct daal do (Environment se ya hardcoded check karne ke liye)
-  const fullUrl = `${environment.apiUrl}/branch/list`;// <-- BHAI YAHAN APNA PURA URL DAAL DE
+  filterLeadNumbers(event?: any) {
+    const q = this.modalLNSearchText.toLowerCase().trim();
+    this.allLNFiltered = q ? this.allLNList.filter(ln => ln.toString().toLowerCase().includes(q)) : [...this.allLNList];
+  }
 
-    this.http.get(fullUrl).subscribe({
-      next: (res: any) => {
-        console.log("API Success Response:", res);
+  onTeamIconClick() {
+    this.isTeamModalOpen = true; this.modalTeamSearchText = '';
+    this.http.get<any[]>(`${environment.apiUrl}/Teams`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('cavalier_token')}` } }).subscribe(res => {
+      this.allTeamsList = [...new Set(res.map(t => t.teamName || t.name || t))];
+      this.tmIconListFiltered = [...this.allTeamsList];
+    });
+  }
 
-        // API response format handle karna
-        const data = Array.isArray(res) ? res : (res.data || res.result || []);
-        
-        this.branchList = data.map((b: any) => ({ 
-          ...b, 
-          isSelected: false 
-        }));
+  filterTeams(event: any) {
+    const q = this.modalTeamSearchText.toLowerCase().trim();
+    this.tmIconListFiltered = this.allTeamsList.filter(t => t.toString().toLowerCase().includes(q));
+  }
 
-        this.filteredBranchSuggestions = [...this.branchList];
+  selectTmFromIcon(team: any) {
+    this.leadSearchFilters.team = team; this.isTeamModalOpen = false;
+  }
+
+  onManagerIconClick() {
+    this.isManagerModalOpen = true; this.modalManagerSearchText = '';
+    this.http.get<any[]>(`${environment.apiUrl}/Leads`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('cavalier_token')}` } }).subscribe({
+      next: (res: any[]) => {
+        if (res && res.length > 0) {
+          const uniqueManagers = [...new Set(res.map(item => item.reportingManager))]
+            .filter(name => name && typeof name === 'string' && name.trim() !== "" && /[a-zA-Z]/.test(name));
+          this.allManagersList = uniqueManagers;
+          this.rmIconListFiltered = [...this.allManagersList];
+          this.cdr.detectChanges();
+        }
       },
-      error: (err) => {
-        console.error("Direct Call Failed! Error details:", err);
+      error: (err) => console.error(err)
+    });
+  }
+
+  filterManagers(event?: any) {
+    const q = this.modalManagerSearchText.toLowerCase().trim();
+    this.rmIconListFiltered = this.allManagersList.filter(m => m.toString().toLowerCase().includes(q));
+    this.cdr.detectChanges();
+  }
+
+  selectRmFromIcon(manager: any) {
+    this.leadSearchFilters.reportingManager = manager; this.isManagerModalOpen = false;
+    this.cdr.detectChanges();
+  }
+
+  loadOrganizationList() {
+    if (this.showOrgDropdown) { this.showOrgDropdown = false; return; }
+    this.http.get<any[]>(`${environment.apiUrl}/Organization/List`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('cavalier_token')}` } }).subscribe({
+      next: (res) => {
+        this.orgList = res; this.showOrgDropdown = true; this.cdr.detectChanges();
+      },
+      error: (err) => console.error(err)
+    });
+  }
+
+  filterHODs(event: any) {}
+  filterLeads(event: any) {}
+  filterOrgList(event: any) {}
+
+  selectLnFromIcon(val: any) {
+    this.leadSearchFilters.leadNo = val; this.lnIconList = [];
+    this.cdr.detectChanges();
+  }
+
+  loadLeadOwners(): void {
+    this.userServices.getHodList().subscribe({ next: (res: any) => this.hodList = res });
+  }
+
+  loadDropdownData(): void {
+    this.userServices.getUsers('onlyuserdata').subscribe({
+      next: (data: any) => {
+        // Dropdown configuration logic block
       }
     });
   }
 
-  // Baki logic (Search, Toggle, Confirm) wahi rahega jo pehle tha...
-onBranchSearch() {
-  const search = this.branchSearchText.toLowerCase().trim();
-
-  // 🔥 Agar user text clear kar de, toh filter bhi clear ho jaye
-  if (!search) {
-    this.leadSearchFilters.branch = '';
+  loadBranchess() {
+    this.http.get(`${environment.apiUrl}/branch/list`).subscribe({
+      next: (res: any) => {
+        const data = Array.isArray(res) ? res : (res.data || res.result || []);
+        this.branchList = data.map((b: any) => ({ ...b, isSelected: false }));
+        this.filteredBranchSuggestions = [...this.branchList];
+      }
+    });
   }
 
-  this.filteredBranchSuggestions = this.branchList.filter(b => 
-    b.branchName?.toLowerCase().includes(search)
-  );
-}
+  onBranchSearch() {
+    const s = this.branchSearchText.toLowerCase().trim();
+    if (!s) this.leadSearchFilters.branch = '';
+    this.filteredBranchSuggestions = this.branchList.filter(b => b.branchName?.toLowerCase().includes(s));
+  }
+
   toggleBranchModal() { this.isBranchModalOpen = !this.isBranchModalOpen; }
   toggleBranchSelection(branch: any) { branch.isSelected = !branch.isSelected; }
-  
-confirmSelection() {
-  this.isBranchModalOpen = false;
-  
-  // 1. Saari branches aur selected branches ka count lo
-  const totalBranches = this.branchList.length;
-  const selected = this.branchList.filter(b => b.isSelected);
-  const selectedCount = selected.length;
 
-  // 2. Logic: Agar saari select hain ya ek bhi select nahi hai, toh Branch empty bhejo (Show All)
-  if (selectedCount === totalBranches || selectedCount === 0) {
-    this.leadSearchFilters.branch = ""; 
-    this.branchSearchText = ""; // Ya "All Branches" likh sakte ho
-  } else {
-    // Specific branches selected hain
-    this.leadSearchFilters.branch = selected.map(b => b.branchName).join(', ');
-    this.branchSearchText = this.leadSearchFilters.branch;
+  confirmSelection() {
+    this.isBranchModalOpen = false;
+    const total = this.branchList.length;
+    const selected = this.branchList.filter(b => b.isSelected);
+    if (selected.length === total || selected.length === 0) {
+      this.leadSearchFilters.branch = ""; this.branchSearchText = "";
+    } else {
+      this.leadSearchFilters.branch = selected.map(b => b.branchName).join(', ');
+      this.branchSearchText = this.leadSearchFilters.branch;
+    }
+    this.onLeadSearch();
   }
 
-  console.log("Payload Branch Value:", this.leadSearchFilters.branch);
-  this.onLeadSearch();
-}
+  selectBranchFromDropdown(branch: any) {
+    this.branchSearchText = branch.branchName; this.toggleBranchSelection(branch);
+    this.leadSearchFilters.branch = branch.branchName; this.filteredBranchSuggestions = [];
+    this.onLeadSearch();
+  }
 
-selectBranchFromDropdown(branch: any) {
-  // Input field mein naam set kar do
-  this.branchSearchText = branch.branchName;
-  
-  // Is branch ko toggle/select karo (jaise modal karta hai)
-  this.toggleBranchSelection(branch);
-  
-  // 🔥 Payload ke liye single selection set karna
-  this.leadSearchFilters.branch = branch.branchName;
+  handleRowDblClick(leadId: any) { this.selectedLeadId = leadId; this.showRowModal = true; }
+  closeRowModal() { this.showRowModal = false; this.selectedLeadId = null; }
 
-  // Selection ke baad dropdown ko hide karne ke liye
-  this.filteredBranchSuggestions = []; 
-  
-  // 🔥 Search trigger karo
-  this.onLeadSearch();
-}
-  // Naye variables
-showRowModal = false;
-// selectedLeadId: any = null;
-
-// Double click handle karne ke liye
-handleRowDblClick(leadId: any) {
-  this.selectedLeadId = leadId;
-  this.showRowModal = true;
-}
-
-// Modal band karne ke liye
-closeRowModal() {
-  this.showRowModal = false;
-  this.selectedLeadId = null;
-}
-// LeadFormComponent class ke andar kahi bhi ye function paste kar dein
-toggleLeadStatus(lead: any) {
-  // Logic: Status flip
-  const newStatus = lead.status === 1 ? 0 : 1;
-  const token = localStorage.getItem('cavalier_token');
-
-  const headers = {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json'
-  };
-
-  this.http.patch(`${environment.apiUrl}/Leads/UpdateStatus/${lead.id}`, newStatus, { headers })
-    .subscribe({
-      next: (res: any) => {
-        // 3. Pehle data update kar
-        lead.status = newStatus;
-
-        // 4. Forcefully UI refresh kar
-        this.cdr.detectChanges(); 
-        
-        console.log("UI Updated with ChangeDetector!");
-      },
-      error: (err) => {
-        console.error("Error:", err);
-        alert("Status update fail!");
-        
-        // Error ke case mein bhi detect changes chala do taaki UI purane state par rahe
-        this.cdr.detectChanges();
-      }
+  toggleLeadStatus(lead: any) {
+    const newStatus = lead.status === 1 ? 0 : 1;
+    this.http.patch(`${environment.apiUrl}/Leads/UpdateStatus/${lead.id}`, newStatus, { headers: { 'Authorization': `Bearer ${localStorage.getItem('cavalier_token')}`, 'Content-Type': 'application/json' } }).subscribe({
+      next: () => { lead.status = newStatus; this.cdr.detectChanges(); }
     });
-}
-// Component ke upar property define karein
-// salesCoordinators: any[] = [];
+  }
 
-// Function ko update kiya
-// Component property
-salesCoordinator: any[] = [];
-
-getsales(): void {
-  console.log('Fetching Sales Coordinators from HOD list API...');
-
-  this.userServices.getHodList().subscribe({
-    next: (data: any[]) => {
-      console.log('HOD/Sales Coord data received:', data);
-      
-      // Dono dropdowns ke liye data yahi set ho gaya
-      this.salesCoordinator = data; 
-      
-      // UI update ke liye detection
-      this.cdr.detectChanges(); 
-    },
-    error: (err) => {
-      console.error('Error loading HOD list:', err);
-    }
-  });
-}
+  getsales(): void {
+    this.userServices.getHodList().subscribe({ next: (data: any[]) => this.salesCoordinator = data });
+  }
 }

@@ -2279,37 +2279,40 @@
             </div>
             <!-- POL -->
             <div class="flex items-center">
-              <label class="w-40 ml-4 font-bold text-gray-700">POL</label>
-              <div class="flex flex-1 items-center gap-2">
-                <select
-                  name="portOfLoading"
-                  [(ngModel)]="quotation.portOfLoadingId"
-                  (change)="onPolChange()"
-                  class="w-60 border p-2 border-red-300 outline-none"
-                >
-                  <option [ngValue]="null">-- Select POL --</option>
-                  <option
-                    *ngFor="let port of portOfLoadingList"
-                    [value]="port.id"
-                  >
-                    {{ port.portName || port.name }}
-                  </option>
-                </select>
-                <div
-                  *ngIf="quotation.portOfLoadingId"
-                  class="flex items-center gap-2"
-                >
-                  <span class="text-gray-400">|</span>
-                  <input
-                    [(ngModel)]="quotation.portOfLoadingCode"
-                    name="portOfLoadingCode"
-                    placeholder="Code"
-                    readonly
-                    class="w-20 border p-2 border-red-300 outline-none text-[12px] bg-gray-50 text-center"
-                  />
-                </div>
-              </div>
-            </div>
+  <label class="w-40 ml-4 font-bold text-gray-700">POL</label>
+  <div class="flex flex-1 items-center gap-2">
+    
+    <div
+      *ngIf="quotation.portOfLoadingId"
+      class="flex items-center gap-2"
+    >
+      <input
+        [(ngModel)]="quotation.portOfLoadingCode"
+        name="portOfLoadingCode"
+        placeholder="Code"
+        readonly
+        class="w-20 border p-2 border-red-300 outline-none text-[12px] bg-gray-50 text-center"
+      />
+      <span class="text-gray-400">|</span>
+    </div>
+
+    <select
+      name="portOfLoading"
+      [(ngModel)]="quotation.portOfLoadingId"
+      (change)="onPolChange()"
+      class="w-60 border p-2 border-red-300 outline-none"
+    >
+      <option [ngValue]="null">-- Select POL --</option>
+      <option
+        *ngFor="let port of portOfLoadingList"
+        [value]="port.id"
+      >
+        {{ port.portName || port.name }}
+      </option>
+    </select>
+    
+  </div>
+</div>
           </div>
 
           <!-- Right Column -->
@@ -2405,31 +2408,35 @@
 
             <!-- POD & Final Dest -->
             <div class="flex items-center text-red-700 font-bold">
-              <label class="w-40">POD</label>
-              <div class="flex flex-1 items-center gap-2">
-                <select
-                  name="portOfDischarge"
-                  [(ngModel)]="quotation.portOfDischargeId"
-                  (change)="onPodChange()"
-                  class="flex-1 border p-2 border-red-300 outline-none"
-                >
-                  <option [ngValue]="null">-- Select POD --</option>
-                  <option
-                    *ngFor="let port of portOfDischargeList"
-                    [value]="port.id"
-                  >
-                    {{ port.portName || port.name }}
-                  </option>
-                </select>
-                <input
-                  *ngIf="quotation.portOfDischargeId"
-                  [(ngModel)]="quotation.portOfDischargeCode"
-                  name="portOfDischargeCode"
-                  placeholder="Code"
-                  class="w-20 border p-2 border-red-300 outline-none text-[12px] text-center"
-                />
-              </div>
-            </div>
+  <label class="w-40">POD</label>
+  <div class="flex flex-1 items-center gap-2">
+    
+    <input
+      *ngIf="quotation.portOfDischargeId"
+      [(ngModel)]="quotation.portOfDischargeCode"
+      name="portOfDischargeCode"
+      placeholder="Code"
+      readonly
+      class="w-20 border p-2 border-red-300 outline-none text-[12px] text-center"
+    />
+
+    <select
+      name="portOfDischarge"
+      [(ngModel)]="quotation.portOfDischargeId"
+      (change)="onPodChange()"
+      class="flex-1 border p-2 border-red-300 outline-none"
+    >
+      <option [ngValue]="null">-- Select POD --</option>
+      <option
+        *ngFor="let port of portOfDischargeList"
+        [value]="port.id"
+      >
+        {{ port.portName || port.name }}
+      </option>
+    </select>
+    
+  </div>
+</div>
 
             <div class="flex items-center text-red-700 font-bold">
               <label class="w-40 ml-6 font-bold text-gray-700"
@@ -2870,7 +2877,11 @@
                   >
                     Total Cost
                   </th>
-                  <th class="px-4 py-4 border-b border-gray-200">Action</th>
+                  <th
+                    class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase border-b border-gray-200 min-w-[250px]"
+                  >
+                    REMARK
+                  </th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-200 bg-white">
@@ -3013,6 +3024,9 @@
                   >
                     {{ m.totalCost || 0 | number: "1.2-2" }}
                   </td>
+                     <td class="px-6 py-4 text-sm text-gray-500 italic">
+                    {{ m.remark || "---" }}
+                  </td>
                   <td class="px-3 py-2 text-center">
                     <button
                       type="button"
@@ -3071,17 +3085,20 @@
                 class="hover:bg-gray-50"
               >
                 <td class="border p-1">
-                  <select
-                    [(ngModel)]="c.lob"
-                   
-                    name="clob_{{ i }}"
-                    class="w-full outline-none bg-transparent p-1"
-                  >
-                    <option *ngFor="let s of services" [value]="s.serviceName">
-                      {{ s.serviceName }}
-                    </option>
-                  </select>
-                </td>
+         <tr *ngFor="let c of costRows; let i = index">
+  <td class="border p-1">
+      <select
+        [(ngModel)]="c.lob" 
+        [name]="'clob_' + i"
+        class="w-full outline-none bg-transparent p-1"
+      >
+     <option *ngFor="let s of services" [value]="s.serviceName">
+      {{ s.serviceName }}
+   </option>
+      </select>
+    </td>
+</tr>
+   </td>
                 <td class="border p-1">
                  <select
   [name]="'ccharge' + i"
@@ -3492,11 +3509,11 @@
                   >
                     {{ carrier.currency || "---" }}
                   </td>
-                  <td
+                  <!-- <td
                     class="px-4 py-4 text-center text-sm font-semibold text-gray-900"
                   >
                     {{ carrier.airFreight | number: "1.2-2" }}
-                  </td>
+                  </td> -->
                   <td class="px-4 py-4 text-center text-sm text-gray-600">
                     {{ carrier.fsc || 0 }}
                   </td>

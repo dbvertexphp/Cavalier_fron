@@ -2258,28 +2258,43 @@ setPage(page: number) {
   }
 //line of buisnes go on lob
 onHeaderLOBChange() {
-  // 1. Pehle value ko ek variable mein le lo aur check karo
-  const newLOB = this.quotation.lineOfBusiness || '';
-  console.log("Header LOB Changed to:", newLOB); // Debugging ke liye
+  const newLOBId = this.quotation.lineOfBusiness;
+  const selectedService = this.companyServices.find(s => s.id == newLOBId);
+  const selectedName = selectedService ? selectedService.serviceName : '';
 
-  // 2. Revenue rows ko update karo (sirf agar rows exist karti hain)
-  if (this.revenueRows && this.revenueRows.length > 0) {
-    this.revenueRows.forEach(row => {
-      row.lob = newLOB;
-    });
+  console.log("Selected LOB Name:", selectedName); // <-- Check console mein kya aa raha hai
+
+  if (selectedName) {
+    const nameLower = selectedName.toLowerCase();
+
+    // 1. Mode Matching (Flexible match)
+    // Hum sirf 'includes' check karenge agar pura naam match na ho
+    const matchedMode = this.transportModes.find(m => 
+      nameLower.includes(m.name.toLowerCase()) || 
+      m.name.toLowerCase().includes(nameLower)
+    );
+
+    if (matchedMode) {
+      this.quotation.transportMode = matchedMode.name;
+    } else {
+      console.warn("No mode matched for:", nameLower);
+      // Optional: Agar match na ho toh default value set kar do
+      // this.quotation.transportMode = ''; 
+    }
+
+    // 2. Type Matching
+    if (nameLower.includes('import')) {
+      this.quotation.transportType = 'Import';
+    } else if (nameLower.includes('export')) {
+      this.quotation.transportType = 'Export';
+    }
   }
 
-  // 3. Cost rows ko update karo
-  if (this.costRows && this.costRows.length > 0) {
-    this.costRows.forEach(row => {
-      row.lob = newLOB;
-    });
-  }
-
-  // 4. P&L Summary recalculate karo
+  // Baki logic...
+  if (this.revenueRows) this.revenueRows.forEach(row => row.lob = selectedName);
+  if (this.costRows) this.costRows.forEach(row => row.lob = selectedName);
+  
   this.calculateAll();
-
-  // 5. UI ko force refresh karo
   this.cdr.detectChanges();
 }
 
@@ -2811,15 +2826,16 @@ if (p.multiCarrierBreakdowns && Array.isArray(p.multiCarrierBreakdowns)) {
 // 3. Single Carrier Cost Mapping (Exact Database Keys Match)
 if (p.costBreakdowns && Array.isArray(p.costBreakdowns)) {
     this.costRows = p.costBreakdowns.map((c: any) => ({
-      lob: (c.Lob || c.lob || '').trim(),
-        // lob: c.Lob || c.lob || '',
-        chargeName: c.ChargeName || c.chargeName || '',
-        chargeType: c.ChargeType || c.chargeType || '',
-        currency: c.Currency || c.currency || '',
+        // .toString() add kiya taaki data type match ho
+        lob: (c.Lob || c.lob || c.LOB || '').toString(), 
+        chargeName: (c.ChargeName || c.chargeName || '').toString(),
+        chargeType: (c.ChargeType || c.chargeType || '').toString(),
+        currency: (c.Currency || c.currency || '').toString(),
         rate: Number(c.Rate || c.rate || 0),
         amount: Number(c.Amount || c.amount || 0),
         exchangeRate: Number(c.ExchangeRate || c.exchangeRate || 1)
     }));
+    console.log("Final Mapped Cost Rows:", this.costRows);
 }
 
 // IMPORTANT: Data map hone ke baad change detection trigger karein
@@ -2851,20 +2867,21 @@ this.cdr.detectChanges();
     }
 
     // 2. Single Carrier Cost Mapping (CostBreakdowns table)
-    if (p.costBreakdowns && Array.isArray(p.costBreakdowns)) {
-        this.costRows = p.costBreakdowns.map((c: any) => ({
-            lob: c.lob || c.Lob || '',
-            chargeName: c.chargeName || c.ChargeName || '',
-            chargeType: c.chargeType || c.ChargeType || '',
-            currency: c.currency || c.Currency || '',
-            rate: Number(c.rate || c.Rate || 0),
-            exchangeRate: Number(c.exchangeRate || c.ExchangeRate || 1), // Naya field
-            amount: Number(c.amount || c.Amount || 0)
-        }));
-    } else {
-        // Default empty row agar data na ho
-        this.costRows = [{ lob: '', chargeName: '', chargeType: '', currency: '', rate: 0, exchangeRate: 1, amount: 0 }];
-    }
+    // if (p.costBreakdowns && Array.isArray(p.costBreakdowns)) {
+    //     this.costRows = p.costBreakdowns.map((c: any) => ({
+    //      lob: (c.Lob || c.lob || '').toString(),
+    //         chargeName: c.chargeName || c.ChargeName || '',
+    //         chargeType: c.chargeType || c.ChargeType || '',
+    //         currency: c.currency || c.Currency || '',
+    //         rate: Number(c.rate || c.Rate || 0),
+    //         exchangeRate: Number(c.exchangeRate || c.ExchangeRate || 1), // Naya field
+    //         amount: Number(c.amount || c.Amount || 0)
+    //     }));
+    // } else {
+    //     // Default empty row agar data na ho
+    //     this.costRows = [{ lob: '', chargeName: '', chargeType: '', currency: '', rate: 0, exchangeRate: 1, amount: 0 }];
+    // }
+    // console.log("Cost Rows Mapped:", this.costRows);
 
     // --- IMPORTANT: Logic Trigger ---
     // API se data load hone ke baad calculations trigger karna zaroori hai
@@ -3159,7 +3176,9 @@ onPricingFocus() {
     this.showPricingDropdown = true;
   }
 }
-
+compareFn(c1: any, c2: any): boolean {
+  return c1 && c2 ? c1 === c2 : c1 === c2;
+}
 // 5. Bahar click karte hi dropdown automatic band ho jaye (200ms delay ke sath taaki click event trigger ho sake)
 onPricingBlur() {
   setTimeout(() => {

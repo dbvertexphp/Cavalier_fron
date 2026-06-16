@@ -2750,6 +2750,7 @@ selectPricing(prc: any) {
   }
 
   this.showPricingDropdown = false;
+  this.isModalOpen = false;
   this.cdr.detectChanges();
 
   const pricingNo = prc.pricingNo?.trim();
@@ -3648,5 +3649,24 @@ clickout(event: any) {
     this.showCountryDropdown = false;
   }
 }
+// Variables
+// showPricingDropdown = false;
+isModalOpen = false;
+allPricings: any[] = []; // Yahan full list load hogi
+
+// Modal Open karne ka function
+openPricingModal() {
+  this.isModalOpen = true;
+  
+  // Agar list khali hai, toh pehle fetch karo
+  if (!this.pricingList || this.pricingList.length === 0) {
+    this.loadPricingList();
+  } else {
+    // Agar list pehle se hai, toh filteredPricings ko reset karke dikha do
+    this.filteredPricings = this.pricingList;
+  }
+}
+
+// Select karne ke baad
 
 }

@@ -30,7 +30,6 @@ interface DimGroup {
   indices: number[];
   totalBoxQty: number;
 }
-// ff
 @Component({
   selector: 'app-quotation-form',
   standalone: true,
@@ -306,6 +305,7 @@ if (!this.quotation.chargeableWeightUnit) {
     this.getTransportModes();
     this.getCommodityTypes();
     this.getIncoTerms();
+    this.getChargeNames();
     this.getMovementTypes();
     this.getShipmentTypes();
 this.getsales();
@@ -823,8 +823,8 @@ console.log(inq);
       this.quotation.salesCoordinator = fullData.salesCoordinator ? Number(fullData.salesCoordinator) : null;
       this.quotation.pricingBy = fullData.pricingDoneBy || '';
       this.quotation.qtnDoneBy = fullData.qtnDoneBy || '';
-      this.quotation.cargoStatus = fullData.cargoStatus || 'Ready';
-
+      // this.quotation.cargoStatus = fullData.cargoStatus || 'Ready';
+this.quotation.cargoStatusType = fullData.cargoStatus || '';
       const statusDate = fullData.cargoStatusDate ? fullData.cargoStatusDate.split('T')[0] : null;
       this.quotation.cargoReadyDate = null;
       setTimeout(() => { this.quotation.cargoReadyDate = statusDate; }, 0);
@@ -1237,10 +1237,13 @@ documents: this.documents.map(d => ({ fileName: d.name, filePath: d.documentPath
                   this.cdr.detectChanges();
                 },
                 error: () => Swal.fire('Error', 'PnL Summary save fail hui.', 'warning')
+                
               });
+                 setTimeout(() => { window.location.reload(); }, 2000);
             },
             error: () => Swal.fire('Error', 'Cost save fail hua.', 'error')
           });
+             setTimeout(() => { window.location.reload(); }, 2000);
         },
         error: () => Swal.fire('Error', 'Revenue save fail hua.', 'error')
       });
@@ -2751,6 +2754,7 @@ selectPricing(prc: any) {
   }
 
   this.showPricingDropdown = false;
+  this.isModalOpen = false;
   this.cdr.detectChanges();
 
   const pricingNo = prc.pricingNo?.trim();
@@ -2767,6 +2771,8 @@ selectPricing(prc: any) {
       this.quotation.organizationId = p.organisationId || null;
       this.quotation.pricingId = p.id || p.pricingId || prc.id;
       this.quotation.podOrigin=p.podOrigin || p.PodOrigin || '';
+      this.quotation.cargoStatusType=p.cargoStatus || '';
+          if (p.cargoStatusDate) this.quotation.cargoReadyDate = p.cargoStatusDate.split('T')[0];
       this.quotation.salesCoordinator = Number(p.SalesCoordinatorId || p.salesCoordinator || 0);
       
       // --- Pricing By (Fixed) ---
@@ -2774,40 +2780,50 @@ selectPricing(prc: any) {
         this.quotation.pricingBy = p.pricingDoneBy || p.PricingDoneBy || '';
         this.cdr.detectChanges();
       }, 100);
-// 2. Multi-Carrier Breakdown Mapping (Backend Table Match)
-    if (p.multiCarrierBreakdowns && Array.isArray(p.multiCarrierBreakdowns)) {
-        this.multiCarrierRows = p.multiCarrierBreakdowns.map((m: any) => ({
-            forwarder: m.forwarder || m.Forwarder || '',
-            origin: m.origin || m.Origin || '',
-            currency: m.currency || m.Currency || '',
-            airFreight: Number(m.airFreight || m.AirFreight || 0),
-            fsc: Number(m.fsc || m.Fsc || 0),
-            airline: m.airline || m.Airline || '',
-            type: m.type || m.Type || '',
-            cutoff: m.cutoff || m.Cutoff || '',
-            schedule: m.schedule || m.Schedule || '',
-            exWorks: Number(m.exWorks || m.ExWorks || 0),
-            doCharges: Number(m.doCharges || m.DoCharges || 0),
-            ccFee: Number(m.ccFee || m.CcFee || 0),
-            totalCost: Number(m.totalCost || m.TotalCost || 0),
-            remark: m.remark || m.Remark || ''
-        }));
-    } else {
-        this.multiCarrierRows = [];
-    }
+// 2. Multi-Carrier Breakdown Mapping (Exact Database Keys Match)
+if (p.multiCarrierBreakdowns && Array.isArray(p.multiCarrierBreakdowns)) {
+    this.multiCarrierRows = p.multiCarrierBreakdowns.map((m: any) => ({
+        forwarder: m.Forwarder || m.forwarder || '',
+        origin: m.Origin || m.origin || '',
+        currency: m.Currency || m.currency || '',
+        airFreight: Number(m.AirFreight || m.airFreight || 0),
+        fsc: Number(m.Fsc || m.fsc || 0),
+        airline: m.Airline || m.airline || '',
+        type: m.Type || m.type || '',
+        cutoff: m.Cutoff || m.cutoff || '',
+        schedule: m.Schedule || m.schedule || '',
+        exWorks: Number(m.ExWorks || m.exWorks || 0),
+        doCharges: Number(m.DoCharges || m.doCharges || 0),
+        ccFee: Number(m.CcFee || m.ccFee || 0),
+        totalCost: Number(m.TotalCost || m.totalCost || 0),
+        remark: m.Remark || m.remark || '',
+        // Nayi keys jo SQL mein hain
+        lob: m.Lob || m.lob || '',
+        chargeName: m.ChargeName || m.chargeName || '',
+        chargeType: m.ChargeType || m.chargeType || '',
+        rate: Number(m.Rate || m.rate || 0),
+        exchangeRate: Number(m.ExchangeRate || m.exchangeRate || 1)
+    }));
+} else {
+    this.multiCarrierRows = [];
+}
 
-    // 3. Single Carrier Cost Mapping
-    if (p.costBreakdowns && Array.isArray(p.costBreakdowns)) {
-        this.costRows = p.costBreakdowns.map((c: any) => ({
-            lob: c.lob || c.Lob || '',
-            chargeName: c.chargeName || c.ChargeName || '',
-            chargeType: c.chargeType || c.ChargeType || '',
-            currency: c.currency || c.Currency || '',
-            rate: Number(c.rate || c.Rate || 0),
-            amount: Number(c.amount || c.Amount || 0)
-        }));
-    }
+// 3. Single Carrier Cost Mapping (Exact Database Keys Match)
+if (p.costBreakdowns && Array.isArray(p.costBreakdowns)) {
+    this.costRows = p.costBreakdowns.map((c: any) => ({
+      lob: (c.Lob || c.lob || '').trim(),
+        // lob: c.Lob || c.lob || '',
+        chargeName: c.ChargeName || c.chargeName || '',
+        chargeType: c.ChargeType || c.chargeType || '',
+        currency: c.Currency || c.currency || '',
+        rate: Number(c.Rate || c.rate || 0),
+        amount: Number(c.Amount || c.amount || 0),
+        exchangeRate: Number(c.ExchangeRate || c.exchangeRate || 1)
+    }));
+}
 
+// IMPORTANT: Data map hone ke baad change detection trigger karein
+this.cdr.detectChanges();
     // Force UI Refresh
     this.cdr.detectChanges();
     console.log("MultiCarrier Data Loaded:", this.multiCarrierRows);
@@ -2819,6 +2835,7 @@ selectPricing(prc: any) {
             lob: m.lob || m.Lob || '', // Naya field add kiya
             chargeName: m.chargeName || m.ChargeName || '',
             chargeType: m.chargeType || m.ChargeType || '',
+            type: m.chargeType || m.ChargeType || '', // Ye line check karo
             // chargeableWeight ko main screen se utha rahe hain (jaisa HTML mein hai)
             airFreight: Number(m.airFreight || m.AirFreight || 0),
             fsc: m.fsc || m.Fsc || '',
@@ -3649,5 +3666,32 @@ clickout(event: any) {
     this.showCountryDropdown = false;
   }
 }
+isModalOpen = false;
+allPricings: any[] = []; // Yahan full list load hogi
+openPricingModal() {
+  this.isModalOpen = true;
+  
+  // Agar list khali hai, toh pehle fetch karo
+  if (!this.pricingList || this.pricingList.length === 0) {
+    this.loadPricingList();
+  } else {
+    // Agar list pehle se hai, toh filteredPricings ko reset karke dikha do
+    this.filteredPricings = this.pricingList;
+  }
+}
+chargesList: any[] = [];
+getChargeNames() {
+  // environment.apiUrl ka use karein
+  this.http.get<any[]>(`${environment.apiUrl}/charge`)
+    .subscribe({
+      next: (data) => {
+        this.chargesList = data;
+        console.log("Charges List Loaded:", this.chargesList);
+      },
 
+      error: (err) => {
+        console.error("Data fetch karne mein error:", err);
+      }
+    });
+}
 }

@@ -589,7 +589,7 @@ onSubmit() {
         }
 
         // Sab save hone ke baad page navigate karein
-        // this.router.navigate(['/dashboard/Employee']);
+        this.router.navigate(['/dashboard/hr/employee-master']);
       },
      error: err => {
   console.error('--- API ERROR DETECTED ---');

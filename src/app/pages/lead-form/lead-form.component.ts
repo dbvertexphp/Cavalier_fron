@@ -239,67 +239,60 @@ export class LeadFormComponent implements OnInit {
   }
 // 🔥 Is naye function ko class me kahin bhi paste kar do bhai (ngOnInit se bahar):
 onTeamChange(event: any) {
-  const selectedTeamName = event.target.value;
-  console.log('🚀 HTML (change) event triggered for team:', selectedTeamName);
+    const selectedTeamName = event.target.value;
+    console.log('🚀 HTML (change) event triggered for team:', selectedTeamName);
 
-  if (selectedTeamName && selectedTeamName !== '') {
-    // 1. Team list me se matching object dhoodhkar uska id nikalte hain
-    const matchedTeam = this.teamList.find(t => (t.teamName || t.name || t) === selectedTeamName);
-    const teamId = matchedTeam ? matchedTeam.id : null;
+    if (selectedTeamName && selectedTeamName !== '') {
+      const matchedTeam = this.teamList.find(t => (t.teamName || t.name || t) === selectedTeamName);
+      const teamId = matchedTeam ? matchedTeam.id : null;
 
-    if (teamId) {
-      // 2. Direct HTTP GET API Call hit hogi
-      this.http.get<any>(`${environment.apiUrl}/Teams/${teamId}/details`).subscribe({
-        next: (res) => {
-          console.log('✅ Dynamic Team Details Received via Event:', res);
-          
-          const combinedMembers: any[] = [];
-          if (res.salesCoordinators) combinedMembers.push(...res.salesCoordinators);
-          if (res.hods) combinedMembers.push(...res.hods);
-          if (res.reportingManagers) combinedMembers.push(...res.reportingManagers);
+      if (teamId) {
+        this.http.get<any>(`${environment.apiUrl}/Teams/${teamId}/details`).subscribe({
+          next: (res) => {
+            console.log('✅ Dynamic Team Details Received via Event:', res);
+            
+            const combinedMembers: any[] = [];
+            if (res.salesCoordinators) combinedMembers.push(...res.salesCoordinators);
+            if (res.hods) combinedMembers.push(...res.hods);
+            if (res.reportingManagers) combinedMembers.push(...res.reportingManagers);
 
-          // Unique filtration logic
-          const uniqueMap = new Map();
-          combinedMembers.forEach(m => uniqueMap.set(m.id, m));
-          
-          // Dropdown options list update
-          this.salesCoordinator = Array.from(uniqueMap.values());
+            const uniqueMap = new Map();
+            combinedMembers.forEach(m => uniqueMap.set(m.id, m));
+            this.salesCoordinator = Array.from(uniqueMap.values());
 
-          // Form controls auto-patch configurations
-          const patchObj: any = {};
-          if (res.salesCoordinators && res.salesCoordinators.length > 0) {
-            patchObj.salesCoordinator = res.salesCoordinators[0].id;
-            patchObj.leadOwner = res.salesCoordinators[0].id; 
+            // 🛠️ Sub-fix: String conversion optimization to match Zod rules
+            const patchObj: any = {};
+            if (res.salesCoordinators && res.salesCoordinators.length > 0) {
+              patchObj.salesCoordinator = String(res.salesCoordinators[0].id);
+              patchObj.leadOwner = String(res.salesCoordinators[0].id || 'BHARAT JUYAL'); 
+            }
+            if (res.hods && res.hods.length > 0) {
+              patchObj.hod = String(res.hods[0].id);
+            }
+            if (res.reportingManagers && res.reportingManagers.length > 0) {
+              patchObj.reportingManager = String(res.reportingManagers[0].id);
+            }
+
+            this.leadForm.patchValue(patchObj);
+            this.cdr.detectChanges();
+          },
+          error: (err) => {
+            console.error('❌ Details API Error:', err);
+            this.salesCoordinator = [];
+            this.cdr.detectChanges();
           }
-          if (res.hods && res.hods.length > 0) {
-            patchObj.hod = res.hods[0].id;
-          }
-          if (res.reportingManagers && res.reportingManagers.length > 0) {
-            patchObj.reportingManager = res.reportingManagers[0].id;
-          }
-
-          // Fields auto-fill patch execution
-          this.leadForm.patchValue(patchObj);
-          this.cdr.detectChanges(); // UI render trigger
-        },
-        error: (err) => {
-          console.error('❌ Details API Error:', err);
-          this.salesCoordinator = [];
-          this.cdr.detectChanges();
-        }
+        });
+      }
+    } else {
+      this.salesCoordinator = [];
+      this.leadForm.patchValue({
+        salesCoordinator: '',
+        reportingManager: '',
+        hod: ''
       });
+      this.cdr.detectChanges();
     }
-  } else {
-    // 🛑 Clear condition handles
-    this.salesCoordinator = [];
-    this.leadForm.patchValue({
-      salesCoordinator: '',
-      reportingManager: '',
-      hod: ''
-    });
-    this.cdr.detectChanges();
   }
-}
   nextPage() {
     if (this.currentPage < this.totalPages) {
       this.currentPage++;
@@ -661,16 +654,32 @@ onTeamChange(event: any) {
     this.filteredDates = [];
   }
 
-  onSave() {
+ onSave() {
+    // 1. Form ko touched mark karo taaki HTML validations red ho sakein
+    this.leadForm.markAllAsTouched();
+    
     const rawValue = this.leadForm.getRawValue();
+    
+    // 2. Zod Schema Validation check execution
     const validation = leadSchema.safeParse(rawValue);
     if (!validation.success) {
       const errors = validation.error.flatten().fieldErrors;
+      
+      console.error('🚨 [Zod Validation Failed] Fields configurations logs:', errors);
+      
+      // 3. Angular controls me error inject karne ka system core block
       Object.keys(errors).forEach((field: string) => {
         const control = this.leadForm.get(field);
-        if (control) control.setErrors({ zod: errors[field as keyof typeof errors]?.[0] });
+        if (control) {
+          control.setErrors({ zod: errors[field as keyof typeof errors]?.[0] });
+        }
       });
-      Swal.fire({ icon: 'error', title: 'Validation Failed', text: 'Please fix the error input fields!' });
+      
+      Swal.fire({ 
+        icon: 'error', 
+        title: 'Validation Failed', 
+        text: 'Please check the required fields highlighted below!'
+      });
       return;
     }
 

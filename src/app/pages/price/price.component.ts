@@ -1073,16 +1073,15 @@ addToLocalReview() {
   this.cdr.detectChanges();
 }
 onAgentSelect(event: any, agent: any) {
-
-  const email = agent.email || agent.email;
+  console.log("Agent selection event:", agent);
+  const email = agent.emailAddress || agent.emailAddress;
   const branch = agent.branchName || agent.branchName || "Global";
- 
+
   if (!email) return;
 
   if (event.target.checked) {
     this.selectedEmails.add(email);
-    this.lastSelectedBranch = branch;
-     console.log("Agent selection event:", this.selectedEmails); // Latest branch ko save kar liya
+    this.lastSelectedBranch = branch; // Latest branch ko save kar liya
   } else {
     this.selectedEmails.delete(email);
   }
@@ -3983,7 +3982,7 @@ this.quotation.podOrigin = data.podOrigin || ''; // Yeh line add karein
       this.quotation.description = data.description || '';
       this.quotation.cargoValue = data.cargoValue || '';
       this.quotation.currency = data.cargoCurrency || '';
-
+this.quotation.cargoStatusType = data.cargoStatus || '';
       if (data.cargoStatusDate) this.quotation.cargoReadyDate = data.cargoStatusDate.split('T')[0];
 
       if (data.dimensions?.length > 0) {
@@ -4430,17 +4429,17 @@ editPricing(pricing: any) {
       
       pricing = fullData; // Updated with full data
 
-      // --- Documents Mapping (Original) ---
-      const allDocs = pricing.pricingDocuments || pricing.PricingDocuments || [];
-      this.documents = allDocs
-        .filter((d: any) => (d.docType || d.DocType || '').toLowerCase() === 'commodity')
-        .map((d: any) => ({ id: d.docId || d.DocId, name: 'Commodity Document', documentPath: d.docPath || d.DocPath, isExisting: true }));
+        // --- Documents Mapping (Original) ---
+        const allDocs = pricing.pricingDocuments || pricing.PricingDocuments || [];
+        this.documents = allDocs
+          .filter((d: any) => (d.docType || d.DocType || '').toLowerCase() === 'commodity')
+          .map((d: any) => ({ id: d.docId || d.DocId, name: 'Commodity Document', documentPath: d.docPath || d.DocPath, isExisting: true }));
 
-      this.invoices = allDocs
-        .filter((d: any) => (d.docType || d.DocType || '').toLowerCase() === 'invoice')
-        .map((d: any) => ({ id: d.docId || d.DocId, name: 'Invoice Document', documentPath: d.docPath || d.DocPath, isExisting: true }));
-      
-      this.cdr.detectChanges();
+        this.invoices = allDocs
+          .filter((d: any) => (d.docType || d.DocType || '').toLowerCase() === 'invoice')
+          .map((d: any) => ({ id: d.docId || d.DocId, name: 'Invoice Document', documentPath: d.docPath || d.DocPath, isExisting: true }));
+        
+        this.cdr.detectChanges();
 
       // --- BAAKI KA PURA LOGIC ---
       const rawCbm = pricing.cbm || pricing.volume || pricing.totalCbm || pricing.cbmWeight || pricing.cbm_weight;
@@ -4532,7 +4531,7 @@ editPricing(pricing: any) {
 
       this.inquiry.organization = pricing.organisationName || pricing.customerName;
       this.quotation.referenceByInquiry = pricing.referenceByInquiryNo;
-
+this.quotation.cargoStatusType=pricing.cargoStatus || '';
       if (pricing.receivedDate) this.quotation.receivedDate = pricing.receivedDate.split('T')[0];
       if (pricing.cargoStatusDate) this.quotation.cargoStatusDate = pricing.cargoStatusDate.split('T')[0];
 

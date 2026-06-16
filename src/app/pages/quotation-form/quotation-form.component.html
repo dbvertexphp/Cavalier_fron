@@ -1086,7 +1086,8 @@
           <!-- Column 1: Pricing Reference & Organization -->
           <div class="md:col-span-1">
             <div class="grid grid-cols-2 gap-2 mb-3">
-             <div>
+              <!-- Pricing Reference Selection -->
+              <div>
   <label class="text-gray-700 font-bold block mb-1 uppercase text-[11px]">
     Reference by Pricing
   </label>
@@ -2911,26 +2912,15 @@
                   </td>
                   <td class="px-2 py-2">
                     <select
-                      [(ngModel)]="m.chargeName"
-                      name="mchgname_{{ i }}"
-                      class="w-36 bg-transparent border-b border-transparent focus:border-amber-500 outline-none italic cursor-pointer"
-                    >
-                      <option value="">-- Select --</option>
-                      <option value="Freight Charges">Freight Charges</option>
-                      <option value="Fuel Surcharge">Fuel Surcharge</option>
-                      <option value="Customs Clearance">
-                        Customs Clearance
-                      </option>
-                      <option value="Documentation Fee">
-                        Documentation Fee
-                      </option>
-                      <option value="Handling Charges">Handling Charges</option>
-                      <option value="Storage Fee">Storage Fee</option>
-                      <option value="Delivery Charges">Delivery Charges</option>
-                      <option value="Insurance">Insurance</option>
-                      <option value="Inspection Fee">Inspection Fee</option>
-                      <option value="Other Charges">Other Charges</option>
-                    </select>
+  [(ngModel)]="m.chargeName"
+  name="mchgname_{{ i }}"
+  class="w-36 bg-transparent border-b border-transparent focus:border-amber-500 outline-none italic cursor-pointer"
+>
+  <option value="" disabled>-- Select Charge --</option>
+  <option *ngFor="let item of chargesList" [value]="item.name">
+    {{ item.name }}
+  </option>
+</select> 
                   </td>
                   <td class="px-2 py-2">
                     <select
@@ -3083,7 +3073,7 @@
                 <td class="border p-1">
                   <select
                     [(ngModel)]="c.lob"
-                    [disabled]="true"
+                   
                     name="clob_{{ i }}"
                     class="w-full outline-none bg-transparent p-1"
                   >
@@ -3093,23 +3083,17 @@
                   </select>
                 </td>
                 <td class="border p-1">
-                  <select
-                    [name]="'ccharge' + i"
-                    [(ngModel)]="c.chargeName"
-                    class="w-full outline-none p-1 bg-transparent"
-                  >
-                    <option value="">-- Select Charge Name --</option>
-                    <option value="Freight Charges">Freight Charges</option>
-                    <option value="Fuel Surcharge">Fuel Surcharge</option>
-                    <option value="Customs Clearance">Customs Clearance</option>
-                    <option value="Documentation Fee">Documentation Fee</option>
-                    <option value="Handling Charges">Handling Charges</option>
-                    <option value="Storage Fee">Storage Fee</option>
-                    <option value="Delivery Charges">Delivery Charges</option>
-                    <option value="Insurance">Insurance</option>
-                    <option value="Inspection Fee">Inspection Fee</option>
-                    <option value="Other Charges">Other Charges</option>
-                  </select>
+                 <select
+  [name]="'ccharge' + i"
+  [(ngModel)]="c.chargeName"
+  class="w-full outline-none p-1 bg-transparent"
+>
+  <option value="">-- Select Charge Name --</option>
+  
+  <option *ngFor="let item of chargesList" [value]="item.name">
+    {{ item.name }}
+  </option>
+</select> 
                 </td>
                 <td class="border p-1">
                   <select
@@ -3320,6 +3304,7 @@
                 <th class="border p-2 text-center">Cur</th>
                 <th class="border p-2 text-right">Rate</th>
                 <th class="border p-2 text-right bg-red-600">Amount</th>
+                    <th class="border p-2 text-right">Remark</th>
                 <th class="border p-2 text-center w-[40px]">
                   <button
                     (click)="addCostRow()"
@@ -3371,7 +3356,16 @@
                 <td class="border p-1 bg-red-50 font-bold text-right">
                   {{ c.amount | number: "1.2-2" }}
                 </td>
+                <td class="border p-1 bg-red-50 font-bold text-right">
+                   <input
+                    type="text"
+                   placeholder="Add review notes"
+                  
+                    class="w-full text-right bg-transparent outline-none"
+                  />
+                </td>
                 <td class="border p-1 text-center">
+
                   <button (click)="removeCostRow(i)" class="text-red-500">
                     ✕
                   </button>
@@ -3434,11 +3428,11 @@
                   >
                     Currency
                   </th>
-                  <th
+                  <!-- <th
                     class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200"
                   >
                     Airfreight
-                  </th>
+                  </th> -->
                   <th
                     class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200"
                   >

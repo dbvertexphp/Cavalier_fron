@@ -9,6 +9,7 @@ import { environment } from '../../../environments/environment';
 import { employeeSchema } from './employee.schema';
 import { firstValueFrom } from 'rxjs';
 import Swal from 'sweetalert2';
+import { forkJoin, of } from 'rxjs';
 import { Location } from '@angular/common';
 @Component({
   selector: 'app-user-form',
@@ -101,6 +102,45 @@ ngOnInit(): void {
       }
     }
   });
+  // 🔥 Puraane teamId subscribe block ko hatakar yeh naya functional block laga do bhai:
+this.userForm.get('teamId')?.valueChanges.subscribe((selectedTeamId) => {
+  if (selectedTeamId) {
+    this.http.get<any>(`${environment.apiUrl}/Teams/${selectedTeamId}/details`).subscribe({
+      next: (res) => {
+        if (res && res.hods && res.hods.length > 0) {
+          
+          // 🔥 PURANE PUSH LOGIC KO HATAKAR DIRECT ARRAY OVERWRITE KAR DE:
+          this.hods = res.hods.map((h: any) => ({
+            id: h.id,
+            name: h.name
+          }));
+
+          // Form control me pehle HOD ko select karwa de
+          const firstHodId = this.hods[0].id;
+          this.userForm.patchValue({ hodId: firstHodId });
+          this.cdr.detectChanges();
+          
+        } else {
+          // 🛑 AGAR HOD NA MILE TO LIST KHALI KAR DE:
+          this.hods = [];
+          this.userForm.patchValue({ hodId: null });
+        }
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        // 🛑 ERROR AANE PAR BHI KHALI KAR DE:
+        this.hods = [];
+        this.userForm.patchValue({ hodId: null });
+        this.cdr.detectChanges();
+      }
+    });
+  } else {
+    // 🛑 AGAR TEAM UNSELECT HO JAYE TO BHI KHALI KAR DE:
+    this.hods = [];
+    this.userForm.patchValue({ hodId: null });
+    this.cdr.detectChanges();
+  }
+});
   // -----------------------------------------------------------------------
 
   if (this.initialData) {
@@ -175,6 +215,8 @@ initForm() {
     this.userForm = this.fb.group({
       userType: [''],
       employeeCode: [''],
+      hodId: [[]],  // null se badal kar empty array kiya
+teamId: [[]],
       companyName: ['Cavalier Logistics'],
       companyAlias: ['CL'],
       branchName: [''],
@@ -371,15 +413,15 @@ createExperienceGroup(): FormGroup {
     this.userService.getDesignations().subscribe(res => this.designations = res);
     this.userService.getRoles().subscribe(res => this.roles = res);
     // ngOnInit ya jahan bhi load karna ho
-this.userService.getHodList().subscribe({
-  next: (res) => {
-    this.hods = res; 
-    console.log('HOD List Loaded:', res);
-  },
-  error: (err) => {
-    console.error('HOD load error:', err);
-  }
-});
+// this.userService.getHodList().subscribe({
+//   next: (res) => {
+//     this.hods = res; 
+//     console.log('HOD List Loaded:', res);
+//   },
+//   error: (err) => {
+//     console.error('HOD load error:', err);
+//   }
+// });
     this.userService.getTeams().subscribe(res => this.teams = res);
   }
 
@@ -547,7 +589,7 @@ onSubmit() {
         }
 
         // Sab save hone ke baad page navigate karein
-        // this.router.navigate(['/dashboard/Employee']);
+        this.router.navigate(['/dashboard/hr/employee-master']);
       },
      error: err => {
   console.error('--- API ERROR DETECTED ---');

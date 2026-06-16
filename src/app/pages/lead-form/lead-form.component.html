@@ -11,122 +11,48 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-x-10 gap-y-3">
         
         <div class="space-y-2">
-      <div class="flex items-center mb-1">
-  <label class="w-28 font-bold text-gray-600 text-[12px]">Branch</label>
-
-  <div class="flex-1 flex border border-gray-300 relative rounded-sm bg-white shadow-sm focus-within:ring-1 focus-within:ring-red-400">
-    <input
-      type="text"
-      [(ngModel)]="branchSearchText"
-      (input)="onBranchSearch()"
-      placeholder="Type to search branch..."
-      class="w-full p-1.5 outline-none text-[12px] bg-white"
-      autocomplete="off"
-    />
-
-    <span
-      (click)="toggleBranchModal()"
-      class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-red-500 hover:text-white transition-all flex items-center justify-center w-9"
-      title="View All Branches"
-    >
-      🔍
-    </span>
-
-    <!-- Dropdown (ul) yahan se hata diya gaya hai -->
-  </div>
-</div>
-
-<!-- Modal Section (Bilkul same hai, koi change nahi) -->
-<div
-  *ngIf="isBranchModalOpen"
-  class="fixed inset-0 z-[3000] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
->
-  <div class="bg-white w-full max-w-md shadow-2xl rounded-sm border-t-4 border-red-600 animate-in zoom-in duration-200">
-    <div class="flex justify-between items-center p-3 border-b bg-gray-50">
-      <h3 class="text-[12px] font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
-        🏢 Select Branches
-      </h3>
-      <button
-        (click)="toggleBranchModal()"
-        class="text-gray-400 hover:text-red-500 text-2xl font-bold leading-none"
-      >
-        &times;
-      </button>
-    </div>
-
-    <div class="max-h-80 overflow-y-auto p-1 custom-scrollbar">
-      <div class="p-2 sticky top-0 bg-white">
-        <input
-          type="text"
-          [(ngModel)]="branchSearchText"
-          (input)="onBranchSearch()"
-          placeholder="Filter branches..."
-          class="w-full p-1 border border-gray-200 text-[11px] outline-none rounded-sm"
-        />
-      </div>
-
-      <ul class="list-none p-0 m-0">
-        <li
-          *ngFor="let branch of filteredBranchSuggestions"
-          class="flex items-center gap-3 p-2.5 hover:bg-red-50 border-b border-gray-50 last:border-none cursor-pointer transition-colors"
-          (click)="toggleBranchSelection(branch)"
-        >
-          <input
-            type="checkbox"
-            [checked]="branch.isSelected"
-            (click)="$event.stopPropagation()"
-            (change)="toggleBranchSelection(branch)"
-            class="w-4 h-4 accent-red-600 cursor-pointer"
-          />
-
-          <div class="flex flex-col">
-            <span class="text-[12px] text-gray-800 font-medium uppercase">{{ branch.branchName }}</span>
-            <span *ngIf="branch.branchCode" class="text-[10px] text-gray-400">{{ branch.branchCode }}</span>
+          <div class="flex items-center mb-1">
+            <label class="w-28 font-bold text-gray-600 text-[12px]">Branch</label>
+            <div class="flex-1 flex border border-gray-300 relative rounded-sm bg-white shadow-sm focus-within:ring-1 focus-within:ring-red-400">
+              <input type="text" [(ngModel)]="branchSearchText" (input)="onBranchSearch()" placeholder="Type to search branch..." class="w-full p-1.5 outline-none text-[12px] bg-white" autocomplete="off" />
+              <span (click)="toggleBranchModal()" class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-red-500 hover:text-white transition-all flex items-center justify-center w-9" title="View All Branches">🔍</span>
+            </div>
           </div>
-        </li>
 
-        <li *ngIf="filteredBranchSuggestions.length === 0" class="p-5 text-center text-gray-400 text-[11px] italic">
-          No branches found.
-        </li>
-      </ul>
-    </div>
+          <div *ngIf="isBranchModalOpen" class="fixed inset-0 z-[3000] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div class="bg-white w-full max-w-md shadow-2xl rounded-sm border-t-4 border-red-600 animate-in zoom-in duration-200">
+              <div class="flex justify-between items-center p-3 border-b bg-gray-50">
+                <h3 class="text-[12px] font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">🏢 Select Branches</h3>
+                <button (click)="toggleBranchModal()" class="text-gray-400 hover:text-red-500 text-2xl font-bold leading-none">&times;</button>
+              </div>
+              <div class="max-h-80 overflow-y-auto p-1 custom-scrollbar">
+                <div class="p-2 sticky top-0 bg-white">
+                  <input type="text" [(ngModel)]="branchSearchText" (input)="onBranchSearch()" placeholder="Filter branches..." class="w-full p-1 border border-gray-200 text-[11px] outline-none rounded-sm" />
+                </div>
+                <ul class="list-none p-0 m-0">
+                  <li *ngFor="let branch of filteredBranchSuggestions" class="flex items-center gap-3 p-2.5 hover:bg-red-50 border-b border-gray-50 last:border-none cursor-pointer transition-colors" (click)="toggleBranchSelection(branch)">
+                    <input type="checkbox" [checked]="branch.isSelected" (click)="$event.stopPropagation()" (change)="toggleBranchSelection(branch)" class="w-4 h-4 accent-red-600 cursor-pointer" />
+                    <div class="flex flex-col">
+                      <span class="text-[12px] text-gray-800 font-medium uppercase">{{ branch.branchName }}</span>
+                      <span *ngIf="branch.branchCode" class="text-[10px] text-gray-400">{{ branch.branchCode }}</span>
+                    </div>
+                  </li>
+                  <li *ngIf="filteredBranchSuggestions.length === 0" class="p-5 text-center text-gray-400 text-[11px] italic">No branches found.</li>
+                </ul>
+              </div>
+              <div class="p-3 border-t bg-gray-50 flex justify-end gap-2">
+                <button (click)="toggleBranchModal()" class="px-4 py-1.5 text-[11px] font-bold text-gray-500 hover:bg-gray-200 rounded-sm uppercase">Cancel</button>
+                <button (click)="confirmSelection()" class="px-6 py-1.5 text-[11px] font-bold bg-red-600 text-white hover:bg-red-700 rounded-sm shadow-md transition-all uppercase">Confirm Selection</button>
+              </div>
+            </div>
+          </div>
 
-    <div class="p-3 border-t bg-gray-50 flex justify-end gap-2">
-      <button
-        (click)="toggleBranchModal()"
-        class="px-4 py-1.5 text-[11px] font-bold text-gray-500 hover:bg-gray-200 rounded-sm uppercase"
-      >
-        Cancel
-      </button>
-      <button
-        (click)="confirmSelection()"
-        class="px-6 py-1.5 text-[11px] font-bold bg-red-600 text-white hover:bg-red-700 rounded-sm shadow-md transition-all uppercase"
-      >
-        Confirm Selection
-      </button>
-    </div>
-  </div>
-</div>
           <div class="flex items-center relative" [formGroup]="leadForm">
             <label class="w-24 font-bold text-gray-600 text-[12px]">Date</label>
-            
-            <div class="flex-1 flex border border-gray-300 items-center pr-2 cursor-pointer bg-white relative h-[30px]"
-                 (click)="datePicker.showPicker(); showCustomPicker = !showCustomPicker">
-              
-              <input 
-                #datePicker
-                type="date"
-                formControlName="date"
-                class="w-full p-1 outline-none text-[12px] cursor-pointer"
-                (focus)="datePicker.showPicker()"
-                (change)="showCustomPicker = false">
-
-              <div *ngIf="showCustomPicker" 
-                   (mouseleave)="showCustomPicker = false"
-                   class="absolute top-0 right-full z-[1001] bg-white shadow-xl border border-gray-300 flex flex-col w-[115px] rounded-sm overflow-hidden mr-[-1px]">
-                
+            <div class="flex-1 flex border border-gray-300 items-center pr-2 cursor-pointer bg-white relative h-[30px]" (click)="datePicker.showPicker(); showCustomPicker = !showCustomPicker">
+              <input #datePicker type="date" formControlName="date" class="w-full p-1 outline-none text-[12px] cursor-pointer" (focus)="datePicker.showPicker()" (change)="showCustomPicker = false">
+              <div *ngIf="showCustomPicker" (mouseleave)="showCustomPicker = false" class="absolute top-0 right-full z-[1001] bg-white shadow-xl border border-gray-300 flex flex-col w-[115px] rounded-sm overflow-hidden mr-[-1px]">
                 <div class="bg-gray-100 px-2 py-1 text-[9px] font-bold text-gray-500 uppercase border-b">Quick Select</div>
-                
                 <div (click)="setLeadQuickDate('today'); $event.stopPropagation()" class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 transition-colors">Today</div>
                 <div (click)="setLeadQuickDate('tomorrow'); $event.stopPropagation()" class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 text-blue-700 font-semibold transition-colors">Tomorrow</div>
                 <div (click)="setLeadQuickDate('yesterday'); $event.stopPropagation()" class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 transition-colors">Yesterday</div>
@@ -135,1212 +61,387 @@
                 <div (click)="setLeadQuickDate('nextMonth'); $event.stopPropagation()" class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 transition-colors">Next Month</div>
                 <div (click)="setLeadQuickDate('lastMonth'); $event.stopPropagation()" class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer transition-colors">Last Month</div>
               </div>
-
               <span class="text-[14px]">📅</span>
             </div>
           </div>
-      
-<div [formGroup]="leadForm">
-<div [formGroup]="leadForm">
-  <div class="flex items-center">
-    <label class="w-24 font-bold text-red-700 text-[12px]">Organization</label>
-    
-    <div class="flex-1 flex border border-red-200 relative">                
-      <input type="text" 
-             [(ngModel)]="leadSearchFilters.organizationName" 
-             [ngModelOptions]="{standalone: true}" 
-             class="w-full p-1 outline-none text-[12px]"
-             placeholder="Type min 3 chars to search..."
-             (input)="onLeadOrgSearch($event)"
-             autocomplete="off"> 
-      
-      <span class="p-1 bg-gray-50 border-l border-gray-200 flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors" 
-            (click)="loadOrganizationList()">
-        🔍
-      </span>
 
-      <div *ngIf="filteredOrganizations && filteredOrganizations.length > 0"
-           class="absolute z-40 w-full bg-white border border-gray-300 top-full left-0 mt-1 max-h-48 overflow-y-auto shadow-md">
-        <div *ngFor="let org of filteredOrganizations"
-             (click)="selectLeadOrg(org)" 
-             class="p-2 hover:bg-red-50 cursor-pointer text-sm border-b">
-          {{ org.orgName }}
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-<div *ngIf="showOrgDropdown && orgList.length > 0" 
-     class="fixed inset-0 bg-slate-900/50 backdrop-blur-[2px] z-[9998] transition-opacity duration-300 ease-in-out"
-     (click)="showOrgDropdown = false">
-</div>
-
-<div *ngIf="showOrgDropdown && orgList.length > 0"
-     class="fixed inset-0 flex items-center justify-center z-[9999] p-4 pointer-events-none"> 
-
-  <div class="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-gray-200 
-              flex flex-col max-h-[85vh] overflow-hidden pointer-events-auto
-              animate-in fade-in duration-300 ease-out">
-
-    <div class="px-6 py-4 border-b border-gray-100 bg-white flex-shrink-0">
-      <div class="flex justify-between items-center mb-4">
-        <div>
-          <h3 class="text-lg font-bold text-gray-900">Select Organization</h3>
-          <p class="text-xs text-gray-500">Search and select from the list below</p>
-        </div>
-        <button (click)="showOrgDropdown = false" 
-                class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 transition-all">
-          ✕
-        </button>
-      </div>
-
-      <div class="relative">
-        <span class="absolute inset-y-0 left-4 flex items-center text-gray-400">🔍</span>
-        <input 
-          type="text" 
-          placeholder="Type to filter..." 
-          class="w-full pl-11 pr-4 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-400 transition-all"
-          (input)="filterOrgList($event)"
-        >
-      </div>
-    </div>
-
-    <div class="overflow-y-auto bg-white flex-1 min-h-0 custom-scrollbar p-2">
-      <div *ngFor="let org of orgList"
-           (click)="selectOrg(org)" 
-           class="group flex items-center justify-between px-4 py-3 mb-1 rounded-xl hover:bg-blue-50 cursor-pointer transition-colors border border-transparent hover:border-blue-50">
-        
-        <div class="flex items-center gap-4">
-          <div class="w-9 h-9 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center text-xs font-bold flex-shrink-0 uppercase">
-            {{ org.orgName.substring(0, 1) }}
-          </div>
-          <div class="flex flex-col">
-            <span class="text-sm font-semibold text-gray-800">{{ org.orgName }}</span>
-            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{{ org.orgCode }}</span>
-          </div>
-        </div>
-        
-        <span class="opacity-0 group-hover:opacity-100 text-blue-500 text-[10px] font-bold transition-opacity">
-          SELECT
-        </span>
-      </div>
-    </div>
-
-    <div class="px-6 py-3 bg-gray-50 border-t border-gray-100 text-center flex-shrink-0">
-      <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Cavalier Logistics</p>
-    </div>
-  </div>
-</div>
-  
-  </div>
-   <div class="flex items-center">
-  <label class="w-24 font-bold text-gray-600">Services</label>
-  <select [(ngModel)]="leadSearchFilters.type" 
-          [ngModelOptions]="{standalone: true}"
-          class="flex-1 border border-gray-300 p-1 outline-none text-[12px]">
-    <option value="Any">(Any)</option>
-    <option value="Existing Business">Existing Business</option>
-    <option value="New Business">New Business</option>
-  </select>
-</div>
-        </div>
-<div class="space-y-2">
-  
-<div class="flex items-center">
-  <label class="w-28 font-bold text-gray-600 text-[12px]">HOD</label>
-  
-  <div class="flex-1 flex border border-gray-300 relative rounded-sm bg-white shadow-sm focus-within:ring-1 focus-within:ring-red-400">
-    <!-- Input with 3-char logic check -->
-    <input
-      type="text"
-      [(ngModel)]="leadSearchFilters.hod"
-      [ngModelOptions]="{standalone: true}"
-      (input)="onHODSearchType($event)"
-      placeholder="Type min 3 chars..."
-      class="w-full p-1.5 outline-none text-[12px] bg-white"
-      autocomplete="off"
-    />
-
-    <!-- Icon to Open Modal -->
-    <span
-      (click)="oniconHODSearch()"
-      class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-red-500 hover:text-white transition-all flex items-center justify-center w-9"
-      title="View All HODs"
-    >
-      🔍
-    </span>
-
-    <!-- Standard Cavalier Dropdown (3 characters par trigger hoga) -->
-    <ul
-      *ngIf="leadSearchFilters.hod.length >= 3 && filteredHODSuggestions.length > 0 && !isHODModalOpen"
-      class="absolute top-full left-0 w-full bg-white border border-gray-300 z-[4000] shadow-xl max-h-60 overflow-y-auto mt-1 rounded-sm list-none p-0"
-    >
-      <li
-        *ngFor="let hodName of filteredHODSuggestions"
-        (click)="selectHOD(hodName)"
-        class="p-2 text-[12px] hover:bg-red-50 cursor-pointer border-b border-gray-100 last:border-none flex items-center gap-2 transition-colors group"
-      >
-        <div class="w-1.5 h-1.5 rounded-full bg-gray-300 group-hover:bg-red-500"></div>
-        <span class="text-gray-700 font-medium group-hover:text-red-700 uppercase">{{ hodName }}</span>
-      </li>
-    </ul>
-  </div>
-</div>
-
-<!-- RESPONSIVE HOD MODAL -->
-<div
-  *ngIf="isHODModalOpen"
-  class="fixed inset-0 z-[5000] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
->
-  <div
-    class="bg-white w-full max-w-md shadow-2xl rounded-sm border-t-4 border-red-600 animate-in zoom-in duration-200 flex flex-col max-h-[90vh]"
-  >
-    <!-- Modal Header -->
-    <div class="flex justify-between items-center p-3 border-b bg-gray-50 flex-shrink-0">
-      <h3 class="text-[12px] font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
-        👤 Select HOD
-      </h3>
-      <button
-        (click)="isHODModalOpen = false"
-        class="text-gray-400 hover:text-red-500 text-2xl font-bold leading-none"
-      >
-        &times;
-      </button>
-    </div>
-
-    <!-- Modal Search Input -->
-    <div class="p-3 bg-white border-b flex-shrink-0">
-      <div class="relative">
-        <input
-          type="text"
-          [(ngModel)]="modalHODSearchText"
-          (input)="filterHODModalList()"
-          placeholder="Filter HOD name..."
-          class="w-full p-2 pl-8 border border-gray-200 text-[11px] outline-none rounded-sm focus:border-red-400 transition-all"
-        />
-        <span class="absolute left-2.5 top-2 text-gray-400 text-[12px]">🔍</span>
-      </div>
-    </div>
-
-    <!-- Modal List Body (Scrollable) -->
-    <div class="overflow-y-auto p-1 custom-scrollbar flex-1 bg-white">
-      <ul class="list-none p-0 m-0">
-        <li
-          *ngFor="let hod of allHODListFiltered"
-          (click)="selectHOD(hod); isHODModalOpen = false"
-          class="flex items-center gap-3 p-3 hover:bg-red-50 border-b border-gray-50 last:border-none cursor-pointer transition-colors group"
-        >
-          <div class="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-[10px] font-bold border border-red-200 uppercase">
-            {{ hod.substring(0, 1) }}
-          </div>
-          <span class="text-[12px] text-gray-800 font-medium uppercase group-hover:text-red-700">
-            {{ hod }}
-          </span>
-        </li>
-
-        <!-- No Data State -->
-        <li *ngIf="allHODListFiltered.length === 0" class="p-10 text-center text-gray-400 text-[11px] italic">
-          No HOD found.
-        </li>
-      </ul>
-    </div>
-
-    <!-- Modal Footer -->
-    <div class="p-3 border-t bg-gray-50 flex justify-between items-center flex-shrink-0">
-      <span class="text-[9px] text-gray-400 font-black uppercase opacity-60">Cavalier Logistics</span>
-      <button
-        (click)="isHODModalOpen = false"
-        class="px-4 py-1.5 text-[11px] font-bold text-gray-500 hover:bg-gray-200 rounded-sm uppercase transition-all"
-      >
-        Close
-      </button>
-    </div>
-  </div>
-</div>
-
-  <div class="flex items-center">
-  <label class="w-28 font-bold text-gray-600 text-[12px]">Lead Owner</label>
-  
-  <div class="flex-1 flex border border-gray-300 relative rounded-sm bg-white shadow-sm focus-within:ring-1 focus-within:ring-red-400">
-    <!-- Input with 3-char logic -->
-    <input
-      type="text"
-      [(ngModel)]="leadSearchFilters.leadOwner"
-      [ngModelOptions]="{standalone: true}"
-      (input)="onLeadOwnerSearch($event)"
-      placeholder="Type min 3 chars..."
-      class="w-full p-1.5 outline-none text-[12px] bg-white h-[26px]"
-      autocomplete="off"
-    />
-
-    <!-- Icon to Open Modal -->
-    <span
-      (click)="onLeadOwnerIconClick()"
-      class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-red-500 hover:text-white transition-all flex items-center justify-center w-9"
-      title="View All Owners"
-    >
-      🔍
-    </span>
-
-    <!-- Standard Dropdown (3 characters par trigger) -->
-    <ul
-      *ngIf="leadSearchFilters.leadOwner.length >= 3 && filteredLeadOwners.length > 0 && !isLeadOwnerModalOpen"
-      class="absolute top-full left-0 w-full bg-white border border-gray-300 z-[4000] shadow-xl max-h-60 overflow-y-auto mt-1 rounded-sm list-none p-0"
-    >
-      <li
-        *ngFor="let owner of filteredLeadOwners"
-        (click)="selectLeadOwner(owner)"
-        class="px-3 py-2 hover:bg-red-50 cursor-pointer border-b border-gray-50 last:border-none flex items-center gap-2 transition-colors group"
-      >
-        <div class="w-1.5 h-1.5 rounded-full bg-gray-300 group-hover:bg-red-500"></div>
-        <span class="text-[12px] text-gray-700 font-medium group-hover:text-red-700 uppercase">{{ owner }}</span>
-      </li>
-    </ul>
-  </div>
-</div>
-
-<!-- RESPONSIVE LEAD OWNER MODAL -->
-<div
-  *ngIf="isLeadOwnerModalOpen"
-  class="fixed inset-0 z-[5000] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
->
-  <div
-    class="bg-white w-full max-w-md shadow-2xl rounded-sm border-t-4 border-red-600 animate-in zoom-in duration-200 flex flex-col max-h-[90vh]"
-  >
-    <!-- Modal Header -->
-    <div class="flex justify-between items-center p-3 border-b bg-gray-50 flex-shrink-0">
-      <h3 class="text-[12px] font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
-        👥 Select Lead Owner
-      </h3>
-      <button (click)="isLeadOwnerModalOpen = false" class="text-gray-400 hover:text-red-500 text-2xl font-bold leading-none">&times;</button>
-    </div>
-
-    <!-- Modal Search -->
-    <div class="p-3 bg-white border-b flex-shrink-0">
-      <div class="relative">
-        <input
-          type="text"
-          [(ngModel)]="modalOwnerSearchText"
-          (input)="filterOwnerModalList()"
-          placeholder="Filter owner name..."
-          class="w-full p-2 pl-8 border border-gray-200 text-[11px] outline-none rounded-sm focus:border-red-400"
-        />
-        <span class="absolute left-2.5 top-2 text-gray-400 text-[12px]">🔍</span>
-      </div>
-    </div>
-
-    <!-- Modal List -->
-    <div class="overflow-y-auto p-1 flex-1 bg-white">
-      <ul class="list-none p-0 m-0">
-        <!-- FIXED: changed allOwnersListFiltered to allOwnersFiltered -->
-        <li
-          *ngFor="let owner of allOwnersFiltered"
-          (click)="selectLeadOwner(owner)"
-          class="flex items-center gap-3 p-3 hover:bg-red-50 border-b border-gray-50 last:border-none cursor-pointer group"
-        >
-          <div class="w-8 h-8 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center text-[10px] font-bold border border-gray-200 uppercase group-hover:bg-red-100 group-hover:text-red-600">
-            {{ owner.substring(0, 1) }}
-          </div>
-          <span class="text-[12px] text-gray-800 font-medium uppercase group-hover:text-red-700">{{ owner }}</span>
-        </li>
-      </ul>
-    </div>
-
-    <!-- Modal Footer -->
-    <div class="p-3 border-t bg-gray-50 flex justify-between items-center flex-shrink-0">
-      <span class="text-[9px] text-gray-400 font-black uppercase">Cavalier Logistics</span>
-      <button (click)="isLeadOwnerModalOpen = false" class="px-4 py-1.5 text-[11px] font-bold text-gray-500 hover:bg-gray-200 rounded-sm uppercase">Close</button>
-    </div>
-  </div>
-</div>
-
- <div class="flex items-center">
-  <label class="w-28 font-bold text-gray-600 text-[12px]">Lead No</label>
-  
-  <div class="flex-1 flex border border-gray-300 relative rounded-sm bg-white shadow-sm focus-within:ring-1 focus-within:ring-red-400">
-    <input type="text" 
-           [(ngModel)]="leadSearchFilters.leadNo" 
-           [ngModelOptions]="{standalone: true}"
-           class="w-full p-1.5 outline-none text-[12px] h-[26px]"
-           placeholder="Search lead no..."
-           (input)="onLeadNoSearchForFilters($event)"
-           autocomplete="off"> 
-
-    <!-- Icon Click to Open Modal -->
-    <span class="p-1 bg-gray-50 border-l border-gray-200 flex items-center justify-center cursor-pointer text-gray-400 hover:bg-red-500 hover:text-white transition-all w-9" 
-          (click)="onLeadNoIconClick()">
-      🔍
-    </span>
-
-    <!-- 3-Character Suggestion Dropdown -->
-    <div *ngIf="filteredLeads.length > 0"
-         class="absolute z-50 w-full bg-white border border-gray-300 top-full left-0 mt-1 max-h-48 overflow-y-auto shadow-xl list-none p-0">
-      <div *ngFor="let lead of filteredLeads"
-           (click)="selectLeadForFilters(lead)" 
-           class="p-2 hover:bg-red-50 cursor-pointer text-[12px] border-b border-gray-50 last:border-none flex items-center gap-2 uppercase transition-colors group">
-        <div class="w-1.5 h-1.5 rounded-full bg-gray-300 group-hover:bg-red-500"></div>
-        <span class="group-hover:text-red-700">{{ lead.leadNo || lead }}</span>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- LEAD NO MODAL (Open on Icon Click) -->
-<div *ngIf="isLNModalOpen"
-     class="fixed inset-0 z-[5000] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-  
-  <div class="bg-white w-full max-w-md shadow-2xl rounded-sm border-t-4 border-red-600 animate-in zoom-in duration-200 flex flex-col max-h-[90vh]">
-    
-    <!-- Modal Header -->
-    <div class="flex justify-between items-center p-3 border-b bg-gray-50 flex-shrink-0">
-      <h3 class="text-[12px] font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
-        📂 Select Lead Number
-      </h3>
-      <button (click)="isLNModalOpen = false" class="text-gray-400 hover:text-red-500 text-2xl font-bold leading-none">&times;</button>
-    </div>
-
-    <!-- Modal Search -->
-    <div class="p-3 bg-white border-b flex-shrink-0">
-      <div class="relative">
-        <input 
-          type="text" 
-          placeholder="Filter Inquiry number..." 
-          [(ngModel)]="modalLNSearchText"
-          (input)="filterLeadNumbers()"
-          class="w-full p-2 pl-8 border border-gray-200 text-[11px] outline-none rounded-sm focus:border-red-400"
-        >
-        <span class="absolute left-2.5 top-2.5 text-gray-400 text-[10px]">🔍</span>
-      </div>
-    </div>
-
-    <!-- Modal List -->
-    <div class="overflow-y-auto p-1 flex-1 bg-white custom-scrollbar">
-      <div *ngFor="let leadNo of allLNFiltered"
-           (click)="selectLeadForFilters(leadNo)" 
-           class="px-5 py-3 hover:bg-red-50 cursor-pointer text-[12px] text-gray-700 border-b border-gray-50 last:border-0 flex items-center justify-between group transition-all">
-        
-        <span class="group-hover:text-red-600 font-medium uppercase">{{ leadNo }}</span>
-        <span class="opacity-0 group-hover:opacity-100 text-red-400 text-[10px] font-bold transform translate-x-[-10px] group-hover:translate-x-0 transition-all">
-          SELECT →
-        </span>
-      </div>
-    </div>
-
-    <!-- Modal Footer -->
-    <div class="py-2.5 bg-gray-50 border-t border-gray-100 text-center flex-shrink-0">
-      <p class="text-[9px] text-gray-400 uppercase tracking-widest font-black">Cavalier Logistics</p>
-    </div>
-  </div>
-</div>
-
-<div *ngIf="lnIconList.length > 0" 
-     class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-[9998] animate-in fade-in duration-300"
-     (click)="lnIconList = []">
-</div>
-
-<div *ngIf="lnIconList.length > 0"
-     class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] w-[95%] max-w-[400px] bg-white shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-2xl overflow-hidden border border-gray-100 animate-in fade-in zoom-in duration-200">
-  
-  <div class="px-5 py-4 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 flex flex-col gap-3">
-    <div class="flex justify-between items-center">
-      <h3 class="text-sm font-bold text-gray-800 tracking-tight uppercase">Select Lead No</h3>
-      <button (click)="lnIconList = []" 
-              class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-50 text-gray-400 hover:text-red-500 transition-all">
-        ✕
-      </button>
-    </div>
-
-    <div class="relative group">
-      <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 group-focus-within:text-blue-500 transition-colors">
-        🔍
-      </span>
-      <input 
-        type="text" 
-        placeholder="Search Inquiry number..." 
-        class="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-        (input)="filterLeadNumbers($event)"
-      >
-    </div>
-  </div>
-
-  <div class="max-h-[350px] overflow-y-auto bg-white custom-scrollbar">
-    <div *ngFor="let leadNo of lnIconList"
-         (click)="selectLnFromIcon(leadNo)" 
-         class="px-5 py-3.5 hover:bg-blue-50/50 cursor-pointer text-sm text-gray-700 border-b border-gray-50 last:border-0 flex items-center justify-between group transition-all">
-      
-      <span class="group-hover:text-blue-600 font-medium">{{ leadNo }}</span>
-      
-      <span class="opacity-0 group-hover:opacity-100 text-blue-400 transform translate-x-[-10px] group-hover:translate-x-0 transition-all text-xs font-semibold">
-        Select →
-      </span>
-    </div>
-  </div>
-
-  <div class="py-2.5 bg-gray-50 border-t border-gray-100 text-center">
-    <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Cavalier Logistics</p>
-  </div>
-</div>
-</div>
-
-<div *ngIf="iconHODList.length > 0 || loIconList.length > 0 || lnIconList.length > 0" 
-     class="fixed inset-0 bg-slate-900/60 backdrop-blur-[4px] z-[9998] animate-in fade-in duration-300"
-     (click)="iconHODList = []; loIconList = []; lnIconList = []">
-</div>
-
-<div *ngIf="iconHODList.length > 0"
-     class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] w-[92%] sm:w-[85%] md:w-[400px] max-h-[90vh] flex flex-col bg-white shadow-2xl rounded-2xl overflow-hidden animate-in zoom-in duration-200">
-  <div class="px-5 py-4 bg-gradient-to-r from-gray-50 to-white border-b flex flex-col gap-3">
-    <div class="flex justify-between items-center">
-     
-     
-      <h3 class="text-xs font-bold text-gray-800 uppercase">Select HOD</h3>
-      <button (click)="iconHODList = []" class="text-red-500 font-bold">✕</button>
-    </div>
-    <input type="text" placeholder="Filter HOD name..." class="w-full p-2 text-sm border rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20" (input)="filterHODs($event)">
-  </div>
-  <div class="overflow-y-auto flex-1 custom-scrollbar">
-    <div *ngFor="let h of iconHODList" (click)="selectHODFromIcon(h)" class="px-5 py-3.5 hover:bg-blue-50 cursor-pointer text-sm border-b border-gray-50 flex justify-between group">
-      <span class="group-hover:text-blue-600 font-medium">{{ h }}</span>
-      <span class="opacity-0 group-hover:opacity-100 text-blue-400 text-[10px]">Select →</span>
-    </div>
-  </div>
-  <div class="py-2 bg-gray-50 text-center border-t text-[10px] text-gray-400 font-bold uppercase tracking-widest">Cavalier Logistics</div>
-</div>
-
-<div *ngIf="loIconList.length > 0"
-     class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] w-[92%] sm:w-[85%] md:w-[400px] max-h-[90vh] flex flex-col bg-white shadow-2xl rounded-2xl overflow-hidden animate-in zoom-in duration-200">
-  <div class="px-5 py-4 bg-gradient-to-r from-gray-50 to-white border-b flex flex-col gap-3">
-    <div class="flex justify-between items-center">
-      <h3 class="text-xs font-bold text-gray-800 uppercase">Select Lead Owner</h3>
-      <button (click)="loIconList = []" class="text-red-500 font-bold">✕</button>
-    </div>
-    <input type="text" placeholder="Filter owner name..." class="w-full p-2 text-sm border rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20" (input)="filterLeadOwners($event)">
-  </div>
-  <div class="overflow-y-auto flex-1 custom-scrollbar">
-    <div *ngFor="let owner of loIconList" (click)="selectLoFromIcon(owner)" class="px-5 py-3.5 hover:bg-blue-50 cursor-pointer text-sm border-b border-gray-50 flex justify-between group">
-      <span class="group-hover:text-blue-600 font-medium">{{ owner }}</span>
-      <span class="opacity-0 group-hover:opacity-100 text-blue-400 text-[10px]">Select →</span>
-    </div>
-  </div>
-  <div class="py-2 bg-gray-50 text-center border-t text-[10px] text-gray-400 font-bold uppercase tracking-widest">Cavalier Logistics</div>
-</div>
-
-<div *ngIf="lnIconList.length > 0"
-     class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] w-[92%] sm:w-[85%] md:w-[400px] max-h-[90vh] flex flex-col bg-white shadow-2xl rounded-2xl overflow-hidden animate-in zoom-in duration-200">
-  <div class="px-5 py-4 bg-gradient-to-r from-gray-50 to-white border-b flex flex-col gap-3">
-    <div class="flex justify-between items-center">
-      <h3 class="text-xs font-bold text-gray-800 uppercase">Select Inquiry No</h3>
-      <button (click)="lnIconList = []" class="text-red-500 font-bold">✕</button>
-    </div>
-    <input type="text" placeholder="Filter Inquiry No..." class="w-full p-2 text-sm border rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20" (input)="filterLeadNumbers($event)">
-  </div>
-  <div class="overflow-y-auto flex-1 custom-scrollbar">
-    <div *ngFor="let leadNo of lnIconList" (click)="selectLnFromIcon(leadNo)" class="px-5 py-3.5 hover:bg-blue-50 cursor-pointer text-sm border-b border-gray-50 flex justify-between group">
-      <span class="group-hover:text-blue-600 font-medium">{{ leadNo }}</span>
-      <span class="opacity-0 group-hover:opacity-100 text-blue-400 text-[10px]">Select →</span>
-    </div>
-  </div>
-  <div class="py-2 bg-gray-50 text-center border-t text-[10px] text-gray-400 font-bold uppercase tracking-widest">Cavalier Logistics</div>
-</div>
- 
-        <div class="space-y-2">
-   <!-- Team Input Field -->
-<div class="flex items-center">
-  <label class="w-28 font-bold text-gray-600 text-[12px]">Team</label>
-  
-  <div class="flex-1 flex border border-gray-300 relative rounded-sm bg-white shadow-sm focus-within:ring-1 focus-within:ring-red-400">
-    <input type="text" 
-           [(ngModel)]="leadSearchFilters.team" 
-           [ngModelOptions]="{standalone: true}" 
-           class="w-full p-1.5 outline-none text-[12px] h-[26px]"
-           placeholder="Search Team..."
-           (input)="onTeamSearch($event)"
-           autocomplete="off"> 
-    
-    <span class="p-1 bg-gray-50 border-l border-gray-200 flex items-center justify-center cursor-pointer text-gray-400 hover:bg-red-500 hover:text-white transition-all w-9" 
-          (click)="onTeamIconClick()">
-      🔍
-    </span>
-
-    <!-- Input Suggestion (Dropdown) -->
-    <div *ngIf="filteredTeams.length > 0"
-         class="absolute z-[100] w-full bg-white border border-gray-300 top-full left-0 mt-1 max-h-48 overflow-y-auto shadow-xl">
-      <div *ngFor="let team of filteredTeams"
-           (click)="selectTeam(team)" 
-           class="px-3 py-2 hover:bg-red-50 cursor-pointer text-[12px] border-b border-gray-50 last:border-none flex items-center gap-2 uppercase group">
-        <span class="text-gray-700 group-hover:text-red-700">{{ team.teamName || team.name || team }}</span>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ================= NEW SIMPLE MODAL (CENTERED) ================= -->
-<div *ngIf="isTeamModalOpen" 
-     class="fixed inset-0 z-[9999] flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
-  
-  <!-- Overlay/Backdrop -->
-  <div class="fixed inset-0 bg-black opacity-50" (click)="isTeamModalOpen = false"></div>
-
-  <!-- Modal Content -->
-  <div class="relative w-[400px] my-6 mx-auto z-[10000]">
-    <div class="border-0 rounded-sm shadow-2xl relative flex flex-col w-full bg-white outline-none focus:outline-none border-t-4 border-red-600">
-      
-      <!-- Header -->
-      <div class="flex items-start justify-between p-4 border-b border-solid border-gray-200 bg-gray-50 rounded-t">
-        <h3 class="text-xs font-bold uppercase tracking-widest text-gray-800">Select Team</h3>
-        <button class="p-1 ml-auto bg-transparent border-0 text-gray-400 float-right text-xl leading-none font-semibold outline-none focus:outline-none hover:text-red-500" 
-                (click)="isTeamModalOpen = false">×</button>
-      </div>
-
-      <!-- Search Inside Modal -->
-      <div class="relative p-4 flex-auto bg-white border-b">
-        <input type="text" 
-               class="w-full p-2 border border-gray-300 rounded-sm text-[12px] outline-none focus:border-red-400" 
-               placeholder="Filter team..."
-               [(ngModel)]="modalTeamSearchText"
-               (input)="filterTeams($event)">
-      </div>
-
-      <!-- List -->
-      <div class="relative p-2 flex-auto max-h-[300px] overflow-y-auto custom-scrollbar bg-white">
-        <div *ngFor="let t of tmIconListFiltered"
-             (click)="selectTmFromIcon(t)" 
-             class="w-full px-4 py-3 text-left hover:bg-red-50 cursor-pointer border-b border-gray-50 flex items-center justify-between group transition-all">
-          <span class="text-[12px] font-medium text-gray-700 group-hover:text-red-700 uppercase">{{ t }}</span>
-          <span class="opacity-0 group-hover:opacity-100 text-red-500 text-[10px] font-bold">SELECT</span>
-        </div>
-        
-        <div *ngIf="tmIconListFiltered.length === 0" class="p-4 text-center text-gray-400 text-[11px] italic">
-          No records found
-        </div>
-      </div>
-
-      <!-- Footer -->
-      <div class="flex items-center justify-center p-2 border-t border-solid border-gray-100 bg-gray-50 rounded-b">
-        <p class="text-[9px] text-gray-400 font-black uppercase tracking-tighter">Cavalier Logistics</p>
-      </div>
-    </div>
-  </div>
-</div>
-<div class="flex items-center">
-  <label class="w-28 font-bold text-gray-600 text-[12px]">Reporting Manager</label>
-  
-  <div class="flex-1 flex border border-gray-300 relative rounded-sm bg-white shadow-sm focus-within:ring-1 focus-within:ring-red-400">
-    <input type="text" 
-           [(ngModel)]="leadSearchFilters.reportingManager" 
-           [ngModelOptions]="{standalone: true}" 
-           class="w-full p-1.5 outline-none text-[12px] h-[26px]"
-           placeholder="Search Manager..."
-           (input)="onManagerSearch($event)"
-           autocomplete="off"> 
-    
-    <span class="p-1 bg-gray-50 border-l border-gray-200 flex items-center justify-center cursor-pointer text-gray-400 hover:bg-red-500 hover:text-white transition-all w-9" 
-          (click)="onManagerIconClick()">
-      🔍
-    </span>
-
-    <!-- Input Suggestions Dropdown -->
-    <div *ngIf="filteredManagers.length > 0"
-         class="absolute z-[100] w-full bg-white border border-gray-300 top-full left-0 mt-1 max-h-48 overflow-y-auto shadow-xl">
-      <div *ngFor="let manager of filteredManagers"
-           (click)="selectManager(manager)" 
-           class="px-3 py-2 hover:bg-red-50 cursor-pointer text-[12px] border-b border-gray-50 last:border-none flex items-center gap-2 uppercase group">
-        <span class="text-gray-700 group-hover:text-red-700">{{ manager }}</span>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ================= REPORTING MANAGER MODAL (CENTERED) ================= -->
-<div *ngIf="isManagerModalOpen" 
-     class="fixed inset-0 z-[9999] flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
-  
-  <!-- Backdrop -->
-  <div class="fixed inset-0 bg-black opacity-50" (click)="isManagerModalOpen = false"></div>
-
-  <!-- Modal Container -->
-  <div class="relative w-[400px] my-6 mx-auto z-[10000]">
-    <div class="border-0 rounded-sm shadow-2xl relative flex flex-col w-full bg-white outline-none focus:outline-none border-t-4 border-red-600">
-      
-      <!-- Header -->
-      <div class="flex items-start justify-between p-4 border-b border-solid border-gray-200 bg-gray-50 rounded-t">
-        <h3 class="text-xs font-bold uppercase tracking-widest text-gray-800">Select Manager</h3>
-        <button class="p-1 ml-auto bg-transparent border-0 text-gray-400 float-right text-xl leading-none font-semibold outline-none focus:outline-none hover:text-red-500" 
-                (click)="isManagerModalOpen = false">✕</button>
-      </div>
-
-      <!-- Search Inside Modal -->
-      <div class="relative p-4 flex-auto bg-white border-b">
-        <input type="text" 
-               class="w-full p-2 border border-gray-300 rounded-sm text-[12px] outline-none focus:border-red-400" 
-               placeholder="Filter manager name..."
-               [(ngModel)]="modalManagerSearchText"
-               (input)="filterManagers($event)">
-      </div>
-
-      <!-- List Container -->
-      <div class="relative p-2 flex-auto max-h-[300px] overflow-y-auto custom-scrollbar bg-white">
-        <div *ngFor="let m of rmIconListFiltered"
-             (click)="selectRmFromIcon(m)" 
-             class="w-full px-4 py-3 text-left hover:bg-red-50 cursor-pointer border-b border-gray-50 flex items-center justify-between group transition-all">
-          <span class="text-[12px] font-medium text-gray-700 group-hover:text-red-700 uppercase">{{ m }}</span>
-          <span class="opacity-0 group-hover:opacity-100 text-red-500 text-[10px] font-bold">SELECT</span>
-        </div>
-        
-        <div *ngIf="rmIconListFiltered.length === 0" class="p-4 text-center text-gray-400 text-[11px] italic">
-          No records found.
-        </div>
-      </div>
-
-      <!-- Footer -->
-      <div class="flex items-center justify-center p-2 border-t border-solid border-gray-100 bg-gray-50 rounded-b">
-        <p class="text-[9px] text-gray-400 font-black uppercase tracking-tighter">Cavalier Logistics</p>
-      </div>
-    </div>
-  </div>
-</div>
-      <div class="flex items-center">
-  <!-- Label design as per your request -->
-  <label class="w-28 font-bold text-gray-600 text-[12px]">Status</label>
-  
-  <div class="flex-1">
-    <select 
-      [(ngModel)]="leadSearchFilters.status" 
-      [ngModelOptions]="{standalone: true}" 
-      (change)="onLeadSearch()"
-      class="w-full p-1 border border-gray-300 outline-none text-[12px] h-[26px] bg-white cursor-pointer">
-      
-      <!-- Logic: 'Any' value for showing all records -->
-      <option value="Any">Select Status</option>
-      <option value="Active">Active</option>
-      <option value="Inactive">Inactive</option>
-      
-    </select>
-  </div>
-</div>
-         <div class="flex justify-end gap-3 pt-1">
-<button
-
-class="text-blue-600 underline text-[11px] font-bold">
-Advance Filter
-</button>
-
-
-<div *ngIf="showModal"
-class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
-
-  <div class="bg-white w-[750px] p-5 rounded shadow-lg">
-
-    <h2 class="font-bold mb-4">Advance Filter</h2>
-
-    <div class="grid grid-cols-2 gap-6">
-
-      <!-- Available Columns -->
-      <div>
-
-        <h3 class="font-semibold mb-2">Available Columns</h3>
-
-        <div
-        cdkDropList
-        id="availableList"
-        [cdkDropListData]="availableColumns"
-        [cdkDropListConnectedTo]="['selectedList']"
-        (cdkDropListDropped)="drop($event)"
-        class="border h-52 p-2 overflow-auto">
-
-          <div
-          *ngFor="let col of availableColumns"
-          cdkDrag
-          class="bg-gray-100 p-2 mb-2 cursor-move rounded">
-
-            {{col}}
-
-          </div>
-
-        </div>
-
-      </div>
-
-      <!-- Selected Columns -->
-      <div>
-
-        <h3 class="font-semibold mb-2">Selected Columns</h3>
-
-        <div
-        cdkDropList
-        id="selectedList"
-        [cdkDropListData]="selectedColumns"
-        [cdkDropListConnectedTo]="['availableList']"
-        (cdkDropListDropped)="drop($event)"
-        class="border h-52 p-2 overflow-auto">
-
-          <div
-          *ngFor="let col of selectedColumns"
-          cdkDrag
-          class="bg-blue-100 p-2 mb-2 cursor-move rounded flex justify-between items-center">
-
-            <span>{{col}}</span>
-
-            <select class="text-xs border p-1 rounded"
-            [(ngModel)]="sortOrders[col]">
-              <option value="asc">Asc</option>
-              <option value="desc">Desc</option>
-            </select>
-
-          </div>
-
-        </div>
-
-      </div>
-
-    </div>
-
-    <div class="flex justify-end mt-4">
-
-      <button
-      (click)="showModal=false"
-      class="bg-gray-400 text-white px-4 py-1 rounded">
-      Close
-      </button>
-
-    </div>
-
-  </div>
-
-</div>
-
-  <button type="button" 
-          (click)="resetLeadFilters()" 
-          class="text-blue-600 underline text-[11px] font-bold">
-    Clear
-  </button>
-
-  <button type="button" (click)="onLeadSearch()"
-          class="bg-[#4a3f3f] text-white px-6 py-1 font-bold shadow-md uppercase text-[11px] hover:bg-black transition-all">
-    Search
-  </button>
-  <!-- <button type="button" (click)="AllLeadSearch()"
-          class="bg-[#4a3f3f] text-white px-6 py-1 font-bold shadow-md uppercase text-[11px] hover:bg-black transition-all">
-    All Leads
-  </button> -->
-</div>
-        </div>
-      </div>
-    </div>
-    
-    <div class="bg-[#4a3f3f] p-3 flex justify-between items-center text-white">
-
-  <!-- Title -->
-  <div class="font-bold uppercase text-[12px] tracking-widest px-2">
-    Lead Records
-  </div>
-
-  <!-- Buttons -->
-  <div class="flex gap-2">
-
-    <button
-      (click)="toggleForm()"
-      class="bg-green-600 hover:bg-green-700 text-white font-bold text-[12px] px-5 py-1.5 uppercase shadow-sm">
-      + Add New Lead
-    </button>
-
-    <button
-      (click)="showModal=true"
-      class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-[12px] px-5 py-1.5 uppercase shadow-sm">
-      Customize Column
-    </button>
-
-  </div>
-
-</div>
- 
-   <!-- TABLE WRAPPER -->
-<div class="overflow-x-auto relative z-0">
-
-  <div class="max-h-[450px] overflow-y-auto border rounded">
-  <div class="relative">
-    <ng-container *ngIf="showTable; else initialNoData">
-      <table class="w-full border-collapse text-[13px]">
-        <thead class="bg-gray-100 text-gray-600 uppercase border-b border-gray-300 font-bold sticky top-0 z-0">
-          <tr class="divide-x divide-gray-300">
-            <th *ngFor="let col of selectedColumns" (click)="sortColumn(col)" class="p-4 whitespace-nowrap text-left cursor-pointer select-none">
-              {{ col }}
-              <span *ngIf="sortOrders[col] == 'asc'">▲</span>
-              <span *ngIf="sortOrders[col] == 'desc'">▼</span>
-            </th>
-            <th class="p-4 whitespace-nowrap text-left">Actions</th>
-          </tr>
-        </thead>
-
-        <tbody class="bg-white divide-y divide-gray-200" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
-          <ng-container *ngIf="paginatedLeads && paginatedLeads.length > 0; else noData">
-            <tr *ngFor="let lead of paginatedLeads" 
-                [class.row-blink]="lead.id === highlightedLeadId"
-                (dblclick)="onEditLead(lead.id)"
-                class="divide-x divide-gray-200 hover:bg-gray-50 cursor-pointer transition-colors">
-              
-              <td *ngFor="let col of selectedColumns" class="p-4 whitespace-nowrap">
-                <ng-container *ngIf="col === 'Organization'; else otherCols">
-                  <span (click)="onOrgClick(lead.organisationId, lead.organizationName)" 
-                        class="text-blue-600 cursor-pointer hover:underline font-bold">
-                    {{ lead[columnFieldMap[col]] }}
-                  </span>
-                </ng-container>
-
-                <ng-template #otherCols>
-                  <ng-container *ngIf="col.toLowerCase().includes('date') || col === 'Expected Validity' || col === 'Created At'; else regularValue">
-                    {{ lead[columnFieldMap[col]] | date:'dd-MM-yyyy' }}
-                  </ng-container>
-                  <ng-template #regularValue>
-                    {{ lead[columnFieldMap[col]] }}
-                  </ng-template>
-                </ng-template>
-              </td>
-
-              <td class="p-4 text-center whitespace-nowrap">
-                <div class="flex justify-center gap-4">
-                  <button [title]="(lead?.status === 1) ? 'Deactivate' : 'Activate'"
-                    (click)="$event.stopPropagation(); toggleLeadStatus(lead)"
-                    class="flex items-center gap-2 px-3 py-1.5 rounded-md transition-all font-medium text-sm shadow-sm border"
-                    [ngClass]="(lead?.status === 1) ? 'bg-green-50 text-green-600 border-green-200 hover:bg-green-600 hover:text-white' : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-600 hover:text-white'">
-                    <span class="relative flex h-2 w-2">
-                      <span *ngIf="lead?.status === 1" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                      <span [class]="(lead?.status === 1) ? 'bg-green-500' : 'bg-gray-500'" class="relative inline-flex rounded-full h-2 w-2"></span>
-                    </span>
-                    <span>{{ (lead?.status === 1) ? 'Active' : 'Inactive' }}</span>
-                  </button>
-
-                  <button title="Edit" *ngIf="CheckPermissionService.hasPermission(PermissionID, 'Edit')" (click)="onEditLead(lead.id)" class="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-600 border border-blue-200 rounded-md hover:bg-blue-600 hover:text-white transition-all font-medium text-sm shadow-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
-                    <span>Edit</span>
-                  </button>
-
-                  <button title="Delete" *ngIf="CheckPermissionService.hasPermission(PermissionID,'Delete')" (click)="onDeleteLead(lead.id)" class="flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 rounded-md hover:bg-red-600 hover:text-white transition-all font-medium text-sm shadow-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
-                    <span>Delete</span>
-                  </button>
+          <div [formGroup]="leadForm">
+            <div class="flex items-center">
+              <label class="w-24 font-bold text-red-700 text-[12px]">Organization</label>
+              <div class="flex-1 flex border border-red-200 relative">                
+                <input type="text" [(ngModel)]="leadSearchFilters.organizationName" [ngModelOptions]="{standalone: true}" class="w-full p-1 outline-none text-[12px]" placeholder="Type min 3 chars to search..." (input)="onLeadOrgSearch($event)" autocomplete="off"> 
+                <span class="p-1 bg-gray-50 border-l border-gray-200 flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors" (click)="loadOrganizationList()">🔍</span>
+                <div *ngIf="filteredOrganizations && filteredOrganizations.length > 0" class="absolute z-40 w-full bg-white border border-gray-300 top-full left-0 mt-1 max-h-48 overflow-y-auto shadow-md">
+                  <div *ngFor="let org of filteredOrganizations" (click)="selectLeadOrg(org)" class="p-2 hover:bg-red-50 cursor-pointer text-sm border-b">{{ org.orgName }}</div>
                 </div>
-              </td>
-            </tr>
-          </ng-container>
+              </div>
+            </div>
+          </div>
 
-          <ng-template #noData>
-            <tr>
-              <td [attr.colspan]="selectedColumns.length + 1" class="p-12 text-center">
-                <div class="flex flex-col items-center justify-center">
-                  <div class="bg-orange-50 p-4 rounded-full mb-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" class="w-16 h-16 text-orange-400">
-                      <path d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
-                    </svg>
+          <div *ngIf="showOrgDropdown && orgList.length > 0" class="fixed inset-0 bg-slate-900/50 backdrop-blur-[2px] z-[9998]" (click)="showOrgDropdown = false"></div>
+          <div *ngIf="showOrgDropdown && orgList.length > 0" class="fixed inset-0 flex items-center justify-center z-[9999] p-4 pointer-events-none"> 
+            <div class="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col max-h-[85vh] overflow-hidden pointer-events-auto animate-in fade-in duration-300">
+              <div class="px-6 py-4 border-b border-gray-100 bg-white flex-shrink-0">
+                <div class="flex justify-between items-center mb-4">
+                  <div>
+                    <h3 class="text-lg font-bold text-gray-900">Select Organization</h3>
+                    <p class="text-xs text-gray-500">Search and select from the list below</p>
                   </div>
-                  <h3 class="text-lg font-bold text-gray-700">No Leads Found</h3>
-                  <p class="text-sm text-gray-500 mt-1">There are currently no leads to display.</p>
+                  <button (click)="showOrgDropdown = false" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400">✕</button>
                 </div>
-              </td>
-            </tr>
-          </ng-template>
-        </tbody>
-      </table>
-    </ng-container>
-
-    <ng-template #initialNoData>
-      <div class="p-20 text-center border-2 border-dashed border-gray-200 rounded-lg">
-        <div class="flex flex-col items-center justify-center">
-          <div class="bg-gray-50 p-4 rounded-full mb-3">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 text-gray-400">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-            </svg>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-4 flex items-center text-gray-400">🔍</span>
+                  <input type="text" placeholder="Type to filter..." class="w-full pl-11 pr-4 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2" (input)="filterOrgList($event)">
+                </div>
+              </div>
+              <div class="overflow-y-auto bg-white flex-1 min-h-0 custom-scrollbar p-2">
+                <div *ngFor="let org of orgList" (click)="selectOrg(org)" class="group flex items-center justify-between px-4 py-3 mb-1 rounded-xl hover:bg-blue-50 cursor-pointer transition-colors border border-transparent">
+                  <div class="flex items-center gap-4">
+                    <div class="w-9 h-9 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center text-xs font-bold uppercase">{{ org.orgName.substring(0, 1) }}</div>
+                    <div class="flex flex-col">
+                      <span class="text-sm font-semibold text-gray-800">{{ org.orgName }}</span>
+                      <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{{ org.orgCode }}</span>
+                    </div>
+                  </div>
+                  <span class="opacity-0 group-hover:opacity-100 text-blue-500 text-[10px] font-bold">SELECT</span>
+                </div>
+              </div>
+            </div>
           </div>
-          <h3 class="text-md font-medium text-gray-600">Please click "All Leads" to view the data.</h3>
+
+          <div class="flex items-center">
+            <label class="w-24 font-bold text-gray-600">Services</label>
+            <select [(ngModel)]="leadSearchFilters.type" [ngModelOptions]="{standalone: true}" class="flex-1 border border-gray-300 p-1 outline-none text-[12px]">
+              <option value="Any">(Any)</option>
+              <option value="Existing Business">Existing Business</option>
+              <option value="New Business">New Business</option>
+            </select>
+          </div>
         </div>
-      </div>
-    </ng-template>
-  </div>
-</div>
 
-</div>
+        <div class="space-y-2">
+          <div class="flex items-center">
+            <label class="w-28 font-bold text-gray-600 text-[12px]">HOD</label>
+            <div class="flex-1 flex border border-gray-300 relative rounded-sm bg-white shadow-sm focus-within:ring-1 focus-within:ring-red-400">
+              <input type="text" [(ngModel)]="leadSearchFilters.hod" [ngModelOptions]="{standalone: true}" (input)="onHODSearchType($event)" placeholder="Type min 3 chars..." class="w-full p-1.5 outline-none text-[12px] bg-white" autocomplete="off" />
+              <span (click)="oniconHODSearch()" class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-red-500 hover:text-white w-9 flex items-center justify-center">🔍</span>
+              <ul *ngIf="leadSearchFilters.hod.length >= 3 && filteredHODSuggestions.length > 0 && !isHODModalOpen" class="absolute top-full left-0 w-full bg-white border border-gray-300 z-[4000] shadow-xl max-h-60 overflow-y-auto mt-1 rounded-sm list-none p-0">
+                <li *ngFor="let hodName of filteredHODSuggestions" (click)="selectHOD(hodName)" class="p-2 text-[12px] hover:bg-red-50 cursor-pointer border-b flex items-center gap-2 group">
+                  <div class="w-1.5 h-1.5 rounded-full bg-gray-300 group-hover:bg-red-500"></div>
+                  <span class="text-gray-700 font-medium group-hover:text-red-700 uppercase">{{ hodName }}</span>
+                </li>
+              </ul>
+            </div>
+          </div>
 
+          <div *ngIf="isHODModalOpen" class="fixed inset-0 z-[5000] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div class="bg-white w-full max-w-md shadow-2xl rounded-sm border-t-4 border-red-600 animate-in zoom-in duration-200 flex flex-col max-h-[90vh]">
+              <div class="flex justify-between items-center p-3 border-b bg-gray-50">
+                <h3 class="text-[12px] font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">👤 Select HOD</h3>
+                <button (click)="isHODModalOpen = false" class="text-gray-400 hover:text-red-500 text-2xl font-bold leading-none">&times;</button>
+              </div>
+              <div class="p-3 bg-white border-b"><div class="relative"><input type="text" [(ngModel)]="modalHODSearchText" (input)="filterHODModalList()" placeholder="Filter HOD name..." class="w-full p-2 pl-8 border text-[11px] outline-none" /><span class="absolute left-2.5 top-2 text-gray-400">🔍</span></div></div>
+              <div class="overflow-y-auto p-1 custom-scrollbar flex-1 bg-white">
+                <ul class="list-none p-0 m-0">
+                  <li *ngFor="let hod of allHODListFiltered" (click)="selectHOD(hod); isHODModalOpen = false" class="flex items-center gap-3 p-3 hover:bg-red-50 border-b cursor-pointer">
+                    <div class="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-bold uppercase text-[10px]">{{ hod.substring(0, 1) }}</div>
+                    <span class="text-[12px] text-gray-800 font-medium uppercase">{{ hod }}</span>
+                  </li>
+                  <li *ngIf="allHODListFiltered.length === 0" class="p-10 text-center text-gray-400 text-[11px] italic">No HOD found.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
 
-<!-- PAGINATION -->
-<div class="flex flex-col items-center mt-8 gap-4" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
+          <div class="flex items-center">
+            <label class="w-28 font-bold text-gray-600 text-[12px]">Lead Owner</label>
+            <div class="flex-1 flex border border-gray-300 relative rounded-sm bg-white shadow-sm focus-within:ring-1">
+              <input type="text" [(ngModel)]="leadSearchFilters.leadOwner" [ngModelOptions]="{standalone: true}" (input)="onLeadOwnerSearch($event)" placeholder="Type min 3 chars..." class="w-full p-1.5 outline-none text-[12px] bg-white h-[26px]" autocomplete="off" />
+              <span (click)="onLeadOwnerIconClick()" class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-red-500 hover:text-white w-9 flex items-center justify-center">🔍</span>
+            </div>
+          </div>
 
-  <!-- Showing Entries -->
-  <div class="text-sm text-gray-500">
-    Showing
-    <span class="font-semibold text-gray-700">
-      {{ (currentPage - 1) * itemsPerPage + 1 }}
-    </span>
-    -
-    <span class="font-semibold text-gray-700">
-      {{ (currentPage - 1) * itemsPerPage + paginatedLeads.length }}
-    </span>
-    of
-    <span class="font-semibold text-gray-700">{{ leads.length }}</span>
-    entries
-  </div>
+          <div *ngIf="isLeadOwnerModalOpen" class="fixed inset-0 z-[5000] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div class="bg-white w-full max-w-md shadow-2xl rounded-sm border-t-4 border-red-600 animate-in flex flex-col max-h-[90vh]">
+              <div class="flex justify-between items-center p-3 border-b bg-gray-50">
+                <h3 class="text-[12px] font-bold text-gray-700 uppercase tracking-wider">👥 Select Lead Owner</h3>
+                <button (click)="isLeadOwnerModalOpen = false" class="text-gray-400 hover:text-red-500 text-2xl font-bold">&times;</button>
+              </div>
+              <div class="p-3 bg-white border-b"><div class="relative"><input type="text" [(ngModel)]="modalOwnerSearchText" (input)="filterOwnerModalList()" placeholder="Filter owner..." class="w-full p-2 pl-8 border text-[11px]" /><span class="absolute left-2.5 top-2 text-gray-400">🔍</span></div></div>
+              <div class="overflow-y-auto p-1 flex-1 bg-white">
+                <ul class="list-none p-0 m-0">
+                  <li *ngFor="let owner of allOwnersFiltered" (click)="selectLeadOwner(owner)" class="flex items-center gap-3 p-3 hover:bg-red-50 border-b cursor-pointer">
+                    <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center uppercase text-[10px]">{{ owner.substring(0,1) }}</div>
+                    <span class="text-[12px] font-medium uppercase">{{ owner }}</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
 
-  <!-- Pagination -->
-  <div class="flex items-center gap-1 bg-white shadow-lg border rounded-xl px-3 py-2">
+          <div class="flex items-center">
+            <label class="w-28 font-bold text-gray-600 text-[12px]">Lead No</label>
+            <div class="flex-1 flex border border-gray-300 relative rounded-sm bg-white shadow-sm">
+              <input type="text" [(ngModel)]="leadSearchFilters.leadNo" [ngModelOptions]="{standalone: true}" class="w-full p-1.5 outline-none text-[12px] h-[26px]" placeholder="Search lead no..." (input)="onLeadNoSearchForFilters($event)" autocomplete="off"> 
+              <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer w-9 flex items-center justify-center" (click)="onLeadNoIconClick()">🔍</span>
+            </div>
+          </div>
 
-    <!-- Prev -->
-    <button
-      (click)="previousPage()"
-      [disabled]="currentPage === 1"
-      class="px-3 py-1 text-sm rounded-md hover:bg-gray-100 disabled:opacity-40 transition">
-      ◀
-    </button>
-
-    <!-- Page Numbers -->
-    <ng-container *ngFor="let page of [].constructor(totalPages); let i = index">
-      
-      <button
-        (click)="goToPage(i + 1)"
-        class="px-3 py-1 text-sm rounded-md transition"
-        [ngClass]="
-          currentPage === (i + 1)
-          ? 'bg-blue-500 text-white shadow'
-          : 'hover:bg-gray-100 text-gray-700'
-        ">
-
-        {{ i + 1 }}
-
-      </button>
-
-    </ng-container>
-
-    <!-- Next -->
-    <button
-      (click)="nextPage()"
-      [disabled]="currentPage === totalPages"
-      class="px-3 py-1 text-sm rounded-md hover:bg-gray-100 disabled:opacity-40 transition">
-      ▶
-    </button>
-
-  </div>
-
-</div>
-  </div>
- 
-  <form *ngIf="isFormOpen" [formGroup]="leadForm" (ngSubmit)="onSave()">
-    <div class="max-w-[1700px] w-[98%] mx-auto bg-white border border-gray-300 shadow-lg overflow-hidden flex-1">
-      <div class="bg-[#4a3f3f] p-2 flex justify-between items-center text-white">
-        <div class="flex gap-2 px-2">
-          <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold text-[12px] px-4 py-1.5 uppercase shadow-sm">SAVE</button>
-        </div>
-        <div class="font-bold uppercase text-[12px] tracking-widest truncate px-2">
-          Lead Entry - {{  'New Record' }}
-        </div>
-        <button type="button" (click)="toggleForm()" class="bg-red-500 hover:bg-red-600 px-4 py-1.5 text-[12px] font-bold uppercase">CLOSE</button>
-      </div>
- 
-      
-     <div class="p-6 bg-white">
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
-
-    <div class="flex flex-col gap-2 relative">
-      <label class="text-red-700 font-bold">Organization</label>
-      <div class="flex gap-1 relative">
-        <div class="flex border border-red-300 w-full bg-white shadow-sm relative">
-          <input type="text" formControlName="organization" class="w-full p-2 border-none outline-none" placeholder="Search organization..." (input)="onOrganizationSearch($event)">
-          <span (click)="loadOrganizationList()" class="p-2 bg-gray-100 border-l border-gray-300 flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-all">
-            🔍
-          </span>
-
-          <ul *ngIf="showOrgDropdown && orgList.length > 0" class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-48 overflow-y-auto mt-1">
-            <li *ngFor="let org of orgList" (click)="selectOrg(org)" class="p-2 hover:bg-blue-50 cursor-pointer text-[12px] border-b border-gray-100 last:border-0">
-              <div class="font-bold text-blue-700">{{ org.orgName }}</div>
-              <div *ngIf="org.orgCode" class="text-gray-500 text-[10px]">{{ org.orgCode }}</div>
-            </li>
-          </ul>
-
-          <div *ngIf="filteredOrganizations.length > 0" class="absolute z-50 w-full bg-white border border-gray-300 top-full left-0 mt-1 max-h-48 overflow-y-auto shadow-md">
-            <div *ngFor="let org of filteredOrganizations" (click)="selectOrganization(org)" class="p-2 hover:bg-red-100 cursor-pointer text-sm border-b">
-              {{ org.orgName }}
+          <div *ngIf="isLNModalOpen" class="fixed inset-0 z-[5000] flex items-center justify-center bg-black/50 p-4">
+            <div class="bg-white w-full max-w-md shadow-2xl rounded-sm border-t-4 border-red-600 flex flex-col max-h-[90vh]">
+              <div class="flex justify-between items-center p-3 border-b bg-gray-50">
+                <h3 class="text-[12px] font-bold text-gray-700 uppercase">📂 Select Lead Number</h3>
+                <button (click)="isLNModalOpen = false" class="text-gray-400 text-2xl font-bold">&times;</button>
+              </div>
+              <div class="p-3 bg-white border-b"><input type="text" placeholder="Filter Inquiry..." [(ngModel)]="modalLNSearchText" (input)="filterLeadNumbers()" class="w-full p-2 border text-[11px]" /></div>
+              <div class="overflow-y-auto p-1 flex-1 bg-white custom-scrollbar">
+                <div *ngFor="let leadNo of allLNFiltered" (click)="selectLeadForFilters(leadNo)" class="px-5 py-3 hover:bg-red-50 cursor-pointer text-[12px] border-b flex justify-between group">
+                  <span class="font-medium uppercase">{{ leadNo }}</span>
+                  <span class="opacity-0 group-hover:opacity-100 text-red-400 text-[10px]">SELECT →</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <button type="button" (click)="navigateToNewOrg()" class="bg-green-800 text-white px-2 rounded-sm font-bold text-[10px] hover:bg-black">
-          NEW
-        </button>
-      </div>
-      <div *ngIf="leadForm.get('organization')?.invalid && leadForm.get('organization')?.touched" class="text-red-600 text-xs">
-        Organization is required.
-      </div>
-      <div *ngIf="leadForm.get('organization')?.errors?.['zod']" class="text-red-600 text-xs">
-        {{ leadForm.get('organization')?.errors?.['zod'] }}
+        <div class="space-y-2">
+          <div class="flex items-center">
+            <label class="w-28 font-bold text-gray-600 text-[12px]">Team</label>
+            <div class="flex-1 flex border border-gray-300 relative rounded-sm bg-white">
+              <input type="text" [(ngModel)]="leadSearchFilters.team" [ngModelOptions]="{standalone: true}" class="w-full p-1.5 outline-none text-[12px] h-[26px]" placeholder="Search Team..." (input)="onTeamSearch($event)" autocomplete="off"> 
+              <span class="p-1 bg-gray-50 border-l flex items-center justify-center text-gray-400 w-9" (click)="onTeamIconClick()">🔍</span>
+              <div *ngIf="filteredTeams.length > 0" class="absolute z-[100] w-full bg-white border top-full left-0 mt-1 max-h-48 overflow-y-auto shadow-xl">
+                <div *ngFor="let team of filteredTeams" (click)="selectTeam(team)" class="px-3 py-2 hover:bg-red-50 cursor-pointer text-[12px] border-b group">
+                  <span class="text-gray-700 group-hover:text-red-700">{{ team.teamName || team }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="isTeamModalOpen" class="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+            <div class="fixed inset-0 bg-black opacity-50" (click)="isTeamModalOpen = false"></div>
+            <div class="relative w-[400px] bg-white rounded-sm shadow-2xl border-t-4 border-red-600 z-[10000]">
+              <div class="flex p-4 border-b bg-gray-50 justify-between items-center">
+                <h3 class="text-xs font-bold uppercase tracking-wider">Select Team</h3>
+                <button (click)="isTeamModalOpen = false" class="text-gray-400 text-xl font-bold">×</button>
+              </div>
+              <div class="p-4 border-b"><input type="text" class="w-full p-2 border text-[12px]" placeholder="Filter team..." [(ngModel)]="modalTeamSearchText" (input)="filterTeams($event)"></div>
+              <div class="p-2 max-h-[300px] overflow-y-auto custom-scrollbar">
+                <div *ngFor="let t of tmIconListFiltered" (click)="selectTmFromIcon(t)" class="w-full px-4 py-3 hover:bg-red-50 cursor-pointer border-b flex justify-between group">
+                  <span class="text-[12px] font-medium uppercase group-hover:text-red-700">{{ t }}</span>
+                  <span class="opacity-0 group-hover:opacity-100 text-red-500 text-[10px]">SELECT</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center">
+            <label class="w-28 font-bold text-gray-600 text-[12px]">Reporting Manager</label>
+            <div class="flex-1 flex border border-gray-300 relative rounded-sm bg-white">
+              <input type="text" [(ngModel)]="leadSearchFilters.reportingManager" [ngModelOptions]="{standalone: true}" class="w-full p-1.5 outline-none text-[12px] h-[26px]" placeholder="Search Manager..." (input)="onManagerSearch($event)" autocomplete="off"> 
+              <span class="p-1 bg-gray-50 border-l text-gray-400 w-9 flex items-center justify-center" (click)="onManagerIconClick()">🔍</span>
+            </div>
+          </div>
+
+          <div *ngIf="isManagerModalOpen" class="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+            <div class="fixed inset-0 bg-black opacity-50" (click)="isManagerModalOpen = false"></div>
+            <div class="relative w-[400px] bg-white border-t-4 border-red-600 shadow-2xl z-[10000]">
+              <div class="flex p-4 border-b bg-gray-50 justify-between"><h3 class="text-xs font-bold uppercase">Select Manager</h3><button (click)="isManagerModalOpen = false">✕</button></div>
+              <div class="p-4 border-b"><input type="text" class="w-full p-2 border text-[12px]" placeholder="Filter manager..." [(ngModel)]="modalManagerSearchText" (input)="filterManagers($event)"></div>
+              <div class="p-2 max-h-[300px] overflow-y-auto custom-scrollbar">
+                <div *ngFor="let m of rmIconListFiltered" (click)="selectRmFromIcon(m)" class="w-full px-4 py-3 hover:bg-red-50 cursor-pointer border-b flex justify-between group">
+                  <span class="text-[12px] uppercase font-medium">{{ m }}</span><span class="text-red-500 text-[10px] font-bold opacity-0 group-hover:opacity-100">SELECT</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center">
+            <label class="w-28 font-bold text-gray-600 text-[12px]">Status</label>
+            <div class="flex-1">
+              <select [(ngModel)]="leadSearchFilters.status" [ngModelOptions]="{standalone: true}" (change)="onLeadSearch()" class="w-full p-1 border outline-none text-[12px] h-[26px] bg-white cursor-pointer">
+                <option value="Any">Select Status</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-3 pt-1">
+            <button class="text-blue-600 underline text-[11px] font-bold">Advance Filter</button>
+            <button type="button" (click)="resetLeadFilters()" class="text-blue-600 underline text-[11px] font-bold">Clear</button>
+            <button type="button" (click)="onLeadSearch()" class="bg-[#4a3f3f] text-white px-6 py-1 font-bold shadow-md uppercase text-[11px] hover:bg-black">Search</button>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="flex flex-col gap-2">
-      <label class="font-bold text-gray-600">Lead No.</label>
-      <input type="text" [value]="nextLeadNo" readonly class="border border-gray-300 p-2 bg-gray-100 outline-none w-full" />
-    </div>
-
-    <div class="flex flex-col gap-2">
-      <label class="font-bold text-gray-600">Type</label>
-      <select formControlName="type" class="border border-gray-300 p-2 w-full">
-        <option value="New Business">New Business</option>
-        <option value="Existing Business">Existing Business</option>
-      </select>
-      <div *ngIf="leadForm.get('type')?.invalid && leadForm.get('type')?.touched" class="text-red-600 text-xs">
-        Type is required.
-      </div>
-      <div *ngIf="leadForm.get('type')?.errors?.['zod']" class="text-red-600 text-xs">
-        {{ leadForm.get('type')?.errors?.['zod'] }}
+    <div class="bg-[#4a3f3f] p-3 flex justify-between items-center text-white">
+      <div class="font-bold uppercase text-[12px] tracking-widest px-2">Lead Records</div>
+      <div class="flex gap-2">
+        <button (click)="toggleForm()" class="bg-green-600 hover:bg-green-700 text-white font-bold text-[12px] px-5 py-1.5 uppercase shadow-sm">+ Add New Lead</button>
+        <button (click)="showModal=true" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-[12px] px-5 py-1.5 uppercase shadow-sm">Customize Column</button>
       </div>
     </div>
 
-    <div class="flex flex-col gap-2">
-      <label class="font-bold text-gray-600">Sales Process</label>
-      <select formControlName="salesProcess" class="border border-gray-300 p-2 w-full">
-        <option value="" disabled selected>SELECT PROCESS</option>
-        <option *ngFor="let process of salesProcesses" [value]="process.name">{{ process.name }}</option>
-      </select>
-      <div *ngIf="leadForm.get('salesProcess')?.errors?.['zod']" class="text-red-600 text-xs">
-        {{ leadForm.get('salesProcess')?.errors?.['zod'] }}
+    <div class="overflow-x-auto relative z-0">
+      <div class="max-h-[450px] overflow-y-auto border rounded">
+        <ng-container *ngIf="showTable; else initialNoData">
+          <table class="w-full border-collapse text-[13px]">
+            <thead class="bg-gray-100 text-gray-600 uppercase border-b font-bold sticky top-0 z-0">
+              <tr class="divide-x divide-gray-300">
+                <th *ngFor="let col of selectedColumns" (click)="sortColumn(col)" class="p-4 whitespace-nowrap text-left cursor-pointer select-none">
+                  {{ col }}
+                  <span *ngIf="sortOrders[col] == 'asc'">▲</span><span *ngIf="sortOrders[col] == 'desc'">▼</span>
+                </th>
+                <th class="p-4 whitespace-nowrap text-left">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
+              <ng-container *ngIf="paginatedLeads && paginatedLeads.length > 0; else noData">
+                <tr *ngFor="let lead of paginatedLeads" (dblclick)="onEditLead(lead.id)" class="divide-x hover:bg-gray-50 cursor-pointer transition-colors">
+                  <td *ngFor="let col of selectedColumns" class="p-4 whitespace-nowrap">
+                    <ng-container *ngIf="col === 'Organization'; else otherCols">
+                      <span (click)="onOrgClick(lead.organisationId, lead.organizationName)" class="text-blue-600 cursor-pointer hover:underline font-bold">{{ lead[columnFieldMap[col]] }}</span>
+                    </ng-container>
+                    <ng-template #otherCols>
+                      <ng-container *ngIf="col.toLowerCase().includes('date') || col === 'Expected Validity' || col === 'Created At'; else regularValue">
+                        {{ lead[columnFieldMap[col]] | date:'dd-MM-yyyy' }}
+                      </ng-container>
+                      <ng-template #regularValue>{{ lead[columnFieldMap[col]] }}</ng-template>
+                    </ng-template>
+                  </td>
+                  <td class="p-4 text-center whitespace-nowrap">
+                    <div class="flex justify-center gap-4">
+                      <button (click)="$event.stopPropagation(); toggleLeadStatus(lead)" class="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm border shadow-sm" [ngClass]="(lead?.status === 1) ? 'bg-green-50 text-green-600 border-green-200' : 'bg-gray-50 text-gray-500 border-gray-200'">
+                        <span class="relative flex h-2 w-2"><span [class]="(lead?.status === 1) ? 'bg-green-500' : 'bg-gray-500'" class="relative inline-flex rounded-full h-2 w-2"></span></span>
+                        <span>{{ (lead?.status === 1) ? 'Active' : 'Inactive' }}</span>
+                      </button>
+                      <button *ngIf="CheckPermissionService.hasPermission(PermissionID, 'Edit')" (click)="onEditLead(lead.id)" class="bg-blue-50 text-blue-600 border border-blue-200 px-3 py-1.5 rounded-md hover:bg-blue-600 hover:text-white transition-all text-sm shadow-sm flex items-center gap-2">Edit</button>
+                      <button *ngIf="CheckPermissionService.hasPermission(PermissionID,'Delete')" (click)="onDeleteLead(lead.id)" class="bg-red-50 text-red-600 border border-red-200 px-3 py-1.5 rounded-md hover:bg-red-600 hover:text-white transition-all text-sm shadow-sm flex items-center gap-2">Delete</button>
+                    </div>
+                  </td>
+                </tr>
+              </ng-container>
+              <ng-template #noData><tr><td [attr.colspan]="selectedColumns.length + 1" class="p-12 text-center">No Leads Found</td></tr></ng-template>
+            </tbody>
+          </table>
+        </ng-container>
+        <ng-template #initialNoData><div class="p-20 text-center text-gray-600 font-medium">Please click "Search" or "All Leads" to view the records.</div></ng-template>
       </div>
     </div>
 
-    <div class="flex flex-col gap-2">
-      <label class="font-bold text-gray-600">Date</label>
-      <input type="date" formControlName="date" class="border border-gray-300 p-2 w-full" (focus)="dateInput.showPicker()" #dateInput>
-      <div *ngIf="leadForm.get('date')?.invalid && leadForm.get('date')?.touched" class="text-red-600 text-xs">
-        Date is required.
-      </div>
-      <div *ngIf="leadForm.get('date')?.errors?.['zod']" class="text-red-600 text-xs">
-        {{ leadForm.get('date')?.errors?.['zod'] }}
-      </div>
-    </div>
-
-    <div class="flex flex-col gap-2">
-      <label class="text-red-700 font-bold">Lead Owner</label>
-      <select formControlName="leadOwner" class="border border-red-200 p-2 w-full">
-        <option value="" disabled selected>Select Lead Owner</option>
-        <option *ngFor="let owner of salesCoordinator" [value]="owner.id">{{ owner.name }}</option>
-      </select>
-      <div *ngIf="leadForm.get('leadOwner')?.invalid && leadForm.get('leadOwner')?.touched" class="text-red-600 text-xs">
-        Lead Owner is required.
-      </div>
-      <div *ngIf="leadForm.get('leadOwner')?.errors?.['zod']" class="text-red-600 text-xs">
-        {{ leadForm.get('leadOwner')?.errors?.['zod'] }}
+    <div class="flex flex-col items-center mt-8 gap-4" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
+      <div class="text-sm text-gray-500">Showing <span class="font-semibold text-gray-700">{{ (currentPage - 1) * itemsPerPage + 1 }}</span> - <span class="font-semibold text-gray-700">{{ (currentPage - 1) * itemsPerPage + paginatedLeads.length }}</span> of <span class="font-semibold text-gray-700">{{ leads.length }}</span> entries</div>
+      <div class="flex items-center gap-1 bg-white shadow-lg border rounded-xl px-3 py-2">
+        <button (click)="previousPage()" [disabled]="currentPage === 1" class="px-3 py-1 rounded-md hover:bg-gray-100 disabled:opacity-40">◀</button>
+        <ng-container *ngFor="let page of [].constructor(totalPages); let i = index">
+          <button (click)="goToPage(i + 1)" class="px-3 py-1 rounded-md transition" [ngClass]="currentPage === (i + 1) ? 'bg-blue-500 text-white shadow' : 'hover:bg-gray-100 text-gray-700'">{{ i + 1 }}</button>
+        </ng-container>
+        <button (click)="nextPage()" [disabled]="currentPage === totalPages" class="px-3 py-1 rounded-md hover:bg-gray-100 disabled:opacity-40">▶</button>
       </div>
     </div>
+  </div>
 
-    <div class="flex flex-col gap-2">
-  <label class="font-bold text-gray-600">Sales Coordinator</label>
-  <select formControlName="salesCoordinator" class="border border-gray-300 p-2 w-full">
-    <option value="" disabled selected>Select Co-ordinator</option>
-    <option *ngFor="let sc of salesCoordinator" [value]="sc.id">{{ sc.name }}</option>
+  <form *ngIf="isFormOpen" [formGroup]="leadForm" (ngSubmit)="onSave()">
+    <div class="max-w-[1700px] w-[98%] mx-auto bg-white border border-gray-300 shadow-lg overflow-hidden flex-1">
+      <div class="bg-[#4a3f3f] p-2 flex justify-between items-center text-white">
+        <div class="flex gap-2 px-2"><button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold text-[12px] px-4 py-1.5 uppercase shadow-sm">SAVE</button></div>
+        <div class="font-bold uppercase text-[12px] tracking-widest truncate px-2">Lead Entry - New Record</div>
+        <button type="button" (click)="toggleForm()" class="bg-red-500 hover:bg-red-600 px-4 py-1.5 text-[12px] font-bold uppercase">CLOSE</button>
+      </div>
+ 
+      <div class="p-6 bg-white">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
+          
+          <div class="flex flex-col gap-2 relative">
+            <label class="text-red-700 font-bold">Organization</label>
+            <div class="flex gap-1 relative">
+              <div class="flex border border-red-300 w-full bg-white shadow-sm relative">
+                <input type="text" formControlName="organization" class="w-full p-2 border-none outline-none" placeholder="Search organization..." (input)="onOrganizationSearch($event)">
+                <span (click)="loadOrganizationList()" class="p-2 bg-gray-100 border-l flex items-center justify-center cursor-pointer">🔍</span>
+                <ul *ngIf="showOrgDropdown && orgList.length > 0" class="absolute top-full left-0 z-50 w-full bg-white border rounded-sm shadow-lg max-h-48 overflow-y-auto mt-1">
+                  <li *ngFor="let org of orgList" (click)="selectOrg(org)" class="p-2 hover:bg-blue-50 cursor-pointer border-b text-[12px]"><div class="font-bold text-blue-700">{{ org.orgName }}</div></li>
+                </ul>
+              </div>
+              <button type="button" (click)="navigateToNewOrg()" class="bg-green-800 text-white px-2 rounded-sm font-bold text-[10px]">NEW</button>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-2"><label class="font-bold text-gray-600">Lead No.</label><input type="text" [value]="nextLeadNo" readonly class="border p-2 bg-gray-100 outline-none w-full" /></div>
+          
+          <div class="flex flex-col gap-2">
+            <label class="font-bold text-gray-600">Type</label>
+            <select formControlName="type" class="border p-2 w-full"><option value="New Business">New Business</option><option value="Existing Business">Existing Business</option></select>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="font-bold text-gray-600">Sales Process</label>
+            <select formControlName="salesProcess" class="border p-2 w-full"><option value="" disabled selected>SELECT PROCESS</option><option *ngFor="let process of salesProcesses" [value]="process.name">{{ process.name }}</option></select>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="font-bold text-gray-600">Date</label>
+            <input type="date" formControlName="date" class="border p-2 w-full">
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="text-red-700 font-bold">Lead Owner</label>
+            <select formControlName="leadOwner" class="border border-red-200 p-2 w-full"><option value="" disabled selected>Select Owner</option><option *ngFor="let owner of salesCoordinator" [value]="owner.id">{{ owner.name }}</option></select>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="font-bold text-gray-600">Sales Coordinator</label>
+            <select formControlName="salesCoordinator" class="border p-2 w-full"><option value="" disabled selected>Select Co-ordinator</option><option *ngFor="let sc of salesCoordinator" [value]="sc.id">{{ sc.name }}</option></select>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="font-bold text-gray-600">Expected Validity</label>
+            <input type="date" formControlName="expectedValidity" class="border p-2 w-full" />
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="font-bold text-gray-600">Lead Source</label>
+            <select formControlName="source" class="border p-2 w-full"><option value="">Select Source</option><option *ngFor="let source of leadSources" [value]="source.id">{{ source.name }}</option></select>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="font-bold text-gray-600">Sales Stage</label>
+            <select formControlName="salesStage" class="border p-2 w-full"><option value="">Select Stage</option><option *ngFor="let stage of salesStages" [value]="stage.id">{{ stage.name }}</option></select>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="font-bold text-gray-600">Branch</label>
+            <select formControlName="branch" class="border p-2 w-full bg-white"><option value="" disabled selected>Select Branch</option><option *ngFor="let b of branches" [value]="b.id">{{ b.branchName }}</option></select>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="font-bold text-gray-600">Reporting Manager</label>
+            <select formControlName="reportingManager" class="border p-2 w-full"><option value="" disabled selected>Select Manager</option><option *ngFor="let rm of salesCoordinator" [value]="rm.id">{{ rm.name }}</option></select>
+          </div>
+
+          <div class="flex flex-col gap-2">
+  <label class="font-bold text-gray-600">Teams</label>
+  <select formControlName="team" (change)="onTeamChange($event)" class="border p-2 w-full">
+    <option value="">Select Team</option>
+    <option *ngFor="let team of teamList" [value]="team.teamName">{{ team.teamName }}</option>
   </select>
-  <div *ngIf="leadForm.get('salesCoordinator')?.errors?.['zod']" class="text-red-600 text-xs">
-    {{ leadForm.get('salesCoordinator')?.errors?.['zod'] }}
-  </div>
 </div>
 
-    <div class="flex flex-col gap-2">
-      <label class="font-bold text-gray-600">Expected Validity</label>
-      <input type="date" formControlName="expectedValidity" class="border border-gray-300 p-2 w-full" #validityInput (click)="validityInput.showPicker()" (focus)="validityInput.showPicker()" />
-      <div *ngIf="leadForm.get('expectedValidity')?.errors?.['zod']" class="text-red-600 text-xs">
-        {{ leadForm.get('expectedValidity')?.errors?.['zod'] }}
-      </div>
-    </div>
+          <div class="flex flex-col gap-2">
+            <label class="font-bold text-gray-600">HOD</label>
+            <select formControlName="hod" class="border p-2 w-full"><option value="" disabled selected>Select HOD</option><option *ngFor="let sc of salesCoordinator" [value]="sc.id">{{ sc.name }}</option></select>
+          </div>
 
-    <div class="flex flex-col gap-2">
-      <label class="font-bold text-gray-600">Lead Source</label>
-      <select formControlName="source" class="border border-gray-300 p-2 w-full">
-        <option value="">Select Source</option>
-        <option *ngFor="let source of leadSources" [value]="source.id">{{ source.name }}</option>
-      </select>
-      <div *ngIf="leadForm.get('source')?.errors?.['zod']" class="text-red-600 text-xs">
-        {{ leadForm.get('source')?.errors?.['zod'] }}
-      </div>
-    </div>
+          <div class="flex flex-col gap-2"><label class="font-bold text-gray-600">Location</label><input type="text" formControlName="location" placeholder="Location" class="border p-2 w-full"></div>
+          <div class="flex flex-col gap-2"><label class="font-bold text-gray-600">Area</label><input type="text" formControlName="area" placeholder="Area" class="border p-2 w-full"></div>
+        </div>
 
-    <div class="flex flex-col gap-2">
-      <label class="font-bold text-gray-600">Sales Stage</label>
-      <select formControlName="salesStage" class="border border-gray-300 p-2 w-full">
-        <option value="">Select Sales Stage</option>
-        <option *ngFor="let stage of salesStages" [value]="stage.id">{{ stage.name }}</option>
-      </select>
-      <div *ngIf="leadForm.get('salesStage')?.invalid && leadForm.get('salesStage')?.touched" class="text-red-600 text-xs">
-        Sales Stage is required.
+        <div class="bg-[#f9fafb] mt-8 p-4 flex justify-end gap-3 border-t border-gray-300">
+          <button type="submit" class="bg-[#4a3f3f] text-white px-8 py-2 font-bold uppercase shadow-md">Save</button>
+          <button type="button" (click)="toggleForm()" class="bg-gray-200 border px-8 py-2 font-bold text-gray-700 uppercase">Close</button>
+        </div>
       </div>
-      <div *ngIf="leadForm.get('salesStage')?.errors?.['zod']" class="text-red-600 text-xs">
-        {{ leadForm.get('salesStage')?.errors?.['zod'] }}
-      </div>
-    </div>
-
-    <div class="flex flex-col gap-2">
-      <label class="font-bold text-gray-600">Branch</label>
-      <select formControlName="branch" class="border border-gray-300 p-2 w-full text-gray-900 bg-white">
-        <option value="" disabled selected class="text-gray-400">Select Branch</option>
-        <option *ngFor="let b of branches" [value]="b.id">{{ b.branchName }}</option>
-      </select>
-      <div *ngIf="leadForm.get('branch')?.invalid && leadForm.get('branch')?.touched" class="text-red-600 text-xs">
-        Branch is required.
-      </div>
-      <!-- <div *ngIf="leadForm.get('branch')?.errors?.['zod']" class="text-red-600 text-xs">
-        {{ leadForm.get('branch')?.errors?.['zod'] }}
-      </div> -->
-    </div>
-
-    <div class="flex flex-col gap-2">
-      <label class="font-bold text-gray-600">Reporting Manager</label>
-      <select formControlName="reportingManager" class="border border-gray-300 p-2 w-full">
-        <option value="" disabled selected>Select Manager</option>
-        <option *ngFor="let rm of salesCoordinator" [value]="rm.id">{{ rm.name}}</option>
-      </select>
-      <div *ngIf="leadForm.get('reportingManager')?.errors?.['zod']" class="text-red-600 text-xs">
-        {{ leadForm.get('reportingManager')?.errors?.['zod'] }}
-      </div>
-    </div>
-
-    <div class="flex flex-col gap-2">
-      <label class="font-bold text-gray-600">Teams</label>
-      <select formControlName="team" class="border border-gray-300 p-2 w-full">
-        <option value="">Select Team</option>
-        <option *ngFor="let team of teamList" [value]="team.teamName">{{ team.teamName }}</option>
-      </select>
-      <div *ngIf="leadForm.get('team')?.errors?.['zod']" class="text-red-600 text-xs">
-        {{ leadForm.get('team')?.errors?.['zod'] }}
-      </div>
-    </div>
-
-    <div class="flex flex-col gap-2">
-  <label class="font-bold text-gray-600">HOD</label>
-  <select formControlName="hod" class="border border-gray-300 p-2 w-full">
-    <option value="" disabled selected>Select HOD</option>
-    <option *ngFor="let sc of salesCoordinator" [value]="sc.id">{{ sc.name }}</option>
-  </select>
-  <div *ngIf="leadForm.get('hod')?.errors?.['zod']" class="text-red-600 text-xs">
-    {{ leadForm.get('hod')?.errors?.['zod'] }}
-  </div>
-</div>
-
-    <div class="flex flex-col gap-2">
-      <label class="font-bold text-gray-600">Location</label>
-      <input type="text" formControlName="location" placeholder="Enter Location (e.g. North, South, Delhi)" class="border border-gray-300 p-2 w-full outline-none focus:border-blue-500 transition-all">
-      <div *ngIf="leadForm.get('location')?.errors?.['zod']" class="text-red-600 text-xs">
-        {{ leadForm.get('location')?.errors?.['zod'] }}
-      </div>
-    </div>
-
-    <div class="flex flex-col gap-2">
-      <label class="font-bold text-gray-600">Area</label>
-      <input type="text" formControlName="area" placeholder="Enter Area (e.g. Industrial)" class="border border-gray-300 p-2 w-full outline-none focus:border-blue-500 transition-all">
-      <div *ngIf="leadForm.get('area')?.errors?.['zod']" class="text-red-600 text-xs">
-        {{ leadForm.get('area')?.errors?.['zod'] }}
-      </div>
-    </div>
-
-  </div> <div class="bg-[#f9fafb] mt-8 p-4 flex flex-wrap justify-center sm:justify-end gap-3 border-t border-gray-300">
-    <button type="submit" class="bg-[#4a3f3f] text-white px-8 py-2 font-bold shadow-md hover:bg-black uppercase flex-grow sm:flex-grow-0">Save</button>
-    <!-- <button type="button" class="bg-white border border-gray-300 px-6 py-2 font-bold text-gray-700 hover:bg-gray-50 uppercase shadow-sm flex-grow sm:flex-grow-0">Save & Close</button>
-    <button type="button" class="bg-white border border-gray-300 px-6 py-2 font-bold text-gray-700 hover:bg-gray-50 uppercase shadow-sm flex-grow sm:flex-grow-0">Save & New</button> -->
-    <button type="button" (click)="toggleForm()" class="bg-gray-200 border border-gray-400 px-8 py-2 font-bold text-gray-700 hover:bg-gray-300 uppercase shadow-sm flex-grow sm:flex-grow-0">Close</button>
-  </div>
-</div>
     </div>
   </form>
 </div>

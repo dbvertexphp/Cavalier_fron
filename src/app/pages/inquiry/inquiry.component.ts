@@ -41,7 +41,7 @@ interface DimGroup {
   totalBoxQty: number;
 }
 
-// ll
+
 @Component({
   selector: 'app-inquiry',
   standalone: true,

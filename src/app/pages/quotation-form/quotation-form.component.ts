@@ -13,7 +13,7 @@ CdkDragDrop,
 moveItemInArray,
 transferArrayItem
 } from '@angular/cdk/drag-drop';
-
+// l
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';

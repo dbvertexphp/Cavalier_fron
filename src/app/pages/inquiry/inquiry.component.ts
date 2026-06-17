@@ -40,7 +40,7 @@ interface DimGroup {
   indices: number[];
   totalBoxQty: number;
 }
-
+// mm
 
 @Component({
   selector: 'app-inquiry',

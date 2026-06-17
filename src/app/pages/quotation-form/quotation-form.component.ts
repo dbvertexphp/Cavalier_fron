@@ -30,6 +30,7 @@ interface DimGroup {
   indices: number[];
   totalBoxQty: number;
 }
+// ll
 @Component({
   selector: 'app-quotation-form',
   standalone: true,

@@ -29,6 +29,7 @@ export interface CostBreakdown {
   rate: number;
   exchangeRate: number;
   amount: number;
+  remark?: string; // <--- YE LINE ADD KAREIN (optional '?' ke sath)
 }
 interface DimGroup {
   dimString: string;
@@ -3528,7 +3529,7 @@ saveQuotation() {
   const costData = (this.costRows && this.costRows.length > 0 ? this.costRows : (this.costBreakdowns || [])).map((cb: any) => ({
     lob: cb.lob || '', chargeType: cb.chargeType || 'Prepaid', basis: cb.basis || '',
     chargeName: cb.chargeName || cb.charge || '', currency: cb.currency || 'INR',
-    rate: Number(cb.rate) || 0, exchangeRate: Number(cb.exchangeRate) || 1, amount: Number(cb.amount) || 0
+    rate: Number(cb.rate) || 0, exchangeRate: Number(cb.exchangeRate) || 1, amount: Number(cb.amount) || 0,remark: cb.remark || '' // <--- YE ADD KAREIN
   }));
 
   const multiCarrierData = (this.multiCarrierRows || []).map((mcb: any) => ({

@@ -1106,7 +1106,8 @@ saveQuotation() {
     organisationName: this.quotation.organisationName || this.quotation.organization,
     // 1. Reference by Pricing
     referenceByInquiry: this.quotation.referencePricingNo, 
-    
+    PackageUnit: this.quotation.pkgUnit || '',
+    NoOfPkgsUnit: this.quotation.pkgUnit || '',
     // 2. Sales Coordinator (ID to String)
     salesCoor: String(this.quotation.salesCoordinator || ""), 
     
@@ -1143,6 +1144,24 @@ saveQuotation() {
     lineOfBusiness: String(this.quotation.lineOfBusiness),
     commodity: String(this.quotation.commodity),
 documents: this.documents.map(d => ({ fileName: d.name, filePath: d.documentPath })),
+// ✅ MultiCarriers Mapping Added
+    multiCarriers: this.multiCarrierRows ? this.multiCarrierRows.map(m => ({
+        forwarder: m.forwarder,
+        origin: m.origin,
+        lob: m.lob,
+        chargeName: m.chargeName,
+        chargeType: m.chargeType,
+        airFreight: Number(m.airFreight) || 0,
+        fsc: m.fsc,
+        airline: m.airline,
+        cutoff: m.cutoff,
+        schedule: m.schedule,
+        currency: m.currency,
+        rate: Number(m.rate) || 0,
+        exchangeRate: Number(m.exchangeRate) || 1,
+        totalCost: Number(m.totalCost) || 0,
+        remark: m.remark
+    })) : [],
     // ✅ FIXED PLACEMENT: Inko object ke sabse aakhiri mein rakha hai taaki ...this.quotation ki string values is numeric conversion ko override na kar sakein.
     portOfLoadingId: (this.quotation.portOfLoadingId !== null && this.quotation.portOfLoadingId !== undefined && this.quotation.portOfLoadingId !== '') ? Number(this.quotation.portOfLoadingId) : null,
     portOfDischargeId: (this.quotation.portOfDischargeId !== null && this.quotation.portOfDischargeId !== undefined && this.quotation.portOfDischargeId !== '') ? Number(this.quotation.portOfDischargeId) : null,
@@ -1275,7 +1294,7 @@ loadQuotationForEdit(id: number) {
     }
   });
 }
-
+dimRow: any = {};
 // Aapka existing editQuotation logic (Isme koi change nahi, bas call upar se ho rahi hai)
 editQuotation(q: any) {
   console.warn("Editing Quotation Data:", q);
@@ -1287,23 +1306,36 @@ editQuotation(q: any) {
   this.quotation = {
     ...q,
     chargeableWeight: q.chrgWeight || 0,
-    grossWeightKg: q.grossWeight || q.grossWeightKg || 0,
+  grossWeightKg: q.grossWeight || q.grossWeightKg || 0,
+  
+  // --- UNIT MAPPING (Yahan se data UI mein bind hoga) ---
+  GrossWeightUnit: q.grossWeightUnit || 'KGS',
+  netWeightUnit: q.netWeightUnit || 'KGS',
+  chargeableWeightUnit: q.chargeWeightUnit || 'KGS', // API field ka naam
+  volumeWeightUnit: q.volumeWeightUnit || 'KGS',
+  pkgUnit: q.noOfPkgsUnit || q.packageUnit || 'PKGS',
+  // FIX: CBM Unit aur Pkg Unit mapping
+  cbmUnit: q.cbmWeightUnit || q.cbmUnit || 'CBM',
+  dimUnit: q.dimensionsData ? (JSON.parse(q.dimensionsData)[0]?.unit || 'CMS') : 'CMS',
+    // chargeableWeight: q.chrgWeight || 0,
+    // grossWeightKg: q.grossWeight || q.grossWeightKg || 0,
     salesCoordinator: q.salesCoor ? Number(q.salesCoor) : null,
     commodity: q.commodity ? Number(q.commodity) : null,
     lineOfBusiness: q.lineOfBusiness ? q.lineOfBusiness.toString() : "",
     awbIssuedBy: q.awbIssuedBy || "", 
     isServiceRequired: q.isServiceRequired === true,
     chargeableWeightKg: Number(q.volumeWeight) || 0,
-    volumeWeightUnit: q.volumeWeightUnit || "KGS",
+    // volumeWeightUnit: q.volumeWeightUnit || "KGS",
     cbm: q.cbmWeight || (Number(q.volumeWeight) ? parseFloat((q.volumeWeight / 167).toFixed(3)) : 0),
     movementType: q.movement || q.movementType || '',
     incoterm: q.incoTerms || q.incoterm || '',
     referencePricingNo: q.referenceByInquiry || '',
     noOfPkgs: q.numOfPackages !== undefined ? q.numOfPackages : 0,
-    pkgUnit: q.packageUnit || q.pkgUnit || 'PKGS',
+    // pkgUnit: q.packageUnit || q.pkgUnit || 'PKGS',
     portOfLoadingId: (q.portOfLoadingId !== null && q.portOfLoadingId !== undefined && q.portOfLoadingId !== '' && !isNaN(Number(q.portOfLoadingId))) ? Number(q.portOfLoadingId) : null,
     portOfDischargeId: (q.portOfDischargeId !== null && q.portOfDischargeId !== undefined && q.portOfDischargeId !== '' && !isNaN(Number(q.portOfDischargeId))) ? Number(q.portOfDischargeId) : null
   };
+console.log("🔍 pkgUnit:", this.quotation.packageUnit);
 
   // 3. Connecting Ports Mapping (Auto-populate for UI)
  // 3. Connecting Ports Mapping (Auto-populate for UI)
@@ -1395,17 +1427,43 @@ if (q.connectingPortIds) {
   // 8. Tables Data
   this.revenueRows = q.revenueData ? (typeof q.revenueData === 'string' ? JSON.parse(q.revenueData) : q.revenueData) : [];
   this.costRows = q.costData ? (typeof q.costData === 'string' ? JSON.parse(q.costData) : q.costData) : [];
-
-  // 9. Dimensions
-  const dimData = q.dimensionsData || q.DimensionsData;
-  this.dimRows = dimData ? (typeof dimData === 'string' ? JSON.parse(dimData) : dimData) : [{ box: null, l: null, w: null, h: null, unit: 'CMS' }];
-  
-  if (this.dimRows.length > 0) {
+// 4. MultiCarriers Data Mapping (YE NAYA ADDITION HAI)
+  if (q.multiCarriers && Array.isArray(q.multiCarriers)) {
+    this.multiCarrierRows = q.multiCarriers.map((m: any) => ({
+      forwarder: m.forwarder,
+      origin: m.origin,
+      lob: m.lob,
+      chargeName: m.chargeName,
+      chargeType: m.chargeType,
+      airFreight: m.airFreight,
+      fsc: m.fsc,
+      airline: m.airline,
+      cutoff: m.cutoff,
+      schedule: m.schedule ? m.schedule.split('T')[0] : null, // Date format fix
+      currency: m.currency,
+      rate: m.rate,
+      exchangeRate: m.exchangeRate,
+      totalCost: m.totalCost,
+      remark: m.remark
+    }));
+  } else {
+    this.multiCarrierRows = [];
+  }
+  // 9. Dimensions Mapping
+const dimData = q.dimensionsData || q.DimensionsData;
+this.dimRows = dimData ? (typeof dimData === 'string' ? JSON.parse(dimData) : dimData) : [{ box: null, l: null, w: null, h: null, unit: 'CMS' }];
+ 
+if (this.dimRows.length > 0) {
+    // 1. Quotation object ke liye (agar aap kahin aur use kar rahe ho)
     this.quotation.dimBox = this.dimRows[0].box;
     this.quotation.dimL = this.dimRows[0].l;
     this.quotation.dimW = this.dimRows[0].w;
     this.quotation.dimH = this.dimRows[0].h;
-  }
+
+    // 2. DIMENSION UNIT SHOW KARNE KE LIYE FIX
+    // dimRow ko pura copy karein taaki unit bhi bind ho jaye
+    this.dimRow = { ...this.dimRows[0] }; 
+}
 
   // 10. Final UI Refresh & Sync
   setTimeout(() => {
@@ -2900,12 +2958,21 @@ this.cdr.detectChanges();
       
       this.quotation.transportType = p.transportType || p.TransportType || '';
       this.quotation.shipmentType = p.shipmentType || p.ShipmentType || '';
+      // --- FIX: UNIT MAPPING FROM API TO UI ---
+this.quotation.grossWeightUnit = p.grossWeightUnit || '';
+this.quotation.netWeightUnit = p.netWeightUnit || '';
+this.quotation.chargeableWeightUnit = p.chargeWeightUnit || '';;
+this.cdr.detectChanges(); // Yeh zaroori hai!
+console.log("chargeableWeightUnit from API:", p.chargeWeightUnit);
+this.quotation.volumeWeightUnit = p.volumeWeightUnit || '';
+this.quotation.cbmUnit = p.cbmWeightUnit || 'CBM'; // API mein cbmWeightUnit aa raha hai
+this.quotation.pkgUnit = p.noOfPkgsUnit || '';
 // --- 6. Weights, Packages & CBM ---
 this.quotation.grossWeightKg = Number(p.grossWeightKg || 0);
 this.quotation.volumeWeight = Number(p.volumeWeight || 0);
 this.quotation.cbm = parseFloat(Number(p.cbm || 0).toFixed(3));
 this.quotation.netWeight = Number(p.netWeight || p.NetWeight || 0);
-    this.quotation.netWeightUnit = p.netWeightUnit || p.NetWeightUnit || 'KGS';
+    this.quotation.netWeightUnit = p.netWeightUnit || p.NetWeightUnit || '';
 console.log("🚀 API se aaya data:", p);
 
     // 1. Cargo Value

@@ -3581,11 +3581,13 @@ saveQuotation() {
     commodityId: this.quotation.commodity ? Number(this.quotation.commodity) : null,
     originId: this.originsaveid ? Number(this.originsaveid) : null,
 
-    grossWeightKg: Number(this.quotation.grossWeightKg) || 0,
-    chargeableWeight: Number(this.quotation.chargeableWeight) || 0,
-    volumeWeight: Number(this.quotation.volumeWeight) || 0,
-    cbm: Number(this.quotation.cbm) || 0,
-    noOfPkgs: Number(this.quotation.noOfPkgs) || 0,
+ // Yahan field names ko Model ke exact names se map karo
+    GrossWeightUnit: this.quotation.GrossWeightUnit || '',
+    netWeightUnit: this.quotation.netWeightUnit || '',
+    chargeWeightUnit: this.quotation.chargeableWeightUnit || '',
+    volumeWeightUnit: this.quotation.volumeWeightUnit || '',
+    cbmUnit: this.quotation.cbmUnit || '',
+    noOfPkgsUnit: this.quotation.noOfPkgsUnit || '',
 
     CostBreakdowns: costData, 
     MultiCarrierBreakdowns: multiCarrierData,
@@ -3923,7 +3925,14 @@ selectInquiry(inq: any) {
       this.quotation.pricingDoneBy = data.pricingDoneBy || '';
       this.quotation.qtnDoneBy = data.qtnDoneBy || '';
       this.quotation.businessDimensions = data.businessDimensions || '';
-
+    // --- FIX: UNITS MAPPING FROM BACKEND TO UI ---
+this.quotation.GrossWeightUnit = data.grossWeightUnit || data.GrossWeightUnit || '';
+this.quotation.netWeightUnit = data.netWeightUnit || data.NetWeightUnit || '';
+this.quotation.chargeableWeightUnit = data.chargeableWeightUnit || data.ChargeableWeightUnit || '';
+console.log("Volume Weight Unit Mapping Check:", { volumeWeightUnitFromAPI: data.volumeWeightUnit, VolumeWeightUnitFromAPI: data.VolumeWeightUnit });
+this.quotation.volumeWeightUnit = data.volumeWeightUnit || data.VolumeWeightUnit || '';
+this.quotation.CbmWeightUnit = data.cbmWeightUnit || data.CbmWeightUnit || '';
+this.quotation.noOfPkgsUnit = data.noOfPkgsUnit || data.NoOfPkgsUnit || '';
       // --- 5. Movement & Ports ---
       this.quotation.shipmentType = data.shipmentType?.toString() || '';
       this.quotation.movementType = data.movementType || '';
@@ -4468,7 +4477,13 @@ editPricing(pricing: any) {
       
       this.quotation.portOfLoadingId = dbPortOfLoadingId ? dbPortOfLoadingId.toString() : null;
       this.quotation.portOfDischargeId = dbPortOfDischargeId ? dbPortOfDischargeId.toString() : null;
-      
+      // --- FIX: UNIT MAPPING FROM API TO UI ---
+this.quotation.GrossWeightUnit = pricing.grossWeightUnit || '';
+this.quotation.netWeightUnit = pricing.netWeightUnit || '';
+this.quotation.chargeableWeightUnit = pricing.chargeWeightUnit || '';
+this.quotation.volumeWeightUnit = pricing.volumeWeightUnit || '';
+this.quotation.cbmUnit = pricing.cbmWeightUnit || ''; // API mein cbmWeightUnit aa raha hai
+this.quotation.noOfPkgsUnit = pricing.noOfPkgsUnit || '';
       // Code Mapping
       this.quotation.portOfLoadingCode = pricing.codeOfPOL || pricing.CodeOfPOL || "";
       this.quotation.portOfDestinationCode = pricing.codeOfPOD || pricing.CodeOfPOD || "";

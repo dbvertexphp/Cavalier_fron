@@ -1485,7 +1485,13 @@ editQuotation(q: any) {
       documentPath: doc.documentPath,
       isExisting: true 
     }));
-    
+    // --- FIX: UNITS MAPPING FROM BACKEND TO UI ---
+this.quotation.GrossWeightUnit = q.grossWeightUnit || q.GrossWeightUnit || '';
+this.quotation.NetWeightUnit = q.netWeightUnit || q.NetWeightUnit || '';
+this.quotation.ChargeWeightUnit = q.chargeableWeightUnit || q.ChargeableWeightUnit || '';
+this.quotation.VolumeWeightUnit = q.volumeWeightUnit || q.VolumeWeightUnit || '';
+this.quotation.CbmWeightUnit = q.cbmWeightUnit || q.CbmWeightUnit || '';
+this.quotation.noOfPkgsUnit = q.noOfPkgsUnit || q.NoOfPkgsUnit || '';
     // Transport Mode Mapping
     this.quotation.TransportMode = q.transportMode; 
     if (q.transportType && typeof q.transportType === 'string' && q.transportType.length > 0) {
@@ -3255,14 +3261,13 @@ saveQuotation() {
     HazardDocPath: this.quotation.hazardDocPath || null,
     weightUnit: String(this.quotation.GrossweightUnit || 'KGS'),
     
-    // --- UNITS MAPPING ---
-    GrossWeightUnit: String(this.quotation.GrossWeightUnit || this.quotation.GrossweightUnit || 'KGS'),
-    NetWeightUnit: String(this.quotation.NetWeightUnit || 'KGS'),
-    ChargeWeightUnit: String(this.quotation.ChargeWeightUnit || 'KGS'),
-    VolumeWeightUnit: String(this.quotation.VolumeWeightUnit || 'CBM'),
+  // MAPPING (Model Property Name => Frontend Value)
+    GrossWeightUnit: String(this.quotation.GrossWeightUnit || ''),
+    NetWeightUnit: String(this.quotation.NetWeightUnit || ''),
+    ChargeableWeightUnit: String(this.quotation.ChargeWeightUnit || ''),
+    VolumeWeightUnit: String(this.quotation.VolumeWeightUnit || ''), 
+    NoOfPkgsUnit: String(this.quotation.noOfPkgsUnit || ''),
     CbmWeightUnit: String(this.quotation.CbmWeightUnit || 'CBM'),
-    NoOfPkgsUnit: String(this.quotation.NoOfPkgsUnit || ''),
-    
     cargocurrency: String(this.quotation.currency || 'INR'),
     cargoValue: String(this.quotation.cargoValue || "0"),
     lineOfBusinessId: (this.quotation.lineOfBusinessId && Number(this.quotation.lineOfBusinessId) > 0) ? Number(this.quotation.lineOfBusinessId) : null,

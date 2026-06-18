@@ -1578,7 +1578,11 @@ this.quotation.noOfPkgsUnit = q.noOfPkgsUnit || q.NoOfPkgsUnit || '';
     // Date & Dimensions Parsing
     try {
       if (q.receivedDate) this.quotation.receivedDate = new Date(q.receivedDate).toISOString().split('T')[0];
-      if (q.cargoStatusDate) this.quotation.cargoStatusDate = new Date(q.cargoStatusDate).toISOString().split('T')[0];
+      if (q.cargoStatusDate) {
+  // Agar API se '2026-06-16T00:00:00' aa raha hai, 
+  // toh sirf 'T' se pehle wala part lein
+  this.quotation.cargoStatusDate = q.cargoStatusDate.split('T')[0];
+}
       if (q.repliedDate && q.repliedDate !== '2000-02-12T00:00:00') this.quotation.repliedDate = new Date(q.repliedDate).toISOString().split('T')[0];
     } catch (dateErr) { console.error('Date parsing issue:', dateErr); }
 

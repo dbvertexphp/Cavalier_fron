@@ -2560,7 +2560,7 @@ Selection Modal Popup
                     {{ row.amount | number:'1.2-2' }}
                 </td>
                 <td class="px-4 py-3 text-right font-black text-[#4a3f3f] bg-amber-50/50 italic">
-                                        <input type="text" placeholder="Enter Remark"  class="w-full text-right bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none">
+                                        <input type="text" [(ngModel)]="row.remark" placeholder="Enter Remark" class="w-full text-right bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none">
 
                 </td>
                 
@@ -2703,7 +2703,7 @@ Selection Modal Popup
                             {{ (m.totalCost || 0) | number:'1.2-2' }}
                         </td>
                         <td class="px-4 py-2 text-right font-black text-[#4a3f3f] bg-amber-50 italic border-l border-r border-amber-200">
-                                                                    <input type="text" placeholder="Enter Remark"  class="w-full text-right bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none">
+                                                                    <input type="text" [(ngModel)]="m.remark" placeholder="Enter Remark"  class="w-full text-right bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none">
 
                         </td>
 
@@ -2866,7 +2866,7 @@ Selection Modal Popup
 </tr>
                 <tr>
                   <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Gross Weight</td>
-                  <td class="p-3 md:p-4 text-gray-800 text-sm font-bold">{{ quotation.grossWeightKg }} {{ quotation.weightUnit || "KGS" }}</td>
+                  <td class="p-3 md:p-4 text-gray-800 text-sm font-bold">{{ quotation.grossWeightKg }} {{ quotation.GrossWeightUnit || "KGS" }}</td>
                 </tr>
                 <tr>
   <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Volume Weight(CBM)</td>

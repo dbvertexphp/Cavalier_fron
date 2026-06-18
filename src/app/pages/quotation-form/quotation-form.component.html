@@ -3,6 +3,7 @@
     *ngIf="!isFormOpen"
     class="bg-white border border-gray-300 shadow-sm rounded-sm overflow-hidden"
   >
+  <!-- kk -->
     <div
       class="bg-gray-100 p-1.5 border-b border-gray-300 flex gap-4 items-center"
     >
@@ -2598,6 +2599,7 @@
                 <div
                   class="p-2 text-[9px] font-black text-gray-400 bg-gray-100 uppercase border-b"
                 >
+                <!-- / -->
                   Airports
                 </div>
                 <div class="flex-1 overflow-y-auto p-2 space-y-1">
@@ -3144,6 +3146,7 @@
                  <td class="border p-1 bg-red-50 font-bold text-right">
                    <input
                     type="text"
+                    [(ngModel)]="c.remark"
                    placeholder="Add review notes"
                   
                     class="w-full text-right bg-transparent outline-none"
@@ -3353,6 +3356,7 @@
                 <td class="border p-1 bg-red-50 font-bold text-right">
                    <input
                     type="text"
+                    [(ngModel)]="c.remark"
                    placeholder="Add review notes"
                   
                     class="w-full text-right bg-transparent outline-none"

@@ -3978,7 +3978,11 @@ this.quotation.podOrigin = data.podOrigin || ''; // Yeh line add karein
       }
  try {
       if (data.receivedDate) this.quotation.receivedDate = new Date(data.receivedDate).toISOString().split('T')[0];
-      if (data.cargoStatusDate) this.quotation.cargoStatusDate = new Date(data.cargoStatusDate).toISOString().split('T')[0];
+      if (data.cargoStatusDate) {
+  // Agar API se '2026-06-16T00:00:00' aa raha hai, 
+  // toh sirf 'T' se pehle wala part lein
+  this.quotation.cargoStatusDate = data.cargoStatusDate.split('T')[0];
+}
       if (data.repliedDate && data.repliedDate !== '2000-02-12T00:00:00') this.quotation.repliedDate = new Date(data.repliedDate).toISOString().split('T')[0];
     } catch (dateErr) { console.error('Date parsing issue:', dateErr); }
       // --- 7. Rest of Logic ---
@@ -4501,8 +4505,11 @@ this.quotation.noOfPkgsUnit = pricing.noOfPkgsUnit || '';
         if (pricing.receivedDate) 
           this.quotation.receivedDate = new Date(pricing.receivedDate).toISOString().split('T')[0];
         
-        if (pricing.cargoStatusDate) 
-          this.quotation.cargoStatusDate = new Date(pricing.cargoStatusDate).toISOString().split('T')[0];
+       if (pricing.cargoStatusDate) {
+  // .split('T')[0] sirf tab sahi chalta hai agar date "2026-06-16T00:00:00" format mein ho
+  // Agar date direct "2026-06-16" hai, toh split ki zaroorat nahi hai
+  this.quotation.cargoStatusDate = pricing.cargoStatusDate.toString().split('T')[0];
+}
         
         // Yahan 'repliedDate' check ho raha hai
         if (pricing.repliedDate && pricing.repliedDate !== '2000-02-12T00:00:00' && pricing.repliedDate !== '0001-01-01T00:00:00') {

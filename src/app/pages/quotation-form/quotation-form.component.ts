@@ -13,7 +13,7 @@ CdkDragDrop,
 moveItemInArray,
 transferArrayItem
 } from '@angular/cdk/drag-drop';
-
+// l
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -30,6 +30,7 @@ interface DimGroup {
   indices: number[];
   totalBoxQty: number;
 }
+// ll
 @Component({
   selector: 'app-quotation-form',
   standalone: true,
@@ -2396,7 +2397,8 @@ this.searchFilters.validFrom = formattedDate as any;
 
   this.showQuotePicker = false; // Menu band
   this.cdr.detectChanges();     // UI refresh
-}showPopup: boolean = false;
+}
+showPopup: boolean = false;
   allQuotationNos: string[] = [];
   private quotationSub?: Subscription;
 
@@ -2891,9 +2893,12 @@ if (p.costBreakdowns && Array.isArray(p.costBreakdowns)) {
         currency: (c.Currency || c.currency || '').toString(),
         rate: Number(c.Rate || c.rate || 0),
         amount: Number(c.Amount || c.amount || 0),
-        exchangeRate: Number(c.ExchangeRate || c.exchangeRate || 1)
+        exchangeRate: Number(c.ExchangeRate || c.exchangeRate || 1),
+        remark: (c.Remark || c.remark || '').toString()
     }));
     console.log("Final Mapped Cost Rows:", this.costRows);
+    console.log("remark values:", this.costRows.map(r => r.remark));
+     console.log("remark values:", this.costRows.map(r => r.Vemark));
 }
 
 // IMPORTANT: Data map hone ke baad change detection trigger karein
@@ -3215,10 +3220,21 @@ this.updatePreview();
       this.quotation.lineOfBusiness = p.lineOfBusinessId || p.LineOfBusinessId || '';
       this.quotation.cargoStatus = p.cargoStatus || p.CargoStatus || 'Ready';
       
-      if (p.cargoReadyDate || p.CargoReadyDate) {
-        const rawDate = p.cargoReadyDate || p.CargoReadyDate;
-        this.quotation.cargoReadyDate = new Date(rawDate).toISOString().split('T')[0];
-      }
+     if (p.cargoReadyDate || p.CargoReadyDate) {
+  const rawDate = p.cargoReadyDate || p.CargoReadyDate;
+  
+  // 1. Pehle check karein agar ye already YYYY-MM-DD format mein string hai
+  if (typeof rawDate === 'string' && rawDate.includes('T')) {
+    this.quotation.cargoReadyDate = rawDate.split('T')[0];
+  } else {
+    // 2. Agar object hai, toh local date methods ka use karein
+    const d = new Date(rawDate);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    this.quotation.cargoReadyDate = `${year}-${month}-${day}`;
+  }
+} 
       
       this.quotation.isDirect = p.isDirect !== undefined ? p.isDirect : (p.IsDirect || false);
       this.quotation.isIndirect = p.isIndirect !== undefined ? p.isIndirect : (p.IsIndirect || false);

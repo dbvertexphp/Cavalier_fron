@@ -52,6 +52,8 @@ export class PriceComponent {
  @ViewChild('cargoDateInput') cargoDateInput!: ElementRef<HTMLInputElement>;
  totalCount: number = 0;
  chargesList: any[] = [];
+ // PriceComponent Class ke properties section mein add karein
+teamsList: any[] = [];
  showCountryDropdown: boolean = false;
 countriesList: any[] = []; 
 filteredCountries: any[] = [];
@@ -454,7 +456,8 @@ orgData: any = null;
   
       this.PermissionID = Number(localStorage.getItem('permissionID'));
       console.log("Direct API call trigger ho rahi hai...");
-   this.getsales();
+  //  this.getsales();
+  this.getTeams();
    this.loadConnectingPortsData();
       this.getbranch();
       this.quotation.chargeableWeightUnit = 'KGS';
@@ -598,7 +601,48 @@ onPortOfLoadingSearch(type: 'name' | 'code') {
   this.showPortOfLoadingDropdown = this.filteredPortsOfLoading.length > 0;
   this.activePOLIndex = -1;
 }
+// 1. Master Teams list load karne ke liye function
+getTeams() {
+  const token = localStorage.getItem('cavalier_token');
+  const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
+  this.http.get<any[]>(`${environment.apiUrl}/Teams`, { headers }).subscribe({
+    next: (data) => {
+      this.teamsList = data || [];
+      console.log("🆕 Price Master Teams Loaded:", this.teamsList);
+      this.cdr.detectChanges();
+    },
+    error: (err) => console.error('Error fetching Teams list:', err)
+  });
+}
+
+// 2. Team select hone par specific sales coordinators fetch karne ke liye function
+onTeamChange(teamId: any) {
+  if (!teamId || teamId === 'null' || teamId === null) {
+    this.getsalescordinate = []; // Options clear if no team selected
+    return;
+  }
+
+  const token = localStorage.getItem('cavalier_token');
+  const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+  const url = `${environment.apiUrl}/Teams/${teamId}/details`;
+
+  this.http.get<any>(url, { headers }).subscribe({
+    next: (res) => {
+      console.log("🎯 Team Details Fetched for Pricing Framework:", res);
+      if (res && res.salesCoordinators) {
+        this.getsalescordinate = res.salesCoordinators;
+      } else {
+        this.getsalescordinate = [];
+      }
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error("Error fetching dynamic team details:", err);
+      this.getsalescordinate = [];
+    }
+  });
+}
 // 2. Select Logic
 selectPortOfLoading(port: any) {
   if (!port) return;
@@ -3897,7 +3941,42 @@ selectInquiry(inq: any) {
       this.quotation.location = data.location || '';
       this.quotation.partyRole = data.partyRole || '';
 
-      // --- 2. Documents ---
+      // 🔥 2. AUTOMATIC TEAM SYNC & DYNAMIC USER RELOAD
+      if (data.team && this.teamsList && this.teamsList.length > 0) {
+        const incomingTeamStr = String(data.team).trim().toLowerCase();
+        
+        // Find match inside preloaded list
+        const matchedTeamObj = this.teamsList.find(t => {
+          const nameToCheck = String(t.teamName || t.name || '').trim().toLowerCase();
+          return nameToCheck === incomingTeamStr;
+        });
+
+        if (matchedTeamObj) {
+          const computedTeamId = matchedTeamObj.teamId || matchedTeamObj.id;
+          this.quotation.teamId = computedTeamId; // Bind numeric index to template view
+          console.log("🎯 Auto-Selected Team ID matched from Inquiry:", computedTeamId);
+          
+          // Trigger data loading sequence for matching coordinators array list
+          this.onTeamChange(computedTeamId);
+          
+          // Small delay setup to allow options rendering phase
+          setTimeout(() => {
+            if (data.salesCoordinator) {
+              this.quotation.salesCoordinator = data.salesCoordinator;
+              this.cdr.detectChanges();
+            }
+          }, 350);
+        } else {
+          console.warn(`⚠️ Team list didn't contain value matching response: ${data.team}`);
+          this.quotation.teamId = null;
+          this.getsalescordinate = [];
+        }
+      } else {
+        this.quotation.teamId = null;
+        this.getsalescordinate = [];
+      }
+
+      // --- 3. Documents ---
       this.commodityDocuments = data.commodityDocuments || [];
       this.packageOrInvoiceDocuments = data.packageOrInvoiceDocuments || [];
       this.documents = (data.commodityDocuments || []).map((doc: any) => ({
@@ -3910,7 +3989,7 @@ selectInquiry(inq: any) {
       }));
       this.quotation.invoiceList = (this.invoices.length > 0) ? 'Available' : 'Not Available';
 
-      // --- 3. LOB & Transport ---
+      // --- 4. LOB & Transport ---
       this.quotation.lineOfBusinessId = data.lineOfBusinessId ? Number(data.lineOfBusinessId) : null;
       if (data.transportMode) {
         const modeObj = this.transportModes.find(m =>
@@ -3920,34 +3999,32 @@ selectInquiry(inq: any) {
       }
       this.quotation.TransportType = data.transportType || '';
 
-      // --- 4. Pricing ---
-      this.quotation.salesCoordinator = data.salesCoordinator ? Number(data.salesCoordinator) : null;
+      // --- 5. Pricing ---
       this.quotation.commodity = data.commodityId ? Number(data.commodityId) : null;
       this.quotation.pricingDoneBy = data.pricingDoneBy || '';
       this.quotation.qtnDoneBy = data.qtnDoneBy || '';
       this.quotation.businessDimensions = data.businessDimensions || '';
-    // --- FIX: UNITS MAPPING FROM BACKEND TO UI ---
-this.quotation.GrossWeightUnit = data.grossWeightUnit || data.GrossWeightUnit || '';
-this.quotation.netWeightUnit = data.netWeightUnit || data.NetWeightUnit || '';
-this.quotation.chargeableWeightUnit = data.chargeableWeightUnit || data.ChargeableWeightUnit || '';
-console.log("Volume Weight Unit Mapping Check:", { volumeWeightUnitFromAPI: data.volumeWeightUnit, VolumeWeightUnitFromAPI: data.VolumeWeightUnit });
-this.quotation.volumeWeightUnit = data.volumeWeightUnit || data.VolumeWeightUnit || '';
-this.quotation.CbmWeightUnit = data.cbmWeightUnit || data.CbmWeightUnit || '';
-this.quotation.noOfPkgsUnit = data.noOfPkgsUnit || data.NoOfPkgsUnit || '';
-      // --- 5. Movement & Ports ---
+      
+      // --- UNITS MAPPING ---
+      this.quotation.GrossWeightUnit = data.grossWeightUnit || data.GrossWeightUnit || '';
+      this.quotation.netWeightUnit = data.netWeightUnit || data.NetWeightUnit || '';
+      this.quotation.chargeableWeightUnit = data.chargeableWeightUnit || data.ChargeableWeightUnit || '';
+      this.quotation.volumeWeightUnit = data.volumeWeightUnit || data.VolumeWeightUnit || '';
+      this.quotation.CbmWeightUnit = data.cbmWeightUnit || data.CbmWeightUnit || '';
+      this.quotation.noOfPkgsUnit = data.noOfPkgsUnit || data.NoOfPkgsUnit || '';
+
+      // --- 6. Movement & Ports ---
       this.quotation.shipmentType = data.shipmentType?.toString() || '';
       this.quotation.movementType = data.movementType || '';
       this.inquiry.origin = data.originName || '';
       this.originsaveid = data.originId || null;
       this.originpinCode = data.originCountryCode || '';
 
-      // POL
       this.quotation.portOfLoadingId = data.portOfLoadingId ? Number(data.portOfLoadingId) : null;
       this.quotation.portOfLoadingCode = data.codeOfPOL || '';
       const polMatch = this.portsOfLoading?.find(p => p && Number(p.id) === Number(data.portOfLoadingId));
       this.quotation.portOfLoading = polMatch ? (polMatch.portName || polMatch.name) : (data.portOfLoadingName || '');
 
-      // POD
       this.quotation.portOfDischargeId = data.portOfDischargeId ? Number(data.portOfDischargeId) : null;
       this.quotation.portOfDestinationCode = data.codeOfPOD || '';
       const podMatch = this.portsOfDischarge?.find(p => p && Number(p.id) === Number(data.portOfDischargeId));
@@ -3957,9 +4034,9 @@ this.quotation.noOfPkgsUnit = data.noOfPkgsUnit || data.NoOfPkgsUnit || '';
       this.quotation.finalDestinationCode = data.codeOfFinalDest || '';
       this.quotation.isDirect = data.isDirect === true;
       this.quotation.isIndirect = data.isIndirect === true;
-// --- 5. Movement & Ports wale section mein add karein ---
-this.quotation.podOrigin = data.podOrigin || ''; // Yeh line add karein
-      // --- 6. Connecting Ports (FIXED MAPPING) ---
+      this.quotation.podOrigin = data.podOrigin || '';
+
+      // --- 7. Connecting Ports ---
       this.selectedConnectingPorts = [];
       this.quotation.connectingPortIds = [];
       const rawCP = data.connectingPortIds || data.ConnectingPortIds;
@@ -3976,16 +4053,15 @@ this.quotation.podOrigin = data.podOrigin || ''; // Yeh line add karein
           };
         });
       }
- try {
-      if (data.receivedDate) this.quotation.receivedDate = new Date(data.receivedDate).toISOString().split('T')[0];
-      if (data.cargoStatusDate) {
-  // Agar API se '2026-06-16T00:00:00' aa raha hai, 
-  // toh sirf 'T' se pehle wala part lein
-  this.quotation.cargoStatusDate = data.cargoStatusDate.split('T')[0];
-}
-      if (data.repliedDate && data.repliedDate !== '2000-02-12T00:00:00') this.quotation.repliedDate = new Date(data.repliedDate).toISOString().split('T')[0];
-    } catch (dateErr) { console.error('Date parsing issue:', dateErr); }
-      // --- 7. Rest of Logic ---
+
+      try {
+        if (data.receivedDate) this.quotation.receivedDate = new Date(data.receivedDate).toISOString().split('T')[0];
+        if (data.cargoStatusDate) this.quotation.cargoStatusDate = data.cargoStatusDate.split('T')[0];
+        if (data.repliedDate && data.repliedDate !== '2000-02-12T00:00:00' && data.repliedDate !== '0001-01-01T00:00:00') {
+          this.quotation.repliedDate = new Date(data.repliedDate).toISOString().split('T')[0];
+        }
+      } catch (dateErr) { console.error('Date parsing issue:', dateErr); }
+
       this.quotation.incoterm = data.incoterm || '';
       if (this.quotation.incoterm) this.onIncotermChange({ target: { value: this.quotation.incoterm } });
 
@@ -3996,8 +4072,7 @@ this.quotation.podOrigin = data.podOrigin || ''; // Yeh line add karein
       this.quotation.description = data.description || '';
       this.quotation.cargoValue = data.cargoValue || '';
       this.quotation.currency = data.cargoCurrency || '';
-this.quotation.cargoStatusType = data.cargoStatus || '';
-      if (data.cargoStatusDate) this.quotation.cargoReadyDate = data.cargoStatusDate.split('T')[0];
+      this.quotation.cargoStatusType = data.cargoStatus || '';
 
       if (data.dimensions?.length > 0) {
         this.dimRows = data.dimensions.map((d: any) => ({ box: d.box || 0, l: d.l || 0, w: d.w || 0, h: d.h || 0, unit: d.unit || 'CMS' }));

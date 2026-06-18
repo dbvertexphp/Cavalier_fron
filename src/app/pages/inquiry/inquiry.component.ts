@@ -81,6 +81,7 @@ portsOfLoading: any[] = [];               // Full list from API
 filteredPortsOfLoading: any[] = [];
 showPortOfLoadingDropdown: boolean = false;
    branchlist:any[]=[];
+   teamsList: any[] = [];
 isPickupEnabled: boolean = false; 
     selectedLeadData: any = null;
     transportModes: any[] = [];
@@ -421,6 +422,7 @@ organizations: any[] = [];
     constructor(private http: HttpClient, private router: Router,private route: ActivatedRoute,private cdr: ChangeDetectorRef,private branchservice:BranchService,public userServices:UserService,public CheckPermissionService:CheckPermissionService,private sanitizer: DomSanitizer,private eRef: ElementRef,) {}
 
     ngOnInit() {
+      this.getTeams();
     // 1. Sabse pehle init aur basic setup
     this.quotation = {};
     // Yahan hardcode karke dekho, agar ye dikh gaya toh samajh lo data binding sahi hai
@@ -456,7 +458,7 @@ if (!this.quotation.NetWeightUnit && this.uomList && this.uomList.length > 0) {
         this.quotation.chargeableWeightUnit = this.quotation.chargeableWeightUnit || 'KGS';
     }, 500);
 
-    this.getsales();
+    // this.getsales();
     this.loadConnectingPortsData();
     this.getbranch();
     this.loadQuotations();
@@ -495,6 +497,21 @@ if (!this.quotation.NetWeightUnit && this.uomList && this.uomList.length > 0) {
     }
     
     this.setTodayDate();
+}
+getTeams() {
+  const token = localStorage.getItem('cavalier_token');
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`
+  });
+
+  this.http.get<any[]>(`${environment.apiUrl}/Teams`, { headers }).subscribe({
+    next: (data) => {
+      this.teamsList = data;
+      console.log("🆕 Teams loaded successfully:", data);
+      this.cdr.detectChanges();
+    },
+    error: (err) => console.error('Error fetching Teams array:', err)
+  });
 }
     getCommodityTypes() {
     // Hits: https://localhost:xxxx/api/CommodityType
@@ -587,6 +604,7 @@ selectFinalDestination(port: any) {
   this.activeFDIndex = -1;
 }
 
+
 onFDKeyDown(event: KeyboardEvent) {
   if (!this.showFinalDestinationDropdown) return;
 
@@ -619,7 +637,38 @@ private scrollToActiveFD() {
   }, 0);
 }
 
+onTeamChange(teamId: any) {
+  if (!teamId || teamId === 'null') {
+    this.getsalescordinate = []; // Agar koi team select nahi hai toh coordinator khali
+    return;
+  }
 
+  const token = localStorage.getItem('cavalier_token');
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`
+  });
+
+  const url = `${environment.apiUrl}/Teams/${teamId}/details`;
+  
+  this.http.get<any>(url, { headers }).subscribe({
+    next: (res) => {
+      console.log("🎯 Team Details Fetched:", res);
+      
+      // Response ka salesCoordinators dropdown array mein save ho jayega
+      if (res && res.salesCoordinators) {
+        this.getsalescordinate = res.salesCoordinators;
+      } else {
+        this.getsalescordinate = [];
+      }
+      
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error("Error fetching team details:", err);
+      this.getsalescordinate = [];
+    }
+  });
+}
 portOfLoading() {
   this.http.get<any[]>(`${environment.apiUrl}/PortSetup`).subscribe({
     next: (data) => {
@@ -2848,10 +2897,7 @@ loadLeadByLeadNo(leadNo: string) {
   this.http.get<any>(url).subscribe({
     next: (leadData) => {
       console.log("✅ Full Lead Data Received:", leadData);
-
       this.selectedLeadData = leadData;
-
-      // Form auto-fill
       this.inquiry.leadNo = leadData.leadNo || leadData.LeadNo;
 
       if (leadData.organizationName) {
@@ -2862,24 +2908,52 @@ loadLeadByLeadNo(leadNo: string) {
         this.organizationIds = leadData.organisationId;
       }
 
+      // 🔥 AUTO-FETCH TEAM AND SALES COORDINATORS FIX
+      if (leadData.team && this.teamsList && this.teamsList.length > 0) {
+        const leadTeamStr = String(leadData.team).trim().toLowerCase();
+        
+        // Master list mein se string matches check karenge
+        const matchingTeam = this.teamsList.find(t => {
+          const tName = String(t.teamName || t.name || '').trim().toLowerCase();
+          return tName === leadTeamStr;
+        });
+
+        if (matchingTeam) {
+          const tId = matchingTeam.teamId || matchingTeam.id;
+          
+          // 1. Dropdown value update (Ab exact numeric ID set hogi)
+          this.quotation.teamId = tId;
+          console.log("🎯 Dynamic Team Match Found! ID set to:", tId);
+          
+          // 2. Dynamic details endpoint call karke sales coordinators load karenge
+          this.onTeamChange(tId);
+          
+          // 3. Dropdown options parse hone ke liye small timeout
+          setTimeout(() => {
+            if (leadData.salesCoordinator) {
+              this.quotation.salesCoordinator = leadData.salesCoordinator.toString();
+              this.cdr.detectChanges();
+            }
+          }, 300);
+
+        } else {
+          console.warn(`⚠️ Teams master list mein '${leadData.team}' naam ki koi team nahi mili!`);
+          this.quotation.teamId = null;
+          this.getsalescordinate = [];
+        }
+      } else {
+        // Agar dynamic response mein team empty aayi ho
+        this.quotation.teamId = null;
+        this.getsalescordinate = [];
+      }
+
       if (leadData.location) this.quotation.location = leadData.location;
       if (leadData.branch) this.quotation.branchName = leadData.branch;
       if (leadData.type) this.quotation.type = leadData.type;
-if (leadData.salesCoordinator) {
-        // Lead se "25" jaise ID aa raha hai
-        this.quotation.salesCoordinator = leadData.salesCoordinator.toString(); 
-        // .toString() isliye taaki type match ho (agar sc.id number hai toh bhi safe rahe)
-      }
+      
       this.cdr.detectChanges();
     },
-    error: (err) => {
-      console.error("❌ Error fetching lead:", err);
-      if (err.status === 404) {
-        alert(`Lead ${leadNo} not found!`);
-      } else {
-        alert("Failed to load lead details");
-      }
-    }
+    error: (err) => console.error("❌ Error fetching lead:", err)
   });
 }
 branchList: any[] = [];           

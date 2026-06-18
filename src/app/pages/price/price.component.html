@@ -1169,6 +1169,21 @@ Selection Modal Popup
                   </option>
                 </select>
               </div>
+              <div class="flex items-center gap-2 mt-2">
+              <label class="w-24 font-bold text-gray-700 text-[12px]">Team</label>
+    <select
+      #teamSelect
+      [(ngModel)]="quotation.teamId"
+      name="teamId"
+      (change)="onTeamChange(teamSelect.value)"
+      class="flex-1 border border-gray-300 p-1.5 outline-none text-[12px] h-[35px] bg-white rounded-sm cursor-pointer focus:border-blue-400"
+    >
+      <option [value]="null">-- Select Team --</option>
+      <option *ngFor="let t of teamsList" [value]="t.teamId || t.id">
+        {{ t.teamName || t.name }}
+      </option>
+    </select>
+              </div>
               <div class="flex items-center">
                 <label class="w-40 font-bold text-gray-700"
                   >Business Dimensions</label

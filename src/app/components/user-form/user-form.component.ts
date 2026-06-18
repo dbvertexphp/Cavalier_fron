@@ -103,44 +103,56 @@ ngOnInit(): void {
     }
   });
   // 🔥 Puraane teamId subscribe block ko hatakar yeh naya functional block laga do bhai:
-this.userForm.get('teamId')?.valueChanges.subscribe((selectedTeamId) => {
-  if (selectedTeamId) {
-    this.http.get<any>(`${environment.apiUrl}/Teams/${selectedTeamId}/details`).subscribe({
-      next: (res) => {
-        if (res && res.hods && res.hods.length > 0) {
-          
-          // 🔥 PURANE PUSH LOGIC KO HATAKAR DIRECT ARRAY OVERWRITE KAR DE:
-          this.hods = res.hods.map((h: any) => ({
-            id: h.id,
-            name: h.name
-          }));
+// ngOnInit() ya jahan aapne valueChanges lagaya hai, wahan purane block ko is se replace karein:
+this.userForm.get('teamId')?.valueChanges.subscribe((selectedTeamIds: any[]) => {
+  if (selectedTeamIds && selectedTeamIds.length > 0) {
+    // Saari selected teams ke details dynamic array me parallel fetch karne ke liye map lagaya
+    const requests = selectedTeamIds.map(teamId => 
+      this.http.get<any>(`${environment.apiUrl}/Teams/${teamId}/details`)
+    );
 
-          // Form control me pehle HOD ko select karwa de
-          const firstHodId = this.hods[0].id;
-          this.userForm.patchValue({ hodId: firstHodId });
-          this.cdr.detectChanges();
-          
+    forkJoin(requests).subscribe({
+      next: (responses) => {
+        let combinedHods: any[] = [];
+        
+        responses.forEach(res => {
+          if (res && res.hods && res.hods.length > 0) {
+            res.hods.forEach((h: any) => {
+              // Duplicate check: taaki same HOD multiple teams me hone par list me repeat na ho
+              if (!combinedHods.some(existing => existing.id === h.id)) {
+                combinedHods.push({ id: h.id, name: h.name });
+              }
+            });
+          }
+        });
+
+        this.hods = combinedHods;
+
+        // Agar list me HODs hain aur form me pehle se kuch select nahi h, toh pehla auto-select karwa dein
+        if (this.hods.length > 0) {
+          const currentHod = this.userForm.get('hodId')?.value;
+          if (!currentHod) {
+            this.userForm.patchValue({ hodId: this.hods[0].id }, { emitEvent: false });
+          }
         } else {
-          // 🛑 AGAR HOD NA MILE TO LIST KHALI KAR DE:
-          this.hods = [];
-          this.userForm.patchValue({ hodId: null });
+          this.userForm.patchValue({ hodId: null }, { emitEvent: false });
         }
         this.cdr.detectChanges();
       },
       error: (err) => {
-        // 🛑 ERROR AANE PAR BHI KHALI KAR DE:
+        console.error("Multi-team logic parsing failed:", err);
         this.hods = [];
-        this.userForm.patchValue({ hodId: null });
+        this.userForm.patchValue({ hodId: null }, { emitEvent: false });
         this.cdr.detectChanges();
       }
     });
   } else {
-    // 🛑 AGAR TEAM UNSELECT HO JAYE TO BHI KHALI KAR DE:
     this.hods = [];
-    this.userForm.patchValue({ hodId: null });
+    this.userForm.patchValue({ hodId: null }, { emitEvent: false });
     this.cdr.detectChanges();
   }
 });
+
   // -----------------------------------------------------------------------
 
   if (this.initialData) {
@@ -1274,7 +1286,71 @@ onUserTypeChange(event: any) {
   }
 }
 // user-form.component.ts mein class ke andar ye add kar:
+// ==================== HOD & TEAM CHIPS MULTI-SELECT ENGINE ====================
 
+// --- A. HOD Chips Management ---
+onHodSelect(event: any) {
+  const value = event.target.value;
+  if (!value) return;
+
+  const hodIdNum = Number(value);
+  const currentHods: any[] = this.userForm.get('hodId')?.value || [];
+
+  if (!currentHods.includes(hodIdNum)) {
+    currentHods.push(hodIdNum);
+    this.userForm.get('hodId')?.setValue(currentHods);
+  }
+  event.target.value = ''; // Reset standard dropdown selection view
+}
+
+removeHod(hodId: number) {
+  let currentHods: any[] = this.userForm.get('hodId')?.value || [];
+  currentHods = currentHods.filter(id => id !== hodId);
+  this.userForm.get('hodId')?.setValue(currentHods);
+}
+
+getHodNameById(hodId: any): string {
+  const match = this.hods.find(h => h.id == hodId);
+  return match ? match.name : `HOD (ID: ${hodId})`;
+}
+
+isHodSelected(hodId: number): boolean {
+  const currentHods: any[] = this.userForm.get('hodId')?.value || [];
+  return currentHods.includes(hodId);
+}
+
+
+// --- B. Team Chips Management ---
+onTeamSelect(event: any) {
+  const value = event.target.value;
+  if (!value) return;
+
+  const teamIdNum = Number(value);
+  const currentTeams: any[] = this.userForm.get('teamId')?.value || [];
+
+  if (!currentTeams.includes(teamIdNum)) {
+    currentTeams.push(teamIdNum);
+    // Control status explicit push update hone se aapka forkJoin dynamic query call auto-fire hoga
+    this.userForm.get('teamId')?.setValue(currentTeams);
+  }
+  event.target.value = '';
+}
+
+removeTeam(teamId: number) {
+  let currentTeams: any[] = this.userForm.get('teamId')?.value || [];
+  currentTeams = currentTeams.filter(id => id !== teamId);
+  this.userForm.get('teamId')?.setValue(currentTeams);
+}
+
+getTeamNameById(teamId: any): string {
+  const match = this.teams.find(t => t.id == teamId);
+  return match ? match.teamName : `Team (ID: ${teamId})`;
+}
+
+isTeamSelected(teamId: number): boolean {
+  const currentTeams: any[] = this.userForm.get('teamId')?.value || [];
+  return currentTeams.includes(teamId);
+}
 downloadData(type: string) {
   let dataToDownload = [];
   let fileName = "";

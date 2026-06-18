@@ -464,27 +464,64 @@
       <label>Functional Area</label>
       <input formControlName="functionalArea" class="w-full border p-2 rounded">
     </div>
-    <div>
-      <label class="font-semibold text-gray-600 block uppercase">HOD</label>
-      <select formControlName="hodId" class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f] bg-white">
-        <option [value]="null" disabled selected>Select HOD</option>
-        <option *ngFor="let h of hods" [value]="h.id">{{ h.name }}</option>
-      </select>
-      <div *ngIf="userForm.get('hodId')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
-        {{ userForm.get('hodId')?.errors?.['zod'] }}
+
+  <div class="space-y-2">
+    <label class="font-semibold text-gray-600 block uppercase text-xs">HOD (Head of Department)</label>
+    
+    <div class="flex flex-wrap gap-1.5 p-2 border rounded bg-white min-h-[42px] items-center">
+      <span *ngIf="userForm.get('hodId')?.value?.length === 0" class="text-gray-400 text-xs pl-1">
+        No HODs selected
+      </span>
+      <div *ngFor="let hodId of userForm.get('hodId')?.value" 
+           class="flex items-center gap-1 bg-amber-100 text-amber-800 text-xs font-semibold px-2.5 py-1 rounded-full border border-amber-200">
+        <span>{{ getHodNameById(hodId) }}</span>
+        <button type="button" (click)="removeHod(hodId)" class="text-amber-600 hover:text-red-500 font-bold ml-1 text-sm outline-none">
+          &times;
+        </button>
       </div>
     </div>
 
-    <div>
-      <label class="font-semibold text-gray-600 block uppercase">Team</label>
-      <select formControlName="teamId" class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f] bg-white">
-        <option [value]="null" disabled selected>Select Team</option>
-        <option *ngFor="let t of teams" [value]="t.id">{{ t.teamName }}</option>
-      </select>
-      <div *ngIf="userForm.get('teamId')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
-        {{ userForm.get('teamId')?.errors?.['zod'] }}
+    <select (change)="onHodSelect($event)" class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f] bg-white text-sm">
+      <option value="" disabled selected>Choose HOD...</option>
+      <option *ngFor="let h of hods" [value]="h.id" [hidden]="isHodSelected(h.id)">
+        {{ h.name }}
+      </option>
+    </select>
+    
+    <div *ngIf="userForm.get('hodId')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
+      {{ userForm.get('hodId')?.errors?.['zod'] }}
+    </div>
+  </div>
+
+  <div class="space-y-2">
+    <label class="font-semibold text-gray-600 block uppercase text-xs">Team</label>
+    
+    <div class="flex flex-wrap gap-1.5 p-2 border rounded bg-white min-h-[42px] items-center">
+      <span *ngIf="userForm.get('teamId')?.value?.length === 0" class="text-gray-400 text-xs pl-1">
+        No teams selected
+      </span>
+      <div *ngFor="let teamId of userForm.get('teamId')?.value" 
+           class="flex items-center gap-1 bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-1 rounded-full border border-green-200">
+        <span>{{ getTeamNameById(teamId) }}</span>
+        <button type="button" (click)="removeTeam(teamId)" class="text-green-600 hover:text-red-500 font-bold ml-1 text-sm outline-none">
+          &times;
+        </button>
       </div>
     </div>
+
+    <select (change)="onTeamSelect($event)" class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f] bg-white text-sm">
+      <option value="" disabled selected>Choose Team...</option>
+      <option *ngFor="let t of teams" [value]="t.id" [hidden]="isTeamSelected(t.id)">
+        {{ t.teamName }}
+      </option>
+    </select>
+    
+    <div *ngIf="userForm.get('teamId')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
+      {{ userForm.get('teamId')?.errors?.['zod'] }}
+    </div>
+  </div>
+
+
   </div>
 
  

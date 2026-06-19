@@ -326,86 +326,301 @@
         </div>
 
         <div class="space-y-2">
-  <div class="flex items-center relative">
-    <label class="w-24 font-bold text-gray-500 text-[12px] uppercase">Date Range</label>
+     <div class="flex items-center relative">
+  <label class="w-24 font-bold text-gray-500 text-[12px] uppercase">Date</label>
 
-    <div class="flex items-center border border-gray-300 bg-white h-[32px] px-3 rounded-md shadow-sm gap-2 focus-within:ring-1 focus-within:ring-blue-500">
-      
-      <input
-        #fromPicker
-        type="date"
-        [(ngModel)]="searchFilters.fromDate"
-        (change)="onSearch()"
-        class="outline-none text-[11px] text-gray-700 w-24 cursor-pointer bg-transparent"
-      />
-      
-      <span class="text-gray-400 text-[10px] font-bold">TO</span>
+  <div class="flex items-center border border-gray-300 bg-white h-[32px] px-3 rounded-md shadow-sm gap-2 focus-within:ring-1 focus-within:ring-blue-500">
+    
+    <input
+      #fromPicker
+      type="date"
+      [(ngModel)]="searchFilters.fromDate"
+      (change)="onSearch()"
+      (click)="fromPicker.showPicker()"
+      class="outline-none text-[11px] text-gray-700 w-24 cursor-pointer bg-transparent"
+    />
+    
+    <span class="text-gray-400 text-[10px] font-bold">TO</span>
 
-      <input
-        #toPicker
-        type="date"
-        [(ngModel)]="searchFilters.toDate"
-        (change)="onSearch()"
-        class="outline-none text-[11px] text-gray-700 w-24 cursor-pointer bg-transparent"
-      />
+    <input
+      #toPicker
+      type="date"
+      [(ngModel)]="searchFilters.toDate"
+      (change)="onSearch()"
+      (click)="toPicker.showPicker()"
+      class="outline-none text-[11px] text-gray-700 w-24 cursor-pointer bg-transparent"
+    />
 
-      <div class="ml-1 pl-2 border-l border-gray-200 cursor-pointer group" 
-           (click)="showDateDropdown = !showDateDropdown; fromPicker.showPicker(); toPicker.showPicker();">
-        <span class="text-[14px] group-hover:text-blue-600 transition-colors">⚡</span>
-      </div>
-    </div>
-
-    <div *ngIf="showDateDropdown" 
-         class="absolute top-[40px] left-[100px] z-[999] bg-white shadow-xl border border-gray-200 w-[150px] rounded-lg overflow-hidden animate-in fade-in zoom-in duration-200">
-      <div class="bg-gray-50 px-3 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100">
-        Quick Select
-      </div>
-      
-      <div *ngFor="let item of ['today', 'yesterday', 'lastWeek', 'lastMonth', 'lastYear']"
-           (click)="setQuickDate(item); showDateDropdown = false"
-           class="px-3 py-2 text-[11px] text-gray-600 hover:bg-blue-50 hover:text-blue-700 cursor-pointer border-b border-gray-50 transition-all capitalize">
-        {{item | titlecase}}
-      </div>
+    <div class="ml-1 pl-2 border-l border-gray-200 cursor-pointer group" (click)="showDateDropdown = !showDateDropdown">
+      <span class="text-[14px] group-hover:text-blue-600 transition-colors">⚡</span>
     </div>
   </div>
 
-  <div class="flex items-center">
-    <label class="w-28 font-bold text-gray-600 text-[12px]">Status</label>
-    <div class="flex-1">
-      <select
-        [(ngModel)]="searchFilters.status"
-        class="w-full p-1 border border-gray-300 outline-none text-[12px] h-[26px] bg-white cursor-pointer"
+  <div *ngIf="showDateDropdown" 
+       class="absolute top-[40px] left-[100px] z-[999] bg-white shadow-xl border border-gray-200 w-[150px] rounded-lg overflow-hidden animate-in fade-in zoom-in duration-200">
+    <div class="bg-gray-50 px-3 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100">
+      Quick Select
+    </div>
+    
+    <div *ngFor="let item of ['today', 'yesterday', 'lastWeek', 'lastMonth', 'lastYear']"
+         (click)="setQuickDate(item)"
+         class="px-3 py-2 text-[11px] text-gray-600 hover:bg-blue-50 hover:text-blue-700 cursor-pointer border-b border-gray-50 transition-all capitalize">
+      {{item | titlecase}}
+    </div>
+  </div>
+</div>
+          <!-- <div class="flex items-center relative">
+  <label class="w-24 font-bold text-gray-600 text-[12px]">Inquiry By</label>
+
+  <div class="flex-1 flex flex-col relative">
+    <div class="flex border border-gray-300 rounded-sm overflow-hidden">
+      <input
+        type="text"
+        [(ngModel)]="searchFilters.salesCoordinator"
+        (input)="onCoordinatorType()"
+        placeholder="Type min 3 chars..."
+        class="w-full p-1 outline-none text-[12px] bg-white"
+        autocomplete="off"
+      />
+
+       Instant Modal Trigger Button 
+      <button
+        type="button"
+        (mousedown)="toggleCoordinatorPopup(); $event.preventDefault()"
+        class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-gray-200 transition-colors outline-none"
       >
-        <option value="">Both</option>
-        <option value="1">Active</option>
-        <option value="0">Inactive</option>
-      </select>
+        🔍
+      </button>
+    </div>
+
+    Custom Dropdown (3 chars ke baad hi activate hoga)
+    <div *ngIf="filteredCoordinators && filteredCoordinators.length > 0" 
+         class="absolute top-full left-0 right-0 bg-white border border-gray-300 shadow-xl z-[1000] max-h-48 overflow-y-auto mt-0.5 custom-scrollbar">
+      <ul class="list-none p-0 m-0">
+        <li *ngFor="let name of filteredCoordinators" 
+            (mousedown)="searchFilters.salesCoordinator = name; filteredCoordinators = []"
+            class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 last:border-none uppercase transition-colors"
+        >
+          {{ name }}
+        </li>
+      </ul>
     </div>
   </div>
+</div>
 
-  <div class="space-y-2">
-    <div class="flex items-center mb-1">
-      <label class="w-28 font-bold text-gray-600 text-[12px]">Branch</label>
-      <div class="flex-1 flex border border-gray-300 relative rounded-sm bg-white shadow-sm focus-within:ring-1 focus-within:ring-red-400">
+Modal Backdrop
+<div
+  *ngIf="showCoordinatorPopup"
+  class="fixed inset-0 bg-gray-900/70 backdrop-blur-sm z-[9998] transition-opacity duration-300"
+  (click)="showCoordinatorPopup = false"
+></div>
+
+Selection Modal Popup
+<div
+  *ngIf="showCoordinatorPopup"
+  class="fixed inset-0 flex items-center justify-center z-[9999] p-4 sm:p-6"
+  (click)="$event.stopPropagation()"
+>
+  <div
+    class="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-gray-100 flex flex-col max-h-[85vh] overflow-hidden transform transition-all duration-300"
+  >
+    Modal Header
+    <div class="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex-shrink-0">
+      <div class="flex justify-between items-center mb-4">
+        <div>
+          <h3 class="text-xl font-bold text-gray-950 tracking-tight">Select Coordinator</h3>
+          <p class="text-xs text-gray-500 mt-1">Assign a coordinator for this task</p>
+        </div>
+        <button
+          (click)="showCoordinatorPopup = false"
+          class="w-9 h-9 flex items-center justify-center rounded-full bg-white hover:bg-red-50 text-gray-400 hover:text-red-500 border border-gray-200 transition-all outline-none"
+        >
+          ✕
+        </button>
+      </div>
+
+      <div class="relative">
+        <span class="absolute inset-y-0 left-4 flex items-center text-gray-400">🔍</span>
         <input
           type="text"
-          [(ngModel)]="branchSearchText"
-          (input)="onBranchSearch()"
-          placeholder="Type to search branch..."
-          class="w-full p-1.5 outline-none text-[12px] bg-white"
-          autocomplete="off"
+          placeholder="Search coordinator name..."
+          class="w-full pl-12 pr-4 py-3 text-sm bg-white border border-gray-200 rounded-2xl outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all"
+          (input)="filterCoordinatorList($event)"
         />
-        <span
+      </div>
+    </div>
+
+    Modal List Body
+    <div class="overflow-y-auto bg-white flex-1 min-h-0 custom-scrollbar">
+      <div class="p-3 space-y-1">
+        <div *ngIf="allCoordinators.length > 0; else noData">
+          <div
+            *ngFor="let coord of allCoordinators"
+            (click)="searchFilters.salesCoordinator = coord; showCoordinatorPopup = false"
+            class="group flex items-center justify-between px-4 py-4 rounded-xl hover:bg-blue-50/70 cursor-pointer transition-all border border-transparent hover:border-blue-100"
+          >
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 rounded-full bg-blue-100/70 text-blue-600 flex items-center justify-center text-sm font-bold flex-shrink-0 border border-blue-200 uppercase">
+                {{ coord.substring(0, 1) }}
+              </div>
+              <span class="text-sm font-semibold text-gray-800 group-hover:text-blue-700 truncate pr-2">
+                {{ coord }}
+              </span>
+            </div>
+            <span class="flex-shrink-0 opacity-0 group-hover:opacity-100 text-blue-500 transform translate-x-1 group-hover:translate-x-0 transition-all text-xs font-bold flex items-center gap-1.5 bg-blue-100/70 px-3 py-1.5 rounded-full">
+              Select <span>→</span>
+            </span>
+          </div>
+        </div>
+        <ng-template #noData>
+          <div class="py-16 text-center text-gray-500 flex flex-col items-center gap-4">
+            <span class="text-4xl opacity-50">👤</span>
+            <p class="text-sm font-medium italic">No coordinators found.</p>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+
+    Footer
+    <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex-shrink-0 flex items-center justify-between">
+      <p class="text-[10px] text-gray-400 uppercase tracking-widest font-black opacity-60">
+        Cavalier Logistics
+      </p>
+      <button
+        (click)="showCoordinatorPopup = false"
+        class="px-5 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-100 transition-all outline-none"
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
+</div> -->
+          <!-- <div class="flex items-center">
+            <label class="w-24 font-bold text-gray-600">Inquiry Status</label>
+            <select
+              [(ngModel)]="searchFilters.cargoStatus"
+              class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white"
+            >
+              <option value="(Any)">(Any)</option>
+              <option value="Pending">Pending</option>
+              <option value="Success">Success</option>
+              <option value="Failed">Failed</option>
+              <option value="In Progress">In Progress</option>
+            </select>
+          </div> -->
+          <div class="flex items-center">
+  <label class="w-28 font-bold text-gray-600 text-[12px]">Status</label>
+  <div class="flex-1">
+    <select
+      [(ngModel)]="searchFilters.status"
+      class="w-full p-1 border border-gray-300 outline-none text-[12px] h-[26px] bg-white cursor-pointer"
+    >
+      <option value="">Both</option> <!-- "Both" ke liye empty value rakhi hai -->
+      <option value="1">Active</option>
+      <option value="0">Inactive</option>
+    </select>
+  </div>
+</div>
+         <div class="space-y-2">
+  <div class="flex items-center mb-1">
+    <label class="w-28 font-bold text-gray-600 text-[12px]">Branch</label>
+
+    <div class="flex-1 flex border border-gray-300 relative rounded-sm bg-white shadow-sm focus-within:ring-1 focus-within:ring-red-400">
+      <input
+        type="text"
+        [(ngModel)]="branchSearchText"
+        (input)="onBranchSearch()"
+        placeholder="Type to search branch..."
+        class="w-full p-1.5 outline-none text-[12px] bg-white"
+        autocomplete="off"
+      />
+
+      <span
+        (click)="toggleBranchModal()"
+        class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-red-500 hover:text-white transition-all flex items-center justify-center w-9"
+        title="View All Branches"
+      >
+        🔍
+      </span>
+
+      <!-- Dropdown (ul) yahan se hata diya gaya hai -->
+    </div>
+  </div>
+
+  <!-- Modal section (Bilkul same hai) -->
+  <div
+    *ngIf="isBranchModalOpen"
+    class="fixed inset-0 z-[3000] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+  >
+    <div class="bg-white w-full max-w-md shadow-2xl rounded-sm border-t-4 border-red-600 animate-in zoom-in duration-200">
+      <div class="flex justify-between items-center p-3 border-b bg-gray-50">
+        <h3 class="text-[12px] font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
+          🏢 Select Branches
+        </h3>
+        <button
           (click)="toggleBranchModal()"
-          class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-red-500 hover:text-white transition-all flex items-center justify-center w-9"
-          title="View All Branches"
+          class="text-gray-400 hover:text-red-500 text-2xl font-bold leading-none"
         >
-          🔍
-        </span>
+          &times;
+        </button>
+      </div>
+
+      <div class="max-h-80 overflow-y-auto p-1 custom-scrollbar">
+        <div class="p-2 sticky top-0 bg-white">
+          <input
+            type="text"
+            [(ngModel)]="modalSearchText"
+            (input)="onModalSearch()"
+            placeholder="Filter branches..."
+            class="w-full p-1 border border-gray-200 text-[11px] outline-none rounded-sm"
+          />
+        </div>
+
+        <ul class="list-none p-0 m-0">
+          <li
+            *ngFor="let branch of filteredBranchSuggestions"
+            class="flex items-center gap-3 p-2.5 hover:bg-red-50 border-b border-gray-50 last:border-none cursor-pointer transition-colors"
+            (click)="toggleBranchSelection(branch)"
+          >
+            <input
+              type="checkbox"
+              [checked]="branch.isSelected"
+              (click)="$event.stopPropagation()"
+              (change)="toggleBranchSelection(branch)"
+              class="w-4 h-4 accent-red-600 cursor-pointer"
+            />
+
+
+            <div class="flex flex-col">
+              <span class="text-[12px] text-gray-800 font-medium uppercase">{{ branch.branchName }}</span>
+              <span *ngIf="branch.branchCode" class="text-[10px] text-gray-400">{{ branch.branchCode }}</span>
+            </div>
+          </li>
+
+          <li *ngIf="filteredBranchSuggestions.length === 0" class="p-5 text-center text-gray-400 text-[11px] italic">
+            No branches found.
+          </li>
+        </ul>
+      </div>
+
+      <div class="p-3 border-t bg-gray-50 flex justify-end gap-2">
+        <button
+          (click)="toggleBranchModal()"
+          class="px-4 py-1.5 text-[11px] font-bold text-gray-500 hover:bg-gray-200 rounded-sm uppercase"
+        >
+          Cancel
+        </button>
+        <button
+          (click)="confirmSelection()"
+          class="px-6 py-1.5 text-[11px] font-bold bg-red-600 text-white hover:bg-red-700 rounded-sm shadow-md transition-all uppercase"
+        >
+          Confirm Selection
+        </button>
       </div>
     </div>
   </div>
 </div>
+        </div>
         
 
         <!-- Main Wrapper (Is par 'relative' hona zaroori hai) -->
@@ -839,273 +1054,187 @@
       </div>
 
       <div class="p-5 space-y-6">
-        <div class="bg-gray-50 p-4 border border-gray-200 rounded">
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-x-8 gap-y-3">
-            <div class="space-y-2">
-      <div>
-  <label class="text-gray-700 font-bold block mb-1 uppercase text-[11px]">Reference by inquiry</label>
-  <div class="relative">
-    <input
-      name="referenceByInquiry"
-      [(ngModel)]="quotation.referenceByInquiry"
-      (input)="onInquirySearchInput()"
-      (blur)="showInquiryDropdown = false"
-      placeholder="Search Inquiry No..."
-      class="w-full border p-2 bg-white outline-none pr-7 text-[12px]"
-      autocomplete="off"
-    />
-
-    <span
-      (mousedown)="$event.preventDefault(); loadInquiryList()"
-      class="absolute right-1 top-2.5 text-gray-400 cursor-pointer p-1 hover:text-blue-500 transition-all"
-    >
-      🔍
-    </span>
-
-    <ul
-      *ngIf="showInquiryDropdown && inquiryList.length > 0"
-      class="absolute top-full left-0 z-[100] w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-48 overflow-y-auto mt-1"
-    >
-      <li
-        *ngFor="let inq of inquiryList"
-        (mousedown)="selectInquiry(inq)"
-        class="p-2 hover:bg-blue-50 cursor-pointer text-[12px] border-b border-gray-100"
-      >
-        <div class="font-bold text-blue-700">{{ inq.inquiryNo }}</div>
-        <div *ngIf="inq.customerName" class="text-gray-500 text-[10px]">
-          {{ inq.customerName }}
+       <div class="bg-gray-50 p-4 border border-gray-200 rounded">
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-x-6 gap-y-4">
+    
+    <div class="space-y-3">
+      <div class="grid grid-cols-1 gap-1">
+        <label class="text-gray-700 font-bold uppercase text-[11px]">Reference by inquiry</label>
+        <div class="relative">
+          <input
+            name="referenceByInquiry"
+            [(ngModel)]="quotation.referenceByInquiry"
+            (input)="onInquirySearchInput()"
+            (blur)="showInquiryDropdown = false"
+            placeholder="Search Inquiry No..."
+            class="w-full border p-2 bg-white outline-none pr-7 text-[12px]"
+            autocomplete="off"
+          />
+          <span
+            (mousedown)="$event.preventDefault(); loadInquiryList()"
+            class="absolute right-1 top-2 text-gray-400 cursor-pointer p-1 hover:text-blue-500 transition-all"
+          >🔍</span>
+          <ul
+            *ngIf="showInquiryDropdown && inquiryList.length > 0"
+            class="absolute top-full left-0 z-[100] w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-48 overflow-y-auto mt-1"
+          >
+            <li
+              *ngFor="let inq of inquiryList"
+              (mousedown)="selectInquiry(inq)"
+              class="p-2 hover:bg-blue-50 cursor-pointer text-[12px] border-b border-gray-100"
+            >
+              <div class="font-bold text-blue-700">{{ inq.inquiryNo }}</div>
+              <div *ngIf="inq.customerName" class="text-gray-500 text-[10px]">{{ inq.customerName }}</div>
+            </li>
+          </ul>
         </div>
-      </li>
-    </ul>
-  </div>
-</div>
-              <div class="grid grid-cols-2 items-center">
-                <label class="font-bold text-gray-700">Branch</label>
-                <select
-                  [(ngModel)]="quotation.branchName"
-                  name="branchName"
-                  class="border p-1.5 outline-none"
-                >
-                  <option value="">--Select--</option>
+      </div>
+      <div class="grid grid-cols-1 gap-1">
+        <label class="font-bold text-gray-700 text-[12px]">Branch</label>
+        <select [(ngModel)]="quotation.branchName" name="branchName" class="border p-2 outline-none text-[12px]">
+          <option value="">--Select--</option>
+          <option *ngFor="let branch of branchlist" [value]="branch.id">{{ branch.branchName }}</option>
+        </select>
+      </div>
+      <div class="grid grid-cols-1 gap-1">
+        <label class="font-bold text-gray-700 text-[12px]">Inq. Received</label>
+        <input type="date" [(ngModel)]="quotation.receivedDate" name="receivedDate" class="border p-2 text-[11px] outline-none" />
+      </div>
+      <div class="grid grid-cols-1 gap-1">
+        <label class="font-bold text-gray-700 text-[12px]">Inq. Replied</label>
+        <input type="date" [(ngModel)]="quotation.repliedDate" name="repliedDate" class="border p-2 text-[11px] outline-none" />
+      </div>
+    </div>
 
-                  <!-- Dynamic options from branchList -->
-                  <option *ngFor="let branch of branchlist" [value]="branch.id">
-                    {{ branch.branchName }}
-                  </option>
-                </select>
-              </div>
-              <div class="grid grid-cols-2 items-center">
-                <label class="font-bold text-gray-700">Inq. Received</label>
-                <input
-                  type="date"
-                  [(ngModel)]="quotation.receivedDate"
-                  name="receivedDate"
-                  class="border p-1 text-[11px] outline-none"
-                />
-              </div>
-              <div class="grid grid-cols-2 items-center">
-                <label class="font-bold text-gray-700">Inq. Replied</label>
-                <input
-                  type="date"
-                  [(ngModel)]="quotation.repliedDate"
-                  name="repliedDate"
-                  class="border p-1 text-[11px] outline-none"
-                />
-              </div>
+    <div class="space-y-3">
+      <div class="grid grid-cols-1 gap-1">
+        <label class="font-bold text-gray-600 text-[12px]">Pricing No.</label>
+        <input type="text" name="pricingNo" [(ngModel)]="quotation.pricingNo" readonly placeholder="Generating..." class="border border-gray-300 p-2 outline-none text-[12px] rounded-sm bg-gray-100 text-gray-600 cursor-not-allowed font-semibold" />
+      </div>
+      <div class="grid grid-cols-1 gap-1">
+        <label class="font-bold text-[#802a2a] text-[12px]">Location</label>
+        <input type="text" [(ngModel)]="quotation.location" name="location" class="border p-2 outline-none bg-white text-[12px]" placeholder="Enter location" />
+      </div>
+      <div class="grid grid-cols-1 gap-1">
+        <label class="font-bold text-gray-700 text-[12px]">Sales Coor.</label>
+        <select [(ngModel)]="quotation.salesCoordinator" name="salesCoordinator" class="border p-2 outline-none text-[12px]">
+          <option value="">-- Select Sales Coordinator --</option>
+          <option *ngFor="let sc of getsalescordinate" [value]="sc.id">{{ sc.name }}</option>
+        </select>
+      </div>
+      <div class="grid grid-cols-1 gap-1">
+        <label class="font-bold text-gray-700 text-[12px]">Team</label>
+        <select #teamSelect [(ngModel)]="quotation.teamId" name="teamId" (change)="onTeamChange(teamSelect.value)" class="border border-gray-300 p-2 outline-none text-[12px] bg-white rounded-sm cursor-pointer">
+          <option [value]="null">-- Select Team --</option>
+          <option *ngFor="let t of teamsList" [value]="t.teamId || t.id">{{ t.teamName || t.name }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="space-y-3">
+      <div class="grid grid-cols-1 gap-1">
+        <label class="font-bold text-gray-700 text-[12px]">Business Dimensions</label>
+        <select name="businessDims" [(ngModel)]="quotation.businessDimensions" class="border p-2 outline-none text-[12px]">
+          <option value="Electronic">Electronic</option>
+          <option value="Mercury">Mercury</option>
+          <option value="Cosmetic">Cosmetic</option>
+          <option value="Toys">Toys</option>
+        </select>
+      </div>
+      <div class="grid grid-cols-1 gap-1">
+        <label class="font-bold text-[#802a2a] text-[12px]">Party Role</label>
+        <select [(ngModel)]="quotation.partyRole" name="partyRole" class="border p-2 outline-none text-[12px]">
+          <option value="">--Select--</option>
+          <option value="Shipper">Shipper</option>
+          <option value="Consignee">Consignee</option>
+          <option value="Dest.Agent">Dest.Agent</option>
+          <option value="Origin Agent">Origin Agent</option>
+          <option value="Customer">Customer</option>
+          <option value="Global">Global</option>
+        </select>
+      </div>
+      <div class="grid grid-cols-1 gap-1">
+        <label class="font-bold text-[#802a2a] text-[12px]">Pricing By</label>
+        <div class="relative flex items-center">
+          <input [(ngModel)]="quotation.pricingDoneBy" name="pricingDoneBy" class="w-full border p-2 outline-none text-[12px]" />
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 absolute right-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 gap-1">
+        <label class="font-bold text-gray-700 text-[12px]">Line Of Business</label>
+        <select [(ngModel)]="quotation.lineOfBusinessId" (change)="onLOBChange($event)" name="lineOfBusinessId" class="border p-2 bg-white outline-none text-[12px]">
+          <option [value]="null" disabled>Select Business Line</option>
+          <option *ngFor="let service of companyServices" [value]="service.id">{{ service.serviceName }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="space-y-3">
+      <div class="grid grid-cols-1 gap-1">
+        <label class="font-bold text-red-700 text-[12px]">Organization</label>
+        <div class="flex items-center gap-1">
+          <div class="relative w-full flex items-center border border-red-300 bg-white">
+            <input [(ngModel)]="inquiry.organization" name="organization" (input)="onSearchInput()" placeholder="Type or..." class="w-full p-2 outline-none text-[12px] bg-transparent" />
+            <div (click)="openOrgModal()" class="p-2 cursor-pointer text-gray-400 hover:text-red-700 border-l border-red-300 bg-gray-50">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
             </div>
-            <div class="space-y-2">
-     <div class="flex items-center">
-  <label class="w-28 font-bold text-gray-600">Pricing No.</label>
-  <input
-    type="text"
-    name="pricingNo"
-    [(ngModel)]="quotation.pricingNo"
-    readonly
-    placeholder="Generating..."
-    class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-gray-100 text-gray-600 cursor-not-allowed font-semibold"
-  />
-</div>
-
-              <div class="flex items-center gap-2">
-                <label class="w-26 font-bold text-[#802a2a]">Location</label>
-
-                <input
-                  type="text"
-                  [(ngModel)]="quotation.location"
-                  name="location"
-                  class="flex-1 border p-1.5 outline-none bg-white text-[12px]"
-                  placeholder="Enter location"
-                />
-              </div>
-
-              <div class="flex items-center gap-2 mt-2">
-                <label class="w-26 font-bold text-gray-700">Sales Coor.</label>
-                <select
-                  [(ngModel)]="quotation.salesCoordinator"
-                  name="salesCoordinator"
-                  class="flex-1 border p-1.5 outline-none text-[12px]"
-                >
-                  <option value="">-- Select Sales Coordinator --</option>
-
-                  <option *ngFor="let sc of getsalescordinate" [value]="sc.id">
-                    <!-- ID as value (backend mein yahi save hoga) -->
-
-                    {{ sc.name }} 
-                  </option>
-                </select>
-              </div>
-              <div class="flex items-center gap-2 mt-2">
-              <label class="w-24 font-bold text-gray-700 text-[12px]">Team</label>
-    <select
-      #teamSelect
-      [(ngModel)]="quotation.teamId"
-      name="teamId"
-      (change)="onTeamChange(teamSelect.value)"
-      class="flex-1 border border-gray-300 p-1.5 outline-none text-[12px] h-[35px] bg-white rounded-sm cursor-pointer focus:border-blue-400"
-    >
-      <option [value]="null">-- Select Team --</option>
-      <option *ngFor="let t of teamsList" [value]="t.teamId || t.id">
-        {{ t.teamName || t.name }}
-      </option>
-    </select>
-              </div>
-              <div class="flex items-center">
-                <label class="w-40 font-bold text-gray-700"
-                  >Business Dimensions</label
-                >
-                <select
-                  name="businessDims"
-                  [(ngModel)]="quotation.businessDimensions"
-                  class="flex-1 border p-2 outline-none"
-                >
-                  <option value="Electronic">Electronic</option>
-                  <option value="Mercury">Mercury</option>
-                  <option value="Cosmetic">Cosmetic</option>
-                  <option value="Toys">Toys</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="space-y-2">
-              <div class="grid grid-cols-2 items-center">
-                <label class="font-bold text-[#802a2a]">Party Role</label>
-                <select
-                  [(ngModel)]="quotation.partyRole"
-                  name="partyRole"
-                  class="border p-1.5 outline-none"
-                >
-                  <option value="">--Select--</option>
-                  <option value="Shipper">Shipper</option>
-                  <option value="Consignee">Consignee</option>
-                  <option value="Dest.Agent">Dest.Agent</option>
-                  <option value="Origin Agent">Origin Agent</option>
-                  <option value="Customer">Customer</option>
-                  <option value="Global">Global</option>
-                </select>
-              </div>
-              <div class="grid grid-cols-2 items-center">
-                <label class="font-bold text-[#802a2a]">Pricing By</label>
-                <div class="relative flex items-center">
-                  <input
-                    [(ngModel)]="quotation.pricingDoneBy"
-                    name="pricingDoneBy"
-                    class="w-full border p-1.5 outline-none pr-6"
-                  />
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="w-3 h-3 absolute right-2 text-gray-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                  </svg>
-                </div>
-              </div>
-
-              <div class="grid grid-cols-2 items-center">
-                <label class="font-bold text-gray-700">Line Of Business</label>
-
-                <select
-                  [(ngModel)]="quotation.lineOfBusinessId"
-                  (change)="onLOBChange($event)"
-                  name="lineOfBusinessId"
-                  class="border p-1.5 bg-white outline-none"
-                >
-                  <option [value]="null" disabled>Select Business Line</option>
-
-                  <option
-                    *ngFor="let service of companyServices"
-                    [value]="service.id"
-                  >
-                    {{ service.serviceName }}
-                  </option>
-                </select>
-              </div>
-              <div class="grid grid-cols-2 items-center gap-4">
-  <label class="font-bold text-gray-700">Service Type</label>
-
-  <div class="flex items-center gap-6">
-    <!-- Direct Checkbox -->
-    <label class="flex items-center gap-2 cursor-pointer">
-      <input
-        type="checkbox"
-        [(ngModel)]="quotation.isDirect"
-        class="w-4 h-4 accent-blue-600"
-      />
-      <span class="text-gray-700 font-medium">Direct</span>
-    </label>
-
-    <!-- Indirect Checkbox -->
-    <label class="flex items-center gap-2 cursor-pointer">
-      <input
-        type="checkbox"
-        [(ngModel)]="quotation.isIndirect"
-        class="w-4 h-4 accent-blue-600"
-      />
-      <span class="text-gray-700 font-medium">Indirect</span>
-    </label>
-  </div>
-</div>
-            </div>
-            <div class="space-y-2">
-              <div class="grid grid-cols-[auto,1fr] items-center gap-4">
-  <label class="font-bold text-red-700 text-sm pr-4">Organization</label>
-
-  <div class="flex items-center gap-1 w-full">
-    <div class="relative w-full max-w-xl flex items-center border border-red-300 bg-white">
-      <input
-        [(ngModel)]="inquiry.organization"
-        name="organization"
-        (input)="onSearchInput()"
-        placeholder="Type or..."
-        class="w-full p-2 outline-none text-[12px] bg-transparent"
-      />
-      
-      <div (click)="openOrgModal()" class="p-2 cursor-pointer text-gray-400 hover:text-red-700 border-l border-red-300 bg-gray-50">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            <ul *ngIf="showDropdown && filteredOrganizations.length > 0" class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 shadow-xl max-h-48 overflow-y-auto">
+              <li *ngFor="let org of filteredOrganizations" (click)="selectOrganization(org)" class="p-3 border-b hover:bg-blue-50 cursor-pointer text-[12px] font-bold text-blue-700">{{ org.orgName }}</li>
+            </ul>
+          </div>
+          <button (click)="neworg()" class="bg-[#1e663a] text-white h-[35px] px-3 font-bold hover:bg-black uppercase text-[10px]">NEW</button>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 gap-1">
+        <label class="font-bold text-[#802a2a] text-[12px]">Quoted By</label>
+        <div class="relative flex items-center">
+          <input [(ngModel)]="quotation.qtnDoneBy" name="qtnDoneBy" class="w-full border p-2 outline-none text-[12px]" />
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 absolute right-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 gap-1">
+        <label class="font-bold text-gray-700 text-[12px]">Cargo Status</label>
+        <div class="flex gap-1 items-center">
+          <input type="date" [(ngModel)]="quotation.cargoStatusDate" name="cargoStatusDate" [readonly]="quotation.cargoStatusType === 'Ready'" [disabled]="quotation.cargoStatusType === 'Ready'" class="border p-2 text-[11px] outline-none w-full bg-white" />
+          <select [(ngModel)]="quotation.cargoStatusType" (change)="onCargoStatusChange()" class="border p-2 text-[11px] outline-none bg-white">
+            <option value="Ready">Ready</option>
+            <option value="Ready By">Ready By</option>
+          </select>
+        </div>
+      </div>
+     <div class="grid grid-cols-1 gap-1">
+  <label class="font-bold text-gray-700 text-[12px]">Service Type</label>
+  <div class="flex items-center gap-4 p-2 border border-gray-300 rounded bg-white">
+    <label class="flex items-center gap-2 cursor-pointer group">
+      <div class="relative flex items-center">
+        <input 
+          type="checkbox" 
+          [(ngModel)]="quotation.isDirect" 
+          class="peer appearance-none w-4 h-4 border border-gray-400 rounded checked:bg-blue-600 checked:border-blue-600 cursor-pointer" 
+        />
+        <svg class="absolute w-3 h-3 text-white hidden peer-checked:block pointer-events-none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
         </svg>
       </div>
-
-      <ul *ngIf="showDropdown && filteredOrganizations.length > 0"
-          class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 shadow-xl max-h-48 overflow-y-auto">
-        <li *ngFor="let org of filteredOrganizations"
-            (click)="selectOrganization(org)"
-            class="p-3 border-b hover:bg-blue-50 cursor-pointer text-[12px] font-bold text-blue-700">
-          {{ org.orgName }}
-        </li>
-      </ul>
-    </div>
+      <span class="text-[12px] text-gray-600 font-semibold group-hover:text-blue-700 transition-colors">Direct</span>
+    </label>
     
-    <button (click)="neworg()" class="bg-[#1e663a] text-white h-[35px] px-4 font-bold hover:bg-black uppercase text-[10px] transition-all">
-      NEW
-    </button>
+    <label class="flex items-center gap-2 cursor-pointer group">
+      <div class="relative flex items-center">
+        <input 
+          type="checkbox" 
+          [(ngModel)]="quotation.isIndirect" 
+          class="peer appearance-none w-4 h-4 border border-gray-400 rounded checked:bg-blue-600 checked:border-blue-600 cursor-pointer" 
+        />
+        <svg class="absolute w-3 h-3 text-white hidden peer-checked:block pointer-events-none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+        </svg>
+      </div>
+      <span class="text-[12px] text-gray-600 font-semibold group-hover:text-blue-700 transition-colors">Indirect</span>
+    </label>
+  </div>
+</div>
+    </div>
   </div>
 </div>
 
@@ -1115,11 +1244,8 @@
       <span>All Organizations</span>
       <button (click)="isOrgModalOpen = false" class="text-gray-400 hover:text-red-500">✕</button>
     </div>
-    
     <div class="max-h-96 overflow-y-auto">
-      <div *ngFor="let org of organizationList" 
-           (click)="selectAndClose(org)"
-           class="p-4 border-b hover:bg-blue-50 cursor-pointer flex justify-between items-center">
+      <div *ngFor="let org of organizationList" (click)="selectAndClose(org)" class="p-4 border-b hover:bg-blue-50 cursor-pointer flex justify-between items-center">
         <div>
           <div class="font-bold text-blue-800 text-sm">{{ org.orgName || org.organizationName }}</div>
           <div class="text-[10px] text-gray-400 font-bold uppercase">{{ org.code }}</div>
@@ -1128,65 +1254,6 @@
     </div>
   </div>
 </div>
-              <div class="grid grid-cols-2 items-center">
-                <label class="font-bold text-[#802a2a]">Quoted By</label>
-                <div class="relative flex items-center">
-                  <input
-                    [(ngModel)]="quotation.qtnDoneBy"
-                    name="qtnDoneBy"
-                    class="w-full border p-1.5 outline-none pr-6"
-                  />
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="w-3 h-3 absolute right-2 text-gray-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                  </svg>
-                </div>
-              </div>
-
-              <div class="grid grid-cols-2 items-center">
-                <label class="font-bold text-gray-700">Cargo Status</label>
-
-                <div class="flex gap-1 items-center">
-                  <!-- Date Input -->
-                  <input
-                    #cargoDateInput
-                    type="date"
-                    [(ngModel)]="quotation.cargoStatusDate"
-                    name="cargoStatusDate"
-                    [readonly]="quotation.cargoStatusType === 'Ready'"
-                    [disabled]="quotation.cargoStatusType === 'Ready'"
-                    class="border p-1 text-[11px] outline-none w-[140px] bg-white
-  {{
-                      quotation.cargoStatusType === 'Ready'
-                        ? 'bg-gray-100 text-gray-500 cursor-default'
-                        : 'cursor-pointer border-blue-400 focus:ring-1 focus:ring-blue-300'
-                    }}"
-                  />
-
-                  <!-- Select Dropdown -->
-                  <select
-                    [(ngModel)]="quotation.cargoStatusType"
-                    (change)="onCargoStatusChange()"
-                    class="border p-1 text-[11px] outline-none flex-1 min-w-0 h-[32px] bg-white"
-                  >
-                    <option value="Ready">Ready</option>
-                    <option value="Ready By">Ready By</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
 
         <div class="border border-gray-300 bg-white shadow-sm">
           <div class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px]">

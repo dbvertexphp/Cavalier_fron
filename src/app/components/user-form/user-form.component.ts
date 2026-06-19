@@ -1312,6 +1312,7 @@ removeHod(hodId: number) {
 getHodNameById(hodId: any): string {
   const match = this.hods.find(h => h.id == hodId);
   return match ? match.name : `HOD (ID: ${hodId})`;
+  console.log('HODs List through teams:', this.hods);
 }
 
 isHodSelected(hodId: number): boolean {

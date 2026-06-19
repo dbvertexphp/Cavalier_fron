@@ -466,7 +466,7 @@
       </div>
       <select (change)="onHodSelect($event)" class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f] bg-white text-sm">
         <option value="" disabled selected>Choose HOD...</option>
-        <option *ngFor="let h of hods" [value]="h.id" [hidden]="isHodSelected(h.id)">{{ h.name }}</option>
+        <option *ngFor="let h of hods" [value]="h.id" [hidden]="isHodSelected(h.id)">{{ h.hod }}</option>
       </select>
       <div *ngIf="userForm.get('hodId')?.errors?.['zod']" class="text-red-600 text-xs mt-1">{{ userForm.get('hodId')?.errors?.['zod'] }}</div>
     </div>

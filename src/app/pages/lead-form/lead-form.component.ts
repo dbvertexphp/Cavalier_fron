@@ -180,8 +180,8 @@ export class LeadFormComponent implements OnInit {
     this.loadLeadOwners();
     this.getSalesProcesses();
     this.getLeadOwners();
-    this.getsales();
-    this.getSalesCoordinators();
+    // this.getsales();
+    // this.getSalesCoordinators();
     this.loadLeadSources();
     this.loadSalesStages();
     this.getBranches();
@@ -189,12 +189,12 @@ export class LeadFormComponent implements OnInit {
     this.initForm();
     this.loadColumnSettings();
 
-    this.http.get(`${environment.apiUrl}/Hod`).subscribe((res: any) => this.hodList = res);
+    // this.http.get(`${environment.apiUrl}/Hod`).subscribe((res: any) => this.hodList = res);
     this.http.get(`${environment.apiUrl}/Teams`).subscribe((res: any) => this.teamList = res);
     this.loadOrganizations();
     this.initSearchForm();
     this.loadLeadSuggestions();
-    this.getReportingManagers();
+    // this.getReportingManagers();
 
     // DYNAMIC AUTO-FILL: Team validation logic block trigger
    

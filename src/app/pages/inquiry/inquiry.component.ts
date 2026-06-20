@@ -638,29 +638,24 @@ private scrollToActiveFD() {
 }
 
 onTeamChange(teamId: any) {
-  if (!teamId || teamId === 'null') {
-    this.getsalescordinate = []; // Agar koi team select nahi hai toh coordinator khali
+  // Agar team null ya undefined hai
+  if (!teamId || teamId === 'null' || teamId === null || teamId === undefined) {
+    this.getsalescordinate = [];
+    this.quotation.salesCoordinator = ''; 
     return;
   }
 
   const token = localStorage.getItem('cavalier_token');
-  const headers = new HttpHeaders({
-    'Authorization': `Bearer ${token}`
-  });
-
+  const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
   const url = `${environment.apiUrl}/Teams/${teamId}/details`;
   
   this.http.get<any>(url, { headers }).subscribe({
     next: (res) => {
-      console.log("🎯 Team Details Fetched:", res);
+      // API response se coordinators list update karein
+      this.getsalescordinate = (res && res.salesCoordinators) ? res.salesCoordinators : [];
       
-      // Response ka salesCoordinators dropdown array mein save ho jayega
-      if (res && res.salesCoordinators) {
-        this.getsalescordinate = res.salesCoordinators;
-      } else {
-        this.getsalescordinate = [];
-      }
-      
+      // Agar edit mode mein hain aur coordinator pehle se set hai, toh wo rehne dein
+      // Agar nahi, toh dropdown ko reset/handle karein
       this.cdr.detectChanges();
     },
     error: (err) => {
@@ -1148,12 +1143,28 @@ console.log("Lead No set to:", this.OrganisationId);
   this.loadLeadByLeadNo(lead.leadNo);
 }
     // --- Fetch Organization List ---
-  fetchOrganizations() {
-    const url = `${environment.apiUrl}/Organization/list`;
-    this.http.get<any[]>(url).subscribe(data => {
+ fetchOrganizations() {
+  const url = `${environment.apiUrl}/Organization/list`;
+  
+  // Token fetch karein
+  const token = localStorage.getItem('cavalier_token');
+  
+  // Headers set karein
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  });
+
+  // Headers pass karein
+  this.http.get<any[]>(url, { headers }).subscribe({
+    next: (data) => {
       this.organizations = data;
-    });
-  }
+    },
+    error: (err) => {
+      console.error("Error fetching organizations:", err);
+    }
+  });
+}
 
   // --- Search Logic ---
   onSearchInput() {
@@ -1513,7 +1524,31 @@ editQuotation(q: any) {
     
     this.quotation.codeOfFinalDest = q.codeOfFinalDest;
     this.quotation.finalDestinationCode = q.codeOfFinalDest || q.CodeOfFinalDest || '';
-    
+  const tId = q.teamId || q.TeamId;
+    this.quotation.teamId = tId;
+
+    // --- Pehle Team Details fetch karein ---
+    if (tId) {
+      this.onTeamChange(tId);
+    }
+
+    // --- Coordinator Mapping (Wait for List to Populate) ---
+    setTimeout(() => {
+      const scValue = q.salesCoordinator || q.SalesCoordinator;
+      if (scValue && this.getsalescordinate.length > 0) {
+        // Name se ID dhundein
+        const found = this.getsalescordinate.find(sc => 
+          sc.name?.toString().toLowerCase() === scValue.toString().toLowerCase()
+        );
+
+        if (found) {
+          this.quotation.salesCoordinator = found.id; // Dropdown mein ID assign hogi
+        } else {
+          this.quotation.salesCoordinator = scValue; // Agar ID nahi mili toh original name rakhein
+        }
+        this.cdr.detectChanges();
+      }
+    },400 ); // 1 sec ka wait zaroori hai API response ke liye
     this.quotation.cargoStatusType = q.cargoStatus || 'Ready';
     this.quotation.isDirect = !!q.isDirect;
     this.quotation.isIndirect = !!q.isIndirect;
@@ -1552,25 +1587,25 @@ this.quotation.noOfPkgsUnit = q.noOfPkgsUnit || q.NoOfPkgsUnit || '';
     }
 
     // --- SALES COORDINATOR FIX ---
-    const scValue = q.salesCoordinator || q.SalesCoordinator;
+    // const scValue = q.salesCoordinator || q.SalesCoordinator;
 
-    if (scValue) {
-      if (this.getsalescordinate && Array.isArray(this.getsalescordinate)) {
-        const coordinatorExists = this.getsalescordinate.find(sc => 
-          sc.id.toString() === scValue.toString() || 
-          (sc.name && sc.name.toString().toLowerCase() === scValue.toString().toLowerCase())
-        );
+    // if (scValue) {
+    //   if (this.getsalescordinate && Array.isArray(this.getsalescordinate)) {
+    //     const coordinatorExists = this.getsalescordinate.find(sc => 
+    //       sc.id.toString() === scValue.toString() || 
+    //       (sc.name && sc.name.toString().toLowerCase() === scValue.toString().toLowerCase())
+    //     );
 
-        if (coordinatorExists) {
-          this.quotation.salesCoordinator = coordinatorExists.id.toString();
-        } else {
-          this.quotation.salesCoordinator = scValue.toString();
-          console.warn("Sales Coordinator ID ya Name match nahi mila:", scValue);
-        }
-      } else {
-        this.quotation.salesCoordinator = scValue.toString();
-      }
-    }
+    //     if (coordinatorExists) {
+    //       this.quotation.salesCoordinator = coordinatorExists.id.toString();
+    //     } else {
+    //       this.quotation.salesCoordinator = scValue.toString();
+    //       console.warn("Sales Coordinator ID ya Name match nahi mila:", scValue);
+    //     }
+    //   } else {
+    //     this.quotation.salesCoordinator = scValue.toString();
+    //   }
+    // }
 
     // --- ORIGIN FIX ---
     const oId = q.originId || q.OriginId;
@@ -2781,31 +2816,34 @@ organizationList: any[] = [];
 // Constructor mein CDR inject hona chahiye
 
 
+
+
 loadAllOrganizations() {
-  // Toggle logic
   if (this.showOrgDropdown) {
     this.showOrgDropdown = false;
     this.cdr.detectChanges();
     return;
   }
   
-  // 1. Token nikaalo
   const token = localStorage.getItem('cavalier_token'); 
   if (!token) {
     console.warn("Bhai login token nahi mila!");
     return;
   }
 
+  // 1. Headers object banayein
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}` // Token yahan bhejna zaroori hai
+  });
+
   const url = `${environment.apiUrl}/Organization/list`;
   
-  this.http.get<any[]>(url).subscribe({
+  // 2. HTTP Call mein { headers } pass karein
+  this.http.get<any[]>(url, { headers }).subscribe({
     next: (res) => {
       this.organizationList = res; 
       this.showOrgDropdown = true; 
-      
-      // CDR: UI ko turant refresh karne ke liye
       this.cdr.detectChanges(); 
-      
       console.log(res, "Organization list loaded");
     },
     error: (err) => {
@@ -2815,7 +2853,6 @@ loadAllOrganizations() {
     }
   });
 }
-
 filterTransportModes(event: any) {
   // Baad mein logic likh lena
 }
@@ -3315,7 +3352,7 @@ saveQuotation() {
   // --- CLEAN PAYLOAD MAPPING ---
   const payload: any = {
     ...this.quotation, 
-    
+    teamId: (this.quotation.teamId && Number(this.quotation.teamId) > 0) ? Number(this.quotation.teamId) : null,
     TransportMode: String(this.quotation.TransportMode || this.quotation.transportMode || ''),
     TransportType: String(this.quotation.TransportType || this.quotation.transportType || ''),
     inquiryNo: String(this.inquiry.inquiryNo || ''),

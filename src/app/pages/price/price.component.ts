@@ -1239,12 +1239,29 @@ onPODKeyDown(event: KeyboardEvent) {
 //   this.loadLeadByLeadNo(lead.leadNo);
 // }
     // --- Fetch Organization List ---
-  fetchOrganizations() {
-    const url = `${environment.apiUrl}/Organization/list`;
-    this.http.get<any[]>(url).subscribe(data => {
+
+
+fetchOrganizations() {
+  const url = `${environment.apiUrl}/Organization/list`;
+  
+  // 1. Token nikaalo
+  const token = localStorage.getItem('cavalier_token');
+  
+  // 2. Headers setup karo
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`
+  });
+
+  // 3. Headers pass karo (options object mein)
+  this.http.get<any[]>(url, { headers }).subscribe({
+    next: (data) => {
       this.organizations = data;
-    });
-  }
+    },
+    error: (err) => {
+      console.error("Error fetching organizations:", err);
+    }
+  });
+}
 
   // --- Search Logic ---
   onSearchInput() {
@@ -2887,36 +2904,42 @@ organizationList: any[] = [];
 
 // Constructor mein CDR inject hona chahiye
 
+// import { HttpHeaders } from '@angular/common/http';
 
 loadAllOrganizations() {
-  // Toggle logic
+  // 1. Toggle logic
   if (this.showOrgDropdown) {
     this.showOrgDropdown = false;
     this.cdr.detectChanges();
     return;
   }
   
-  // 1. Token nikaalo
+  // 2. Token nikaalo
   const token = localStorage.getItem('cavalier_token'); 
   if (!token) {
     console.warn("Bhai login token nahi mila!");
     return;
   }
 
+  // 3. Headers setup karo (Authorization header yahan add hoga)
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  });
+
   const url = `${environment.apiUrl}/Organization/list`;
   
-  this.http.get<any[]>(url).subscribe({
+  // 4. API Call mein { headers } object pass karo
+  this.http.get<any[]>(url, { headers }).subscribe({
     next: (res) => {
       this.organizationList = res; 
       this.showOrgDropdown = true; 
-      
-      // CDR: UI ko turant refresh karne ke liye
       this.cdr.detectChanges(); 
-      
       console.log(res, "Organization list loaded");
     },
     error: (err) => {
       console.error("Org load error:", err);
+      // Agar 401 error ab bhi aaye, toh check karo token sahi hai ya nahi
       this.showOrgDropdown = false;
       this.cdr.detectChanges();
     }

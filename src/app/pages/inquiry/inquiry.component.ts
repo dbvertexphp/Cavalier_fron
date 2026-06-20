@@ -1143,12 +1143,28 @@ console.log("Lead No set to:", this.OrganisationId);
   this.loadLeadByLeadNo(lead.leadNo);
 }
     // --- Fetch Organization List ---
-  fetchOrganizations() {
-    const url = `${environment.apiUrl}/Organization/list`;
-    this.http.get<any[]>(url).subscribe(data => {
+ fetchOrganizations() {
+  const url = `${environment.apiUrl}/Organization/list`;
+  
+  // Token fetch karein
+  const token = localStorage.getItem('cavalier_token');
+  
+  // Headers set karein
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  });
+
+  // Headers pass karein
+  this.http.get<any[]>(url, { headers }).subscribe({
+    next: (data) => {
       this.organizations = data;
-    });
-  }
+    },
+    error: (err) => {
+      console.error("Error fetching organizations:", err);
+    }
+  });
+}
 
   // --- Search Logic ---
   onSearchInput() {
@@ -2800,31 +2816,34 @@ organizationList: any[] = [];
 // Constructor mein CDR inject hona chahiye
 
 
+
+
 loadAllOrganizations() {
-  // Toggle logic
   if (this.showOrgDropdown) {
     this.showOrgDropdown = false;
     this.cdr.detectChanges();
     return;
   }
   
-  // 1. Token nikaalo
   const token = localStorage.getItem('cavalier_token'); 
   if (!token) {
     console.warn("Bhai login token nahi mila!");
     return;
   }
 
+  // 1. Headers object banayein
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}` // Token yahan bhejna zaroori hai
+  });
+
   const url = `${environment.apiUrl}/Organization/list`;
   
-  this.http.get<any[]>(url).subscribe({
+  // 2. HTTP Call mein { headers } pass karein
+  this.http.get<any[]>(url, { headers }).subscribe({
     next: (res) => {
       this.organizationList = res; 
       this.showOrgDropdown = true; 
-      
-      // CDR: UI ko turant refresh karne ke liye
       this.cdr.detectChanges(); 
-      
       console.log(res, "Organization list loaded");
     },
     error: (err) => {
@@ -2834,7 +2853,6 @@ loadAllOrganizations() {
     }
   });
 }
-
 filterTransportModes(event: any) {
   // Baad mein logic likh lena
 }

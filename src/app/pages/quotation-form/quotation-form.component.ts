@@ -925,15 +925,31 @@ selectLead(lead: any) {
 get totalPages(): number {
   return Math.ceil(this.quotations.length / this.pageSize) || 1;
 }
+// import { HttpHeaders } from '@angular/common/http';
+
 fetchOrganizations() {
-    // 2. URL ko environment variable se combine karein
-   const url = `${environment.apiUrl}/Organization/list`;
-    
-    this.http.get<any[]>(url).subscribe(data => {
+  const url = `${environment.apiUrl}/Organization/list`;
+  
+  // 1. Token nikaalo
+  const token = localStorage.getItem('cavalier_token');
+  
+  // 2. Headers setup karo (Bearer token ke saath)
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  });
+
+  // 3. Headers pass karo { headers: headers } ya short mein { headers }
+  this.http.get<any[]>(url, { headers }).subscribe({
+    next: (data) => {
       this.organizations = data;
-      console.log(data)
-    });
-  }
+      console.log("Organizations loaded successfully:", data);
+    },
+    error: (err) => {
+      console.error("Error fetching organizations (Check Auth):", err);
+    }
+  });
+}
 get paginatedQuotations(): any[] {
   const start = (this.currentPage - 1) * this.pageSize;
   return this.quotations.slice(start, start + this.pageSize);
@@ -1872,7 +1888,8 @@ searchFilters = {
   cargoStatus: 'Any',
   validFrom: null,
   showMode: 'all',
-  status: 'Any'
+  status: 'Any',
+  
 };
 
 // Table ka data

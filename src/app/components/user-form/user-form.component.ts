@@ -105,50 +105,49 @@ ngOnInit(): void {
   // 🔥 Puraane teamId subscribe block ko hatakar yeh naya functional block laga do bhai:
 // ngOnInit() ya jahan aapne valueChanges lagaya hai, wahan purane block ko is se replace karein:
 this.userForm.get('teamId')?.valueChanges.subscribe((selectedTeamIds: any[]) => {
+  // Agar selectedTeamIds array hai aur usme element hai
   if (selectedTeamIds && selectedTeamIds.length > 0) {
-    // Saari selected teams ke details dynamic array me parallel fetch karne ke liye map lagaya
+    
+    // Kyunki api object return kar rahi hai, hum map lagakar saari selected teams ke objects fetch karenge
     const requests = selectedTeamIds.map(teamId => 
       this.http.get<any>(`${environment.apiUrl}/Teams/${teamId}/details`)
     );
 
     forkJoin(requests).subscribe({
-      next: (responses) => {
+      next: (responses: any[]) => {
         let combinedHods: any[] = [];
         
+        console.log("=== RECEIVED TEAM DETAILS ===", responses);
+
         responses.forEach(res => {
-          if (res && res.hods && res.hods.length > 0) {
+          // Aapke API key ka exact match yahan hai -> res.hods
+          if (res && res.hods && Array.isArray(res.hods)) {
             res.hods.forEach((h: any) => {
-              // Duplicate check: taaki same HOD multiple teams me hone par list me repeat na ho
-              if (!combinedHods.some(existing => existing.id === h.id)) {
-                combinedHods.push({ id: h.id, name: h.name });
+              // Duplicate check taaki exact same ID double select na ho jaye array merge karte waqt
+              if (!combinedHods.some(existing => existing.id === Number(h.id))) {
+                combinedHods.push({
+                  id: Number(h.id),
+                  name: h.name // "Bharat Juyal", "PRATIK KUMAR" etc.
+                });
               }
             });
           }
         });
 
         this.hods = combinedHods;
+        console.log("=== PARSED HODS LIST FOR DROPDOWN ===", this.hods);
 
-        // Agar list me HODs hain aur form me pehle se kuch select nahi h, toh pehla auto-select karwa dein
-        if (this.hods.length > 0) {
-          const currentHod = this.userForm.get('hodId')?.value;
-          if (!currentHod) {
-            this.userForm.patchValue({ hodId: this.hods[0].id }, { emitEvent: false });
-          }
-        } else {
-          this.userForm.patchValue({ hodId: null }, { emitEvent: false });
-        }
+        // UI Refresh trigger
         this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error("Multi-team logic parsing failed:", err);
+        console.error("❌ Details loading engine failed:", err);
         this.hods = [];
-        this.userForm.patchValue({ hodId: null }, { emitEvent: false });
         this.cdr.detectChanges();
       }
     });
   } else {
     this.hods = [];
-    this.userForm.patchValue({ hodId: null }, { emitEvent: false });
     this.cdr.detectChanges();
   }
 });
@@ -1309,10 +1308,11 @@ removeHod(hodId: number) {
   this.userForm.get('hodId')?.setValue(currentHods);
 }
 // ff
+// user-form.component.ts ke andar is function ko replace karein:
 getHodNameById(hodId: any): string {
   const match = this.hods.find(h => h.id == hodId);
-  return match ? match.name : `HOD (ID: ${hodId})`;
-  console.log('HODs List through teams:', this.hods);
+  // Pehle check karein agar name hai, nahi toh property fallback check karein
+  return match ? (match.name || match.hod) : `HOD (ID: ${hodId})`;
 }
 
 isHodSelected(hodId: number): boolean {

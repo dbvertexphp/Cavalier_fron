@@ -1375,6 +1375,19 @@
                 {{ sc.name }}
               </option>
             </select>
+            <label class="text-gray-700 font-bold block mb-1 uppercase"
+              >.</label
+            >
+            <select
+              [(ngModel)]="quotation.salesCoordinator"
+              name="salesCoordinator"
+              class="w-full border p-1.5 outline-none text-[12px]"
+            >
+              <option value="">-- Select Sales Coordinator --</option>
+              <option *ngFor="let sc of getsalescordinate" [ngValue]="sc.id">
+                {{ sc.name }}
+              </option>
+            </select>
           </div>
         </div>
       </div>

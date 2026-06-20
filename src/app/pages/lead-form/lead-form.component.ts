@@ -130,6 +130,7 @@ export class LeadFormComponent implements OnInit {
   branchSearchText: string = '';
   showRowModal = false;
   salesCoordinator: any[] = [];
+  OnlyleadOwner:any[]=[];
   availableColumns: string[] = [];
   selectedColumns: string[] = [];
   sortOrders: any = {};
@@ -179,9 +180,9 @@ export class LeadFormComponent implements OnInit {
     this.loadDropdownData();
     this.loadLeadOwners();
     this.getSalesProcesses();
-    this.getLeadOwners();
-    // this.getsales();
-    // this.getSalesCoordinators();
+    // this.getLeadOwners();
+    this.getsales();
+    this.getSalesCoordinators();
     this.loadLeadSources();
     this.loadSalesStages();
     this.getBranches();
@@ -264,7 +265,7 @@ onTeamChange(event: any) {
             const patchObj: any = {};
             if (res.salesCoordinators && res.salesCoordinators.length > 0) {
               patchObj.salesCoordinator = String(res.salesCoordinators[0].id);
-              patchObj.leadOwner = String(res.salesCoordinators[0].id || 'BHARAT JUYAL'); 
+              
             }
             if (res.hods && res.hods.length > 0) {
               patchObj.hod = String(res.hods[0].id);
@@ -1290,6 +1291,6 @@ onTeamChange(event: any) {
   }
 
   getsales(): void {
-    this.userServices.getHodList().subscribe({ next: (data: any[]) => this.salesCoordinator = data });
+    this.userServices.getHodList().subscribe({ next: (data: any[]) => this.OnlyleadOwner = data });
   }
 }

@@ -412,8 +412,8 @@
           <div class="flex flex-col gap-1">
             <label class="text-red-700 font-bold">Lead Owner <span class="text-red-500">*</span></label>
             <select formControlName="leadOwner" class="border p-2 w-full" [ngClass]="{'border-red-500': leadForm.get('leadOwner')?.invalid && leadForm.get('leadOwner')?.touched}">
-              <option value="" disabled selected>Select Owner</option>
-              <option *ngFor="let owner of salesCoordinator" [value]="owner.id">{{ owner.name }}</option>
+              <option value="" disabled selected>Select Ownerhh</option>
+              <option *ngFor="let owner of OnlyleadOwner" [value]="owner.id">{{ owner.name }}</option>
             </select>
             <!-- Under-field Custom Required Alerts -->
             <div *ngIf="leadForm.get('leadOwner')?.invalid && leadForm.get('leadOwner')?.touched" class="text-red-600 text-[11px] font-semibold mt-0.5">

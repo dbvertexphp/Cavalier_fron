@@ -1308,7 +1308,7 @@ removeHod(hodId: number) {
   currentHods = currentHods.filter(id => id !== hodId);
   this.userForm.get('hodId')?.setValue(currentHods);
 }
-
+// ff
 getHodNameById(hodId: any): string {
   const match = this.hods.find(h => h.id == hodId);
   return match ? match.name : `HOD (ID: ${hodId})`;

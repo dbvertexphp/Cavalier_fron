@@ -4091,7 +4091,7 @@ selectInquiry(inq: any) {
       this.showCountryDropdown = false;
       this.showPortOfDischargeDropdown = false;
       this.showOriginDropdown = false;
-
+// ff
       this.cdr.detectChanges(); 
       if (this.quotation.lineOfBusinessId) this.onLOBChange({ target: { value: this.quotation.lineOfBusinessId } });
 

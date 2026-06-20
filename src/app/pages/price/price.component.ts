@@ -3593,7 +3593,8 @@ saveQuotation() {
   const payload: any = {
     ...this.quotation, 
     invoiceList: this.quotation.invoiceList || '', 
-    
+    // saveQuotation() ke payload object mein ye change karein:
+    teamId: (this.quotation.teamId && Number(this.quotation.teamId) > 0) ? Number(this.quotation.teamId) : null,
     // Port Code Mapping
     CodeOfPOL: this.quotation.portOfLoadingCode || '',
     CodeOfPOD: this.quotation.portOfDestinationCode || '',
@@ -3940,41 +3941,42 @@ selectInquiry(inq: any) {
       this.quotation.branchName = data.branchName || '';
       this.quotation.location = data.location || '';
       this.quotation.partyRole = data.partyRole || '';
+// --- SINGLE SOURCE OF TRUTH FOR TEAM & COORDINATOR ---
+this.quotation.teamId = null;
+this.getsalescordinate = [];
 
-      // 🔥 2. AUTOMATIC TEAM SYNC & DYNAMIC USER RELOAD
-      if (data.team && this.teamsList && this.teamsList.length > 0) {
-        const incomingTeamStr = String(data.team).trim().toLowerCase();
-        
-        // Find match inside preloaded list
-        const matchedTeamObj = this.teamsList.find(t => {
-          const nameToCheck = String(t.teamName || t.name || '').trim().toLowerCase();
-          return nameToCheck === incomingTeamStr;
-        });
+// 1. Team ID Resolve karein
+let targetTeamId = data.teamId || data.TeamId || null;
 
-        if (matchedTeamObj) {
-          const computedTeamId = matchedTeamObj.teamId || matchedTeamObj.id;
-          this.quotation.teamId = computedTeamId; // Bind numeric index to template view
-          console.log("🎯 Auto-Selected Team ID matched from Inquiry:", computedTeamId);
-          
-          // Trigger data loading sequence for matching coordinators array list
-          this.onTeamChange(computedTeamId);
-          
-          // Small delay setup to allow options rendering phase
-          setTimeout(() => {
-            if (data.salesCoordinator) {
-              this.quotation.salesCoordinator = data.salesCoordinator;
-              this.cdr.detectChanges();
-            }
-          }, 350);
-        } else {
-          console.warn(`⚠️ Team list didn't contain value matching response: ${data.team}`);
-          this.quotation.teamId = null;
-          this.getsalescordinate = [];
-        }
-      } else {
-        this.quotation.teamId = null;
-        this.getsalescordinate = [];
-      }
+// Agar ID nahi mili toh Name se dhundein
+if (!targetTeamId && data.team && Array.isArray(this.teamsList)) {
+  const teamName = String(data.team).trim().toLowerCase();
+  const match = this.teamsList.find(t => 
+    String(t.teamName || t.name || '').trim().toLowerCase() === teamName
+  );
+  if (match) targetTeamId = match.teamId || match.id;
+}
+
+// 2. Data Bind karein
+if (targetTeamId) {
+  this.quotation.teamId = targetTeamId.toString(); // Dropdown ke liye string convert
+  console.log("🎯 Setting Team ID:", this.quotation.teamId);
+
+  // 3. API se Coordinator List mangwayein
+  this.onTeamChange(this.quotation.teamId);
+
+  // 4. Coordinator Select karein (List aane ka wait)
+  setTimeout(() => {
+    if (data.salesCoordinator) {
+      const scVal = data.salesCoordinator.toString().toLowerCase();
+      const found = this.getsalescordinate.find(sc => 
+        sc.id.toString() === scVal || (sc.name && sc.name.toString().toLowerCase() === scVal)
+      );
+      this.quotation.salesCoordinator = found ? found.id : data.salesCoordinator;
+      this.cdr.detectChanges();
+    }
+  }, 100  ); // 1 sec ka time buffer zaroori hai
+}
 
       // --- 3. Documents ---
       this.commodityDocuments = data.commodityDocuments || [];
@@ -4535,7 +4537,25 @@ editPricing(pricing: any) {
       const rawVolWeight = pricing.volumeWeight || pricing.volume_weight || pricing.volumetricWeight || (this.quotation && this.quotation.volumeWeight);
       const rawCommodityId = pricing.commodityId || pricing.commodityID || pricing.commodity_id || pricing.commodity;
       const rawCommodityName = pricing.commodityName || pricing.commodity_name || pricing.commodity || '';
+// 1. Team ID map karein
+this.quotation.teamId = pricing.teamId ? pricing.teamId.toString() : null;
 
+// 2. Sales Coordinator map karein
+this.quotation.salesCoordinator = pricing.salesCoordinator || '';
+
+// 3. Team change trigger karein taaki Coordinator list load ho jaye
+if (this.quotation.teamId) {
+  this.onTeamChange(this.quotation.teamId);
+  
+  // Coordinator list load hone ka wait aur phir value set karna
+  setTimeout(() => {
+    // Agar salesCoordinator mil gaya hai, toh ensure karein ki wo UI mein select ho
+    if (pricing.salesCoordinator) {
+      this.quotation.salesCoordinator = pricing.salesCoordinator.toString();
+      this.cdr.detectChanges();
+    }
+  }, 800);
+}
       if (!this.quotation) this.quotation = {};
       this.quotation = { ...this.quotation, ...pricing };
 

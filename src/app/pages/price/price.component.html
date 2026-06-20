@@ -1116,19 +1116,20 @@ Selection Modal Popup
         <input type="text" [(ngModel)]="quotation.location" name="location" class="border p-2 outline-none bg-white text-[12px]" placeholder="Enter location" />
       </div>
       <div class="grid grid-cols-1 gap-1">
-        <label class="font-bold text-gray-700 text-[12px]">Sales Coor.</label>
-        <select [(ngModel)]="quotation.salesCoordinator" name="salesCoordinator" class="border p-2 outline-none text-[12px]">
-          <option value="">-- Select Sales Coordinator --</option>
-          <option *ngFor="let sc of getsalescordinate" [value]="sc.id">{{ sc.name }}</option>
-        </select>
-      </div>
-      <div class="grid grid-cols-1 gap-1">
         <label class="font-bold text-gray-700 text-[12px]">Team</label>
         <select #teamSelect [(ngModel)]="quotation.teamId" name="teamId" (change)="onTeamChange(teamSelect.value)" class="border border-gray-300 p-2 outline-none text-[12px] bg-white rounded-sm cursor-pointer">
           <option [value]="null">-- Select Team --</option>
           <option *ngFor="let t of teamsList" [value]="t.teamId || t.id">{{ t.teamName || t.name }}</option>
         </select>
       </div>
+      <div class="grid grid-cols-1 gap-1">
+        <label class="font-bold text-gray-700 text-[12px]">Sales Coor.</label>
+        <select [(ngModel)]="quotation.salesCoordinator" name="salesCoordinator" class="border p-2 outline-none text-[12px]">
+          <option value="">-- Select Sales Coordinator --</option>
+          <option *ngFor="let sc of getsalescordinate" [value]="sc.id">{{ sc.name }}</option>
+        </select>
+      </div>
+      
     </div>
 
     <div class="space-y-3">

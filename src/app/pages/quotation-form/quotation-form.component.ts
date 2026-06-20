@@ -293,6 +293,7 @@ if (!this.quotation.chargeableWeightUnit) {
     this.loadPortsFromApi();
     this.loadPortOfLoadings();
     this.fetchOrigins();
+    this.loadTeams();
     this.initializeAllUnits();
     this.getPackageUnits();
     this.checkHazardStatus()
@@ -1101,6 +1102,7 @@ saveQuotation() {
     country: this.quotation.country || "",
     finalDestinationCode: this.quotation.finalDestinationCode || "",
     podOrigin: this.quotation.podOrigin || "",
+teamId: this.quotation.teamId ? Number(this.quotation.teamId) : null,
 
     pricingId: this.quotation.pricingId ? Number(this.quotation.pricingId) : null,
     organisationId: this.quotation.organisationId ? Number(this.quotation.organisationId) : null,
@@ -1156,7 +1158,8 @@ documents: this.documents.map(d => ({ fileName: d.name, filePath: d.documentPath
         fsc: m.fsc,
         airline: m.airline,
         cutoff: m.cutoff,
-        schedule: m.schedule,
+      // 🔥 FIX: Date agar valid hai toh bhejein, warna null bhejein
+    schedule: (m.schedule && m.schedule !== '0001-01-01' && m.schedule !== '') ? new Date(m.schedule).toISOString() : null,
         currency: m.currency,
         rate: Number(m.rate) || 0,
         exchangeRate: Number(m.exchangeRate) || 1,
@@ -1274,6 +1277,46 @@ documents: this.documents.map(d => ({ fileName: d.name, filePath: d.documentPath
     }
   });
 }
+onTeamChange(teamId: any) {
+  if (!teamId || teamId === 'null' || teamId === null) {
+    this.getsalescordinate = []; // Options clear if no team selected
+    return;
+  }
+
+  const token = localStorage.getItem('cavalier_token');
+  const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+  const url = `${environment.apiUrl}/Teams/${teamId}/details`;
+
+  this.http.get<any>(url, { headers }).subscribe({
+    next: (res) => {
+      console.log("🎯 Team Details Fetched for Pricing Framework:", res);
+      if (res && res.salesCoordinators) {
+        this.getsalescordinate = res.salesCoordinators;
+      } else {
+        this.getsalescordinate = [];
+      }
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error("Error fetching dynamic team details:", err);
+      this.getsalescordinate = [];
+    }
+  });
+}
+loadTeams() {
+  const token = localStorage.getItem('cavalier_token');
+  const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+  
+  // Apne API ka sahi endpoint yahan daalein
+  this.http.get<any[]>(`${environment.apiUrl}/Teams`, { headers }).subscribe({
+    next: (data) => {
+      this.teamsList = data; // Data yahan assign ho raha hai
+      console.log("Teams Loaded:", this.teamsList);
+      this.cdr.detectChanges();
+    },
+    error: (err) => console.error("Error loading teams:", err)
+  });
+}
 // Naya function: Pehle API call karega fir autofill
 loadQuotationForEdit(id: number) {
   const token = localStorage.getItem('cavalier_token');
@@ -1337,7 +1380,25 @@ editQuotation(q: any) {
     portOfDischargeId: (q.portOfDischargeId !== null && q.portOfDischargeId !== undefined && q.portOfDischargeId !== '' && !isNaN(Number(q.portOfDischargeId))) ? Number(q.portOfDischargeId) : null
   };
 console.log("🔍 pkgUnit:", this.quotation.packageUnit);
+// --- POL aur POD ka Name auto-fill logic ---
 
+// POL Setup
+if (this.quotation.portOfLoadingId) {
+  const pol = this.portOfLoadingList?.find(p => p.id === this.quotation.portOfLoadingId);
+  if (pol) {
+    this.quotation.portOfLoadingName = pol.portName || pol.name;
+    this.quotation.portOfLoadingCode = pol.portCode;
+  }
+}
+
+// POD Setup
+if (this.quotation.portOfDischargeId) {
+  const pod = this.portOfDischargeList?.find(p => p.id === this.quotation.portOfDischargeId);
+  if (pod) {
+    this.quotation.podSearchTerm = pod.portName || pod.name; // Jo aapne input mein use kiya hai
+    this.quotation.portOfDischargeCode = pod.portCode;
+  }
+}
   // 3. Connecting Ports Mapping (Auto-populate for UI)
  // 3. Connecting Ports Mapping (Auto-populate for UI)
 console.log("🔍 Debugging Connecting Ports Input:", q.connectingPortIds);
@@ -1424,7 +1485,21 @@ if (q.connectingPortIds) {
   if (q.cargoStatus === 'Ready' || q.cargoStatus === 'Ready By') {
      this.quotation.cargoReadyDate = q.validFrom ? q.validFrom.split('T')[0] : null;
   }
-
+  this.quotation.teamId = q.teamId ? q.teamId.toString() : null;
+this.quotation.teamId = q.teamId ? Number(q.teamId) : null; 
+console.log("🔍 Team ID for Edit:", this.quotation.teamId);
+// 🔥 YE LINE ZAROORI HAI:
+if (this.quotation.teamId) {
+    this.onTeamChange(this.quotation.teamId);
+    
+    // Coordinator ki value set karne ke liye thoda wait karein
+    setTimeout(() => {
+        if (q.salesCoordinator) {
+            this.quotation.salesCoordinator = Number(q.salesCoordinator);
+            this.cdr.detectChanges();
+        }
+    }, 500);
+}
   // 8. Tables Data
   this.revenueRows = q.revenueData ? (typeof q.revenueData === 'string' ? JSON.parse(q.revenueData) : q.revenueData) : [];
   this.costRows = q.costData ? (typeof q.costData === 'string' ? JSON.parse(q.costData) : q.costData) : [];
@@ -2369,7 +2444,7 @@ onPageSizeChange() {
     
     this.cdr.detectChanges(); // View context changes data execution layer engine updates matrix array cycle block frame reload lock
   }
-
+teamsList: any[] = [];
 showQuotePicker: boolean = false;
 setQuoteQuickDate(type: string) {
   const today = new Date();
@@ -2849,6 +2924,17 @@ selectPricing(prc: any) {
       this.quotation.cargoStatusType=p.cargoStatus || '';
           if (p.cargoStatusDate) this.quotation.cargoReadyDate = p.cargoStatusDate.split('T')[0];
       this.quotation.salesCoordinator = Number(p.SalesCoordinatorId || p.salesCoordinator || 0);
+      this.quotation.teamId = p.teamId ? Number(p.teamId) : null;
+      console.log("🔍 Mapped TeamID:", this.quotation.teamId, "from API:", p.teamId)  ;
+console.log("🔍 Final TeamID for Binding:", this.quotation.teamId);
+
+// Force update UI
+this.cdr.detectChanges(); 
+
+if (this.quotation.teamId) {
+    this.onTeamChange(this.quotation.teamId);
+}
+
       
       // --- Pricing By (Fixed) ---
       setTimeout(() => {
@@ -3796,4 +3882,115 @@ getChargeNames() {
       }
     });
 }
+// Variables declare karein
+showPolDropdown = false;
+filteredPolList: any[] = [];
+highlightedPolIndex = -1;
+
+// Code Search
+onPolCodeInput() {
+  const code = (this.quotation.portOfLoadingCode || '').toLowerCase();
+  this.filteredPolList = this.portOfLoadingList.filter(p => 
+    p.portCode.toLowerCase().includes(code)
+  );
+  this.showPolDropdown = this.filteredPolList.length > 0;
+  this.highlightedPolIndex = -1;
 }
+
+// Name Search
+onPolNameSearch() {
+  const name = (this.quotation.portOfLoadingName || '').toLowerCase();
+  this.filteredPolList = this.portOfLoadingList.filter(p => 
+    (p.portName || p.name).toLowerCase().includes(name)
+  );
+  this.showPolDropdown = this.filteredPolList.length > 0;
+  this.highlightedPolIndex = -1;
+}
+
+// Select Item
+selectPol(port: any) {
+  this.quotation.portOfLoadingId = port.id;
+  this.quotation.portOfLoadingCode = port.portCode;
+  this.quotation.portOfLoadingName = port.portName || port.name;
+  this.showPolDropdown = false;
+  this.highlightedPolIndex = -1;
+}
+
+// Keyboard Navigation
+onPolKeyDown(event: KeyboardEvent) {
+  if (!this.showPolDropdown || this.filteredPolList.length === 0) return;
+
+  if (event.key === 'ArrowDown') {
+    event.preventDefault();
+    this.highlightedPolIndex = (this.highlightedPolIndex + 1) % this.filteredPolList.length;
+  } else if (event.key === 'ArrowUp') {
+    event.preventDefault();
+    this.highlightedPolIndex = (this.highlightedPolIndex - 1 + this.filteredPolList.length) % this.filteredPolList.length;
+  } else if (event.key === 'Enter') {
+    event.preventDefault();
+    if (this.highlightedPolIndex > -1) {
+      this.selectPol(this.filteredPolList[this.highlightedPolIndex]);
+    } else {
+      // Agar enter dabane par koi highlight nahi hai, toh pehla item select kar le
+      this.selectPol(this.filteredPolList[0]);
+    }
+  }
+}
+
+// Blur function ka dhyan rakhein (200ms delay is necessary)
+onPolBlur() {
+  setTimeout(() => {
+    this.showPolDropdown = false;
+  }, 200);
+}
+/// Variables
+showPodDropdown = false;
+filteredPodList: any[] = [];
+highlightedPodIndex = -1;
+
+// Combined Search (Both Code and Name input triggers this)
+onPodSearch() {
+  // Check karte hain ki search kahan se ho raha hai
+  const searchTerm = (this.quotation.podSearchTerm || this.quotation.portOfDischargeCode || '').toLowerCase();
+  
+  this.filteredPodList = this.portOfDischargeList.filter(p => 
+    (p.portName || p.name).toLowerCase().includes(searchTerm) || 
+    (p.portCode || '').toLowerCase().includes(searchTerm)
+  );
+  
+  this.showPodDropdown = this.filteredPodList.length > 0;
+  this.highlightedPodIndex = -1;
+}
+
+// Select Pod (Dono fields update karega)
+selectPod(port: any) {
+  this.quotation.portOfDischargeId = port.id;
+  this.quotation.portOfDischargeCode = port.portCode; // Code Auto-fill
+  this.quotation.podSearchTerm = port.portName || port.name; // Name Auto-fill
+  this.showPodDropdown = false;
+  this.highlightedPodIndex = -1;
+}
+
+// Keyboard Navigation
+onPodKeyDown(event: KeyboardEvent) {
+  if (!this.showPodDropdown || this.filteredPodList.length === 0) return;
+
+  if (event.key === 'ArrowDown') {
+    event.preventDefault();
+    this.highlightedPodIndex = (this.highlightedPodIndex + 1) % this.filteredPodList.length;
+  } else if (event.key === 'ArrowUp') {
+    event.preventDefault();
+    this.highlightedPodIndex = (this.highlightedPodIndex - 1 + this.filteredPodList.length) % this.filteredPodList.length;
+  } else if (event.key === 'Enter') {
+    event.preventDefault();
+    if (this.highlightedPodIndex > -1) {
+      this.selectPod(this.filteredPodList[this.highlightedPodIndex]);
+    }
+  }
+}
+
+onPodBlur() {
+  setTimeout(() => {
+    this.showPodDropdown = false;
+  }, 200);
+}}

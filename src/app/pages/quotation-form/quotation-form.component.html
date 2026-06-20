@@ -1083,301 +1083,306 @@
 
     <div class="p-5 space-y-5">
       <div class="bg-gray-50 p-4 border border-gray-200 rounded">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-x-6 gap-y-4">
-          <!-- Column 1: Pricing Reference & Organization -->
-          <div class="md:col-span-1">
-            <div class="grid grid-cols-2 gap-2 mb-3">
-              <!-- Pricing Reference Selection -->
-              <div>
-  <label class="text-gray-700 font-bold block mb-1 uppercase text-[11px]">
-    Reference by Pricing
-  </label>
-  <div class="relative">
-    <input
-      type="text"
-      name="referencePricingNo"
-      [(ngModel)]="quotation.referencePricingNo"
-      (input)="onPricingSearchInput()"
-      (focus)="showPricingDropdown = true"
-      (blur)="onBlur()"
-      placeholder="Search Pricing No..."
-      class="w-full border p-2 bg-white outline-none pr-7 text-[12px]"
-      autocomplete="off"
-    />
-
-    <span
-      (click)="openPricingModal()"
-      class="absolute right-1 top-2.5 text-gray-400 cursor-pointer p-1 hover:text-blue-500 transition-all"
-      title="Open Pricing Selection Modal"
-    >
-      🔍
-    </span>
-
-    <ul
-      *ngIf="showPricingDropdown && filteredPricings.length > 0"
-      class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-48 overflow-y-auto mt-1"
-    >
-      <li
-        *ngFor="let prc of filteredPricings"
-        (mousedown)="selectPricing(prc)"
-        class="p-2 hover:bg-blue-50 cursor-pointer text-[12px] border-b border-gray-100"
-      >
-        <div class="font-bold text-blue-700">{{ prc.pricingNo }}</div>
-        <div *ngIf="prc.organisationName" class="text-gray-500 text-[10px]">
-          {{ prc.organisationName }}
-        </div>
-      </li>
-    </ul>
-  </div>
-</div>
-
-<div *ngIf="isModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-50 p-4">
-  <div class="bg-white w-full max-w-lg rounded shadow-xl flex flex-col max-h-[80vh]">
-    <div class="p-4 border-b flex justify-between items-center">
-      <h3 class="font-bold text-lg">Select Pricing</h3>
-      <button (click)="isModalOpen = false" class="text-gray-500 font-bold hover:text-red-500">Close</button>
-    </div>
-    
-    <div class="overflow-y-auto p-2">
-      <div 
-        *ngFor="let prc of filteredPricings" 
-        (click)="selectPricing(prc); isModalOpen = false"
-        class="p-3 border-b hover:bg-blue-50 cursor-pointer"
-      >
-        <div class="font-bold text-blue-700">{{ prc.pricingNo }}</div>
-        <div class="text-gray-500 text-[10px]">{{ prc.organisationName }}</div>
-      </div>
-
-      <div *ngIf="filteredPricings.length === 0" class="p-4 text-center text-gray-400">
-        No pricing records found.
-      </div>
-    </div>
-  </div>
-</div>
-
-              <div>
-                <label
-                  class="text-gray-700 font-bold block mb-1 uppercase text-[11px]"
-                  >Quotation No</label
-                >
-                <input
-                  type="text"
-                  name="quotationNo"
-                  [(ngModel)]="quotation.quotationNo"
-                  readonly
-                  class="w-full border p-2 bg-gray-100 text-gray-600 outline-none cursor-not-allowed font-semibold rounded-sm"
-                />
-              </div>
-            </div>
-
-            <label class="text-red-700 font-bold uppercase block mt-3 mb-1"
-              >Organization</label
-            >
-            <div class="flex items-center relative">
-              <input
-                name="orgSearch"
-                [(ngModel)]="quotation.organization"
-                (input)="onSearchInput()"
-                class="w-full border p-2 border-red-300 outline-none rounded-l-sm"
-                placeholder="Search Organization.."
-              />
-              <button
-                type="button"
-                (click)="navigateToNewOrg()"
-                class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 text-[11px] font-bold shadow-sm border border-green-800 rounded-r-sm uppercase"
-              >
-                NEW
-              </button>
-              <div
-                *ngIf="showDropdown && filteredOrganizations.length > 0"
-                class="absolute top-full left-0 right-0 bg-white border border-gray-200 shadow-lg z-50 max-h-40 overflow-y-auto rounded-b-sm"
-              >
-                <div
-                  *ngFor="let org of filteredOrganizations"
-                  (click)="selectOrganization(org)"
-                  class="p-2 border-b hover:bg-blue-50 cursor-pointer text-sm"
-                >
-                  <div class="font-bold text-gray-800">{{ org.orgName }}</div>
-                  <div class="text-xs text-gray-600">{{ org.address }}</div>
-                </div>
-              </div>
-            </div>
-            <textarea
-              name="organizationAddress"
-              [(ngModel)]="quotation.organizationAddress"
-              class="w-full border mt-2 text-[12px] bg-white p-2 text-gray-500 italic"
-              rows="2"
-              placeholder="Organization Address..."
-              readonly
-            ></textarea>
-          </div>
-
-          <!-- Column 2: Validity & LOB -->
-          <div>
-            <label class="text-gray-700 font-bold block mb-1 uppercase">
-              Valid From
-            </label>
-            <input
-              type="date"
-              name="validFrom"
-              [(ngModel)]="quotation.validFrom"
-              class="w-full border p-2 outline-none"
-              #validFromInput
-              (click)="validFromInput.showPicker()"
-              (focus)="validFromInput.showPicker()"
-            />
-
-            <label class="text-[#4a3f3f] font-bold mt-3 block mb-1 uppercase"
-              >Usability</label
-            >
-            <select
-              name="usability"
-              [(ngModel)]="quotation.usability"
-              class="w-full border p-2 outline-none"
-            >
-              <option value="Single">Single</option>
-              <option value="Multiple">Multiple</option>
-            </select>
-
-            <label class="text-gray-700 font-bold mt-3 block mb-1 uppercase"
-              >Lines Of Business</label
-            >
-            <select
-              name="lineOfBusiness"
-              [(ngModel)]="quotation.lineOfBusiness"
-              (ngModelChange)="onHeaderLOBChange(); updatePreview()"
-              class="w-full border p-2 outline-none"
-            >
-              <option value="" disabled selected>Select Business Line</option>
-              <option *ngFor="let s of companyServices" [value]="s.id">
-                {{ s.serviceName }}
-              </option>
-            </select>
-          </div>
-
-          <!-- Column 3: Valid Till, Version & Service Type -->
-          <div>
-            <label class="text-red-700 font-bold block mb-1 uppercase">
-              Valid Till
-            </label>
-            <input
-              type="date"
-              name="validTill"
-              [(ngModel)]="quotation.validTill"
-              class="w-full border p-2 border-red-300 outline-none"
-              #validTillInput
-              (click)="validTillInput.showPicker()"
-              (focus)="validTillInput.showPicker()"
-            />
-
-            <label class="text-gray-700 font-bold mt-3 block mb-1 uppercase"
-              >Version</label
-            >
-            <input
-              name="version"
-              [(ngModel)]="quotation.version"
-              class="w-full border p-2 outline-none"
-            />
-
-            <label class="text-gray-700 font-bold mt-3 block mb-1 uppercase"
-              >Cargo Status</label
-            >
-            <div class="flex gap-1 mb-3">
-              <select
-                name="cargoStatus"
-                [(ngModel)]="quotation.cargoStatus"
-                (change)="onCargoStatusChange2()"
-                class="border p-2 w-1/2 outline-none"
-              >
-                <option value="Ready">Ready</option>
-                <option value="Ready By">Ready By</option>
-              </select>
-              <input
-                type="date"
-                name="cargoReadyDate"
-                [(ngModel)]="quotation.cargoReadyDate"
-                #cargoReadyDateInput
-                [readonly]="quotation.cargoStatus === 'Ready'"
-                (click)="
-                  quotation.cargoStatus === 'Ready By' &&
-                    cargoReadyDateInput.showPicker()
-                "
-                (focus)="
-                  quotation.cargoStatus === 'Ready By' &&
-                    cargoReadyDateInput.showPicker()
-                "
-                class="border p-2 w-1/2 outline-none"
-              />
-            </div>
-
-            <!-- Service Type Section Added Here -->
-            <label
-              class="text-gray-700 font-bold block mb-1 uppercase text-[11px]"
-              >Service Type</label
-            >
-            <div class="flex items-center gap-6 p-2 bg-white border rounded-sm">
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  [(ngModel)]="quotation.isDirect"
-                  class="w-4 h-4 accent-blue-600"
-                />
-                <span class="text-gray-700 font-medium text-[12px]"
-                  >Direct</span
-                >
-              </label>
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  [(ngModel)]="quotation.isIndirect"
-                  class="w-4 h-4 accent-blue-600"
-                />
-                <span class="text-gray-700 font-medium text-[12px]"
-                  >Indirect</span
-                >
-              </label>
-            </div>
-          </div>
-
-          <!-- Column 4: Location & Pricing By -->
-          <div class="bg-white p-3 border border-gray-200">
-            <label class="text-gray-700 font-bold block mb-1 uppercase"
-              >Location</label
-            >
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-x-6 gap-y-4">
+    <div class="md:col-span-1">
+      <div class="grid grid-cols-2 gap-2 mb-3">
+        <div>
+          <label class="text-gray-700 font-bold block mb-1 uppercase text-[11px]">
+            Reference by Pricing
+          </label>
+          <div class="relative">
             <input
               type="text"
-              name="location"
-              [(ngModel)]="quotation.location"
-              class="w-full border p-2 mb-2 outline-none"
-              placeholder="Enter Location"
+              name="referencePricingNo"
+              [(ngModel)]="quotation.referencePricingNo"
+              (input)="onPricingSearchInput()"
+              (focus)="showPricingDropdown = true"
+              (blur)="onBlur()"
+              placeholder="Search Pricing No..."
+              class="w-full border p-2 bg-white outline-none pr-7 text-[12px]"
+              autocomplete="off"
             />
 
-            <label class="text-gray-700 font-bold block mb-1 uppercase"
-              >Pricing By</label
+            <span
+              (click)="openPricingModal()"
+              class="absolute right-1 top-2.5 text-gray-400 cursor-pointer p-1 hover:text-blue-500 transition-all"
+              title="Open Pricing Selection Modal"
             >
-            <input
-              name="pricingBy"
-              [(ngModel)]="quotation.pricingBy"
-              [ngModelOptions]="{ standalone: true }"
-              class="w-full border p-2 mb-2 outline-none"
-            />
+              🔍
+            </span>
 
-            <label class="text-gray-700 font-bold block mb-1 uppercase"
-              >Sales Coor.</label
+            <ul
+              *ngIf="showPricingDropdown && filteredPricings.length > 0"
+              class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-48 overflow-y-auto mt-1"
             >
-            <select
-              [(ngModel)]="quotation.salesCoordinator"
-              name="salesCoordinator"
-              class="w-full border p-1.5 outline-none text-[12px]"
-            >
-              <option value="">-- Select Sales Coordinator --</option>
-              <option *ngFor="let sc of getsalescordinate" [ngValue]="sc.id">
-                {{ sc.name }}
-              </option>
-            </select>
+              <li
+                *ngFor="let prc of filteredPricings"
+                (mousedown)="selectPricing(prc)"
+                class="p-2 hover:bg-blue-50 cursor-pointer text-[12px] border-b border-gray-100"
+              >
+                <div class="font-bold text-blue-700">{{ prc.pricingNo }}</div>
+                <div *ngIf="prc.organisationName" class="text-gray-500 text-[10px]">
+                  {{ prc.organisationName }}
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div *ngIf="isModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div class="bg-white w-full max-w-lg rounded shadow-xl flex flex-col max-h-[80vh]">
+            <div class="p-4 border-b flex justify-between items-center">
+              <h3 class="font-bold text-lg">Select Pricing</h3>
+              <button (click)="isModalOpen = false" class="text-gray-500 font-bold hover:text-red-500">Close</button>
+            </div>
+            
+            <div class="overflow-y-auto p-2">
+              <div 
+                *ngFor="let prc of filteredPricings" 
+                (click)="selectPricing(prc); isModalOpen = false"
+                class="p-3 border-b hover:bg-blue-50 cursor-pointer"
+              >
+                <div class="font-bold text-blue-700">{{ prc.pricingNo }}</div>
+                <div class="text-gray-500 text-[10px]">{{ prc.organisationName }}</div>
+              </div>
+
+              <div *ngIf="filteredPricings.length === 0" class="p-4 text-center text-gray-400">
+                No pricing records found.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label
+            class="text-gray-700 font-bold block mb-1 uppercase text-[11px]"
+            >Quotation No</label
+          >
+          <input
+            type="text"
+            name="quotationNo"
+            [(ngModel)]="quotation.quotationNo"
+            readonly
+            class="w-full border p-2 bg-gray-100 text-gray-600 outline-none cursor-not-allowed font-semibold rounded-sm"
+          />
+        </div>
+      </div>
+
+      <label class="text-red-700 font-bold uppercase block mt-3 mb-1"
+        >Organization</label
+      >
+      <div class="flex items-center relative">
+        <input
+          name="orgSearch"
+          [(ngModel)]="quotation.organization"
+          (input)="onSearchInput()"
+          class="w-full border p-2 border-red-300 outline-none rounded-l-sm"
+          placeholder="Search Organization.."
+        />
+        <button
+          type="button"
+          (click)="navigateToNewOrg()"
+          class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 text-[11px] font-bold shadow-sm border border-green-800 rounded-r-sm uppercase"
+        >
+          NEW
+        </button>
+        <div
+          *ngIf="showDropdown && filteredOrganizations.length > 0"
+          class="absolute top-full left-0 right-0 bg-white border border-gray-200 shadow-lg z-50 max-h-40 overflow-y-auto rounded-b-sm"
+        >
+          <div
+            *ngFor="let org of filteredOrganizations"
+            (click)="selectOrganization(org)"
+            class="p-2 border-b hover:bg-blue-50 cursor-pointer text-sm"
+          >
+            <div class="font-bold text-gray-800">{{ org.orgName }}</div>
+            <div class="text-xs text-gray-600">{{ org.address }}</div>
           </div>
         </div>
       </div>
+      <textarea
+        name="organizationAddress"
+        [(ngModel)]="quotation.organizationAddress"
+        class="w-full border mt-2 text-[12px] bg-white p-2 text-gray-500 italic"
+        rows="2"
+        placeholder="Organization Address..."
+        readonly
+      ></textarea>
+    </div>
+
+    <div>
+      <label class="text-gray-700 font-bold block mb-1 uppercase">
+        Valid From
+      </label>
+      <input
+        type="date"
+        name="validFrom"
+        [(ngModel)]="quotation.validFrom"
+        class="w-full border p-2 outline-none"
+        #validFromInput
+        (click)="validFromInput.showPicker()"
+        (focus)="validFromInput.showPicker()"
+      />
+
+      <label class="text-[#4a3f3f] font-bold mt-3 block mb-1 uppercase"
+        >Usability</label
+      >
+      <select
+        name="usability"
+        [(ngModel)]="quotation.usability"
+        class="w-full border p-2 outline-none"
+      >
+        <option value="Single">Single</option>
+        <option value="Multiple">Multiple</option>
+      </select>
+
+      <label class="text-gray-700 font-bold mt-3 block mb-1 uppercase"
+        >Lines Of Business</label
+      >
+      <select
+        name="lineOfBusiness"
+        [(ngModel)]="quotation.lineOfBusiness"
+        (ngModelChange)="onHeaderLOBChange(); updatePreview()"
+        class="w-full border p-2 outline-none"
+      >
+        <option value="" disabled selected>Select Business Line</option>
+        <option *ngFor="let s of companyServices" [value]="s.id">
+          {{ s.serviceName }}
+        </option>
+      </select>
+    </div>
+
+    <div>
+      <label class="text-red-700 font-bold block mb-1 uppercase">
+        Valid Till
+      </label>
+      <input
+        type="date"
+        name="validTill"
+        [(ngModel)]="quotation.validTill"
+        class="w-full border p-2 border-red-300 outline-none"
+        #validTillInput
+        (click)="validTillInput.showPicker()"
+        (focus)="validTillInput.showPicker()"
+      />
+
+      <label class="text-gray-700 font-bold mt-3 block mb-1 uppercase"
+        >Version</label
+      >
+      <input
+        name="version"
+        [(ngModel)]="quotation.version"
+        class="w-full border p-2 outline-none"
+      />
+
+      <label class="text-gray-700 font-bold mt-3 block mb-1 uppercase"
+        >Cargo Status</label
+      >
+      <div class="flex gap-1 mb-3">
+        <select
+          name="cargoStatus"
+          [(ngModel)]="quotation.cargoStatus"
+          (change)="onCargoStatusChange2()"
+          class="border p-2 w-1/2 outline-none"
+        >
+          <option value="Ready">Ready</option>
+          <option value="Ready By">Ready By</option>
+        </select>
+        <input
+          type="date"
+          name="cargoReadyDate"
+          [(ngModel)]="quotation.cargoReadyDate"
+          #cargoReadyDateInput
+          [readonly]="quotation.cargoStatus === 'Ready'"
+          (click)="
+            quotation.cargoStatus === 'Ready By' &&
+              cargoReadyDateInput.showPicker()
+          "
+          (focus)="
+            quotation.cargoStatus === 'Ready By' &&
+              cargoReadyDateInput.showPicker()
+          "
+          class="border p-2 w-1/2 outline-none"
+        />
+      </div>
+
+      <label
+        class="text-gray-700 font-bold block mb-1 uppercase text-[11px]"
+        >Service Type</label
+      >
+      <div class="flex items-center gap-6 p-2 bg-white border rounded-sm">
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            [(ngModel)]="quotation.isDirect"
+            class="w-4 h-4 accent-blue-600"
+          />
+          <span class="text-gray-700 font-medium text-[12px]"
+            >Direct</span
+          >
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            [(ngModel)]="quotation.isIndirect"
+            class="w-4 h-4 accent-blue-600"
+          />
+          <span class="text-gray-700 font-medium text-[12px]"
+            >Indirect</span
+          >
+        </label>
+      </div>
+    </div>
+
+    <div class="bg-white p-3 border border-gray-200">
+      <label class="text-gray-700 font-bold block mb-1 uppercase"
+        >Location</label
+      >
+      <input
+        type="text"
+        name="location"
+        [(ngModel)]="quotation.location"
+        class="w-full border p-2 mb-2 outline-none"
+        placeholder="Enter Location"
+      />
+
+      <label class="text-gray-700 font-bold block mb-1 uppercase"
+        >Pricing By</label
+      >
+      <input
+        name="pricingBy"
+        [(ngModel)]="quotation.pricingBy"
+        [ngModelOptions]="{ standalone: true }"
+        class="w-full border p-2 mb-2 outline-none"
+      />
+
+  <label class="text-gray-700 font-bold block mb-1 uppercase">Team</label>
+<select
+  [(ngModel)]="quotation.teamId"
+  name="teamId"
+  (change)="onTeamChange(quotation.teamId)" 
+  class="w-full border p-1.5 mb-2 outline-none text-[12px]"
+>
+  <option value="">-- Select Team --</option>
+  <option *ngFor="let t of teamsList" [ngValue]="t.teamId || t.id">
+    {{ t.teamName || t.name }}
+  </option>
+</select>
+
+<label class="text-gray-700 font-bold block mb-1 uppercase">Sales Coor.</label>
+<select
+  [(ngModel)]="quotation.salesCoordinator"
+  name="salesCoordinator"
+  class="w-full border p-1.5 outline-none text-[12px]"
+>
+  <option value="">-- Select Sales Coordinator --</option>
+  <option *ngFor="let sc of getsalescordinate" [ngValue]="sc.id">
+    {{ sc.name }}
+  </option>
+</select>
+    </div>
+  </div>
+</div>
 
       <!--  first phase     -->
       <div class="border border-gray-300 bg-white shadow-sm">
@@ -2269,39 +2274,53 @@
               </div>
             </div>
             <!-- POL -->
-            <div class="flex items-center">
-  <label class="w-40 ml-4 font-bold text-gray-700">POL</label>
+     <div class="flex items-center text-red-700 font-bold">
+  <label class="w-40 ml-6 font-bold text-gray-700">POL</label>
   <div class="flex flex-1 items-center gap-2">
     
-    <div
-      *ngIf="quotation.portOfLoadingId"
-      class="flex items-center gap-2"
-    >
+    <div class="relative w-20">
       <input
         [(ngModel)]="quotation.portOfLoadingCode"
+        (input)="onPolCodeInput()"
+        (keydown)="onPolKeyDown($event)"
+        (focus)="showPolDropdown = true"
+        (blur)="onPolBlur()"
         name="portOfLoadingCode"
         placeholder="Code"
-        readonly
-        class="w-20 border p-2 border-red-300 outline-none text-[12px] bg-gray-50 text-center"
+        class="w-full border p-2 border-red-300 outline-none text-[12px] text-center"
       />
-      <span class="text-gray-400">|</span>
     </div>
 
-    <select
-      name="portOfLoading"
-      [(ngModel)]="quotation.portOfLoadingId"
-      (change)="onPolChange()"
-      class="w-60 border p-2 border-red-300 outline-none"
-    >
-      <option [ngValue]="null">-- Select POL --</option>
-      <option
-        *ngFor="let port of portOfLoadingList"
-        [value]="port.id"
-      >
-        {{ port.portName || port.name }}
-      </option>
-    </select>
-    
+    <div class="relative w-60">
+      <input
+        name="portOfLoading"
+        [(ngModel)]="quotation.portOfLoadingName"
+        (input)="onPolNameSearch()"
+        (keydown)="onPolKeyDown($event)"
+        (focus)="showPolDropdown = true"
+        (blur)="onPolBlur()"
+        placeholder="Search POL..."
+        class="w-full border p-2 border-red-300 outline-none text-[12px]"
+      />
+
+      <ul
+  *ngIf="showPolDropdown"
+  class="absolute top-full left-0 z-50 w-full bg-white border border-gray-200 rounded-md shadow-xl max-h-56 overflow-y-auto text-[13px] mt-1 scrollbar-thin scrollbar-thumb-gray-200"
+>
+  <li
+    *ngFor="let port of filteredPolList; let i = index"
+    (mousedown)="selectPol(port)"
+    [class.bg-indigo-50]="i === highlightedPolIndex"
+    class="px-4 py-2.5 cursor-pointer transition-colors duration-150 flex items-center justify-between border-b border-gray-50 last:border-0 hover:bg-indigo-50 group"
+  >
+    <div class="flex flex-col">
+      <span class="font-semibold text-gray-800">{{ port.portCode }}</span>
+      <span class="text-gray-500 text-[11px]">{{ port.portName || port.name }}</span>
+    </div>
+    <span class="text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+  </li>
+</ul>
+    </div>
   </div>
 </div>
           </div>
@@ -2398,34 +2417,50 @@
             </div>
 
             <!-- POD & Final Dest -->
-            <div class="flex items-center text-red-700 font-bold">
-  <label class="w-40">POD</label>
+     <div class="flex items-center text-red-700 font-bold">
+  <label class="w-40 ml-6 font-bold text-gray-700">POD</label>
   <div class="flex flex-1 items-center gap-2">
     
-    <input
-      *ngIf="quotation.portOfDischargeId"
-      [(ngModel)]="quotation.portOfDischargeCode"
-      name="portOfDischargeCode"
-      placeholder="Code"
-      readonly
-      class="w-20 border p-2 border-red-300 outline-none text-[12px] text-center"
-    />
+    <div class="relative w-20">
+      <input
+        [(ngModel)]="quotation.portOfDischargeCode"
+        name="portOfDischargeCode"
+        (input)="onPodSearch()"
+        (keydown)="onPodKeyDown($event)"
+        (focus)="showPodDropdown = true"
+        (blur)="onPodBlur()"
+        placeholder="Code"
+        class="w-full border p-2 border-red-300 outline-none text-[12px] text-center"
+      />
+    </div>
 
-    <select
-      name="portOfDischarge"
-      [(ngModel)]="quotation.portOfDischargeId"
-      (change)="onPodChange()"
-      class="flex-1 border p-2 border-red-300 outline-none"
-    >
-      <option [ngValue]="null">-- Select POD --</option>
-      <option
-        *ngFor="let port of portOfDischargeList"
-        [value]="port.id"
+    <div class="relative flex-1">
+      <input
+        name="podSearch"
+        [(ngModel)]="quotation.podSearchTerm"
+        (input)="onPodSearch()"
+        (keydown)="onPodKeyDown($event)"
+        (focus)="showPodDropdown = true"
+        (blur)="onPodBlur()"
+        placeholder="Search POD..."
+        class="w-full border p-2 border-red-300 outline-none text-[12px]"
+      />
+
+      <ul
+        *ngIf="showPodDropdown"
+        class="absolute top-full left-0 z-50 w-full bg-white border border-gray-200 rounded-md shadow-xl max-h-56 overflow-y-auto text-[13px] mt-1"
       >
-        {{ port.portName || port.name }}
-      </option>
-    </select>
-    
+        <li
+          *ngFor="let port of filteredPodList; let i = index"
+          (mousedown)="selectPod(port)"
+          [class.bg-indigo-50]="i === highlightedPodIndex"
+          class="px-4 py-2.5 cursor-pointer transition-colors duration-150 flex flex-col border-b border-gray-50 hover:bg-indigo-50"
+        >
+          <span class="font-semibold text-gray-800">{{ port.portCode }}</span>
+          <span class="text-gray-500 text-[11px]">{{ port.portName || port.name }}</span>
+        </li>
+      </ul>
+    </div>
   </div>
 </div>
 
@@ -2525,7 +2560,7 @@
         </div>
 
         <!-- Connecting Ports Section -->
-        <div class="p-4 space-y-3">
+     <div class="p-4 space-y-3">
   <div class="flex items-center justify-between border-b border-red-200 pb-2">
     <label class="text-red-800 font-black uppercase text-[13px] italic">Connecting Ports Configuration</label>
     <button (click)="toggleConnectingPortModal()" class="bg-red-700 text-white px-3 py-1 rounded text-[11px] font-bold hover:bg-red-800 transition-all">
@@ -2538,7 +2573,7 @@
       <span class="w-6 font-bold text-red-700 text-[12px]">01</span>
       <div class="flex-1 flex gap-3 p-2 bg-gray-50 text-[12px] font-bold uppercase rounded border border-gray-100">
         <span class="text-red-700">{{ quotation.portOfLoadingCode }}</span>
-        <span class="text-gray-700">{{ quotation.portOfLoading }}</span>
+        <span class="text-gray-700">{{ quotation.portOfLoadingName }}</span>
       </div>
       <span class="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded">POL</span>
     </div>
@@ -2556,7 +2591,7 @@
       <span class="w-6 font-bold text-red-700 text-[12px]">0{{ selectedConnectingPorts.length + 2 }}</span>
       <div class="flex-1 flex gap-3 p-2 bg-gray-50 text-[12px] font-bold uppercase rounded border border-gray-100">
         <span class="text-red-700">{{ quotation.portOfDischargeCode || 'N/A' }}</span>
-        <span class="text-gray-700">{{ quotation.portOfDestination }}</span>
+        <span class="text-gray-700">{{ quotation.podSearchTerm }}</span>
       </div>
       <span class="text-[10px] font-black text-green-600 bg-green-50 px-2 py-1 rounded">POD</span>
     </div>
@@ -3012,161 +3047,156 @@
   </div>
 </div>
 
-      <div
-        *ngIf="quotation.isDirect"
-        class="border border-gray-300 shadow-sm rounded-sm mt-6 animate-in fade-in duration-300"
-      >
-        <div
-          class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px] flex justify-between items-center"
-        >
-          <span>COST</span>
-        </div>
-
-        <div class="overflow-x-auto bg-white">
-          <table class="w-full border-collapse text-[11px]">
-            <thead class="bg-gray-50 uppercase border-b border-gray-300">
-              <tr class="text-gray-600">
-                <th class="border p-2 text-left min-w-[100px]">LOB</th>
-                <th class="border p-2 text-left min-w-[150px]">Charge Name</th>
-                <th class="border p-2 text-left min-w-[100px]">Charge Type</th>
-                <th class="border p-2 text-left min-w-[80px]">Chrg. Weight</th>
-                <th class="border p-2 text-center min-w-[60px]">Cur</th>
-                <th class="border p-2 text-right min-w-[90px]">Rate</th>
-                <th class="border p-2 text-right min-w-[120px]">
-                  Exchange Rate
-                </th>
-                <th class="border p-2 text-right min-w-[100px] bg-red-50">
-                  Amount
-                </th>
-                <th class="border p-2 text-right">Remark</th>
-                <th class="border p-2 text-center w-[50px] bg-gray-100">
-                  <button
-                    type="button"
-                    (click)="addCostRow()"
-                    class="bg-green-600 text-white w-6 h-6 rounded-full hover:bg-green-700 shadow-sm flex items-center justify-center mx-auto"
-                  >
-                    +
-                  </button>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                *ngFor="let c of costRows; let i = index"
-                class="hover:bg-gray-50"
-              >
-                <td class="border p-1">
-         <tr *ngFor="let c of costRows; let i = index">
-  <td class="border p-1">
-      <select
-        [(ngModel)]="c.lob" 
-        [name]="'clob_' + i"
-        class="w-full outline-none bg-transparent p-1"
-      >
-     <option *ngFor="let s of services" [value]="s.serviceName">
-      {{ s.serviceName }}
-   </option>
-      </select>
-    </td>
-</tr>
-   </td>
-                <td class="border p-1">
-                 <select
-  [name]="'ccharge' + i"
-  [(ngModel)]="c.chargeName"
-  class="w-full outline-none p-1 bg-transparent"
+     <div
+  *ngIf="quotation.isDirect"
+  class="border border-gray-300 shadow-sm rounded-sm mt-6 animate-in fade-in duration-300"
 >
-  <option value="">-- Select Charge Name --</option>
-  
-  <option *ngFor="let item of chargesList" [value]="item.name">
-    {{ item.name }}
-  </option>
-</select> 
-                </td>
-                <td class="border p-1">
-                  <select
-                    [name]="'ctype' + i"
-                    [(ngModel)]="c.chargeType"
-                    class="w-full outline-none p-1 bg-transparent"
-                  >
-                    <option value="">--Select--</option>
-                    <option value="Prepaid">Prepaid</option>
-                    <option value="Collect">Collect</option>
-                  </select>
-                </td>
-                <td class="border p-1">
-                  {{ quotation.chargeableWeight || 0 }}
-                </td>
-                <td class="border p-1">
-                  <input
-                    [name]="'ccur' + i"
-                    [(ngModel)]="c.currency"
-                    [attr.list]="'costCurList' + i"
-                    placeholder="Select Currency"
-                    class="w-full outline-none p-1 text-center uppercase font-semibold text-red-600"
-                  />
-                  <datalist [id]="'costCurList' + i">
-                    <option
-                      *ngFor="let curr of currencies"
-                      [value]="curr.value"
-                    >
-                      {{ curr.label }}
-                    </option>
-                  </datalist>
-                </td>
-                <td class="border p-1">
-                  <input
-                    type="number"
-                    [name]="'crate' + i"
-                    [(ngModel)]="c.rate"
-                    (input)="calculateCost()"
-                    class="w-full outline-none p-1 text-right"
-                  />
-                </td>
-                <td class="border p-1">
-                  <input
-                    type="number"
-                    [name]="'cexrate' + i"
-                    [(ngModel)]="c.exchangeRate"
-                    (input)="calculateCost()"
-                    class="w-full outline-none p-1 text-right"
-                  />
-                </td>
-                <td
-                  class="border p-1 bg-red-50 font-bold text-right px-2 text-red-800"
-                >
-                  <input
-                    type="number"
-                    [name]="'camount' + i"
-                    [(ngModel)]="c.amount"
-                    readonly
-                    class="w-full outline-none p-1 bg-transparent text-right font-bold text-red-800"
-                  />
-                </td>
-                 <td class="border p-1 bg-red-50 font-bold text-right">
-                   <input
-                    type="text"
-                    [(ngModel)]="c.remark"
-                   placeholder="Add review notes"
-                  
-                    class="w-full text-right bg-transparent outline-none"
-                  />
-                </td>
-                <td class="border p-1 text-center">
-                  <button
-                    type="button"
-                    *ngIf="costRows.length > 1"
-                    (click)="removeCostRow(i)"
-                    class="text-red-400 hover:text-red-600"
-                  >
-                    x
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+  <div
+    class="bg-[#4a3f3f] text-white p-2 px-3 font-bold text-[12px] flex justify-between items-center"
+  >
+    <span>COST</span>
+  </div>
+
+  <div class="overflow-x-auto bg-white">
+    <table class="w-full border-collapse text-[11px]">
+      <thead class="bg-gray-50 uppercase border-b border-gray-300">
+        <tr class="text-gray-600">
+          <th class="border p-2 text-left min-w-[100px]">LOB</th>
+          <th class="border p-2 text-left min-w-[150px]">Charge Name</th>
+          <th class="border p-2 text-left min-w-[100px]">Charge Type</th>
+          <th class="border p-2 text-left min-w-[80px]">Chrg. Weight</th>
+          <th class="border p-2 text-center min-w-[60px]">Cur</th>
+          <th class="border p-2 text-right min-w-[90px]">Rate</th>
+          <th class="border p-2 text-right min-w-[120px]">Exchange Rate</th>
+          <th class="border p-2 text-right min-w-[100px] bg-red-50">Amount</th>
+          <th class="border p-2 text-right">Remark</th>
+          <th class="border p-2 text-center w-[50px] bg-gray-100">
+            <button
+              type="button"
+              (click)="addCostRow()"
+              class="bg-green-600 text-white w-6 h-6 rounded-full hover:bg-green-700 shadow-sm flex items-center justify-center mx-auto"
+            >
+              +
+            </button>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let c of costRows; let i = index"
+          class="hover:bg-gray-50"
+        >
+          <td class="border p-1">
+            <select
+              [(ngModel)]="c.lob"
+              [name]="'clob_' + i"
+              class="w-full outline-none bg-transparent p-1"
+            >
+              <option *ngFor="let s of services" [value]="s.serviceName">
+                {{ s.serviceName }}
+              </option>
+            </select>
+          </td>
+
+          <td class="border p-1">
+            <select
+              [name]="'ccharge' + i"
+              [(ngModel)]="c.chargeName"
+              class="w-full outline-none p-1 bg-transparent"
+            >
+              <option value="">-- Select Charge Name --</option>
+              <option *ngFor="let item of chargesList" [value]="item.name">
+                {{ item.name }}
+              </option>
+            </select>
+          </td>
+
+          <td class="border p-1">
+            <select
+              [name]="'ctype' + i"
+              [(ngModel)]="c.chargeType"
+              class="w-full outline-none p-1 bg-transparent"
+            >
+              <option value="">--Select--</option>
+              <option value="Prepaid">Prepaid</option>
+              <option value="Collect">Collect</option>
+            </select>
+          </td>
+
+          <td class="border p-1 text-center">
+            {{ quotation.chargeableWeight || 0 }}
+          </td>
+
+          <td class="border p-1">
+            <input
+              [name]="'ccur' + i"
+              [(ngModel)]="c.currency"
+              [attr.list]="'costCurList' + i"
+              placeholder="Select"
+              class="w-full outline-none p-1 text-center uppercase font-semibold text-red-600"
+            />
+            <datalist [id]="'costCurList' + i">
+              <option *ngFor="let curr of currencies" [value]="curr.value">
+                {{ curr.label }}
+              </option>
+            </datalist>
+          </td>
+
+          <td class="border p-1">
+            <input
+              type="number"
+              [name]="'crate' + i"
+              [(ngModel)]="c.rate"
+              (input)="calculateCost()"
+              class="w-full outline-none p-1 text-right"
+            />
+          </td>
+
+          <td class="border p-1">
+            <input
+              type="number"
+              [name]="'cexrate' + i"
+              [(ngModel)]="c.exchangeRate"
+              (input)="calculateCost()"
+              class="w-full outline-none p-1 text-right"
+            />
+          </td>
+
+          <td class="border p-1 bg-red-50 font-bold text-right px-2 text-red-800">
+            <input
+              type="number"
+              [name]="'camount' + i"
+              [(ngModel)]="c.amount"
+              readonly
+              class="w-full outline-none p-1 bg-transparent text-right font-bold text-red-800"
+            />
+          </td>
+
+          <td class="border p-1 bg-red-50 font-bold text-right">
+            <input
+              type="text"
+              [(ngModel)]="c.remark"
+              [name]="'cremark_' + i"
+              placeholder="Add notes"
+              class="w-full text-right bg-transparent outline-none"
+            />
+          </td>
+
+          <td class="border p-1 text-center">
+            <button
+              type="button"
+              *ngIf="costRows.length > 1"
+              (click)="removeCostRow(i)"
+              class="text-red-400 hover:text-red-600"
+            >
+              x
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 
       <div
         class="border border-gray-300 shadow-md mt-8 rounded-sm overflow-hidden"
@@ -3375,189 +3405,121 @@
       </div>
       <!-- MULTI CARRIER TABLE -->
       <!-- Multi-Carrier Section -->
-      <div
-        *ngIf="quotation.isIndirect"
-        class="mt-8 border border-gray-200 rounded-xl shadow-xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-4 duration-500 bg-white"
-      >
-        <!-- HEADER -->
-        <div
-          class="bg-[#4a3f3f] text-white px-6 py-4 flex items-center justify-between shadow-md"
-        >
-          <div class="flex items-center gap-3">
-            <div class="bg-white/10 p-2 rounded-lg">
-              <i class="fa fa-ship text-xl text-amber-400"></i>
-            </div>
-            <div>
-              <h5 class="text-lg font-bold uppercase tracking-wider">
-                Multi-Carrier Breakdown
-              </h5>
-              <p class="text-[10px] text-gray-300 uppercase italic">
-                Indirect Service Options
-              </p>
-            </div>
-          </div>
-          <div class="flex items-center gap-4">
-            <span
-              class="bg-black/20 px-3 py-1 rounded-full text-xs font-semibold border border-white/10"
-            >
-              Total: {{ multiCarrierRows.length }} Entries
-            </span>
-          </div>
-        </div>
-
-        <!-- BODY: Scrollable Table -->
-        <div class="overflow-auto bg-gray-50 custom-scrollbar max-h-[500px]">
-          <div class="inline-block min-w-full align-middle">
-            <table class="min-w-full border-separate border-spacing-0">
-              <thead>
-                <tr class="bg-gray-100 shadow-sm">
-                  <th
-                    class="sticky left-0 z-20 bg-gray-100 px-6 py-4 text-left text-xs font-bold text-[#4a3f3f] uppercase tracking-widest border-b border-gray-200 shadow-[2px_0_5px_rgba(0,0,0,0.05)]"
-                  >
-                    Freight Forwarder
-                  </th>
-                  <th
-                    class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200"
-                  >
-                    Origin
-                  </th>
-                  <th
-                    class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200"
-                  >
-                    Currency
-                  </th>
-                  <!-- <th
-                    class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200"
-                  >
-                    Airfreight
-                  </th> -->
-                  <th
-                    class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200"
-                  >
-                    FSC/ISS
-                  </th>
-                  <th
-                    class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200"
-                  >
-                    Airline
-                  </th>
-                  <th
-                    class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200"
-                  >
-                    Type
-                  </th>
-                  <th
-                    class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200"
-                  >
-                    Cut-off
-                  </th>
-                  <th
-                    class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200"
-                  >
-                    Schedule
-                  </th>
-                  <!-- <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Ex-works</th> -->
-                  <!-- <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">DO</th> -->
-                  <!-- <th class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">CC fee</th> -->
-                  <th
-                    class="px-4 py-4 text-center text-xs font-bold text-[#4a3f3f] bg-amber-50 uppercase border-b border-amber-200"
-                  >
-                    Total Cost
-                  </th>
-                  <th
-                    class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase border-b border-gray-200 min-w-[250px]"
-                  >
-                    REMARK
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-200 bg-white">
-                <tr
-                  *ngFor="let carrier of multiCarrierRows"
-                  class="hover:bg-amber-50/30 transition-colors group"
-                >
-                  <!-- Sticky Forwarder Column -->
-                  <td
-                    class="sticky left-0 z-10 bg-white group-hover:bg-amber-50 transition-colors px-6 py-4 text-sm font-bold text-[#4a3f3f] border-r border-gray-100"
-                  >
-                    {{ carrier.forwarder || "---" }}
-                  </td>
-                  <td class="px-4 py-4 text-center text-sm text-gray-600">
-                    {{ carrier.origin || "---" }}
-                  </td>
-                  <td
-                    class="px-4 py-4 text-center text-sm font-mono font-bold text-gray-500"
-                  >
-                    {{ carrier.currency || "---" }}
-                  </td>
-                  <!-- <td
-                    class="px-4 py-4 text-center text-sm font-semibold text-gray-900"
-                  >
-                    {{ carrier.airFreight | number: "1.2-2" }}
-                  </td> -->
-                  <td class="px-4 py-4 text-center text-sm text-gray-600">
-                    {{ carrier.fsc || 0 }}
-                  </td>
-                  <td
-                    class="px-4 py-4 text-center text-sm italic text-gray-600"
-                  >
-                    {{ carrier.airline || "---" }}
-                  </td>
-                  <td class="px-4 py-4 text-center">
-                    <span
-                      *ngIf="carrier.type"
-                      class="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-tight shadow-sm border"
-                      [ngClass]="
-                        carrier.type.toUpperCase() === 'DIRECT'
-                          ? 'bg-green-50 text-green-700 border-green-100'
-                          : 'bg-blue-50 text-blue-700 border-blue-100'
-                      "
-                    >
-                      {{ carrier.type }}
-                    </span>
-                  </td>
-                  <td class="px-4 py-4 text-center text-sm text-gray-600">
-                    {{ carrier.cutoff || "---" }}
-                  </td>
-                  <td class="px-4 py-4 text-center text-sm text-gray-600">
-                    {{ carrier.schedule || "---" }}
-                  </td>
-                  <!-- <td class="px-4 py-4 text-center text-sm text-gray-600">{{ carrier.exWorks | number:'1.2-2' }}</td> -->
-                  <!-- <td class="px-4 py-4 text-center text-sm text-gray-600">{{ carrier.doCharges | number:'1.2-2' }}</td> -->
-                  <!-- <td class="px-4 py-4 text-center text-sm text-gray-600">{{ carrier.ccFee | number:'1.2-2' }}</td> -->
-                  <td
-                    class="px-4 py-4 text-center text-sm font-black text-[#4a3f3f] bg-amber-50/50 italic"
-                  >
-                    {{ carrier.totalCost | number: "1.2-2" }}
-                  </td>
-                  <td class="px-6 py-4 text-sm text-gray-500 italic">
-                    {{ carrier.remark || "---" }}
-                  </td>
-                </tr>
-
-                <!-- Empty State -->
-                <tr *ngIf="multiCarrierRows.length === 0">
-                  <td colspan="14" class="px-6 py-16 text-center bg-white">
-                    <i
-                      class="fa fa-inbox text-5xl text-gray-100 mb-2 block"
-                    ></i>
-                    <span class="text-gray-400 font-medium text-sm"
-                      >No carrier options added for this pricing.</span
-                    >
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- FOOTER -->
-        <div class="bg-gray-50 px-6 py-3 border-t border-gray-200">
-          <p class="text-[10px] text-gray-400 italic">
-            Showing all available indirect route options for comparison.
-          </p>
-        </div>
+     <div
+  *ngIf="quotation.isIndirect"
+  class="mt-8 border border-gray-200 rounded-xl shadow-xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-4 duration-500 bg-white"
+>
+  <div class="bg-[#4a3f3f] text-white px-6 py-4 flex items-center justify-between shadow-md">
+    <div class="flex items-center gap-3">
+      <div class="bg-white/10 p-2 rounded-lg">
+        <i class="fa fa-ship text-xl text-amber-400"></i>
       </div>
+      <div>
+        <h5 class="text-lg font-bold uppercase tracking-wider">Multi-Carrier Breakdown</h5>
+        <p class="text-[10px] text-gray-300 uppercase italic">Indirect Service Options</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-4">
+      <span class="bg-black/20 px-3 py-1 rounded-full text-xs font-semibold border border-white/10">
+        Total: {{ multiCarrierRows.length }} Entries
+      </span>
+    </div>
+  </div>
+
+  <div class="overflow-auto bg-gray-50 custom-scrollbar max-h-[500px]">
+    <div class="inline-block min-w-full align-middle">
+      <table class="min-w-full border-separate border-spacing-0 text-[11px]">
+        <thead>
+          <tr class="bg-gray-100 shadow-sm text-center font-bold text-gray-700 uppercase whitespace-nowrap">
+            <th class="sticky left-0 z-30 bg-gray-100 px-6 py-4 text-left border-b border-gray-200 shadow-md">Freight Forwarder</th>
+            <th class="px-4 py-4 border-b border-gray-200">Origin</th>
+            <th class="px-4 py-4 border-b border-gray-200">LOB</th>
+            <th class="px-4 py-4 border-b border-gray-200">Charge Name</th>
+            <th class="px-4 py-4 border-b border-gray-200">Type</th>
+            <th class="px-4 py-4 border-b border-gray-200 bg-blue-50/50 text-blue-950">Chrg. Weight</th>
+            <th class="px-4 py-4 border-b border-gray-200">Airfreight</th>
+            <th class="px-4 py-4 border-b border-gray-200">FSC/ISS</th>
+            <th class="px-4 py-4 border-b border-gray-200">Airline</th>
+            <th class="px-4 py-4 border-b border-gray-200">Cut-off</th>
+            <th class="px-4 py-4 border-b border-gray-200">Schedule</th>
+            <th class="px-4 py-4 border-b border-gray-200">Currency</th>
+            <th class="px-4 py-4 border-b border-gray-200">Rate</th>
+            <th class="px-4 py-4 border-b border-gray-200">Ex. Rate</th>
+            <th class="px-4 py-4 bg-amber-100 text-[#4a3f3f] border-b border-amber-300 font-black">Total Cost</th>
+            <th class="px-6 py-4 text-left font-bold text-gray-600 uppercase border-b border-gray-200 min-w-[200px]">REMARK</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 bg-white">
+          <tr *ngFor="let m of multiCarrierRows; let i = index" class="hover:bg-amber-50/30 transition-colors whitespace-nowrap">
+            <td class="sticky left-0 z-20 bg-white group-hover:bg-amber-50/50 px-6 py-3 border-r shadow-sm">
+              <input [(ngModel)]="m.forwarder" name="forwarder_{{i}}" class="w-32 outline-none border-b border-transparent focus:border-[#4a3f3f] bg-transparent font-bold" placeholder="---" />
+            </td>
+            <td class="px-2 py-3 text-center">
+              <input [(ngModel)]="m.origin" name="origin_{{i}}" class="w-16 text-center outline-none border-b border-transparent focus:border-gray-300 bg-transparent" placeholder="---" />
+            </td>
+            <td class="px-2 py-3">
+              <select [(ngModel)]="m.lob" name="lob_{{i}}" class="w-24 bg-transparent outline-none cursor-pointer">
+                <option *ngFor="let service of companyServices" [value]="service.serviceName">{{ service.serviceName }}</option>
+              </select>
+            </td>
+            <td class="px-2 py-3">
+              <select [(ngModel)]="m.chargeName" name="chargeName_{{i}}" class="w-28 bg-transparent outline-none cursor-pointer italic">
+                <option *ngFor="let item of chargesList" [value]="item.name">{{ item.name }}</option>
+              </select>
+            </td>
+            <td class="px-2 py-3 text-center">
+              <select [(ngModel)]="m.chargeType" name="chargeType_{{i}}" class="bg-transparent outline-none cursor-pointer">
+                <option value="Prepaid">Prepaid</option>
+                <option value="Collect">Collect</option>
+              </select>
+            </td>
+            <td class="px-2 py-3 text-center font-bold text-blue-900 bg-blue-50/30">{{ quotation.chrgWeight || 0 }}</td>
+            <td class="px-2 py-3 text-center">
+              <input type="number" [(ngModel)]="m.airFreight" name="airFreight_{{i}}" class="w-16 text-center outline-none bg-transparent" placeholder="0" />
+            </td>
+            <td class="px-2 py-3 text-center">
+              <input [(ngModel)]="m.fsc" name="fsc_{{i}}" class="w-16 text-center outline-none bg-transparent" placeholder="0" />
+            </td>
+            <td class="px-2 py-3 text-center">
+              <input [(ngModel)]="m.airline" name="airline_{{i}}" class="w-20 text-center outline-none bg-transparent italic" placeholder="---" />
+            </td>
+            <td class="px-2 py-3 text-center">
+              <input [(ngModel)]="m.cutoff" name="cutoff_{{i}}" class="w-16 text-center outline-none bg-transparent" placeholder="---" />
+            </td>
+            <td class="px-2 py-3 text-center">
+              <input type="date" [(ngModel)]="m.schedule" name="schedule_{{i}}" class="outline-none bg-transparent text-xs" />
+            </td>
+            <td class="px-2 py-3 text-center font-mono font-bold">
+              <input [(ngModel)]="m.currency" name="currency_{{i}}" class="w-12 text-center outline-none bg-transparent" placeholder="---" />
+            </td>
+            <td class="px-2 py-3 text-center">
+              <input type="number" [(ngModel)]="m.rate" name="rate_{{i}}" class="w-16 text-center outline-none bg-transparent" placeholder="0" />
+            </td>
+            <td class="px-2 py-3 text-center">
+              <input type="number" [(ngModel)]="m.exchangeRate" name="exchangeRate_{{i}}" class="w-16 text-center outline-none bg-transparent" placeholder="1" />
+            </td>
+            <td class="px-4 py-3 text-right font-black text-[#4a3f3f] bg-amber-50/50 italic border-l border-r border-amber-200">
+              {{ m.totalCost || 0 | number: "1.2-2" }}
+            </td>
+            <td class="px-6 py-3">
+              <input [(ngModel)]="m.remark" name="remark_{{i}}" class="w-full outline-none bg-transparent italic" placeholder="Remark..." />
+            </td>
+          </tr>
+          <tr *ngIf="multiCarrierRows.length === 0">
+            <td colspan="16" class="px-6 py-16 text-center bg-white text-gray-400">
+              <i class="fa fa-inbox text-5xl text-gray-100 mb-2 block"></i>
+              No carrier options added for this pricing.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="bg-gray-50 px-6 py-3 border-t border-gray-200">
+    <p class="text-[10px] text-gray-400 italic">Showing all available indirect route options for comparison.</p>
+  </div>
+</div>
 
       <div class="p-4 bg-gray-100 border-t flex justify-end gap-3 mt-4">
         <button

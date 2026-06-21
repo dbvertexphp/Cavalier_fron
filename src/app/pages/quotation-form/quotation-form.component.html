@@ -1115,31 +1115,6 @@
               *ngIf="showPricingDropdown && filteredPricings.length > 0"
               class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-48 overflow-y-auto mt-1"
             >
-<<<<<<< HEAD
-            <select
-              [(ngModel)]="quotation.salesCoordinator"
-              name="salesCoordinator"
-              class="w-full border p-1.5 outline-none text-[12px]"
-            >
-              <option value="">-- Select Sales Coordinator --</option>
-              <option *ngFor="let sc of getsalescordinate" [ngValue]="sc.id">
-                {{ sc.name }}
-              </option>
-            </select>
-            <label class="text-gray-700 font-bold block mb-1 uppercase"
-              >.</label
-            >
-            <select
-              [(ngModel)]="quotation.salesCoordinator"
-              name="salesCoordinator"
-              class="w-full border p-1.5 outline-none text-[12px]"
-            >
-              <option value="">-- Select Sales Coordinator --</option>
-              <option *ngFor="let sc of getsalescordinate" [ngValue]="sc.id">
-                {{ sc.name }}
-              </option>
-            </select>
-=======
               <li
                 *ngFor="let prc of filteredPricings"
                 (mousedown)="selectPricing(prc)"
@@ -1222,7 +1197,6 @@
           >
             <div class="font-bold text-gray-800">{{ org.orgName }}</div>
             <div class="text-xs text-gray-600">{{ org.address }}</div>
->>>>>>> 1063276291ddcd969dbdcb3b80ec18547aab9950
           </div>
         </div>
       </div>

@@ -20,13 +20,14 @@
             <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[2px] text-gray-400">Sales Coordinator</th>
             <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[2px] text-gray-400">HOD</th>
             <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[2px] text-gray-400">Reporting Manager</th>
+            <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[2px] text-gray-400">Members</th>
             <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[2px] text-gray-400 text-center">Actions</th>
           </tr>
         </thead>
         
         <tbody class="divide-y divide-gray-50" *ngIf="CheckPermissionService.hasPermission(PermissionID,'View')">
           <tr *ngIf="teams.length === 0">
-            <td colspan="6" class="px-8 py-10 text-center text-gray-400 font-bold uppercase text-[10px] tracking-widest">
+            <td colspan="7" class="px-8 py-10 text-center text-gray-400 font-bold uppercase text-[10px] tracking-widest">
               No Teams found.
             </td>
           </tr>
@@ -60,6 +61,17 @@
               </span>
             </td>
 
+            <td class="px-6 py-6 text-[13px]">
+              <button (click)="viewMembersList(t)" class="flex items-center gap-2 group/btn focus:outline-none" title="Click to view all member names">
+                <span class="bg-emerald-100 text-emerald-800 text-[11px] font-extrabold px-2.5 py-1 rounded-full whitespace-nowrap group-hover/btn:bg-emerald-200 transition-colors shadow-sm active:scale-95">
+                  {{ t.membersCount || 0 }} Members 👁️
+                </span>
+                <span class="text-gray-400 group-hover/btn:text-gray-600 font-medium text-xs max-w-[130px] truncate hidden xl:inline-block transition-colors">
+                  {{ t.membersDisplay }}
+                </span>
+              </button>
+            </td>
+
             <td class="px-6 py-6 text-center">
               <div class="flex items-center justify-center gap-6">
                 
@@ -84,6 +96,42 @@
           </tr>
         </tbody>
       </table>
+    </div>
+  </div>
+
+  <div *ngIf="isMembersModalOpen" class="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div class="bg-white w-full max-w-sm rounded-[24px] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 border border-gray-100">
+      
+      <div class="px-6 py-5 bg-emerald-50/60 border-b border-emerald-100 flex justify-between items-center">
+        <div class="flex flex-col">
+          <span class="text-[10px] font-black text-emerald-700 tracking-widest uppercase">Team Members List</span>
+          <h3 class="text-base font-black text-gray-800 tracking-tight uppercase mt-0.5">{{ selectedTeamForView?.teamName }}</h3>
+        </div>
+        <button (click)="closeMembersModal()" class="text-gray-400 hover:text-red-500 transition-colors font-bold text-sm">✕</button>
+      </div>
+
+      <div class="p-6 max-h-[50vh] overflow-y-auto">
+        <div *ngIf="parsedMembersList.length === 0" class="text-center py-6 text-gray-400 font-bold text-xs uppercase tracking-wider">
+          No active members assigned.
+        </div>
+        
+        <ul *ngIf="parsedMembersList.length > 0" class="divide-y divide-gray-100">
+          <li *ngFor="let member of parsedMembersList; let idx = index" class="py-3 flex items-center gap-3">
+            <span class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-black text-gray-400">
+              {{ idx + 1 }}
+            </span>
+            <span class="text-sm font-bold text-gray-700 tracking-wide uppercase">
+              {{ member }}
+            </span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end">
+        <button (click)="closeMembersModal()" class="px-5 py-2 bg-gray-200 text-gray-700 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-gray-300 transition-colors">
+          Close
+        </button>
+      </div>
     </div>
   </div>
 

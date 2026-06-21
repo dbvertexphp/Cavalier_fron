@@ -23,13 +23,18 @@ export class TeamsComponent implements OnInit {
   teams: any[] = [];
   hodUserList: any[] = []; // Contains list of users from backend { id, name/userName }
 
+  // 🔥 View Members State Variables
+  isMembersModalOpen = false;
+  selectedTeamForView: any = null;
+  parsedMembersList: string[] = [];
+
   dropdownStatus = {
     salesCoordinator: false,
     hod: false,
     reportingManager: false
   };
 
-  // Track selected IDs as string arrays (E.g. ['1', '2'])
+  // Track selected IDs as string arrays (E.G. ['1', '2'])
   newTeam = { 
     teamName: '',
     salesCoordinator: [] as string[], 
@@ -50,7 +55,7 @@ export class TeamsComponent implements OnInit {
     this.loadHodUsers();
   }
 
-  // 🔥 HTML Template Strict Checking Error Solution Helper
+  // Helper to resolve strict template evaluation error types
   String(value: any): string {
     return String(value);
   }
@@ -93,6 +98,26 @@ export class TeamsComponent implements OnInit {
       },
       error: (err) => console.error('Error loading HOD list', err)
     });
+  }
+
+  // 🔥 Handler to open specific Team Members View Popup
+  viewMembersList(team: any) {
+    this.selectedTeamForView = team;
+    if (team.membersDisplay && team.membersDisplay !== 'No Members') {
+      // Comma separated string ko list array me array mapping structure me split kiya
+      this.parsedMembersList = team.membersDisplay.split(',').map((name: string) => name.trim());
+    } else {
+      this.parsedMembersList = [];
+    }
+    this.isMembersModalOpen = true;
+    this.cdr.detectChanges();
+  }
+
+  closeMembersModal() {
+    this.isMembersModalOpen = false;
+    this.selectedTeamForView = null;
+    this.parsedMembersList = [];
+    this.cdr.detectChanges();
   }
 
   // Helper to map IDs array to human-readable Name tags inside the modal input

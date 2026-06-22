@@ -18,7 +18,7 @@ export class TeamsComponent implements OnInit {
   PermissionID: any;
   private apiUrl = environment.apiUrl + '/Teams';
   
-  private hodApiUrl = 'http://localhost:5000/api/User/hod-list';
+  private hodApiUrl = 'https://admin.cavalierlogistic.graphicsvolume.com/api/User/hod-list';
 
   teams: any[] = [];
   hodUserList: any[] = []; // Contains list of users from backend { id, name/userName }

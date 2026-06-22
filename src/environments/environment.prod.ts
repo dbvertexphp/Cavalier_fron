@@ -11,5 +11,5 @@ export const environment = {
   appId: "1:169541817136:web:123fc1715e208cae9beef5",
   measurementId: "G-SHEX4NESHX"
   },
-   vapidKey: 'BGyIFdotG6ouhNTsc_Z9XwrVftAJ1PK5sVOx3nvmT-0ZjcOu00AmLIsqGHWUplFI3PI7PBIsNUZtEU2Cdm5ibtY'
+   vapidKey: 'BA4O57aJUTCi0BZrUr9n6LTDxJRfs1Wtr8U1dyJUIZAYt2GEk2GgimZJEHNpFsqPMi3pzoZ5SmDVyzFs7Y5yOxY'
 };

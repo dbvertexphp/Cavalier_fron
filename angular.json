@@ -33,7 +33,8 @@
     "glob": "firebase-messaging-sw.js",
     "input": "public",
     "output": "/"
-  }
+  },
+  "src/assets"
             ],
             "styles": [
               "src/styles.css",

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { NotificationService } from './services/notification.service';
-import { ToastrModule } from 'ngx-toastr';
+import { ToastrModule, ToastrService } from 'ngx-toastr'; // 🔥 ToastrService import kiya
 
 @Component({
   selector: 'app-root',
@@ -15,23 +15,38 @@ export class AppComponent implements OnInit {
 
   constructor(
     private router: Router,
-    private notification: NotificationService
+    private notification: NotificationService,
+    private toastr: ToastrService // 🔥 Toastr inject kiya yahan
   ) {}
 
   async ngOnInit(): Promise<void> {
-    // 1. Framework validation check block execution parameters allocation
     const isAdminLoggedIn = localStorage.getItem('adminlogin');
 
     if (isAdminLoggedIn !== '1') {
       this.router.navigate(['']);
-      return; // Navigation sequence break safety check loop
+      return;
     }
 
-    // 2. Notification subscription loop initialization setup logic mapping array parameters
+    // 1. Service initialization & registration sequence
     const token = await this.notification.init();
-    console.log("📊 System Startup Validation Verification Parameter - TOKEN:", token);
+    console.log("📊 Token validation verify parameters:", token);
 
-    // 3. Keep listening for real-time foreground updates streaming channel active
+    // 2. Core Service background capture handler trigger
     this.notification.listen();
+
+    // 🔥 3. LIVE PIPELINE SUBSCRIPTION FOR TOASTR
+    // Jab bhi data stream change hoga, yeh block automatically execute ho jayega
+    this.notification.currentMessage.subscribe((payload) => {
+      if (payload) {
+        console.log('🎉 Toaster Pipeline Triggered with data:', payload);
+        
+        // Extracting Title and Body fields dynamically
+        const title = payload.notification?.title || payload.data?.title || 'Cavalier Notification';
+        const body = payload.notification?.body || payload.data?.body || 'New cargo status updated.';
+
+        // 🔥 BOOM! Yeh line actual toaster screen par render karegi
+        this.toastr.success(body, title);
+      }
+    });
   }
 }

@@ -63,19 +63,23 @@ export class AppHeaderComponent implements OnInit, OnDestroy {
     document.addEventListener('fullscreenchange', this.fullScreenHandler);
     document.addEventListener('keydown', this.handleKeyDown);
 
-    // 🔥 1. Sabse pehle Firebase system ko initialize karo aur listeners start karo
     this.initializeNotificationSystem();
 
-    // 🔥 2. REALTIME TOASTR STREAM SUBSCRIPTION
+    // 🔥 100% UNIFIED REALTIME PIPELINE SUBSCRIPTION
     this.fcmSubscription = this.notificationService.currentMessage.subscribe((msg) => {
       if (msg) {
+        console.log("📥 [HEADER TRIGGERED SUCCESS]: Event caught inside header subscription pipeline:", msg);
+        console.log("🎉 Toaster Pipeline Triggered with data:", msg);
         console.log("🎯 Header intercepted foreground payload banner request:", msg);
         
-        // Payload extraction (chahe notification obj ho ya pure data attributes)
-        const title = msg.notification?.title || msg.data?.title || 'Cavalier Update';
-        const body = msg.notification?.body || msg.data?.body || '';
+        // 🔔 1. Play Ringtone Sound Safely
+        this.playNotificationSound();
 
-        // Toastr invocation trigger
+        // 2. Payload extraction safely fallback mapping parameters
+        const title = msg.data?.title || msg.notification?.title || 'Cavalier Update';
+        const body = msg.data?.body || msg.notification?.body || '';
+
+        // 3. Toastr invocation trigger
         this.toastr.info(body, title, {
           timeOut: 4500,
           progressBar: true,
@@ -87,7 +91,19 @@ export class AppHeaderComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Async helper to orchestrate token and live listeners safely
+  // 🔥 Helper method to trigger the audio alert ringtone from public directory root location
+  private playNotificationSound() {
+    try {
+      const audio = new Audio('/notification.mp3');
+      audio.load();
+      audio.play().catch(error => {
+        console.warn('⚠️ Audio play blocked by browser autoplay policy constraints:', error);
+      });
+    } catch (err) {
+      console.error('❌ Failed to instantiate audio asset stream driver context:', err);
+    }
+  }
+
   async initializeNotificationSystem() {
     const token = await this.notificationService.init();
     if (token) {

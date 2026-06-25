@@ -373,23 +373,23 @@ onCancel() {
         );
     }
 
+    // 🔥 CRITICAL FIX: Har branch ka contact list completely isolated clone hoga
     if (branch.contacts && Array.isArray(branch.contacts) && branch.contacts.length > 0) {
-        this.contacts = branch.contacts.map((c: any) => ({
-            contactName: c.contactName || '',
-            DesignationId: c.designationId ?? null,
-            DepartmentId: c.departmentId ?? null,
-            mobile: c.mobile || '',
-            whatsapp: c.whatsapp || '',
-            email: c.email || ''
+        this.contacts = JSON.parse(JSON.stringify(branch.contacts)).map((c: any) => ({
+            contactName: c.contactName || c.ContactName || '',
+            DesignationId: c.designationId ?? c.DesignationId ?? null,
+            DepartmentId: c.departmentId ?? c.DepartmentId ?? null,
+            mobile: c.mobile || c.Mobile || '',
+            whatsapp: c.whatsapp || c.Whatsapp || '',
+            email: c.email || c.Email || ''
         }));
     } else {
         this.contacts = [{ contactName: '', DesignationId: null, DepartmentId: null, mobile: '', whatsapp: '', email: '' }];
     }
 
-    // --- 🔥 AGENT AUTOFILL FIX 🔥 ---
+    // --- AGENT AUTOFILL FIX ---
     if (branch.agentData) {
-        // Fix tracking identity coordination pipeline
-        this.agentName = branch.agentData.agentName || ''; // 👈 Array se binding engine me value pass kari
+        this.agentName = branch.agentData.agentName || ''; 
         this.agentBranchName = branch.agentData.agentBranchName || '';
         this.agentAddress = branch.agentData.agentAddress || '';
         this.agentArea = branch.agentData.agentArea || '';
@@ -750,9 +750,11 @@ addCurrentBranchIfValid(): boolean {
     isDefault: this.branchList.length === 0 ? true : this.isDefault,
     organizationId: this.selectedOrgId || 0,
     
-    // 🔥 CRITICAL FIX: Yahan agentName local runtime architecture array layer me miss tha
+    // 🔥 CRITICAL FIX: Pure contacts collection chain ko deep copy karke assign kiya
+    contacts: JSON.parse(JSON.stringify(this.contacts)),
+
     agentData: {
-      agentName: this.agentName, // 👈 Yeh line add kari ab array me lock ho jayega
+      agentName: this.agentName, 
       agentBranchName: this.agentBranchName,
       agentAddress: this.agentAddress,
       agentArea: this.agentArea,
@@ -928,6 +930,12 @@ saveAllLocalBranches(orgId: number) {
         : "";
     }
 
+    // 🔥 Dhyan se dekho: Agar branch currently UI par khuli hai, toh current 'this.contacts' uthao, 
+    // nahi toh us branch object ke andar pehle se isolated contacts list ko use karo.
+    const currentBranchContacts = (actualIndexInList === this.selectedBranchIndex) 
+      ? this.contacts 
+      : (branch.contacts || []);
+
     return {
       Id: branch.id || branch.BranchId || branch.branchId || 0,
       BranchId: branch.id || branch.BranchId || branch.branchId || 0, 
@@ -946,28 +954,31 @@ saveAllLocalBranches(orgId: number) {
       WebSite: branch.website?.trim() || "",
       EmailAddress: branch.email?.trim() || branch.emailAddress?.trim() || "",
       EmailId: branch.emailId?.trim() || branch.email?.trim() || "",
-      ContactName: branch.contactName?.trim() || "",
-      Mobile: branch.mobile?.trim() || "",
-      Whatsapp: branch.whatsapp?.trim() || "",
-      DesignationId: branch.designationId || 0,
-      DepartmentId: branch.departmentId || 0,
+      
+      // First contact management mapping architecture framework context fallback
+      ContactName: currentBranchContacts[0]?.contactName || currentBranchContacts[0]?.ContactName || "",
+      Mobile: currentBranchContacts[0]?.mobile || currentBranchContacts[0]?.Mobile || "",
+      Whatsapp: currentBranchContacts[0]?.whatsapp || currentBranchContacts[0]?.Whatsapp || "",
+      DesignationId: Number(currentBranchContacts[0]?.DesignationId || currentBranchContacts[0]?.designationId) || branch.designationId || 0,
+      DepartmentId: Number(currentBranchContacts[0]?.DepartmentId || currentBranchContacts[0]?.departmentId) || branch.departmentId || 0,
+      
       IsDefault: branch.isDefault || false,
       IsDeactivated: false,
       IsManager: false,
       IsHOD: false,
       IsSales: false,
       IsMarketing: false,
-      Contacts: (this.contacts && this.contacts.length > 0) 
-        ? this.contacts.map((c: any) => ({
-            BranchId: branch.id || branch.branchId || 0,
-            ContactName: c.contactName?.trim() || "",
-            Mobile: c.mobile?.trim() || "",
-            Whatsapp: c.whatsapp?.trim() || "",
-            Email: c.email?.trim() || "",
-            DesignationId: Number(c.DesignationId) || 0,
-            DepartmentId: Number(c.DepartmentId) || 0
-          })) 
-        : []
+      
+      // 🔥 CRITICAL FIX LAYER: Har sub-contact layer me small dynamic cases properties check ensure kari
+      Contacts: currentBranchContacts.map((c: any) => ({
+        BranchId: branch.id || branch.branchId || 0,
+        ContactName: c.contactName || c.ContactName || "",
+        Mobile: c.mobile || c.Mobile || "",
+        Whatsapp: c.whatsapp || c.Whatsapp || "",
+        Email: c.email || c.Email || "",
+        DesignationId: Number(c.DesignationId !== undefined ? c.DesignationId : c.designationId) || 0,
+        DepartmentId: Number(c.DepartmentId !== undefined ? c.DepartmentId : c.departmentId) || 0
+      }))
     };
   });
 
@@ -975,35 +986,26 @@ saveAllLocalBranches(orgId: number) {
 
   this.http.post(`${environment.apiUrl}/OrgBranch/SaveBranches/${orgId}`, payloadArray).subscribe({
     next: (res: any) => {
-      console.log("✅ Branches saved on backend. Full controller response received:", res);
-      
-      // 🔥 CRITICAL FIX: Backend controller se fresh assigned IDs wala list uthao
+      console.log("✅ Branches saved on backend.", res);
       const freshBranchesFromDB = res.branches || [];
 
       if (freshBranchesFromDB && freshBranchesFromDB.length > 0) {
-        
-        // Local runtime branch representation array layer ke elements ko nayi persistent identity keys se enrich karo
         this.branchList = this.branchList.map(localBranch => {
-          // Name framework coordination checking target mapping engine
           const dbMatch = freshBranchesFromDB.find(
             (dbB: any) => dbB.branchName?.toLowerCase().trim() === localBranch.branchName?.toLowerCase().trim()
           );
-          
           if (dbMatch) {
-            console.log(`🔗 Syncing structural object IDs for ${localBranch.branchName}: Local 0 ➔ Database Key: ${dbMatch.id || dbMatch.branchId}`);
             return {
               ...localBranch,
-              id: dbMatch.id || dbMatch.branchId // 👈 Local state configuration updated smoothly!
+              id: dbMatch.id || dbMatch.branchId,
+              // Backend dynamic return collection layer copy mapping framework context sync lock
+              contacts: dbMatch.contacts || localBranch.contacts
             };
           }
           return localBranch;
         });
-
-        // 🔥 AB TARGET AGENT SUBSCRIPTION KO REAL SYNCED LIST PASS KARENGE
-        console.log("🚀 Launching saveAllAgentsForBranches with fully validated runtime entities list:", this.branchList);
         this.saveAllAgentsForBranches(orgId, this.branchList);
       } else {
-        // Fallback context structure
         this.saveAllAgentsForBranches(orgId, this.branchList);
       }
     },
@@ -1385,38 +1387,59 @@ getBranchesByOrg(orgId: number) {
     next: (res) => {
       if (res && res.branches && Array.isArray(res.branches) && res.branches.length > 0) {
         
-        // 1. Pehle Branches map karo
-        this.branchList = res.branches.map((b: any) => ({
-          id: b.id,                                     
-          branchName: b.branchName || '',
-          organizationId: b.organizationId,
-          address: b.address || '',
-          area: b.area || '',
-          landmark: b.landmark || '',
-          country: b.country || '',
-          stateProvince: b.stateProvince || '',
-          city: b.city || '',
-          postalCode: b.postalCode || '',
-          telephone: b.telephone || '',
-          fax: b.fax || '',
-          website: b.webSite || b.website || '',
-          email: b.emailAddress || b.email || '',
-          contactName: b.contactName || '',
-          mobile: b.mobile || '',
-          whatsapp: b.whatsapp || '',
-          emailId: b.emailId || b.emailAddress || '',
-          lobIds: b.lobIds || null,
-          lobIdsList: b.lobIds ? b.lobIds.split(',').map((id: string) => parseInt(id.trim(), 10)).filter((id: number) => !isNaN(id)) : [],
-          designationId: b.designationId ? Number(b.designationId) : null,
-          departmentId: b.departmentId ? Number(b.departmentId) : null,
-          isDefault: b.isDefault || false,
-          agentData: null,
-          // --- YEH NAYA ADD KIYA HAI ---
-          contacts: b.contacts || [] 
-          // ----------------------------
-        })).sort((a: any, b: any) => (b.isDefault === a.isDefault ? 0 : b.isDefault ? 1 : -1));
+        this.branchList = res.branches.map((b: any) => {
+          // 🔥 FIX LAYER: Ensure sub-contacts list holds internal unified structured keys runtime representation
+          let branchContactsList = [];
+          if (b.contacts && Array.isArray(b.contacts) && b.contacts.length > 0) {
+            branchContactsList = b.contacts.map((c: any) => ({
+              contactName: c.contactName || c.ContactName || '',
+              DesignationId: c.designationId ?? c.DesignationId ?? null,
+              DepartmentId: c.departmentId ?? c.DepartmentId ?? null,
+              mobile: c.mobile || c.Mobile || '',
+              whatsapp: c.whatsapp || c.Whatsapp || '',
+              email: c.email || c.Email || ''
+            }));
+          } else {
+            branchContactsList = [{ 
+              contactName: b.contactName || '', 
+              DesignationId: b.designationId ? Number(b.designationId) : null, 
+              DepartmentId: b.departmentId ? Number(b.departmentId) : null, 
+              mobile: b.mobile || '', 
+              whatsapp: b.whatsapp || '', 
+              email: b.emailAddress || b.email || '' 
+            }];
+          }
 
-        // 2. 🔥 AGENTS KO UNKI BRANCH KE SATH JODO 🔥
+          return {
+            id: b.id,                                     
+            branchName: b.branchName || '',
+            organizationId: b.organizationId,
+            address: b.address || '',
+            area: b.area || '',
+            landmark: b.landmark || '',
+            country: b.country || '',
+            stateProvince: b.stateProvince || '',
+            city: b.city || '',
+            postalCode: b.postalCode || '',
+            telephone: b.telephone || '',
+            fax: b.fax || '',
+            website: b.webSite || b.website || '',
+            email: b.emailAddress || b.email || '',
+            contactName: b.contactName || '',
+            mobile: b.mobile || '',
+            whatsapp: b.whatsapp || '',
+            emailId: b.emailId || b.emailAddress || '',
+            lobIds: b.lobIds || null,
+            lobIdsList: b.lobIds ? b.lobIds.split(',').map((id: string) => parseInt(id.trim(), 10)).filter((id: number) => !isNaN(id)) : [],
+            designationId: b.designationId ? Number(b.designationId) : null,
+            departmentId: b.departmentId ? Number(b.departmentId) : null,
+            isDefault: b.isDefault || false,
+            agentData: null,
+            contacts: branchContactsList // Assigned mapped collection array architecture smoothly
+          };
+        }).sort((a: any, b: any) => (b.isDefault === a.isDefault ? 0 : b.isDefault ? 1 : -1));
+
+        // AGENTS KO UNKI BRANCH KE SATH JODO (Rest of your agent mapping remains untouched)
         if (res.agents && Array.isArray(res.agents)) {
           res.agents.forEach((agent: any) => {
             const targetBranch = this.branchList.find((b: any) => b.id === agent.branchId);
@@ -1429,7 +1452,6 @@ getBranchesByOrg(orgId: number) {
               }
               
               let mappedContacts = [{ contactName: '', designationId: null, departmentId: null, mobile: '', whatsapp: '', email: '' }];
-              
               if (agent.agentContacts && agent.agentContacts.length > 0) {
                 mappedContacts = agent.agentContacts.map((c: any) => ({
                   contactName: c.contactName || '',
@@ -1462,7 +1484,6 @@ getBranchesByOrg(orgId: number) {
           });
         }
 
-        // 3. Sab map hone ke baad pehli branch select kar lo
         if (this.branchList.length > 0) {
           this.selectBranch(this.branchList[0], 0);
         }

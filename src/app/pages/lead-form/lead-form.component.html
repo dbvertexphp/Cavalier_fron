@@ -408,27 +408,25 @@
             </div>
           </div>
 
-          <!-- Lead Owner Select Field Block -->
           <div class="flex flex-col gap-1">
             <label class="text-red-700 font-bold">Lead Owner <span class="text-red-500">*</span></label>
             <select formControlName="leadOwner" class="border p-2 w-full" [ngClass]="{'border-red-500': leadForm.get('leadOwner')?.invalid && leadForm.get('leadOwner')?.touched}">
               <option value="" disabled selected>Select Ownerhh</option>
               <option *ngFor="let owner of OnlyleadOwner" [value]="owner.id">{{ owner.name }}</option>
             </select>
-            <!-- Under-field Custom Required Alerts -->
             <div *ngIf="leadForm.get('leadOwner')?.invalid && leadForm.get('leadOwner')?.touched" class="text-red-600 text-[11px] font-semibold mt-0.5">
               {{ leadForm.get('leadOwner')?.errors?.['zod'] || 'Lead Owner selection is required.' }}
             </div>
           </div>
 
           <div class="flex flex-col gap-1">
-            <label class="font-bold text-gray-600">Sales Coordinator <span class="text-red-500">*</span></label>
-            <select formControlName="salesCoordinator" class="border p-2 w-full" [ngClass]="{'border-red-500': leadForm.get('salesCoordinator')?.invalid && leadForm.get('salesCoordinator')?.touched}">
-              <option value="" disabled selected>Select Co-ordinator</option>
-              <option *ngFor="let sc of salesCoordinator" [value]="sc.id">{{ sc.name }}</option>
+            <label class="font-bold text-gray-600">Teams <span class="text-red-500">*</span></label>
+            <select formControlName="team" (change)="onTeamChange($event)" class="border p-2 w-full" [ngClass]="{'border-red-500': leadForm.get('team')?.invalid && leadForm.get('team')?.touched}">
+              <option value="">Select Team</option>
+              <option *ngFor="let team of teamList" [value]="team.teamName">{{ team.teamName }}</option>
             </select>
-            <div *ngIf="leadForm.get('salesCoordinator')?.invalid && leadForm.get('salesCoordinator')?.touched" class="text-red-600 text-[11px] font-semibold mt-0.5">
-              {{ leadForm.get('salesCoordinator')?.errors?.['zod'] || 'Sales Coordinator selection is required.' }}
+            <div *ngIf="leadForm.get('team')?.invalid && leadForm.get('team')?.touched" class="text-red-600 text-[11px] font-semibold mt-0.5">
+              {{ leadForm.get('team')?.errors?.['zod'] || 'Team setup selection is required.' }}
             </div>
           </div>
 
@@ -448,14 +446,12 @@
             </div>
           </div>
 
-          <!-- Sales Stage Select Field Block -->
           <div class="flex flex-col gap-1">
             <label class="font-bold text-gray-600">Sales Stage <span class="text-red-500">*</span></label>
             <select formControlName="salesStage" class="border p-2 w-full" [ngClass]="{'border-red-500': leadForm.get('salesStage')?.invalid && leadForm.get('salesStage')?.touched}">
               <option value="">Select Stage</option>
               <option *ngFor="let stage of salesStages" [value]="stage.id">{{ stage.name }}</option>
             </select>
-            <!-- Under-field Custom Required Alerts -->
             <div *ngIf="leadForm.get('salesStage')?.invalid && leadForm.get('salesStage')?.touched" class="text-red-600 text-[11px] font-semibold mt-0.5">
               {{ leadForm.get('salesStage')?.errors?.['zod'] || 'Sales Stage configuration is required.' }}
             </div>
@@ -476,7 +472,7 @@
             <label class="font-bold text-gray-600">Reporting Manager <span class="text-red-500">*</span></label>
             <select formControlName="reportingManager" class="border p-2 w-full" [ngClass]="{'border-red-500': leadForm.get('reportingManager')?.invalid && leadForm.get('reportingManager')?.touched}">
               <option value="" disabled selected>Select Manager</option>
-              <option *ngFor="let rm of salesCoordinator" [value]="rm.id">{{ rm.name }}</option>
+              <option *ngFor="let rm of reportingManagersList" [value]="rm.id">{{ rm.name }}</option>
             </select>
             <div *ngIf="leadForm.get('reportingManager')?.invalid && leadForm.get('reportingManager')?.touched" class="text-red-600 text-[11px] font-semibold mt-0.5">
               {{ leadForm.get('reportingManager')?.errors?.['zod'] || 'Reporting Manager selection is required.' }}
@@ -484,13 +480,13 @@
           </div>
 
           <div class="flex flex-col gap-1">
-            <label class="font-bold text-gray-600">Teams <span class="text-red-500">*</span></label>
-            <select formControlName="team" (change)="onTeamChange($event)" class="border p-2 w-full" [ngClass]="{'border-red-500': leadForm.get('team')?.invalid && leadForm.get('team')?.touched}">
-              <option value="">Select Team</option>
-              <option *ngFor="let team of teamList" [value]="team.teamName">{{ team.teamName }}</option>
+           <label class="font-bold text-gray-600">Sales Coordinator <span class="text-red-500">*</span></label>
+            <select formControlName="salesCoordinator" class="border p-2 w-full" [ngClass]="{'border-red-500': leadForm.get('salesCoordinator')?.invalid && leadForm.get('salesCoordinator')?.touched}">
+              <option value="" disabled selected>Select Co-ordinator</option>
+              <option *ngFor="let sc of salesCoordinatorsList" [value]="sc.id">{{ sc.name }}</option>
             </select>
-            <div *ngIf="leadForm.get('team')?.invalid && leadForm.get('team')?.touched" class="text-red-600 text-[11px] font-semibold mt-0.5">
-              {{ leadForm.get('team')?.errors?.['zod'] || 'Team setup selection is required.' }}
+            <div *ngIf="leadForm.get('salesCoordinator')?.invalid && leadForm.get('salesCoordinator')?.touched" class="text-red-600 text-[11px] font-semibold mt-0.5">
+              {{ leadForm.get('salesCoordinator')?.errors?.['zod'] || 'Sales Coordinator selection is required.' }}
             </div>
           </div>
 
@@ -498,7 +494,7 @@
             <label class="font-bold text-gray-600">HOD <span class="text-red-500">*</span></label>
             <select formControlName="hod" class="border p-2 w-full" [ngClass]="{'border-red-500': leadForm.get('hod')?.invalid && leadForm.get('hod')?.touched}">
               <option value="" disabled selected>Select HOD</option>
-              <option *ngFor="let sc of salesCoordinator" [value]="sc.id">{{ sc.name }}</option>
+              <option *ngFor="let h of hodsList" [value]="h.id">{{ h.name }}</option>
             </select>
             <div *ngIf="leadForm.get('hod')?.invalid && leadForm.get('hod')?.touched" class="text-red-600 text-[11px] font-semibold mt-0.5">
               {{ leadForm.get('hod')?.errors?.['zod'] || 'HOD field option selection is required.' }}

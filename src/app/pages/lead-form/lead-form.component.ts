@@ -67,6 +67,11 @@ export class LeadFormComponent implements OnInit {
   hodUniqueList: any[] = [];
   managerUniqueList: string[] = [];
 
+  // Dedicated arrays for independent team dropdown mapping rules
+  salesCoordinatorsList: any[] = [];
+  hodsList: any[] = [];
+  reportingManagersList: any[] = [];
+
   leadSearchFilters = {
     date: "",
     organizationName: '',
@@ -98,7 +103,7 @@ export class LeadFormComponent implements OnInit {
   isExportOpen = false;
   isLNModalOpen: boolean = false;
   modalLNSearchText: string = '';
-  allLNList: any[] = [];         
+  allLNList: any[] = [];          
   allLNFiltered: any[] = [];     
   iconSearchOrgs: any[] = []; 
   private iconSearchSub?: Subscription;
@@ -130,7 +135,7 @@ export class LeadFormComponent implements OnInit {
   branchSearchText: string = '';
   showRowModal = false;
   salesCoordinator: any[] = [];
-  OnlyleadOwner:any[]=[];
+  OnlyleadOwner: any[] = [];
   availableColumns: string[] = [];
   selectedColumns: string[] = [];
   sortOrders: any = {};
@@ -153,7 +158,7 @@ export class LeadFormComponent implements OnInit {
     'Sales Coordinator': 'salesCoordinator',
     'HOD': 'hod',
     'Created At': 'createdAt',
-    'Updated At': 'updatedAt'
+    'UpdatedAt': 'updatedAt'
   };
 
   constructor(
@@ -180,7 +185,6 @@ export class LeadFormComponent implements OnInit {
     this.loadDropdownData();
     this.loadLeadOwners();
     this.getSalesProcesses();
-    // this.getLeadOwners();
     this.getsales();
     this.getSalesCoordinators();
     this.loadLeadSources();
@@ -190,15 +194,10 @@ export class LeadFormComponent implements OnInit {
     this.initForm();
     this.loadColumnSettings();
 
-    // this.http.get(`${environment.apiUrl}/Hod`).subscribe((res: any) => this.hodList = res);
     this.http.get(`${environment.apiUrl}/Teams`).subscribe((res: any) => this.teamList = res);
     this.loadOrganizations();
     this.initSearchForm();
     this.loadLeadSuggestions();
-    // this.getReportingManagers();
-
-    // DYNAMIC AUTO-FILL: Team validation logic block trigger
-   
   }
  
   fetchNextLeadNoFromApi(): void {
@@ -238,8 +237,8 @@ export class LeadFormComponent implements OnInit {
     this.currentPage = page;
     this.updatePagination();
   }
-// 🔥 Is naye function ko class me kahin bhi paste kar do bhai (ngOnInit se bahar):
-onTeamChange(event: any) {
+
+  onTeamChange(event: any) {
     const selectedTeamName = event.target.value;
     console.log('🚀 HTML (change) event triggered for team:', selectedTeamName);
 
@@ -252,26 +251,22 @@ onTeamChange(event: any) {
           next: (res) => {
             console.log('✅ Dynamic Team Details Received via Event:', res);
             
-            const combinedMembers: any[] = [];
-            if (res.salesCoordinators) combinedMembers.push(...res.salesCoordinators);
-            if (res.hods) combinedMembers.push(...res.hods);
-            if (res.reportingManagers) combinedMembers.push(...res.reportingManagers);
+            // Map specifically to separation arrays
+            this.salesCoordinatorsList = res.salesCoordinators || [];
+            this.hodsList = res.hods || [];
+            this.reportingManagersList = res.reportingManagers || [];
+            this.salesCoordinator = res.salesCoordinators || []; 
 
-            const uniqueMap = new Map();
-            combinedMembers.forEach(m => uniqueMap.set(m.id, m));
-            this.salesCoordinator = Array.from(uniqueMap.values());
-
-            // 🛠️ Sub-fix: String conversion optimization to match Zod rules
+            // Auto patch logic execution based on first available parameters
             const patchObj: any = {};
-            if (res.salesCoordinators && res.salesCoordinators.length > 0) {
-              patchObj.salesCoordinator = String(res.salesCoordinators[0].id);
-              
+            if (this.salesCoordinatorsList.length > 0) {
+              patchObj.salesCoordinator = String(this.salesCoordinatorsList[0].id);
             }
-            if (res.hods && res.hods.length > 0) {
-              patchObj.hod = String(res.hods[0].id);
+            if (this.hodsList.length > 0) {
+              patchObj.hod = String(this.hodsList[0].id);
             }
-            if (res.reportingManagers && res.reportingManagers.length > 0) {
-              patchObj.reportingManager = String(res.reportingManagers[0].id);
+            if (this.reportingManagersList.length > 0) {
+              patchObj.reportingManager = String(this.reportingManagersList[0].id);
             }
 
             this.leadForm.patchValue(patchObj);
@@ -279,21 +274,28 @@ onTeamChange(event: any) {
           },
           error: (err) => {
             console.error('❌ Details API Error:', err);
-            this.salesCoordinator = [];
-            this.cdr.detectChanges();
+            this.clearTeamDropdowns();
           }
         });
       }
     } else {
-      this.salesCoordinator = [];
-      this.leadForm.patchValue({
-        salesCoordinator: '',
-        reportingManager: '',
-        hod: ''
-      });
-      this.cdr.detectChanges();
+      this.clearTeamDropdowns();
     }
   }
+
+  clearTeamDropdowns() {
+    this.salesCoordinatorsList = [];
+    this.hodsList = [];
+    this.reportingManagersList = [];
+    this.salesCoordinator = [];
+    this.leadForm.patchValue({
+      salesCoordinator: '',
+      reportingManager: '',
+      hod: ''
+    });
+    this.cdr.detectChanges();
+  }
+
   nextPage() {
     if (this.currentPage < this.totalPages) {
       this.currentPage++;
@@ -368,25 +370,57 @@ onTeamChange(event: any) {
       next: (lead) => {
         this.isEditMode = true;
         this.selectedLeadId = id;
+
         this.leadForm.patchValue({
           date: lead.date ? lead.date.split('T')[0] : '',
           expectedValidity: lead.expectedValidity ? lead.expectedValidity.split('T')[0] : '',
           type: lead.type || '',
           leadOwner: lead.leadOwner || '',
           salesProcess: lead.salesProcess || '',
-          salesCoordinator: lead.salesCoordinator || '',
           salesStage: lead.salesStage || '',
           branch: lead.branch || '',
-          reportingManager: lead.reportingManager || '',
           team: lead.team || '',
-          hod: lead.hod || '',
           location: lead.location || '',
           area: lead.area || '',
           organization: lead.organizationName || '',     
+          organizationId: lead.organisationId || '',
           source: lead.leadSource || ''                 
         });
+
         this.nextLeadNo = lead.leadNo || '';
         this.isFormOpen = true;
+
+        if (lead.team) {
+          const matchedTeam = this.teamList.find(t => (t.teamName || t.name || t) === lead.team);
+          const teamId = matchedTeam ? matchedTeam.id : null;
+
+          if (teamId) {
+            this.http.get<any>(`${environment.apiUrl}/Teams/${teamId}/details`).subscribe({
+              next: (res) => {
+                this.salesCoordinatorsList = res.salesCoordinators || [];
+                this.hodsList = res.hods || [];
+                this.reportingManagersList = res.reportingManagers || [];
+                this.salesCoordinator = res.salesCoordinators || [];
+
+                this.leadForm.patchValue({
+                  salesCoordinator: lead.salesCoordinator ? String(lead.salesCoordinator) : '',
+                  reportingManager: lead.reportingManager ? String(lead.reportingManager) : '',
+                  hod: lead.hod ? String(lead.hod) : ''
+                });
+
+                this.cdr.detectChanges();
+              },
+              error: (err) => console.error('❌ Edit Mode Team API Error:', err)
+            });
+          }
+        } else {
+          this.leadForm.patchValue({
+            salesCoordinator: lead.salesCoordinator ? String(lead.salesCoordinator) : '',
+            reportingManager: lead.reportingManager ? String(lead.reportingManager) : '',
+            hod: lead.hod ? String(lead.hod) : ''
+          });
+        }
+
         this.cdr.detectChanges();
       },
       error: (err) => console.error(err)
@@ -655,20 +689,15 @@ onTeamChange(event: any) {
     this.filteredDates = [];
   }
 
- onSave() {
-    // 1. Form ko touched mark karo taaki HTML validations red ho sakein
+  onSave() {
     this.leadForm.markAllAsTouched();
-    
     const rawValue = this.leadForm.getRawValue();
     
-    // 2. Zod Schema Validation check execution
     const validation = leadSchema.safeParse(rawValue);
     if (!validation.success) {
       const errors = validation.error.flatten().fieldErrors;
+      console.error('🚨 [Zod Validation Failed]:', errors);
       
-      console.error('🚨 [Zod Validation Failed] Fields configurations logs:', errors);
-      
-      // 3. Angular controls me error inject karne ka system core block
       Object.keys(errors).forEach((field: string) => {
         const control = this.leadForm.get(field);
         if (control) {
@@ -1237,7 +1266,7 @@ onTeamChange(event: any) {
   loadDropdownData(): void {
     this.userServices.getUsers('onlyuserdata').subscribe({
       next: (data: any) => {
-        // Dropdown configuration logic block
+        // Dropdown data configuration block
       }
     });
   }

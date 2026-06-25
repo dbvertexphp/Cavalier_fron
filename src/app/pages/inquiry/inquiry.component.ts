@@ -1649,7 +1649,40 @@ this.quotation.noOfPkgsUnit = q.noOfPkgsUnit || q.NoOfPkgsUnit || '';
       leadNo: leadValue
     };
     
-    this.quotation.branchName = q.branchId ? q.branchId.toString() : q.branchName;
+    // --- BRANCH AUTO-SELECT FIX FOR FORM ---
+if (q.branchName !== null && q.branchName !== undefined) {
+  // Response ka string "1" ya "2" lekar number aur string dono variables match karenge
+  const incomingBranchStr = q.branchName.toString().trim();
+  const incomingBranchNum = Number(incomingBranchStr);
+
+  if (this.branchlist && this.branchlist.length > 0) {
+    // Apni master branchlist mein check karo ki ID number match ho rahi hai ya string
+    const foundBranch = this.branchlist.find(b => 
+      (b.id && b.id.toString() === incomingBranchStr) || 
+      (b.branchId && b.branchId.toString() === incomingBranchStr)
+    );
+
+    if (foundBranch) {
+      // Agar master list mein matching integer ID hai toh dropdown value assign karein
+      const finalId = foundBranch.id || foundBranch.branchId;
+      this.quotation.branchName = finalId; 
+      
+      // Fallback: Agar template string value dhoond raha hai toh use string format mein set karein
+      setTimeout(() => {
+        this.quotation.branchName = finalId.toString();
+        this.cdr.detectChanges();
+      }, 50);
+    } else {
+      // Agar direct match na mile toh direct payload value set karein
+      this.quotation.branchName = incomingBranchStr;
+    }
+  } else {
+    this.quotation.branchName = incomingBranchStr;
+  }
+  console.log("🏢 Form Dropdown Branch selected ID:", this.quotation.branchName);
+} else {
+  this.quotation.branchName = '';
+}
     
     // --- CONNECTING PORTS ---
     const rawPorts = q.connectingPortIds || q.ConnectingPortIds;
@@ -3357,7 +3390,7 @@ saveQuotation() {
     TransportType: String(this.quotation.TransportType || this.quotation.transportType || ''),
     inquiryNo: String(this.inquiry.inquiryNo || ''),
     
-    // --- INDEPENDENT FIELD ADDED HERE ---
+    // --- INDEPENDENT FIELD ---
     podOrigin: String(this.quotation.podOrigin || ''), 
     
     // --- FALLBACK LOGIC FOR ORGANIZATION ---
@@ -3376,7 +3409,6 @@ saveQuotation() {
     HazardDocPath: this.quotation.hazardDocPath || null,
     weightUnit: String(this.quotation.GrossweightUnit || 'KGS'),
     
-  // MAPPING (Model Property Name => Frontend Value)
     GrossWeightUnit: String(this.quotation.GrossWeightUnit || ''),
     NetWeightUnit: String(this.quotation.NetWeightUnit || ''),
     ChargeableWeightUnit: String(this.quotation.ChargeWeightUnit || ''),
@@ -3387,7 +3419,6 @@ saveQuotation() {
     cargoValue: String(this.quotation.cargoValue || "0"),
     lineOfBusinessId: (this.quotation.lineOfBusinessId && Number(this.quotation.lineOfBusinessId) > 0) ? Number(this.quotation.lineOfBusinessId) : null,
     lineOfBusinessName: String(this.quotation.lineOfBusinessName || ''),
-    commodityId: (this.quotation.commodity && Number(this.quotation.commodity) > 0) ? Number(this.quotation.commodity) : null, 
     originId: (this.originsaveid && Number(this.originsaveid) > 0) ? Number(this.originsaveid) : null,
     
     portOfLoadingId: (this.quotation.portOfLoadingId && Number(this.quotation.portOfLoadingId) > 0) ? Number(this.quotation.portOfLoadingId) : null,
@@ -3404,24 +3435,22 @@ saveQuotation() {
     qtnId: String(this.quotation.qtnId || ('QTN-' + Math.floor(1000 + Math.random() * 9000))),
     createdDate: new Date().toISOString(),
     dimensions: this.appliedDimensions || [],
-  // saveQuotation() ke andar payload object mein:
-countryName: String(this.quotation.country || ''),
+    countryName: String(this.quotation.country || ''),
     
     connectingPortIds: (this.selectedConnectingPorts && this.selectedConnectingPorts.length > 0) 
-                      ? String(this.selectedConnectingPorts.map((p: any) => p.id).join(',')) 
-                      : null,
+                        ? String(this.selectedConnectingPorts.map((p: any) => p.id).join(',')) 
+                        : null,
 
     isDirect: this.quotation.serviceType === 'Direct' || Boolean(this.quotation.isDirect),
     isIndirect: this.quotation.serviceType === 'Indirect' || Boolean(this.quotation.isIndirect),
     serviceType: String(this.searchFilters?.transportMode || this.quotation.serviceType || "")
   };
 
-  // --- DELETE NULL KEYS ---
-  Object.keys(payload).forEach(key => {
-    if (payload[key] === null || payload[key] === undefined) {
-      delete payload[key];
-    }
-  });
+  // 🔥 CRITICAL FIX: 'commodity' नाम की इंटीजर की को डिलीट करके सही C# फॉरेन की का नाम सेट किया
+  payload.commodityId = (this.quotation.commodity && Number(this.quotation.commodity) > 0) ? Number(this.quotation.commodity) : null;
+  if (payload.hasOwnProperty('commodity')) {
+    delete payload.commodity;
+  }
 
   console.log("FINAL PAYLOAD BEFORE SENDING:", payload);
 
@@ -3446,7 +3475,7 @@ countryName: String(this.quotation.country || ''),
     next: () => {
       alert("Success: Saved in CavalierDB!");
       this.isFormOpen = false;
-      this.loadQuotations();
+      this.router.navigate(['/dashboard/salescrm/inquiry']);
       this.cdr.detectChanges();
     },
     error: (err) => {
@@ -3534,7 +3563,7 @@ toggleStatus(q: any) {
       q.status = res.newStatus;
       
       // UI update trigger
-      
+      this.cdr.detectChanges();
       
       console.log(`✅ Status changed for ID ${q.id}:`, res.newStatus);
     },

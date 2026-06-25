@@ -1078,7 +1078,7 @@
         </div>
       </div>
 
-     <div class="border-t pt-6 mt-8">
+ <div class="border-t pt-6 mt-8">
   <h3 class="text-lg font-bold text-gray-700 uppercase border-l-4 border-green-600 pl-3 mb-4">Contact Details</h3>
   <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
     <div class="hidden md:grid grid-cols-6 gap-3 mb-2 px-1 text-[11px] font-bold text-gray-500 uppercase">
@@ -1093,12 +1093,12 @@
                (input)="contact.contactName = $event.target.value.toUpperCase()" 
                [readonly]="!isEditMode" 
                [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'" 
-               [name]="'name'+i" placeholder="Name" class="w-full border p-2 rounded text-sm outline-none">
+               [name]="'branch_contact_name_' + selectedBranchIndex + '_' + i" placeholder="Name" class="w-full border p-2 rounded text-sm outline-none">
         
         <select [(ngModel)]="contact.DesignationId" 
                 [disabled]="!isEditMode" 
                 [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'" 
-                [name]="'desig'+i" class="w-full border p-2 rounded text-sm bg-white">
+                [name]="'branch_contact_desig_' + selectedBranchIndex + '_' + i" class="w-full border p-2 rounded text-sm bg-white">
           <option [ngValue]="null">-- Select --</option>
           <option *ngFor="let des of designation" [ngValue]="des.id">{{ des.name | uppercase }}</option>
         </select>
@@ -1106,21 +1106,21 @@
         <select [(ngModel)]="contact.DepartmentId" 
                 [disabled]="!isEditMode" 
                 [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'" 
-                [name]="'dept'+i" class="w-full border p-2 rounded text-sm bg-white">
+                [name]="'branch_contact_dept_' + selectedBranchIndex + '_' + i" class="w-full border p-2 rounded text-sm bg-white">
           <option [ngValue]="null">-- Select --</option>
           <option *ngFor="let dept of department" [ngValue]="dept.id">{{ dept.name | uppercase }}</option>
         </select>
         
-        <input [(ngModel)]="contact.mobile" [disabled]="!isEditMode" [name]="'mob'+i"
+        <input [(ngModel)]="contact.mobile" [disabled]="!isEditMode" [name]="'branch_contact_mob_' + selectedBranchIndex + '_' + i"
                [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'" 
                type="text" maxlength="10" (keypress)="onlyNumbers($event)" placeholder="Mobile" class="w-full border p-2 rounded text-sm">
         
-        <input [(ngModel)]="contact.whatsapp" [readonly]="!isEditMode" [name]="'wa'+i"
+        <input [(ngModel)]="contact.whatsapp" [readonly]="!isEditMode" [name]="'branch_contact_wa_' + selectedBranchIndex + '_' + i"
                [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'" 
                type="text" maxlength="10" (keypress)="onlyNumbers($event)" placeholder="Whatsapp" class="w-full border p-2 rounded text-sm">
         
         <div class="flex items-center gap-3">
-          <input [(ngModel)]="contact.email" [readonly]="!isEditMode" [name]="'email'+i"
+          <input [(ngModel)]="contact.email" [readonly]="!isEditMode" [name]="'branch_contact_email_' + selectedBranchIndex + '_' + i"
                  [ngClass]="!isEditMode ? 'bg-[#f3f4f6] cursor-not-allowed text-gray-500' : 'bg-white'" 
                  type="email" (input)="contact.email = $event.target.value.toUpperCase(); checkEmail(contact)" placeholder="Email" class="flex-1 border p-2 rounded text-sm">
           

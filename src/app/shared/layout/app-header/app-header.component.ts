@@ -67,28 +67,26 @@ export class AppHeaderComponent implements OnInit, OnDestroy {
 
     // 🔥 100% UNIFIED REALTIME PIPELINE SUBSCRIPTION
     this.fcmSubscription = this.notificationService.currentMessage.subscribe((msg) => {
-      if (msg) {
-        console.log("📥 [HEADER TRIGGERED SUCCESS]: Event caught inside header subscription pipeline:", msg);
-        console.log("🎉 Toaster Pipeline Triggered with data:", msg);
-        console.log("🎯 Header intercepted foreground payload banner request:", msg);
-        
-        // 🔔 1. Play Ringtone Sound Safely
-        this.playNotificationSound();
+  if (msg) {
+    console.log("📥 [HEADER SEED DISPATCH]: Packet received successfully:", msg);
 
-        // 2. Payload extraction safely fallback mapping parameters
-        const title = msg.data?.title || msg.notification?.title || 'Cavalier Update';
-        const body = msg.data?.body || msg.notification?.body || '';
+    // Play Alert Sound
+    this.playNotificationSound();
 
-        // 3. Toastr invocation trigger
-        this.toastr.info(body, title, {
-          timeOut: 4500,
-          progressBar: true,
-          positionClass: 'toast-top-right',
-          closeButton: true,
-          enableHtml: true
-        });
-      }
+    // 🔥 FLAT DATA LAYER READ (Strict parsing configuration fallback)
+    // Check elements inside msg.data dictionary parameters first
+    const title = msg.data?.title || msg.notification?.title || 'Cavalier Update';
+    const body = msg.data?.body || msg.notification?.body || '';
+
+    this.toastr.info(body, title, {
+      timeOut: 4500,
+      progressBar: true,
+      positionClass: 'toast-top-right',
+      closeButton: true,
+      enableHtml: true
     });
+  }
+});
   }
 
   // 🔥 Helper method to trigger the audio alert ringtone from public directory root location

@@ -1031,10 +1031,10 @@
       </div>
       <div class="grid grid-cols-1 gap-1">
         <label class="font-bold text-gray-700 text-[12px]">Branch</label>
-        <select [(ngModel)]="quotation.branchName" name="branchName" class="border p-2 outline-none text-[12px]">
-          <option value="">--Select--</option>
-          <option *ngFor="let branch of branchlist" [value]="branch.id">{{ branch.branchName }}</option>
-        </select>
+       <select [(ngModel)]="quotation.branchName" name="branchName" class="border p-2 outline-none text-[12px]">
+  <option value="">--Select--</option>
+  <option *ngFor="let branch of branchlist" [value]="branch.id">{{ branch.branchName }}</option>
+</select>
       </div>
       <div class="grid grid-cols-1 gap-1">
         <label class="font-bold text-gray-700 text-[12px]">Inq. Received</label>

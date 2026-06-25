@@ -1544,30 +1544,31 @@ onTransportModeChange(){
 // Sahi initialization:
 // dimRows: any[] = [];
 saveDimensions() {
-  // saveDimensions ke start mein:
-this.dimRows = [...this.dimRows];
-  // 1. Data Filter karo
-  this.appliedDimensions = this.dimRows.filter(d => d.l > 0 && d.w > 0 && d.h > 0);
+  console.log("--- 💾 Syncing and Applying Multiple Dimensions ---", this.dimRows);
   
-  // 2. Main Quotation Dimensions mein poora array daalo
-  // (Main UI wali dimRow wahi hai jo dimRows[0] mein hai)
+  // 1. Array reference ko completely copy aur break down karein
+  this.dimRows = [...this.dimRows];
+  
+  // Valid rows ko filter out karein jisme dimensions enter ho chuki hain
+  this.appliedDimensions = this.dimRows.filter(d => Number(d.l) > 0 || Number(d.w) > 0 || Number(d.h) > 0);
+  
+  // 2. Direct assignment to quotation parent model for tracking payload stability
   this.quotation.dimensions = [...this.dimRows];
-  
-  // 3. UI ke liye dimRow ko index 0 se update karo
+
+  // 3. Keep main screen row (dimRow) synced with first row element configuration
   if (this.dimRows.length > 0) {
     this.dimRow = { ...this.dimRows[0] };
   }
 
-  // 4. Calculations (Saare functions ko yahan call karo)
+  // 4. Recalculate everything sequentially inside dynamic buffer matrix
   this.quotation.volumeWeight = this.getTotalVolumeWeight();
   this.calculateCBM();
   this.calculateNetWeight();
   this.calculateVolumeWeightLogic();
-  this.syncFinalData();
-  this.calculateTotalPackages();
-  
-  // 5. Modal band karo
-  this.closeDimModal();
+  this.calculateTotalPackages(); // Total packages count automatically synched here
+
+  this.isDimModalOpen = false;
+  this.cdr.detectChanges(); // Force dynamic visual screen tree refresh
 }
 // 4. Save button par calculation trigger karna
 openDimModal() {
@@ -3592,87 +3593,142 @@ saveQuotation() {
     return;
   }
 
-  // Cost Breakdowns & MultiCarrier Payload mapping
+  // 1. Synchronize and map Dimensions Data Array
+  let finalDimensionsPayload: any[] = [];
+  if (this.dimRows && this.dimRows.length > 0) {
+    finalDimensionsPayload = this.dimRows
+      .filter((d: any) => Number(d.l) > 0 || Number(d.w) > 0 || Number(d.h) > 0)
+      .map((d: any) => {
+        const explicitId = Number(d.dimId || d.id || 0);
+        return {
+          dimId: explicitId,
+          id: explicitId,
+          inquiryId: Number(this.quotation.id || 0),
+          box: Number(d.box || 1),
+          l: Number(d.l || 0),
+          w: Number(d.w || 0),
+          h: Number(d.h || 0),
+          unit: String(d.unit || 'CMS').toUpperCase().trim()
+        };
+      });
+  } else if (this.dimRow) {
+    const singleId = Number(this.dimRow.dimId || this.dimRow.id || 0);
+    finalDimensionsPayload = [{
+      dimId: singleId,
+      id: singleId,
+      inquiryId: Number(this.quotation.id || 0),
+      box: Number(this.dimRow.box || 1),
+      l: Number(this.dimRow.l || 0),
+      w: Number(this.dimRow.w || 0),
+      h: Number(this.dimRow.h || 0),
+      unit: String(this.dimRow.unit || 'CMS').toUpperCase().trim()
+    }];
+  }
+
+  // 2. Cost Breakdowns Formatting
   const costData = (this.costRows && this.costRows.length > 0 ? this.costRows : (this.costBreakdowns || [])).map((cb: any) => ({
-    lob: cb.lob || '', chargeType: cb.chargeType || 'Prepaid', basis: cb.basis || '',
-    chargeName: cb.chargeName || cb.charge || '', currency: cb.currency || 'INR',
-    rate: Number(cb.rate) || 0, exchangeRate: Number(cb.exchangeRate) || 1, amount: Number(cb.amount) || 0,remark: cb.remark || '' // <--- YE ADD KAREIN
+    lob: cb.lob || '', 
+    chargeType: cb.chargeType || 'Prepaid', 
+    basis: cb.basis || '',
+    chargeName: cb.chargeName || cb.charge || '', 
+    currency: cb.currency || 'INR',
+    rate: Number(cb.rate) || 0, 
+    exchangeRate: Number(cb.exchangeRate) || 1, 
+    amount: Number(cb.amount) || 0,
+    remark: cb.remark || ''
   }));
 
+  // 3. 🔥 FIXED: Multi-Carrier Master Breakdown Matrix Alignment Mapping
   const multiCarrierData = (this.multiCarrierRows || []).map((mcb: any) => ({
-    id: Number(mcb.id) || 0, forwarder: mcb.forwarder || '', origin: mcb.origin || '',
-    lob: mcb.lob || 'Standard', chargeName: mcb.chargeName || '', chargeType: mcb.chargeType || 'Prepaid',
-    currency: mcb.currency || 'USD', airFreight: Number(mcb.airFreight) || 0, fsc: mcb.fsc || '',
-    airline: mcb.airline || '', type: mcb.type || 'INDIRECT', cutoff: mcb.cutoff || '',
-    schedule: mcb.schedule || '', exWorks: Number(mcb.exWorks) || 0, doCharges: Number(mcb.doCharges) || 0,
-    ccFee: Number(mcb.ccFee) || 0, rate: Number(mcb.rate) || 0, exchangeRate: Number(mcb.exchangeRate) || 1,
-    totalCost: Number(mcb.totalCost) || 0, remark: mcb.remark || ''
+    id: Number(mcb.id || 0), 
+    pricingId: Number(this.quotation.id || 0),
+    forwarder: String(mcb.forwarder || '').trim(), 
+    origin: String(mcb.origin || '').trim(),
+    lob: String(mcb.lob || 'Standard'), 
+    chargeName: String(mcb.chargeName || '').trim(), 
+    chargeType: String(mcb.chargeType || 'Prepaid'),
+    currency: String(mcb.currency || 'USD').trim(), 
+    airFreight: Number(mcb.airFreight) || 0, 
+    fsc: String(mcb.fsc || 'INC'),
+    airline: String(mcb.airline || '').trim(), 
+    type: String(mcb.type || 'INDIRECT'), 
+    cutoff: String(mcb.cutoff || ''),
+    schedule: String(mcb.schedule || ''), 
+    exWorks: Number(mcb.exWorks) || 0, 
+    doCharges: Number(mcb.doCharges) || 0,
+    ccFee: Number(mcb.ccFee) || 0, 
+    rate: Number(mcb.rate) || 0, 
+    exchangeRate: Number(mcb.exchangeRate) || 1,
+    totalCost: Number(mcb.totalCost) || 0, 
+    remark: String(mcb.remark || '').trim()
   }));
 
-  const processedDocuments = (this.documents || []).map(d => ({ name: d.name, documentPath: (d.documentPath && !d.isReplacing) ? d.documentPath : null }));
-  const processedInvoices = (this.invoices || []).map(i => ({ name: i.name, documentPath: (i.documentPath && !i.isReplacing) ? i.documentPath : null }));
+  console.log("✈️ MULTI-CARRIER PACKAGED ARRAY DATA SUBMITTING:", multiCarrierData);
 
-  // Parent Payload Object
+  const processedDocuments = (this.documents || []).map(d => ({ 
+    name: d.name, 
+    documentPath: (d.documentPath && !d.isReplacing) ? d.documentPath : null 
+  }));
+  
+  const processedInvoices = (this.invoices || []).map(i => ({ 
+    name: i.name, 
+    documentPath: (i.documentPath && !i.isReplacing) ? i.documentPath : null 
+  }));
+
+  // 4. Compiling Master Payload matching C# Back-End contract requirements
   const payload: any = {
     ...this.quotation, 
     invoiceList: this.quotation.invoiceList || '', 
-    // saveQuotation() ke payload object mein ye change karein:
     teamId: (this.quotation.teamId && Number(this.quotation.teamId) > 0) ? Number(this.quotation.teamId) : null,
-    // Port Code Mapping
     CodeOfPOL: this.quotation.portOfLoadingCode || '',
     CodeOfPOD: this.quotation.portOfDestinationCode || '',
     CodeOfFinalDest: this.quotation.finalDestinationCode || '',
-    
-    // POD Origin mapping added here
     podOrigin: String(this.quotation.podOrigin || ''),
-    
     inquiryNo: String(this.quotation.inquiryNo || this.inquiry.inquiryNo || ''),
     referenceByInquiryNo: this.referenceByInquiryNo || this.quotation.inquiryNo || this.inquiry.inquiryNo || null,
-    
     transportMode: String(this.quotation.TransportMode || this.quotation.transportMode || ''), 
     transportType: String(this.quotation.TransportType || this.quotation.transportType || ''),
     serviceType: String(this.quotation.TransportType || this.quotation.transportType || ''), 
-    
     shipmentType: (this.quotation.shipmentType || this.inquiry.shipmentType || "").toString(),
     countryName: (this.quotation.countryName || this.selectedCountryName || "").toString(),     
     connectingPortIds: Array.isArray(this.quotation.connectingPortIds) ? this.quotation.connectingPortIds.join(',') : (this.quotation.connectingPortIds || ""),
-    
     OrganisationId: this.organisationId || 0,
     OrganisationName: this.organisationName || this.inquiry.organization,
     customerName: this.inquiry.organization,
     InquiryId: this.InquiryId || 0,
     pricingNo: this.quotation.pricingNo || null,
     originName: this.inquiry.origin || this.quotation.originPOL,
-
     portOfLoadingId: this.quotation.portOfLoadingId ? Number(this.quotation.portOfLoadingId) : null,
     portOfDischargeId: this.quotation.portOfDischargeId ? Number(this.quotation.portOfDischargeId) : null,
     lineOfBusinessId: this.quotation.lineOfBusinessId ? Number(this.quotation.lineOfBusinessId) : null,
     commodityId: this.quotation.commodity ? Number(this.quotation.commodity) : null,
     originId: this.originsaveid ? Number(this.originsaveid) : null,
-
- // Yahan field names ko Model ke exact names se map karo
-    GrossWeightUnit: this.quotation.GrossWeightUnit || '',
-    netWeightUnit: this.quotation.netWeightUnit || '',
-    chargeWeightUnit: this.quotation.chargeableWeightUnit || '',
-    volumeWeightUnit: this.quotation.volumeWeightUnit || '',
-    cbmUnit: this.quotation.cbmUnit || '',
-    noOfPkgsUnit: this.quotation.noOfPkgsUnit || '',
-
-    CostBreakdowns: costData, 
-    MultiCarrierBreakdowns: multiCarrierData,
-    dimensions: this.appliedDimensions || [],
+    GrossWeightUnit: this.quotation.GrossWeightUnit || 'KGS',
+    netWeightUnit: this.quotation.netWeightUnit || 'KGS',
+    chargeWeightUnit: this.quotation.chargeableWeightUnit || 'KGS',
+    volumeWeightUnit: this.quotation.volumeWeightUnit || 'KGS', 
+    NoOfPkgsUnit: this.quotation.noOfPkgsUnit || 'PKG',
+    CbmWeightUnit: this.quotation.CbmWeightUnit || 'CBM',
+    cargocurrency: String(this.quotation.currency || 'INR'),
+    cargoValue: String(this.quotation.cargoValue || "0"),
+    cargoStatus: (this.quotation.cargoStatus || this.quotation.cargoStatusType || 'Ready').toString(),
     
+    CostBreakdowns: costData, 
+    
+    // 🔥 FIXED PROPERTY NAME CASE ALIGNMENT:
+    multiCarrierBreakdowns: multiCarrierData, 
+    
+    dimensions: finalDimensionsPayload,
     commodityDocs: processedDocuments,
     packageInvoiceDocs: processedInvoices,
-
     salesCoordinator: (this.quotation.salesCoordinator || "").toString(),
-    cargoStatus: (this.quotation.cargoStatus || this.quotation.cargoStatusType || 'Ready').toString(),
-    cargoValue: (this.quotation.cargoValue || "0").toString(),
-    cargoCurrency: (this.quotation.currency || 'INR').toString(),
-    createdBy: 'admin@cavalierlogistic.in'
+    createdBy: 'admin@cavalierlogistic.in',
+    qtnId: String(this.quotation.qtnId || ('QTN-' + Math.floor(1000 + Math.random() * 9000))),
+    createdDate: new Date().toISOString()
   };
 
-  const keysToDelete = ['TransportMode', 'TransportType', 'SalesCoordinator', 'GrossWeight', 'GrossweightUnit', 'costBreakdowns', 'multiCarrierBreakdowns', 'existingInvoices'];
+  // 🔥 REMOVED 'multiCarrierBreakdowns' FROM THIS CLEANER LIST SO IT DOESN'T GET WIPED OUT!
+  const keysToDelete = ['TransportMode', 'TransportType', 'SalesCoordinator', 'GrossWeight', 'GrossweightUnit', 'costBreakdowns', 'existingInvoices', 'commodity'];
   keysToDelete.forEach(key => delete payload[key]);
 
   const formData = new FormData();
@@ -3691,15 +3747,14 @@ saveQuotation() {
 
   action.subscribe({
     next: (res: any) => {
-      this.sendBulkEmails(res.id);
-      Swal.fire('Saved!', 'Pricing saved successfully!', 'success');
-      this.onSearch();  
+      Swal.fire('Saved!', 'Pricing entry with Multi-Carrier table configurations saved successfully!', 'success');
       this.isFormOpen = false;
+      this.onSearch(); 
       this.cdr.detectChanges();
     },
     error: (err) => {
-      console.error("❌ API SAVE FAILED:", err);
-      Swal.fire('Error', err.error?.message || "Internal Entity Error.", 'error');
+      console.error("❌ API SAVE SYSTEM REJECTION TRACE:", err);
+      Swal.fire('Database Mismatch', err.error?.message || "Entity relational matrix validation conflict.", 'error');
     }
   });
 }
@@ -4718,16 +4773,24 @@ this.quotation.cargoStatusType=pricing.cargoStatus || '';
 // Keep it safe for other components calling it
 
 sendBulkEmails(inqId: number) {
+  // 🔥 CRITICAL REQUIREMENT MATCH: अगर कोई भी ईमेल सिलेक्टेड नहीं है, तो न एनिमेशन आएगा और न API कॉल होगी!
+  if (!this.selectedEmails || this.selectedEmails.size === 0) {
+    console.warn("⚠️ Redirection flow complete: No agents selected, bypassing email deployment.");
+    // बिना ईमेल भेजे सीधे प्राइसिंग लिस्ट स्क्रीन पर रिडायरेक्ट कर दें
+    this.router.navigate(['/dashboard/Price']);
+    return;
+  }
+
   const payload = {
-   toEmails: Array.from(this.selectedEmails),
+    toEmails: Array.from(this.selectedEmails),
     inquiryId: inqId,
-    branchName: this.lastSelectedBranch
+    branchName: this.lastSelectedBranch || "Our Partner"
   };
 
   const token = localStorage.getItem('cavalier_token');
   const headers = { Authorization: `Bearer ${token}` };
 
-  // 🔥 STEP 1: Sending Animation wala Modal kholna
+  // 🔥 STEP 1: Sending Animation वाला Modal सिर्फ़ तभी खुलेगा जब ईमेल सिलेक्टेड होंगे
   Swal.fire({
     title: 'Processing...',
     html: `
@@ -4741,9 +4804,8 @@ sendBulkEmails(inqId: number) {
     allowOutsideClick: false,
     showConfirmButton: false,
     didOpen: () => {
-      Swal.showLoading(); // Ye standard loader dikhayega
+      Swal.showLoading(); 
     },
-    // Custom style for your premium look
     customClass: {
       popup: 'premium-popup',
     }
@@ -4752,26 +4814,27 @@ sendBulkEmails(inqId: number) {
   // 🔥 STEP 2: Actual API Call
   this.http.post(`${this.apiUrl}/SendBulkEmail`, payload, { headers }).subscribe({
     next: (res: any) => {
-      // ✅ SUCCESS: Success wala Animation dikhana
       Swal.fire({
         icon: 'success',
         title: 'Sent Successfully!',
-       text: 'Emails sent and Inquiry saved successfully.',
+        text: 'Emails sent and Inquiry saved successfully.',
         timer: 3000,
         showConfirmButton: false,
         timerProgressBar: true
       }).then(() => {
-        // 🔥 YAHAN REDIRECT HOGA 🔥
         this.router.navigate(['/dashboard/Price']);
       });
     },
     error: (err) => {
-      // ❌ ERROR: Error message dikhana
+      console.error("❌ Email API Error Details:", err);
       Swal.fire({
         icon: 'error',
         title: 'Email Failed',
         text: err.error?.message || 'Something went wrong while sending email.',
         confirmButtonColor: '#4a3f3f'
+      }).then(() => {
+        // एरर आने पर भी लिस्ट स्क्रीन पर भेजें ताकि डेटा सेव हो चुका है तो यूज़र देख सके
+        this.router.navigate(['/dashboard/Price']);
       });
     }
   });

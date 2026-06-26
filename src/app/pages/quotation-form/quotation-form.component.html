@@ -1346,15 +1346,17 @@
         placeholder="Enter Location"
       />
 
-      <label class="text-gray-700 font-bold block mb-1 uppercase"
-        >Pricing By</label
-      >
-      <input
-        name="pricingBy"
-        [(ngModel)]="quotation.pricingBy"
-        [ngModelOptions]="{ standalone: true }"
-        class="w-full border p-2 mb-2 outline-none"
-      />
+     <label class="text-gray-700 font-bold block mb-1 uppercase">Pricing By</label>
+  <select
+    [(ngModel)]="quotation.pricingBy"
+    name="pricingBy"
+    class="w-full border p-1.5 mb-2 outline-none text-[12px] bg-white cursor-pointer font-medium text-gray-700 shadow-sm"
+  >
+    <option value="">-- Select Pricing Specialist --</option>
+    <option *ngFor="let pb of getpricingByList" [value]="pb.name">
+      {{ pb.name }}
+    </option>
+  </select>
 
   <label class="text-gray-700 font-bold block mb-1 uppercase">Team</label>
 <select

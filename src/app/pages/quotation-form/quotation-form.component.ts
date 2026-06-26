@@ -41,6 +41,7 @@ export class QuotationFormComponent implements OnInit {
   @ViewChild('cargoReadyDateInput') cargoReadyDateInput!: ElementRef;
   token:string='';
   isPreviewMode = false;
+  getpricingByList: any[] = [];
 agentDetail: any[] = [];
 selectedEmails = new Set<string>();
 lastSelectedBranch: string = "";
@@ -1303,8 +1304,13 @@ documents: this.documents.map(d => ({ fileName: d.name, filePath: d.documentPath
   });
 }
 onTeamChange(teamId: any) {
-  if (!teamId || teamId === 'null' || teamId === null) {
-    this.getsalescordinate = []; // Options clear if no team selected
+  console.log("👥 Team Selected inside Quotation Framework. Team ID:", teamId);
+
+  if (!teamId || teamId === 'null' || teamId === null || teamId === undefined) {
+    this.getsalescordinate = [];
+    this.getpricingByList = []; // Reset on empty selection
+    this.quotation.salesCoordinator = '';
+    this.quotation.pricingBy = '';
     return;
   }
 
@@ -1314,17 +1320,22 @@ onTeamChange(teamId: any) {
 
   this.http.get<any>(url, { headers }).subscribe({
     next: (res) => {
-      console.log("🎯 Team Details Fetched for Pricing Framework:", res);
-      if (res && res.salesCoordinators) {
-        this.getsalescordinate = res.salesCoordinators;
-      } else {
-        this.getsalescordinate = [];
-      }
-      this.cdr.detectChanges();
+      console.log("🎯 Dynamic Team Payload Received:", res);
+      
+      // 1. Sales Coordinators list bind karein
+      this.getsalescordinate = (res && res.salesCoordinators) ? res.salesCoordinators : [];
+      
+      // 2. 🔥 PRICING BY DROPDOWN BINDING: Team details se pricingBy array uthayein
+      this.getpricingByList = (res && res.pricingBy) ? res.pricingBy : [];
+      
+      console.log("Bound PricingBy List size:", this.getpricingByList.length);
+      this.cdr.detectChanges(); // View sync trigger
     },
     error: (err) => {
-      console.error("Error fetching dynamic team details:", err);
+      console.error("❌ Error fetching dynamic team details:", err);
       this.getsalescordinate = [];
+      this.getpricingByList = [];
+      this.cdr.detectChanges();
     }
   });
 }
@@ -2963,10 +2974,17 @@ if (this.quotation.teamId) {
 
       
       // --- Pricing By (Fixed) ---
-      setTimeout(() => {
-        this.quotation.pricingBy = p.pricingDoneBy || p.PricingDoneBy || '';
-        this.cdr.detectChanges();
-      }, 100);
+      // selectPricing(prc: any) ke andar pricingBy set karne wala setTimeout isse replace kijiye:
+setTimeout(() => {
+  if (p.pricingDoneBy || p.PricingDoneBy) {
+    const targetP = (p.pricingDoneBy || p.PricingDoneBy).toString().toLowerCase();
+    const foundP = this.getpricingByList.find(item => item.id.toString() === targetP || item.name.toLowerCase() === targetP);
+    
+    // Agar dropdown list me name mil jata hai toh use set karo, nahi toh original string fallback rakho
+    this.quotation.pricingBy = foundP ? foundP.name : (p.pricingDoneBy || p.PricingDoneBy);
+  }
+  this.cdr.detectChanges();
+}, 200); // Mapped response timeout closure safely managed
 // 2. Multi-Carrier Breakdown Mapping (Exact Database Keys Match)
 if (p.multiCarrierBreakdowns && Array.isArray(p.multiCarrierBreakdowns)) {
     this.multiCarrierRows = p.multiCarrierBreakdowns.map((m: any) => ({

@@ -52,6 +52,8 @@ export class PriceComponent {
  @ViewChild('cargoDateInput') cargoDateInput!: ElementRef<HTMLInputElement>;
  totalCount: number = 0;
  chargesList: any[] = [];
+ getquotedByList: any[] = [];
+getpricingByList: any[] = [];
  // PriceComponent Class ke properties section mein add karein
 teamsList: any[] = [];
  showCountryDropdown: boolean = false;
@@ -617,9 +619,17 @@ getTeams() {
 }
 
 // 2. Team select hone par specific sales coordinators fetch karne ke liye function
+// --- 1. Properties Section me ye dono arrays declare karo (Baki variables ke sath top par) ---
+
+
+// --- 2. Apne existing onTeamChange() function ko is upgraded system logic se replace karo ---
 onTeamChange(teamId: any) {
-  if (!teamId || teamId === 'null' || teamId === null) {
-    this.getsalescordinate = []; // Options clear if no team selected
+  console.log("📡 Dynamic Team Change triggered inside Pricing Engine, Team ID:", teamId);
+  
+  if (!teamId || teamId === 'null' || teamId === null || teamId === undefined) {
+    this.getsalescordinate = [];
+    this.getquotedByList = [];
+    this.getpricingByList = [];
     return;
   }
 
@@ -629,17 +639,24 @@ onTeamChange(teamId: any) {
 
   this.http.get<any>(url, { headers }).subscribe({
     next: (res) => {
-      console.log("🎯 Team Details Fetched for Pricing Framework:", res);
-      if (res && res.salesCoordinators) {
-        this.getsalescordinate = res.salesCoordinators;
-      } else {
-        this.getsalescordinate = [];
-      }
-      this.cdr.detectChanges();
+      console.log("📊 Raw Team Payload Received:", res);
+      
+      // Directly matching key references matching incoming JSON schema contract
+      this.getsalescordinate = (res && res.salesCoordinators) ? res.salesCoordinators : [];
+      this.getquotedByList = (res && res.quotedBy) ? res.quotedBy : [];
+      this.getpricingByList = (res && res.pricingBy) ? res.pricingBy : [];
+      
+      console.log("Successfully bound getquotedByList size:", this.getquotedByList.length);
+      console.log("Successfully bound getpricingByList size:", this.getpricingByList.length);
+      
+      this.cdr.detectChanges(); // Force Angular view-tree layout synchronization update
     },
     error: (err) => {
-      console.error("Error fetching dynamic team details:", err);
+      console.error("❌ Failed to query dynamic team framework context layout:", err);
       this.getsalescordinate = [];
+      this.getquotedByList = [];
+      this.getpricingByList = [];
+      this.cdr.detectChanges();
     }
   });
 }
@@ -3993,14 +4010,14 @@ isPortSelected(port: any): boolean {
 // public invoices: any[] = [];
 commodityDocuments: any[] = [];
   packageOrInvoiceDocuments: any[] = [];
-selectInquiry(inq: any) {
+  selectInquiry(inq: any) {
   if (!inq || !inq.inquiryNo) {
     console.error("❌ Inquiry No missing!");
     return;
   }
   
   this.InquiryId = inq.id || 0;
-  this.referenceByInquiryNo = inq.inquiryNo || 0;
+  this.referenceByInquiryNo = inq.inquiryNo || '';
   this.organisationId = inq.organisationId || 0;
   this.organisationName = inq.organisationName || '';
 
@@ -4011,7 +4028,6 @@ selectInquiry(inq: any) {
     next: (data) => {
       console.log("✅ Actual API Data:", data);
 
-      // --- 1. Basic & Organization ---
       this.quotation.referenceByInquiry = data.inquiryNo || '';
       this.quotation.customerName = data.customerName || '';
       this.quotation.organization = data.organisationName || '';
@@ -4019,131 +4035,60 @@ selectInquiry(inq: any) {
       this.quotation.branchName = data.branchName || '';
       this.quotation.location = data.location || '';
       this.quotation.partyRole = data.partyRole || '';
-// --- SINGLE SOURCE OF TRUTH FOR TEAM & COORDINATOR ---
-this.quotation.teamId = null;
-this.getsalescordinate = [];
 
-// 1. Team ID Resolve karein
-let targetTeamId = data.teamId || data.TeamId || null;
+      // --- TEAM & COORDINATOR SYNC ---
+      this.quotation.teamId = null;
+      this.getsalescordinate = [];
+      this.getquotedByList = [];
+      this.getpricingByList = [];
 
-// Agar ID nahi mili toh Name se dhundein
-if (!targetTeamId && data.team && Array.isArray(this.teamsList)) {
-  const teamName = String(data.team).trim().toLowerCase();
-  const match = this.teamsList.find(t => 
-    String(t.teamName || t.name || '').trim().toLowerCase() === teamName
-  );
-  if (match) targetTeamId = match.teamId || match.id;
-}
+      let targetTeamId = data.teamId || data.TeamId || null;
 
-// 2. Data Bind karein
-if (targetTeamId) {
-  this.quotation.teamId = targetTeamId.toString(); // Dropdown ke liye string convert
-  console.log("🎯 Setting Team ID:", this.quotation.teamId);
+      if (!targetTeamId && data.team && Array.isArray(this.teamsList)) {
+        const teamName = String(data.team).trim().toLowerCase();
+        const match = this.teamsList.find(t => String(t.teamName || t.name || '').trim().toLowerCase() === teamName);
+        if (match) targetTeamId = match.teamId || match.id;
+      }
 
-  // 3. API se Coordinator List mangwayein
-  this.onTeamChange(this.quotation.teamId);
+      if (targetTeamId) {
+        this.quotation.teamId = targetTeamId.toString();
+        
+        // Dynamic fetch sets getsalescordinate, getquotedByList, and getpricingByList
+        this.onTeamChange(this.quotation.teamId);
 
-  // 4. Coordinator Select karein (List aane ka wait)
-  setTimeout(() => {
-    if (data.salesCoordinator) {
-      const scVal = data.salesCoordinator.toString().toLowerCase();
-      const found = this.getsalescordinate.find(sc => 
-        sc.id.toString() === scVal || (sc.name && sc.name.toString().toLowerCase() === scVal)
-      );
-      this.quotation.salesCoordinator = found ? found.id : data.salesCoordinator;
-      this.cdr.detectChanges();
-    }
-  }, 100  ); // 1 sec ka time buffer zaroori hai
-}
+        setTimeout(() => {
+          if (data.salesCoordinator) {
+            const scVal = data.salesCoordinator.toString().toLowerCase();
+            const found = this.getsalescordinate.find(sc => sc.id.toString() === scVal || (sc.name && sc.name.toString().toLowerCase() === scVal));
+            this.quotation.salesCoordinator = found ? found.id : data.salesCoordinator;
+          }
 
-      // --- 3. Documents ---
+          // Fetch values if they exist in the inquiry data payload
+          if (data.qtnDoneBy || data.quotedBy) {
+            this.quotation.qtnDoneBy = data.qtnDoneBy || data.quotedBy;
+          }
+          if (data.pricingDoneBy || data.pricingBy) {
+            this.quotation.pricingDoneBy = data.pricingDoneBy || data.pricingBy;
+          }
+
+          this.cdr.detectChanges();
+        }, 350); // Small timing fallback context layout execution block
+      }
+
+      // --- Rest of your existing selectInquiry mappings ---
       this.commodityDocuments = data.commodityDocuments || [];
       this.packageOrInvoiceDocuments = data.packageOrInvoiceDocuments || [];
-      this.documents = (data.commodityDocuments || []).map((doc: any) => ({
-        id: doc.id, name: doc.name || 'Document', documentPath: doc.documentPath,
-        isExisting: true, file: null, isReplacing: false
-      }));
-      this.invoices = (data.packageOrInvoiceDocuments || []).map((doc: any) => ({
-        id: doc.id, name: doc.name || 'Document', documentPath: doc.documentPath,
-        isExisting: true, file: null, isReplacing: false
-      }));
+      this.documents = (data.commodityDocuments || []).map((doc: any) => ({ id: doc.id, name: doc.name || 'Document', documentPath: doc.documentPath, isExisting: true, file: null, isReplacing: false }));
+      this.invoices = (data.packageOrInvoiceDocuments || []).map((doc: any) => ({ id: doc.id, name: doc.name || 'Document', documentPath: doc.documentPath, isExisting: true, file: null, isReplacing: false }));
       this.quotation.invoiceList = (this.invoices.length > 0) ? 'Available' : 'Not Available';
 
-      // --- 4. LOB & Transport ---
       this.quotation.lineOfBusinessId = data.lineOfBusinessId ? Number(data.lineOfBusinessId) : null;
       if (data.transportMode) {
-        const modeObj = this.transportModes.find(m =>
-          m.name.toLowerCase() === data.transportMode.toLowerCase() || m.id == data.transportMode
-        );
+        const modeObj = this.transportModes.find(m => m.name.toLowerCase() === data.transportMode.toLowerCase() || m.id == data.transportMode);
         this.quotation.TransportMode = modeObj ? modeObj.id : data.transportMode;
       }
       this.quotation.TransportType = data.transportType || '';
-
-      // --- 5. Pricing ---
       this.quotation.commodity = data.commodityId ? Number(data.commodityId) : null;
-      this.quotation.pricingDoneBy = data.pricingDoneBy || '';
-      this.quotation.qtnDoneBy = data.qtnDoneBy || '';
-      this.quotation.businessDimensions = data.businessDimensions || '';
-      
-      // --- UNITS MAPPING ---
-      this.quotation.GrossWeightUnit = data.grossWeightUnit || data.GrossWeightUnit || '';
-      this.quotation.netWeightUnit = data.netWeightUnit || data.NetWeightUnit || '';
-      this.quotation.chargeableWeightUnit = data.chargeableWeightUnit || data.ChargeableWeightUnit || '';
-      this.quotation.volumeWeightUnit = data.volumeWeightUnit || data.VolumeWeightUnit || '';
-      this.quotation.CbmWeightUnit = data.cbmWeightUnit || data.CbmWeightUnit || '';
-      this.quotation.noOfPkgsUnit = data.noOfPkgsUnit || data.NoOfPkgsUnit || '';
-
-      // --- 6. Movement & Ports ---
-      this.quotation.shipmentType = data.shipmentType?.toString() || '';
-      this.quotation.movementType = data.movementType || '';
-      this.inquiry.origin = data.originName || '';
-      this.originsaveid = data.originId || null;
-      this.originpinCode = data.originCountryCode || '';
-
-      this.quotation.portOfLoadingId = data.portOfLoadingId ? Number(data.portOfLoadingId) : null;
-      this.quotation.portOfLoadingCode = data.codeOfPOL || '';
-      const polMatch = this.portsOfLoading?.find(p => p && Number(p.id) === Number(data.portOfLoadingId));
-      this.quotation.portOfLoading = polMatch ? (polMatch.portName || polMatch.name) : (data.portOfLoadingName || '');
-
-      this.quotation.portOfDischargeId = data.portOfDischargeId ? Number(data.portOfDischargeId) : null;
-      this.quotation.portOfDestinationCode = data.codeOfPOD || '';
-      const podMatch = this.portsOfDischarge?.find(p => p && Number(p.id) === Number(data.portOfDischargeId));
-      this.quotation.portOfDestination = podMatch ? (podMatch.portName || podMatch.name) : (data.portOfDischargeName || '');
-
-      this.quotation.finalDestination = data.finalDestination || '';
-      this.quotation.finalDestinationCode = data.codeOfFinalDest || '';
-      this.quotation.isDirect = data.isDirect === true;
-      this.quotation.isIndirect = data.isIndirect === true;
-      this.quotation.podOrigin = data.podOrigin || '';
-
-      // --- 7. Connecting Ports ---
-      this.selectedConnectingPorts = [];
-      this.quotation.connectingPortIds = [];
-      const rawCP = data.connectingPortIds || data.ConnectingPortIds;
-      if (rawCP) {
-        const idsArray = Array.isArray(rawCP) ? rawCP : rawCP.toString().split(',').map(Number);
-        this.quotation.connectingPortIds = idsArray;
-        
-        this.selectedConnectingPorts = idsArray.map((id: number) => {
-          const masterPort = this.filteredConnectingPorts?.find(p => Number(p.id) === id);
-          return {
-            id: id,
-            portName: masterPort ? (masterPort.portName || masterPort.name) : `Port ID: ${id}`,
-            portCode: masterPort ? masterPort.portCode : 'N/A'
-          };
-        });
-      }
-
-      try {
-        if (data.receivedDate) this.quotation.receivedDate = new Date(data.receivedDate).toISOString().split('T')[0];
-        if (data.cargoStatusDate) this.quotation.cargoStatusDate = data.cargoStatusDate.split('T')[0];
-        if (data.repliedDate && data.repliedDate !== '2000-02-12T00:00:00' && data.repliedDate !== '0001-01-01T00:00:00') {
-          this.quotation.repliedDate = new Date(data.repliedDate).toISOString().split('T')[0];
-        }
-      } catch (dateErr) { console.error('Date parsing issue:', dateErr); }
-
-      this.quotation.incoterm = data.incoterm || '';
-      if (this.quotation.incoterm) this.onIncotermChange({ target: { value: this.quotation.incoterm } });
 
       this.quotation.noOfPkgs = data.noOfPkgs || 0;
       this.quotation.grossWeightKg = data.grossWeightKg || 0;
@@ -4154,32 +4099,209 @@ if (targetTeamId) {
       this.quotation.currency = data.cargoCurrency || '';
       this.quotation.cargoStatusType = data.cargoStatus || '';
 
-      if (data.dimensions?.length > 0) {
-        this.dimRows = data.dimensions.map((d: any) => ({ box: d.box || 0, l: d.l || 0, w: d.w || 0, h: d.h || 0, unit: d.unit || 'CMS' }));
-        this.dimRow = { ...this.dimRows[0] };
-      } else {
-        this.dimRow = { box: 0, l: 0, w: 0, h: 0, unit: 'CMS' };
-        this.dimRows = [];
-      }
-      this.calculateVolumeWeight();
-
-      this.quotation.countryName = data.countryName || '';
-      this.quotation.country = data.countryName || '';
-      this.quotation.countryId = data.countryId || null;
-
       this.showInquiryDropdown = false;
-      this.showCountryDropdown = false;
-      this.showPortOfDischargeDropdown = false;
-      this.showOriginDropdown = false;
-// ff
-      this.cdr.detectChanges(); 
-      if (this.quotation.lineOfBusinessId) this.onLOBChange({ target: { value: this.quotation.lineOfBusinessId } });
-
-      setTimeout(() => { this.cdr.detectChanges(); }, 200);
+      this.cdr.detectChanges();
     },
-    error: (err) => console.error("❌ API Error:", err)
+    error: (err) => console.error("❌ selectInquiry execution error profile tracking:", err)
   });
 }
+
+// selectInquiry(inq: any) {
+//   if (!inq || !inq.inquiryNo) {
+//     console.error("❌ Inquiry No missing!");
+//     return;
+//   }
+  
+//   this.InquiryId = inq.id || 0;
+//   this.referenceByInquiryNo = inq.inquiryNo || 0;
+//   this.organisationId = inq.organisationId || 0;
+//   this.organisationName = inq.organisationName || '';
+
+//   const inquiryNo = inq.inquiryNo?.trim();
+//   const url = `${environment.apiUrl}/Inquiry/by-no?inquiryNo=${inquiryNo}`;
+
+//   this.http.get<any>(url).subscribe({
+//     next: (data) => {
+//       console.log("✅ Actual API Data:", data);
+
+//       // --- 1. Basic & Organization ---
+//       this.quotation.referenceByInquiry = data.inquiryNo || '';
+//       this.quotation.customerName = data.customerName || '';
+//       this.quotation.organization = data.organisationName || '';
+//       if (this.inquiry) this.inquiry.organization = data.organisationName || '';
+//       this.quotation.branchName = data.branchName || '';
+//       this.quotation.location = data.location || '';
+//       this.quotation.partyRole = data.partyRole || '';
+// // --- SINGLE SOURCE OF TRUTH FOR TEAM & COORDINATOR ---
+// this.quotation.teamId = null;
+// this.getsalescordinate = [];
+
+// // 1. Team ID Resolve karein
+// let targetTeamId = data.teamId || data.TeamId || null;
+
+// // Agar ID nahi mili toh Name se dhundein
+// if (!targetTeamId && data.team && Array.isArray(this.teamsList)) {
+//   const teamName = String(data.team).trim().toLowerCase();
+//   const match = this.teamsList.find(t => 
+//     String(t.teamName || t.name || '').trim().toLowerCase() === teamName
+//   );
+//   if (match) targetTeamId = match.teamId || match.id;
+// }
+
+// // 2. Data Bind karein
+// if (targetTeamId) {
+//   this.quotation.teamId = targetTeamId.toString(); // Dropdown ke liye string convert
+//   console.log("🎯 Setting Team ID:", this.quotation.teamId);
+
+//   // 3. API se Coordinator List mangwayein
+//   this.onTeamChange(this.quotation.teamId);
+
+//   // 4. Coordinator Select karein (List aane ka wait)
+//   // In selectInquiry() inside the setTimeout where salesCoordinator is handled:
+// setTimeout(() => {
+//   // Safe validation fallback assignment parameters mapping array flow matrix logic
+//   if (data.salesCoordinator) {
+//     const scVal = data.salesCoordinator.toString().toLowerCase();
+//     const found = this.getsalescordinate.find(sc => sc.id.toString() === scVal || (sc.name && sc.name.toString().toLowerCase() === scVal));
+//     this.quotation.salesCoordinator = found ? found.id.toString() : data.salesCoordinator.toString();
+//   }
+  
+//   // 🔥 ADD THESE TWO TARGET SYNCHRONIZATION LINES FOR QUOTED BY & PRICING BY
+//   if (data.qtnDoneBy || data.quotedBy) {
+//     this.quotation.qtnDoneBy = (data.qtnDoneBy || data.quotedBy).toString();
+//   }
+//   if (data.pricingDoneBy || data.pricingBy) {
+//     this.quotation.pricingDoneBy = (data.pricingDoneBy || data.pricingBy).toString();
+//   }
+  
+//   this.cdr.detectChanges();
+// }, 800); // 800ms alignment timing parameter for rendering safety stability template// 1 sec ka time buffer zaroori hai
+// }
+
+//       // --- 3. Documents ---
+//       this.commodityDocuments = data.commodityDocuments || [];
+//       this.packageOrInvoiceDocuments = data.packageOrInvoiceDocuments || [];
+//       this.documents = (data.commodityDocuments || []).map((doc: any) => ({
+//         id: doc.id, name: doc.name || 'Document', documentPath: doc.documentPath,
+//         isExisting: true, file: null, isReplacing: false
+//       }));
+//       this.invoices = (data.packageOrInvoiceDocuments || []).map((doc: any) => ({
+//         id: doc.id, name: doc.name || 'Document', documentPath: doc.documentPath,
+//         isExisting: true, file: null, isReplacing: false
+//       }));
+//       this.quotation.invoiceList = (this.invoices.length > 0) ? 'Available' : 'Not Available';
+
+//       // --- 4. LOB & Transport ---
+//       this.quotation.lineOfBusinessId = data.lineOfBusinessId ? Number(data.lineOfBusinessId) : null;
+//       if (data.transportMode) {
+//         const modeObj = this.transportModes.find(m =>
+//           m.name.toLowerCase() === data.transportMode.toLowerCase() || m.id == data.transportMode
+//         );
+//         this.quotation.TransportMode = modeObj ? modeObj.id : data.transportMode;
+//       }
+//       this.quotation.TransportType = data.transportType || '';
+
+//       // --- 5. Pricing ---
+//       this.quotation.commodity = data.commodityId ? Number(data.commodityId) : null;
+//       this.quotation.pricingDoneBy = data.pricingDoneBy || '';
+//       this.quotation.qtnDoneBy = data.qtnDoneBy || '';
+//       this.quotation.businessDimensions = data.businessDimensions || '';
+      
+//       // --- UNITS MAPPING ---
+//       this.quotation.GrossWeightUnit = data.grossWeightUnit || data.GrossWeightUnit || '';
+//       this.quotation.netWeightUnit = data.netWeightUnit || data.NetWeightUnit || '';
+//       this.quotation.chargeableWeightUnit = data.chargeableWeightUnit || data.ChargeableWeightUnit || '';
+//       this.quotation.volumeWeightUnit = data.volumeWeightUnit || data.VolumeWeightUnit || '';
+//       this.quotation.CbmWeightUnit = data.cbmWeightUnit || data.CbmWeightUnit || '';
+//       this.quotation.noOfPkgsUnit = data.noOfPkgsUnit || data.NoOfPkgsUnit || '';
+
+//       // --- 6. Movement & Ports ---
+//       this.quotation.shipmentType = data.shipmentType?.toString() || '';
+//       this.quotation.movementType = data.movementType || '';
+//       this.inquiry.origin = data.originName || '';
+//       this.originsaveid = data.originId || null;
+//       this.originpinCode = data.originCountryCode || '';
+
+//       this.quotation.portOfLoadingId = data.portOfLoadingId ? Number(data.portOfLoadingId) : null;
+//       this.quotation.portOfLoadingCode = data.codeOfPOL || '';
+//       const polMatch = this.portsOfLoading?.find(p => p && Number(p.id) === Number(data.portOfLoadingId));
+//       this.quotation.portOfLoading = polMatch ? (polMatch.portName || polMatch.name) : (data.portOfLoadingName || '');
+
+//       this.quotation.portOfDischargeId = data.portOfDischargeId ? Number(data.portOfDischargeId) : null;
+//       this.quotation.portOfDestinationCode = data.codeOfPOD || '';
+//       const podMatch = this.portsOfDischarge?.find(p => p && Number(p.id) === Number(data.portOfDischargeId));
+//       this.quotation.portOfDestination = podMatch ? (podMatch.portName || podMatch.name) : (data.portOfDischargeName || '');
+
+//       this.quotation.finalDestination = data.finalDestination || '';
+//       this.quotation.finalDestinationCode = data.codeOfFinalDest || '';
+//       this.quotation.isDirect = data.isDirect === true;
+//       this.quotation.isIndirect = data.isIndirect === true;
+//       this.quotation.podOrigin = data.podOrigin || '';
+
+//       // --- 7. Connecting Ports ---
+//       this.selectedConnectingPorts = [];
+//       this.quotation.connectingPortIds = [];
+//       const rawCP = data.connectingPortIds || data.ConnectingPortIds;
+//       if (rawCP) {
+//         const idsArray = Array.isArray(rawCP) ? rawCP : rawCP.toString().split(',').map(Number);
+//         this.quotation.connectingPortIds = idsArray;
+        
+//         this.selectedConnectingPorts = idsArray.map((id: number) => {
+//           const masterPort = this.filteredConnectingPorts?.find(p => Number(p.id) === id);
+//           return {
+//             id: id,
+//             portName: masterPort ? (masterPort.portName || masterPort.name) : `Port ID: ${id}`,
+//             portCode: masterPort ? masterPort.portCode : 'N/A'
+//           };
+//         });
+//       }
+
+//       try {
+//         if (data.receivedDate) this.quotation.receivedDate = new Date(data.receivedDate).toISOString().split('T')[0];
+//         if (data.cargoStatusDate) this.quotation.cargoStatusDate = data.cargoStatusDate.split('T')[0];
+//         if (data.repliedDate && data.repliedDate !== '2000-02-12T00:00:00' && data.repliedDate !== '0001-01-01T00:00:00') {
+//           this.quotation.repliedDate = new Date(data.repliedDate).toISOString().split('T')[0];
+//         }
+//       } catch (dateErr) { console.error('Date parsing issue:', dateErr); }
+
+//       this.quotation.incoterm = data.incoterm || '';
+//       if (this.quotation.incoterm) this.onIncotermChange({ target: { value: this.quotation.incoterm } });
+
+//       this.quotation.noOfPkgs = data.noOfPkgs || 0;
+//       this.quotation.grossWeightKg = data.grossWeightKg || 0;
+//       this.quotation.chargeableWeight = data.chargeableWeight || 0;
+//       this.quotation.volumeWeight = data.volumeWeight || 0;
+//       this.quotation.description = data.description || '';
+//       this.quotation.cargoValue = data.cargoValue || '';
+//       this.quotation.currency = data.cargoCurrency || '';
+//       this.quotation.cargoStatusType = data.cargoStatus || '';
+
+//       if (data.dimensions?.length > 0) {
+//         this.dimRows = data.dimensions.map((d: any) => ({ box: d.box || 0, l: d.l || 0, w: d.w || 0, h: d.h || 0, unit: d.unit || 'CMS' }));
+//         this.dimRow = { ...this.dimRows[0] };
+//       } else {
+//         this.dimRow = { box: 0, l: 0, w: 0, h: 0, unit: 'CMS' };
+//         this.dimRows = [];
+//       }
+//       this.calculateVolumeWeight();
+
+//       this.quotation.countryName = data.countryName || '';
+//       this.quotation.country = data.countryName || '';
+//       this.quotation.countryId = data.countryId || null;
+
+//       this.showInquiryDropdown = false;
+//       this.showCountryDropdown = false;
+//       this.showPortOfDischargeDropdown = false;
+//       this.showOriginDropdown = false;
+// // ff
+//       this.cdr.detectChanges(); 
+//       if (this.quotation.lineOfBusinessId) this.onLOBChange({ target: { value: this.quotation.lineOfBusinessId } });
+
+//       setTimeout(() => { this.cdr.detectChanges(); }, 200);
+//     },
+//     error: (err) => console.error("❌ API Error:", err)
+//   });
+// }
 isHazard(): boolean {
 
   // 1. Agar selectcommodityvalue mein seedha 'Hazard' likha hai

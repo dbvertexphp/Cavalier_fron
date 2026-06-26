@@ -1077,6 +1077,15 @@ generateQuotationNo(): string {
   return `CAV/QTN/${initials}/${formattedNumber}/${fy}`;
 }
 saveQuotation() {
+  if (this.quotation) {
+    // Final force sync taaki API request hit hone se pehle JSON body mein absolute fresh value jaye
+    if (this.quotation.chargeableWeightUnit) {
+      this.quotation.chrgWeightUnit = this.quotation.chargeableWeightUnit;
+    }
+    if (this.quotation.grossWeightUnit) {
+      this.quotation.GrossWeightUnit = this.quotation.grossWeightUnit;
+    }
+  }
   const token = localStorage.getItem('cavalier_token');
   if (!token) {
     Swal.fire('Error', 'Session expire ho gaya hai. Login karein.', 'error');
@@ -3501,9 +3510,40 @@ onPodChange() {
   this.quotation.portOfDischargeCode = selectedPod ? selectedPod.portCode : '';
   this.cdr.detectChanges();
 }
-updatePreview() {
-  this.quotation = { ...this.quotation };
-  this.calculateTotalRevenue()
+onChargeableUnitChange(): void {
+  if (this.quotation) {
+    // Payload mein dono keys (chargeableWeightUnit aur chrgWeightUnit) ko aamne-saamne sync karna padega
+    if (this.quotation.chargeableWeightUnit) {
+      this.quotation.chrgWeightUnit = this.quotation.chargeableWeightUnit;
+    }
+    this.updatePreview();
+  }
+}
+updatePreview(): void {
+  if (this.quotation) {
+    // Core Fix: Agar chargeableWeightUnit select box se badla hai, toh chrgWeightUnit ko force update karein
+    if (this.quotation.chargeableWeightUnit) {
+      this.quotation.chrgWeightUnit = this.quotation.chargeableWeightUnit;
+    } else if (this.quotation.chrgWeightUnit) {
+      this.quotation.chargeableWeightUnit = this.quotation.chrgWeightUnit;
+    }
+
+    // Gross weight unit backup check
+    if (this.quotation.grossWeightUnit) {
+      this.quotation.GrossWeightUnit = this.quotation.grossWeightUnit;
+    }
+
+    // Existing calculation flows bina kisi disturbance ke execute honge
+    if (typeof this.calculateCBM === 'function') {
+      this.calculateCBM();
+    }
+    if (typeof this.calculateRevenue === 'function') {
+      this.calculateRevenue();
+    }
+    if (typeof this.calculateCost === 'function') {
+      this.calculateCost();
+    }
+  }
 }
 calculateTotalRevenue(): number {
   return this.revenueRows.reduce((sum, row) => sum + (Number(row.amount) || 0), 0);
@@ -3661,10 +3701,15 @@ toggleUomModal() {
   this.isUomModalOpen = !this.isUomModalOpen;
 }
 
-selectUom(uom: any) {
-  this.quotation.grossWeightUnit = uom.shortCode;
-  this.isUomModalOpen = false;
-  this.updatePreview(); // Preview update karne ke liye
+selectUom(uom: any): void {
+  if (uom && this.quotation) {
+    // Payload me capital aur small dono notations hain, dono ko sync karna hoga
+    this.quotation.grossWeightUnit = uom.shortCode;
+    this.quotation.GrossWeightUnit = uom.shortCode;
+    
+    this.isUomModalOpen = false;
+    this.updatePreview();
+  }
 }
 initializeAllUnits() {
   if (this.uomList.length > 0) {
@@ -3692,9 +3737,12 @@ toggleNetUomModal() {
 }
 
 // 3. Selection Function
-selectNetUom(uom: any) {
-  this.quotation.netWeightUnit = uom.shortCode;
-  this.isNetUomModalOpen = false;
+selectNetUom(uom: any): void {
+  if (uom && this.quotation) {
+    this.quotation.netWeightUnit = uom.shortCode;
+    this.isNetUomModalOpen = false;
+    this.updatePreview();
+  }
 }
 
 // 4. Update the initialization logic (Inside setDefaultUnits)

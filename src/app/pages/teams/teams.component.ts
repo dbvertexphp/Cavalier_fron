@@ -18,28 +18,36 @@ export class TeamsComponent implements OnInit {
   PermissionID: any;
   private apiUrl = environment.apiUrl + '/Teams';
   
-  private hodApiUrl = 'https://api.cavalierlogistic.graphicsvolume.com/api/User/hod-list';
+  private hodApiUrl = environment.apiUrl + '/User/hod-list';
 
   teams: any[] = [];
-  hodUserList: any[] = []; // Contains list of users from backend { id, name/userName }
+  hodUserList: any[] = []; 
 
-  // 🔥 View Members State Variables
   isMembersModalOpen = false;
   selectedTeamForView: any = null;
   parsedMembersList: string[] = [];
 
+  // 🔥 Updated Dropdown status map
   dropdownStatus = {
     salesCoordinator: false,
     hod: false,
-    reportingManager: false
+    reportingManager: false,
+    quotedBy: false,
+    pricingBy: false,
+    operations: false,
+    account: false
   };
 
-  // Track selected IDs as string arrays (E.G. ['1', '2'])
+  // 🔥 Track selected IDs for all roles
   newTeam = { 
     teamName: '',
     salesCoordinator: [] as string[], 
     hod: [] as string[],
-    reportingManager: [] as string[]
+    reportingManager: [] as string[],
+    quotedBy: [] as string[],
+    pricingBy: [] as string[],
+    operations: [] as string[],
+    account: [] as string[]
   };
 
   constructor(
@@ -55,12 +63,10 @@ export class TeamsComponent implements OnInit {
     this.loadHodUsers();
   }
 
-  // Helper to resolve strict template evaluation error types
   String(value: any): string {
     return String(value);
   }
 
-  // Global document click listener to close dropdowns when clicked outside
   @HostListener('document:click', ['$event'])
   clickout(event: Event) {
     if (!this.eRef.nativeElement.contains(event.target)) {
@@ -77,6 +83,10 @@ export class TeamsComponent implements OnInit {
     this.dropdownStatus.salesCoordinator = false;
     this.dropdownStatus.hod = false;
     this.dropdownStatus.reportingManager = false;
+    this.dropdownStatus.quotedBy = false;
+    this.dropdownStatus.pricingBy = false;
+    this.dropdownStatus.operations = false;
+    this.dropdownStatus.account = false;
     this.cdr.detectChanges();
   }
 
@@ -100,11 +110,9 @@ export class TeamsComponent implements OnInit {
     });
   }
 
-  // 🔥 Handler to open specific Team Members View Popup
   viewMembersList(team: any) {
     this.selectedTeamForView = team;
     if (team.membersDisplay && team.membersDisplay !== 'No Members') {
-      // Comma separated string ko list array me array mapping structure me split kiya
       this.parsedMembersList = team.membersDisplay.split(',').map((name: string) => name.trim());
     } else {
       this.parsedMembersList = [];
@@ -120,7 +128,6 @@ export class TeamsComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
-  // Helper to map IDs array to human-readable Name tags inside the modal input
   getUserNamesByIds(idsArray: string[]): string[] {
     if (!idsArray || idsArray.length === 0) return [];
     return idsArray.map(id => {
@@ -129,11 +136,9 @@ export class TeamsComponent implements OnInit {
     });
   }
 
-  // Helper to display comma-separated Names in the table grid using IDs string
   displayNamesFromIdsString(idsString: string): string {
     if (!idsString) return '—';
     
-    // If database contains old raw text names, return them directly
     if (/[a-zA-Z]/.test(idsString) && !idsString.includes(',')) {
       const isPureId = !isNaN(Number(idsString.trim()));
       if(!isPureId) return idsString; 
@@ -152,7 +157,11 @@ export class TeamsComponent implements OnInit {
       teamName: '',
       salesCoordinator: [],
       hod: [],
-      reportingManager: []
+      reportingManager: [],
+      quotedBy: [],
+      pricingBy: [],
+      operations: [],
+      account: []
     };
     this.closeAllDropdowns();
   }
@@ -168,12 +177,17 @@ export class TeamsComponent implements OnInit {
     this.isEditMode = true;
     this.selectedTeamId = team.id;
     
-    // Split backend comma-separated values string back to array structure
+    const splitString = (val: any) => val ? String(val).split(',').map((x: string) => x.trim()) : [];
+
     this.newTeam = { 
       teamName: team.teamName,
-      salesCoordinator: team.salesCoordinator ? String(team.salesCoordinator).split(',').map((x: string) => x.trim()) : [],
-      hod: team.hod ? String(team.hod).split(',').map((x: string) => x.trim()) : [],
-      reportingManager: team.reportingManager ? String(team.reportingManager).split(',').map((x: string) => x.trim()) : []
+      salesCoordinator: splitString(team.salesCoordinator),
+      hod: splitString(team.hod),
+      reportingManager: splitString(team.reportingManager),
+      quotedBy: splitString(team.quotedBy),
+      pricingBy: splitString(team.pricingBy),
+      operations: splitString(team.operations),
+      account: splitString(team.account)
     };
     
     this.isModalOpen = true;
@@ -187,8 +201,7 @@ export class TeamsComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
-  // Main checkbox handling toggler using IDs
-  toggleSelection(listType: 'salesCoordinator' | 'hod' | 'reportingManager', itemId: any) {
+  toggleSelection(listType: 'salesCoordinator' | 'hod' | 'reportingManager' | 'quotedBy' | 'pricingBy' | 'operations' | 'account', itemId: any) {
     const stringId = String(itemId).trim();
     const idx = this.newTeam[listType].indexOf(stringId);
     
@@ -200,34 +213,37 @@ export class TeamsComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
-  toggleDropdown(field: 'salesCoordinator' | 'hod' | 'reportingManager', event: Event) {
-    event.stopPropagation(); // Prevents click target bubble logic from closing dropdown immediately
+  toggleDropdown(field: 'salesCoordinator' | 'hod' | 'reportingManager' | 'quotedBy' | 'pricingBy' | 'operations' | 'account', event: Event) {
+    event.stopPropagation();
     
-    if (field === 'salesCoordinator') {
-      this.dropdownStatus.hod = false;
-      this.dropdownStatus.reportingManager = false;
-      this.dropdownStatus.salesCoordinator = !this.dropdownStatus.salesCoordinator;
-    } else if (field === 'hod') {
-      this.dropdownStatus.salesCoordinator = false;
-      this.dropdownStatus.reportingManager = false;
-      this.dropdownStatus.hod = !this.dropdownStatus.hod;
-    } else if (field === 'reportingManager') {
-      this.dropdownStatus.salesCoordinator = false;
-      this.dropdownStatus.hod = false;
-      this.dropdownStatus.reportingManager = !this.dropdownStatus.reportingManager;
-    }
+    // Close all first
+    const currentStatus = this.dropdownStatus[field];
+    this.dropdownStatus = {
+      salesCoordinator: false,
+      hod: false,
+      reportingManager: false,
+      quotedBy: false,
+      pricingBy: false,
+      operations: false,
+      account: false
+    };
+    // Toggle current
+    this.dropdownStatus[field] = !currentStatus;
   }
   
   saveTeam() { 
     if (this.newTeam.teamName.trim()) {
       const upperTeamName = this.newTeam.teamName.trim().toUpperCase();
 
-      // Convert selected IDs arrays to standard backend comma separated strings
       const payload: any = { 
         teamName: upperTeamName,
         salesCoordinator: this.newTeam.salesCoordinator.join(', '),
         hod: this.newTeam.hod.join(', '),
-        reportingManager: this.newTeam.reportingManager.join(', ')
+        reportingManager: this.newTeam.reportingManager.join(', '),
+        quotedBy: this.newTeam.quotedBy.join(', '),
+        pricingBy: this.newTeam.pricingBy.join(', '),
+        operations: this.newTeam.operations.join(', '),
+        account: this.newTeam.account.join(', ')
       };
 
       if (this.isEditMode && this.selectedTeamId) {

@@ -56,6 +56,8 @@ interface DimGroup {
     getsalescordinate: any[] = [];
     PermissionID:any;
     LeadId:number=0;
+    getquotedByList: any[] = [];
+getpricingByList: any[] = [];
     originpinCode:any;
     OrganisationId:number=0;
     invoices: any[] = [];
@@ -637,11 +639,18 @@ private scrollToActiveFD() {
   }, 0);
 }
 
+// --- 1. Class ke top par ye naye arrays declare karo (Baki variables ke sath) ---
+
+
+// --- 2. Apne existing onTeamChange() function ko isse replace karo ---
 onTeamChange(teamId: any) {
-  // Agar team null ya undefined hai
   if (!teamId || teamId === 'null' || teamId === null || teamId === undefined) {
     this.getsalescordinate = [];
+    this.getquotedByList = [];
+    this.getpricingByList = [];
     this.quotation.salesCoordinator = ''; 
+    this.quotation.qtnDoneBy = '';
+    this.quotation.pricingDoneBy = '';
     return;
   }
 
@@ -651,16 +660,18 @@ onTeamChange(teamId: any) {
   
   this.http.get<any>(url, { headers }).subscribe({
     next: (res) => {
-      // API response se coordinators list update karein
+      // API response se saari lists update karein
       this.getsalescordinate = (res && res.salesCoordinators) ? res.salesCoordinators : [];
+      this.getquotedByList = (res && res.quotedBy) ? res.quotedBy : [];
+      this.getpricingByList = (res && res.pricingBy) ? res.pricingBy : [];
       
-      // Agar edit mode mein hain aur coordinator pehle se set hai, toh wo rehne dein
-      // Agar nahi, toh dropdown ko reset/handle karein
       this.cdr.detectChanges();
     },
     error: (err) => {
       console.error("Error fetching team details:", err);
       this.getsalescordinate = [];
+      this.getquotedByList = [];
+      this.getpricingByList = [];
     }
   });
 }

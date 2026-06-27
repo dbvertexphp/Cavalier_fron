@@ -1587,7 +1587,7 @@
          <div class="flex items-center gap-1 border-b border-gray-300 pb-1 w-fit">
   <select
     [(ngModel)]="dimRow.unit"
-    (ngModelChange)="calculateVolumeWeight(); updatePreview()"
+   
     class="outline-none font-bold text-gray-600 bg-transparent text-[11px] cursor-pointer"
   >
     <option *ngFor="let uom of uomList" [value]="uom.shortCode">

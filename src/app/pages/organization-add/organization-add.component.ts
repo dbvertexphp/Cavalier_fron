@@ -388,28 +388,31 @@ onCancel() {
     }
 
     // --- AGENT AUTOFILL FIX ---
-    if (branch.agentData) {
-        this.agentName = branch.agentData.agentName || ''; 
-        this.agentBranchName = branch.agentData.agentBranchName || '';
-        this.agentAddress = branch.agentData.agentAddress || '';
-        this.agentArea = branch.agentData.agentArea || '';
-        this.agentLandmark = branch.agentData.agentLandmark || '';
-        this.agentCountry = branch.agentData.agentCountry || '';
-        this.agentState = branch.agentData.agentState || '';
-        this.agentCity = branch.agentData.agentCity || '';
-        this.agentPostalCode = branch.agentData.agentPostalCode || '';
-        this.agentTelephone = branch.agentData.agentTelephone || '';
-        this.agentFax = branch.agentData.agentFax || '';
-        this.website = branch.agentData.agentWebsite || '';
-        this.agentEmail = branch.agentData.agentEmail || '';
+   // --- AGENT AUTOFILL FIX ---
+if (branch.agentData) {
+    this.agentName = branch.agentData.agentName || ''; 
+    this.agentBranchName = branch.agentData.agentBranchName || '';
+    this.agentAddress = branch.agentData.agentAddress || '';
+    this.agentArea = branch.agentData.agentArea || '';
+    this.agentLandmark = branch.agentData.agentLandmark || '';
+    this.agentCountry = branch.agentData.agentCountry || '';
+    this.agentState = branch.agentData.agentState || '';
+    this.agentCity = branch.agentData.agentCity || '';
+    this.agentPostalCode = branch.agentData.agentPostalCode || '';
+    this.agentTelephone = branch.agentData.agentTelephone || '';
+    this.agentFax = branch.agentData.agentFax || '';
+    
+    // 🔥 FIX HERE: Galti se yahan execution me 'this.website' likha tha, ise 'this.agentWebsite' kijiye
+    this.agentWebsite = branch.agentData.agentWebsite || ''; 
+    this.agentEmail = branch.agentData.agentEmail || '';
 
-        this.agentSelectedLineOfBusiness = [...(branch.agentData.agentSelectedLineOfBusiness || [])];
-        this.agentContacts = JSON.parse(JSON.stringify(branch.agentData.agentContacts || [{
-            contactName: '', designationId: null, departmentId: null, mobile: '', whatsapp: '', email: ''
-        }]));
-    } else {
-        this.resetAgentFormOnly();
-    }
+    this.agentSelectedLineOfBusiness = [...(branch.agentData.agentSelectedLineOfBusiness || [])];
+    this.agentContacts = JSON.parse(JSON.stringify(branch.agentData.agentContacts || [{
+        contactName: '', designationId: null, departmentId: null, mobile: '', whatsapp: '', email: ''
+    }]));
+} else {
+    this.resetAgentFormOnly();
+}
 
     this.cdr.detectChanges();
 }
@@ -700,6 +703,7 @@ if (index !== -1) {
   // }
 // selectedRoles array ko track karne ke liye logic
 // Jab Update button click ho (saveOrg se call hota hai)
+
 addCurrentBranchIfValid(): boolean {
   if (!this.branchName?.trim()) {
     alert("❌ Branch Name is required!");
@@ -765,7 +769,7 @@ addCurrentBranchIfValid(): boolean {
       agentPostalCode: this.agentPostalCode,
       agentTelephone: this.agentTelephone,
       agentFax: this.agentFax,
-      agentWebsite: this.agentWebsite,
+    agentWebsite: this.agentWebsite,
       agentEmail: this.agentEmail,
       agentSelectedLineOfBusiness: [...this.agentSelectedLineOfBusiness], 
       agentContacts: JSON.parse(JSON.stringify(this.agentContacts)) 

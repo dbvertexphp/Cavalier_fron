@@ -233,30 +233,34 @@ dimRows: any[] = [];
 // }
 
 calculateVolumeWeight() {
-  console.log("Function Triggered! Current Data:", this.dimRow); // Ye line sabse pehle daalo
+  console.log("Function Triggered! Current Data:", this.dimRow);
 
-  // 1. Pehle weight aur CBM calculate karein
-  const weight = this.calculateSingleVolumeWeight(this.dimRow);
-  this.quotation.volumeWeight = parseFloat(weight.toFixed(2));
+  // modal check lagana hoga taaki multi-row data delete na ho
+  if (this.isDimModalOpen && this.dimRows && this.dimRows.length > 0) {
+    // Agar modal open hai, toh modal ki pehli row ko main surface par sync karo
+    this.dimRow = JSON.parse(JSON.stringify(this.dimRows[0]));
+  } else {
+    // Agar bahar inputs se chal raha hai, toh master array me snapshot sync karo
+    this.dimRows = [{ ...this.dimRow }];
+  }
+
+  // Pure collection ka calculation lagaiye array context ke hisab se
+  this.quotation.volumeWeight = this.getTotalVolumeWeight();
   this.calculateCBM();
-
-  // 2. AUTO-SAVE LOGIC
-  this.dimRows = [{ ...this.dimRow }];
   
-  // 3. Filtering
+  // Filtering out active data layers
   this.appliedDimensions = this.dimRows.filter(d => d.l > 0 && d.w > 0 && d.h > 0);
   
   this.calculateNetWeight();
   this.calculateVolumeWeightLogic();
   
-  // 4. SYNC
-  this.syncFinalData(); 
-  
-  // 5. IMPORTANT
+  // Dynamic snapshot save block safely updates target
   this.quotation.dimensions = [...this.dimRows];
-  console.log("Final Dimensions assigned to quotation:", this.quotation.dimensions); // Check karo array mein data aaya ya nahi
   
-  this.updatePreview();
+  // Total packages handle parameters
+  this.calculateTotalPackages();
+  
+  this.cdr.detectChanges();
 }
 // Ye function banaye jo modal ke button se bhi chale aur bahar se bhi
 syncFinalData() {
@@ -1436,11 +1440,11 @@ closeDimModal() {
 }
 
 openDimModal() {
-  // Sync: Agar dimRows nahi hai ya khali hai, toh main screen se load karo
+  // Sync logic layer check
   if (!this.dimRows || this.dimRows.length === 0) {
     this.dimRows = [JSON.parse(JSON.stringify(this.dimRow))];
   } else {
-    // Sync: Modal kholte waqt 1st row ko main screen ke data se update rakho
+    // Modal kholte waqt bas ensure karein ki pehli row update ho, pure array ko clear mat hone dein
     this.dimRows[0] = JSON.parse(JSON.stringify(this.dimRow));
   }
   
@@ -3831,19 +3835,13 @@ toggleDimUomModal() {
 // Select function for Dimension Unit (Calculation ke saath)
 
 selectDimUom(uom: any, dimRow: any) {
-
+  // Jo current targeted row hai uski unit framework badlo, array context bilkul touch nahi hoga
   dimRow.unit = uom.shortCode;
-
   this.isDimUomModalOpen = false;
 
- 
-
-  // Calculations trigger karna zaroori hai
-
+  // Real-time loop calculation process structure updates pipeline execution
   this.calculateVolumeWeight();
-
   this.updatePreview();
-
 }
 // Ye function ab UI mein use hoga
 applySelectedUnit(uom: any, dimRow: any) {

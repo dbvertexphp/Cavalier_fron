@@ -1,29 +1,28 @@
 import { ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule, FormArray, FormControl } from '@angular/forms';
+import { CommonModule, Location } from '@angular/common';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule, FormArray } from '@angular/forms';
 import { Router } from '@angular/router';
 import { UserService } from '../../services/user.service';
 import { BranchService } from '../../services/branch.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { employeeSchema } from './employee.schema';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, forkJoin } from 'rxjs';
 import Swal from 'sweetalert2';
-import { forkJoin, of } from 'rxjs';
-import { Location } from '@angular/common';
+
 @Component({
   selector: 'app-user-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule,],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './user-form.component.html'
 })
 export class UserFormComponent implements OnInit {
   @ViewChild('deptInput') deptInput!: ElementRef;
   @ViewChild('desigInput') desigInput!: ElementRef;
+
   isImageModalOpen = false;
-selectedImageUrl = '';
+  selectedImageUrl = '';
   employeeData: any;
-  userlist:any=[];
+  userlist: any = [];
   todayDate: string = new Date().toISOString().split('T')[0];
   permissions: any[] = [];
   selectedPermissionIds: number[] = [];
@@ -34,18 +33,23 @@ selectedImageUrl = '';
   isBranchForm = false;
   id: number | null = null;
   initialData: any;
-  isLoading = false; // Fixed: Added missing property from image_2a47c4
-public baseUrl: string ='';
+  isLoading = false;
+  public baseUrl: string = '';
+
   departments: any[] = [];
   designations: any[] = [];
   roles: any[] = [];
   branches: any[] = [];
-
   hods: any[] = [];
   teams: any[] = [];
   bloodGroups: string[] = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
   selectedBloodGroup: string = '';
-// Form initialization mein DOB ko aise update karein
+
+  filteredDepts: any[] = [];
+  filteredDesig: any[] = [];
+  isModalOpen = false;
+  modalType: 'dept' | 'des' = 'dept';
+  users: any[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -58,10 +62,10 @@ public baseUrl: string ='';
   ) {
     let api = environment.apiUrl;
     if (api.endsWith('/api')) {
-    this.baseUrl = api.substring(0, api.length - 4); // '/api' hata dega
-  } else {
-    this.baseUrl = api; 
-  }
+      this.baseUrl = api.substring(0, api.length - 4);
+    } else {
+      this.baseUrl = api;
+    }
     const nav = this.router.getCurrentNavigation();
     if (nav?.extras.state) {
       this.initialData = nav.extras.state['data'];
@@ -69,106 +73,84 @@ public baseUrl: string ='';
       this.isBranchForm = nav.extras.state['isBranch'] || false;
       this.id = this.initialData?.id || null;
     }
-    
   }
 
-ngOnInit(): void {
-  
-  console.log(this.initialData);
- 
-  this.getuser();
-  console.log('this is userlist',this.userlist);
+  ngOnInit(): void {
+    this.getuser();
     this.userService.getDepartments().subscribe(res => this.departments = res);
-  this.userService.getDesignations().subscribe(res => this.designations = res);
-  this.initForm();
-  
-  if (!this.isBranchForm) {
-    this.loadDropdowns();
-    this.getBranches();
-    this.loadPermissions();
-  }
+    this.userService.getDesignations().subscribe(res => this.designations = res);
+    this.initForm();
 
-  // --- Naya Logic: Designation change hone par Department auto-select hoga ---
-  this.userForm.get('designation')?.valueChanges.subscribe((selectedDesId) => {
-    if (selectedDesId) {
-      // designations array mein se matching ID wala object dhoodhna
-      const selectedDesignation = this.designations.find(des => des.id === Number(selectedDesId));
-      
-      if (selectedDesignation && selectedDesignation.departmentId) {
-        // Department field ko update karna
-        this.userForm.patchValue({
-          department: selectedDesignation.departmentId
-        }, { emitEvent: false }); // emitEvent: false taaki infinite loop na bane
-      }
+    if (!this.isBranchForm) {
+      this.loadDropdowns();
+      this.getBranches();
+      this.loadPermissions();
     }
-  });
-  // 🔥 Puraane teamId subscribe block ko hatakar yeh naya functional block laga do bhai:
-// ngOnInit() ya jahan aapne valueChanges lagaya hai, wahan purane block ko is se replace karein:
-this.userForm.get('teamId')?.valueChanges.subscribe((selectedTeamIds: any[]) => {
-  // Agar selectedTeamIds array hai aur usme element hai
-  if (selectedTeamIds && selectedTeamIds.length > 0) {
-    
-    // Kyunki api object return kar rahi hai, hum map lagakar saari selected teams ke objects fetch karenge
-    const requests = selectedTeamIds.map(teamId => 
-      this.http.get<any>(`${environment.apiUrl}/Teams/${teamId}/details`)
-    );
 
-    forkJoin(requests).subscribe({
-      next: (responses: any[]) => {
-        let combinedHods: any[] = [];
-        
-        console.log("=== RECEIVED TEAM DETAILS ===", responses);
+    // Designation change hone par Department auto-select logic
+    this.userForm.get('designation')?.valueChanges.subscribe((selectedDesId) => {
+      if (selectedDesId) {
+        const selectedDesignation = this.designations.find(des => des.id === Number(selectedDesId));
+        if (selectedDesignation && selectedDesignation.departmentId) {
+          this.userForm.patchValue({
+            department: selectedDesignation.departmentId
+          }, { emitEvent: false });
+        }
+      }
+    });
 
-        responses.forEach(res => {
-          // Aapke API key ka exact match yahan hai -> res.hods
-          if (res && res.hods && Array.isArray(res.hods)) {
-            res.hods.forEach((h: any) => {
-              // Duplicate check taaki exact same ID double select na ho jaye array merge karte waqt
-              if (!combinedHods.some(existing => existing.id === Number(h.id))) {
-                combinedHods.push({
-                  id: Number(h.id),
-                  name: h.name // "Bharat Juyal", "PRATIK KUMAR" etc.
+    // Team changes block - HOD mapping sync engine
+    this.userForm.get('teamId')?.valueChanges.subscribe((selectedTeamIds: any[]) => {
+      if (selectedTeamIds && selectedTeamIds.length > 0) {
+        const requests = selectedTeamIds.map(teamId =>
+          this.http.get<any>(`${environment.apiUrl}/Teams/${teamId}/details`)
+        );
+
+        forkJoin(requests).subscribe({
+          next: (responses: any[]) => {
+            let combinedHods: any[] = [];
+            responses.forEach(res => {
+              if (res && res.hods && Array.isArray(res.hods)) {
+                res.hods.forEach((h: any) => {
+                  if (!combinedHods.some(existing => existing.id === Number(h.id))) {
+                    combinedHods.push({
+                      id: Number(h.id),
+                      name: h.name
+                    });
+                  }
                 });
               }
             });
+            this.hods = combinedHods;
+            this.cdr.detectChanges();
+          },
+          error: (err) => {
+            console.error("❌ Details loading engine failed:", err);
+            this.hods = [];
+            this.cdr.detectChanges();
           }
         });
-
-        this.hods = combinedHods;
-        console.log("=== PARSED HODS LIST FOR DROPDOWN ===", this.hods);
-
-        // UI Refresh trigger
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error("❌ Details loading engine failed:", err);
+      } else {
         this.hods = [];
         this.cdr.detectChanges();
       }
     });
-  } else {
-    this.hods = [];
-    this.cdr.detectChanges();
-  }
-});
 
-  // -----------------------------------------------------------------------
-
-  if (this.initialData) {
-    this.isEditMode = true;
-    this.id = this.initialData.id;
-    setTimeout(() => {
-      this.populateForm(this.initialData);
-    }, 300);
+    if (this.initialData) {
+      this.isEditMode = true;
+      this.id = this.initialData.id;
+      setTimeout(() => {
+        this.populateForm(this.initialData);
+      }, 300);
+    }
   }
-}
+
   loadPermissions() {
     this.http
       .get<any[]>(`${environment.apiUrl}/permissions/list`)
       .subscribe({
         next: (res) => {
           this.permissions = res.filter(p => p.route !== '#');
-          console.log('✅ Permissions Loaded:', this.permissions);
         },
         error: (err) => {
           console.error('❌ Permission API Error', err);
@@ -186,160 +168,118 @@ this.userForm.get('teamId')?.valueChanges.subscribe((selectedTeamIds: any[]) => 
     } else {
       current = current.filter((x: number) => x !== id);
     }
-    this.userForm.patchValue({
-      permissionIds: current
+    this.userForm.patchValue({ permissionIds: current });
+  }
+
+  openImageModal(url: string | null | undefined) {
+    if (url) {
+      this.selectedImageUrl = url;
+      this.isImageModalOpen = true;
+    }
+  }
+
+  getFormattedImagePath(path: string | null | undefined): string {
+    if (!path) return 'assets/images/default-placeholder.png';
+    const filename = path.split(/[\\/]/).pop();
+    let cleanBase = this.baseUrl.replace(/\/api\/?$/, '');
+    if (!cleanBase.endsWith('/')) {
+      cleanBase += '/';
+    }
+    return `${cleanBase}uploads/${filename}`;
+  }
+
+  closeImageModal() {
+    this.isImageModalOpen = false;
+    this.selectedImageUrl = '';
+  }
+
+  initForm() {
+    if (this.isBranchForm) {
+      this.userForm = this.fb.group({
+        userType: [''],
+        employeeCode: [''],
+        hodId: [[]],
+        teamId: [[]],
+        companyName: ['Cavalier Logistics'],
+        companyAlias: ['CL'],
+        branchName: [''],
+        branchCode: [''],
+        email: ['admin@cavalierlogistic.in'],
+        city: [''],
+        state: [''],
+        postalCode: [''],
+        contactNo: [''],
+        gstCategory: ['Regular'],
+        gstin: [''],
+        address: [''],
+        isActive: [true]
+      });
+    } else {
+      this.userForm = this.fb.group({
+        employeeCode: [''],
+        firstName: ['', [Validators.required]],
+        middleName: [''],
+        lastName: [''],
+        dob: ['', [Validators.required]],
+        gender: ['Male'],
+        maritalStatus: ['Single'],
+        bloodGroup: [''],
+        password: ['123456'],
+        department: [''],
+        designation: [''],
+        functionalArea: [''],
+        userType: ['', [Validators.required]],
+        branchId: [null],
+        roleId: [null],
+        licenceType: [''],
+        dateOfJoining: ['', [Validators.required]],
+        ctc_Monthly: [0],
+        salaryAccountNo: [''],
+        secondaryEmail: [''],
+        email: ['', [Validators.required, Validators.email]],
+        mobile: ['', [Validators.required, Validators.pattern("^[0-9]{10}$")]],
+        telephone: [''],
+        paN_No: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(10)]],
+        aadhaarNo: ['', [Validators.required, Validators.minLength(12), Validators.maxLength(12)]],
+        ipAdress: [''],
+        permissionIds: [[]],
+
+        presHouseNo: [''], presBuilding: [''], presFloor: [''], presBlock: [''], presStreet: [''], presLandmark: [''], presArea: [''], presCity: [''], presDistrict: [''], presState: [''], presPincode: [''], presCountry: ['India'],
+        permHouseNo: [''], permBuilding: [''], permFloor: [''], permBlock: [''], permStreet: [''], permLandmark: [''], permArea: [''], permCity: [''], permDistrict: [''], permState: [''], permPincode: [''], permCountry: ['India'],
+
+        educations: this.fb.array([]),
+        experiences: this.fb.array([this.createExperienceGroup()]),
+
+        tenthId: [null], tenthName: ['10th'], tenthYear: [''], tenthPercentage: [''], tenthMarksheet: [null], tenthMarksheetPath: [''],
+        twelfthId: [null], twelfthName: ['12th'], twelfthYear: [''], twelfthPercentage: [''], twelfthMarksheet: [null], twelfthMarksheetPath: [''],
+        graduationId: [null], graduationName: ['Graduation'], graduationYear: [''], graduationPercentage: [''], graduationMarksheet: [null], graduationMarksheetPath: [''],
+        postGraduationId: [null], postGraduationName: ['Post Graduation'], postGraduationYear: [''], postGraduationPercentage: [''], postGraduationMarksheet: [null], postGraduationMarksheetPath: [''],
+
+        accountHolderName: [''], bankName: [''], ifscCode: [''], accountType: [''], accountNumber: [''], bankBranchName: [''],
+        profileSelect: [''], profilePicture: [null], profilePicturePath: [''], signature: [''], reportTo: [''],
+
+        emergencyName: [''], EmergencyRelation: [''], emergencyContactNo: [''],
+        mfaRegistration: [false], fieldVisit: [false], alwaysBccmyself: [false],
+
+        invitationLetter: [null], offerLetter: [null], appointmentLetter: [null], relievingLetter: [null], fullAndFinalLetter: [null],
+        invitationLetterPath: [''], offerLetterPath: [''], appointmentLetterPath: [''], relievingLetterPath: [''], fullAndFinalLetterPath: [''],
+
+        simIssued: [false], status: [true], hodId: [null], teamId: [null], exitDate: [null],
+        address: [''], city: [''], state: [''], postalCode: ['']
+      });
+    }
+  }
+
+  createEducationGroup(): FormGroup {
+    return this.fb.group({
+      id: [null],
+      educationName: [''],
+      year: [''],
+      percentage: [''],
+      marksheet: [null],
+      marksheetPath: ['']
     });
   }
-openImageModal(url: string | null | undefined) {
-  if (url) {
-    alert(url);
-    this.selectedImageUrl = url;
-    this.isImageModalOpen = true;
-  }
-}
-// Is function ko class ke andar kahin bhi rakh dein
-getFormattedImagePath(path: string | null | undefined): string {
-  if (!path) return 'assets/images/default-placeholder.png';
-
-  // 1. Path se sirf filename nikalne ke liye (chahe path me \ ho ya /)
-  // Example: "uploads\abc.jpg" ya "C:\fakepath\abc.jpg" -> "abc.jpg"
-  const filename = path.split(/[\\/]/).pop();
-
-  // 2. Base URL fix karna (api hata kar clean domain nikalna)
-  // Taaki hume seedha https://api.cavalierlogistic.graphicsvolume.com mil jaye
-  let cleanBase = this.baseUrl.replace(/\/api\/?$/, ''); 
-
-  // 3. Agar domain ke end mein slash nahi hai toh laga do
-  if (!cleanBase.endsWith('/')) {
-    cleanBase += '/';
-  }
-
-  // 4. Final Result: domain + uploads/ + filename
-  return `${cleanBase}uploads/${filename}`;
-}
-closeImageModal() {
-  this.isImageModalOpen = false;
-  this.selectedImageUrl = '';
-}
-initForm() {
-  if (this.isBranchForm) {
-    this.userForm = this.fb.group({
-      userType: [''],
-      employeeCode: [''],
-      hodId: [[]],  // null se badal kar empty array kiya
-teamId: [[]],
-      companyName: ['Cavalier Logistics'],
-      companyAlias: ['CL'],
-      branchName: [''],
-      branchCode: [''],
-      email: ['admin@cavalierlogistic.in'],
-      city: [''],
-      state: [''],
-      postalCode: [''],
-      contactNo: [''],
-      gstCategory: ['Regular'],
-      gstin: [''],
-      address: [''],
-      isActive: [true]
-    });
-  } else {
-    this.userForm = this.fb.group({
-      employeeCode: [''],
-      firstName: ['', [Validators.required]],
-      middleName: [''],
-      lastName: [''],
-      dob: ['', [Validators.required]],
-      gender: ['Male'],
-      maritalStatus: ['Single'],
-      bloodGroup: [''],
-      password: ['123456'],
-      department: [''],
-      designation: [''],
-      functionalArea: [''],
-    userType: ['', [Validators.required]],
-      branchId: [null],
-      roleId: [null],
-      licenceType: [''],
-      dateOfJoining: ['', [Validators.required]],
-      ctc_Monthly: [0],
-      salaryAccountNo: [''],
-      secondaryEmail:[''],
-      email: ['', [Validators.required, Validators.email]],
-      mobile: ['', [Validators.required, Validators.pattern("^[0-9]{10}$")]],
-      telephone: [''],
-      paN_No: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(10)]],
-      aadhaarNo: ['', [Validators.required, Validators.minLength(12), Validators.maxLength(12)]],
-      ipAdress: [''],
-      permissionIds: [[]],
-      
-      // Address Fields
-      presHouseNo: [''], presBuilding: [''], presFloor: [''], presBlock: [''], presStreet: [''], presLandmark: [''], presArea: [''], presCity: [''], presDistrict: [''], presState: [''], presPincode: [''], presCountry: ['India'],
-      permHouseNo: [''], permBuilding: [''], permFloor: [''], permBlock: [''], permStreet: [''], permLandmark: [''], permArea: [''], permCity: [''], permDistrict: [''], permState: [''], permPincode: [''], permCountry: ['India'],
-      
-      educations: this.fb.array([]),
-      experiences: this.fb.array([this.createExperienceGroup()]),
-      
-      // --- Education Static Fields (Updated with Paths) ---
-      tenthId: [null],
-      tenthName: ['10th'],
-      tenthYear: [''],
-      tenthPercentage: [''],
-      tenthMarksheet: [null],
-      tenthMarksheetPath: [''],
-
-      twelfthId: [null],
-      twelfthName: ['12th'],
-      twelfthYear: [''],
-      twelfthPercentage: [''],
-      twelfthMarksheet: [null],
-      twelfthMarksheetPath: [''],
-
-      graduationId: [null],
-      graduationName: ['Graduation'],
-      graduationYear: [''],
-      graduationPercentage: [''],
-      graduationMarksheet: [null],
-      graduationMarksheetPath: [''],
-
-      postGraduationId: [null],
-      postGraduationName: ['Post Graduation'],
-      postGraduationYear: [''],
-      postGraduationPercentage: [''],
-      postGraduationMarksheet: [null],
-      postGraduationMarksheetPath: [''],
-      // ---------------------------------------------------
-
-      accountHolderName: [''], bankName: [''], ifscCode: [''], accountType: [''], accountNumber: [''], bankBranchName: [''],
-      profileSelect: [''], profilePicture: [null], profilePicturePath: [''], signature: [''], reportTo: [''],
-      
-      emergencyName: [''], EmergencyRelation: [''], emergencyContactNo: [''],
-      mfaRegistration: [false], fieldVisit: [false], alwaysBccmyself: [false],
-      
-      // Documents
-      invitationLetter: [null], offerLetter: [null], appointmentLetter: [null], relievingLetter: [null], fullAndFinalLetter: [null],
-      invitationLetterPath: [''], offerLetterPath: [''], appointmentLetterPath: [''], relievingLetterPath: [''], fullAndFinalLetterPath: [''],
-      
-      simIssued: [false], status: [true], hodId: [null], teamId: [null], exitDate: [null],
-      address: [''], city: [''], state: [''], postalCode: ['']
-    });
-  }
-}
-
-// ============= DYNAMIC EDUCATION METHODS (Updated) =============
-createEducationGroup(): FormGroup {
-  return this.fb.group({
-    id: [null],
-    educationName: [''],
-    year: [''],
-    percentage: [''],
-    marksheet: [null],
-    marksheetPath: [''] // Added path variable
-  });
-}
-
-  // ============= DYNAMIC EDUCATION METHODS =============
-  
-  
 
   get educations() {
     return this.userForm.get('educations') as FormArray;
@@ -353,20 +293,19 @@ createEducationGroup(): FormGroup {
     this.educations.removeAt(index);
   }
 
-  // ============= DYNAMIC EXPERIENCE METHODS =============
-  
-createExperienceGroup(): FormGroup {
-  return this.fb.group({
-    organizationName: [''],
-    designation: [''],
-    annualSalary: [''],
-    joiningDate: [''],
-    exitDate: [''],
-    totalYears: [''],
-    verification: [false],
-    documents: this.fb.array([]) // empty
-  });
-}
+  createExperienceGroup(): FormGroup {
+    return this.fb.group({
+      id: [null],
+      organizationName: [''],
+      designation: [''],
+      annualSalary: [''],
+      joiningDate: [''],
+      exitDate: [''],
+      totalYears: [''],
+      verification: [false],
+      documents: this.fb.array([])
+    });
+  }
 
   createDocumentGroup(name: string = ''): FormGroup {
     return this.fb.group({
@@ -399,8 +338,6 @@ createExperienceGroup(): FormGroup {
     this.getExperienceDocuments(expIndex).removeAt(docIndex);
   }
 
-  // ============= FILE HANDLER (FIXED FOR ALL BUILD ERRORS) =============
-
   onFileSelect(event: any, field: string, index?: number, type: 'edu' | 'exp' = 'edu', docIndex?: number) {
     const file = event.target.files[0];
     if (file) {
@@ -423,16 +360,6 @@ createExperienceGroup(): FormGroup {
     this.userService.getDepartments().subscribe(res => this.departments = res);
     this.userService.getDesignations().subscribe(res => this.designations = res);
     this.userService.getRoles().subscribe(res => this.roles = res);
-    // ngOnInit ya jahan bhi load karna ho
-// this.userService.getHodList().subscribe({
-//   next: (res) => {
-//     this.hods = res; 
-//     console.log('HOD List Loaded:', res);
-//   },
-//   error: (err) => {
-//     console.error('HOD load error:', err);
-//   }
-// });
     this.userService.getTeams().subscribe(res => this.teams = res);
   }
 
@@ -442,313 +369,225 @@ createExperienceGroup(): FormGroup {
         this.branches = Array.isArray(res) ? res : res?.data || [];
       }
     });
-    
   }
 
-  // onSubmit() {
-  //   console.log('================ FORM RAW VALUE ================');
-  //   console.log(this.userForm.value);
-
-  //   if (this.userForm.invalid) {
-  //     this.userForm.markAllAsTouched();
-  //     alert('Form invalid hai bhai');
-  //     return;
-  //   }
-
-  //   const payload = this.userForm.value;
-  //   const formData = new FormData();
-
-  //   Object.keys(this.userForm.controls).forEach(key => {
-  //     const value = this.userForm.get(key)?.value;
-  //     if (key === 'permissionIds') {
-  //       value.forEach((id: number) => {
-  //         formData.append('PermissionIds', id.toString());
-  //       });
-  //     } else if (key === 'educations' || key === 'experiences') {
-  //         formData.append(key, JSON.stringify(value));
-  //     } else if (value !== null && value !== '') {
-  //       formData.append(key, value);
-  //     }
-  //   });
-
-  //   if (this.isBranchForm) {
-  //     this.branchService.addBranch(formData).subscribe(() => {
-  //       alert('Branch Saved');
-  //       this.router.navigate(['/dashboard/branch']);
-  //     });
-  //   } else {
-  //     this.userService.registerUser(payload).subscribe(() => {
-  //       alert('User Saved');
-  //       this.router.navigate(['/dashboard/users']);
-  //     });
-  //   }
-  // }
-onSubmit() {
-  console.log('================ FINAL SUBMIT START ================');
-
-  // 1. Angular Internal Validation Check
-  console.log('Form Validity Status:', this.userForm.valid);
-  if (this.userForm.invalid) {
-    console.warn('Form is INVALID. Errors:', this.userForm.errors);
-    // Detail mein check karne ke liye ki kaunsa field invalid hai
-    Object.keys(this.userForm.controls).forEach(key => {
-      const controlErrors = this.userForm.get(key)?.errors;
-      if (controlErrors != null) {
-        console.log('Field Key:', key, 'Errors:', controlErrors);
-        Swal.fire({
-  icon: 'error',
-  title: 'Validation Discrepancy Identified',
- text: `The field '${key}' is invalid. Please check your entry and try again.`,
-  confirmButtonText: 'Acknowledge',
-  confirmButtonColor: '#d33'
-});
-      }
-    });
-    
-    this.userForm.markAllAsTouched(); 
-    // alert('Please fill all mandatory fields correctly before submitting.'); 
-    return;
-  }
-
-  const raw = this.userForm.getRawValue();
-  console.log('Raw Form Value:', raw);
-
-  // ================= BRANCH FORM LOGIC =================
-  if (this.isBranchForm) {
-    console.log('Processing: BRANCH FORM');
-    const branchData = new FormData();
-    Object.keys(raw).forEach(key => {
-        if (raw[key] !== null && raw[key] !== undefined) {
-            branchData.append(key, raw[key]);
+  onSubmit() {
+    console.log('================ FINAL SUBMIT START ================');
+    if (this.userForm.invalid) {
+      Object.keys(this.userForm.controls).forEach(key => {
+        const controlErrors = this.userForm.get(key)?.errors;
+        if (controlErrors != null) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Validation Discrepancy Identified',
+            text: `The field '${key}' is invalid. Please check your entry and try again.`,
+            confirmButtonText: 'Acknowledge',
+            confirmButtonColor: '#d33'
+          });
         }
-    });
-
-    console.log('Sending Branch FormData...');
-    this.branchService.addBranch(branchData).subscribe({
-      next: (res) => {
-        console.log('Branch API Success Response:', res);
-        alert('Branch Saved Successfully');
-        // this.router.navigate(['/dashboard/branch']);
-      },
-      error: err => {
-        console.error('Branch API Error Object:', err);
-        console.error('Error Status:', err.status);
-      }
-      
-    });
-    return; //
-
-  } else {
-    // ================= USER FORM LOGIC (EDIT + REGISTER) =================
-    console.log('Processing: USER/EMPLOYEE FORM');
-    console.log('Mode:', this.isEditMode ? 'EDIT' : 'REGISTER');
-
-    let formattedDob = raw.dob;
-    if (raw.dob && raw.dob.includes('-')) {
-      const parts = raw.dob.split('-');
-      if (parts.length === 3 && parts[0].length === 2) { 
-        formattedDob = `${parts[2]}-${parts[1]}-${parts[0]}`;
-      }
+      });
+      this.userForm.markAllAsTouched();
+      return;
     }
-    console.log('Formatted DOB:', formattedDob);
 
-    const finalPayload = {
-      ...raw,
-      dob: formattedDob, 
-      id: this.isEditMode ? this.id : 0, 
-      EmergencyRelation: raw.emergencyRelationship || raw.EmergencyRelation
-    };
+    const raw = this.userForm.getRawValue();
 
-    console.log('FINAL PAYLOAD TO API:', finalPayload);
-
-    const apiCall = this.isEditMode 
-      ? this.userService.updateUser(finalPayload) 
-      : this.userService.registerUser(finalPayload);
-
-   apiCall.subscribe({
-      next: async (res: any) => {
-        console.log('User API Success. Response:', res);
-        
-        const currentId = this.isEditMode ? this.id : (res.id || res.userId || res.data?.id);
-        console.log('Extracted ID for Sub-records:', currentId);
-
-        if (currentId) {
-          console.log('Saving Education and Experience for ID:', currentId);
-          
-          // 1. Pehle Education Save Karo (Safer way)
-          try {
-            console.log('⏳ Starting saveEducation...');
-            await this.saveEducation(currentId); 
-            console.log('✅ saveEducation completed successfully.');
-          } catch (eduError) {
-            console.error('❌ saveEducation mein error aayi, par aage ka code chalega:', eduError);
-          }
-
-          // 2. Phir Experience Save Karo (Ye 100% chalega ab)
-          try {
-            console.log('⏳ Starting saveExperience...');
-            await this.saveExperience(currentId);
-            console.log('✅ saveExperience completed successfully.');
-          } catch (expError) {
-            console.error('❌ saveExperience mein error aayi:', expError);
-          }
-          
-          alert(this.isEditMode ? 'User Updated Successfully' : 'User Saved Successfully');
-        } else {
-          console.warn('User Saved, but ID was not found in response!');
-          alert('User Saved, but ID not received for sub-records');
+    if (this.isBranchForm) {
+      const branchData = new FormData();
+      Object.keys(raw).forEach(key => {
+        if (raw[key] !== null && raw[key] !== undefined) {
+          branchData.append(key, raw[key]);
         }
-
-        // Sab save hone ke baad page navigate karein
-        this.router.navigate(['/dashboard/hr/employee-master']);
-      },
-     error: err => {
-  console.error('--- API ERROR DETECTED ---');
-  console.error('Status:', err.status); 
-  console.error('Full Error Body:', err.error); 
-
-  let errorTitle = "Validation Error";
-  let errorMessage = "Something went wrong. Please try again.";
-
-  // Scenario 1: Agar API ne Validation Errors ka Object bheja hai (Status 400 with errors object)
-  if (err.error && err.error.errors) {
-    errorTitle = "Please fix the following Fields:";
-    errorMessage = ''; // Purani string clear karenge
-    
-    // Saare fields ke errors ko loop chalakar extract karenge
-    Object.keys(err.error.errors).forEach((field) => {
-      const fieldErrors = err.error.errors[field];
-      if (Array.isArray(fieldErrors)) {
-        errorMessage += `• ${fieldErrors.join(', ')}<br>`;
-      } else {
-        errorMessage += `• ${fieldErrors}<br>`;
+      });
+      this.branchService.addBranch(branchData).subscribe({
+        next: () => alert('Branch Saved Successfully'),
+        error: err => console.error('Branch API Error:', err)
+      });
+      return;
+    } else {
+      let formattedDob = raw.dob;
+      if (raw.dob && raw.dob.includes('-')) {
+        const parts = raw.dob.split('-');
+        if (parts.length === 3 && parts[0].length === 2) {
+          formattedDob = `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
       }
-    });
-  } 
-  // Scenario 2: Agar API ne direct ek error string bheji hai (jaise "Email already exists")
-  else if (err.error && typeof err.error === 'string') {
-    errorMessage = err.error;
-  }
-  // Scenario 3: Agar API ne message object ke andar text bheja hai
-  else if (err.error && err.error.message) {
-    errorMessage = err.error.message;
-  }
 
-  // SweetAlert Fire (html property use ki hai taaki <br> se multiple errors line-by-line dikhein)
-  Swal.fire({
-    title: errorTitle,
-    html: `<div style="text-align: left;">${errorMessage}</div>`,
-    icon: "error",
-    confirmButtonText: "OK"
-  });
-}
-    });
-  }
-  const finalPayload = {
-  ...raw,
-  // Agar raw.dateOfJoining '15-04-2026' jaisa aa raha hai, toh use yahan fix karein
-  dateOfJoining: raw.dateOfJoining.includes('-') && raw.dateOfJoining.split('-')[0].length === 2 
-                 ? raw.dateOfJoining.split('-').reverse().join('-') 
-                 : raw.dateOfJoining,
-  // ... other fields
-};
-}
+      let formattedDoj = raw.dateOfJoining;
+      if (raw.dateOfJoining && raw.dateOfJoining.includes('-')) {
+        const parts = raw.dateOfJoining.split('-');
+        if (parts.length === 3 && parts[0].length === 2) {
+          formattedDoj = `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
+      }
 
-// 3. saveEducation ko UserId receive karne ke liye update kijiye
-async saveEducation(userId: any) {
-  const raw = this.userForm.getRawValue();
-  const educationArray: any[] = [];
-  
-  // Helper list to standardize both static and dynamic fields
-  const allEntries = [
-    { name: raw.tenthName || '10th', year: raw.tenthYear, perc: raw.tenthPercentage, file: raw.tenthMarksheet },
-    { name: raw.twelfthName || '12th', year: raw.twelfthYear, perc: raw.twelfthPercentage, file: raw.twelfthMarksheet },
-    { name: raw.graduationName || 'Graduation', year: raw.graduationYear, perc: raw.graduationPercentage, file: raw.graduationMarksheet },
-    { name: raw.postGraduationName || 'Post Graduation', year: raw.postGraduationYear, perc: raw.postGraduationPercentage, file: raw.postGraduationMarksheet },
-    ...(raw.educations || []).map((e: any) => ({ name: e.educationName, year: e.year, perc: e.percentage, file: e.marksheet }))
-  ];
+      const finalPayload = {
+        ...raw,
+        dob: formattedDob,
+        dateOfJoining: formattedDoj,
+        id: this.isEditMode ? this.id : 0,
+        EmergencyRelation: raw.emergencyRelationship || raw.EmergencyRelation
+      };
 
-  // Validation & Data Preparation
-  for (const entry of allEntries) {
-    const isAnyFieldFilled = entry.year || entry.perc || entry.file;
-    const isBothFilled = entry.year && entry.perc;
+      const apiCall = this.isEditMode
+        ? this.userService.updateUser(finalPayload)
+        : this.userService.registerUser(finalPayload);
 
-if (isAnyFieldFilled) {
-  // Validation: Check agar dono fields bhari hain ya nahi
-  if (!isBothFilled) {
-    Swal.fire({
-      icon: 'success', // Success icon use kiya kyunki hum form save kar rahe hain
-      title: 'Form Saved Successfully',
-      html: `
-        <p>The academic record for <b>${entry.name}</b> is incomplete.</p>
-        <p>Please ensure both 'Year' and 'Percentage' fields are populated to maintain data integrity. Otherwise, the system will exclude this entry from the final submission.</p>
-        <p><b>Note:</b> We are proceeding without these specific education details. Should you wish to incorporate them later, kindly navigate to the <b>Edit</b> section to append the required information.</p>
-        <p>Thank you for your cooperation.</p>
-      `,
-      confirmButtonText: 'Acknowledge',
-      confirmButtonColor: '#10b981'
-    });
-    
-    return;
-  }
+      apiCall.subscribe({
+        next: async (res: any) => {
+          const currentId = this.isEditMode ? this.id : (res.id || res.userId || res.data?.id);
+          if (currentId) {
+            try {
+              await this.saveEducation(currentId);
+            } catch (eduError) {
+              console.error('❌ saveEducation error:', eduError);
+            }
 
-      
-      // Data push karein
-      educationArray.push({
-        userId: userId,
-        educationName: entry.name,
-        passingYear: entry.year,
-        percentage: entry.perc,
-        marksheetFile: entry.file
+            try {
+              await this.saveExperience(currentId);
+            } catch (expError) {
+              console.error('❌ saveExperience error:', expError);
+            }
+
+            alert(this.isEditMode ? 'User Updated Successfully' : 'User Saved Successfully');
+          } else {
+            alert('User Saved, but ID not received for sub-records');
+          }
+          this.router.navigate(['/dashboard/hr/employee-master']);
+        },
+        error: err => {
+          let errorTitle = "Validation Error";
+          let errorMessage = "Something went wrong. Please try again.";
+          if (err.error && err.error.errors) {
+            errorTitle = "Please fix the following Fields:";
+            errorMessage = '';
+            Object.keys(err.error.errors).forEach((field) => {
+              const fieldErrors = err.error.errors[field];
+              errorMessage += `• ${Array.isArray(fieldErrors) ? fieldErrors.join(', ') : fieldErrors}<br>`;
+            });
+          } else if (err.error && typeof err.error === 'string') {
+            errorMessage = err.error;
+          } else if (err.error && err.error.message) {
+            errorMessage = err.error.message;
+          }
+          Swal.fire({
+            title: errorTitle,
+            html: `<div style="text-align: left;">${errorMessage}</div>`,
+            icon: "error",
+            confirmButtonText: "OK"
+          });
+        }
       });
     }
   }
 
-  // 2. Preparing FormData
-  const formData = new FormData();
-  educationArray.forEach((edu, index) => {
-    formData.append(`educations[${index}].UserId`, edu.userId.toString());
-    formData.append(`educations[${index}].EducationName`, edu.educationName || '');
-    formData.append(`educations[${index}].PassingYear`, edu.passingYear || '');
-    formData.append(`educations[${index}].Percentage`, edu.percentage || '');
+  async saveEducation(userId: any) {
+    const raw = this.userForm.getRawValue();
+    const educationArray: any[] = [];
 
-    if (edu.marksheetFile instanceof File) {
-      formData.append(`educations[${index}].MarksheetFile`, edu.marksheetFile);
+    const allEntries = [
+      { name: raw.tenthName || '10th', year: raw.tenthYear, perc: raw.tenthPercentage, file: raw.tenthMarksheet },
+      { name: raw.twelfthName || '12th', year: raw.twelfthYear, perc: raw.twelfthPercentage, file: raw.twelfthMarksheet },
+      { name: raw.graduationName || 'Graduation', year: raw.graduationYear, perc: raw.graduationPercentage, file: raw.graduationMarksheet },
+      { name: raw.postGraduationName || 'Post Graduation', year: raw.postGraduationYear, perc: raw.postGraduationPercentage, file: raw.postGraduationMarksheet },
+      ...(raw.educations || []).map((e: any) => ({ name: e.educationName, year: e.year, perc: e.percentage, file: e.marksheet }))
+    ];
+
+    for (const entry of allEntries) {
+      const isAnyFieldFilled = entry.year || entry.perc || entry.file;
+      const isBothFilled = entry.year && entry.perc;
+
+      if (isAnyFieldFilled) {
+        if (!isBothFilled) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Form Saved Successfully',
+            html: `<p>The academic record for <b>${entry.name}</b> is incomplete.</p>`,
+            confirmButtonText: 'Acknowledge',
+            confirmButtonColor: '#10b981'
+          });
+          return;
+        }
+        educationArray.push({
+          userId: userId,
+          educationName: entry.name,
+          passingYear: entry.year,
+          percentage: entry.perc,
+          marksheetFile: entry.file
+        });
+      }
     }
-  });
 
-  // 3. API Call with SweetAlert Loading
-  try {
-    // Agar koi data nahi hai, toh API call skip karein
-    if (educationArray.length === 0) {
-      console.log('No data to synchronize.');
-      return;
+    const formData = new FormData();
+    educationArray.forEach((edu, index) => {
+      formData.append(`educations[${index}].UserId`, edu.userId.toString());
+      formData.append(`educations[${index}].EducationName`, edu.educationName || '');
+      formData.append(`educations[${index}].PassingYear`, edu.passingYear || '');
+      formData.append(`educations[${index}].Percentage`, edu.percentage || '');
+      if (edu.marksheetFile instanceof File) {
+        formData.append(`educations[${index}].MarksheetFile`, edu.marksheetFile);
+      }
+    });
+
+    try {
+      if (educationArray.length === 0) return;
+      Swal.fire({
+        title: 'Data Synchronization',
+        text: 'Processing academic records...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+      });
+      await firstValueFrom(this.http.post(`${environment.apiUrl}/User/add-multiple-education`, formData));
+      Swal.close();
+    } catch (err) {
+      console.error('❌ Error saving education details:', err);
     }
-
-    Swal.fire({
-      title: 'Data Synchronization',
-      text: 'Please remain patient while we process and validate your academic records...',
-      allowOutsideClick: false,
-      didOpen: () => Swal.showLoading()
-    });
-
-    const res = await this.http.post(`${environment.apiUrl}/User/add-multiple-education`, formData).toPromise();
-    
-    Swal.fire({
-      icon: 'success',
-      title: 'Operation Completed',
-text: 'Academic details saved successfully.',
-    });
-    console.log('✅ Saved successfully:', res);
-  } catch (err) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Transaction Failed',
-text: 'Something went wrong. Please check your internet or contact support.',
-    });
-    console.error('❌ Error saving education details:', err);
   }
-}
+
+  async saveExperience(userId: any) {
+    const raw = this.userForm.getRawValue();
+    const experienceArray = raw.experiences || [];
+    const payloadArray: any[] = [];
+
+    for (const exp of experienceArray) {
+      if (exp.organizationName && exp.organizationName.toString().trim() !== '') {
+        let finalExitDate = null;
+        if (exp.exitDate) {
+          try {
+            if (exp.exitDate.includes('-') && exp.exitDate.split('-')[0].length === 2) {
+              const parts = exp.exitDate.split('-');
+              finalExitDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`).toISOString();
+            } else {
+              finalExitDate = new Date(exp.exitDate).toISOString();
+            }
+          } catch (e) {
+            finalExitDate = null;
+          }
+        }
+
+        payloadArray.push({
+          userId: parseInt(userId),
+          organizationName: exp.organizationName,
+          designation: exp.designation || "",
+          yearsOfExperience: exp.totalYears ? exp.totalYears.toString() : "",
+          annualSalary: parseFloat(exp.annualSalary) || 0,
+          dateOfExit: finalExitDate,
+          verificationComplete: exp.verification || false
+        });
+      }
+    }
+
+    if (payloadArray.length === 0) return;
+
+    try {
+      await firstValueFrom(
+        this.http.post(`${environment.apiUrl}/User/add-multiple-experience`, payloadArray)
+      );
+    } catch (err) {
+      console.error(`❌ Error saving experiences:`, err);
+    }
+  }
+
   generatePassword() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%';
     let password = '';
@@ -759,702 +598,426 @@ text: 'Something went wrong. Please check your internet or contact support.',
   }
 
   onCancel() {
-    // Ye line user ko pichle page par le jayegi
     this.location.back();
   }
-//   saveEducation() {
-//   const formData = new FormData();
-//   const raw = this.userForm.getRawValue();
 
-//   // 1. Static Education Data (Jo aapne payload mein bheja hai)
-//   const staticEdu = [
-//     { prefix: 'tenth', name: raw.tenthName, year: raw.tenthYear, pct: raw.tenthPercentage, file: raw.tenthMarksheet },
-//     { prefix: 'twelfth', name: raw.twelfthName, year: raw.twelfthYear, pct: raw.twelfthPercentage, file: raw.twelfthMarksheet },
-//     { prefix: 'graduation', name: raw.graduationName, year: raw.graduationYear, pct: raw.graduationPercentage, file: raw.graduationMarksheet },
-//     { prefix: 'postGraduation', name: raw.postGraduationName, year: raw.postGraduationYear, pct: raw.postGraduationPercentage, file: raw.postGraduationMarksheet }
-//   ];
-
-//   staticEdu.forEach(edu => {
-//     if (edu.year || edu.pct || edu.file) {
-//       // Backend naming convention ke hisaab se append karein
-//       formData.append(`${edu.prefix}Name`, edu.name || '');
-//       formData.append(`${edu.prefix}Year`, edu.year || '');
-//       formData.append(`${edu.prefix}Percentage`, edu.pct || '');
-//       if (edu.file instanceof File) {
-//         formData.append(`${edu.prefix}Marksheet`, edu.file);
-//       }
-//     }
-//   });
-
-//   // 2. Dynamic Educations (Agar user ne 'Add More' kiya ho)
-//   raw.educations?.forEach((edu: any, i: number) => {
-//     formData.append(`otherEducations[${i}].educationName`, edu.educationName);
-//     formData.append(`otherEducations[${i}].year`, edu.year);
-//     formData.append(`otherEducations[${i}].percentage`, edu.percentage);
-//     if (edu.marksheet instanceof File) {
-//       formData.append(`otherEducations[${i}].marksheet`, edu.marksheet);
-//     }
-//   });
-
-//   // Sabse important: Kya aapko UserId bhejna hai? 
-//   // Agar user naya hai, toh pehle registerUser se ID lani hogi.
-  
-//   this.http.post('http://localhost:5000/api/UserEducation/add', formData).subscribe({
-//     next: (res) => console.log('Education Saved!', res),
-//     error: (err) => console.error('Education API Error:', err)
-//   });
-// }
-getuser(){
-  this.userService.getUsers('onlyuserdata').subscribe({
-    next: res => {
-      console.log('User Data:', res);
-      this.userlist=res;
-     this.cdr.detectChanges(); // Ensure UI updates after data is set
-    }
-
-  });
-};
-
-validateForm(): boolean {
-  const rawData = this.userForm.getRawValue();
-  const validation = employeeSchema.safeParse(rawData);
-
-  if (!validation.success) {
-    // 🔍 Sabse important: Console mein dekho kaunsi field invalid hai
-    console.error("Validation failed for these fields:", validation.error.flatten().fieldErrors);
-    
-    const errors = validation.error.flatten().fieldErrors as Record<string, string[]>;
-
-    Object.keys(errors).forEach((field: string) => {
-      const control = this.userForm.get(field);
-      if (control) {
-        control.setErrors({ zod: errors[field]?.[0] });
-      } else {
-        // 🚩 Agar control null hai, matlab Zod schema ka naam aur Form name alag hai!
-        console.warn(`Zod error for field "${field}", but this control doesn't exist in userForm.`);
+  getuser() {
+    this.userService.getUsers('onlyuserdata').subscribe({
+      next: res => {
+        this.userlist = res;
+        this.cdr.detectChanges();
       }
     });
-
-    return false;
   }
 
-  return true;
-}
-onlyNumbers(event: any) {
-  const pattern = /[0-9]/;
-  const inputChar = String.fromCharCode(event.charCode);
-  if (!pattern.test(inputChar)) {
-    event.preventDefault(); // Agar number nahi hai toh type hi nahi hoga
+  onlyNumbers(event: any) {
+    const pattern = /[0-9]/;
+    const inputChar = String.fromCharCode(event.charCode);
+    if (!pattern.test(inputChar)) {
+      event.preventDefault();
+    }
   }
-}
-async saveExperience(userId: any) {
-  console.log('➡️ saveExperience function call hua! UserId:', userId);
 
-  const raw = this.userForm.getRawValue();
-  const experienceArray = raw.experiences || [];
-  
-  const payloadArray: any[] = [];
+  populateForm(data: any) {
+    if (!data) return;
 
-  for (const exp of experienceArray) {
-    if (exp.organizationName && exp.organizationName.toString().trim() !== '') {
-      
-      // ==========================================
-      // 👇 DATE FIX LOGIC (For Invalid Time Error)
-      // ==========================================
-      let finalExitDate = null;
-      if (exp.exitDate) {
-        try {
-          // Agar date DD-MM-YYYY format me hai (length 2 dash ke pehle)
-          if (exp.exitDate.includes('-') && exp.exitDate.split('-')[0].length === 2) {
-            const parts = exp.exitDate.split('-');
-            // YYYY-MM-DD me convert karo (parts[2]=YYYY, parts[1]=MM, parts[0]=DD)
-            const validDateString = `${parts[2]}-${parts[1]}-${parts[0]}`; 
-            finalExitDate = new Date(validDateString).toISOString();
-          } 
-          // Agar date pehle se hi sahi format me hai
-          else {
-            finalExitDate = new Date(exp.exitDate).toISOString();
-          }
-        } catch (e) {
-          console.warn("⚠️ Exit Date parse nahi ho payi, null set kar rahe hain:", exp.exitDate);
-          finalExitDate = null;
-        }
+    let parsedHodIds: number[] = [];
+    let parsedTeamIds: number[] = [];
+
+    try {
+      if (data.hodId) {
+        parsedHodIds = typeof data.hodId === 'string' ? JSON.parse(data.hodId) : data.hodId;
+        parsedHodIds = Array.isArray(parsedHodIds) ? parsedHodIds.map(id => Number(id)) : [Number(parsedHodIds)];
       }
-      // ==========================================
-
-      payloadArray.push({
-        userId: parseInt(userId),
-        organizationName: exp.organizationName,
-        designation: exp.designation || "",
-        yearsOfExperience: exp.totalYears ? exp.totalYears.toString() : "", 
-        annualSalary: parseFloat(exp.annualSalary) || 0,
-        dateOfExit: finalExitDate, // Nayi theek ki hui date yahan assign ki
-        verificationComplete: exp.verification || false
-      });
+    } catch (e) {
+      parsedHodIds = [];
     }
-  }
 
-  if (payloadArray.length === 0) {
-    console.log('🛑 No experience details to save.');
-    return;
-  }
-
-  try {
-    console.log(`🚀 Sending Experience Data to API...`, payloadArray);
-    
-    const res = await firstValueFrom(
-      this.http.post(`${environment.apiUrl}/User/add-multiple-experience`, payloadArray)
-    );
-    
-    console.log(`✅ All Experiences saved successfully in one go!`, res);
-  } catch (err) {
-    console.error(`❌ Error saving experiences:`, err);
-  }
-}
-populateForm(data: any) {
-  if (!data) return;
-
-  // 1. Basic Fields Patch
-  this.userForm.patchValue({
-    ...data,
-    bankBranchName: data.branchNameBank,
-    employeeCode: data.empCode || data.employeeCode,
-    ctc_Monthly: data.ctC_Monthly || data.ctc_Monthly,
-    dob: data.dob ? data.dob.split('T')[0] : '',
-    dateOfJoining: data.dateOfJoining ? data.dateOfJoining.split('T')[0] : '',
-    exitDate: data.exitDate ? data.exitDate.split('T')[0] : null,
-    department: data.department,
-    designation: data.designation,
-    offerLetterPath: data.offerLetterPath || '',
-    appointmentLetterPath: data.appointmentLetterPath || '',
-    invitationLetterPath: data.invitationLetterPath || '',
-    relievingLetterPath: data.relievingLetterPath || '',
-    fullAndFinalLetterPath: data.fullAndFinalLetterPath || '',
-    // Backend se aane wale different naming conventions ko handle kiya
-    EmergencyRelation: data.emergencyRelation || data.EmergencyRelation || data.emergencyRelationship
-  });
-
-  setTimeout(() => {
-    if (data.department) {
-      // '==' use kiya hai taaki string "12" aur number 12 dono match ho jayein
-      const dept = this.departments.find(d => d.id == data.department);
-      if (dept && this.deptInput) {
-        this.deptInput.nativeElement.value = dept.name; // UI par Naam dikhao
-      } else {
-        console.warn('Department Name not found for ID:', data.department);
+    try {
+      if (data.teamId) {
+        parsedTeamIds = typeof data.teamId === 'string' ? JSON.parse(data.teamId) : data.teamId;
+        parsedTeamIds = Array.isArray(parsedTeamIds) ? parsedTeamIds.map(id => Number(id)) : [Number(parsedTeamIds)];
       }
+    } catch (e) {
+      parsedTeamIds = [];
     }
 
-    if (data.designation) {
-      const des = this.designations.find(d => d.id == data.designation);
-      if (des && this.desigInput) {
-        this.desigInput.nativeElement.value = des.name; // UI par Naam dikhao
-      } else {
-        console.warn('Designation Name not found for ID:', data.designation);
-      }
-    }
-  }, 1000);
-
-  // 2. Populate Education (Backend Array = addMoreEducations)
-  if (data.addMoreEducations && Array.isArray(data.addMoreEducations)) {
-    
-    // --- STATIC FIELDS POPULATION ---
-    const tenth = data.addMoreEducations.find((e: any) => e.educationName === '10th');
-    if (tenth) {
-      this.userForm.patchValue({
-        tenthId: tenth.id,
-        tenthYear: tenth.passingYear || tenth.year,
-        tenthPercentage: tenth.percentage,
-        tenthMarksheetPath: tenth.marksheetPath || ''
-      });
-    }
-
-    const twelfth = data.addMoreEducations.find((e: any) => e.educationName === '12th');
-    if (twelfth) {
-      this.userForm.patchValue({
-        twelfthId: twelfth.id,
-        twelfthYear: twelfth.passingYear || twelfth.year,
-        twelfthPercentage: twelfth.percentage,
-        twelfthMarksheetPath: twelfth.marksheetPath || ''
-      });
-    }
-
-    const grad = data.addMoreEducations.find((e: any) => e.educationName === 'Graduation');
-    if (grad) {
-      this.userForm.patchValue({
-        graduationId: grad.id,
-        graduationYear: grad.passingYear || grad.year,
-        graduationPercentage: grad.percentage,
-        graduationMarksheetPath: grad.marksheetPath || ''
-      });
-    }
-
-    const pg = data.addMoreEducations.find((e: any) => e.educationName === 'Post Graduation');
-    if (pg) {
-      this.userForm.patchValue({
-        postGraduationId: pg.id,
-        postGraduationYear: pg.passingYear || pg.year,
-        postGraduationPercentage: pg.percentage,
-        postGraduationMarksheetPath: pg.marksheetPath || ''
-      });
-    }
-
-    // --- DYNAMIC FORMARRAY POPULATION ---
-    this.educations.clear(); // Purani khali rows hatayin
-    
-    // Wo educations jo static list mein nahi hain, unhe 'Add More' wale array mein dalenge
-    const otherEdus = data.addMoreEducations.filter((e: any) => 
-      !['10th', '12th', 'Graduation', 'Post Graduation'].includes(e.educationName)
-    );
-
-    otherEdus.forEach((edu: any) => {
-      this.educations.push(this.fb.group({
-        id: [edu.id || null], // ID zaroori hai edit ke liye
-        educationName: [edu.educationName || ''],
-        year: [edu.year || edu.passingYear || ''],
-        percentage: [edu.percentage || ''],
-        marksheet: [null],
-        marksheetPath: [edu.marksheetPath || '']
-      }));
-    });
-  }
-
-  // 3. Populate Experience FormArray
-  // ==================================================
-  // 3. Populate Experience FormArray (Updated for new API)
-  // ==================================================
-  if (data.addAnotherExperiences && Array.isArray(data.addAnotherExperiences)) {
-    this.experiences.clear(); // Purani khali row hata do
-    
-    data.addAnotherExperiences.forEach((exp: any) => {
-      this.experiences.push(this.fb.group({
-        id: [exp.id || null], // Edit ke liye ID zaroori hai
-        organizationName: [exp.organizationName || ''],
-        designation: [exp.designation || ''],
-        annualSalary: [exp.annualSalary || ''],
-        joiningDate: [''], // Ye field backend se nahi aa rahi, toh khali rakha hai
-        // Date format "2000-06-21T00:00:00" se "2000-06-21" nikalne ke liye:
-        exitDate: [exp.dateOfExit ? exp.dateOfExit.split('T')[0] : ''],
-        // Nayi keys ki mapping
-        totalYears: [exp.yearsOfExperience || ''],
-        verification: [exp.verificationComplete || false],
-        documents: this.fb.array([]) 
-      }));
-    });
-  } else {
-    // Agar user naya hai ya koi experience nahi hai, toh ek khali row dikhao
-    if (this.experiences.length === 0) {
-      this.addExperience(); 
-    }
-  }
-}
-// 1. Jab user type kare (Auto Dash insertion)
-// ==================== REUSABLE DATE FUNCTIONS ====================
-
-// 1. Jab user keyboard se type kare (DD-MM-YYYY format)
-onDateInput(event: any, controlName: string = 'dob'): void {
-  const input = event.target as HTMLInputElement;
-  let value = input.value.replace(/\D/g, ''); // Sirf numbers rakhenge
-
-  // Max 8 digits allow karenge (DDMMYYYY)
-  if (value.length > 8) {
-    value = value.substring(0, 8);
-  }
-
-  let displayValue = '';
-
-  // Typing ke waqt dashes (-) auto-insert karne ke liye logic
-  if (value.length > 4) {
-    displayValue = `${value.substring(0, 2)}-${value.substring(2, 4)}-${value.substring(4, 8)}`;
-  } else if (value.length > 2) {
-    displayValue = `${value.substring(0, 2)}-${value.substring(2, 4)}`;
-  } else {
-    displayValue = value;
-  }
-
-  // 1. HTML input field ki visible value update karo
-  input.value = displayValue;
-
-  // 2. Angular Form Control ko bhi wahi exact value do jo screen par dikh rahi hai
-  // emitEvent: false isliye taaki infinite loop na bane
-  this.userForm.get(controlName)?.setValue(displayValue, { emitEvent: false });
-}
-
-onCalendarChange(event: any, controlName: string = 'dob'): void {
-  const dateInput = event.target as HTMLInputElement;
-  if (!dateInput.value) return;
-
-  // Browser calendar hamesha YYYY-MM-DD deta hai
-  const selectedDate = dateInput.value; 
-  const [year, month, day] = selectedDate.split('-');
-  const displayFormat = `${day}-${month}-${year}`;
-
-  // Form Control mein standard format rakhein (taaki backend 400 na de)
-  this.userForm.get(controlName)?.setValue(selectedDate);
-
-  // Screen par user ko DD-MM-YYYY dikhane ke liye text input update karein
-  const textInput = dateInput.parentElement?.querySelector('input[type="text"]') as HTMLInputElement;
-  if (textInput) {
-    textInput.value = displayFormat;
-  }
-}
-logEducationData() {
-  const raw = this.userForm.getRawValue();
-
-  // 1. Static Educations ko ek array mein daalo
-  const allEducations = [
-    {
-      level: '10th',
-      name: raw.tenthName,
-      year: raw.tenthYear,
-      percentage: raw.tenthPercentage,
-      marksheetFile: raw.tenthMarksheet // Yahan File object ya URL aayega
-    },
-    {
-      level: '12th',
-      name: raw.twelfthName,
-      year: raw.twelfthYear,
-      percentage: raw.twelfthPercentage,
-      marksheetFile: raw.twelfthMarksheet
-    },
-    {
-      level: 'Graduation',
-      name: raw.graduationName,
-      year: raw.graduationYear,
-      percentage: raw.graduationPercentage,
-      marksheetFile: raw.graduationMarksheet
-    },
-    {
-      level: 'Post Graduation',
-      name: raw.postGraduationName,
-      year: raw.postGraduationYear,
-      percentage: raw.postGraduationPercentage,
-      marksheetFile: raw.postGraduationMarksheet
-    }
-  ];
-
-  // 2. Dynamic (Add More) wale educations ko bhi isme push kar do
-  if (raw.educations && raw.educations.length > 0) {
-    raw.educations.forEach((edu: any, index: number) => {
-      allEducations.push({
-        level: `Other Education ${index + 1}`,
-        name: edu.educationName,
-        year: edu.year,
-        percentage: edu.percentage,
-        marksheetFile: edu.marksheet
-      });
-    });
-  }
-
-  // 3. Khali entries hata do (jisme kuch bhi fill nahi kiya)
-  const filteredEducations = allEducations.filter(e => e.year || e.percentage || e.marksheetFile);
-
-  console.log('📚 ================= COMPLETE EDUCATION DATA ================= 📚');
-  
-  // Ye table format mein saaf saaf dikhayega
-  console.table(filteredEducations);
-  
-  // Ye detailed object dega jisme aap marksheet ke File Object ko expand karke dekh sakte ho
-  console.log('🔍 Detailed Objects (Click to expand image/file details):', filteredEducations);
-}
-syncAddress(event: any) {
-  if (event.target.checked) {
-    // Sari present address ki values nikal lo
-    const currentValues = this.userForm.value;
-    
-    // Permanent address fields mein patch kar do
     this.userForm.patchValue({
-      permHouseNo: currentValues.presHouseNo,
-      permBuilding: currentValues.presBuilding,
-      permFloor: currentValues.presFloor,
-      permBlock: currentValues.presBlock,
-      permStreet: currentValues.presStreet,
-      permLandmark: currentValues.presLandmark,
-      permArea: currentValues.presArea,
-      permCity: currentValues.presCity,
-      permDistrict: currentValues.presDistrict,
-      permState: currentValues.presState,
-      permPincode: currentValues.presPincode,
-      permCountry: currentValues.presCountry,
+      ...data,
+      hodId: parsedHodIds,
+      teamId: parsedTeamIds,
+      bankBranchName: data.branchNameBank,
+      employeeCode: data.empCode || data.employeeCode,
+      ctc_Monthly: data.ctC_Monthly || data.ctc_Monthly,
+      dob: data.dob ? data.dob.split('T')[0] : '',
+      dateOfJoining: data.dateOfJoining ? data.dateOfJoining.split('T')[0] : '',
+      exitDate: data.exitDate ? data.exitDate.split('T')[0] : null,
+      department: data.department,
+      designation: data.designation,
+      offerLetterPath: data.offerLetterPath || '',
+      appointmentLetterPath: data.appointmentLetterPath || '',
+      invitationLetterPath: data.invitationLetterPath || '',
+      relievingLetterPath: data.relievingLetterPath || '',
+      fullAndFinalLetterPath: data.fullAndFinalLetterPath || '',
+      EmergencyRelation: data.emergencyRelation || data.EmergencyRelation || data.emergencyRelationship
     });
-  } else {
-    // Agar uncheck kare toh permanent address clear kar de (Optional)
-    this.userForm.patchValue({
-      permHouseNo: '', permBuilding: '', permFloor: '', permBlock: '',
-      permStreet: '', permLandmark: '', permArea: '', permCity: '',
-      permDistrict: '', permState: '', permPincode: '', permCountry: ''
-    });
-  }
-}
-// Variables (Add these in your class)
 
-filteredDepts: any[] = [];
-filteredDesig: any[] = [];
+    if (parsedTeamIds.length > 0) {
+      this.userForm.get('teamId')?.setValue(parsedTeamIds, { emitEvent: true });
+    }
 
+    setTimeout(() => {
+      if (data.department) {
+        const dept = this.departments.find(d => d.id == data.department);
+        if (dept && this.deptInput) this.deptInput.nativeElement.value = dept.name;
+      }
+      if (data.designation) {
+        const des = this.designations.find(d => d.id == data.designation);
+        if (des && this.desigInput) this.desigInput.nativeElement.value = des.name;
+      }
+    }, 1000);
 
+    // Populate Education Array Mapping 
+    if (data.addMoreEducations && Array.isArray(data.addMoreEducations)) {
+      const tenth = data.addMoreEducations.find((e: any) => e.educationName === '10th');
+      if (tenth) {
+        this.userForm.patchValue({
+          tenthId: tenth.id,
+          tenthYear: tenth.passingYear || tenth.year,
+          tenthPercentage: tenth.percentage,
+          tenthMarksheetPath: tenth.marksheetPath || ''
+        });
+      }
+      const twelfth = data.addMoreEducations.find((e: any) => e.educationName === '12th');
+      if (twelfth) {
+        this.userForm.patchValue({
+          twelfthId: twelfth.id,
+          twelfthYear: twelfth.passingYear || twelfth.year,
+          twelfthPercentage: twelfth.percentage,
+          twelfthMarksheetPath: twelfth.marksheetPath || ''
+        });
+      }
+      const grad = data.addMoreEducations.find((e: any) => e.educationName === 'Graduation');
+      if (grad) {
+        this.userForm.patchValue({
+          graduationId: grad.id,
+          graduationYear: grad.passingYear || grad.year,
+          graduationPercentage: grad.percentage,
+          graduationMarksheetPath: grad.marksheetPath || ''
+        });
+      }
+      const pg = data.addMoreEducations.find((e: any) => e.educationName === 'Post Graduation');
+      if (pg) {
+        this.userForm.patchValue({
+          postGraduationId: pg.id,
+          postGraduationYear: pg.passingYear || pg.year,
+          postGraduationPercentage: pg.percentage,
+          postGraduationMarksheetPath: pg.marksheetPath || ''
+        });
+      }
 
-// 1. Search Logic (Min 3 characters)
-onSearch(event: any, type: string) {
-  const query = event.target.value.toLowerCase();
-  if (query.length >= 3) {
-    if (type === 'dept') {
-      this.filteredDepts = this.departments.filter(d => d.name.toLowerCase().includes(query));
+      this.educations.clear();
+      const otherEdus = data.addMoreEducations.filter((e: any) =>
+        !['10th', '12th', 'Graduation', 'Post Graduation'].includes(e.educationName)
+      );
+      otherEdus.forEach((edu: any) => {
+        this.educations.push(this.fb.group({
+          id: [edu.id || null],
+          educationName: [edu.educationName || ''],
+          year: [edu.year || edu.passingYear || ''],
+          percentage: [edu.percentage || ''],
+          marksheet: [null],
+          marksheetPath: [edu.marksheetPath || '']
+        }));
+      });
+    }
+
+    // Populate Experience FormArray
+    if (data.addAnotherExperiences && Array.isArray(data.addAnotherExperiences)) {
+      this.experiences.clear();
+      data.addAnotherExperiences.forEach((exp: any) => {
+        this.experiences.push(this.fb.group({
+          id: [exp.id || null],
+          organizationName: [exp.organizationName || ''],
+          designation: [exp.designation || ''],
+          annualSalary: [exp.annualSalary || ''],
+          joiningDate: [''],
+          exitDate: [exp.dateOfExit ? exp.dateOfExit.split('T')[0] : ''],
+          totalYears: [exp.yearsOfExperience || ''],
+          verification: [exp.verificationComplete || false],
+          documents: this.fb.array([])
+        }));
+      });
     } else {
-      this.filteredDesig = this.designations.filter(d => d.name.toLowerCase().includes(query));
-    }
-  } else {
-    this.filteredDepts = [];
-    this.filteredDesig = [];
-  }
-}
-
-// 2. Selection Logic (Value set karne ke liye)
-// selectItem(item: any, type: string, inputElement: HTMLInputElement) {
-//   if (type === 'dept') {
-//     this.userForm.get('department')?.setValue(item.id); // Backend ke liye ID
-//     inputElement.value = item.name; // User ke liye Name
-//     this.filteredDepts = [];
-//   } else {
-//     this.userForm.get('designation')?.setValue(item.id); // Backend ke liye ID
-//     inputElement.value = item.name; // User ke liye Name
-//     this.filteredDesig = [];
-//   }
-// }
-
-// 3. Modal logic (Aapke project ke modal ke hisaab se)
-openDeptModal() {
-  // Example: Yahan aap apna modal open karein aur selecting par selectItem call karein
-  alert("Modal for all Departments will open here");
-}
-
-openDesigModal() {
-  alert("Modal for all Designations will open here");
-}
-
-isModalOpen = false;
-modalType: 'dept' | 'des' = 'dept';
-
-// Modal Open karne ka function
-openModal(type: 'dept' | 'des') {
-  this.modalType = type;
-  this.isModalOpen = true;
-}
-
-// Select Item Logic (Updated to handle Modal + Input)
-selectItem(item: any, type: string, inputElement: HTMLInputElement) {
-  if (type === 'dept') {
-    this.userForm.get('department')?.setValue(item.id);
-    inputElement.value = item.name;
-    this.filteredDepts = [];
-  } else {
-    this.userForm.get('designation')?.setValue(item.id);
-    inputElement.value = item.name;
-    this.filteredDesig = [];
-  }
-}
-// Class variables (Make sure these exist)
-// isLoading = false;
-users: any[] = [];
-
-onUserTypeChange(event: any) {
-  const selectedType = event.target.value;
-
-  if (selectedType) {
-    this.isLoading = true;
-    
-    // Naya API endpoint call karein
-    this.userService.generateNextCode(selectedType).subscribe({
-      next: (res: any) => {
-        this.isLoading = false;
-        
-        if (res && res.nextCode) {
-          // Form mein autofill logic
-          this.userForm.patchValue({
-            employeeCode: res.nextCode
-          });
-
-          this.cdr.detectChanges(); // UI refresh ke liye
-          console.log("Next Employee Code:", res.nextCode);
-        }
-      },
-      error: (err) => {
-        this.isLoading = false;
-        console.error("Fetch Code Error:", err);
+      if (this.experiences.length === 0) {
+        this.addExperience();
       }
-    });
+    }
   }
-}
-// user-form.component.ts mein class ke andar ye add kar:
-// ==================== HOD & TEAM CHIPS MULTI-SELECT ENGINE ====================
 
-// --- A. HOD Chips Management ---
-onHodSelect(event: any) {
-  const value = event.target.value;
-  if (!value) return;
+  // Row index framework fix added inside parameters
+  onDateInput(event: any, controlName: string = 'dob', index?: number): void {
+    const input = event.target as HTMLInputElement;
+    let value = input.value.replace(/\D/g, '');
 
-  const hodIdNum = Number(value);
-  const currentHods: any[] = this.userForm.get('hodId')?.value || [];
+    if (value.length > 8) value = value.substring(0, 8);
 
-  if (!currentHods.includes(hodIdNum)) {
-    currentHods.push(hodIdNum);
+    let displayValue = '';
+    if (value.length > 4) {
+      displayValue = `${value.substring(0, 2)}-${value.substring(2, 4)}-${value.substring(4, 8)}`;
+    } else if (value.length > 2) {
+      displayValue = `${value.substring(0, 2)}-${value.substring(2, 4)}`;
+    } else {
+      displayValue = value;
+    }
+
+    input.value = displayValue;
+
+    const control = index !== undefined
+      ? this.experiences.at(index).get(controlName)
+      : this.userForm.get(controlName);
+
+    control?.setValue(displayValue, { emitEvent: false });
+  }
+
+  onCalendarChange(event: any, controlName: string = 'dob', index?: number): void {
+    const dateInput = event.target as HTMLInputElement;
+    if (!dateInput.value) return;
+
+    const selectedDate = dateInput.value;
+    const [year, month, day] = selectedDate.split('-');
+    const displayFormat = `${day}-${month}-${year}`;
+
+    const control = index !== undefined
+      ? this.experiences.at(index).get(controlName)
+      : this.userForm.get(controlName);
+
+    control?.setValue(selectedDate);
+
+    const textInput = dateInput.parentElement?.querySelector('input[type="text"]') as HTMLInputElement;
+    if (textInput) {
+      textInput.value = displayFormat;
+    }
+  }
+
+  syncAddress(event: any) {
+    if (event.target.checked) {
+      const currentValues = this.userForm.value;
+      this.userForm.patchValue({
+        permHouseNo: currentValues.presHouseNo,
+        permBuilding: currentValues.presBuilding,
+        permFloor: currentValues.presFloor,
+        permBlock: currentValues.presBlock,
+        permStreet: currentValues.presStreet,
+        permLandmark: currentValues.presLandmark,
+        permArea: currentValues.presArea,
+        permCity: currentValues.presCity,
+        permDistrict: currentValues.presDistrict,
+        permState: currentValues.presState,
+        permPincode: currentValues.presPincode,
+        permCountry: currentValues.presCountry,
+      });
+    } else {
+      this.userForm.patchValue({
+        permHouseNo: '', permBuilding: '', permFloor: '', permBlock: '',
+        permStreet: '', permLandmark: '', permArea: '', permCity: '',
+        permDistrict: '', permState: '', permPincode: '', permCountry: ''
+      });
+    }
+  }
+
+  onSearch(event: any, type: string) {
+    const query = event.target.value.toLowerCase();
+    if (query.length >= 3) {
+      if (type === 'dept') {
+        this.filteredDepts = this.departments.filter(d => d.name.toLowerCase().includes(query));
+      } else {
+        this.filteredDesig = this.designations.filter(d => d.name.toLowerCase().includes(query));
+      }
+    } else {
+      this.filteredDepts = [];
+      this.filteredDesig = [];
+    }
+  }
+
+  openModal(type: 'dept' | 'des') {
+    this.modalType = type;
+    this.isModalOpen = true;
+  }
+
+  selectItem(item: any, type: string, inputElement: HTMLInputElement) {
+    if (type === 'dept') {
+      this.userForm.get('department')?.setValue(item.id);
+      inputElement.value = item.name;
+      this.filteredDepts = [];
+    } else {
+      this.userForm.get('designation')?.setValue(item.id);
+      inputElement.value = item.name;
+      this.filteredDesig = [];
+    }
+  }
+
+  onUserTypeChange(event: any) {
+    const selectedType = event.target.value;
+    if (selectedType) {
+      this.isLoading = true;
+      this.userService.generateNextCode(selectedType).subscribe({
+        next: (res: any) => {
+          this.isLoading = false;
+          if (res && res.nextCode) {
+            this.userForm.patchValue({ employeeCode: res.nextCode });
+            this.cdr.detectChanges();
+          }
+        },
+        error: () => this.isLoading = false
+      });
+    }
+  }
+
+  onHodSelect(event: any) {
+    const value = event.target.value;
+    if (!value) return;
+    const hodIdNum = Number(value);
+    const currentHods: any[] = this.userForm.get('hodId')?.value || [];
+    if (!currentHods.includes(hodIdNum)) {
+      currentHods.push(hodIdNum);
+      this.userForm.get('hodId')?.setValue(currentHods);
+    }
+    event.target.value = '';
+  }
+
+  removeHod(hodId: number) {
+    let currentHods: any[] = this.userForm.get('hodId')?.value || [];
+    currentHods = currentHods.filter(id => id !== hodId);
     this.userForm.get('hodId')?.setValue(currentHods);
   }
-  event.target.value = ''; // Reset standard dropdown selection view
-}
 
-removeHod(hodId: number) {
-  let currentHods: any[] = this.userForm.get('hodId')?.value || [];
-  currentHods = currentHods.filter(id => id !== hodId);
-  this.userForm.get('hodId')?.setValue(currentHods);
-}
-// ff
-// user-form.component.ts ke andar is function ko replace karein:
-getHodNameById(hodId: any): string {
-  const match = this.hods.find(h => h.id == hodId);
-  // Pehle check karein agar name hai, nahi toh property fallback check karein
-  return match ? (match.name || match.hod) : `HOD (ID: ${hodId})`;
-}
+  getHodNameById(hodId: any): string {
+    const match = this.hods.find(h => h.id == hodId);
+    return match ? (match.name || match.hod) : `HOD (ID: ${hodId})`;
+  }
 
-isHodSelected(hodId: number): boolean {
-  const currentHods: any[] = this.userForm.get('hodId')?.value || [];
-  return currentHods.includes(hodId);
-}
+  isHodSelected(hodId: number): boolean {
+    const currentHods: any[] = this.userForm.get('hodId')?.value || [];
+    return currentHods.includes(hodId);
+  }
 
+  onTeamSelect(event: any) {
+    const value = event.target.value;
+    if (!value) return;
+    const teamIdNum = Number(value);
+    const currentTeams: any[] = this.userForm.get('teamId')?.value || [];
+    if (!currentTeams.includes(teamIdNum)) {
+      currentTeams.push(teamIdNum);
+      this.userForm.get('teamId')?.setValue(currentTeams);
+    }
+    event.target.value = '';
+  }
 
-// --- B. Team Chips Management ---
-onTeamSelect(event: any) {
-  const value = event.target.value;
-  if (!value) return;
-
-  const teamIdNum = Number(value);
-  const currentTeams: any[] = this.userForm.get('teamId')?.value || [];
-
-  if (!currentTeams.includes(teamIdNum)) {
-    currentTeams.push(teamIdNum);
-    // Control status explicit push update hone se aapka forkJoin dynamic query call auto-fire hoga
+  removeTeam(teamId: number) {
+    let currentTeams: any[] = this.userForm.get('teamId')?.value || [];
+    currentTeams = currentTeams.filter(id => id !== teamId);
     this.userForm.get('teamId')?.setValue(currentTeams);
   }
-  event.target.value = '';
-}
 
-removeTeam(teamId: number) {
-  let currentTeams: any[] = this.userForm.get('teamId')?.value || [];
-  currentTeams = currentTeams.filter(id => id !== teamId);
-  this.userForm.get('teamId')?.setValue(currentTeams);
-}
-
-getTeamNameById(teamId: any): string {
-  const match = this.teams.find(t => t.id == teamId);
-  return match ? match.teamName : `Team (ID: ${teamId})`;
-}
-
-isTeamSelected(teamId: number): boolean {
-  const currentTeams: any[] = this.userForm.get('teamId')?.value || [];
-  return currentTeams.includes(teamId);
-}
-downloadData(type: string) {
-  let dataToDownload = [];
-  let fileName = "";
-
-  if (type === 'dept') {
-    dataToDownload = this.filteredDepts.length > 0 ? this.filteredDepts : this.departments;
-    fileName = "departments.csv";
-  } else if (type === 'des') {
-    dataToDownload = this.filteredDesig.length > 0 ? this.filteredDesig : this.designations; // designations array ka naam check kar lena
-    fileName = "designations.csv";
+  getTeamNameById(teamId: any): string {
+    const match = this.teams.find(t => t.id == teamId);
+    return match ? match.teamName : `Team (ID: ${teamId})`;
   }
 
-  if (!dataToDownload || dataToDownload.length === 0) {
-    alert("No data available to download");
-    return;
+  isTeamSelected(teamId: number): boolean {
+    const currentTeams: any[] = this.userForm.get('teamId')?.value || [];
+    return currentTeams.includes(teamId);
   }
 
-  const csvContent = "data:text/csv;charset=utf-8," 
-    + "ID,Name\n" 
-    + dataToDownload.map(d => `${d.id},${d.name}`).join("\n");
+  downloadData(type: string) {
+    let dataToDownload = [];
+    let fileName = "";
+    if (type === 'dept') {
+      dataToDownload = this.filteredDepts.length > 0 ? this.filteredDepts : this.departments;
+      fileName = "departments.csv";
+    } else if (type === 'des') {
+      dataToDownload = this.filteredDesig.length > 0 ? this.filteredDesig : this.designations;
+      fileName = "designations.csv";
+    }
+    if (!dataToDownload || dataToDownload.length === 0) return;
 
-  const encodedUri = encodeURI(csvContent);
-  const link = document.createElement("a");
-  link.setAttribute("href", encodedUri);
-  link.setAttribute("download", fileName);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-checkPanLength() {
-  const panControl = this.userForm.get('paN_No');
-  
-  // Agar field touched hai aur value 10 characters se kam hai (aur empty nahi hai)
-  if (panControl?.touched && panControl.value && panControl.value.length < 10) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Inadequate Digit Count',
-      text: 'Please enter a valid 10-character alphanumeric PAN.',
-      confirmButtonText: 'Rectify Entry',
-      confirmButtonColor: '#3b82f6'
-    });
+    const csvContent = "data:text/csv;charset=utf-8," + "ID,Name\n" + dataToDownload.map(d => `${d.id},${d.name}`).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", fileName);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
-}
-validateAadhaarLength() {
-  const control = this.userForm.get('aadhaarNo');
-  
-  // Agar value 12 digits se kam hai aur field interact ki gayi hai
-  if (control?.touched && control.value && control.value.length < 12) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'Incomplete Identification Sequence',
-      text: 'Invalid Aadhaar. Please enter the full 12-digit number.',
-      confirmButtonText: 'Amend Submission',
-      confirmButtonColor: '#3b82f6'
-    });
+
+  checkPanLength() {
+    const panControl = this.userForm.get('paN_No');
+    if (panControl?.touched && panControl.value && panControl.value.length < 10) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Inadequate Digit Count',
+        text: 'Please enter a valid 10-character alphanumeric PAN.',
+        confirmButtonText: 'Rectify Entry',
+        confirmButtonColor: '#3b82f6'
+      });
+    }
   }
-}
-validateUserType() {
-  const control = this.userForm.get('userType');
 
-  // 'touched' hataya gaya taaki direct value check ho
-  if (!control?.value || control.value === '') {
-    Swal.fire({
-      icon: 'warning',
-      title: 'Categorization Oversight',
-      text: '"User category is required.',
-      confirmButtonText: 'Amend Selection',
-      confirmButtonColor: '#3b82f6'
-    });
+  validateAadhaarLength() {
+    const control = this.userForm.get('aadhaarNo');
+    if (control?.touched && control.value && control.value.length < 12) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Incomplete Identification Sequence',
+        text: 'Invalid Aadhaar. Please enter the full 12-digit number.',
+        confirmButtonText: 'Amend Submission',
+        confirmButtonColor: '#3b82f6'
+      });
+    }
   }
-}
-validateDOB() {
-  const control = this.userForm.get('dob');
-  const dateValue = control?.value;
 
-  // Regex for DD-MM-YYYY format
-  const dateRegex = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$/;
-
-  if (control?.touched && dateValue && !dateRegex.test(dateValue)) {
-    Swal.fire({
-   icon: 'error',
-title: 'Invalid Date Format',
-text: 'Please enter the date of birth in DD-MM-YYYY format.',
-confirmButtonText: 'Amend Entry',
-confirmButtonColor: '#d33'
-    });
+  validateUserType() {
+    const control = this.userForm.get('userType');
+    if (!control?.value || control.value === '') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Categorization Oversight',
+        text: 'User category is required.',
+        confirmButtonText: 'Amend Selection',
+        confirmButtonColor: '#3b82f6'
+      });
+    }
   }
-}
-validateJoiningDate() {
-  const control = this.userForm.get('dateOfJoining');
-  const dateValue = control?.value;
 
-  // DD-MM-YYYY format ke liye Regex
-  const dateRegex = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$/;
-
-  if (control?.touched && dateValue && !dateRegex.test(dateValue)) {
-    Swal.fire({
-    icon: 'error',
-title: 'Invalid Date Format',
-text: 'Please enter the date in DD-MM-YYYY format.',
-confirmButtonText: 'Amend Entry',
-confirmButtonColor: '#d33'
-    });
+  validateDOB() {
+    const control = this.userForm.get('dob');
+    const dateValue = control?.value;
+    const dateRegex = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$/;
+    if (control?.touched && dateValue && !dateRegex.test(dateValue)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid Date Format',
+        text: 'Please enter the date of birth in DD-MM-YYYY format.',
+        confirmButtonText: 'Amend Entry',
+        confirmButtonColor: '#d33'
+      });
+    }
   }
-}
+
+  validateJoiningDate() {
+    const control = this.userForm.get('dateOfJoining');
+    const dateValue = control?.value;
+    const dateRegex = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$/;
+    if (control?.touched && dateValue && !dateRegex.test(dateValue)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid Date Format',
+        text: 'Please enter the date in DD-MM-YYYY format.',
+        confirmButtonText: 'Amend Entry',
+        confirmButtonColor: '#d33'
+      });
+    }
+  }
 }

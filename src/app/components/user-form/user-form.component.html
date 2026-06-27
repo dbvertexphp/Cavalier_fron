@@ -608,51 +608,39 @@
     class="w-full border p-2 rounded outline-none focus:border-[#4a3f3f] bg-white"
   >
 </div>
-     <div class="space-y-1">
+    <div class="space-y-1">
   <label class="font-semibold text-gray-600 block uppercase text-sm">Date Of Exit</label>
   
-
-
-<div class="relative flex items-center">
-  <!-- Text Input - User can type DD-MM-YYYY -->
-  <input 
-    type="text" 
-    formControlName="exitDate" 
-    placeholder="DD-MM-YYYY"
-    maxlength="10"
-    (input)="onDateInput($event, 'exitDate')"
-    class="w-full border p-2 pr-12 rounded focus:ring-2 focus:ring-blue-500 outline-none"
-  >
-  
-  <!-- Hidden Calendar Picker -->
-  <input 
-    #exitPicker
-    type="date" 
-    [max]="todayDate"
-    (change)="onCalendarChange($event, 'exitDate')"
-    class="absolute opacity-0 pointer-events-none w-0 h-0"
-  >
-  
-  <!-- Calendar Icon -->
-  <div 
-    (click)="exitPicker.showPicker()" 
-    class="absolute right-3 text-gray-400 cursor-pointer hover:text-blue-500 transition-colors"
-  >
-    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-    </svg>
-  </div>
-</div>
-
-<!-- Optional Error Message -->
-<div *ngIf="userForm.get('exitDate')?.touched && userForm.get('exitDate')?.errors?.['zod']" 
-     class="text-red-600 text-xs mt-1">
-  {{ userForm.get('exitDate')?.errors?.['zod'] }}
-</div>
-  
-  <div *ngIf="userForm.get('exitDate')?.touched && userForm.get('exitDate')?.errors?.['zod']" class="text-red-600 text-xs mt-1">
-    {{ userForm.get('exitDate')?.errors?.['zod'] }}
+  <div class="relative flex items-center">
+    <!-- Text Input - Modified to pass row loop index 'i' -->
+    <input 
+      type="text" 
+      formControlName="exitDate" 
+      placeholder="DD-MM-YYYY"
+      maxlength="10"
+      (input)="onDateInput($event, 'exitDate', i)"
+      class="w-full border p-2 pr-12 rounded focus:ring-2 focus:ring-blue-500 outline-none"
+    >
+    
+    <!-- Hidden Calendar Picker - Modified to pass row loop index 'i' -->
+    <input 
+      #exitPicker
+      type="date" 
+      [max]="todayDate"
+      (change)="onCalendarChange($event, 'exitDate', i)"
+      class="absolute opacity-0 pointer-events-none w-0 h-0"
+    >
+    
+    <!-- Calendar Icon Action Trigger Links -->
+    <div 
+      (click)="exitPicker.showPicker()" 
+      class="absolute right-3 text-gray-400 cursor-pointer hover:text-blue-500 transition-colors"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
+    </div>
   </div>
 </div>
       <div class="md:col-span-3 flex items-center gap-2 pt-2 border-t mt-2">

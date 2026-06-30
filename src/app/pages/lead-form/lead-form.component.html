@@ -123,7 +123,7 @@
           <div class="flex items-center">
             <label class="w-28 font-bold text-gray-600 text-[12px]">HOD</label>
             <div class="flex-1 flex border border-gray-300 relative rounded-sm bg-white shadow-sm focus-within:ring-1 focus-within:ring-red-400">
-              <input type="text" [(ngModel)]="leadSearchFilters.hod" [ngModelOptions]="{standalone: true}" (input)="onHODSearchType($event)" placeholder="Type min 3 chars..." class="w-full p-1.5 outline-none text-[12px] bg-white" autocomplete="off" />
+<input type="text" [(ngModel)]="hodDisplayText" (input)="onHODSearchType($event)" placeholder="Type min 3 chars..." class="w-full p-1.5 outline-none text-[12px] bg-white" autocomplete="off"/>
               <span (click)="oniconHODSearch()" class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-red-500 hover:text-white w-9 flex items-center justify-center">🔍</span>
               <ul *ngIf="leadSearchFilters.hod.length >= 3 && filteredHODSuggestions.length > 0 && !isHODModalOpen" class="absolute top-full left-0 w-full bg-white border border-gray-300 z-[4000] shadow-xl max-h-60 overflow-y-auto mt-1 rounded-sm list-none p-0">
                 <li *ngFor="let hodName of filteredHODSuggestions" (click)="selectHOD(hodName)" class="p-2 text-[12px] hover:bg-red-50 cursor-pointer border-b flex items-center gap-2 group">
@@ -156,7 +156,7 @@
           <div class="flex items-center">
             <label class="w-28 font-bold text-gray-600 text-[12px]">Lead Owner</label>
             <div class="flex-1 flex border border-gray-300 relative rounded-sm bg-white shadow-sm focus-within:ring-1">
-              <input type="text" [(ngModel)]="leadSearchFilters.leadOwner" [ngModelOptions]="{standalone: true}" (input)="onLeadOwnerSearch($event)" placeholder="Type min 3 chars..." class="w-full p-1.5 outline-none text-[12px] bg-white h-[26px]" autocomplete="off" />
+<input type="text" [(ngModel)]="leadOwnerDisplayText" (input)="onLeadOwnerSearch($event)" placeholder="Type min 3 chars..." class="w-full p-1.5 outline-none text-[12px] bg-white" autocomplete="off"/>
               <span (click)="onLeadOwnerIconClick()" class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-red-500 hover:text-white w-9 flex items-center justify-center">🔍</span>
             </div>
           </div>
@@ -208,7 +208,7 @@
           <div class="flex items-center">
             <label class="w-28 font-bold text-gray-600 text-[12px]">Team</label>
             <div class="flex-1 flex border border-gray-300 relative rounded-sm bg-white">
-              <input type="text" [(ngModel)]="leadSearchFilters.team" [ngModelOptions]="{standalone: true}" class="w-full p-1.5 outline-none text-[12px] h-[26px]" placeholder="Search Team..." (input)="onTeamSearch($event)" autocomplete="off"> 
+<input type="text" [(ngModel)]="teamDisplayText" placeholder="Search Team..." (input)="onTeamSearch($event)" class="w-full p-1.5 outline-none text-[12px] bg-white" autocomplete="off">
               <span class="p-1 bg-gray-50 border-l flex items-center justify-center text-gray-400 w-9" (click)="onTeamIconClick()">🔍</span>
               <div *ngIf="filteredTeams.length > 0" class="absolute z-[100] w-full bg-white border top-full left-0 mt-1 max-h-48 overflow-y-auto shadow-xl">
                 <div *ngFor="let team of filteredTeams" (click)="selectTeam(team)" class="px-3 py-2 hover:bg-red-50 cursor-pointer text-[12px] border-b group">
@@ -238,7 +238,7 @@
           <div class="flex items-center">
             <label class="w-28 font-bold text-gray-600 text-[12px]">Reporting Manager</label>
             <div class="flex-1 flex border border-gray-300 relative rounded-sm bg-white">
-              <input type="text" [(ngModel)]="leadSearchFilters.reportingManager" [ngModelOptions]="{standalone: true}" class="w-full p-1.5 outline-none text-[12px] h-[26px]" placeholder="Search Manager..." (input)="onManagerSearch($event)" autocomplete="off"> 
+<input type="text" [(ngModel)]="managerDisplayText" (input)="onManagerSearch($event)" placeholder="Search Manager..." class="w-full p-1.5 outline-none text-[12px] bg-white" autocomplete="off"/>
               <span class="p-1 bg-gray-50 border-l text-gray-400 w-9 flex items-center justify-center" (click)="onManagerIconClick()">🔍</span>
             </div>
           </div>

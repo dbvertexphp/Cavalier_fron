@@ -25,7 +25,10 @@ import Swal from 'sweetalert2';
 export class LeadFormComponent implements OnInit {
   @ViewChild('deptInput') deptInput!: ElementRef;
   @ViewChild('desigInput') desigInput!: ElementRef;
-
+hodDisplayText: string = '';
+  managerDisplayText: string = '';
+  leadOwnerDisplayText: string = '';
+  teamDisplayText: string = '';
   showTable: boolean = false; 
   isHODModalOpen: boolean = false;
   modalHODSearchText: string = '';
@@ -807,9 +810,12 @@ export class LeadFormComponent implements OnInit {
     });
   }
 
-  selectTeam(team: any): void {
-    const selectedName = team.teamName || team.name || team;
-    this.leadSearchFilters.team = selectedName; 
+ selectTeam(team: any): void {
+    const matchedTeam = typeof team === 'object' ? team : this.teamList.find(t => (t.teamName || t.name) === team);
+    if (matchedTeam) {
+      this.leadSearchFilters.team = String(matchedTeam.id);
+      this.teamDisplayText = matchedTeam.teamName || matchedTeam.name; // Input mein naam dikhega
+    }
     this.filteredTeams = [];                    
     this.cdr.detectChanges();
   }
@@ -904,21 +910,29 @@ export class LeadFormComponent implements OnInit {
     this.leadSearchFilters.organizationName = org.orgName; 
     this.filteredOrganizations = [];                      
   }
-
-  loadLeadSuggestions() {
+loadLeadSuggestions() {
     this.http.get<any[]>(`${environment.apiUrl}/Leads`).subscribe({
       next: (data) => {
         if (Array.isArray(data)) {
           this.leadNoList = [...new Set(data.map(l => l.leadNo).filter(val => val))];
           this.leadOrgList = [...new Set(data.map(l => l.organizationName).filter(val => val))];
-          this.leadOwnerList = [...new Set(data.map(l => l.leadOwner).filter(val => val))];
           this.allSalesProcesses = [...new Set(data.map(l => l.salesProcess).filter(val => val))];
-          this.hodUniqueList = [...new Set(data.map(l => l.hod).filter(val => val && val.toString().trim() !== ''))];
-          this.managerUniqueList = [...new Set(data.map(l => l.reportingManager || l.ReportingManager).filter(val => val && val.toString().trim() !== ''))];
           this.cdr.detectChanges(); 
         }
       }
-    }); 
+    });
+
+    // Humare global list ko populate karo taaki bina modal khole type karne par bhi filter chale
+    this.userServices.getHodList().subscribe({
+      next: (res: any[]) => {
+        this.OnlyleadOwner = res;
+        const validNames = res.map(u => u.name).filter(n => n);
+        this.allHODList = [...new Set(validNames)];
+        this.leadOwnerList = [...new Set(validNames)];
+        this.managerUniqueList = [...new Set(validNames)];
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   onManagerSearch(event: Event): void {
@@ -927,6 +941,7 @@ export class LeadFormComponent implements OnInit {
       this.filteredManagers = [];
       return;
     }
+    // Ab ye direct hod-list ke content se dynamically search karega
     this.filteredManagers = this.managerUniqueList.filter(m => m.toLowerCase().includes(value));
   }
 
@@ -951,7 +966,7 @@ export class LeadFormComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
-  onLeadSearch() {
+onLeadSearch() {
     this.showTable = true;
     const searchInput = this.leadSearchFilters.leadNo?.toString().trim();
     let rawDate = this.leadForm.get('date')?.value || this.leadSearchFilters.date || ""; 
@@ -973,14 +988,15 @@ export class LeadFormComponent implements OnInit {
       filtersToSend = {
         LeadNo: '',
         OrganizationName: this.leadSearchFilters.organizationName || "",
+        OrganisationId: this.OrganisationId ? Number(this.OrganisationId) : null, // ID conversion
         Type: this.leadSearchFilters.type === 'Any' ? "" : this.leadSearchFilters.type,
-        LeadOwner: this.leadSearchFilters.leadOwner === 'Any' ? "" : this.leadSearchFilters.leadOwner,
+        LeadOwner: this.leadSearchFilters.leadOwner === 'Any' ? "" : this.leadSearchFilters.leadOwner, // Ab isme ID jaayegi
         SalesStage: this.leadSearchFilters.salesStage || "",
         SalesProcess: this.leadSearchFilters.salesProcess || "",
-        HOD: this.leadSearchFilters.hod || "",
-        Team: this.leadSearchFilters.team || "",
+        HOD: this.leadSearchFilters.hod || "", // Ab isme ID jaayegi
+        Team: this.leadSearchFilters.team || "", // Ab isme ID jaayegi
         Branch: this.leadSearchFilters.branch || "", 
-        ReportingManager: this.leadSearchFilters.reportingManager || "",
+        ReportingManager: this.leadSearchFilters.reportingManager || "", // Ab isme ID jaayegi
         Status: (this.leadSearchFilters.status === 'Any' || !this.leadSearchFilters.status) ? "" : this.leadSearchFilters.status.toString().toLowerCase(),
         Date: searchDate 
       };
@@ -989,17 +1005,7 @@ export class LeadFormComponent implements OnInit {
     const headers = { 'Authorization': `Bearer ${localStorage.getItem('cavalier_token')}` };
     this.http.post<any[]>(`${environment.apiUrl}/Leads/Search`, filtersToSend, { headers }).subscribe({
       next: (response) => {
-        let results = response ? [...response] : [];
-        if (searchInput && results.length > 0) {
-          results.sort((a: any, b: any) => {
-            const valA = (a.leadNo || a.LeadNo || "").toString().trim();
-            const valB = (b.leadNo || b.LeadNo || "").toString().trim();
-            if (valA === searchInput) return -1;
-            if (valB === searchInput) return 1;
-            return 0;
-          });
-        }
-        this.leads = results;
+        this.leads = response || [];
         this.updatePagination();
         if (this.leads.length === 0) alert("No data found In db.");
       },
@@ -1122,11 +1128,24 @@ export class LeadFormComponent implements OnInit {
   }
 
   oniconHODSearch() {
-    this.isHODModalOpen = true; this.modalHODSearchText = '';
-    this.http.get<any[]>(`${environment.apiUrl}/Leads`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('cavalier_token')}` } }).subscribe(res => {
-      this.allHODList = [...new Set(res.map(i => i.hod))].filter(n => n && typeof n === 'string' && /[a-zA-Z]/.test(n));
+    this.isHODModalOpen = true; 
+    this.modalHODSearchText = '';
+    
+    // Direct API user list (OnlyleadOwner) se names map kar rahe hain
+    if (this.OnlyleadOwner && this.OnlyleadOwner.length > 0) {
+      this.allHODList = [...new Set(this.OnlyleadOwner.map(u => u.name))]
+        .filter(n => n && typeof n === 'string' && n.trim() !== '');
       this.allHODListFiltered = [...this.allHODList];
-    });
+    } else {
+      this.userServices.getHodList().subscribe({
+        next: (res: any[]) => {
+          this.OnlyleadOwner = res;
+          this.allHODList = [...new Set(res.map(u => u.name))].filter(n => n);
+          this.allHODListFiltered = [...this.allHODList];
+          this.cdr.detectChanges();
+        }
+      });
+    }
   }
 
   onHODSearchType(event: Event): void {
@@ -1134,8 +1153,23 @@ export class LeadFormComponent implements OnInit {
     this.filteredHODSuggestions = v.length >= 3 ? this.allHODList.filter(h => h.toLowerCase().includes(v)) : [];
   }
 
-  selectHOD(hodName: string): void {
-    this.leadSearchFilters.hod = hodName; this.filteredHODSuggestions = []; this.isHODModalOpen = false;
+ selectHOD(hodUser: any): void {
+    if (hodUser && typeof hodUser === 'object') {
+      this.leadSearchFilters.hod = String(hodUser.id);
+      this.hodDisplayText = hodUser.name; // Input mein naam dikhega
+    } else {
+      const match = this.OnlyleadOwner.find(u => u.name === hodUser);
+      if (match) {
+        this.leadSearchFilters.hod = String(match.id);
+        this.hodDisplayText = match.name;
+      } else {
+        this.leadSearchFilters.hod = hodUser;
+        this.hodDisplayText = hodUser;
+      }
+    }
+    this.filteredHODSuggestions = []; 
+    this.isHODModalOpen = false;
+    this.cdr.detectChanges();
   }
 
   filterHODModalList() {
@@ -1148,11 +1182,23 @@ export class LeadFormComponent implements OnInit {
   }
 
   onLeadOwnerIconClick() {
-    this.isLeadOwnerModalOpen = true; this.modalOwnerSearchText = '';
-    this.http.get<any[]>(`${environment.apiUrl}/Leads`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('cavalier_token')}` } }).subscribe(res => {
-      this.leadOwnerList = [...new Set(res.map(i => i.leadOwner))].filter(n => n && typeof n === 'string' && /[a-zA-Z]/.test(n));
+    this.isLeadOwnerModalOpen = true; 
+    this.modalOwnerSearchText = '';
+    
+    if (this.OnlyleadOwner && this.OnlyleadOwner.length > 0) {
+      this.leadOwnerList = [...new Set(this.OnlyleadOwner.map(u => u.name))]
+        .filter(n => n && typeof n === 'string' && n.trim() !== '');
       this.allOwnersFiltered = [...this.leadOwnerList];
-    });
+    } else {
+      this.userServices.getHodList().subscribe({
+        next: (res: any[]) => {
+          this.OnlyleadOwner = res;
+          this.leadOwnerList = [...new Set(res.map(u => u.name))].filter(n => n);
+          this.allOwnersFiltered = [...this.leadOwnerList];
+          this.cdr.detectChanges();
+        }
+      });
+    }
   }
 
   onLeadOwnerSearch(event: Event): void {
@@ -1160,8 +1206,23 @@ export class LeadFormComponent implements OnInit {
     this.filteredLeadOwners = v.length >= 3 ? this.leadOwnerList.filter(o => o.toLowerCase().includes(v)) : [];
   }
 
-  selectLeadOwner(ownerName: string): void {
-    this.leadSearchFilters.leadOwner = ownerName; this.filteredLeadOwners = []; this.isLeadOwnerModalOpen = false;
+selectLeadOwner(owner: any): void {
+    if (owner && typeof owner === 'object') {
+      this.leadSearchFilters.leadOwner = String(owner.id);
+      this.leadOwnerDisplayText = owner.name; // Input mein naam dikhega
+    } else {
+      const match = this.OnlyleadOwner.find(u => u.name === owner);
+      if (match) {
+        this.leadSearchFilters.leadOwner = String(match.id);
+        this.leadOwnerDisplayText = match.name;
+      } else {
+        this.leadSearchFilters.leadOwner = owner;
+        this.leadOwnerDisplayText = owner;
+      }
+    }
+    this.filteredLeadOwners = []; 
+    this.isLeadOwnerModalOpen = false;
+    this.cdr.detectChanges();
   }
 
   filterOwnerModalList() {
@@ -1209,24 +1270,38 @@ export class LeadFormComponent implements OnInit {
     this.tmIconListFiltered = this.allTeamsList.filter(t => t.toString().toLowerCase().includes(q));
   }
 
-  selectTmFromIcon(team: any) {
-    this.leadSearchFilters.team = team; this.isTeamModalOpen = false;
+selectTmFromIcon(team: any) {
+    const matchedTeam = this.teamList.find(t => (t.teamName || t.name || t) === team);
+    if (matchedTeam) {
+      this.leadSearchFilters.team = String(matchedTeam.id);
+      this.teamDisplayText = matchedTeam.teamName || matchedTeam.name;
+    } else {
+      this.leadSearchFilters.team = team;
+      this.teamDisplayText = team;
+    }
+    this.isTeamModalOpen = false;
+    this.cdr.detectChanges();
   }
 
   onManagerIconClick() {
-    this.isManagerModalOpen = true; this.modalManagerSearchText = '';
-    this.http.get<any[]>(`${environment.apiUrl}/Leads`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('cavalier_token')}` } }).subscribe({
-      next: (res: any[]) => {
-        if (res && res.length > 0) {
-          const uniqueManagers = [...new Set(res.map(item => item.reportingManager))]
-            .filter(name => name && typeof name === 'string' && name.trim() !== "" && /[a-zA-Z]/.test(name));
-          this.allManagersList = uniqueManagers;
+    this.isManagerModalOpen = true; 
+    this.modalManagerSearchText = '';
+    
+    if (this.OnlyleadOwner && this.OnlyleadOwner.length > 0) {
+      this.allManagersList = [...new Set(this.OnlyleadOwner.map(u => u.name))]
+        .filter(n => n && typeof n === 'string' && n.trim() !== '');
+      this.rmIconListFiltered = [...this.allManagersList];
+      this.cdr.detectChanges();
+    } else {
+      this.userServices.getHodList().subscribe({
+        next: (res: any[]) => {
+          this.OnlyleadOwner = res;
+          this.allManagersList = [...new Set(res.map(u => u.name))].filter(n => n);
           this.rmIconListFiltered = [...this.allManagersList];
           this.cdr.detectChanges();
         }
-      },
-      error: (err) => console.error(err)
-    });
+      });
+    }
   }
 
   filterManagers(event?: any) {
@@ -1236,7 +1311,20 @@ export class LeadFormComponent implements OnInit {
   }
 
   selectRmFromIcon(manager: any) {
-    this.leadSearchFilters.reportingManager = manager; this.isManagerModalOpen = false;
+    if (manager && typeof manager === 'object') {
+      this.leadSearchFilters.reportingManager = String(manager.id);
+      this.managerDisplayText = manager.name; // Input mein naam dikhega
+    } else {
+      const match = this.OnlyleadOwner.find(u => u.name === manager);
+      if (match) {
+        this.leadSearchFilters.reportingManager = String(match.id);
+        this.managerDisplayText = match.name;
+      } else {
+        this.leadSearchFilters.reportingManager = manager;
+        this.managerDisplayText = manager;
+      }
+    }
+    this.isManagerModalOpen = false;
     this.cdr.detectChanges();
   }
 

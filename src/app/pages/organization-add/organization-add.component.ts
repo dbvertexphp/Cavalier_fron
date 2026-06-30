@@ -8,6 +8,7 @@ import { any } from '@amcharts/amcharts5/.internal/core/util/Array';
 import { Router } from '@angular/router';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+
 import * as XLSX from 'xlsx';
 import { moveItemInArray, transferArrayItem, CdkDragDrop } from '@angular/cdk/drag-drop';
 import { DragDropModule } from '@angular/cdk/drag-drop'; // 👈 Ye zaroori hai // Ye import ensure kar lena
@@ -24,6 +25,7 @@ import Swal from 'sweetalert2';
 export class OrganizationAddComponent implements OnInit {
   allDialCodes: any[] = []; // Saari countries ke dialing codes store karne ke liye
   showBranchDetailModal: boolean = false;
+  
 modalModalTitle: string = '';
 modalDataList: string[] = []; // Modal mein string ki list dikhane ke liye
   agentCountryCode: string = '';
@@ -1823,61 +1825,61 @@ selectCitySuggestion(item: any) {
 showTable: boolean = false;
 
 onSearch() {
-  let finalFilters: any = {};
-
-  // 1. ID Priority Check
-  if (this.searchFilters.orgCode && this.searchFilters.orgCode.trim() !== '') {
-    finalFilters = { id: this.searchFilters.orgCode };
-  } 
-  else {
-    // 2. Build other filters (Name, etc.)
-    Object.entries(this.searchFilters).forEach(([key, value]) => {
-      if (value !== '' && value !== null && value !== undefined && value !== 'Any') {
-        finalFilters[key] = value;
-      }
-    });
-  }
-
-  // --- 🔥 HIDE/SHOW LOGIC ---
-  if (Object.keys(finalFilters).length === 0) {
-    this.showTable = true;
-    this.getOrgList();
-    return;
-  }
-
   this.showTable = true;
+  this.loading = true;
 
-  // --- 🔥 REST OF YOUR CODE (NO CHANGES) ---
   const token = localStorage.getItem('cavalier_token');
-  const headers = { 
-    'Authorization': `Bearer ${token}`, 
+  const headers = new HttpHeaders({ 
+    'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json' 
-  };
+  });
 
-  if (finalFilters.id) {
-    this.http.get<any[]>(`${environment.apiUrl}/Organization/search`, { params: finalFilters, headers })
-      .subscribe({
-        next: (response) => { this.processSearchResponse(response, finalFilters); },
-        error: (err) => { console.error("❌ ID Search failed:", err); this.cdr.detectChanges(); }
-      });
-  } 
-  else if (this.searchFilters.status && this.searchFilters.status !== 'Both') {
-    if (this.searchFilters.status === 'Active') finalFilters['Status'] = 'active';
-    else if (this.searchFilters.status === 'Deactive') finalFilters['Status'] = 'inactive';
+  // Dynamic Query Params Object Builder Framework
+  let queryParams: any = {};
 
-    this.http.post<any[]>(`${environment.apiUrl}/Organization/search-by-branches`, finalFilters, { headers })
-      .subscribe({
-        next: (response) => { this.processSearchResponse(response, finalFilters); },
-        error: (err) => { console.error("❌ POST Search failed:", err); this.cdr.detectChanges(); }
-      });
-  } 
-  else {
-    this.http.get<any[]>(`${environment.apiUrl}/Organization/search`, { params: finalFilters, headers })
-      .subscribe({
-        next: (response) => { this.processSearchResponse(response, finalFilters); },
-        error: (err) => { console.error("❌ GET Search failed:", err); this.cdr.detectChanges(); }
-      });
+  // 1. Check Org ID / Code
+  if (this.searchFilters.orgCode && this.searchFilters.orgCode.trim() !== '') {
+    queryParams['id'] = this.searchFilters.orgCode.trim();
   }
+
+  // 2. Check Org Name
+  if (this.searchFilters.orgName && this.searchFilters.orgName.trim() !== '') {
+    queryParams['orgName'] = this.searchFilters.orgName.trim();
+  }
+
+  // 3. Check Status
+  if (this.searchFilters.status && this.searchFilters.status !== 'Both') {
+    queryParams['status'] = this.searchFilters.status;
+  }
+
+  // 4. Check Branch Search Filter Text
+  if (this.branchSearchText && this.branchSearchText.trim() !== '') {
+    queryParams['branchName'] = this.branchSearchText.trim();
+  }
+
+  // 5. Check Created Date
+  if (this.searchFilters.createdDate && this.searchFilters.createdDate.trim() !== '') {
+    queryParams['createdDate'] = this.searchFilters.createdDate.trim();
+  }
+
+  // Agar user ne bina koi field dale direct search click kiya toh puri list load hogi
+  const url = `${environment.apiUrl}/Organization/search`;
+
+  this.http.get<any[]>(url, { params: queryParams, headers }).subscribe({
+    next: (response) => {
+      this.organizations = response || [];
+      this.currentPage = 1; // Pagination tracking counter trace lock reset
+      this.loading = false;
+      this.cdr.detectChanges();
+      console.log("📥 Filtered Data Loaded Successfully:", this.organizations);
+    },
+    error: (err) => {
+      console.error("❌ Unified Advanced Search Failed:", err);
+      this.organizations = [];
+      this.loading = false;
+      this.cdr.detectChanges();
+    }
+  });
 }
 
 // Ye function tera wahi same filtering logic handle karega jo tune bheja tha
@@ -2268,25 +2270,50 @@ allOrgFiltered: any[] = []; // Modal filter ke liye
 filteredOrgNames: any[] = []; // Input dropdown suggestions ke liye
 
 // 1. Icon Click - Modal Open (Original API: /Organization/list)
+// 1. Icon Click - Modal Open (Updated mapping to handle both array variations cleanly)
 allOrgSearch(type: string) {
   this.isOrgModalOpen = true;
   this.modalOrgSearchText = '';
+  this.allOrgList = [];
+  this.allOrgFiltered = [];
   
+  // 🔥 LocalStorage se token uthayein
+  const token = localStorage.getItem('cavalier_token'); 
+  
+  // 🔥 Headers prepare karein Authorization Bearer token ke saath
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  });
+
   const url = `${environment.apiUrl}/Organization/list`;
-  this.http.get(url).subscribe({
+  
+  // 🔥 Request mein { headers } pass karein
+  this.http.get(url, { headers }).subscribe({
     next: (res: any) => {
-      const data = Array.isArray(res) ? res : res.data;
-      if (data) {
-        // Modal mein dikhane ke liye data map kiya
+      // API directly array de sakti hai ya res.data ya res.result ke andar array ho sakta hai
+      const data = Array.isArray(res) ? res : (res.data || res.result || []);
+      if (data && data.length > 0) {
         this.allOrgList = data.map((item: any) => ({
-          orgId: item.organizationId,
+          orgId: item.id || item.organizationId || item.orgId, // Multi-key fallback shield
           orgName: item.orgName
         }));
         this.allOrgFiltered = [...this.allOrgList];
-        this.cdr.detectChanges();
+      } else {
+        this.allOrgList = [];
+        this.allOrgFiltered = [];
       }
+      this.cdr.detectChanges();
     },
-    error: (err) => console.error("API Error:", err)
+    error: (err) => {
+      console.error("API Error fetching all organizations:", err);
+      if (err.status === 401) {
+        console.warn("❌ Session expired or Unauthorized access!");
+      }
+      this.allOrgList = [];
+      this.allOrgFiltered = [];
+      this.cdr.detectChanges();
+    }
   });
 }
 
@@ -2913,13 +2940,32 @@ modalOrgIdSearchText: string = '';
 onOrgIdIconClick() {
   this.isOrgIdModalOpen = true;
   this.modalOrgIdSearchText = '';
+  this.allOrgList = [];
+  this.allOrgFiltered = [];
   
-  // Modal ke liye master list mangwao
-  this.http.get(`${environment.apiUrl}/Organization/list`).subscribe({
+  // 🔥 LocalStorage se token uthayein
+  const token = localStorage.getItem('cavalier_token');
+  
+  // 🔥 Headers prepare karein Authorization Bearer token ke saath
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  });
+
+  const url = `${environment.apiUrl}/Organization/list`;
+  
+  // 🔥 Request mein { headers } pass kar diya taaki API block na ho
+  this.http.get(url, { headers }).subscribe({
     next: (res: any) => {
-      const data = Array.isArray(res) ? res : res.data;
+      const data = Array.isArray(res) ? res : (res.data || res.result || []);
       this.allOrgList = data || [];
       this.allOrgFiltered = [...this.allOrgList];
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error("❌ API Error fetching organization list for ID modal:", err);
+      this.allOrgList = [];
+      this.allOrgFiltered = [];
       this.cdr.detectChanges();
     }
   });
@@ -3039,5 +3085,138 @@ loadAllDepartments() {
     this.allDepartments = res;
     console.log("branch Departments loaded:", this.allDepartments);
   });
+}
+// ✅ CONFIGURATION VARIABLES (Ise class ke top par variables ke sath rakhna):
+isCustomRangeModalOpen: boolean = false;
+currentLeftCalendarDate: Date = new Date(); 
+currentRightCalendarDate: Date = new Date(new Date().setMonth(new Date().getMonth() + 1));
+leftMonthDaysGrid: any[] = [];
+rightMonthDaysGrid: any[] = [];
+weekDaysHeaders: string[] = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+customStartSelectedDate: string | null = null;
+customEndSelectedDate: string | null = null;
+dateRangeInputValue: string = '';
+
+// ✅ NEW FUNCTIONS (Ise loadAllDepartments() ke thik niche paste kar do):
+openCustomRangeCalendar() {
+  this.isCustomRangeModalOpen = true;
+  this.renderDualCalendars();
+}
+
+closeCustomRangeCalendar() {
+  this.isCustomRangeModalOpen = false;
+}
+
+renderDualCalendars() {
+  this.leftMonthDaysGrid = this.buildMonthMatrix(this.currentLeftCalendarDate);
+  this.rightMonthDaysGrid = this.buildMonthMatrix(this.currentRightCalendarDate);
+}
+
+buildMonthMatrix(targetDate: Date): any[] {
+  const year = targetDate.getFullYear();
+  const month = targetDate.getMonth();
+  const firstDayDayOfWeek = new Date(year, month, 1).getDay();
+  const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
+  
+  // Aaj ki date ko normalization (Time 00:00:00) ke sath set kiya taaki accurate date check ho
+  const todayObj = new Date();
+  todayObj.setHours(0, 0, 0, 0);
+
+  let dayCells: any[] = [];
+  
+  const prevMonthTotalDays = new Date(year, month, 0).getDate();
+  for (let i = firstDayDayOfWeek - 1; i >= 0; i--) {
+    dayCells.push({ dayNumber: prevMonthTotalDays - i, isCurrentMonth: false, dateString: null, isFuture: false });
+  }
+  
+  for (let i = 1; i <= totalDaysInMonth; i++) {
+    const activeDateObj = new Date(year, month, i);
+    const dateString = `${activeDateObj.getFullYear()}-${String(activeDateObj.getMonth() + 1).padStart(2, '0')}-${String(activeDateObj.getDate()).padStart(2, '0')}`;
+    
+    // 🔥 Check: Kya yeh tarikh aaj se aage (Future) ki hai?
+    const isFutureDate = activeDateObj > todayObj;
+
+    dayCells.push({ 
+      dayNumber: i, 
+      isCurrentMonth: true, 
+      dateString: dateString,
+      isFuture: isFutureDate // 🔥 Future date restriction flag
+    });
+  }
+  
+  const remainingCells = 42 - dayCells.length;
+  for (let i = 1; i <= remainingCells; i++) {
+    dayCells.push({ dayNumber: i, isCurrentMonth: false, dateString: null, isFuture: false });
+  }
+  
+  return dayCells;
+}
+
+// Left calendar independent shift
+shiftLeftCalendar(direction: number) {
+  this.currentLeftCalendarDate.setMonth(this.currentLeftCalendarDate.getMonth() + direction);
+  this.renderDualCalendars();
+}
+
+// Right calendar independent shift
+shiftRightCalendar(direction: number) {
+  this.currentRightCalendarDate.setMonth(this.currentRightCalendarDate.getMonth() + direction);
+  this.renderDualCalendars();
+}
+
+handleCellClick(cellDateString: string | null) {
+  if (!cellDateString) return;
+  if (!this.customStartSelectedDate || (this.customStartSelectedDate && this.customEndSelectedDate)) {
+    this.customStartSelectedDate = cellDateString;
+    this.customEndSelectedDate = null;
+  } else {
+    if (new Date(cellDateString) < new Date(this.customStartSelectedDate)) {
+      this.customStartSelectedDate = cellDateString;
+    } else {
+      this.customEndSelectedDate = cellDateString;
+    }
+  }
+  this.renderDualCalendars();
+}
+
+isCellActive(cellDateString: string | null): boolean {
+  return cellDateString === this.customStartSelectedDate || cellDateString === this.customEndSelectedDate;
+}
+
+isCellWithinRange(cellDateString: string | null): boolean {
+  if (!cellDateString || !this.customStartSelectedDate || !this.customEndSelectedDate) return false;
+  const currentCell = new Date(cellDateString);
+  return currentCell > new Date(this.customStartSelectedDate) && currentCell < new Date(this.customEndSelectedDate);
+}
+
+applyCustomPresetSlots(rangeType: string) {
+  const baseToday = new Date();
+  let fromDate = new Date();
+  let toDate = new Date();
+  switch (rangeType) {
+    case 'yesterday': fromDate.setDate(baseToday.getDate() - 1); toDate.setDate(baseToday.getDate() - 1); break;
+    case 'thisWeek': fromDate.setDate(baseToday.getDate() - baseToday.getDay()); break;
+    case 'lastWeek': fromDate.setDate(baseToday.getDate() - baseToday.getDay() - 7); toDate.setDate(baseToday.getDate() - baseToday.getDay() - 1); break;
+    case 'thisMonth': fromDate = new Date(baseToday.getFullYear(), baseToday.getMonth(), 1); break;
+    case 'lastMonth': fromDate = new Date(baseToday.getFullYear(), baseToday.getMonth() - 1, 1); toDate = new Date(baseToday.getFullYear(), baseToday.getMonth(), 0); break;
+    case 'lastYear': fromDate = new Date(baseToday.getFullYear() - 1, 0, 1); toDate = new Date(baseToday.getFullYear() - 1, 11, 31); break;
+  }
+  this.customStartSelectedDate = `${fromDate.getFullYear()}-${String(fromDate.getMonth() + 1).padStart(2, '0')}-${String(fromDate.getDate()).padStart(2, '0')}`;
+  this.customEndSelectedDate = `${toDate.getFullYear()}-${String(toDate.getMonth() + 1).padStart(2, '0')}-${String(toDate.getDate()).padStart(2, '0')}`;
+  this.confirmSelectedRangePipeline();
+}
+
+confirmSelectedRangePipeline() {
+  if (this.customStartSelectedDate && !this.customEndSelectedDate) this.customEndSelectedDate = this.customStartSelectedDate;
+  if (this.customStartSelectedDate && this.customEndSelectedDate) {
+    this.dateRangeInputValue = `${this.customStartSelectedDate} - ${this.customEndSelectedDate}`;
+    this.searchFilters.createdDate = `${this.customStartSelectedDate}_to_${this.customEndSelectedDate}`;
+    this.closeCustomRangeCalendar();
+    this.onSearch();
+  }
+}
+
+getCalendarMonthLabel(date: Date): string {
+  return date.toLocaleString('default', { month: 'long', year: 'numeric' });
 }
 } 

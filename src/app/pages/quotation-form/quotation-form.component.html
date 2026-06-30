@@ -134,114 +134,24 @@
               </div>
             </div>
           </div>
-          <div class="flex items-center relative">
-            <label class="w-28 font-bold text-gray-600 text-[12px]"
-              >Services</label
-            >
+         <div class="flex items-center relative">
+  <!-- Label -->
+  <label class="w-28 font-bold text-gray-600 text-[12px]">
+    Services type
+  </label>
 
-            <div class="flex-1 flex flex-col relative">
-              <div class="flex border border-gray-300">
-                <input
-                  type="text"
-                  [(ngModel)]="searchFilters.lineOfBusiness"
-                  (input)="onLOBType()"
-                  placeholder="Type min 3 chars..."
-                  class="w-full p-1 outline-none text-[12px] rounded-sm bg-white"
-                />
-
-                <!-- Mousedown fix for instant modal opening -->
-                <button
-                  type="button"
-                  (mousedown)="$event.preventDefault(); toggleLOBPopup()"
-                  class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-gray-200 outline-none"
-                >
-                  🔍
-                </button>
-              </div>
-
-              <!-- Custom Dropdown List (Datalist Replacement) -->
-              <div
-                *ngIf="
-                  searchFilters.lineOfBusiness &&
-                  searchFilters.lineOfBusiness.length >= 3 &&
-                  filteredLOBs.length > 0
-                "
-                class="absolute top-full left-0 right-0 bg-white border border-gray-300 shadow-xl z-[1000] max-h-40 overflow-y-auto rounded-sm mt-0.5"
-              >
-                <ul class="list-none p-0 m-0">
-                  <li
-                    *ngFor="let lob of filteredLOBs"
-                    (click)="
-                      searchFilters.lineOfBusiness = lob; filteredLOBs = []
-                    "
-                    class="p-2 text-[12px] hover:bg-red-600 hover:text-white cursor-pointer border-b border-gray-50 last:border-none uppercase"
-                  >
-                    {{ lob }}
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            <!-- Services Modal Popup -->
-            <div
-              *ngIf="showLOBPopup"
-              class="fixed inset-0 z-[3000] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
-            >
-              <div
-                class="bg-white w-full max-w-md shadow-2xl rounded-sm border-t-4 border-red-600 animate-in zoom-in duration-200"
-              >
-                <div
-                  class="flex justify-between items-center p-3 border-b bg-gray-50"
-                >
-                  <h3
-                    class="text-[12px] font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2"
-                  >
-                    🏢 Select Services
-                  </h3>
-                  <button
-                    (click)="toggleLOBPopup()"
-                    class="text-gray-400 hover:text-red-500 text-2xl font-bold leading-none"
-                  >
-                    &times;
-                  </button>
-                </div>
-
-                <div class="max-h-80 overflow-y-auto p-1 custom-scrollbar">
-                  <ul class="list-none p-0 m-0">
-                    <li
-                      *ngFor="let lob of allLOBs"
-                      (click)="selectLOBFromPopup(lob)"
-                      class="flex items-center gap-3 p-3 hover:bg-red-50 border-b border-gray-50 last:border-none cursor-pointer transition-colors"
-                    >
-                      <div class="flex flex-col">
-                        <span
-                          class="text-[12px] text-gray-800 font-medium uppercase"
-                        >
-                          {{ lob }}
-                        </span>
-                      </div>
-                    </li>
-
-                    <li
-                      *ngIf="allLOBs.length === 0"
-                      class="p-8 text-center text-gray-400 text-[11px] italic"
-                    >
-                      No services found.
-                    </li>
-                  </ul>
-                </div>
-
-                <div class="p-3 border-t bg-gray-50 flex justify-end gap-2">
-                  <button
-                    (click)="toggleLOBPopup()"
-                    class="px-6 py-1.5 text-[11px] font-bold text-gray-500 hover:bg-gray-200 rounded-sm uppercase transition-all"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+  <!-- Simple Dropdown -->
+  <div class="flex-1 max-w-xs">
+    <select
+      [(ngModel)]="searchFilters.lineOfBusiness"
+      class="w-full p-1.5 border border-gray-300 rounded-sm bg-white text-[12px] text-gray-800 outline-none cursor-pointer focus:border-red-600"
+    >
+      <option value="" disabled selected>Select Type</option>
+      <option value="DIRECT">DIRECT</option>
+      <option value="INDIRECT">INDIRECT</option>
+    </select>
+  </div>
+</div>
           <div class="flex items-center relative">
             <label class="w-28 font-bold text-gray-600 text-[12px]"
               >Quotation No.</label
@@ -363,21 +273,7 @@
               <option *ngFor="let org of filteredOrgSuggestions" [value]="org"></option>
             </datalist>
           </div> -->
-          <div class="flex items-center">
-            <label class="w-28 font-bold text-gray-600">Show</label>
-            <div class="relative flex-1">
-              <select
-                [(ngModel)]="searchFilters.showMode"
-                class="w-full border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white cursor-pointer"
-              >
-                <option value="Valid">Valid Quotations Only</option>
-                <option value="All">All</option>
-              </select>
-              <i
-                class="fa fa-filter absolute right-6 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] pointer-events-none"
-              ></i>
-            </div>
-          </div>
+          
         </div>
 
         <div class="space-y-2">
@@ -467,100 +363,19 @@
           </div>
 
           <!-- 3. QUOTED BY SECTION -->
-          <div class="flex items-center relative mt-4">
-            <label class="w-24 font-bold text-gray-600 text-[12px]"
-              >Quoted By</label
-            >
-
-            <div class="flex-1 flex flex-col relative">
-              <div class="flex border border-gray-300">
-                <input
-                  type="text"
-                  [(ngModel)]="searchFilters.quotedBy"
-                  (input)="onQuotedByType()"
-                  class="w-full p-1 outline-none text-[12px] rounded-sm bg-white"
-                  placeholder="Type min 3 chars..."
-                />
-                <!-- Mousedown fix for instant modal opening -->
-                <button
-                  type="button"
-                  (mousedown)="$event.preventDefault(); toggleQuotedByPopup()"
-                  class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-gray-200 outline-none"
-                >
-                  🔍
-                </button>
-              </div>
-
-              <!-- FIXED: Custom Dropdown Logic (Error TS2532 Fixed) -->
-              <div
-                *ngIf="
-                  searchFilters.quotedBy &&
-                  searchFilters.quotedBy.length >= 3 &&
-                  filteredQuotedBySuggestions.length > 0
-                "
-                class="absolute top-full left-0 right-0 bg-white border border-gray-300 shadow-xl z-[1000] max-h-40 overflow-y-auto rounded-sm mt-0.5"
+         <div class="flex items-center">
+            <label class="w-28 font-bold text-gray-600">Show</label>
+            <div class="relative flex-1">
+              <select
+                [(ngModel)]="searchFilters.showMode"
+                class="w-full border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white cursor-pointer"
               >
-                <ul class="list-none p-0 m-0">
-                  <li
-                    *ngFor="let item of filteredQuotedBySuggestions"
-                    (click)="
-                      searchFilters.quotedBy = item;
-                      filteredQuotedBySuggestions = []
-                    "
-                    class="p-2 text-[12px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 last:border-none uppercase"
-                  >
-                    {{ item }}
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            <!-- Modal Popup (Same as before) -->
-            <div
-              *ngIf="showQuotedByPopup"
-              class="fixed inset-0 z-[3000] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
-            >
-              <div
-                class="bg-white w-full max-w-md shadow-2xl rounded-sm border-t-4 border-blue-600 animate-in zoom-in duration-200"
-              >
-                <div
-                  class="flex justify-between items-center p-3 border-b bg-gray-50"
-                >
-                  <h3
-                    class="text-[12px] font-bold text-gray-700 uppercase flex items-center gap-2"
-                  >
-                    👤 Select Quoted By
-                  </h3>
-                  <button
-                    (click)="toggleQuotedByPopup()"
-                    class="text-gray-400 hover:text-red-500 text-2xl font-bold"
-                  >
-                    &times;
-                  </button>
-                </div>
-                <div class="max-h-80 overflow-y-auto p-1">
-                  <ul class="list-none p-0 m-0">
-                    <li
-                      *ngFor="let sc of allSalesCoors"
-                      (click)="selectQuotedByFromPopup(sc)"
-                      class="flex items-center p-3 hover:bg-blue-50 border-b border-gray-50 cursor-pointer transition-colors"
-                    >
-                      <span
-                        class="text-[12px] text-gray-800 font-medium uppercase"
-                        >{{ sc }}</span
-                      >
-                    </li>
-                  </ul>
-                </div>
-                <div class="p-3 border-t bg-gray-50 flex justify-end">
-                  <button
-                    (click)="toggleQuotedByPopup()"
-                    class="px-6 py-1.5 text-[11px] font-bold text-gray-500 hover:bg-gray-200 rounded-sm uppercase"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
+                <option value="Valid">Valid Quotations Only</option>
+                <option value="All">All</option>
+              </select>
+              <i
+                class="fa fa-filter absolute right-6 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] pointer-events-none"
+              ></i>
             </div>
           </div>
           <div class="flex items-center">

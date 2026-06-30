@@ -2562,10 +2562,11 @@ showPopup: boolean = false;
 
   // 2. Popup se select karne par (Same Logic + CDR)
   selectFromPopup(val: string) {
-    this.searchFilters.quotationNo = val;
-    this.showPopup = false;
-    this.cdr.detectChanges(); // UI update for selection
-  }
+  this.searchFilters.quotationNo = val;
+  this.showPopup = false;
+  // 🔥 Sirf UI update karega, automatic search api hit nahi karega
+  this.cdr.detectChanges(); 
+}
 
   // 3. Component band hote hi sab saaf (Destroy Logic)
   ngOnDestroy() {
@@ -2632,6 +2633,7 @@ toggleLOBPopup() {
 selectLOBFromPopup(val: string) {
   this.searchFilters.lineOfBusiness = val;
   this.showLOBPopup = false;
+  // 🔥 Sirf value assign hogi, search button dabaane par hi ab filter chalega
   this.cdr.detectChanges();
 }
 
@@ -2813,29 +2815,28 @@ getIncoTerms() {
  confirmSelection() {
   this.isBranchModalOpen = false;
 
-  // 1. Pehle selected branches ki list nikaalo
+  // 1. Selected branches ki list nikaalo
   const selected = this.branchList.filter(b => b.isSelected);
   console.log("Final Selected Branches:", selected);
 
-  // 2. 🔥 Input field (branchSearchText) mein saare selected names comma se join karke daal do
+  // 2. Input field mein saare selected names comma se join karke daal do
   if (selected.length > 0) {
     this.branchSearchText = selected.map(b => b.branchName).join(', ');
   } else {
     this.branchSearchText = '';
   }
 
-  // 3. Search function call karo (Jo humne pehle update kiya tha payload ke liye)
-  this.onSearch(); 
+  // 🔥 REMOVED this.onSearch(); <- Is line ko hata diya taaki instant API na chale
 }
 
 selectBranchFromDropdown(branch: any) {
-  // 1. Is branch ko select mark karo (agar pehle se nahi hai)
+  // 1. Is branch ko select mark karo
   branch.isSelected = true;
   
   // 2. Dropdown ko hide karne ke liye list clear karo
   this.filteredBranchSuggestions = []; 
 
-  // 3. Confirm selection wala logic chala do taaki input box update ho jaye aur search ho jaye
+  // 3. Confirm selection ko call karein taaki input text update ho, par search na ho
   this.confirmSelection();
 }
 showRowModal = false;

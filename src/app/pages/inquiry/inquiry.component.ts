@@ -56,6 +56,16 @@ interface DimGroup {
     getsalescordinate: any[] = [];
     PermissionID:any;
     LeadId:number=0;
+    // ✅ CONFIGURATION VARIABLES FOR INDEPENDENT DUAL RANGE CALENDAR
+  isCustomRangeModalOpen: boolean = false;
+  currentLeftCalendarDate: Date = new Date(); 
+  currentRightCalendarDate: Date = new Date(new Date().setMonth(new Date().getMonth() + 1));
+  leftMonthDaysGrid: any[] = [];
+  rightMonthDaysGrid: any[] = [];
+  weekDaysHeaders: string[] = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+  customStartSelectedDate: string | null = null;
+  customEndSelectedDate: string | null = null;
+  dateRangeInputValue: string = '';
     getquotedByList: any[] = [];
 getpricingByList: any[] = [];
     originpinCode:any;
@@ -269,7 +279,128 @@ syncFinalData() {
   this.quotation.dimensions = JSON.parse(JSON.stringify(this.dimRows));
   console.log("Data Auto-Synced!");
 }
+// ✅ INDEPENDENT DUAL PIPELINE CALENDAR EXECUTION MATRIX PIPELINES
+  openCustomRangeCalendar() {
+    this.isCustomRangeModalOpen = true;
+    this.renderDualCalendars();
+  }
 
+  closeCustomRangeCalendar() {
+    this.isCustomRangeModalOpen = false;
+  }
+
+  renderDualCalendars() {
+    this.leftMonthDaysGrid = this.buildMonthMatrix(this.currentLeftCalendarDate);
+    this.rightMonthDaysGrid = this.buildMonthMatrix(this.currentRightCalendarDate);
+  }
+
+  buildMonthMatrix(targetDate: Date): any[] {
+    const year = targetDate.getFullYear();
+    const month = targetDate.getMonth();
+    const firstDayDayOfWeek = new Date(year, month, 1).getDay();
+    const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    const todayObj = new Date();
+    todayObj.setHours(0, 0, 0, 0);
+
+    let dayCells: any[] = [];
+    
+    const prevMonthTotalDays = new Date(year, month, 0).getDate();
+    for (let i = firstDayDayOfWeek - 1; i >= 0; i--) {
+      dayCells.push({ dayNumber: prevMonthTotalDays - i, isCurrentMonth: false, dateString: null, isFuture: false });
+    }
+    
+    for (let i = 1; i <= totalDaysInMonth; i++) {
+      const activeDateObj = new Date(year, month, i);
+      const dateString = `${activeDateObj.getFullYear()}-${String(activeDateObj.getMonth() + 1).padStart(2, '0')}-${String(activeDateObj.getDate()).padStart(2, '0')}`;
+      const isFutureDate = activeDateObj > todayObj;
+
+      dayCells.push({ 
+        dayNumber: i, 
+        isCurrentMonth: true, 
+        dateString: dateString,
+        isFuture: isFutureDate 
+      });
+    }
+    
+    const remainingCells = 42 - dayCells.length;
+    for (let i = 1; i <= remainingCells; i++) {
+      dayCells.push({ dayNumber: i, isCurrentMonth: false, dateString: null, isFuture: false });
+    }
+    
+    return dayCells;
+  }
+
+  shiftLeftCalendar(direction: number) {
+    this.currentLeftCalendarDate.setMonth(this.currentLeftCalendarDate.getMonth() + direction);
+    this.renderDualCalendars();
+  }
+
+  shiftRightCalendar(direction: number) {
+    this.currentRightCalendarDate.setMonth(this.currentRightCalendarDate.getMonth() + direction);
+    this.renderDualCalendars();
+  }
+
+  handleCellClick(cellDateString: string | null) {
+    if (!cellDateString) return;
+    if (!this.customStartSelectedDate || (this.customStartSelectedDate && this.customEndSelectedDate)) {
+      this.customStartSelectedDate = cellDateString;
+      this.customEndSelectedDate = null;
+    } else {
+      if (new Date(cellDateString) < new Date(this.customStartSelectedDate)) {
+        this.customStartSelectedDate = cellDateString;
+      } else {
+        this.customEndSelectedDate = cellDateString;
+      }
+    }
+    this.renderDualCalendars();
+  }
+
+  isCellActive(cellDateString: string | null): boolean {
+    return cellDateString === this.customStartSelectedDate || cellDateString === this.customEndSelectedDate;
+  }
+
+  isCellWithinRange(cellDateString: string | null): boolean {
+    if (!cellDateString || !this.customStartSelectedDate || !this.customEndSelectedDate) return false;
+    const currentCell = new Date(cellDateString);
+    return currentCell > new Date(this.customStartSelectedDate) && currentCell < new Date(this.customEndSelectedDate);
+  }
+
+  applyCustomPresetSlots(rangeType: string) {
+    const baseToday = new Date();
+    let fromDate = new Date();
+    let toDate = new Date();
+    switch (rangeType) {
+      case 'yesterday': fromDate.setDate(baseToday.getDate() - 1); toDate.setDate(baseToday.getDate() - 1); break;
+      case 'thisWeek': fromDate.setDate(baseToday.getDate() - baseToday.getDay()); break;
+      case 'lastWeek': fromDate.setDate(baseToday.getDate() - baseToday.getDay() - 7); toDate.setDate(baseToday.getDate() - baseToday.getDay() - 1); break;
+      case 'thisMonth': fromDate = new Date(baseToday.getFullYear(), baseToday.getMonth(), 1); break;
+      case 'lastMonth': fromDate = new Date(baseToday.getFullYear(), baseToday.getMonth() - 1, 1); toDate = new Date(baseToday.getFullYear(), baseToday.getMonth(), 0); break;
+      case 'lastYear': fromDate = new Date(baseToday.getFullYear() - 1, 0, 1); toDate = new Date(baseToday.getFullYear() - 1, 11, 31); break;
+    }
+    this.customStartSelectedDate = `${fromDate.getFullYear()}-${String(fromDate.getMonth() + 1).padStart(2, '0')}-${String(fromDate.getDate()).padStart(2, '0')}`;
+    this.customEndSelectedDate = `${toDate.getFullYear()}-${String(toDate.getMonth() + 1).padStart(2, '0')}-${String(toDate.getDate()).padStart(2, '0')}`;
+    this.confirmSelectedRangePipeline();
+  }
+
+  confirmSelectedRangePipeline() {
+    if (this.customStartSelectedDate && !this.customEndSelectedDate) this.customEndSelectedDate = this.customStartSelectedDate;
+    if (this.customStartSelectedDate && this.customEndSelectedDate) {
+      this.dateRangeInputValue = `${this.customStartSelectedDate} - ${this.customEndSelectedDate}`;
+      
+      // Mapped precisely to the dynamic context parameter format expected by Cavalier API controller
+      this.searchFilters.startDate = this.customStartSelectedDate;
+      this.searchFilters.endDate = this.customEndSelectedDate;
+      this.searchFilters.receivedDate = null;
+      
+      this.closeCustomRangeCalendar();
+      this.onSearch();
+    }
+  }
+
+  getCalendarMonthLabel(date: Date): string {
+    return date.toLocaleString('default', { month: 'long', year: 'numeric' });
+  }
 // Ye function modal ke 'Apply' button ki zaroorat khatam kar dega
 getTotalVolumeWeight(): number {
   let total = 0;

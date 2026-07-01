@@ -277,90 +277,127 @@
         </div>
 
         <div class="space-y-2">
-          <div class="flex items-center">
-            <label class="w-24 font-bold text-gray-600">Date</label>
-            <div
-              class="flex-1 flex border border-gray-300 items-center pr-2 cursor-pointer bg-white relative h-[30px]"
-              (click)="
-                datePicker.showPicker(); showQuotePicker = !showQuotePicker
-              "
-            >
-              <input
-                #datePicker
-                type="date"
-                [(ngModel)]="searchFilters.validFrom"
-                class="w-full p-1 outline-none text-[12px] cursor-pointer"
-                (focus)="datePicker.showPicker()"
-                (change)="showQuotePicker = false"
-              />
-              <div
-                *ngIf="showQuotePicker"
-                (mouseleave)="showQuotePicker = false"
-                class="absolute top-0 right-full z-[1001] bg-white shadow-xl border border-gray-300 flex flex-col w-[115px] rounded-sm overflow-hidden mr-[-1px]"
-              >
-                <div
-                  class="bg-gray-100 px-2 py-1 text-[9px] font-bold text-gray-500 uppercase border-b"
-                >
-                  Quick Select
-                </div>
-                <div
-                  (click)="setQuoteQuickDate('today'); $event.stopPropagation()"
-                  class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 transition-colors"
-                >
-                  Today
-                </div>
-                <div
-                  (click)="
-                    setQuoteQuickDate('tomorrow'); $event.stopPropagation()
-                  "
-                  class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 text-blue-700 font-semibold transition-colors"
-                >
-                  Tomorrow
-                </div>
-                <div
-                  (click)="
-                    setQuoteQuickDate('yesterday'); $event.stopPropagation()
-                  "
-                  class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 transition-colors"
-                >
-                  Yesterday
-                </div>
-                <div
-                  (click)="
-                    setQuoteQuickDate('nextWeek'); $event.stopPropagation()
-                  "
-                  class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 transition-colors"
-                >
-                  Next Week
-                </div>
-                <div
-                  (click)="
-                    setQuoteQuickDate('lastWeek'); $event.stopPropagation()
-                  "
-                  class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 transition-colors"
-                >
-                  Last Week
-                </div>
-                <div
-                  (click)="
-                    setQuoteQuickDate('nextMonth'); $event.stopPropagation()
-                  "
-                  class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 transition-colors"
-                >
-                  Next Month
-                </div>
-                <div
-                  (click)="
-                    setQuoteQuickDate('lastMonth'); $event.stopPropagation()
-                  "
-                  class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer transition-colors"
-                >
-                  Last Month
-                </div>
-              </div>
-              <span class="text-gray-400 text-[12px]">📅</span>
-            </div>
+       <!-- ✅ BRAND NEW INDEPENDENT DUAL CALENDAR CODE FOR QUOTATION DATE RANGE: -->
+<div class="flex items-center relative">
+  <label class="w-24 font-bold text-gray-600 text-[12px]">Date Range</label>
+  
+  <div (click)="openCustomRangeCalendar()" 
+       class="flex-1 flex border border-gray-300 items-center pr-2 bg-white relative h-[30px] rounded-sm shadow-sm cursor-pointer hover:border-red-400 transition-colors">
+    <input type="text"
+           [value]="dateRangeInputValue"
+           placeholder="Select Date Timeline Range..."
+           class="w-full p-1 outline-none text-[12px] bg-transparent cursor-pointer pointer-events-none"
+           readonly />
+    <span class="text-gray-400 text-[12px]">📅</span>
+  </div>
+</div>
+
+<!-- ================= DUAL CALENDAR RANGE MODAL (CENTERED) ================= -->
+<div *ngIf="isCustomRangeModalOpen" 
+     class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-150">
+  
+  <div class="bg-white rounded-md shadow-2xl w-[820px] border border-gray-200 overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+    
+    <!-- Modal Header -->
+    <div class="p-3 bg-gray-50 border-b flex justify-between items-center shrink-0">
+      <h3 class="text-xs font-bold uppercase tracking-wider text-gray-700 flex items-center gap-1.5">
+        📅 Select Custom Date Timeline Range
+      </h3>
+      <button type="button" (click)="closeCustomRangeCalendar()" class="text-gray-400 hover:text-red-600 text-xl font-bold leading-none">&times;</button>
+    </div>
+
+    <!-- Calendar View Container Body -->
+    <div class="flex flex-1 bg-white">
+      
+      <!-- Left Month View Panel -->
+      <div class="flex-1 p-4 border-r border-gray-100">
+        <div class="flex justify-between items-center mb-3">
+          <button type="button" (click)="shiftLeftCalendar(-1)" class="p-1 px-2 text-gray-500 hover:bg-gray-100 rounded-sm font-bold text-sm">◀</button>
+          <span class="text-xs font-bold text-gray-800 uppercase tracking-wide">{{ getCalendarMonthLabel(currentLeftCalendarDate) }}</span>
+          <button type="button" (click)="shiftLeftCalendar(1)" class="p-1 px-2 text-gray-500 hover:bg-gray-100 rounded-sm font-bold text-sm">▶</button>
+        </div>
+
+        <div class="grid grid-cols-7 gap-1 text-center text-[11px] font-bold text-gray-400 mb-1.5 uppercase">
+          <div *ngFor="let day of weekDaysHeaders">{{ day }}</div>
+        </div>
+
+        <div class="grid grid-cols-7 gap-y-1 gap-x-1">
+          <div *ngFor="let cell of leftMonthDaysGrid" 
+               (click)="!cell.isFuture && handleCellClick(cell.dateString)"
+               [ngClass]="{
+                 'text-gray-300 pointer-events-none': !cell.isCurrentMonth,
+                 'text-gray-400 bg-gray-100/50 cursor-not-allowed pointer-events-none opacity-40': cell.isCurrentMonth && cell.isFuture,
+                 'text-gray-700 font-medium hover:bg-red-50': cell.isCurrentMonth && !cell.isFuture && !isCellActive(cell.dateString) && !isCellWithinRange(cell.dateString),
+                 'bg-red-600 text-white font-bold rounded-sm shadow-sm': !cell.isFuture && isCellActive(cell.dateString),
+                 'bg-red-50 text-red-800 font-semibold': !cell.isFuture && isCellWithinRange(cell.dateString)
+               }"
+               class="h-7 flex items-center justify-center text-xs cursor-pointer transition-all">
+            {{ cell.dayNumber }}
           </div>
+        </div>
+      </div>
+
+      <!-- Right Month View Panel -->
+      <div class="flex-1 p-4 border-r border-gray-100">
+        <div class="flex justify-between items-center mb-3">
+          <button type="button" (click)="shiftRightCalendar(-1)" class="p-1 px-2 text-gray-500 hover:bg-gray-100 rounded-sm font-bold text-sm">◀</button>
+          <span class="text-xs font-bold text-gray-800 uppercase tracking-wide">{{ getCalendarMonthLabel(currentRightCalendarDate) }}</span>
+          <button type="button" (click)="shiftRightCalendar(1)" class="p-1 px-2 text-gray-500 hover:bg-gray-100 rounded-sm font-bold text-sm">▶</button>
+        </div>
+
+        <div class="grid grid-cols-7 gap-1 text-center text-[11px] font-bold text-gray-400 mb-1.5 uppercase">
+          <div *ngFor="let day of weekDaysHeaders">{{ day }}</div>
+        </div>
+
+        <div class="grid grid-cols-7 gap-y-1 gap-x-1">
+          <div *ngFor="let cell of rightMonthDaysGrid" 
+               (click)="!cell.isFuture && handleCellClick(cell.dateString)"
+               [ngClass]="{
+                 'text-gray-300 pointer-events-none': !cell.isCurrentMonth,
+                 'text-gray-400 bg-gray-100/50 cursor-not-allowed pointer-events-none opacity-40': cell.isCurrentMonth && cell.isFuture,
+                 'text-gray-700 font-medium hover:bg-red-50': cell.isCurrentMonth && !cell.isFuture && !isCellActive(cell.dateString) && !isCellWithinRange(cell.dateString),
+                 'bg-red-600 text-white font-bold rounded-sm shadow-sm': !cell.isFuture && isCellActive(cell.dateString),
+                 'bg-red-50 text-red-800 font-semibold': !cell.isFuture && isCellWithinRange(cell.dateString)
+               }"
+               class="h-7 flex items-center justify-center text-xs cursor-pointer transition-all">
+            {{ cell.dayNumber }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Shortcuts Selection Sidebar Container -->
+      <div class="w-[160px] bg-gray-50 p-2 flex flex-col gap-1 shrink-0 border-l border-gray-100 justify-center">
+        <button type="button" (click)="applyCustomPresetSlots('today')" class="w-full text-left px-3 py-1.5 rounded-sm hover:bg-red-50 hover:text-red-700 text-xs font-bold uppercase text-gray-600 transition-colors">Today</button>
+        <button type="button" (click)="applyCustomPresetSlots('yesterday')" class="w-full text-left px-3 py-1.5 rounded-sm hover:bg-red-50 hover:text-red-700 text-xs font-bold uppercase text-gray-600 transition-colors">Yesterday</button>
+        <button type="button" (click)="applyCustomPresetSlots('thisWeek')" class="w-full text-left px-3 py-1.5 rounded-sm hover:bg-red-50 hover:text-red-700 text-xs font-bold uppercase text-gray-600 transition-colors">This Week</button>
+        <button type="button" (click)="applyCustomPresetSlots('lastWeek')" class="w-full text-left px-3 py-1.5 rounded-sm hover:bg-red-50 hover:text-red-700 text-xs font-bold uppercase text-gray-600 transition-colors">Last Week</button>
+        <button type="button" (click)="applyCustomPresetSlots('thisMonth')" class="w-full text-left px-3 py-1.5 rounded-sm hover:bg-red-50 hover:text-red-700 text-xs font-bold uppercase text-gray-600 transition-colors">This Month</button>
+        <button type="button" (click)="applyCustomPresetSlots('lastMonth')" class="w-full text-left px-3 py-1.5 rounded-sm hover:bg-red-50 hover:text-red-700 text-xs font-bold uppercase text-gray-600 transition-colors">Last Month</button>
+        <button type="button" (click)="applyCustomPresetSlots('lastYear')" class="w-full text-left px-3 py-1.5 rounded-sm hover:bg-red-50 hover:text-red-700 text-xs font-bold uppercase text-gray-600 transition-colors">Last Year</button>
+      </div>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="p-3 bg-gray-50 border-t flex justify-between items-center shrink-0">
+      <div class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+        Selected: <span class="text-red-600 font-black">{{ customStartSelectedDate || 'None' }}</span> 
+        <span *ngIf="customEndSelectedDate"> ➔ {{ customEndSelectedDate }}</span>
+      </div>
+      <div class="flex gap-2">
+        <button type="button" (click)="closeCustomRangeCalendar()" 
+                class="px-4 py-1.5 text-[11px] font-bold text-gray-500 hover:bg-gray-200 rounded-sm uppercase tracking-wide">
+          Cancel
+        </button>
+        <button type="button" (click)="confirmSelectedRangePipeline()" 
+                [disabled]="!customStartSelectedDate"
+                class="px-6 py-1.5 text-[11px] font-bold bg-red-600 text-white hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed rounded-sm shadow-md transition-all uppercase tracking-wide">
+          Select Range
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
 
           <!-- 3. QUOTED BY SECTION -->
          <div class="flex items-center">

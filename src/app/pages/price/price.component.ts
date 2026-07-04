@@ -1265,14 +1265,15 @@ addToLocalReview() {
   this.cdr.detectChanges();
 }
 onAgentSelect(event: any, agent: any) {
-  console.log("Agent selection event:", agent);
-  const email = agent.emailAddress || agent.emailAddress;
-  const branch = agent.branchName || agent.branchName || "Global";
+ 
+  const email = agent.email || agent.email;
+  const branch = agent.agentName || agent.agentName || "Global";
 
   if (!email) return;
 
   if (event.target.checked) {
     this.selectedEmails.add(email);
+    console.log(`✅ Agent selected: ${Array.from(this.selectedEmails)} | Branch: ${branch}`);
     this.lastSelectedBranch = branch; // Latest branch ko save kar liya
   } else {
     this.selectedEmails.delete(email);
@@ -3787,7 +3788,7 @@ saveQuotation() {
     remark: cb.remark || ''
   }));
 
-  // 3. 🔥 FIXED: Multi-Carrier Master Breakdown Matrix Alignment Mapping
+  // 3. Multi-Carrier Master Breakdown Matrix Alignment Mapping
   const multiCarrierData = (this.multiCarrierRows || []).map((mcb: any) => ({
     id: Number(mcb.id || 0), 
     pricingId: Number(this.quotation.id || 0),
@@ -3863,10 +3864,7 @@ saveQuotation() {
     cargoStatus: (this.quotation.cargoStatus || this.quotation.cargoStatusType || 'Ready').toString(),
     
     CostBreakdowns: costData, 
-    
-    // 🔥 FIXED PROPERTY NAME CASE ALIGNMENT:
     multiCarrierBreakdowns: multiCarrierData, 
-    
     dimensions: finalDimensionsPayload,
     commodityDocs: processedDocuments,
     packageInvoiceDocs: processedInvoices,
@@ -3876,7 +3874,6 @@ saveQuotation() {
     createdDate: new Date().toISOString()
   };
 
-  // 🔥 REMOVED 'multiCarrierBreakdowns' FROM THIS CLEANER LIST SO IT DOESN'T GET WIPED OUT!
   const keysToDelete = ['TransportMode', 'TransportType', 'SalesCoordinator', 'GrossWeight', 'GrossweightUnit', 'costBreakdowns', 'existingInvoices', 'commodity'];
   keysToDelete.forEach(key => delete payload[key]);
 
@@ -3894,12 +3891,36 @@ saveQuotation() {
     ? this.http.put(`${pricingApiUrl}/${this.quotation.id}`, formData, httpOptions)
     : this.http.post(pricingApiUrl, formData, httpOptions);
 
+  // 🔄 LOADING ANIMATION STAGE WHILE SAVING IN DB
+  Swal.fire({
+    title: 'Saving Pricing Data...',
+    text: 'Please wait while database transactional integrity completes.',
+    allowOutsideClick: false,
+    didOpen: () => { Swal.showLoading(); }
+  });
+
   action.subscribe({
     next: (res: any) => {
-      Swal.fire('Saved!', 'Pricing entry with Multi-Carrier table configurations saved successfully!', 'success');
-      this.isFormOpen = false;
-      this.onSearch(); 
-      this.cdr.detectChanges();
+      // 🛠️ BACKEND RESPONSE SE RECONCILED PRICING/INQUIRY ID NIKALNA
+      // Note: Agar aapka backend direct updated object ya ID res.data me deta hai toh vahan se target karenge.
+      const savedInquiryId = res?.id || res?.data?.id || this.quotation.id || this.InquiryId;
+
+      // 🔥 EXPLICIT EMAIL CONDITION ROUTING MODULE:
+      // Agar user Preview screen par tha aur selectedEmails khali NAHI hain, toh email process trigger hoga
+      console.log('testing',this.selectedEmails);
+      if (this.isPreviewMode && this.selectedEmails && this.selectedEmails.size > 0) {
+        console.log("🚀 Pricing Saved! Found active selected agents. Redirecting to Bulk Email Stream...");
+        this.sendBulkEmails(savedInquiryId);
+      } 
+      else {
+        // Fallback: Agar standard Form screen se direct save kiya ya koi agent select nahi kiya
+        Swal.fire('Saved!', 'Pricing entry with table configurations saved successfully!', 'success').then(() => {
+          this.isFormOpen = false;
+          this.isPreviewMode = false;
+          this.onSearch(); 
+          this.cdr.detectChanges();
+        });
+      }
     },
     error: (err) => {
       console.error("❌ API SAVE SYSTEM REJECTION TRACE:", err);
@@ -5076,8 +5097,13 @@ sendBulkEmails(inqId: number) {
         showConfirmButton: false,
         timerProgressBar: true
       }).then(() => {
-        this.router.navigate(['/dashboard/Price']);
+         this.isFormOpen = false;
+          this.isPreviewMode = false;
+          this.onSearch(); 
       });
+       this.isFormOpen = false;
+          this.isPreviewMode = false;
+          this.onSearch(); 
     },
     error: (err) => {
       console.error("❌ Email API Error Details:", err);

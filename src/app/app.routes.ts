@@ -86,6 +86,7 @@ import { ConnectingPortsComponent } from './pages/connecting-ports/connecting-po
 import { ChargeComponent } from './charge/charge.component';
 import { PackageBoxesComponent } from './pages/package-boxes/package-boxes.component';
 import { BccConfigComponent } from './bcc-config/bcc-config.component';
+import { NotificationsComponent } from './notifications/notifications.component';
 export const routes: Routes = [
 
   // 1. AUTH & ROLE SELECTION (Root Pages)
@@ -419,6 +420,12 @@ canActivate: [authGuard],
         canActivate: [authGuard],
         title: 'SMS Logs'
       },
+      {
+        path: 'notifications',
+        component: NotificationsComponent,
+        canActivate: [authGuard],
+        title: 'Notifications'
+      },
 
     ]
   },
@@ -453,4 +460,6 @@ canActivate: [authGuard],
     component: NotFoundComponent,
     title: '404 Not Found'
   },
+
+
 ];

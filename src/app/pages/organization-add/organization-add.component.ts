@@ -272,9 +272,12 @@ openBranchesModal(org: any, event: MouseEvent) {
   
   this.modalModalTitle = `Branches of ${org.orgName}`;
   
-  if (org.branches && org.branches.length > 0) {
+  // 🔥 FIX: orgBranches key mapping fallback check kiya hai
+  const realBranches = org.orgBranches || org.branches || [];
+  
+  if (realBranches && realBranches.length > 0) {
     // Saari branches ke naam nikal kar list mein daal diye
-    this.modalDataList = org.branches.map((b: any) => b.branchName || 'UNNAMED BRANCH');
+    this.modalDataList = realBranches.map((b: any) => b.branchName || 'UNNAMED BRANCH');
   } else {
     this.modalDataList = ['No branches available'];
   }
@@ -283,19 +286,20 @@ openBranchesModal(org: any, event: MouseEvent) {
   this.cdr.detectChanges();
 }
 
-// 2. Country Button Click Logic
-// 2. Country Button Click Logic (Updated with Branch -> Country Mapping)
 openCountriesModal(org: any, event: MouseEvent) {
   event.stopPropagation(); // Row click/double-click ko rokega
   
   this.modalModalTitle = `Countries linked with ${org.orgName}`;
   
-  if (org.branches && org.branches.length > 0) {
+  // 🔥 FIX: orgBranches key mapping fallback check kiya hai
+  const realBranches = org.orgBranches || org.branches || [];
+  
+  if (realBranches && realBranches.length > 0) {
     // Har branch ka naam aur uski country ko pair (format) karke list mein daal rahe hain
-    this.modalDataList = org.branches.map((b: any) => {
+    this.modalDataList = realBranches.map((b: any) => {
       const bName = b.branchName ? b.branchName.toUpperCase().trim() : 'UNNAMED BRANCH';
       const cName = b.country ? b.country.toUpperCase().trim() : 'NO COUNTRY ASSIGNED';
-      return `${bName} ➔ ${cName}`; // 👈 Format: DELHI ➔ INDIA
+      return `${bName} ➔ ${cName}`; // Format: DELHI ➔ INDIA
     });
   } else {
     this.modalDataList = ['No branch/country data available'];
@@ -553,7 +557,6 @@ landmark: string = '';
 
 
  ngOnInit() {
-  console.log('test right',this.agentName);
   this.loadGlobalPhoneCodes();
   this.route.queryParams.subscribe(params => {
     const highlightId = params['highlightId'];
@@ -1016,8 +1019,8 @@ saveAllLocalBranches(orgId: number) {
       }
     },
     error: (err) => {
-      console.error(`❌ Failed to save branches`, err);
-      alert("Failed to save branches.");
+      console.error(`❌ Failed to save branches Or Login Again`, err);
+      alert("Failed to save branches Or Session Expired Please Login Again.");
     }
   });
 }
@@ -1919,19 +1922,34 @@ resetFilters() {
     orgType: '',
     status: 'Both'
   };
+this.dateRangeInputValue = '';
+this.branchSearchText='';
   this.getOrgList(); // Poori list load hogi
   this.cdr.detectChanges(); // 👈 Yahan bhi lagao taaki filter boxes turant khali dikhein
 }
-  deleteOrg(id: any) {
-    if (confirm('Are you sure?')) {
-      this.http.delete(`${environment.apiUrl}/Organization/delete/${id}`).subscribe({
-        next: () => {
-          alert('Deleted!');
-          this.getOrgList();
-        }
-      });
-    }
-  }
+deleteOrg(id: any) {
+  if (confirm('Are you sure?')) {
+    this.http.delete(`${environment.apiUrl}/Organization/delete/${id}`).subscribe({
+      next: () => {
+        alert('Deleted successfully!');
+
+        // 🔥 STEP 1: Frontend array se deleted row ko instant remove karo
+        this.organizations = this.organizations.filter(org => org.id !== id);
+
+        // 🔥 STEP 2: Agar search triggers ho chuki hai, toh page structure ko sync rakhein
+        // getOrgList() call karne se direct change complete stack update kar dega
+        this.getOrgList();
+
+        // 🔥 STEP 3: Change detection pipeline trigger lock ensure karein
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error("❌ Organization delete framework error:", err);
+        alert("Failed to delete organization. Please Login Again");
+      }
+    });
+  }
+}
   // 1. Keyboard se sirf 0-9 allow karega
 onlyNumbers(event: any) {
   const pattern = /[0-9]/;
@@ -2611,7 +2629,7 @@ onDefaultChange(currentIndex: number) {
   this.cdr.detectChanges();
 }// Variables 
   // branchList: any[] = [];           
- filteredBranchSuggestions: any[] = []; 
+ filteredBranchSuggestionsmain: any[] = []; 
   isBranchModalOpen: boolean = false;
   branchSearchText: string = '';
   loading: boolean = false;
@@ -2630,7 +2648,7 @@ onDefaultChange(currentIndex: number) {
           ...b, 
           isSelected: false 
         }));
-        this.filteredBranchSuggestions = [...this.branchList];
+        this.filteredBranchSuggestionsmain = [...this.branchList];
         console.log("✅ Branches Loaded Successfully:", this.branchList);
       },
       error: (err) => console.error("❌ Branch Load Failed!", err)
@@ -2643,10 +2661,10 @@ onDefaultChange(currentIndex: number) {
     console.log("🔍 Typing branch search:", search);
 
     if (!search) {
-      this.filteredBranchSuggestions = [...this.branchList];
+      this.filteredBranchSuggestionsmain = [...this.branchList];
       return;
     }
-    this.filteredBranchSuggestions = this.branchList.filter(b => 
+    this.filteredBranchSuggestionsmain = this.branchList.filter(b => 
       b.branchName?.toLowerCase().includes(search) || 
       b.branchCode?.toLowerCase().includes(search)
     );
@@ -2656,7 +2674,7 @@ onDefaultChange(currentIndex: number) {
     this.isBranchModalOpen = !this.isBranchModalOpen; 
     console.log("📦 Branch Modal Status:", this.isBranchModalOpen);
     if(this.isBranchModalOpen) {
-      this.filteredBranchSuggestions = [...this.branchList];
+      this.filteredBranchSuggestionsmain = [...this.branchList];
     }
   }
 
@@ -2673,7 +2691,7 @@ onDefaultChange(currentIndex: number) {
     const selectedNames = this.branchList.filter(b => b.isSelected).map(b => b.branchName);
     this.branchSearchText = selectedNames.join(', ');
 
-    this.filteredBranchSuggestions = []; 
+    this.filteredBranchSuggestionsmain = []; 
     this.onSearchWithBranches(); 
   }
 
@@ -2688,7 +2706,7 @@ onDefaultChange(currentIndex: number) {
     }
 
     this.isBranchModalOpen = false;
-    this.onSearchWithBranches();
+    // this.onSearchWithBranches();
   }
 
   // 4. MAIN SEARCH LOGIC - Calling your new Backend Endpoint

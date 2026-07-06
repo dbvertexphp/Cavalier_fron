@@ -291,7 +291,7 @@
             </div>
 
             <ul class="list-none p-0 m-0">
-                <li *ngFor="let branch of filteredBranchSuggestions" 
+                <li *ngFor="let branch of filteredBranchSuggestionsmain" 
                     class="flex items-center gap-3 p-2.5 hover:bg-red-50 border-b border-gray-50 last:border-none cursor-pointer transition-colors"
                     (click)="toggleBranchSelection(branch)">
                     
@@ -307,7 +307,7 @@
                     </div>
                 </li>
 
-                <li *ngIf="filteredBranchSuggestions.length === 0" class="p-5 text-center text-gray-400 text-[11px] italic">
+                <li *ngIf="filteredBranchSuggestionsmain.length === 0" class="p-5 text-center text-gray-400 text-[11px] italic">
                     No branches found.
                 </li>
             </ul>
@@ -481,10 +481,10 @@
 
       <div *ngIf="isExportOpen"
         class="absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded shadow-2xl z-[100] border border-gray-200 overflow-hidden">
-        <button type="button" (click)="printData()"
+        <!-- <button type="button" (click)="printData()"
           class="w-full text-left px-4 py-3 hover:bg-gray-100 flex items-center gap-2 border-b border-gray-100">
           <span>🖨️</span> Print Records
-        </button>
+        </button> -->
         <button type="button" (click)="downloadPDF()"
           class="w-full text-left px-4 py-3 hover:bg-gray-100 flex items-center gap-2">
           <span>📄</span> Download as PDF
@@ -548,7 +548,7 @@
   <button type="button" 
           (click)="openBranchesModal(org, $event)"
           class="bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white border border-blue-200 px-2.5 py-1 rounded text-[11px] font-bold shadow-sm transition-all uppercase flex items-center gap-1">
-    👁️ View ({{ org.branches?.length || 0 }})
+    👁️ View ({{ org.orgBranches?.length || org.branches?.length || 0 }})
   </button>
 </span>
 

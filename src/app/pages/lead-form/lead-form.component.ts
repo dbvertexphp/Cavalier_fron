@@ -1158,6 +1158,11 @@ onLeadSearch() {
     this.leadSearchFilters = {
       leadNo: '', date: '', organizationName: '', type: 'Any', leadOwner: 'Any', salesProcess: '', salesStage: '', hod: '', team: '', reportingManager: '', status: 'Any', branch: ''
     };
+    this.hodDisplayText='';
+    this.leadOwnerDisplayText='';
+    this.teamDisplayText='';
+    this.managerDisplayText='';
+    this.dateRangeInputValue='';
     if (this.leadForm) this.leadForm.patchValue({ date: '', branch: '' });
 
     const headers = { 'Authorization': `Bearer ${localStorage.getItem('cavalier_token')}` };
@@ -1170,7 +1175,7 @@ onLeadSearch() {
       }
     });
   }
-
+// ll
   downloadLeadsPDF() {
     this.isExportOpen = false;
     if (!this.leads || this.leads.length === 0) return;

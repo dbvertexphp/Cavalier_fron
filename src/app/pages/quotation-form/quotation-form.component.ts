@@ -476,6 +476,139 @@ this.cdr.detectChanges();
     this.customEndSelectedDate = `${toDate.getFullYear()}-${String(toDate.getMonth() + 1).padStart(2, '0')}-${String(toDate.getDate()).padStart(2, '0')}`;
     this.confirmSelectedRangePipeline();
   }
+  // ==========================================================================================
+  // 🔥 DYNAMIC AGENTS DISCOVERY & BULK MAILING PROCESS MODULES (Pricing Component Matrix)
+  // ==========================================================================================
+  
+  fetchAgentByLobId(lobId: string | number, countryName: string) {
+    if (!lobId) {
+      console.warn("⚠️ Operation blocked: Line of Business parameter target reference layout missing.");
+      return;
+    }
+    const safeCountry = countryName ? encodeURIComponent(countryName.trim()) : '';
+    const url = `${environment.apiUrl}/OrgBranch/GetByLobIdAgent/${lobId}?country=${safeCountry}`;
+    console.log("📡 Dispatching Combined Agent Query Payload directly matching structural bounds:", url);
+    
+    this.http.get<any[]>(url).subscribe({
+      next: (res) => {
+        this.agentDetail = res || [];
+        this.cdr.detectChanges();
+        console.log("✅ Agents/Branches synced for review layout matrix context:", this.agentDetail);
+      },
+      error: (err) => {
+        console.error("❌ Agent dynamic fetch protocol execution failure trace:", err);
+        this.agentDetail = [];
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  // Refactored toggleReview function to fetch branches dynamically matching Pricing system framework rules
+  toggleReview() {
+    if (!this.quotation.organization) {
+      Swal.fire('Warning', 'First save or select an organization name!', 'warning');
+      return;
+    }
+
+    // Mapping active targets parameters to route agents matrix summary
+    const activeLobId = this.quotation.lineOfBusiness;
+    const currentCountry = this.quotation.country || '';
+    
+    if (activeLobId) {
+      this.fetchAgentByLobId(activeLobId, currentCountry);
+    }
+
+    this.isPreviewMode = true;
+    this.cdr.detectChanges();
+  }
+
+  toggleSelectAllAgents(event: any): void {
+    const isChecked = event.target.checked;
+    this.agentDetail.forEach(agent => {
+      agent.isSelected = isChecked;
+      const mockEvent = { target: { checked: isChecked } };
+      this.onAgentSelect(mockEvent, agent);
+    });
+  }
+
+  isAllAgentsSelected(): boolean {
+    if (!this.agentDetail || this.agentDetail.length === 0) return false;
+    return this.agentDetail.every(agent => agent.isSelected);
+  }
+
+  onAgentSelect(event: any, agent: any) {
+    const email = agent.email || agent.Email;
+    const branch = agent.agentName || agent.BranchName || "Global";
+    if (!email) return;
+
+    if (event.target.checked) {
+      this.selectedEmails.add(email);
+      console.log(`✅ Agent selected: ${Array.from(this.selectedEmails)} | Branch: ${branch}`);
+      this.lastSelectedBranch = branch;
+    } else {
+      this.selectedEmails.delete(email);
+    }
+    console.log("Current Selection matrix tracking trace snapshot:", Array.from(this.selectedEmails));
+  }
+
+  sendBulkEmails(qtnId: number) {
+    // CRITICAL REQUIREMENT MATCH: If no targets are marked selected, bypass loader layer smoothly
+    if (!this.selectedEmails || this.selectedEmails.size === 0) {
+      console.warn("⚠️ Redirecting layout profile: No structural target agents marked, bypassing execution stream.");
+      return;
+    }
+
+    const payload = {
+      toEmails: Array.from(this.selectedEmails),
+      inquiryId: qtnId,
+      branchName: this.lastSelectedBranch || "Our Partner"
+    };
+
+    const headers = { Authorization: `Bearer ${localStorage.getItem('cavalier_token')}` };
+
+    Swal.fire({
+      title: 'Processing...',
+      html: `
+        <div class="email-loader">
+          <div class="envelope-wrapper">
+            <div class="envelope"></div>
+          </div>
+          <p style="margin-top:20px; font-weight:bold; color:#4a3f3f;">Email is sending, please wait...</p>
+        </div>
+      `,
+      allowOutsideClick: false,
+      showConfirmButton: false,
+      didOpen: () => { Swal.showLoading(); },
+      customClass: { popup: 'premium-popup' }
+    });
+
+    this.http.post(`${environment.apiUrl}/Pricing/SendBulkEmail`, payload, { headers }).subscribe({
+      next: () => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Sent Successfully!',
+          text: 'Emails sent and Quotation record entry synchronized successfully.',
+          timer: 2000,
+          showConfirmButton: false,
+          timerProgressBar: true
+        }).then(() => {
+          this.isFormOpen = false;
+          this.isPreviewMode = false;
+          this.loadQuotations();
+          setTimeout(() => { window.location.reload(); }, 2000);
+        });
+      },
+      error: (err) => {
+        console.error("❌ Bulk Mail API pipeline error profile trace rejection:", err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Email Failed',
+          text: err.error?.message || 'Something went wrong while sending bulk email array dataset matrix references.',
+          confirmButtonColor: '#4a3f3f'
+        });
+      }
+    });
+  }
 
   confirmSelectedRangePipeline() {
     if (this.customStartSelectedDate && !this.customEndSelectedDate) this.customEndSelectedDate = this.customStartSelectedDate;
@@ -585,16 +718,7 @@ showPricingDetails(item: any) {
     Swal.fire('Error', 'Pricing ID nahi mili is record ke liye.', 'error');
   }
 }
-toggleReview() {
-  if (!this.quotation.organization) {
-    alert("Please select or save organization first");
-    return;
-  }
-  
-  // Pricing ki tarah assigned branches fetch karne ke liye (agar origin/country code available hai)
-  // Note: Agar quotation me originPort code milta hai toh fetchAgentByPostCode call karein
-  this.isPreviewMode = true;
-}
+
 backToEdit() {
   this.isPreviewMode = false;
 }
@@ -613,18 +737,7 @@ fetchAgentByPostCode(postCode: string) {
 }
 
 // 3. Branch Selection Logic
-onAgentSelect(event: any, agent: any) {
-  const email = agent.email || agent.Email;
-  const branch = agent.branchName || agent.BranchName || "Global";
-  if (!email) return;
 
-  if (event.target.checked) {
-    this.selectedEmails.add(email);
-    this.lastSelectedBranch = branch;
-  } else {
-    this.selectedEmails.delete(email);
-  }
-}
 getMovementTypes() {
     // Hits: https://localhost:xxxx/api/MovementTypes
     this.http.get<any[]>(`${environment.apiUrl}/MovementTypes`).subscribe({
@@ -1369,6 +1482,13 @@ documents: this.documents.map(d => ({ fileName: d.name, filePath: d.documentPath
             title: 'Cast Is Saving... ⏳',
             html: '<b>Step 3:</b> Finalizing Cost breakdowns...'
           });
+                        Swal.close(); // Main block validation closed
+    
+    // Core structural conditional micro routing matching current selection index
+    if (this.isPreviewMode && this.selectedEmails && this.selectedEmails.size > 0) {
+      console.log("🚀 Quotation entries compiled successfully. Transitioning control stream to bulk mailing matrix architecture...");
+      this.sendBulkEmails(savedQtnId);
+    }
 
           // 3. Prepare Cost Payload
           const costPayload = validCostRows.map(c => ({
@@ -1403,18 +1523,26 @@ documents: this.documents.map(d => ({ fileName: d.name, filePath: d.documentPath
 
               this.http.post(`${this.apiEndpoint}/SavePnLSummary`, pnlPayload, httpOptions).subscribe({
                 next: () => {
-                  Swal.fire({
-                    icon: 'success',
-                    title: 'All Done! 🚀',
-                    text: 'SuccessFully Save!',
-                    timer: 2000,
-                    showConfirmButton: false
-                  });
+                 Swal.close(); // Main block validation closed
+    
+    // Core structural conditional micro routing matching current selection index
+    if (this.isPreviewMode && this.selectedEmails && this.selectedEmails.size > 0) {
+      console.log("🚀 Quotation entries compiled successfully. Transitioning control stream to bulk mailing matrix architecture...");
+     
+    } else {
+      Swal.fire({
+        icon: 'success',
+        title: 'All Done! 🚀',
+        text: 'Quotation created and metrics aligned perfectly!',
+        timer: 2000,
+        showConfirmButton: false
+      });
 // ✅ YE LINE ADD KI HAI
                   setTimeout(() => { window.location.reload(); }, 2000);
                   this.loadQuotations();
                   this.toggleForm();
                   this.cdr.detectChanges();
+    }
                 },
                 error: () => Swal.fire('Error', 'PnL Summary save fail hui.', 'warning')
                 

@@ -4658,7 +4658,7 @@ export class PriceComponent {
 
     this.http.get<any>(url).subscribe({
       next: (data) => {
-        console.log("✅ Full Inquiry Data Received:", data);
+        // console.log("✅ Full Inquiry Data Received:", data);
 
         // --- 1. Basic References ---
         this.InquiryId = data.id || 0;
@@ -4804,6 +4804,8 @@ export class PriceComponent {
         this.quotation.isServiceRequired =
           data.isServiceRequired !== undefined ? data.isServiceRequired : true;
         this.quotation.shipmentType = data.shipmentType || "";
+       
+       
         // --- 8. Service Type (Direct/Indirect) ---
         this.quotation.isDirect = data.isDirect === true;
         this.quotation.isIndirect = data.isIndirect === true;

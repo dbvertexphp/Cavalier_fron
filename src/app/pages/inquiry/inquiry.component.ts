@@ -2111,6 +2111,9 @@ onClear() {
     receivedDate: null,
     showMode: 'valid'
   };
+  this.dateRangeInputValue='';
+  this.branchSearchText='';
+  this.modalSearchText='';
   this.searchDone = false;      // "No Data Found" hat jayega
   this.inquiries = [];
 
@@ -2168,22 +2171,23 @@ onSearch() {
 
   const filtersToSend: any = { ...this.searchFilters };
 
-  // --- Date Cleaning Logic (YE ZAROORI HAI) ---
-  // Agar Range mode active hai, toh single receivedDate ko null/delete kar dein
+  // --- Date Cleaning Logic ---
   if (filtersToSend.startDate && filtersToSend.endDate) {
     filtersToSend.receivedDate = null; 
   } else {
-    // Agar single date mode hai, toh empty string ko null bhejien
     if (!filtersToSend.receivedDate || filtersToSend.receivedDate === "") {
       filtersToSend.receivedDate = null;
     }
-    // Range fields ko null bhejien
     filtersToSend.startDate = null;
     filtersToSend.endDate = null;
   }
 
-  // --- Baki Cleaning Logic ---
-  if (filtersToSend.transportMode === 'Any') filtersToSend.transportMode = '';
+  // --- 🌟 SERVICE TYPE FILTER CLEANING (Yahan Ensure karein) ---
+  // Agar dropdown me "-- Select Type --" yani "" string hai, toh khali bhejien taaki dono type ka data aaye
+  if (filtersToSend.transportMode === 'Any' || !filtersToSend.transportMode) {
+    filtersToSend.transportMode = '';
+  }
+
   if (filtersToSend.cargoStatus === '(Any)') filtersToSend.cargoStatus = '';
   if (filtersToSend.salesCoordinator === 'null' || !filtersToSend.salesCoordinator) filtersToSend.salesCoordinator = "";
   
@@ -2209,6 +2213,7 @@ onSearch() {
     })
   };
 
+  // Remaining forkJoin calling code as it is...
   forkJoin({
     searchResult: this.http.post<any[]>(`${environment.apiUrl}/Inquiry/Search`, filtersToSend, httpOptions),
     hodList: this.userServices.getHodList(),
@@ -2217,7 +2222,6 @@ onSearch() {
   }).subscribe({
     next: (res) => {
       const { searchResult, hodList, originList, transportList } = res;
-      
       const hodMap = new Map(hodList.map((h: any) => [String(h.id), h.name]));
       const originMap = new Map(originList.map((o: any) => [String(o.id), o.name])); 
       const transportMap = new Map(transportList.map((t: any) => [String(t.id), t.name]));
@@ -2239,7 +2243,6 @@ onSearch() {
     },
     error: (err) => {
       console.error("Search failed:", err);
-      alert("Error loading data! Please check your date filters.");
     }
   });
 }

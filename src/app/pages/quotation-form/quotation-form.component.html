@@ -449,19 +449,7 @@
 
         <div class="flex flex-col justify-between pt-1">
           <div class="space-y-2 pl-4">
-            <div
-              (click)="toggleAdvanceFilter()"
-              class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline flex items-center gap-1 my-2"
-            >
-              Advance Filter
-              <span
-                [class.rotate-180]="showAdvanceFilter"
-                class="transition-transform duration-200"
-              >
-                {{ showAdvanceFilter ? "▲" : "▼" }}
-              </span>
-            </div>
-
+           
             <div
               *ngIf="showAdvanceFilter"
               class="grid grid-cols-4 gap-4 p-3 bg-gray-50 border border-gray-200 rounded-md shadow-sm"
@@ -479,12 +467,7 @@
               </div>
             </div>
 
-            <div
-              (click)="clearFilters()"
-              class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline"
-            >
-              Clear
-            </div>
+            
 
             <div class="relative group inline-block">
               <div

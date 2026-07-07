@@ -2512,6 +2512,7 @@ export class PriceComponent {
       receivedDate: null,
       showMode: "valid",
     };
+    this.dateRangeInputValue='';
     this.searchDone = false; // "No Data Found" hat jayega
     this.inquiries = [];
 

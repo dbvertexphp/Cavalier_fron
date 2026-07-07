@@ -940,7 +940,7 @@ hodDisplayText: string = '';
  selectTeam(team: any): void {
     const matchedTeam = typeof team === 'object' ? team : this.teamList.find(t => (t.teamName || t.name) === team);
     if (matchedTeam) {
-      this.leadSearchFilters.team = String(matchedTeam.id);
+      this.leadSearchFilters.team = String(matchedTeam.teamName);
       this.teamDisplayText = matchedTeam.teamName || matchedTeam.name; // Input mein naam dikhega
     }
     this.filteredTeams = [];                    
@@ -1094,51 +1094,73 @@ loadLeadSuggestions() {
   }
 
 onLeadSearch() {
-    this.showTable = true;
-    const searchInput = this.leadSearchFilters.leadNo?.toString().trim();
-    let rawDate = this.leadForm.get('date')?.value || this.leadSearchFilters.date || ""; 
-
-    const today = new Date();
-    const todayFormatted = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`; 
-    let searchDate = rawDate;
-
-    if (searchDate === todayFormatted) {
-      searchDate = ""; 
-    }
-
-    let filtersToSend: any = {};
-    if (searchInput && searchInput !== "") {
-      filtersToSend = {
-        LeadNo: searchInput, OrganizationName: '', Type: '', LeadOwner: '', SalesStage: '', SalesProcess: '', HOD: '', Team: '', Branch: '', ReportingManager: '', Status: '', Date: '' 
-      };
-    } else {
-      filtersToSend = {
-        LeadNo: '',
-        OrganizationName: this.leadSearchFilters.organizationName || "",
-        OrganisationId: this.OrganisationId ? Number(this.OrganisationId) : null, // ID conversion
-        Type: this.leadSearchFilters.type === 'Any' ? "" : this.leadSearchFilters.type,
-        LeadOwner: this.leadSearchFilters.leadOwner === 'Any' ? "" : this.leadSearchFilters.leadOwner, // Ab isme ID jaayegi
-        SalesStage: this.leadSearchFilters.salesStage || "",
-        SalesProcess: this.leadSearchFilters.salesProcess || "",
-        HOD: this.leadSearchFilters.hod || "", // Ab isme ID jaayegi
-        Team: this.leadSearchFilters.team || "", // Ab isme ID jaayegi
-        Branch: this.leadSearchFilters.branch || "", 
-        ReportingManager: this.leadSearchFilters.reportingManager || "", // Ab isme ID jaayegi
-        Status: (this.leadSearchFilters.status === 'Any' || !this.leadSearchFilters.status) ? "" : this.leadSearchFilters.status.toString().toLowerCase(),
-        Date: searchDate 
-      };
-    }
-
-    const headers = { 'Authorization': `Bearer ${localStorage.getItem('cavalier_token')}` };
-    this.http.post<any[]>(`${environment.apiUrl}/Leads/Search`, filtersToSend, { headers }).subscribe({
-      next: (response) => {
-        this.leads = response || [];
-        this.updatePagination();
-        if (this.leads.length === 0) alert("No data found In db.");
-      },
-      error: () => alert("Search failed!")
-    });
+  this.showTable = true;
+  const searchInput = this.leadSearchFilters.leadNo?.toString().trim();
+  
+  // Custom Date Range parsing pipeline logic
+  let payloadFromDate: string | null = null;
+  let payloadToDate: string | null = null;
+  
+  if (this.customStartSelectedDate) {
+    payloadFromDate = new Date(this.customStartSelectedDate).toISOString();
   }
+  if (this.customEndSelectedDate) {
+    payloadToDate = new Date(this.customEndSelectedDate).toISOString();
+  } else if (this.customStartSelectedDate) {
+    // Agar single date select ki hai to end date bhi wahi hogi
+    payloadToDate = new Date(this.customStartSelectedDate).toISOString();
+  }
+
+  let filtersToSend: any = {};
+  if (searchInput && searchInput !== "") {
+    filtersToSend = {
+      LeadNo: searchInput, 
+      OrganizationName: '', 
+      Type: '', 
+      LeadOwner: '', 
+      SalesStage: '', 
+      SalesProcess: '', 
+      HOD: '', 
+      Team: '', 
+      Branch: '', 
+      ReportingManager: '', 
+      Status: '', 
+      FromDate: null,
+      EndDate: null 
+    };
+  } else {
+    filtersToSend = {
+      LeadNo: '',
+      OrganizationName: this.leadSearchFilters.organizationName || "",
+      OrganisationId: this.OrganisationId ? Number(this.OrganisationId) : null,
+      Type: this.leadSearchFilters.type === 'Any' ? "" : this.leadSearchFilters.type,
+      LeadOwner: this.leadSearchFilters.leadOwner === 'Any' ? "" : this.leadSearchFilters.leadOwner,
+      SalesStage: this.leadSearchFilters.salesStage || "",
+      SalesProcess: this.leadSearchFilters.salesProcess || "",
+      HOD: this.leadSearchFilters.hod || "", 
+      Team: this.leadSearchFilters.team || "", 
+      Branch: this.leadSearchFilters.branch || "", 
+      ReportingManager: this.leadSearchFilters.reportingManager || "", 
+      Status: (this.leadSearchFilters.status === 'Any' || !this.leadSearchFilters.status) ? "" : this.leadSearchFilters.status.toString(),
+      FromDate: payloadFromDate,
+      EndDate: payloadToDate
+    };
+  }
+
+  console.log("🚀 Cavalier Search Payload:", filtersToSend);
+
+  const headers = { 'Authorization': `Bearer ${localStorage.getItem('cavalier_token')}` };
+  this.http.post<any[]>(`${environment.apiUrl}/Leads/Search`, filtersToSend, { headers }).subscribe({
+    next: (response) => {
+      this.leads = response || [];
+      this.updatePagination();
+      if (this.leads.length === 0) Swal.fire({ icon: 'info', title: 'No Records', text: 'No data found in DB.' });
+    },
+    error: () => Swal.fire({ icon: 'error', title: 'Error', text: 'Search failed!' })
+  });
+}
+
+
 
   onLeadSalesStageSearch(event: Event): void {
     const value = (event.target as HTMLInputElement).value.toLowerCase();
@@ -1156,10 +1178,16 @@ onLeadSearch() {
 
   resetLeadFilters() {
     this.leadSearchFilters = {
-      leadNo: '', date: '', organizationName: '', type: 'Any', leadOwner: 'Any', salesProcess: '', salesStage: '', hod: '', team: '', reportingManager: '', status: 'Any', branch: ''
+      leadNo: '', date: '', organizationName: '', type: 'Any', leadOwner: 'Any', salesProcess: '', salesStage: '', hod: '', team: '', reportingManager: '', 
+      status: 'Any',
+       branch: '',
+       
     };
+    this.OrganisationId='';
     this.hodDisplayText='';
     this.leadOwnerDisplayText='';
+    this.dateRangeInputValue='';
+    
     this.teamDisplayText='';
     this.managerDisplayText='';
     this.dateRangeInputValue='';
@@ -1167,7 +1195,7 @@ onLeadSearch() {
 
     const headers = { 'Authorization': `Bearer ${localStorage.getItem('cavalier_token')}` };
     this.http.post<any[]>(`${environment.apiUrl}/Leads/Search`, { 
-      LeadNo: '', OrganizationName: '', Type: '', LeadOwner: '', SalesStage: '', SalesProcess: '', HOD: '', Team: '', Branch: '', ReportingManager: '', Status: '', Date: '' 
+      LeadNo: '', OrganizationName: '', Type: '', LeadOwner: '', SalesStage: '', SalesProcess: '', HOD: '', Team: '', Branch: '', ReportingManager: '', Status: '', Date: '', FromDate: null, EndDate: null
     }, { headers }).subscribe({
       next: (response) => {
         this.leads = response || [];

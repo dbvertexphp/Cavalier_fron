@@ -611,19 +611,21 @@ this.cdr.detectChanges();
     });
   }
 
-  confirmSelectedRangePipeline() {
-    if (this.customStartSelectedDate && !this.customEndSelectedDate) this.customEndSelectedDate = this.customStartSelectedDate;
-    if (this.customStartSelectedDate && this.customEndSelectedDate) {
-      this.dateRangeInputValue = `${this.customStartSelectedDate} - ${this.customEndSelectedDate}`;
-      
-      // Synchronize exact payload properties for Cavalier backend API model criteria mapping
-     
-      this.searchFilters.validFrom = null;
-      
-      this.closeCustomRangeCalendar();
-      this.onSearch();
-    }
+confirmSelectedRangePipeline() {
+  if (this.customStartSelectedDate && !this.customEndSelectedDate) {
+    this.customEndSelectedDate = this.customStartSelectedDate;
   }
+  if (this.customStartSelectedDate && this.customEndSelectedDate) {
+    this.dateRangeInputValue = `${this.customStartSelectedDate} - ${this.customEndSelectedDate}`;
+    
+    // Explicit value assignment overrides raw data elements keys matching API models rules
+    this.searchFilters.startDate = this.customStartSelectedDate as any;
+    this.searchFilters.endDate = this.customEndSelectedDate as any;
+    
+    this.closeCustomRangeCalendar();
+    this.onSearch(); // Range select hote hi call call function
+  }
+}
 
   getCalendarMonthLabel(date: Date): string {
     return date.toLocaleString('default', { month: 'long', year: 'numeric' });
@@ -2175,6 +2177,8 @@ searchFilters = {
   quotedBy: '',    // HTML mein isse bind karein
   salesCoor: '',   // Backend mapping ke liye
   cargoStatus: 'Any',
+  startDate: null,  // <-- Naya (Range structure tracking)
+  endDate: null,
   validFrom: null,
   showMode: 'all',
   status: 'Any',
@@ -2282,89 +2286,61 @@ onQuotedByType() {
   } 
 }
 onSearch() {
-  // --- Authorization Logic Start ---
-  const token = localStorage.getItem('cavalier_token');
-  const headers = new HttpHeaders({
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json'
-  });
-  // --- Authorization Logic End ---
+  console.log("Search process initialized!");
+  this.searchDone = true;
 
-  // 🔥 Selected Branches collect karo
+  // Clone search filters payload block
+  const filtersToSend: any = { ...this.searchFilters };
+
+  // --- KEY MATCH FIX: Status structural validation ---
+  if (filtersToSend.status === 'Any' || filtersToSend.status === '' || filtersToSend.status === null || filtersToSend.status === undefined) {
+    filtersToSend.status = -1; // Ignore on server side
+  } else {
+    filtersToSend.status = Number(filtersToSend.status); // Sahi 1 ya 0 mapping
+  }
+
+  // --- KEY MATCH FIX: Service Type dropdown values mapping ---
+  const selectedLOB = this.searchFilters.lineOfBusiness; // Dropdown binding value target
+  filtersToSend.serviceType = selectedLOB && selectedLOB !== 'Any' ? selectedLOB : '';
+
+  // Clean strings params fields mapping 
+  if (filtersToSend.lineOfBusiness === 'Any') filtersToSend.lineOfBusiness = '';
+  if (filtersToSend.cargoStatus === 'Any') filtersToSend.cargoStatus = '';
+  filtersToSend.salesCoor = this.searchFilters.quotedBy || "";
+
+  // Selected branches IDs sequence layer mapping
   this.selectedBranchIds = this.branchList
     .filter(b => b.isSelected)
     .map(b => b.id || b.branchId);
+  filtersToSend.selectedBranchIds = this.selectedBranchIds;
 
-  let filtersToSend: any = { 
-    ...this.searchFilters,
-    selectedBranchIds: this.selectedBranchIds
+  const token = localStorage.getItem('cavalier_token');
+  const httpOptions = {
+    headers: new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    })
   };
 
-  const searchInput = this.searchFilters.quotationNo?.toString().trim();
-
-  if (searchInput && searchInput !== "") {
-    filtersToSend = {
-      quotationNo: searchInput,
-      selectedBranchIds: this.selectedBranchIds,
-      lineOfBusiness: '',
-      organization: '',
-      salesCoor: '',
-      cargoStatus: '',
-      validFrom: null,
-      showMode: '',
-      Status: -1 
-    };
-  } else {
-    filtersToSend.salesCoor = this.searchFilters.quotedBy || "";
-    if (filtersToSend.lineOfBusiness === 'Any') filtersToSend.lineOfBusiness = '';
-    if (filtersToSend.cargoStatus === 'Any') filtersToSend.cargoStatus = '';
-    
-    const statusValue: any = this.searchFilters.status;
-    if (statusValue == null || statusValue == -1 || statusValue == '-1' || statusValue === '' || statusValue === 'Any') {
-        filtersToSend.Status = -1; 
-    } else {
-        filtersToSend.Status = Number(statusValue); 
-    }
-
-    if (filtersToSend.showMode === 'all') filtersToSend.showMode = '';
-    if (!filtersToSend.validFrom) filtersToSend.validFrom = null;
-  }
-
-  delete filtersToSend.status; 
-
-  // --- ForkJoin ke saath Data aur HOD List fetch karo ---
   forkJoin({
-    searchResult: this.http.post<any[]>(`${this.apiEndpoint}/Search`, filtersToSend, { headers }),
+    searchResult: this.http.post<any[]>(`${this.apiEndpoint}/Search`, filtersToSend, httpOptions),
     hodList: this.userServices.getHodList()
   }).subscribe({
     next: (res) => {
       const { searchResult, hodList } = res;
-      
-      // HOD map banao (Lookup Table)
       const hodMap = new Map(hodList.map((h: any) => [String(h.id), h.name]));
 
-      // Mapping Logic: ID ki jagah Name replace karo
       this.quotations = (searchResult || []).map(item => ({
         ...item,
-        // Yahan 'salesCoor' field ko update kar rahe hain
         salesCoor: hodMap.get(String(item.salesCoor)) || item.salesCoor
       }));
 
-      // Sorting Logic (Original code ka hissa)
-      if (searchInput && this.quotations.length > 0) {
-        const lowerInput = searchInput.toLowerCase();
-        this.quotations.sort((a, b) => {
-          const valA = (a.quotationNo || a.QuotationNo || "").toString().toLowerCase();
-          return valA === lowerInput ? -1 : 1;
-        });
-      }
-
       this.cdr.detectChanges();
-      console.log("✅ Data filtered with Names:", this.quotations);
+      console.log("✅ Filter synchronization complete:", this.quotations);
     },
     error: (err) => {
-      console.error("❌ API Error:", err);
-      alert("Search failed!");
+      console.error("❌ Search processing pipeline failure trace:", err);
+      alert("Search execution encountered an error. Please verify input parameters.");
     }
   });
 }
@@ -2383,8 +2359,11 @@ clearFilters() {
     salesCoor: '',
     cargoStatus: 'Any',
     validFrom: null,
+    startDate: null,  // <-- Naya (Range structure tracking)
+  endDate: null,
     showMode: 'all',
-    status: 'Any'
+    status: 'Any',
+    
   };
   this.searchDone = false;      // "No Data Found" hat jayega
   this.quotations = [];
@@ -2429,10 +2408,13 @@ resetFilters() {
     salesCoor: '',
     cargoStatus: 'Any',
     validFrom: null,
+    startDate: null,  // <-- Naya (Range structure tracking)
+  endDate: null,
     showMode: 'all',
-    status: 'Any'
+    status: 'Any',
+    
   };
-
+   this.dateRangeInputValue='';
   console.log("Filters Resetting...");
 
   // 2. Backend ko 'Empty' filters bhejein taaki wo "ALL" data return kare
@@ -2444,7 +2426,9 @@ resetFilters() {
     cargoStatus: '',
     validFrom: null,
     showMode: '',
-    status: ''
+    status: '',
+    startDate: null,
+    endDate: null
   };
 
   // 3. Search API ko call karein saara data wapas laane ke liye

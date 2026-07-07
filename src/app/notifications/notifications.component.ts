@@ -38,7 +38,6 @@ export class NotificationsComponent implements OnInit {
     });
 
     this.notificationService.fetchNotifications(this.page, this.pageSize);
-    this.notificationService.startPolling(30000); 
   }
 
   viewNotification(notif: NotificationItem): void {
@@ -57,6 +56,19 @@ export class NotificationsComponent implements OnInit {
 
   markAllAsRead(): void {
     this.notificationService.markAllAsRead();
+  }
+
+  // 🔥 NAYA — ek notification delete karo
+  deleteNotification(notif: NotificationItem, event: Event): void {
+    event.stopPropagation();
+    if (!confirm('Kya aap is notification ko delete karna chahte hain?')) return;
+    this.notificationService.deleteNotification(notif.id);
+  }
+
+  // 🔥 NAYA — sab delete karo
+  deleteAllNotifications(): void {
+    if (!confirm('Kya aap saari notifications delete karna chahte hain?')) return;
+    this.notificationService.deleteAllNotifications();
   }
 
   nextPage(): void {

@@ -70,6 +70,7 @@ portOfDischargeList: any[] = [];
   isPickupEnabled: boolean = false;
   selectedBranchIds: number[] = []; 
  public apiEndpoint = `${environment.apiUrl}/Quotations`;
+ public fileBaseUrl = environment.apiUrl.replace('/api', '');
  apiUrl = environment.apiUrl;
 // -- Dropdown Control Variables --
 companyServices:any[]=[]
@@ -1837,30 +1838,39 @@ if (this.dimRows.length > 0) {
 }
 
   // 10. Final UI Refresh & Sync
-  setTimeout(() => {
+setTimeout(() => {
     // Trigger POL/POD name mapping for the display logic
     this.onPolChange();
     this.onPodChange();
 
+    // 🔥 FIX: Dono functions call karo — updateTotalPackagesFromDims (num of packages sync ke liye)
+    // aur calculateAll (jo Revenue+Cost se P&L Summary table banata hai). 
+    // Pehle ye if/else tha jisse calculateAll() kabhi chalta hi nahi tha.
     if (this.updateTotalPackagesFromDims) this.updateTotalPackagesFromDims();
-    else this.calculateAll();
+    this.calculateAll();
     
-    // Force UI update
     this.cdr.detectChanges();
     console.log("🏁 UI Refresh triggered for Quotation Edit");
-  }, 200);
+}, 200);
 }
 
 // Constructor mein inject karein
 
-
 deleteQuotation(id: number) {
   if (confirm("Are you sure?")) {
-    this.http.delete(`${this.apiEndpoint}/${id}`).subscribe({
+    // --- Authorization Logic Start ---
+    const token = localStorage.getItem('cavalier_token');
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+    // --- Authorization Logic End ---
+
+    this.http.delete(`${this.apiEndpoint}/${id}`, { headers }).subscribe({
       next: () => {
         // 2. Data load hone ke baad manual refresh trigger karein
         this.loadQuotations();
-        
+
         // 3. Ek chota sa delay de kar Angular ko force karein UI update ke liye
         setTimeout(() => {
           this.cdr.detectChanges();
@@ -3149,8 +3159,8 @@ loadPricingList() {
   this.showPricingDropdown = true;
   this.http.get(`${environment.apiUrl}/Pricing/GetPricingList`).subscribe({
     next: (res: any) => {
-      this.pricingList = res;
-      this.filteredPricings = res;
+        this.pricingList = (res || []).filter((i: any) => i.status === 1);
+    this.filteredPricings = this.pricingList;
       this.showPricingDropdown = !this.showPricingDropdown;
     },
     error: (err) => console.error("Error fetching pricing list", err)
@@ -4206,6 +4216,7 @@ openPricingModal() {
   if (!this.pricingList || this.pricingList.length === 0) {
     this.loadPricingList();
   } else {
+    console.log("Pricing list already loaded, skipping API call.",this.pricingList);
     // Agar list pehle se hai, toh filteredPricings ko reset karke dikha do
     this.filteredPricings = this.pricingList;
   }

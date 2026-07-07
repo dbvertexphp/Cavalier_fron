@@ -10,6 +10,7 @@ export interface NotificationItem {
   title: string;
   message: string;
   branchId: number | null;
+  branchName?: string | null;
   createdAt: string;
   isRead: boolean;
 }
@@ -39,8 +40,16 @@ export class NotificationService implements OnDestroy {
   private loadingSubject = new BehaviorSubject<boolean>(false);
   loading$: Observable<boolean> = this.loadingSubject.asObservable();
 
+  // 🔥 NAYA — toast trigger ke liye stream (jab bhi naya notification aaye)
+  private toastSubject = new BehaviorSubject<NotificationItem | null>(null);
+  toast$: Observable<NotificationItem | null> = this.toastSubject.asObservable();
+
   private hasFetchedOnce = false;
   private pollingSub: Subscription | null = null;
+  private knownIds = new Set<number>(); // 🔥 duplicate toast rokne ke liye
+
+  // 🔥 Notification sound
+  private notificationAudio = new Audio('/assets/sounds/notification.mp3');
 
   constructor(private http: HttpClient) {}
 
@@ -76,7 +85,6 @@ export class NotificationService implements OnDestroy {
           error: (err) => console.error('❌ [FCM BACKEND]: Token save failed:', err)
         });
 
-        // 🔥 Token milte hi notification fetch shuru karo aur polling bhi start kardo
         this.fetchNotifications(1, 5, true);
         this.startPolling();
 
@@ -103,21 +111,49 @@ export class NotificationService implements OnDestroy {
     );
   }
 
-  listen() {
-    if (!this.messaging) return;
+listen() {
+  if (!this.messaging) return;
 
-    onMessage(this.messaging, (payload: any) => {
-      console.log('📥 Live Foreground Message Intercepted:', payload);
-      this.changeMessage(payload);
+  onMessage(this.messaging, (payload: any) => {
+    console.log('📥 Live Foreground Message Intercepted:', payload);
+    this.changeMessage(payload);
 
-      const title = payload.notification?.title || (payload.data ? payload.data['title'] : '') || 'Cavalier Update';
-      const body = payload.notification?.body || (payload.data ? payload.data['body'] : '') || '';
+    const title = payload.notification?.title || (payload.data ? payload.data['title'] : '') || 'Cavalier Update';
+    const body = payload.notification?.body || (payload.data ? payload.data['body'] : '') || '';
 
-      new Notification(title, { body, icon: '/favicon.ico' });
+    // Browser native notification (agar tab background mein ho)
+    new Notification(title, { body, icon: '/favicon.ico' });
 
-      // 🔥 Naya push aate hi list turant refresh
-      this.fetchNotifications(1, 5, true);
+    // 🔥 In-app toast + sound — turant, ek hi baar
+    this.playNotificationSound();
+    this.toastSubject.next({
+      id: Date.now(),
+      title,
+      message: body,
+      branchId: null,
+      createdAt: new Date().toISOString(),
+      isRead: false
     });
+
+    // 🔥 Sirf list refresh karo (badge count/list update ke liye), 
+    // toast dubara mat dikhao — isliye suppressToast = true
+    this.fetchNotifications(1, 5, true, true);
+  });
+}
+
+  private playNotificationSound(): void {
+    try {
+      this.notificationAudio.currentTime = 0;
+      this.notificationAudio.play().catch(err => {
+        console.warn('⚠️ Audio play blocked by browser (needs user interaction first):', err);
+      });
+    } catch (err) {
+      console.error('❌ Notification sound error:', err);
+    }
+  }
+
+  dismissToast(): void {
+    this.toastSubject.next(null);
   }
 
   private getAuthHeaders(): HttpHeaders | null {
@@ -129,35 +165,48 @@ export class NotificationService implements OnDestroy {
     return new HttpHeaders({ Authorization: `Bearer ${token}` });
   }
 
-  fetchNotifications(page: number = 1, pageSize: number = 20, force: boolean = false): void {
-    const headers = this.getAuthHeaders();
-    if (!headers) return;
+fetchNotifications(page: number = 1, pageSize: number = 20, force: boolean = false, suppressToast: boolean = false): void {
+  const headers = this.getAuthHeaders();
+  if (!headers) return;
 
-    const apiUrl = `${environment.apiUrl}/Notification/my-notifications?page=${page}&pageSize=${pageSize}`;
+  const apiUrl = `${environment.apiUrl}/Notification/my-notifications?page=${page}&pageSize=${pageSize}`;
 
-    if (!this.hasFetchedOnce) {
-      this.loadingSubject.next(true);
-    }
-
-    this.http.get<NotificationResponse>(apiUrl, { headers }).subscribe({
-      next: (res) => {
-        if (res.success) {
-          this.notificationsSubject.next(res.notifications || []);
-          this.totalCountSubject.next(res.totalCount);
-        }
-        this.hasFetchedOnce = true;
-        this.loadingSubject.next(false);
-      },
-      error: (err) => {
-        console.error('Notification fetch error:', err);
-        this.loadingSubject.next(false);
-      }
-    });
+  if (!this.hasFetchedOnce) {
+    this.loadingSubject.next(true);
   }
 
-  // 🔥 NAYA — har 30 second mein automatic background refresh
+  this.http.get<NotificationResponse>(apiUrl, { headers }).subscribe({
+    next: (res) => {
+      if (res.success) {
+        const incoming = res.notifications || [];
+
+        // 🔥 Sirf tab toast trigger karo jab suppressToast false ho
+        // (yani ye normal polling/manual refresh hai, push-triggered fetch nahi)
+        if (this.hasFetchedOnce && !suppressToast) {
+          const newOnes = incoming.filter(n => !this.knownIds.has(n.id) && !n.isRead);
+          if (newOnes.length > 0) {
+            const latest = newOnes[0];
+            this.playNotificationSound();
+            this.toastSubject.next(latest);
+          }
+        }
+
+        incoming.forEach(n => this.knownIds.add(n.id));
+
+        this.notificationsSubject.next(incoming);
+        this.totalCountSubject.next(res.totalCount);
+      }
+      this.hasFetchedOnce = true;
+      this.loadingSubject.next(false);
+    },
+    error: (err) => {
+      console.error('Notification fetch error:', err);
+      this.loadingSubject.next(false);
+    }
+  });
+}
   startPolling(intervalMs: number = 30000): void {
-    if (this.pollingSub) return; // already chal raha hai to dubara start mat karo
+    if (this.pollingSub) return;
 
     this.pollingSub = interval(intervalMs).subscribe(() => {
       const headers = this.getAuthHeaders();
@@ -202,6 +251,44 @@ export class NotificationService implements OnDestroy {
       },
       error: (err) => console.error('Mark all as read error:', err)
     });
+  }
+
+  // =========================================================================
+  // 🔥 NAYA — DELETE METHODS
+  // =========================================================================
+  deleteNotification(id: number): Observable<any> {
+    const headers = this.getAuthHeaders();
+    const apiUrl = `${environment.apiUrl}/Notification/delete/${id}`;
+
+    const req = this.http.delete<any>(apiUrl, { headers: headers ?? undefined });
+
+    req.subscribe({
+      next: () => {
+        const updated = this.notificationsSubject.value.filter(n => n.id !== id);
+        this.notificationsSubject.next(updated);
+        this.totalCountSubject.next(Math.max(0, this.totalCountSubject.value - 1));
+      },
+      error: (err) => console.error('Delete notification error:', err)
+    });
+
+    return req;
+  }
+
+  deleteAllNotifications(): Observable<any> {
+    const headers = this.getAuthHeaders();
+    const apiUrl = `${environment.apiUrl}/Notification/delete-all`;
+
+    const req = this.http.delete<any>(apiUrl, { headers: headers ?? undefined });
+
+    req.subscribe({
+      next: () => {
+        this.notificationsSubject.next([]);
+        this.totalCountSubject.next(0);
+      },
+      error: (err) => console.error('Delete all error:', err)
+    });
+
+    return req;
   }
 
   getCurrentNotifications(): NotificationItem[] {

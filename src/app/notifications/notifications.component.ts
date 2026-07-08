@@ -58,18 +58,21 @@ export class NotificationsComponent implements OnInit {
     this.notificationService.markAllAsRead();
   }
 
-  // 🔥 NAYA — ek notification delete karo
-  deleteNotification(notif: NotificationItem, event: Event): void {
-    event.stopPropagation();
-    if (!confirm('Kya aap is notification ko delete karna chahte hain?')) return;
-    this.notificationService.deleteNotification(notif.id);
-  }
+// Delete a single notification
+deleteNotification(notif: NotificationItem, event: Event): void {
+  event.stopPropagation();
 
-  // 🔥 NAYA — sab delete karo
-  deleteAllNotifications(): void {
-    if (!confirm('Kya aap saari notifications delete karna chahte hain?')) return;
-    this.notificationService.deleteAllNotifications();
-  }
+  if (!confirm('Are you sure you want to delete this notification?')) return;
+
+  this.notificationService.deleteNotification(notif.id);
+}
+
+// Delete all notifications
+deleteAllNotifications(): void {
+  if (!confirm('Are you sure you want to delete all notifications?')) return;
+
+  this.notificationService.deleteAllNotifications();
+}
 
   nextPage(): void {
     if (this.page < this.totalPages) {

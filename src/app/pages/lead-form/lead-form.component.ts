@@ -1176,33 +1176,62 @@ onLeadSearch() {
     this.filteredSalesStages = [];
   }
 
-  resetLeadFilters() {
-    this.leadSearchFilters = {
-      leadNo: '', date: '', organizationName: '', type: 'Any', leadOwner: 'Any', salesProcess: '', salesStage: '', hod: '', team: '', reportingManager: '', 
-      status: 'Any',
-       branch: '',
-       
-    };
-    this.OrganisationId='';
-    this.hodDisplayText='';
-    this.leadOwnerDisplayText='';
-    this.dateRangeInputValue='';
-    
-    this.teamDisplayText='';
-    this.managerDisplayText='';
-    this.dateRangeInputValue='';
-    if (this.leadForm) this.leadForm.patchValue({ date: '', branch: '' });
+ resetLeadFilters() {
+  this.leadSearchFilters = {
+    leadNo: '', 
+    date: '', 
+    organizationName: '', 
+    type: 'Any', 
+    leadOwner: 'Any', 
+    salesProcess: '', 
+    salesStage: '', 
+    hod: '', 
+    team: '', 
+    reportingManager: '', 
+    status: 'Any',
+    branch: '',
+  };
+  
+  // ✅ Yeh do lines add karni hain taaki calendar pipeline reset ho jaye
+  this.customStartSelectedDate = null;
+  this.customEndSelectedDate = null;
 
-    const headers = { 'Authorization': `Bearer ${localStorage.getItem('cavalier_token')}` };
-    this.http.post<any[]>(`${environment.apiUrl}/Leads/Search`, { 
-      LeadNo: '', OrganizationName: '', Type: '', LeadOwner: '', SalesStage: '', SalesProcess: '', HOD: '', Team: '', Branch: '', ReportingManager: '', Status: '', Date: '', FromDate: null, EndDate: null
-    }, { headers }).subscribe({
-      next: (response) => {
-        this.leads = response || [];
-        this.updatePagination();
-      }
-    });
-  }
+  this.OrganisationId = '';
+  this.hodDisplayText = '';
+  this.leadOwnerDisplayText = '';
+  this.dateRangeInputValue = '';
+  
+  this.teamDisplayText = '';
+  this.managerDisplayText = '';
+  this.dateRangeInputValue = '';
+  
+  if (this.leadForm) this.leadForm.patchValue({ date: '', branch: '' });
+
+  const headers = { 'Authorization': `Bearer ${localStorage.getItem('cavalier_token')}` };
+  
+  // Clear karne ke baad jab default API hit ho, toh FromDate aur EndDate null jayein
+  this.http.post<any[]>(`${environment.apiUrl}/Leads/Search`, { 
+    LeadNo: '', 
+    OrganizationName: '', 
+    Type: '', 
+    LeadOwner: '', 
+    SalesStage: '', 
+    SalesProcess: '', 
+    HOD: '', 
+    Team: '', 
+    Branch: '', 
+    ReportingManager: '', 
+    Status: '', 
+    Date: '', 
+    FromDate: null, 
+    EndDate: null
+  }, { headers }).subscribe({
+    next: (response) => {
+      this.leads = response || [];
+      this.updatePagination();
+    }
+  });
+}
 // ll
   downloadLeadsPDF() {
     this.isExportOpen = false;

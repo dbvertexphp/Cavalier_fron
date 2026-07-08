@@ -2415,6 +2415,9 @@ resetFilters() {
     
   };
    this.dateRangeInputValue='';
+   this.branchSearchText='';
+   this.selectedBranchIds=[];
+   
   console.log("Filters Resetting...");
 
   // 2. Backend ko 'Empty' filters bhejein taaki wo "ALL" data return kare

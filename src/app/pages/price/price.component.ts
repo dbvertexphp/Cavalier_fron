@@ -193,18 +193,14 @@ export class PriceComponent {
   addInvoice() {
     this.invoices.push({
       name: "",
+      documentPath: null,
       file: null,
       fileName: "",
       previewUrl: null,
-    });
-
-    this.invoices.push({
-      name: "",
-      documentPath: null,
-      file: null,
-      isReplacing: false, // Yeh line zaroori hai
+      isReplacing: false,
     });
   }
+
   removeInvoice(index: number) {
     this.invoices.splice(index, 1);
   }
@@ -629,6 +625,7 @@ export class PriceComponent {
   ];
   isFormOpen = false;
   public apiUrl = `${environment.apiUrl}/Pricing`;
+  public fileBaseUrl = environment.apiUrl.replace("/api", "");
   inquiries: any[] = [];
   quotations: any[] = [];
   quotation: any = this.resetQuotationModel();
@@ -4111,13 +4108,19 @@ export class PriceComponent {
 
     // 1. Synchronize and map Dimensions Data Array
     let finalDimensionsPayload: any[] = [];
+
+    // 🔥 FIX: Naya Pricing (id 0/falsy) create karte waqt dimId/id hamesha 0 bhejo,
+    const isExistingPricing = Number(this.quotation.id || 0) > 0;
+
     if (this.dimRows && this.dimRows.length > 0) {
       finalDimensionsPayload = this.dimRows
         .filter(
           (d: any) => Number(d.l) > 0 || Number(d.w) > 0 || Number(d.h) > 0,
         )
         .map((d: any) => {
-          const explicitId = Number(d.dimId || d.id || 0);
+          const explicitId = isExistingPricing
+            ? Number(d.dimId || d.id || 0)
+            : 0;
           return {
             dimId: explicitId,
             id: explicitId,
@@ -4132,7 +4135,9 @@ export class PriceComponent {
           };
         });
     } else if (this.dimRow) {
-      const singleId = Number(this.dimRow.dimId || this.dimRow.id || 0);
+      const singleId = isExistingPricing
+        ? Number(this.dimRow.dimId || this.dimRow.id || 0)
+        : 0;
       finalDimensionsPayload = [
         {
           dimId: singleId,
@@ -4201,10 +4206,13 @@ export class PriceComponent {
       documentPath: d.documentPath && !d.isReplacing ? d.documentPath : null,
     }));
 
-    const processedInvoices = (this.invoices || []).map((i) => ({
+  const processedInvoices = (this.invoices || []).map((i) => {
+    console.log(i);
+    return {
       name: i.name,
       documentPath: i.documentPath && !i.isReplacing ? i.documentPath : null,
-    }));
+    };
+  });
 
     // 4. Compiling Master Payload matching C# Back-End contract requirements
     const payload: any = {
@@ -4316,12 +4324,13 @@ export class PriceComponent {
         formData.append("docTypes", "Commodity");
       }
     });
-    this.invoices.forEach((i) => {
+      this.invoices.forEach((i) => {
       if (i.file) {
+    
         formData.append("invoiceFiles", i.file);
         formData.append("invoiceNames", i.name || i.fileName);
       }
-    });
+});
 
     const token = localStorage.getItem("cavalier_token");
     const httpOptions = { headers: { Authorization: `Bearer ${token}` } };
@@ -4805,8 +4814,7 @@ export class PriceComponent {
         this.quotation.isServiceRequired =
           data.isServiceRequired !== undefined ? data.isServiceRequired : true;
         this.quotation.shipmentType = data.shipmentType || "";
-       
-       
+
         // --- 8. Service Type (Direct/Indirect) ---
         this.quotation.isDirect = data.isDirect === true;
         this.quotation.isIndirect = data.isIndirect === true;
@@ -5142,6 +5150,7 @@ export class PriceComponent {
   //     error: (err) => console.error("❌ API Error:", err)
   //   });
   // }
+
   isHazard(): boolean {
     // 1. Agar selectcommodityvalue mein seedha 'Hazard' likha hai
 
@@ -5192,6 +5201,7 @@ export class PriceComponent {
     this.token = localStorage.getItem("cavalier_token") || "";
     return this.token;
   }
+
   loadInquiryList() {
     // Toggle logic
     if (this.showInquiryDropdown) {
@@ -5221,7 +5231,7 @@ export class PriceComponent {
     });
 
     const startTime = new Date().getTime(); // Request start time note karo
-    const url = `${environment.apiUrl}/Inquiry`;
+    const url = `${environment.apiUrl}/Inquiry/list `;
 
     this.http
       .get<any[]>(url, {

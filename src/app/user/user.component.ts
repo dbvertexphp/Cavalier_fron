@@ -157,7 +157,7 @@ onPageSizeChange(event: any) {
             alert('User deleted successfully');
             this.loadUsers();
           },
-          error: (err) => {
+          error: (err:any) => {
             console.error("Delete Error:", err);
             alert('Error deleting user.');
             this.loading = false;

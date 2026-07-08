@@ -33,7 +33,7 @@
     "apexcharts": "^5.3.2",
     "chart.js": "^4.5.1",
     "dayjs": "^1.11.21",
-    "firebase": "^12.10.0",
+    "firebase": "^12.15.0",
     "flatpickr": "^4.6.13",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.0",

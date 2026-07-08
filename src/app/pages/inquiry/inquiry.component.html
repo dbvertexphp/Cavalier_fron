@@ -1281,7 +1281,7 @@
       <div class="flex-1">
         <a 
           *ngIf="doc.isExisting && doc.documentPath" 
-          [href]="apiUrl + doc.documentPath" 
+          [href]="fileBaseUrl  + doc.documentPath" 
           target="_blank" 
           class="text-blue-600 underline text-sm block truncate"
         >
@@ -1876,7 +1876,7 @@
 
       <div class="flex-1">
         <a *ngIf="inv.isExisting && inv.documentPath" 
-           [href]="apiUrl + inv.documentPath" 
+           [href]="fileBaseUrl  + inv.documentPath" 
            target="_blank" 
            class="text-blue-600 underline text-sm block truncate">
            View Existing Invoice

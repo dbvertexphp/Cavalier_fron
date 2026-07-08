@@ -1,24 +1,37 @@
+import {
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  HostListener,
+  OnInit,
+  ViewChild,
+} from "@angular/core";
 
-import { ChangeDetectorRef, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
- 
-
-import { CommonModule } from '@angular/common';
-import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http'; 
-import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
-import { environment } from '../../../environments/environment';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
-import * as XLSX from 'xlsx';
-import { CheckPermissionService } from '../../services/check-permission.service';
-import { moveItemInArray, transferArrayItem, CdkDragDrop } from '@angular/cdk/drag-drop';
-import { DragDropModule } from '@angular/cdk/drag-drop'; // Ye import ensure karein
-import { forkJoin, Subscription } from 'rxjs';
-import { BranchService } from '../../services/branch.service';
-import { UserService } from '../../services/user.service';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { ActivatedRoute } from '@angular/router';
-import Swal from 'sweetalert2';
+import { CommonModule } from "@angular/common";
+import {
+  HttpClient,
+  HttpClientModule,
+  HttpHeaders,
+} from "@angular/common/http";
+import { FormsModule } from "@angular/forms";
+import { Router, RouterModule } from "@angular/router";
+import { environment } from "../../../environments/environment";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+import * as XLSX from "xlsx";
+import { CheckPermissionService } from "../../services/check-permission.service";
+import {
+  moveItemInArray,
+  transferArrayItem,
+  CdkDragDrop,
+} from "@angular/cdk/drag-drop";
+import { DragDropModule } from "@angular/cdk/drag-drop"; // Ye import ensure karein
+import { forkJoin, Subscription } from "rxjs";
+import { BranchService } from "../../services/branch.service";
+import { UserService } from "../../services/user.service";
+import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
+import { ActivatedRoute } from "@angular/router";
+import Swal from "sweetalert2";
 export interface CostBreakdown {
   id?: number;
   inquiryId?: number;
@@ -43,117 +56,128 @@ interface DimGroup {
 // mm
 
 @Component({
-  selector: 'app-inquiry',
+  selector: "app-inquiry",
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, HttpClientModule, DragDropModule],
-  templateUrl: './inquiry.component.html',
-  styleUrl: './inquiry.component.css',
+  imports: [
+    CommonModule,
+    RouterModule,
+    FormsModule,
+    HttpClientModule,
+    DragDropModule,
+  ],
+  templateUrl: "./inquiry.component.html",
+  styleUrl: "./inquiry.component.css",
 })
-
-  export class InquiryComponent implements OnInit {
-    
-    @ViewChild('cargoDateInput') cargoDateInput!: ElementRef<HTMLInputElement>;
-    getsalescordinate: any[] = [];
-    PermissionID:any;
-    LeadId:number=0;
-    // ✅ CONFIGURATION VARIABLES FOR INDEPENDENT DUAL RANGE CALENDAR
+export class InquiryComponent implements OnInit {
+  @ViewChild("cargoDateInput") cargoDateInput!: ElementRef<HTMLInputElement>;
+  getsalescordinate: any[] = [];
+  PermissionID: any;
+  LeadId: number = 0;
+  // ✅ CONFIGURATION VARIABLES FOR INDEPENDENT DUAL RANGE CALENDAR
   isCustomRangeModalOpen: boolean = false;
-  currentLeftCalendarDate: Date = new Date(); 
-  currentRightCalendarDate: Date = new Date(new Date().setMonth(new Date().getMonth() + 1));
+  currentLeftCalendarDate: Date = new Date();
+  currentRightCalendarDate: Date = new Date(
+    new Date().setMonth(new Date().getMonth() + 1),
+  );
   leftMonthDaysGrid: any[] = [];
   rightMonthDaysGrid: any[] = [];
-  weekDaysHeaders: string[] = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+  weekDaysHeaders: string[] = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
   customStartSelectedDate: string | null = null;
   customEndSelectedDate: string | null = null;
-  dateRangeInputValue: string = '';
-    getquotedByList: any[] = [];
-getpricingByList: any[] = [];
-    originpinCode:any;
-    OrganisationId:number=0;
-    invoices: any[] = [];
+  dateRangeInputValue: string = "";
+  getquotedByList: any[] = [];
+  getpricingByList: any[] = [];
+  originpinCode: any;
+  OrganisationId: number = 0;
+  invoices: any[] = [];
   isInvoiceModalOpen = false;
-documents: any[] = [];
+  documents: any[] = [];
   isDocumentModalOpen = false;
-  OrganisationName:string='';
-  LeadName:string='';
+  OrganisationName: string = "";
+  LeadName: string = "";
   // Preview ke liye nayi variables
   isPreviewModalOpen = false;
   agentDetail: any[] = [];
   selectedEmails: string[] = [];
   currentPreviewUrl: SafeResourceUrl | null = null;
-    showincoterms:string="";
-    selectcommodityvalue:string="";
-    organizationIds:number=0;
-    isDeliveryEnabled:boolean=false;
-    portsOfDischarge: any[] = [];        // API se aane wala full list
-filteredPortsOfDischarge: any[] = [];
-originsaveid:number=0;
-showPortOfDischargeDropdown: boolean = false;
-portsOfLoading: any[] = [];               // Full list from API
-filteredPortsOfLoading: any[] = [];
-showPortOfLoadingDropdown: boolean = false;
-   branchlist:any[]=[];
-   teamsList: any[] = [];
-isPickupEnabled: boolean = false; 
-    selectedLeadData: any = null;
-    transportModes: any[] = [];
+  showincoterms: string = "";
+  selectcommodityvalue: string = "";
+  organizationIds: number = 0;
+  isDeliveryEnabled: boolean = false;
+  portsOfDischarge: any[] = []; // API se aane wala full list
+  filteredPortsOfDischarge: any[] = [];
+  originsaveid: number = 0;
+  showPortOfDischargeDropdown: boolean = false;
+  portsOfLoading: any[] = []; // Full list from API
+  filteredPortsOfLoading: any[] = [];
+  showPortOfLoadingDropdown: boolean = false;
+  branchlist: any[] = [];
+  teamsList: any[] = [];
+  isPickupEnabled: boolean = false;
+  selectedLeadData: any = null;
+  transportModes: any[] = [];
 
-    incoTerms: any[] = [];
-    shipmentTypes: any[] = [];
-    movementTypes: any[] = [];
-    commodityTypes: any[] = [];
-    quotationcheck: any = { TransportMode: '',
-    shipmentType: '',incoterm: '',movementType: '',commodity: ''};
-    
-public ports: any[] = [];
-addDocument() {
-    this.documents.push({ 
-      name: '', 
-      file: null, 
-      fileName: '', 
-      previewUrl: null 
+  incoTerms: any[] = [];
+  shipmentTypes: any[] = [];
+  movementTypes: any[] = [];
+  commodityTypes: any[] = [];
+  quotationcheck: any = {
+    TransportMode: "",
+    shipmentType: "",
+    incoterm: "",
+    movementType: "",
+    commodity: "",
+  };
+
+  public ports: any[] = [];
+  addDocument() {
+    this.documents.push({
+      name: "",
+      file: null,
+      fileName: "",
+      previewUrl: null,
     });
   }
 
-removeDocument(index: number) {
-  this.documents.splice(index, 1);
-}
-onFileSelecteds(event: any, index: number) {
+  removeDocument(index: number) {
+    this.documents.splice(index, 1);
+  }
+  onFileSelecteds(event: any, index: number) {
     const file = event.target.files[0];
-    
+
     if (file) {
       this.documents[index].file = file;
       this.documents[index].fileName = file.name; // Naam UI (Chhote badge) par dikhane ke liye
-      
+
       // Local file ka temporary URL banana preview ke liye
       const objectUrl = URL.createObjectURL(file);
-      
+
       // Angular ko batana ki ye iframe me dikhane ke liye safe hai
-      this.documents[index].previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
+      this.documents[index].previewUrl =
+        this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
     }
   }
 
-openCommodityModal() {
+  openCommodityModal() {
     this.isDocumentModalOpen = true;
   }
-openDocumentModal() {
-  this.isDocumentModalOpen = true;
-}
-onCommodityChange(event: any) {
-  // Yeh aapko ID dega (jo value="" mein set hai)
-  const selectedId = event.target.value; 
+  openDocumentModal() {
+    this.isDocumentModalOpen = true;
+  }
+  onCommodityChange(event: any) {
+    // Yeh aapko ID dega (jo value="" mein set hai)
+    const selectedId = event.target.value;
 
-  // Yeh aapko exact wo TEXT dega jo user ko dropdown mein dikh raha hai
-  const selectedText = event.target.options[event.target.selectedIndex].text;
-  this.selectcommodityvalue=selectedText;
-  console.log("Selected ID:", selectedId);
-  console.log("Selected Name/Text:", selectedText);
-}
+    // Yeh aapko exact wo TEXT dega jo user ko dropdown mein dikh raha hai
+    const selectedText = event.target.options[event.target.selectedIndex].text;
+    this.selectcommodityvalue = selectedText;
+    console.log("Selected ID:", selectedId);
+    console.log("Selected Name/Text:", selectedText);
+  }
 
-closeDocumentModal() {
-  this.isDocumentModalOpen = false;
-}
-
+  closeDocumentModal() {
+    this.isDocumentModalOpen = false;
+  }
 
   // Modal Open/Close Functions
   openInvoiceModal() {
@@ -165,13 +189,18 @@ closeDocumentModal() {
   }
 
   // Add New Invoice Row
-addInvoice() {
-    this.invoices.push({ name: '', file: null, fileName: '', previewUrl: null });
+  addInvoice() {
+    this.invoices.push({
+      name: "",
+      file: null,
+      fileName: "",
+      previewUrl: null,
+    });
   }
-removeInvoice(index: number) {
+  removeInvoice(index: number) {
     this.invoices.splice(index, 1);
   }
-openDocumentPreview(doc: any) {
+  openDocumentPreview(doc: any) {
     if (doc.previewUrl) {
       this.currentPreviewUrl = doc.previewUrl;
       this.isPreviewModalOpen = true;
@@ -186,7 +215,7 @@ openDocumentPreview(doc: any) {
   // Save button click hone par console me data dikhane ke liye
   saveDocuments() {
     console.log("=== 📦 Commodity Documents List ===");
-    
+
     // Check agar array khali hai
     if (this.documents.length === 0) {
       console.log("Koi document add nahi kiya gaya hai.");
@@ -194,11 +223,11 @@ openDocumentPreview(doc: any) {
       // Har ek document ko loop karke console me dikhana
       this.documents.forEach((doc, index) => {
         console.log(`\n--- Document ${index + 1} ---`);
-        console.log("Document Name/Type :", doc.name || 'Name not entered');
-        console.log("Original File Name :", doc.fileName || 'No file selected');
+        console.log("Document Name/Type :", doc.name || "Name not entered");
+        console.log("Original File Name :", doc.fileName || "No file selected");
         console.log("Actual File Object :", doc.file); // Yeh actual file hai (Image/PDF) jo backend me jayegi
       });
-      
+
       // Poora array ek sath dekhne ke liye
       console.log("\nFull Array Data:", this.documents);
     }
@@ -209,77 +238,79 @@ openDocumentPreview(doc: any) {
   // Handle File Selection
   onInvoiceFileSelected(event: any, index: number) {
     const file = event.target.files[0];
-    
+
     if (file) {
       this.invoices[index].file = file;
       this.invoices[index].fileName = file.name; // Naam UI par dikhane ke liye
-      
+
       // Local file ka URL banana preview ke liye
       const objectUrl = URL.createObjectURL(file);
-      
+
       // Angular ko batana padega ki ye URL safe hai iframe me dikhane ke liye
-      this.invoices[index].previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
+      this.invoices[index].previewUrl =
+        this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
     }
   }
-// test(){
-//   alert(this.quotation.TransportType);
-// }
+  // test(){
+  //   alert(this.quotation.TransportType);
+  // }
 
-// add/remove
+  // add/remove
 
+  // file select
 
-// file select
+  // ================== VOLUME WEIGHT CALCULATION ==================
+  // ================== VOLUME WEIGHT CALCULATION ==================
+  // InquiryComponent.ts mein ye add karein
+  // 1. Single row jo bahar dikhti hai
+  dimRow: any = { box: 1, l: 0, w: 0, h: 0, unit: "CMS" };
+  dimRows: any[] = [];
 
-// ================== VOLUME WEIGHT CALCULATION ==================
-// ================== VOLUME WEIGHT CALCULATION ==================
-// InquiryComponent.ts mein ye add karein
-// 1. Single row jo bahar dikhti hai
-dimRow: any = { box: 1, l: 0, w: 0, h: 0, unit: 'CMS' };
-dimRows: any[] = [];
+  // Component initialize hote hi dimRow ko array mein daal dein
+  // ngOnInit() {
+  //   this.dimRows = [this.dimRow];
+  // }
 
-// Component initialize hote hi dimRow ko array mein daal dein
-// ngOnInit() {
-//   this.dimRows = [this.dimRow]; 
-// }
+  calculateVolumeWeight() {
+    console.log("Function Triggered! Current Data:", this.dimRow);
 
-calculateVolumeWeight() {
-  console.log("Function Triggered! Current Data:", this.dimRow);
+    // modal check lagana hoga taaki multi-row data delete na ho
+    if (this.isDimModalOpen && this.dimRows && this.dimRows.length > 0) {
+      // Agar modal open hai, toh modal ki pehli row ko main surface par sync karo
+      this.dimRow = JSON.parse(JSON.stringify(this.dimRows[0]));
+    } else {
+      // Agar bahar inputs se chal raha hai, toh master array me snapshot sync karo
+      this.dimRows = [{ ...this.dimRow }];
+    }
 
-  // modal check lagana hoga taaki multi-row data delete na ho
-  if (this.isDimModalOpen && this.dimRows && this.dimRows.length > 0) {
-    // Agar modal open hai, toh modal ki pehli row ko main surface par sync karo
-    this.dimRow = JSON.parse(JSON.stringify(this.dimRows[0]));
-  } else {
-    // Agar bahar inputs se chal raha hai, toh master array me snapshot sync karo
-    this.dimRows = [{ ...this.dimRow }];
+    // Pure collection ka calculation lagaiye array context ke hisab se
+    this.quotation.volumeWeight = this.getTotalVolumeWeight();
+    this.calculateCBM();
+
+    // Filtering out active data layers
+    this.appliedDimensions = this.dimRows.filter(
+      (d) => d.l > 0 && d.w > 0 && d.h > 0,
+    );
+
+    this.calculateNetWeight();
+    this.calculateVolumeWeightLogic();
+
+    // Dynamic snapshot save block safely updates target
+    this.quotation.dimensions = [...this.dimRows];
+
+    // Total packages handle parameters
+    this.calculateTotalPackages();
+
+    this.cdr.detectChanges();
   }
-
-  // Pure collection ka calculation lagaiye array context ke hisab se
-  this.quotation.volumeWeight = this.getTotalVolumeWeight();
-  this.calculateCBM();
-  
-  // Filtering out active data layers
-  this.appliedDimensions = this.dimRows.filter(d => d.l > 0 && d.w > 0 && d.h > 0);
-  
-  this.calculateNetWeight();
-  this.calculateVolumeWeightLogic();
-  
-  // Dynamic snapshot save block safely updates target
-  this.quotation.dimensions = [...this.dimRows];
-  
-  // Total packages handle parameters
-  this.calculateTotalPackages();
-  
-  this.cdr.detectChanges();
-}
-// Ye function banaye jo modal ke button se bhi chale aur bahar se bhi
-syncFinalData() {
-  // Yahan woh logic likhein jo aapke database ya main form ko update karta hai
-  // Example: 
-  this.quotation.dimensions = JSON.parse(JSON.stringify(this.dimRows));
-  console.log("Data Auto-Synced!");
-}
-// ✅ INDEPENDENT DUAL PIPELINE CALENDAR EXECUTION MATRIX PIPELINES
+  // Ye function banaye jo modal ke button se bhi chale aur bahar se bhi
+  syncFinalData() {
+    // Yahan woh logic likhein jo aapke database ya main form ko update karta hai
+    // Example:
+    this.quotation.dimensions = JSON.parse(JSON.stringify(this.dimRows));
+    console.log("Data Auto-Synced!");
+  }
+  // ✅ INDEPENDENT DUAL PIPELINE CALENDAR EXECUTION MATRIX PIPELINES
   openCustomRangeCalendar() {
     this.isCustomRangeModalOpen = true;
     this.renderDualCalendars();
@@ -290,8 +321,12 @@ syncFinalData() {
   }
 
   renderDualCalendars() {
-    this.leftMonthDaysGrid = this.buildMonthMatrix(this.currentLeftCalendarDate);
-    this.rightMonthDaysGrid = this.buildMonthMatrix(this.currentRightCalendarDate);
+    this.leftMonthDaysGrid = this.buildMonthMatrix(
+      this.currentLeftCalendarDate,
+    );
+    this.rightMonthDaysGrid = this.buildMonthMatrix(
+      this.currentRightCalendarDate,
+    );
   }
 
   buildMonthMatrix(targetDate: Date): any[] {
@@ -299,51 +334,68 @@ syncFinalData() {
     const month = targetDate.getMonth();
     const firstDayDayOfWeek = new Date(year, month, 1).getDay();
     const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
-    
+
     const todayObj = new Date();
     todayObj.setHours(0, 0, 0, 0);
 
     let dayCells: any[] = [];
-    
+
     const prevMonthTotalDays = new Date(year, month, 0).getDate();
     for (let i = firstDayDayOfWeek - 1; i >= 0; i--) {
-      dayCells.push({ dayNumber: prevMonthTotalDays - i, isCurrentMonth: false, dateString: null, isFuture: false });
-    }
-    
-    for (let i = 1; i <= totalDaysInMonth; i++) {
-      const activeDateObj = new Date(year, month, i);
-      const dateString = `${activeDateObj.getFullYear()}-${String(activeDateObj.getMonth() + 1).padStart(2, '0')}-${String(activeDateObj.getDate()).padStart(2, '0')}`;
-      const isFutureDate = activeDateObj > todayObj;
-
-      dayCells.push({ 
-        dayNumber: i, 
-        isCurrentMonth: true, 
-        dateString: dateString,
-        isFuture: isFutureDate 
+      dayCells.push({
+        dayNumber: prevMonthTotalDays - i,
+        isCurrentMonth: false,
+        dateString: null,
+        isFuture: false,
       });
     }
-    
+
+    for (let i = 1; i <= totalDaysInMonth; i++) {
+      const activeDateObj = new Date(year, month, i);
+      const dateString = `${activeDateObj.getFullYear()}-${String(activeDateObj.getMonth() + 1).padStart(2, "0")}-${String(activeDateObj.getDate()).padStart(2, "0")}`;
+      const isFutureDate = activeDateObj > todayObj;
+
+      dayCells.push({
+        dayNumber: i,
+        isCurrentMonth: true,
+        dateString: dateString,
+        isFuture: isFutureDate,
+      });
+    }
+
     const remainingCells = 42 - dayCells.length;
     for (let i = 1; i <= remainingCells; i++) {
-      dayCells.push({ dayNumber: i, isCurrentMonth: false, dateString: null, isFuture: false });
+      dayCells.push({
+        dayNumber: i,
+        isCurrentMonth: false,
+        dateString: null,
+        isFuture: false,
+      });
     }
-    
+
     return dayCells;
   }
 
   shiftLeftCalendar(direction: number) {
-    this.currentLeftCalendarDate.setMonth(this.currentLeftCalendarDate.getMonth() + direction);
+    this.currentLeftCalendarDate.setMonth(
+      this.currentLeftCalendarDate.getMonth() + direction,
+    );
     this.renderDualCalendars();
   }
 
   shiftRightCalendar(direction: number) {
-    this.currentRightCalendarDate.setMonth(this.currentRightCalendarDate.getMonth() + direction);
+    this.currentRightCalendarDate.setMonth(
+      this.currentRightCalendarDate.getMonth() + direction,
+    );
     this.renderDualCalendars();
   }
 
   handleCellClick(cellDateString: string | null) {
     if (!cellDateString) return;
-    if (!this.customStartSelectedDate || (this.customStartSelectedDate && this.customEndSelectedDate)) {
+    if (
+      !this.customStartSelectedDate ||
+      (this.customStartSelectedDate && this.customEndSelectedDate)
+    ) {
       this.customStartSelectedDate = cellDateString;
       this.customEndSelectedDate = null;
     } else {
@@ -357,13 +409,24 @@ syncFinalData() {
   }
 
   isCellActive(cellDateString: string | null): boolean {
-    return cellDateString === this.customStartSelectedDate || cellDateString === this.customEndSelectedDate;
+    return (
+      cellDateString === this.customStartSelectedDate ||
+      cellDateString === this.customEndSelectedDate
+    );
   }
 
   isCellWithinRange(cellDateString: string | null): boolean {
-    if (!cellDateString || !this.customStartSelectedDate || !this.customEndSelectedDate) return false;
+    if (
+      !cellDateString ||
+      !this.customStartSelectedDate ||
+      !this.customEndSelectedDate
+    )
+      return false;
     const currentCell = new Date(cellDateString);
-    return currentCell > new Date(this.customStartSelectedDate) && currentCell < new Date(this.customEndSelectedDate);
+    return (
+      currentCell > new Date(this.customStartSelectedDate) &&
+      currentCell < new Date(this.customEndSelectedDate)
+    );
   }
 
   applyCustomPresetSlots(rangeType: string) {
@@ -371,70 +434,91 @@ syncFinalData() {
     let fromDate = new Date();
     let toDate = new Date();
     switch (rangeType) {
-      case 'yesterday': fromDate.setDate(baseToday.getDate() - 1); toDate.setDate(baseToday.getDate() - 1); break;
-      case 'thisWeek': fromDate.setDate(baseToday.getDate() - baseToday.getDay()); break;
-      case 'lastWeek': fromDate.setDate(baseToday.getDate() - baseToday.getDay() - 7); toDate.setDate(baseToday.getDate() - baseToday.getDay() - 1); break;
-      case 'thisMonth': fromDate = new Date(baseToday.getFullYear(), baseToday.getMonth(), 1); break;
-      case 'lastMonth': fromDate = new Date(baseToday.getFullYear(), baseToday.getMonth() - 1, 1); toDate = new Date(baseToday.getFullYear(), baseToday.getMonth(), 0); break;
-      case 'lastYear': fromDate = new Date(baseToday.getFullYear() - 1, 0, 1); toDate = new Date(baseToday.getFullYear() - 1, 11, 31); break;
+      case "yesterday":
+        fromDate.setDate(baseToday.getDate() - 1);
+        toDate.setDate(baseToday.getDate() - 1);
+        break;
+      case "thisWeek":
+        fromDate.setDate(baseToday.getDate() - baseToday.getDay());
+        break;
+      case "lastWeek":
+        fromDate.setDate(baseToday.getDate() - baseToday.getDay() - 7);
+        toDate.setDate(baseToday.getDate() - baseToday.getDay() - 1);
+        break;
+      case "thisMonth":
+        fromDate = new Date(baseToday.getFullYear(), baseToday.getMonth(), 1);
+        break;
+      case "lastMonth":
+        fromDate = new Date(
+          baseToday.getFullYear(),
+          baseToday.getMonth() - 1,
+          1,
+        );
+        toDate = new Date(baseToday.getFullYear(), baseToday.getMonth(), 0);
+        break;
+      case "lastYear":
+        fromDate = new Date(baseToday.getFullYear() - 1, 0, 1);
+        toDate = new Date(baseToday.getFullYear() - 1, 11, 31);
+        break;
     }
-    this.customStartSelectedDate = `${fromDate.getFullYear()}-${String(fromDate.getMonth() + 1).padStart(2, '0')}-${String(fromDate.getDate()).padStart(2, '0')}`;
-    this.customEndSelectedDate = `${toDate.getFullYear()}-${String(toDate.getMonth() + 1).padStart(2, '0')}-${String(toDate.getDate()).padStart(2, '0')}`;
+    this.customStartSelectedDate = `${fromDate.getFullYear()}-${String(fromDate.getMonth() + 1).padStart(2, "0")}-${String(fromDate.getDate()).padStart(2, "0")}`;
+    this.customEndSelectedDate = `${toDate.getFullYear()}-${String(toDate.getMonth() + 1).padStart(2, "0")}-${String(toDate.getDate()).padStart(2, "0")}`;
     this.confirmSelectedRangePipeline();
   }
 
   confirmSelectedRangePipeline() {
-    if (this.customStartSelectedDate && !this.customEndSelectedDate) this.customEndSelectedDate = this.customStartSelectedDate;
+    if (this.customStartSelectedDate && !this.customEndSelectedDate)
+      this.customEndSelectedDate = this.customStartSelectedDate;
     if (this.customStartSelectedDate && this.customEndSelectedDate) {
       this.dateRangeInputValue = `${this.customStartSelectedDate} - ${this.customEndSelectedDate}`;
-      
+
       // Mapped precisely to the dynamic context parameter format expected by Cavalier API controller
       this.searchFilters.startDate = this.customStartSelectedDate;
       this.searchFilters.endDate = this.customEndSelectedDate;
       this.searchFilters.receivedDate = null;
-      
+
       this.closeCustomRangeCalendar();
       this.onSearch();
     }
   }
 
   getCalendarMonthLabel(date: Date): string {
-    return date.toLocaleString('default', { month: 'long', year: 'numeric' });
+    return date.toLocaleString("default", { month: "long", year: "numeric" });
   }
-// Ye function modal ke 'Apply' button ki zaroorat khatam kar dega
-getTotalVolumeWeight(): number {
-  let total = 0;
-  //  let total = 0;
-  if (this.dimRows && this.dimRows.length > 0) {
-    this.dimRows.forEach(dim => {
+  // Ye function modal ke 'Apply' button ki zaroorat khatam kar dega
+  getTotalVolumeWeight(): number {
+    let total = 0;
+    //  let total = 0;
+    if (this.dimRows && this.dimRows.length > 0) {
+      this.dimRows.forEach((dim) => {
+        total += this.calculateSingleVolumeWeight(dim);
+      });
+    } else {
+      total = this.calculateSingleVolumeWeight(this.dimRow);
+    }
+    return parseFloat(total.toFixed(2));
+    // Agar modal mein multiple rows hain toh loop chalega
+    // Agar sirf bahar input bhara hai toh bhi ye dimRows[0] se utha lega
+    this.dimRows.forEach((dim) => {
       total += this.calculateSingleVolumeWeight(dim);
     });
-  } else {
-    total = this.calculateSingleVolumeWeight(this.dimRow);
+    return total;
   }
-  return parseFloat(total.toFixed(2));
-  // Agar modal mein multiple rows hain toh loop chalega
-  // Agar sirf bahar input bhara hai toh bhi ye dimRows[0] se utha lega
-  this.dimRows.forEach(dim => {
-    total += this.calculateSingleVolumeWeight(dim);
-  });
-  return total;
-}
 
-calculateSingleVolumeWeight(dim: any): number {
-  if (!dim.l || !dim.w || !dim.h || dim.l <= 0 || dim.w <= 0 || dim.h <= 0) {
-    return 0;
+  calculateSingleVolumeWeight(dim: any): number {
+    if (!dim.l || !dim.w || !dim.h || dim.l <= 0 || dim.w <= 0 || dim.h <= 0) {
+      return 0;
+    }
+
+    let volumeCm3 = dim.l * dim.w * dim.h;
+    if (dim.unit === "INCH") {
+      volumeCm3 = volumeCm3 * 16.387; // Inch to CM3 conversion
+    }
+
+    // (L * W * H / 6000) * Number of Boxes
+    return (dim.box || 1) * (volumeCm3 / 6000);
   }
-  
-  let volumeCm3 = dim.l * dim.w * dim.h;
-  if (dim.unit === 'INCH') {
-    volumeCm3 = volumeCm3 * 16.387; // Inch to CM3 conversion
-  }
-  
-  // (L * W * H / 6000) * Number of Boxes
-  return (dim.box || 1) * (volumeCm3 / 6000);
-}
-// getTotalVolumeWeight(): number {
+  // getTotalVolumeWeight(): number {
   // let total = 0;
   // if (this.dimRows && this.dimRows.length > 0) {
   //   this.dimRows.forEach(dim => {
@@ -444,101 +528,119 @@ calculateSingleVolumeWeight(dim: any): number {
   //   total = this.calculateSingleVolumeWeight(this.dimRow);
   // }
   // return parseFloat(total.toFixed(2));
-// }
+  // }
 
-// 2. CBM Calculation logic
-calculateCBM() {
-  if (this.quotation.volumeWeight) {
-    // Formula as per your requirement: Volume Weight / 167
-    const calculatedCbm = this.quotation.volumeWeight / 167;
-    this.quotation.cbm = parseFloat(calculatedCbm.toFixed(3));
-  } else {
-    this.quotation.cbm = 0;
+  // 2. CBM Calculation logic
+  calculateCBM() {
+    if (this.quotation.volumeWeight) {
+      // Formula as per your requirement: Volume Weight / 167
+      const calculatedCbm = this.quotation.volumeWeight / 167;
+      this.quotation.cbm = parseFloat(calculatedCbm.toFixed(3));
+    } else {
+      this.quotation.cbm = 0;
+    }
   }
-}
-AllSearch(){
-  this.onSearch();
-  this.cdr.detectChanges();
-}
-calculateNetWeight() {
-  // Number() ensures ki hum string nahi, number minus kar rahe hain
-  const gross = Number(this.quotation.grossWeightKg) || 0;
-  const volume = Number(this.quotation.volumeWeight) || 0;
-  
-  // Minus karne ke baad sirf 2 decimal tak limit karo
-  const result = gross - volume;
-  
-  // toFixed(2) se 4 digit wali problem khatam ho jayegi
-  this.quotation.netWeight = parseFloat(result.toFixed(2));
+  AllSearch() {
+    this.onSearch();
+    this.cdr.detectChanges();
+  }
+  calculateNetWeight() {
+    // Number() ensures ki hum string nahi, number minus kar rahe hain
+    const gross = Number(this.quotation.grossWeightKg) || 0;
+    const volume = Number(this.quotation.volumeWeight) || 0;
 
-  // Console mein check karne ke liye
-  console.log("Gross:", gross, "Volume:", volume, "Net:", this.quotation.netWeight);
-}
-calculateChargeableWeight() {
-  const gross = Number(this.quotation.grossWeightKg) || 0;
-  const volume = Number(this.quotation.volumeWeight) || 0;
+    // Minus karne ke baad sirf 2 decimal tak limit karo
+    const result = gross - volume;
 
-  // Jo bhi bada hoga (Math.max), wo chargeableWeight mein jayega
-  const higherWeight = Math.max(gross, volume);
+    // toFixed(2) se 4 digit wali problem khatam ho jayegi
+    this.quotation.netWeight = parseFloat(result.toFixed(2));
 
-  // Result ko 2 decimal points tak set karein
-  this.quotation.chargeableWeight = parseFloat(higherWeight.toFixed(2));
-}
-// Volume weight badalne par CBM aur Net Weight dono update hone chahiye
-// Volume weight ya Gross Weight badalne par CBM aur Chargeable Weight dono update honge
-calculateVolumeWeightLogic() {
-  const gross = Number(this.quotation.grossWeightKg) || 0;
-  const volume = Number(this.quotation.volumeWeight) || 0;
+    // Console mein check karne ke liye
+    console.log(
+      "Gross:",
+      gross,
+      "Volume:",
+      volume,
+      "Net:",
+      this.quotation.netWeight,
+    );
+  }
+  calculateChargeableWeight() {
+    const gross = Number(this.quotation.grossWeightKg) || 0;
+    const volume = Number(this.quotation.volumeWeight) || 0;
 
-  // 1. CBM calculate hota rahega kyunki wo volume par depend hai
-  this.quotation.cbm = parseFloat((volume / 167).toFixed(3));
+    // Jo bhi bada hoga (Math.max), wo chargeableWeight mein jayega
+    const higherWeight = Math.max(gross, volume);
 
-  // 2. 🔥 NET WEIGHT WALI LINE HATA DI HAI 🔥
-  // Ab ye hamesha wahi rahega jo aapne hath se likha hai.
+    // Result ko 2 decimal points tak set karein
+    this.quotation.chargeableWeight = parseFloat(higherWeight.toFixed(2));
+  }
+  // Volume weight badalne par CBM aur Net Weight dono update hone chahiye
+  // Volume weight ya Gross Weight badalne par CBM aur Chargeable Weight dono update honge
+  calculateVolumeWeightLogic() {
+    const gross = Number(this.quotation.grossWeightKg) || 0;
+    const volume = Number(this.quotation.volumeWeight) || 0;
 
-  // 3. Chargeable Weight hamesha bada wala hi select karega (Gross vs Volume)
-  this.quotation.chargeableWeight = parseFloat(Math.max(gross, volume).toFixed(2));
+    // 1. CBM calculate hota rahega kyunki wo volume par depend hai
+    this.quotation.cbm = parseFloat((volume / 167).toFixed(3));
 
-  this.cdr.detectChanges();
-}
-columnFieldMap: any = {
-  'ID': 'id',
-  'Inquiry No': 'inquiryNo',
-  'Date': 'receivedDate',
-  'Customer': 'customerName',
-  'Mode': 'transportModeName', // 'transportModeName' ya 'transportMode' dono me se jo bhi aapke data me hai use karo
-  'Origin': 'originName',
-  'Destination': 'finalDestination', // 'finalDestination' property map kar di
-  'Status': 'cargoStatus',
-  'Sales Person': 'salesCoordinator'   // 'salesCoordinator' property map kar di
-};
+    // 2. 🔥 NET WEIGHT WALI LINE HATA DI HAI 🔥
+    // Ab ye hamesha wahi rahega jo aapne hath se likha hai.
 
-selectedColumns: string[] = ['ID', 'Inquiry No', 'Date', 'Customer', 'Status','LeadName','OrganisationName'];
-availableColumns: string[] = ['Mode', 'Destination', 'Sales Person'];
-    isFormOpen = false;
-    public apiUrl = `${environment.apiUrl}/Inquiry`;
-inquiries:any[]=[]
-    quotations: any[] = [];
-    quotation: any = this.resetQuotationModel();
-    selectedFile: File | null = null;
-    servicesList: any[] = [];
-    isDimModalOpen = false;
-    appliedDimensions: any[] = []; 
-    // dimRows: any[] = [{ box: 1, l: 0, w: 0, h: 0, unit: 'CMS' }];
-    inquiry: any = {
-    inquiryNo: '',
-    customerName: '',
-    organization: '',         // Search input ke liye
-    organizationAddress: '',
-    leadNo: '',
+    // 3. Chargeable Weight hamesha bada wala hi select karega (Gross vs Volume)
+    this.quotation.chargeableWeight = parseFloat(
+      Math.max(gross, volume).toFixed(2),
+    );
+
+    this.cdr.detectChanges();
+  }
+  columnFieldMap: any = {
+    ID: "id",
+    "Inquiry No": "inquiryNo",
+    Date: "receivedDate",
+    Customer: "customerName",
+    Mode: "transportModeName", // 'transportModeName' ya 'transportMode' dono me se jo bhi aapke data me hai use karo
+    Origin: "originName",
+    Destination: "finalDestination", // 'finalDestination' property map kar di
+    Status: "cargoStatus",
+    "Sales Person": "salesCoordinator", // 'salesCoordinator' property map kar di
+  };
+
+  selectedColumns: string[] = [
+    "ID",
+    "Inquiry No",
+    "Date",
+    "Customer",
+    "Status",
+    "LeadName",
+    "OrganisationName",
+  ];
+  availableColumns: string[] = ["Mode", "Destination", "Sales Person"];
+  isFormOpen = false;
+  public apiUrl = `${environment.apiUrl}/Inquiry`;
+  public fileBaseUrl = environment.apiUrl.replace('/api', '');
+  inquiries: any[] = [];
+  quotations: any[] = [];
+  quotation: any = this.resetQuotationModel();
+  selectedFile: File | null = null;
+  servicesList: any[] = [];
+  isDimModalOpen = false;
+  appliedDimensions: any[] = [];
+  // dimRows: any[] = [{ box: 1, l: 0, w: 0, h: 0, unit: 'CMS' }];
+  inquiry: any = {
+    inquiryNo: "",
+    customerName: "",
+    organization: "", // Search input ke liye
+    organizationAddress: "",
+    leadNo: "",
     isDirect: false,
-  isIndirect: false,
-    origin: '',
-    
+    isIndirect: false,
+    origin: "",
+
     // ... baki fields ...
   };
-  companyServices:any[]=[]
-organizations: any[] = [];
+  companyServices: any[] = [];
+  organizations: any[] = [];
   filteredOrganizations: any[] = [];
   showDropdown: boolean = false;
   leads: any[] = [];
@@ -550,49 +652,68 @@ organizations: any[] = [];
   showOriginDropdown: boolean = false;
 
   allInquiryNumbers: string[] = [];
-  
+
   coordinators: any[] = [];
   branchesList: any[] = [];
   searchDone: boolean = false; // Shuru mein false rahega
   uploadedDocuments: any[] = [];
-    // Ye line add karein
-    constructor(private http: HttpClient, private router: Router,private route: ActivatedRoute,private cdr: ChangeDetectorRef,private branchservice:BranchService,public userServices:UserService,public CheckPermissionService:CheckPermissionService,private sanitizer: DomSanitizer,private eRef: ElementRef,) {}
+  // Ye line add karein
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private route: ActivatedRoute,
+    private cdr: ChangeDetectorRef,
+    private branchservice: BranchService,
+    public userServices: UserService,
+    public CheckPermissionService: CheckPermissionService,
+    private sanitizer: DomSanitizer,
+    private eRef: ElementRef,
+  ) {}
 
-    ngOnInit() {
-      this.getTeams();
+  ngOnInit() {
+    this.getTeams();
     // 1. Sabse pehle init aur basic setup
     this.quotation = {};
     // Yahan hardcode karke dekho, agar ye dikh gaya toh samajh lo data binding sahi hai
-    this.quotation.GrossweightUnit = 'KGS';
-    this.PermissionID = Number(localStorage.getItem('permissionID'));
-    if (!this.quotation.ChargeWeightUnit && this.uomList && this.uomList.length > 0) {
-    // Default value set kar do, jaise 'KG'
-    this.quotation.ChargeWeightUnit = 'KGS'; 
-}
-if (!this.quotation.NetWeightUnit && this.uomList && this.uomList.length > 0) {
-    this.quotation.NetWeightUnit = 'KGS';
-  }
+    this.quotation.GrossweightUnit = "KGS";
+    this.PermissionID = Number(localStorage.getItem("permissionID"));
+    if (
+      !this.quotation.ChargeWeightUnit &&
+      this.uomList &&
+      this.uomList.length > 0
+    ) {
+      // Default value set kar do, jaise 'KG'
+      this.quotation.ChargeWeightUnit = "KGS";
+    }
+    if (
+      !this.quotation.NetWeightUnit &&
+      this.uomList &&
+      this.uomList.length > 0
+    ) {
+      this.quotation.NetWeightUnit = "KGS";
+    }
     // 2. Default values jo app ko shuru mein chahiye
-    this.quotation.GrossweightUnit = 'KGS';
-    this.quotation.netWeightUnit = 'KGS';
-    this.quotation.chargeableWeightUnit = 'KGS';
-    this.quotation.cbmUnit = 'CBM';
-    this.quotation.shipmentType = 'Ready';
+    this.quotation.GrossweightUnit = "KGS";
+    this.quotation.netWeightUnit = "KGS";
+    this.quotation.chargeableWeightUnit = "KGS";
+    this.quotation.cbmUnit = "CBM";
+    this.quotation.shipmentType = "Ready";
 
     // 3. Routing aur Data Fetching
-    this.route.queryParams.subscribe(params => {
-        const editId = params['editId'];
-        if (editId) {
-            console.log('Fetching data for Inquiry ID:', editId);
-            this.loadInquiryById(Number(editId));
-        }
+    this.route.queryParams.subscribe((params) => {
+      const editId = params["editId"];
+      if (editId) {
+        console.log("Fetching data for Inquiry ID:", editId);
+        this.loadInquiryById(Number(editId));
+      }
     });
 
     // Timeout wala logic preserve kiya hai (jaisa aapne manga tha)
     setTimeout(() => {
-        this.quotation.GrossweightUnit = this.quotation.GrossweightUnit || 'KGS';
-        this.quotation.netWeightUnit = this.quotation.netWeightUnit || 'KGS';
-        this.quotation.chargeableWeightUnit = this.quotation.chargeableWeightUnit || 'KGS';
+      this.quotation.GrossweightUnit = this.quotation.GrossweightUnit || "KGS";
+      this.quotation.netWeightUnit = this.quotation.netWeightUnit || "KGS";
+      this.quotation.chargeableWeightUnit =
+        this.quotation.chargeableWeightUnit || "KGS";
     }, 500);
 
     // this.getsales();
@@ -602,9 +723,9 @@ if (!this.quotation.NetWeightUnit && this.uomList && this.uomList.length > 0) {
     this.portOfLoading();
     this.getPackageUnits();
     this.loadUomList();
-    
+
     setTimeout(() => {
-        this.setDefaults();
+      this.setDefaults();
     }, 500);
 
     this.getNextInquiryNumber();
@@ -625,582 +746,617 @@ if (!this.quotation.NetWeightUnit && this.uomList && this.uomList.length > 0) {
     this.getIncoTerms();
     this.getMovementTypes();
     this.getCommodityTypes();
-    
+
     console.log("🚀 Page Loading...");
     this.loadBranchess();
-    
-    if (this.dimRows.length === 0) {
-        this.dimRows = [this.dimRow];
-    }
-    
-    this.setTodayDate();
-}
-getTeams() {
-  const token = localStorage.getItem('cavalier_token');
-  const headers = new HttpHeaders({
-    'Authorization': `Bearer ${token}`
-  });
 
-  this.http.get<any[]>(`${environment.apiUrl}/Teams`, { headers }).subscribe({
-    next: (data) => {
-      this.teamsList = data;
-      console.log("🆕 Teams loaded successfully:", data);
-      this.cdr.detectChanges();
-    },
-    error: (err) => console.error('Error fetching Teams array:', err)
-  });
-}
-    getCommodityTypes() {
+    if (this.dimRows.length === 0) {
+      this.dimRows = [this.dimRow];
+    }
+
+    this.setTodayDate();
+  }
+  getTeams() {
+    const token = localStorage.getItem("cavalier_token");
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+    });
+
+    this.http.get<any[]>(`${environment.apiUrl}/Teams`, { headers }).subscribe({
+      next: (data) => {
+        this.teamsList = data;
+        console.log("🆕 Teams loaded successfully:", data);
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error("Error fetching Teams array:", err),
+    });
+  }
+  getCommodityTypes() {
     // Hits: https://localhost:xxxx/api/CommodityType
     this.http.get<any[]>(`${environment.apiUrl}/CommodityType`).subscribe({
       next: (data) => {
         this.commodityTypes = data;
       },
-      error: (err) => console.error('Error fetching Commodities:', err)
+      error: (err) => console.error("Error fetching Commodities:", err),
     });
   }
   setTodayDate() {
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+    const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
     this.quotation.cargoStatusDate = today;
-}
-// Add these to your class
-isOrgModalOpen = false;
+  }
+  // Add these to your class
+  isOrgModalOpen = false;
 
-openOrgModal() {
-  this.loadAllOrganizations(); // List load karo
-  this.isOrgModalOpen = true; // Modal kholo
-}
+  openOrgModal() {
+    this.loadAllOrganizations(); // List load karo
+    this.isOrgModalOpen = true; // Modal kholo
+  }
 
-selectAndClose(org: any) {
-  this.selectOrganization(org); // Data select karo
-  this.isOrgModalOpen = false; // Modal band karo
-}
-getsales(): void {
-  console.log('Fetching Sales Coordinators from HOD list API...');
+  selectAndClose(org: any) {
+    this.selectOrganization(org); // Data select karo
+    this.isOrgModalOpen = false; // Modal band karo
+  }
+  getsales(): void {
+    console.log("Fetching Sales Coordinators from HOD list API...");
 
-  this.userServices.getHodList().subscribe({
-    next: (data: any[]) => {
-      // Yahan check karo ki data aa raha hai ya nahi
-      console.log('HOD/Sales Coord data received:', data);
-      
-      this.getsalescordinate = data; 
-      this.cdr.detectChanges(); 
-    },
-    error: (err) => {
-      console.error('Error loading HOD list:', err);
+    this.userServices.getHodList().subscribe({
+      next: (data: any[]) => {
+        // Yahan check karo ki data aa raha hai ya nahi
+        console.log("HOD/Sales Coord data received:", data);
+
+        this.getsalescordinate = data;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error("Error loading HOD list:", err);
+      },
+    });
+  }
+  filteredFinalDestinations: any[] = [];
+  showFinalDestinationDropdown = false;
+  // Naye variables yahan add karein:
+  // 1. Data load karne ka function (agar pehle se nahi hai)
+  loadPortsData() {
+    this.http.get<any[]>(`${environment.apiUrl}/PortSetup`).subscribe({
+      next: (data) => {
+        this.portsOfLoading = data; // Yahi master list use hogi
+        console.log("Ports loaded for search:", data);
+      },
+      error: (err) => console.error("Error loading ports:", err),
+    });
+  }
+  // Add these variables
+  // showFinalDestinationDropdown = false;
+  // filteredFinalDestinations = [];
+  activeFDIndex = -1; // Keyboard nav ke liye
+
+  onFinalDestinationSearch(type: "name" | "code") {
+    const searchTerm =
+      type === "name"
+        ? (this.quotation.finalDestination || "").toLowerCase()
+        : (this.quotation.finalDestinationCode || "").toLowerCase();
+
+    if (!searchTerm) {
+      this.filteredFinalDestinations = [];
+      this.showFinalDestinationDropdown = false;
+      this.activeFDIndex = -1;
+      return;
     }
-  });
-}
-filteredFinalDestinations: any[] = [];
-showFinalDestinationDropdown = false;
-// Naye variables yahan add karein:
- // 1. Data load karne ka function (agar pehle se nahi hai)
-loadPortsData() {
-  this.http.get<any[]>(`${environment.apiUrl}/PortSetup`).subscribe({
-    next: (data) => {
-      this.portsOfLoading = data; // Yahi master list use hogi
-      console.log("Ports loaded for search:", data);
-    },
-    error: (err) => console.error("Error loading ports:", err)
-  });
-}
-// Add these variables
-// showFinalDestinationDropdown = false;
-// filteredFinalDestinations = [];
-activeFDIndex = -1; // Keyboard nav ke liye
 
-onFinalDestinationSearch(type: 'name' | 'code') {
-  const searchTerm = type === 'name' 
-    ? (this.quotation.finalDestination || '').toLowerCase()
-    : (this.quotation.finalDestinationCode || '').toLowerCase();
+    this.filteredFinalDestinations = this.portsOfLoading.filter((port) => {
+      const pName = (
+        port.name ||
+        port.portName ||
+        port.PortName ||
+        ""
+      ).toLowerCase();
+      const pCode = (port.portCode || "").toLowerCase();
+      return pName.includes(searchTerm) || pCode.includes(searchTerm);
+    });
 
-  if (!searchTerm) {
-    this.filteredFinalDestinations = [];
-    this.showFinalDestinationDropdown = false;
+    this.showFinalDestinationDropdown =
+      this.filteredFinalDestinations.length > 0;
     this.activeFDIndex = -1;
-    return;
   }
 
-  this.filteredFinalDestinations = this.portsOfLoading.filter(port => {
-    const pName = (port.name || port.portName || port.PortName || '').toLowerCase();
-    const pCode = (port.portCode || '').toLowerCase();
-    return pName.includes(searchTerm) || pCode.includes(searchTerm);
-  });
-
-  this.showFinalDestinationDropdown = this.filteredFinalDestinations.length > 0;
-  this.activeFDIndex = -1;
-}
-
-selectFinalDestination(port: any) {
-  if (!port) return;
-  this.quotation.finalDestination = port.name || port.portName || port.PortName || '';
-  this.quotation.finalDestinationCode = port.portCode;
-  this.quotation.codeOfFinalDest = port.portCode
-  this.showFinalDestinationDropdown = false;
-  this.filteredFinalDestinations = [];
-  this.activeFDIndex = -1;
-}
-
-
-onFDKeyDown(event: KeyboardEvent) {
-  if (!this.showFinalDestinationDropdown) return;
-
-  if (event.key === 'ArrowDown') {
-    event.preventDefault();
-    if (this.activeFDIndex < this.filteredFinalDestinations.length - 1) {
-      this.activeFDIndex++;
-      this.scrollToActiveFD();
-    }
-  } else if (event.key === 'ArrowUp') {
-    event.preventDefault();
-    if (this.activeFDIndex > 0) {
-      this.activeFDIndex--;
-      this.scrollToActiveFD();
-    }
-  } else if (event.key === 'Enter') {
-    event.preventDefault();
-    if (this.activeFDIndex >= 0) {
-      this.selectFinalDestination(this.filteredFinalDestinations[this.activeFDIndex]);
-    } else if (this.filteredFinalDestinations.length > 0) {
-      this.selectFinalDestination(this.filteredFinalDestinations[0]);
-    }
-  }
-}
-
-private scrollToActiveFD() {
-  setTimeout(() => {
-    const activeElement = document.querySelector('.bg-red-100');
-    if (activeElement) activeElement.scrollIntoView({ block: 'nearest' });
-  }, 0);
-}
-
-// --- 1. Class ke top par ye naye arrays declare karo (Baki variables ke sath) ---
-
-
-// --- 2. Apne existing onTeamChange() function ko isse replace karo ---
-onTeamChange(teamId: any) {
-  if (!teamId || teamId === 'null' || teamId === null || teamId === undefined) {
-    this.getsalescordinate = [];
-    this.getquotedByList = [];
-    this.getpricingByList = [];
-    this.quotation.salesCoordinator = ''; 
-    this.quotation.qtnDoneBy = '';
-    this.quotation.pricingDoneBy = '';
-    return;
+  selectFinalDestination(port: any) {
+    if (!port) return;
+    this.quotation.finalDestination =
+      port.name || port.portName || port.PortName || "";
+    this.quotation.finalDestinationCode = port.portCode;
+    this.quotation.codeOfFinalDest = port.portCode;
+    this.showFinalDestinationDropdown = false;
+    this.filteredFinalDestinations = [];
+    this.activeFDIndex = -1;
   }
 
-  const token = localStorage.getItem('cavalier_token');
-  const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
-  const url = `${environment.apiUrl}/Teams/${teamId}/details`;
-  
-  this.http.get<any>(url, { headers }).subscribe({
-    next: (res) => {
-      // API response se saari lists update karein
-      this.getsalescordinate = (res && res.salesCoordinators) ? res.salesCoordinators : [];
-      this.getquotedByList = (res && res.quotedBy) ? res.quotedBy : [];
-      this.getpricingByList = (res && res.pricingBy) ? res.pricingBy : [];
-      
-      this.cdr.detectChanges();
-    },
-    error: (err) => {
-      console.error("Error fetching team details:", err);
+  onFDKeyDown(event: KeyboardEvent) {
+    if (!this.showFinalDestinationDropdown) return;
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      if (this.activeFDIndex < this.filteredFinalDestinations.length - 1) {
+        this.activeFDIndex++;
+        this.scrollToActiveFD();
+      }
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      if (this.activeFDIndex > 0) {
+        this.activeFDIndex--;
+        this.scrollToActiveFD();
+      }
+    } else if (event.key === "Enter") {
+      event.preventDefault();
+      if (this.activeFDIndex >= 0) {
+        this.selectFinalDestination(
+          this.filteredFinalDestinations[this.activeFDIndex],
+        );
+      } else if (this.filteredFinalDestinations.length > 0) {
+        this.selectFinalDestination(this.filteredFinalDestinations[0]);
+      }
+    }
+  }
+
+  private scrollToActiveFD() {
+    setTimeout(() => {
+      const activeElement = document.querySelector(".bg-red-100");
+      if (activeElement) activeElement.scrollIntoView({ block: "nearest" });
+    }, 0);
+  }
+
+  // --- 1. Class ke top par ye naye arrays declare karo (Baki variables ke sath) ---
+
+  // --- 2. Apne existing onTeamChange() function ko isse replace karo ---
+  onTeamChange(teamId: any) {
+    if (
+      !teamId ||
+      teamId === "null" ||
+      teamId === null ||
+      teamId === undefined
+    ) {
       this.getsalescordinate = [];
       this.getquotedByList = [];
       this.getpricingByList = [];
+      this.quotation.salesCoordinator = "";
+      this.quotation.qtnDoneBy = "";
+      this.quotation.pricingDoneBy = "";
+      return;
     }
-  });
-}
-portOfLoading() {
-  this.http.get<any[]>(`${environment.apiUrl}/PortSetup`).subscribe({
-    next: (data) => {
-      this.portsOfLoading = data;
-      console.log("Port of Loading loaded:", data);
-    },
-    error: (err) => {
-      console.error("Error loading Port of Loading:", err);
+
+    const token = localStorage.getItem("cavalier_token");
+    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+    const url = `${environment.apiUrl}/Teams/${teamId}/details`;
+
+    this.http.get<any>(url, { headers }).subscribe({
+      next: (res) => {
+        // API response se saari lists update karein
+        this.getsalescordinate =
+          res && res.salesCoordinators ? res.salesCoordinators : [];
+        this.getquotedByList = res && res.quotedBy ? res.quotedBy : [];
+        this.getpricingByList = res && res.pricingBy ? res.pricingBy : [];
+
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error("Error fetching team details:", err);
+        this.getsalescordinate = [];
+        this.getquotedByList = [];
+        this.getpricingByList = [];
+      },
+    });
+  }
+  portOfLoading() {
+    this.http.get<any[]>(`${environment.apiUrl}/PortSetup`).subscribe({
+      next: (data) => {
+        this.portsOfLoading = data;
+        console.log("Port of Loading loaded:", data);
+      },
+      error: (err) => {
+        console.error("Error loading Port of Loading:", err);
+      },
+    });
+  }
+  // Add these variables if missing
+  // showPortOfLoadingDropdown = false;
+  // filteredPortsOfLoading = [];
+
+  // Combined search logic (Code aur Name dono ke liye)
+  // 1. Variable initialize zaroor karna
+  activeIndex = -1;
+
+  // 2. Search Logic
+  onPortOfLoadingSearch(type: "name" | "code") {
+    const searchTerm =
+      type === "name"
+        ? (this.quotation.portOfLoading || "").toLowerCase()
+        : (this.quotation.portOfLoadingCode || "").toLowerCase();
+
+    if (!searchTerm) {
+      this.filteredPortsOfLoading = [];
+      this.showPortOfLoadingDropdown = false;
+      this.activeIndex = -1;
+      return;
     }
-  });
-}
-// Add these variables if missing
-// showPortOfLoadingDropdown = false;
-// filteredPortsOfLoading = [];
 
-// Combined search logic (Code aur Name dono ke liye)
-// 1. Variable initialize zaroor karna
-activeIndex = -1;
+    this.filteredPortsOfLoading = this.portsOfLoading.filter((port) => {
+      const pName = (
+        port.name ||
+        port.portName ||
+        port.PortName ||
+        ""
+      ).toLowerCase();
+      const pCode = (port.portCode || "").toLowerCase();
+      return pName.includes(searchTerm) || pCode.includes(searchTerm);
+    });
 
-// 2. Search Logic
-onPortOfLoadingSearch(type: 'name' | 'code') {
-  const searchTerm = type === 'name' 
-    ? (this.quotation.portOfLoading || '').toLowerCase()
-    : (this.quotation.portOfLoadingCode || '').toLowerCase();
+    this.showPortOfLoadingDropdown = this.filteredPortsOfLoading.length > 0;
+    this.activeIndex = -1; // Search karte hi index reset
+  }
 
-  if (!searchTerm) {
-    this.filteredPortsOfLoading = [];
+  // 3. Select Logic
+  selectPortOfLoading(port: any) {
+    if (!port) return;
+    this.quotation.portOfLoadingId = port.id;
+    this.quotation.portOfLoading =
+      port.name || port.portName || port.PortName || "";
+    this.quotation.portOfLoadingCode = port.portCode;
+    this.quotation.codeOfPOL = port.portCode;
     this.showPortOfLoadingDropdown = false;
+    this.filteredPortsOfLoading = [];
     this.activeIndex = -1;
-    return;
   }
 
-  this.filteredPortsOfLoading = this.portsOfLoading.filter(port => {
-    const pName = (port.name || port.portName || port.PortName || '').toLowerCase();
-    const pCode = (port.portCode || '').toLowerCase();
-    return pName.includes(searchTerm) || pCode.includes(searchTerm);
-  });
+  // 4. Keyboard Navigation (Up/Down/Enter)
+  onPolKeyDown(event: KeyboardEvent) {
+    if (!this.showPortOfLoadingDropdown) return;
 
-  this.showPortOfLoadingDropdown = this.filteredPortsOfLoading.length > 0;
-  this.activeIndex = -1; // Search karte hi index reset
-}
-
-// 3. Select Logic
-selectPortOfLoading(port: any) {
-  if (!port) return;
-  this.quotation.portOfLoadingId = port.id;
-  this.quotation.portOfLoading = port.name || port.portName || port.PortName || '';
-  this.quotation.portOfLoadingCode = port.portCode;
-  this.quotation.codeOfPOL = port.portCode;
-  this.showPortOfLoadingDropdown = false;
-  this.filteredPortsOfLoading = [];
-  this.activeIndex = -1;
-}
-
-// 4. Keyboard Navigation (Up/Down/Enter)
-onPolKeyDown(event: KeyboardEvent) {
-  if (!this.showPortOfLoadingDropdown) return;
-
-  if (event.key === 'ArrowDown') {
-    event.preventDefault();
-    if (this.activeIndex < this.filteredPortsOfLoading.length - 1) {
-      this.activeIndex++;
-      this.scrollToActive();
-    }
-  } else if (event.key === 'ArrowUp') {
-    event.preventDefault();
-    if (this.activeIndex > 0) {
-      this.activeIndex--;
-      this.scrollToActive();
-    }
-  } else if (event.key === 'Enter') {
-    event.preventDefault();
-    if (this.activeIndex >= 0) {
-      this.selectPortOfLoading(this.filteredPortsOfLoading[this.activeIndex]);
-    } else if (this.filteredPortsOfLoading.length > 0) {
-      // Agar koi select nahi kiya par list khuli hai, toh pehla select karlo
-      this.selectPortOfLoading(this.filteredPortsOfLoading[0]);
-    }
-  }
-}
-
-// Auto-Scroll helper function
-private scrollToActive() {
-  setTimeout(() => {
-    const activeElement = document.querySelector('.bg-red-100');
-    if (activeElement) {
-      activeElement.scrollIntoView({ block: 'nearest' });
-    }
-  }, 0);
-}
-
-// Outside click logic
-
-// Jab user Ready ya Ready By select kare
-onShipmentTypeChange() {
-  if (this.quotation.shipmentType === 'Ready') {
-    this.setTodayDate();
-  } 
-  else if (this.quotation.shipmentType === 'Ready By') {
-
-    if (!this.quotation.cargoStatusDate) {
-      this.setTodayDate();
-    }
-
-    // Better logic to open calendar every time
-    setTimeout(() => {
-      if (this.cargoDateInput?.nativeElement) {
-        const input = this.cargoDateInput.nativeElement;
-
-        // Focus + Click + showPicker (sab try karo)
-        input.focus();
-
-        // Small delay for better reliability
-        setTimeout(() => {
-          input.click();
-
-          // Modern browsers ke liye best method
-          try {
-            (input as any).showPicker();
-          } catch (e) {
-            // Fallback
-            console.log("showPicker not supported, using click");
-          }
-        }, 50);
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      if (this.activeIndex < this.filteredPortsOfLoading.length - 1) {
+        this.activeIndex++;
+        this.scrollToActive();
       }
-    }, 120);   // Thoda zyada delay diya hai better result ke liye
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      if (this.activeIndex > 0) {
+        this.activeIndex--;
+        this.scrollToActive();
+      }
+    } else if (event.key === "Enter") {
+      event.preventDefault();
+      if (this.activeIndex >= 0) {
+        this.selectPortOfLoading(this.filteredPortsOfLoading[this.activeIndex]);
+      } else if (this.filteredPortsOfLoading.length > 0) {
+        // Agar koi select nahi kiya par list khuli hai, toh pehla select karlo
+        this.selectPortOfLoading(this.filteredPortsOfLoading[0]);
+      }
+    }
   }
-}
+
+  // Auto-Scroll helper function
+  private scrollToActive() {
+    setTimeout(() => {
+      const activeElement = document.querySelector(".bg-red-100");
+      if (activeElement) {
+        activeElement.scrollIntoView({ block: "nearest" });
+      }
+    }, 0);
+  }
+
+  // Outside click logic
+
+  // Jab user Ready ya Ready By select kare
+  onShipmentTypeChange() {
+    if (this.quotation.shipmentType === "Ready") {
+      this.setTodayDate();
+    } else if (this.quotation.shipmentType === "Ready By") {
+      if (!this.quotation.cargoStatusDate) {
+        this.setTodayDate();
+      }
+
+      // Better logic to open calendar every time
+      setTimeout(() => {
+        if (this.cargoDateInput?.nativeElement) {
+          const input = this.cargoDateInput.nativeElement;
+
+          // Focus + Click + showPicker (sab try karo)
+          input.focus();
+
+          // Small delay for better reliability
+          setTimeout(() => {
+            input.click();
+
+            // Modern browsers ke liye best method
+            try {
+              (input as any).showPicker();
+            } catch (e) {
+              // Fallback
+              console.log("showPicker not supported, using click");
+            }
+          }, 50);
+        }
+      }, 120); // Thoda zyada delay diya hai better result ke liye
+    }
+  }
   getbranch() {
     this.branchservice.getBranches().subscribe({
-        next: (response: any) => {
-            this.branchlist = response;        // insert all response data
-            console.log('Branches loaded:', this.branchlist);
-        },
-        error: (err: any) => {
-            console.error('Error fetching branches:', err);
-            // Optional: show toast/error message to user
-        },
-        complete: () => {
-            console.log('Branch fetch completed');
-        }
+      next: (response: any) => {
+        this.branchlist = response; // insert all response data
+        console.log("Branches loaded:", this.branchlist);
+      },
+      error: (err: any) => {
+        console.error("Error fetching branches:", err);
+        // Optional: show toast/error message to user
+      },
+      complete: () => {
+        console.log("Branch fetch completed");
+      },
     });
-}
-    getMovementTypes() {
+  }
+  getMovementTypes() {
     // Hits: https://localhost:xxxx/api/MovementTypes
     this.http.get<any[]>(`${environment.apiUrl}/MovementTypes`).subscribe({
       next: (data) => {
         this.movementTypes = data;
       },
-      error: (err) => console.error('Error fetching Movement Types:', err)
+      error: (err) => console.error("Error fetching Movement Types:", err),
     });
   }
- onLOBChange(event: any) {
-  const selectedId = event.target.value;
-  const selectedService = this.companyServices.find(s => s.id == selectedId);
-
-  if (!selectedService || !selectedService.serviceName) return;
-
-  const fullName = selectedService.serviceName.trim();
-  this.quotation.lineOfBusinessName = fullName;
-
-  const parts = fullName.split(/[\s\-]+/);
-
-  if (parts.length >= 1) {
-    const modeName = parts[0]; // e.g., "SEA"
-
-    // Transport Mode Mapping
-    const modeObj = this.transportModes.find(
-      m => m.name.toLowerCase() === modeName.toLowerCase()
+  onLOBChange(event: any) {
+    const selectedId = event.target.value;
+    const selectedService = this.companyServices.find(
+      (s) => s.id == selectedId,
     );
 
-    if (modeObj) {
-      // ✅ Forcefully ID update karein
-      this.quotation.TransportMode = modeObj.id; 
-      console.log("Updated TransportMode ID to:", this.quotation.TransportMode);
-    }
+    if (!selectedService || !selectedService.serviceName) return;
 
-    if (parts.length >= 2) {
-      // ✅ Transport Type update karein
-      let typeName = parts[1].toLowerCase();
-      // Yahan ensure karein ki aapka variable `quotation.TransportType` wahi string hai 
-      // jo aapke dropdown/radio button mein value hai
-      this.quotation.TransportType = typeName.charAt(0).toUpperCase() + typeName.slice(1);
-      console.log("Updated TransportType to:", this.quotation.TransportType);
+    const fullName = selectedService.serviceName.trim();
+    this.quotation.lineOfBusinessName = fullName;
+
+    const parts = fullName.split(/[\s\-]+/);
+
+    if (parts.length >= 1) {
+      const modeName = parts[0]; // e.g., "SEA"
+
+      // Transport Mode Mapping
+      const modeObj = this.transportModes.find(
+        (m) => m.name.toLowerCase() === modeName.toLowerCase(),
+      );
+
+      if (modeObj) {
+        // ✅ Forcefully ID update karein
+        this.quotation.TransportMode = modeObj.id;
+        console.log(
+          "Updated TransportMode ID to:",
+          this.quotation.TransportMode,
+        );
+      }
+
+      if (parts.length >= 2) {
+        // ✅ Transport Type update karein
+        let typeName = parts[1].toLowerCase();
+        // Yahan ensure karein ki aapka variable `quotation.TransportType` wahi string hai
+        // jo aapke dropdown/radio button mein value hai
+        this.quotation.TransportType =
+          typeName.charAt(0).toUpperCase() + typeName.slice(1);
+        console.log("Updated TransportType to:", this.quotation.TransportType);
+      }
     }
   }
-}
-    getIncoTerms() {
+  getIncoTerms() {
     this.http.get<any[]>(`${environment.apiUrl}/IncoTerms`).subscribe({
       next: (data) => {
         this.incoTerms = data;
       },
-      error: (err) => console.error('Error fetching IncoTerms:', err)
+      error: (err) => console.error("Error fetching IncoTerms:", err),
     });
   }
   onServiceTypeChange() {
-  console.log(`Service Type Changed → Direct: ${this.quotation.isDirect} | Indirect: ${this.quotation.isIndirect}`);
-console.log("Direct:", this.quotation.isDirect, "Indirect:", this.quotation.isIndirect);
-  // Optional: Agar dono select nahi karna chahte toh logic laga sakte ho
-  // Example: Agar Direct true hai to Indirect false kar do (mutually exclusive)
-  // if (this.quotation.isDirect) this.quotation.isIndirect = false;
-  // if (this.quotation.isIndirect) this.quotation.isDirect = false;
-}
- onIncotermChange(event: any) {
-  const selectedIncoterm = event.target.value?.toUpperCase().trim();
-     this.showincoterms=selectedIncoterm;
-  if (!selectedIncoterm) return;
-
-  this.quotation.incoterm = selectedIncoterm;
-
-  console.log(`Incoterm changed to: ${selectedIncoterm}`);
-  if(selectedIncoterm === 'DDP' || selectedIncoterm === 'DDU' || selectedIncoterm === 'DAP'){ 
-    this.isDeliveryEnabled = true;
-  } 
-  else {
-    this.isDeliveryEnabled = false;
-    this.quotation.deliveryAddress = '';
+    console.log(
+      `Service Type Changed → Direct: ${this.quotation.isDirect} | Indirect: ${this.quotation.isIndirect}`,
+    );
+    console.log(
+      "Direct:",
+      this.quotation.isDirect,
+      "Indirect:",
+      this.quotation.isIndirect,
+    );
+    // Optional: Agar dono select nahi karna chahte toh logic laga sakte ho
+    // Example: Agar Direct true hai to Indirect false kar do (mutually exclusive)
+    // if (this.quotation.isDirect) this.quotation.isIndirect = false;
+    // if (this.quotation.isIndirect) this.quotation.isDirect = false;
   }
+  onIncotermChange(event: any) {
+    const selectedIncoterm = event.target.value?.toUpperCase().trim();
+    this.showincoterms = selectedIncoterm;
+    if (!selectedIncoterm) return;
 
+    this.quotation.incoterm = selectedIncoterm;
 
-  // 🔥 Updated Logic as per your requirement
-  switch (selectedIncoterm) {
-    
-    // PORT TO PORT
-    case 'FOB':
-    
-      this.quotation.movementType = 'PORT TO PORT';
-      this.isPickupEnabled = false;
-      this.quotation.pickupAddress='';
-      break;
+    console.log(`Incoterm changed to: ${selectedIncoterm}`);
+    if (
+      selectedIncoterm === "DDP" ||
+      selectedIncoterm === "DDU" ||
+      selectedIncoterm === "DAP"
+    ) {
+      this.isDeliveryEnabled = true;
+    } else {
+      this.isDeliveryEnabled = false;
+      this.quotation.deliveryAddress = "";
+    }
 
-    // DOOR TO PORT
-    case 'EXWORK':
-      
-      this.quotation.movementType = 'DOOR TO PORT';
-      this.isPickupEnabled = true;
-      break;
+    // 🔥 Updated Logic as per your requirement
+    switch (selectedIncoterm) {
+      // PORT TO PORT
+      case "FOB":
+        this.quotation.movementType = "PORT TO PORT";
+        this.isPickupEnabled = false;
+        this.quotation.pickupAddress = "";
+        break;
 
-    // DOOR TO DOOR (Default for everything else)
-    default:
-      this.quotation.movementType = 'DOOR TO DOOR';
-      this.isPickupEnabled = false;
-      this.quotation.pickupAddress='';
+      // DOOR TO PORT
+      case "EXWORK":
+        this.quotation.movementType = "DOOR TO PORT";
+        this.isPickupEnabled = true;
+        break;
+
+      // DOOR TO DOOR (Default for everything else)
+      default:
+        this.quotation.movementType = "DOOR TO DOOR";
+        this.isPickupEnabled = false;
+        this.quotation.pickupAddress = "";
+    }
+
+    console.log(
+      `→ Movement Type Auto Selected: ${this.quotation.movementType}`,
+    );
   }
-
-  console.log(`→ Movement Type Auto Selected: ${this.quotation.movementType}`);
-}
-getTransportModes() {
+  getTransportModes() {
     // Using environment.apiUrl + your controller route
     const url = `${environment.apiUrl}/TransportModes`;
-    
+
     this.http.get<any[]>(url).subscribe({
       next: (data) => {
         this.transportModes = data;
       },
-      error: (err) => console.error('API Error:', err)
+      error: (err) => console.error("API Error:", err),
     });
   }
-getShipmentTypes() {
+  getShipmentTypes() {
     // This hits: https://localhost:xxxx/api/ShipmentTypes
     this.http.get<any[]>(`${environment.apiUrl}/ShipmentTypes`).subscribe({
       next: (data) => {
         this.shipmentTypes = data;
       },
-      error: (err) => console.error('Error fetching Shipment Types:', err)
+      error: (err) => console.error("Error fetching Shipment Types:", err),
     });
   }
-       // --- Fetch Origins List --
-  
+  // --- Fetch Origins List --
 
-fetchCompanyServices() {
+  fetchCompanyServices() {
     const url = `${environment.apiUrl}/CompanyService`;
     this.http.get<any[]>(url).subscribe({
-        next: (data) => {
-            this.companyServices = data;
-            // Ye logs help karenge check karne mein ki 'serviceName' aa raha hai ya nahi
-            console.log("Line of Business loaded:", data); 
-            this.cdr.detectChanges();
-        },
-        error: (err) => console.error("Error loading LOB:", err)
+      next: (data) => {
+        this.companyServices = data;
+        // Ye logs help karenge check karne mein ki 'serviceName' aa raha hai ya nahi
+        console.log("Line of Business loaded:", data);
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error("Error loading LOB:", err),
     });
-}
- 
-fetchOrigins() {
-  const url = `${environment.apiUrl}/origin/all`;
-  this.http.get<any[]>(url).subscribe({
-    next: (data) => {
-      this.origins = data;
-      console.log('API se data mila: origin ka ', data); // <--- Yeh check karein browser console mein
-    },
-    error: (err) => console.error('API Error:', err)
-  });
-}
+  }
+
+  fetchOrigins() {
+    const url = `${environment.apiUrl}/origin/all`;
+    this.http.get<any[]>(url).subscribe({
+      next: (data) => {
+        this.origins = data;
+        console.log("API se data mila: origin ka ", data); // <--- Yeh check karein browser console mein
+      },
+      error: (err) => console.error("API Error:", err),
+    });
+  }
   // --- Search Logic ---
-// --- Search Logic ---
-onOriginSearchInput() {
-  const searchTerm = (this.inquiry.origin || '').toString().trim().toLowerCase();
+  // --- Search Logic ---
+  onOriginSearchInput() {
+    const searchTerm = (this.inquiry.origin || "")
+      .toString()
+      .trim()
+      .toLowerCase();
 
-  if (searchTerm === '') {
-    this.showOriginDropdown = false;
-    this.filteredOrigins = [];
-    return;
-  }
-
-  // Ab 'name' field ke basis par filter hoga
-  this.filteredOrigins = this.origins.filter(org => {
-    return (org.name || '').toLowerCase().includes(searchTerm) || 
-           (org.countryName || '').toLowerCase().includes(searchTerm);
-  });
-
-  this.showOriginDropdown = true;
-}
-
-// 1. Click outside handle karne ke liye (ya toh blur use karein ya HostListener)
-// Yahan hum `(blur)` ka use kar rahe hain input par taaki focus hatne par list band ho.
-
-selectOrigin(origin: any) {
-  this.originsaveid = origin.id;
-  this.inquiry.origin = origin.name;
-  
-  if (this.quotation) {
-    this.quotation.country = origin.countryName;
-  }
-  
-  this.showOriginDropdown = false; // List band
-  if (origin.pinCode) this.fetchAgentByPostCode(origin.pinCode);
-}
-
-// Enter key press karne par pehla filtered result select karne ke liye
-onOriginKeyDown(event: any) {
-  if (event.key === 'Enter' && this.filteredOrigins.length > 0) {
-    event.preventDefault(); // Form submit hone se rokne ke liye
-    this.selectOrigin(this.filteredOrigins[0]);
-  }
-}
-// Global Click Listener: Agar click component ke bahar hua, toh list band
-@HostListener('document:click', ['$event'])
-clickout(event: any) {
-  if(!this.eRef.nativeElement.contains(event.target)) {
-    this.showOriginDropdown = false;
-  }
-  const clickedInside = this.eRef.nativeElement.contains(event.target);
-  if (!clickedInside) {
-    this.showPortOfDischargeDropdown = false;
-  }
-    if (this.eRef && !this.eRef.nativeElement.contains(event.target)) {
-    this.showPortOfLoadingDropdown = false;
-  }
-    if (this.eRef && !this.eRef.nativeElement.contains(event.target)) {
-    this.showFinalDestinationDropdown = false;
-  }
-}
-fetchAgentByPostCode(postCode: string | number) {
-  const url = `${environment.apiUrl}/OrgBranch/GetByPostCodeAgent/${postCode}`;
-  
-  this.http.get<any[]>(url).subscribe({
-    next: (res) => {
-      this.agentDetail = res; // API ka pura data array mein save
-      
-      // Force change detection agar zarurat ho
-      this.cdr.detectChanges();
-    },
-    error: (err) => {
-      console.error("Agent fetch fail ho gaya bhai:", err);
-      this.agentDetail = []; // Error aane par array clear
+    if (searchTerm === "") {
+      this.showOriginDropdown = false;
+      this.filteredOrigins = [];
+      return;
     }
-  });
-}
-onAgentSelect(event: any, agent: any) {
-  const email = agent.email || agent.Email; // Case sensitivity handle karne ke liye
 
-  if (!email) {
-    console.warn("Email Not Found OF This Agent");
-    return;
+    // Ab 'name' field ke basis par filter hoga
+    this.filteredOrigins = this.origins.filter((org) => {
+      return (
+        (org.name || "").toLowerCase().includes(searchTerm) ||
+        (org.countryName || "").toLowerCase().includes(searchTerm)
+      );
+    });
+
+    this.showOriginDropdown = true;
   }
 
-  if (event.target.checked) {
-    // 1. Agar check kiya toh array mein dalo
-    this.selectedEmails.push(email);
-  
-  } else {
-    // 2. Agar uncheck kiya toh array se hatao
-    this.selectedEmails = this.selectedEmails.filter(e => e !== email);
-    
+  // 1. Click outside handle karne ke liye (ya toh blur use karein ya HostListener)
+  // Yahan hum `(blur)` ka use kar rahe hain input par taaki focus hatne par list band ho.
+
+  selectOrigin(origin: any) {
+    this.originsaveid = origin.id;
+    this.inquiry.origin = origin.name;
+
+    if (this.quotation) {
+      this.quotation.country = origin.countryName;
+    }
+
+    this.showOriginDropdown = false; // List band
+    if (origin.pinCode) this.fetchAgentByPostCode(origin.pinCode);
   }
 
-  // Final array jo aapko send mail ke liye chahiye
-}
-    fetchLeads() {
+  // Enter key press karne par pehla filtered result select karne ke liye
+  onOriginKeyDown(event: any) {
+    if (event.key === "Enter" && this.filteredOrigins.length > 0) {
+      event.preventDefault(); // Form submit hone se rokne ke liye
+      this.selectOrigin(this.filteredOrigins[0]);
+    }
+  }
+  // Global Click Listener: Agar click component ke bahar hua, toh list band
+  @HostListener("document:click", ["$event"])
+  clickout(event: any) {
+    if (!this.eRef.nativeElement.contains(event.target)) {
+      this.showOriginDropdown = false;
+    }
+    const clickedInside = this.eRef.nativeElement.contains(event.target);
+    if (!clickedInside) {
+      this.showPortOfDischargeDropdown = false;
+    }
+    if (this.eRef && !this.eRef.nativeElement.contains(event.target)) {
+      this.showPortOfLoadingDropdown = false;
+    }
+    if (this.eRef && !this.eRef.nativeElement.contains(event.target)) {
+      this.showFinalDestinationDropdown = false;
+    }
+  }
+  fetchAgentByPostCode(postCode: string | number) {
+    const url = `${environment.apiUrl}/OrgBranch/GetByPostCodeAgent/${postCode}`;
+
+    this.http.get<any[]>(url).subscribe({
+      next: (res) => {
+        this.agentDetail = res; // API ka pura data array mein save
+
+        // Force change detection agar zarurat ho
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error("Agent fetch fail ho gaya bhai:", err);
+        this.agentDetail = []; // Error aane par array clear
+      },
+    });
+  }
+  onAgentSelect(event: any, agent: any) {
+    const email = agent.email || agent.Email; // Case sensitivity handle karne ke liye
+
+    if (!email) {
+      console.warn("Email Not Found OF This Agent");
+      return;
+    }
+
+    if (event.target.checked) {
+      // 1. Agar check kiya toh array mein dalo
+      this.selectedEmails.push(email);
+    } else {
+      // 2. Agar uncheck kiya toh array se hatao
+      this.selectedEmails = this.selectedEmails.filter((e) => e !== email);
+    }
+
+    // Final array jo aapko send mail ke liye chahiye
+  }
+  fetchLeads() {
     const url = `${environment.apiUrl}/Leads`;
-    this.http.get<any[]>(url).subscribe(data => {
+    this.http.get<any[]>(url).subscribe((data) => {
       this.leads = data;
     });
   }
@@ -1209,115 +1365,126 @@ onAgentSelect(event: any, agent: any) {
   onLeadSearchInput() {
     if (this.inquiry.leadNo && this.inquiry.leadNo.length > 3) {
       this.showLeadDropdown = true;
-      this.filteredLeads = this.leads.filter(lead =>
-        lead.leadNo.toLowerCase().includes(this.inquiry.leadNo.toLowerCase())
+      this.filteredLeads = this.leads.filter((lead) =>
+        lead.leadNo.toLowerCase().includes(this.inquiry.leadNo.toLowerCase()),
       );
     } else {
       this.showLeadDropdown = false;
     }
   }
-portdischarge() {
-  this.http.get<any[]>(`${environment.apiUrl}/PortSetup`).subscribe({
-    next: (data) => {
-      this.portsOfDischarge = data;
-      console.log("Port of Discharge loaded:", data);
-    },
-    error: (err) => {
-      console.error("Error loading Port of Discharge:", err);
+  portdischarge() {
+    this.http.get<any[]>(`${environment.apiUrl}/PortSetup`).subscribe({
+      next: (data) => {
+        this.portsOfDischarge = data;
+        console.log("Port of Discharge loaded:", data);
+      },
+      error: (err) => {
+        console.error("Error loading Port of Discharge:", err);
+      },
+    });
+  }
+  // Add this variable in your class
+  // showPortOfDischargeDropdown = false;
+
+  // 1. Search Logic (Works for both Code and Name)
+  onPortOfDischargeSearch(type: "name" | "code") {
+    const searchTerm =
+      type === "name"
+        ? (this.quotation.portOfDestination || "").toLowerCase()
+        : (this.quotation.portOfDestinationCode || "").toLowerCase();
+
+    if (!searchTerm) {
+      this.showPortOfDischargeDropdown = false;
+      return;
     }
-  });
-}
-// Add this variable in your class
-// showPortOfDischargeDropdown = false;
 
-// 1. Search Logic (Works for both Code and Name)
-onPortOfDischargeSearch(type: 'name' | 'code') {
-  const searchTerm = type === 'name' 
-    ? (this.quotation.portOfDestination || '').toLowerCase()
-    : (this.quotation.portOfDestinationCode || '').toLowerCase();
+    this.filteredPortsOfDischarge = this.portsOfDischarge.filter((port) => {
+      const pName = (
+        port.name ||
+        port.portName ||
+        port.PortName ||
+        ""
+      ).toLowerCase();
+      const pCode = (port.portCode || "").toLowerCase();
+      return pName.includes(searchTerm) || pCode.includes(searchTerm);
+    });
 
-  if (!searchTerm) {
+    this.showPortOfDischargeDropdown = this.filteredPortsOfDischarge.length > 0;
+  }
+
+  // 2. Select Method
+  selectPortOfDischarge(port: any) {
+    if (!port) return;
+    this.quotation.portOfDischargeId = port.id;
+    this.quotation.portOfDischargeId = port.id || port.PortId || port.Id;
+    this.quotation.portOfDestination =
+      port.name || port.portName || port.PortName;
+    this.quotation.portOfDestinationCode = port.portCode;
+    this.quotation.codeOfPOD = port.portCode;
     this.showPortOfDischargeDropdown = false;
-    return;
   }
 
-  this.filteredPortsOfDischarge = this.portsOfDischarge.filter(port => {
-    const pName = (port.name || port.portName || port.PortName || '').toLowerCase();
-    const pCode = (port.portCode || '').toLowerCase();
-    return pName.includes(searchTerm) || pCode.includes(searchTerm);
-  });
-
-  this.showPortOfDischargeDropdown = this.filteredPortsOfDischarge.length > 0;
-}
-
-// 2. Select Method
-selectPortOfDischarge(port: any) {
-  if (!port) return;
-  this.quotation.portOfDischargeId = port.id;
-  this.quotation.portOfDischargeId = port.id || port.PortId || port.Id;
-  this.quotation.portOfDestination = port.name || port.portName || port.PortName;
-  this.quotation.portOfDestinationCode = port.portCode;
-  this.quotation.codeOfPOD = port.portCode;
-  this.showPortOfDischargeDropdown = false;
-}
-
-// 3. Enter Key handler
-onPortOfDischargeKeyDown(event: KeyboardEvent) {
-  if (event.key === 'Enter' && this.filteredPortsOfDischarge.length > 0) {
-    this.selectPortOfDischarge(this.filteredPortsOfDischarge[0]);
-    event.preventDefault();
+  // 3. Enter Key handler
+  onPortOfDischargeKeyDown(event: KeyboardEvent) {
+    if (event.key === "Enter" && this.filteredPortsOfDischarge.length > 0) {
+      this.selectPortOfDischarge(this.filteredPortsOfDischarge[0]);
+      event.preventDefault();
+    }
   }
-}
 
-// 4. Close dropdown on outside click
-
+  // 4. Close dropdown on outside click
 
   // --- Selection Logic ---
- selectLead(lead: any) {
-  if (!lead) return;
+  selectLead(lead: any) {
+    if (!lead) return;
 
-  // 🔥 Yahan Lead ID console mein dikhega
-  console.log("Selected Lead ID (from list):", lead.id); 
+    // 🔥 Yahan Lead ID console mein dikhega
+    console.log("Selected Lead ID (from list):", lead.id);
 
-console.log("Selected Lead's Organization ID:", lead.organisationId);
-  this.inquiry.leadNo = lead.leadNo;
- // Agar lead ke sath organization ka naam bhi aata hai toh
-  this.showLeadDropdown = false;
-console.log("Lead selected, now fetching full details for Lead ID:", this.LeadId);
-console.log("Lead No set to:", this.OrganisationId);
-  // Pura data fetch karne ke liye call
-  this.loadLeadByLeadNo(lead.leadNo);
-}
-    // --- Fetch Organization List ---
- fetchOrganizations() {
-  const url = `${environment.apiUrl}/Organization/list`;
-  
-  // Token fetch karein
-  const token = localStorage.getItem('cavalier_token');
-  
-  // Headers set karein
-  const headers = new HttpHeaders({
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json'
-  });
+    console.log("Selected Lead's Organization ID:", lead.organisationId);
+    this.inquiry.leadNo = lead.leadNo;
+    // Agar lead ke sath organization ka naam bhi aata hai toh
+    this.showLeadDropdown = false;
+    console.log(
+      "Lead selected, now fetching full details for Lead ID:",
+      this.LeadId,
+    );
+    console.log("Lead No set to:", this.OrganisationId);
+    // Pura data fetch karne ke liye call
+    this.loadLeadByLeadNo(lead.leadNo);
+  }
+  // --- Fetch Organization List ---
+  fetchOrganizations() {
+    const url = `${environment.apiUrl}/Organization/list`;
 
-  // Headers pass karein
-  this.http.get<any[]>(url, { headers }).subscribe({
-    next: (data) => {
-      this.organizations = data;
-    },
-    error: (err) => {
-      console.error("Error fetching organizations:", err);
-    }
-  });
-}
+    // Token fetch karein
+    const token = localStorage.getItem("cavalier_token");
+
+    // Headers set karein
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    });
+
+    // Headers pass karein
+    this.http.get<any[]>(url, { headers }).subscribe({
+      next: (data) => {
+        this.organizations = data;
+      },
+      error: (err) => {
+        console.error("Error fetching organizations:", err);
+      },
+    });
+  }
 
   // --- Search Logic ---
   onSearchInput() {
     if (this.inquiry.organization && this.inquiry.organization.length > 3) {
       this.showDropdown = true;
-      this.filteredOrganizations = this.organizations.filter(org =>
-        org.orgName.toLowerCase().includes(this.inquiry.organization.toLowerCase())
+      this.filteredOrganizations = this.organizations.filter((org) =>
+        org.orgName
+          .toLowerCase()
+          .includes(this.inquiry.organization.toLowerCase()),
       );
     } else {
       this.showDropdown = false;
@@ -1326,974 +1493,1083 @@ console.log("Lead No set to:", this.OrganisationId);
 
   // --- Selection Logic ---
   selectOrganization(org: any) {
-    this.inquiry.organization = org.orgName; 
-    
+    this.inquiry.organization = org.orgName;
+
     // Address update karein
     setTimeout(() => {
-      this.inquiry.organizationAddress = org.address; 
+      this.inquiry.organizationAddress = org.address;
     }, 0);
-    
+
     this.showDropdown = false;
     this.quotation.organizationName = org.name || org.organizationName;
-  this.showOrgDropdown = false;
-  this.cdr.detectChanges();
+    this.showOrgDropdown = false;
+    this.cdr.detectChanges();
   }
-  
-getNextInquiryNumber() {
-  const url = `${environment.apiUrl}/Inquiry/NextInquiryNo`;
-  
-  // Pehle UI ko khali dikhao taaki user ko lage ki naya generate ho raha hai
-  this.inquiry.inquiryNo = 'Loading...';
 
-  this.http.get(url, { responseType: 'text' }).subscribe({
-    next: (nextNo) => {
-      this.inquiry.inquiryNo = nextNo;
-      console.log("New Inquiry Number Generated:", nextNo);
-      this.cdr.detectChanges();
-    },
-    error: (err) => {
-      console.error("Number generation failed:", err);
-      this.inquiry.inquiryNo = 'AUTO-GEN'; // Fallback
-    }
-  });
-}
-      loadQuotations() {
-        this.http.get<any[]>(this.apiUrl).subscribe({
-          next: (res) => (this.quotations = res),
-          error: (err) => console.error('Failed to load inquiries:', err)
-        });
-      }
+  getNextInquiryNumber() {
+    const url = `${environment.apiUrl}/Inquiry/NextInquiryNo`;
 
-//     onFileSelected(event: any) {
-//   const file = event.target.files[0];
-//   if (file) {
-//     this.selectedFile = file;
-//     // 🔥 Important: Database ke column ke liye file ka naam yahan set ho raha hai
-//     this.quotation.hazardDocPath = file.name; 
-//     console.log("Selected File Name:", file.name);
-//   }
-// }
+    // Pehle UI ko khali dikhao taaki user ko lage ki naya generate ho raha hai
+    this.inquiry.inquiryNo = "Loading...";
 
-onFileSelected(event: any) {
-  const file = event.target.files[0];
-  if (file) {
-    // Nayi file ko array mein add kar rahe hain (Ye static list banayega)
-    this.uploadedDocuments.push({
-      file: file,
-      fileName: file.name
-    });
-
-    // Pehli file ka naam purane logic ki tarah set kar rahe hain (Optional)
-    if (this.uploadedDocuments.length === 1) {
-      this.quotation.hazardDocPath = file.name;
-    }
-
-    // Input ko reset karna taaki user dubara wahi button daba sake
-    event.target.value = '';
-    
-    console.log("Documents List:", this.uploadedDocuments);
-  }
-}
-
-// Static list se file hatane ke liye function
-removeDoc(index: number) {
-  this.uploadedDocuments.splice(index, 1);
-}
-
-
-
-
-    neworg() {
-      this.router.navigate(['/dashboard/organization-add']);
-    }
-deleteQuotation(id: number) {
-  if (confirm("Are you sure?")) {
-    
-    // 1. IMMEDIATE UI UPDATE (Wait mat karo API ka)
-    // Maan lo aapka array 'quotations' naam se hai
-    this.quotations = this.quotations.filter((q: any) => q.id !== id);
-    
-    // 2. Angular ko bolo ki turant UI badal de
-    this.cdr.detectChanges(); 
-
-    this.http.delete(`${this.apiUrl}/${id}`).subscribe({
-      next: () => {
-        console.log("Deleted Successfully!");
-        // Backend se sync karne ke liye piche se load kar lo
-        this.loadQuotations(); 
+    this.http.get(url, { responseType: "text" }).subscribe({
+      next: (nextNo) => {
+        this.inquiry.inquiryNo = nextNo;
+        console.log("New Inquiry Number Generated:", nextNo);
         this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error("Delete failed", err);
-        alert("Delete failed! Refreshing list...");
-        this.loadQuotations(); // Agar error aaye toh wapas list le aao
-        this.cdr.detectChanges();
-      }
+        console.error("Number generation failed:", err);
+        this.inquiry.inquiryNo = "AUTO-GEN"; // Fallback
+      },
     });
   }
-}
-getFormattedInquiryNo(): string {
-
-  // 1️⃣ Line of Business Name (Air Import -> AI)
-  const lobName = this.quotation.lineOfBusinessName || '';
-  
-  const initials = (lobName || '')
-  .split(' ')
-  .filter((word: string) => word && word.length > 0)
-  .map((word: string) => word.charAt(0))
-  .join('')
-  .toUpperCase();
-
-  // 2️⃣ Running Number (temporary frontend)
-  let number = 1;
-
-  if (this.inquiry.inquiryNo) {
-    number = parseInt(this.inquiry.inquiryNo) || 1;
+  loadQuotations() {
+    this.http.get<any[]>(this.apiUrl).subscribe({
+      next: (res) => (this.quotations = res),
+      error: (err) => console.error("Failed to load inquiries:", err),
+    });
   }
 
-  const formattedNumber = number.toString().padStart(4, '0');
+  //     onFileSelected(event: any) {
+  //   const file = event.target.files[0];
+  //   if (file) {
+  //     this.selectedFile = file;
+  //     // 🔥 Important: Database ke column ke liye file ka naam yahan set ho raha hai
+  //     this.quotation.hazardDocPath = file.name;
+  //     console.log("Selected File Name:", file.name);
+  //   }
+  // }
 
-  // 3️⃣ Financial Year
-  const now = new Date();
-  const startYear = now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1;
-  const endYear = startYear + 1;
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      // Nayi file ko array mein add kar rahe hain (Ye static list banayega)
+      this.uploadedDocuments.push({
+        file: file,
+        fileName: file.name,
+      });
 
-  const fy = `${startYear.toString().slice(-2)}-${endYear.toString().slice(-2)}`;
+      // Pehli file ka naam purane logic ki tarah set kar rahe hain (Optional)
+      if (this.uploadedDocuments.length === 1) {
+        this.quotation.hazardDocPath = file.name;
+      }
 
-  // 4️⃣ Final Format
-  return `CAV/INQ/${initials}/${formattedNumber}/${fy}`;
-}
+      // Input ko reset karna taaki user dubara wahi button daba sake
+      event.target.value = "";
 
-
-    
-
-    toggleForm() {
-  this.isFormOpen = !this.isFormOpen;
-
-  if (this.isFormOpen) {
-    // Check karein ki ye Edit click se toh nahi khula (id check)
-    if (!this.quotation.id || this.quotation.id === 0) {
-      console.log("Adding New Inquiry - Resetting form...");
-      
-      // 1. Saare data models reset karein
-      this.quotation = this.resetQuotationModel();
-      this.inquiry = {
-        inquiryNo: '',
-        customerName: '',
-        organization: '',
-        organizationAddress: '',
-        leadNo: '',
-        isDirect: false,
-        isIndirect: false,
-        origin: ''
-      };
-      this.appliedDimensions = [];
-      this.dimRows = [{ box: 1, l: 0, w: 0, h: 0, unit: 'CMS' }];
-      this.dimRow = { box: 1, l: 0, w: 0, h: 0, unit: 'CMS' };
-      this.isPreviewMode = false;
-      this.LeadId = 0;
-      this.OrganisationId = 0;
-
-      // 2. Naya Inquiry Number fetch karein
-      this.getNextInquiryNumber();
+      console.log("Documents List:", this.uploadedDocuments);
     }
-  } else {
-    // Form band karte waqt states reset karein
-    this.isPreviewMode = false;
-    this.quotation.id = 0; // Reset ID taaki agli baar naya samjhe
-  }
-  
-  this.cdr.detectChanges();
-}
-
-//    openDimModal() {
-//   // Agar dimRows khali hai ya purana data hai toh reset kar do
-//   if (!this.dimRows || this.dimRows.length === 0) {
-//     this.dimRows = [{
-//       box: 1,
-//       l: 0,
-//       w: 0,
-//       h: 0,
-//       unit: 'CMS'
-//     }];
-//   }
-  
-//   this.isDimModalOpen = true;
-// }
-//     closeDimModal() { this.isDimModalOpen = false; }
-    
-//     addNewDimRow() {
-//   this.dimRows.push({
-//     box: 1,
-//     l: 0,
-//     w: 0,
-//     h: 0,
-//     unit: 'CMS'
-//   });
-  
-//   // UI update ke liye
-//   this.cdr.detectChanges();
-// }
-    
-//  removeDimRow(i: number) {
-//   if (this.dimRows.length > 1) {
-//     this.dimRows.splice(i, 1);
-//   }
-// }
-
-// saveDimensions() {
-//   this.appliedDimensions = this.dimRows.filter(d => d.l > 0 && d.w > 0 && d.h > 0);
-  
-//   // Volume Weight automatically set kar do
-//   // this.quotation.volumeWeight = this.getTotalVolumeWeight();
-
-//   console.log("Volume Weight Calculated:", this.quotation.volumeWeight);
-  
-//   this.closeDimModal();
-// }
-// ================== MODAL FUNCTIONS ==================
-
-// openDimModal() {
-//   if (!this.dimRows || this.dimRows.length === 0) {
-//     this.dimRows = [{
-//       box: 1,
-//       l: 0,
-//       w: 0,
-//       h: 0,
-//       unit: 'CMS'
-//     }];
-//   }
-//   this.isDimModalOpen = true;
-// }
-
-closeDimModal() { 
-  this.isDimModalOpen = false; 
-}
-
-openDimModal() {
-  // Sync logic layer check
-  if (!this.dimRows || this.dimRows.length === 0) {
-    this.dimRows = [JSON.parse(JSON.stringify(this.dimRow))];
-  } else {
-    // Modal kholte waqt bas ensure karein ki pehli row update ho, pure array ko clear mat hone dein
-    this.dimRows[0] = JSON.parse(JSON.stringify(this.dimRow));
-  }
-  
-  this.isDimModalOpen = true;
-  this.cdr.detectChanges();
-}
-
-addNewDimRow() {
-  const defaultUnit = (this.uomList && this.uomList.length > 0) 
-                      ? this.uomList[0].shortCode 
-                      : 'CMS';
-
-  this.dimRows.push({
-    box: 1,
-    l: 0,
-    w: 0,
-    h: 0,
-    unit: defaultUnit
-  });
-
-  this.cdr.detectChanges();
-}
-
-removeDimRow(i: number) {
-  // 0th row (Main Row) ko delete hone se bachane ke liye condition check
-  if (this.dimRows.length > 1) {
-    this.dimRows.splice(i, 1);
-  } else {
-    // Agar sirf 1 row bachi hai toh usey sirf reset kar do, delete mat karo
-    this.dimRows[0] = { box: 1, l: 0, w: 0, h: 0, unit: 'CMS' };
-  }
-}
-saveDimensions() {
-  // 1. 1st row ka data wapas main screen (dimRow) mein push karo (Critical for Sync)
-  if (this.dimRows && this.dimRows.length > 0) {
-    this.dimRow = JSON.parse(JSON.stringify(this.dimRows[0]));
   }
 
-  // 2. Filter valid dimensions for processing
-  this.appliedDimensions = this.dimRows.filter(d => d.l > 0 && d.w > 0 && d.h > 0);
-  
-  // 3. Save all dimensions to quotation object
-  this.quotation.dimensions = [...this.dimRows];
-  
-  // 4. Calculations
-  this.quotation.volumeWeight = this.getTotalVolumeWeight();
-  this.calculateCBM();
-  this.calculateNetWeight();
-  this.calculateVolumeWeightLogic();
-  this.syncFinalData();
-  
-  // 5. Total packages update (This will now use the complete dimRows list)
-  this.calculateTotalPackages(); 
-  
-  // 6. UI Update and Close
-  this.updatePreview();
-  this.closeDimModal();
-}
-onTransportModeChange(){
-  alert(this.quotation.TransportMode)
-}
+  // Static list se file hatane ke liye function
+  removeDoc(index: number) {
+    this.uploadedDocuments.splice(index, 1);
+  }
 
-// 4. Save button par calculation trigger karna
+  neworg() {
+    this.router.navigate(["/dashboard/organization-add"]);
+  }
 
-    // ✅ Ye declare karna zaroori hai
+  deleteQuotation(id: number) {
+
+ // Token fetch karein
+    const token = localStorage.getItem("cavalier_token");
+
+    // Headers set karein
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    });
+
+    if (confirm("Are you sure?")) {
+      // 1. IMMEDIATE UI UPDATE (Wait mat karo API ka)
+      // Maan lo aapka array 'quotations' naam se hai
+      // this.quotations = this.quotations.filter((q: any) => q.id !== id);
+
+      // 2. Angular ko bolo ki turant UI badal de
+      this.cdr.detectChanges();
+
+      this.http.delete(`${this.apiUrl}/${id}`, { headers }  ).subscribe({
+        next: () => {
+          console.log("Deleted Successfully!");
+          // Backend se sync karne ke liye piche se load kar lo
+          this.cdr.detectChanges();
+          this.loadQuotations();
+        },
+        error: (err) => {
+          console.error("Delete failed", err);
+          alert("Delete failed! Refreshing list...");
+          this.loadQuotations(); // Agar error aaye toh wapas list le aao
+          this.cdr.detectChanges();
+        },
+      });
+    }
+  }
+  getFormattedInquiryNo(): string {
+    // 1️⃣ Line of Business Name (Air Import -> AI)
+    const lobName = this.quotation.lineOfBusinessName || "";
+
+    const initials = (lobName || "")
+      .split(" ")
+      .filter((word: string) => word && word.length > 0)
+      .map((word: string) => word.charAt(0))
+      .join("")
+      .toUpperCase();
+
+    // 2️⃣ Running Number (temporary frontend)
+    let number = 1;
+
+    if (this.inquiry.inquiryNo) {
+      number = parseInt(this.inquiry.inquiryNo) || 1;
+    }
+
+    const formattedNumber = number.toString().padStart(4, "0");
+
+    // 3️⃣ Financial Year
+    const now = new Date();
+    const startYear =
+      now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1;
+    const endYear = startYear + 1;
+
+    const fy = `${startYear.toString().slice(-2)}-${endYear.toString().slice(-2)}`;
+
+    // 4️⃣ Final Format
+    return `CAV/INQ/${initials}/${formattedNumber}/${fy}`;
+  }
+
+  toggleForm() {
+    this.isFormOpen = !this.isFormOpen;
+
+    if (this.isFormOpen) {
+      // Check karein ki ye Edit click se toh nahi khula (id check)
+      if (!this.quotation.id || this.quotation.id === 0) {
+        console.log("Adding New Inquiry - Resetting form...");
+
+        // 1. Saare data models reset karein
+        this.quotation = this.resetQuotationModel();
+        this.inquiry = {
+          inquiryNo: "",
+          customerName: "",
+          organization: "",
+          organizationAddress: "",
+          leadNo: "",
+          isDirect: false,
+          isIndirect: false,
+          origin: "",
+        };
+        this.appliedDimensions = [];
+        this.dimRows = [{ box: 1, l: 0, w: 0, h: 0, unit: "CMS" }];
+        this.dimRow = { box: 1, l: 0, w: 0, h: 0, unit: "CMS" };
+        this.isPreviewMode = false;
+        this.LeadId = 0;
+        this.OrganisationId = 0;
+
+        // 2. Naya Inquiry Number fetch karein
+        this.getNextInquiryNumber();
+      }
+    } else {
+      // Form band karte waqt states reset karein
+      this.isPreviewMode = false;
+      this.quotation.id = 0; // Reset ID taaki agli baar naya samjhe
+    }
+
+    this.cdr.detectChanges();
+  }
+
+  //    openDimModal() {
+  //   // Agar dimRows khali hai ya purana data hai toh reset kar do
+  //   if (!this.dimRows || this.dimRows.length === 0) {
+  //     this.dimRows = [{
+  //       box: 1,
+  //       l: 0,
+  //       w: 0,
+  //       h: 0,
+  //       unit: 'CMS'
+  //     }];
+  //   }
+
+  //   this.isDimModalOpen = true;
+  // }
+  //     closeDimModal() { this.isDimModalOpen = false; }
+
+  //     addNewDimRow() {
+  //   this.dimRows.push({
+  //     box: 1,
+  //     l: 0,
+  //     w: 0,
+  //     h: 0,
+  //     unit: 'CMS'
+  //   });
+
+  //   // UI update ke liye
+  //   this.cdr.detectChanges();
+  // }
+
+  //  removeDimRow(i: number) {
+  //   if (this.dimRows.length > 1) {
+  //     this.dimRows.splice(i, 1);
+  //   }
+  // }
+
+  // saveDimensions() {
+  //   this.appliedDimensions = this.dimRows.filter(d => d.l > 0 && d.w > 0 && d.h > 0);
+
+  //   // Volume Weight automatically set kar do
+  //   // this.quotation.volumeWeight = this.getTotalVolumeWeight();
+
+  //   console.log("Volume Weight Calculated:", this.quotation.volumeWeight);
+
+  //   this.closeDimModal();
+  // }
+  // ================== MODAL FUNCTIONS ==================
+
+  // openDimModal() {
+  //   if (!this.dimRows || this.dimRows.length === 0) {
+  //     this.dimRows = [{
+  //       box: 1,
+  //       l: 0,
+  //       w: 0,
+  //       h: 0,
+  //       unit: 'CMS'
+  //     }];
+  //   }
+  //   this.isDimModalOpen = true;
+  // }
+
+  closeDimModal() {
+    this.isDimModalOpen = false;
+  }
+
+  openDimModal() {
+    // Sync logic layer check
+    if (!this.dimRows || this.dimRows.length === 0) {
+      this.dimRows = [JSON.parse(JSON.stringify(this.dimRow))];
+    } else {
+      // Modal kholte waqt bas ensure karein ki pehli row update ho, pure array ko clear mat hone dein
+      this.dimRows[0] = JSON.parse(JSON.stringify(this.dimRow));
+    }
+
+    this.isDimModalOpen = true;
+    this.cdr.detectChanges();
+  }
+
+  addNewDimRow() {
+    const defaultUnit =
+      this.uomList && this.uomList.length > 0
+        ? this.uomList[0].shortCode
+        : "CMS";
+
+    this.dimRows.push({
+      box: 1,
+      l: 0,
+      w: 0,
+      h: 0,
+      unit: defaultUnit,
+    });
+
+    this.cdr.detectChanges();
+  }
+
+  removeDimRow(i: number) {
+    // 0th row (Main Row) ko delete hone se bachane ke liye condition check
+    if (this.dimRows.length > 1) {
+      this.dimRows.splice(i, 1);
+    } else {
+      // Agar sirf 1 row bachi hai toh usey sirf reset kar do, delete mat karo
+      this.dimRows[0] = { box: 1, l: 0, w: 0, h: 0, unit: "CMS" };
+    }
+  }
+  saveDimensions() {
+    // 1. 1st row ka data wapas main screen (dimRow) mein push karo (Critical for Sync)
+    if (this.dimRows && this.dimRows.length > 0) {
+      this.dimRow = JSON.parse(JSON.stringify(this.dimRows[0]));
+    }
+
+    // 2. Filter valid dimensions for processing
+    this.appliedDimensions = this.dimRows.filter(
+      (d) => d.l > 0 && d.w > 0 && d.h > 0,
+    );
+
+    // 3. Save all dimensions to quotation object
+    this.quotation.dimensions = [...this.dimRows];
+
+    // 4. Calculations
+    this.quotation.volumeWeight = this.getTotalVolumeWeight();
+    this.calculateCBM();
+    this.calculateNetWeight();
+    this.calculateVolumeWeightLogic();
+    this.syncFinalData();
+
+    // 5. Total packages update (This will now use the complete dimRows list)
+    this.calculateTotalPackages();
+
+    // 6. UI Update and Close
+    this.updatePreview();
+    this.closeDimModal();
+  }
+  onTransportModeChange() {
+    alert(this.quotation.TransportMode);
+  }
+
+  // 4. Save button par calculation trigger karna
+
+  // ✅ Ye declare karna zaroori hai
   commodityDocuments: any[] = [];
   packageOrInvoiceDocuments: any[] = [];
   // public apiUrl = environment.apiUrl;
-editQuotation(q: any) {
-  console.warn('Backend Data for Autofill:', q);
-  if (!q) {
-    console.error('No data received in editQuotation');
-    return;
-  }
-
-  try {
-    // 1. Quotation object ko copy karein
-    this.quotation = { ...q };
-
-    // --- LEAD NO FIX (Auto-fill) ---
-    const leadValue = q.leadName || q.leadNo || q.LeadName || q.LeadNo || '';
-    this.quotation.leadNo = leadValue; 
-    this.inquiry.leadNo = leadValue;
-
-    // --- C# MODEL KE HISSAAB SE MAPPING ---
-    this.quotation.leadNo = q.leadNo || q.LeadNo || this.quotation.leadName || this.quotation.leadId || '';
-    this.quotation.codeOfPOL = q.codeOfPOL;
-    this.quotation.portOfLoadingCode = q.codeOfPOL || q.CodeOfPOL || '';
-    
-    this.quotation.codeOfPOD = q.codeOfPOD;
-    this.quotation.portOfDestinationCode = q.codeOfPOD || q.CodeOfPOD || '';
-    
-    this.quotation.codeOfFinalDest = q.codeOfFinalDest;
-    this.quotation.finalDestinationCode = q.codeOfFinalDest || q.CodeOfFinalDest || '';
-  const tId = q.teamId || q.TeamId;
-    this.quotation.teamId = tId;
-
-    // --- Pehle Team Details fetch karein ---
-    if (tId) {
-      this.onTeamChange(tId);
+  editQuotation(q: any) {
+    console.warn("Backend Data for Autofill:", q);
+    if (!q) {
+      console.error("No data received in editQuotation");
+      return;
     }
 
-    // --- Coordinator Mapping (Wait for List to Populate) ---
-    setTimeout(() => {
-      const scValue = q.salesCoordinator || q.SalesCoordinator;
-      if (scValue && this.getsalescordinate.length > 0) {
-        // Name se ID dhundein
-        const found = this.getsalescordinate.find(sc => 
-          sc.name?.toString().toLowerCase() === scValue.toString().toLowerCase()
-        );
+    try {
+      // 1. Quotation object ko copy karein
+      this.quotation = { ...q };
 
-        if (found) {
-          this.quotation.salesCoordinator = found.id; // Dropdown mein ID assign hogi
-        } else {
-          this.quotation.salesCoordinator = scValue; // Agar ID nahi mili toh original name rakhein
-        }
-        this.cdr.detectChanges();
+      // --- LEAD NO FIX (Auto-fill) ---
+      const leadValue = q.leadName || q.leadNo || q.LeadName || q.LeadNo || "";
+      this.quotation.leadNo = leadValue;
+      this.inquiry.leadNo = leadValue;
+
+      // --- C# MODEL KE HISSAAB SE MAPPING ---
+      this.quotation.leadNo =
+        q.leadNo ||
+        q.LeadNo ||
+        this.quotation.leadName ||
+        this.quotation.leadId ||
+        "";
+      this.quotation.codeOfPOL = q.codeOfPOL;
+      this.quotation.portOfLoadingCode = q.codeOfPOL || q.CodeOfPOL || "";
+
+      this.quotation.codeOfPOD = q.codeOfPOD;
+      this.quotation.portOfDestinationCode = q.codeOfPOD || q.CodeOfPOD || "";
+
+      this.quotation.codeOfFinalDest = q.codeOfFinalDest;
+      this.quotation.finalDestinationCode =
+        q.codeOfFinalDest || q.CodeOfFinalDest || "";
+      const tId = q.teamId || q.TeamId;
+      this.quotation.teamId = tId;
+
+      // --- Pehle Team Details fetch karein ---
+      if (tId) {
+        this.onTeamChange(tId);
       }
-    },400 ); // 1 sec ka wait zaroori hai API response ke liye
-    this.quotation.cargoStatusType = q.cargoStatus || 'Ready';
-    this.quotation.isDirect = !!q.isDirect;
-    this.quotation.isIndirect = !!q.isIndirect;
 
-    // --- DOCUMENTS MAPPING ---
-    this.commodityDocuments = q.commodityDocuments || [];
-    this.packageOrInvoiceDocuments = q.packageOrInvoiceDocuments || [];
-    
-    this.documents = (q.commodityDocuments || []).map((doc: any) => ({
-      id: doc.id,
-      name: doc.name,
-      documentPath: doc.documentPath,
-      isExisting: true 
-    }));
-    this.invoices = (q.packageOrInvoiceDocuments || []).map((doc: any) => ({
-      id: doc.id,
-      name: doc.name,
-      documentPath: doc.documentPath,
-      isExisting: true 
-    }));
-    // --- FIX: UNITS MAPPING FROM BACKEND TO UI ---
-this.quotation.GrossWeightUnit = q.grossWeightUnit || q.GrossWeightUnit || '';
-this.quotation.NetWeightUnit = q.netWeightUnit || q.NetWeightUnit || '';
-this.quotation.ChargeWeightUnit = q.chargeableWeightUnit || q.ChargeableWeightUnit || '';
-this.quotation.VolumeWeightUnit = q.volumeWeightUnit || q.VolumeWeightUnit || '';
-this.quotation.CbmWeightUnit = q.cbmWeightUnit || q.CbmWeightUnit || '';
-this.quotation.noOfPkgsUnit = q.noOfPkgsUnit || q.NoOfPkgsUnit || '';
-    // Transport Mode Mapping
-    this.quotation.TransportMode = q.transportMode; 
-    if (q.transportType && typeof q.transportType === 'string' && q.transportType.length > 0) {
-      this.quotation.TransportType = q.transportType.charAt(0).toUpperCase() + q.transportType.slice(1).toLowerCase();
-    }
-    if (this.transportModes && Array.isArray(this.transportModes)) {
-      const modeObj = this.transportModes.find(m => m && m.name && m.name.toLowerCase() === (q.transportMode || '').toLowerCase());
-      if (modeObj) this.quotation.TransportMode = modeObj.id;
-    }
+      // --- Coordinator Mapping (Wait for List to Populate) ---
+      setTimeout(() => {
+        const scValue = q.salesCoordinator || q.SalesCoordinator;
+        if (scValue && this.getsalescordinate.length > 0) {
+          // Name se ID dhundein
+          const found = this.getsalescordinate.find(
+            (sc) =>
+              sc.name?.toString().toLowerCase() ===
+              scValue.toString().toLowerCase(),
+          );
 
-    // --- SALES COORDINATOR FIX ---
-    // const scValue = q.salesCoordinator || q.SalesCoordinator;
+          if (found) {
+            this.quotation.salesCoordinator = found.id; // Dropdown mein ID assign hogi
+          } else {
+            this.quotation.salesCoordinator = scValue; // Agar ID nahi mili toh original name rakhein
+          }
+          this.cdr.detectChanges();
+        }
+      }, 400); // 1 sec ka wait zaroori hai API response ke liye
+      this.quotation.cargoStatusType = q.cargoStatus || "Ready";
+      this.quotation.isDirect = !!q.isDirect;
+      this.quotation.isIndirect = !!q.isIndirect;
 
-    // if (scValue) {
-    //   if (this.getsalescordinate && Array.isArray(this.getsalescordinate)) {
-    //     const coordinatorExists = this.getsalescordinate.find(sc => 
-    //       sc.id.toString() === scValue.toString() || 
-    //       (sc.name && sc.name.toString().toLowerCase() === scValue.toString().toLowerCase())
-    //     );
+      // --- DOCUMENTS MAPPING ---
+      this.commodityDocuments = q.commodityDocuments || [];
+      this.packageOrInvoiceDocuments = q.packageOrInvoiceDocuments || [];
 
-    //     if (coordinatorExists) {
-    //       this.quotation.salesCoordinator = coordinatorExists.id.toString();
-    //     } else {
-    //       this.quotation.salesCoordinator = scValue.toString();
-    //       console.warn("Sales Coordinator ID ya Name match nahi mila:", scValue);
-    //     }
-    //   } else {
-    //     this.quotation.salesCoordinator = scValue.toString();
-    //   }
-    // }
+      this.documents = (q.commodityDocuments || []).map((doc: any) => ({
+        id: doc.id,
+        name: doc.name,
+        documentPath: doc.documentPath,
+        isExisting: true,
+      }));
+      this.invoices = (q.packageOrInvoiceDocuments || []).map((doc: any) => ({
+        id: doc.id,
+        name: doc.name,
+        documentPath: doc.documentPath,
+        isExisting: true,
+      }));
+      // --- FIX: UNITS MAPPING FROM BACKEND TO UI ---
+      this.quotation.GrossWeightUnit =
+        q.grossWeightUnit || q.GrossWeightUnit || "";
+      this.quotation.NetWeightUnit = q.netWeightUnit || q.NetWeightUnit || "";
+      this.quotation.ChargeWeightUnit =
+        q.chargeableWeightUnit || q.ChargeableWeightUnit || "";
+      this.quotation.VolumeWeightUnit =
+        q.volumeWeightUnit || q.VolumeWeightUnit || "";
+      this.quotation.CbmWeightUnit = q.cbmWeightUnit || q.CbmWeightUnit || "";
+      this.quotation.noOfPkgsUnit = q.noOfPkgsUnit || q.NoOfPkgsUnit || "";
+      // Transport Mode Mapping
+      this.quotation.TransportMode = q.transportMode;
+      if (
+        q.transportType &&
+        typeof q.transportType === "string" &&
+        q.transportType.length > 0
+      ) {
+        this.quotation.TransportType =
+          q.transportType.charAt(0).toUpperCase() +
+          q.transportType.slice(1).toLowerCase();
+      }
+      if (this.transportModes && Array.isArray(this.transportModes)) {
+        const modeObj = this.transportModes.find(
+          (m) =>
+            m &&
+            m.name &&
+            m.name.toLowerCase() === (q.transportMode || "").toLowerCase(),
+        );
+        if (modeObj) this.quotation.TransportMode = modeObj.id;
+      }
 
-    // --- ORIGIN FIX ---
-    const oId = q.originId || q.OriginId;
-    if (oId) {
-      this.originsaveid = Number(oId);
-      this.quotation.originId = this.originsaveid;
-      if (this.origins && Array.isArray(this.origins)) {
-        const originObj = this.origins.find(o => o.id == oId);
-        if (originObj) {
+      // --- SALES COORDINATOR FIX ---
+      // const scValue = q.salesCoordinator || q.SalesCoordinator;
+
+      // if (scValue) {
+      //   if (this.getsalescordinate && Array.isArray(this.getsalescordinate)) {
+      //     const coordinatorExists = this.getsalescordinate.find(sc =>
+      //       sc.id.toString() === scValue.toString() ||
+      //       (sc.name && sc.name.toString().toLowerCase() === scValue.toString().toLowerCase())
+      //     );
+
+      //     if (coordinatorExists) {
+      //       this.quotation.salesCoordinator = coordinatorExists.id.toString();
+      //     } else {
+      //       this.quotation.salesCoordinator = scValue.toString();
+      //       console.warn("Sales Coordinator ID ya Name match nahi mila:", scValue);
+      //     }
+      //   } else {
+      //     this.quotation.salesCoordinator = scValue.toString();
+      //   }
+      // }
+
+      // --- ORIGIN FIX ---
+      const oId = q.originId || q.OriginId;
+      if (oId) {
+        this.originsaveid = Number(oId);
+        this.quotation.originId = this.originsaveid;
+        if (this.origins && Array.isArray(this.origins)) {
+          const originObj = this.origins.find((o) => o.id == oId);
+          if (originObj) {
             this.inquiry.origin = originObj.name;
             this.quotation.country = originObj.countryName;
+          }
         }
       }
-    }
 
-    // Commodity & Port IDs mapping
-    this.quotation.commodity = q.commodityId ? Number(q.commodityId) : null;
-    this.quotation.currency = q.cargoCurrency; 
-    this.quotation.country = q.countryName; 
-    this.selectedCountryName = q.countryName; 
-    
-    this.quotation.portOfLoadingId = q.portOfLoadingId ? Number(q.portOfLoadingId) : null;
-    this.quotation.portOfDischargeId = q.portOfDischargeId ? Number(q.portOfDischargeId) : null;
+      // Commodity & Port IDs mapping
+      this.quotation.commodity = q.commodityId ? Number(q.commodityId) : null;
+      this.quotation.currency = q.cargoCurrency;
+      this.quotation.country = q.countryName;
+      this.selectedCountryName = q.countryName;
 
-    if (this.portsOfLoading && Array.isArray(this.portsOfLoading)) {
-      const pol = this.portsOfLoading.find(p => p && p.id == q.portOfLoadingId);
-      if (pol) this.quotation.portOfLoading = pol.name || pol.portName;
-    }
-    if (this.portsOfDischarge && Array.isArray(this.portsOfDischarge)) {
-      const pod = this.portsOfDischarge.find(p => p && p.id == q.portOfDischargeId);
-      if (pod) this.quotation.portOfDestination = pod.name || pod.portName;
-    }
+      this.quotation.portOfLoadingId = q.portOfLoadingId
+        ? Number(q.portOfLoadingId)
+        : null;
+      this.quotation.portOfDischargeId = q.portOfDischargeId
+        ? Number(q.portOfDischargeId)
+        : null;
 
-    // Inquiry Mapping
-    this.inquiry = { 
-      ...this.inquiry, 
-      inquiryNo: q.inquiryNo, 
-      // organization: q.organisationName || q.customerName, 
-      organization: q.organisationName || q.customerName || this.inquiry.organization,
-      origin: q.originName || q.origin || this.inquiry.origin, 
-      leadNo: leadValue
-    };
-    
-    // --- BRANCH AUTO-SELECT FIX FOR FORM ---
-if (q.branchName !== null && q.branchName !== undefined) {
-  // Response ka string "1" ya "2" lekar number aur string dono variables match karenge
-  const incomingBranchStr = q.branchName.toString().trim();
-  const incomingBranchNum = Number(incomingBranchStr);
+      if (this.portsOfLoading && Array.isArray(this.portsOfLoading)) {
+        const pol = this.portsOfLoading.find(
+          (p) => p && p.id == q.portOfLoadingId,
+        );
+        if (pol) this.quotation.portOfLoading = pol.name || pol.portName;
+      }
+      if (this.portsOfDischarge && Array.isArray(this.portsOfDischarge)) {
+        const pod = this.portsOfDischarge.find(
+          (p) => p && p.id == q.portOfDischargeId,
+        );
+        if (pod) this.quotation.portOfDestination = pod.name || pod.portName;
+      }
 
-  if (this.branchlist && this.branchlist.length > 0) {
-    // Apni master branchlist mein check karo ki ID number match ho rahi hai ya string
-    const foundBranch = this.branchlist.find(b => 
-      (b.id && b.id.toString() === incomingBranchStr) || 
-      (b.branchId && b.branchId.toString() === incomingBranchStr)
-    );
-
-    if (foundBranch) {
-      // Agar master list mein matching integer ID hai toh dropdown value assign karein
-      const finalId = foundBranch.id || foundBranch.branchId;
-      this.quotation.branchName = finalId; 
-      
-      // Fallback: Agar template string value dhoond raha hai toh use string format mein set karein
-      setTimeout(() => {
-        this.quotation.branchName = finalId.toString();
-        this.cdr.detectChanges();
-      }, 50);
-    } else {
-      // Agar direct match na mile toh direct payload value set karein
-      this.quotation.branchName = incomingBranchStr;
-    }
-  } else {
-    this.quotation.branchName = incomingBranchStr;
-  }
-  console.log("🏢 Form Dropdown Branch selected ID:", this.quotation.branchName);
-} else {
-  this.quotation.branchName = '';
-}
-    
-    // --- CONNECTING PORTS ---
-    const rawPorts = q.connectingPortIds || q.ConnectingPortIds;
-    const portIdsArray = typeof rawPorts === 'string' ? rawPorts.split(',').map(Number) : (Array.isArray(rawPorts) ? rawPorts : []);
-    this.quotation.connectingPortIds = portIdsArray;
-    const allKnownPorts = [...(this.portsOfLoading || []), ...(this.portsOfDischarge || [])];
-    this.selectedConnectingPorts = allKnownPorts.filter(p => portIdsArray.includes(Number(p.id)));
-    this.selectcommodityvalue = q.commodityName || '';
-    
-    // Date & Dimensions Parsing
-    try {
-      if (q.receivedDate) this.quotation.receivedDate = new Date(q.receivedDate).toISOString().split('T')[0];
-      if (q.cargoStatusDate) {
-  // Agar API se '2026-06-16T00:00:00' aa raha hai, 
-  // toh sirf 'T' se pehle wala part lein
-  this.quotation.cargoStatusDate = q.cargoStatusDate.split('T')[0];
-}
-      if (q.repliedDate && q.repliedDate !== '2000-02-12T00:00:00') this.quotation.repliedDate = new Date(q.repliedDate).toISOString().split('T')[0];
-    } catch (dateErr) { console.error('Date parsing issue:', dateErr); }
-
-    if (q.dimensions && q.dimensions.length > 0) {
-      this.appliedDimensions = [...q.dimensions];
-      this.dimRows = [...q.dimensions];
-      this.dimRow = { ...q.dimensions[0] }; 
-    } else {
-      this.dimRows = [{ box: 1, l: 0, w: 0, h: 0, unit: 'CMS' }];
-    }
-
-    this.calculateCBM();
-    const incoterm = (q.incoterm || '').toUpperCase();
-    this.isPickupEnabled = (incoterm === 'EXWORK');
-    this.isDeliveryEnabled = ['DDP', 'DDU', 'DAP'].includes(incoterm);
-    this.showincoterms = incoterm;
-
-    this.isFormOpen = true;
-    this.cdr.detectChanges(); 
-    setTimeout(() => this.cdr.detectChanges(), 500);
-
-  } catch (mainError) {
-    console.error("🛑 Internal logic crash:", mainError);
-    this.isFormOpen = true;
-    this.cdr.detectChanges();
-  }
-}
-isHazard(): boolean {
-  // 1. Agar selectcommodityvalue mein seedha 'Hazard' likha hai
-  const val = (this.selectcommodityvalue || '').toLowerCase();
-  if (['hazard', 'hazardous'].includes(val)) return true;
-
-  // 2. Agar quotation.commodity (ID) se check karna hai
-  // Aapke commodityTypes array mein se hazard wali entry dhund rahe hain
-  const selectedType = this.commodityTypes?.find(t => t.id == this.quotation?.commodity);
-  if (selectedType) {
-    const name = (selectedType.name || '').toLowerCase();
-    return ['hazard', 'hazardous'].includes(name);
-  }
-
-  return false;
-}
-
-    resetQuotationModel() {
-      return {
-        id: 0, 
-        customerName: '', 
-        branchName: 'MAIN', 
-        receivedDate: new Date().toISOString().split('T')[0], 
-        location: '', 
-        transportMode: 'Air', 
-        shipmentType: 'International',
-        lineOfBusinessId: null,
-        commodityId: 1,
-        cargoStatusType: 'Ready',
-        
-        portOfLoadingId: 1, // Matches pol1 request
-        portOfDischargeId: 1, // Matches pod1 request
-        noOfPkgs: 1, 
-        grossWeightKg: 0, 
-        chargeableWeight: 0,
-        hazardDocPath: '',
-        cargoStatusDate: new Date().toISOString().split('T')[0],
-        dimensions: []
+      // Inquiry Mapping
+      this.inquiry = {
+        ...this.inquiry,
+        inquiryNo: q.inquiryNo,
+        // organization: q.organisationName || q.customerName,
+        organization:
+          q.organisationName || q.customerName || this.inquiry.organization,
+        origin: q.originName || q.origin || this.inquiry.origin,
+        leadNo: leadValue,
       };
+
+      // --- BRANCH AUTO-SELECT FIX FOR FORM ---
+      if (q.branchName !== null && q.branchName !== undefined) {
+        // Response ka string "1" ya "2" lekar number aur string dono variables match karenge
+        const incomingBranchStr = q.branchName.toString().trim();
+        const incomingBranchNum = Number(incomingBranchStr);
+
+        if (this.branchlist && this.branchlist.length > 0) {
+          // Apni master branchlist mein check karo ki ID number match ho rahi hai ya string
+          const foundBranch = this.branchlist.find(
+            (b) =>
+              (b.id && b.id.toString() === incomingBranchStr) ||
+              (b.branchId && b.branchId.toString() === incomingBranchStr),
+          );
+
+          if (foundBranch) {
+            // Agar master list mein matching integer ID hai toh dropdown value assign karein
+            const finalId = foundBranch.id || foundBranch.branchId;
+            this.quotation.branchName = finalId;
+
+            // Fallback: Agar template string value dhoond raha hai toh use string format mein set karein
+            setTimeout(() => {
+              this.quotation.branchName = finalId.toString();
+              this.cdr.detectChanges();
+            }, 50);
+          } else {
+            // Agar direct match na mile toh direct payload value set karein
+            this.quotation.branchName = incomingBranchStr;
+          }
+        } else {
+          this.quotation.branchName = incomingBranchStr;
+        }
+        console.log(
+          "🏢 Form Dropdown Branch selected ID:",
+          this.quotation.branchName,
+        );
+      } else {
+        this.quotation.branchName = "";
+      }
+
+      // --- CONNECTING PORTS ---
+      const rawPorts = q.connectingPortIds || q.ConnectingPortIds;
+      const portIdsArray =
+        typeof rawPorts === "string"
+          ? rawPorts.split(",").map(Number)
+          : Array.isArray(rawPorts)
+            ? rawPorts
+            : [];
+      this.quotation.connectingPortIds = portIdsArray;
+      const allKnownPorts = [
+        ...(this.portsOfLoading || []),
+        ...(this.portsOfDischarge || []),
+      ];
+      this.selectedConnectingPorts = allKnownPorts.filter((p) =>
+        portIdsArray.includes(Number(p.id)),
+      );
+      this.selectcommodityvalue = q.commodityName || "";
+
+      // Date & Dimensions Parsing
+      try {
+        if (q.receivedDate)
+          this.quotation.receivedDate = new Date(q.receivedDate)
+            .toISOString()
+            .split("T")[0];
+        if (q.cargoStatusDate) {
+          // Agar API se '2026-06-16T00:00:00' aa raha hai,
+          // toh sirf 'T' se pehle wala part lein
+          this.quotation.cargoStatusDate = q.cargoStatusDate.split("T")[0];
+        }
+        if (q.repliedDate && q.repliedDate !== "2000-02-12T00:00:00")
+          this.quotation.repliedDate = new Date(q.repliedDate)
+            .toISOString()
+            .split("T")[0];
+      } catch (dateErr) {
+        console.error("Date parsing issue:", dateErr);
+      }
+
+      if (q.dimensions && q.dimensions.length > 0) {
+        this.appliedDimensions = [...q.dimensions];
+        this.dimRows = [...q.dimensions];
+        this.dimRow = { ...q.dimensions[0] };
+      } else {
+        this.dimRows = [{ box: 1, l: 0, w: 0, h: 0, unit: "CMS" }];
+      }
+
+      this.calculateCBM();
+      const incoterm = (q.incoterm || "").toUpperCase();
+      this.isPickupEnabled = incoterm === "EXWORK";
+      this.isDeliveryEnabled = ["DDP", "DDU", "DAP"].includes(incoterm);
+      this.showincoterms = incoterm;
+
+      this.isFormOpen = true;
+      this.cdr.detectChanges();
+      setTimeout(() => this.cdr.detectChanges(), 500);
+    } catch (mainError) {
+      console.error("🛑 Internal logic crash:", mainError);
+      this.isFormOpen = true;
+      this.cdr.detectChanges();
     }
-    // --- COMMAND: IS SECTION KO REPLACE KAREIN ---
-  searchFilters: any = { 
-    transportMode: 'Any',
-    inquiryNo: '',
-    branchName: '',
-    salesCoordinator: '',
-    cargoStatus: '(Any)',
-    receivedDate: null, 
-    showMode: 'valid'
+  }
+  isHazard(): boolean {
+    // 1. Agar selectcommodityvalue mein seedha 'Hazard' likha hai
+    const val = (this.selectcommodityvalue || "").toLowerCase();
+    if (["hazard", "hazardous"].includes(val)) return true;
+
+    // 2. Agar quotation.commodity (ID) se check karna hai
+    // Aapke commodityTypes array mein se hazard wali entry dhund rahe hain
+    const selectedType = this.commodityTypes?.find(
+      (t) => t.id == this.quotation?.commodity,
+    );
+    if (selectedType) {
+      const name = (selectedType.name || "").toLowerCase();
+      return ["hazard", "hazardous"].includes(name);
+    }
+
+    return false;
+  }
+
+  resetQuotationModel() {
+    return {
+      id: 0,
+      customerName: "",
+      branchName: "MAIN",
+      receivedDate: new Date().toISOString().split("T")[0],
+      location: "",
+      transportMode: "Air",
+      shipmentType: "International",
+      lineOfBusinessId: null,
+      commodityId: 1,
+      cargoStatusType: "Ready",
+
+      portOfLoadingId: 1, // Matches pol1 request
+      portOfDischargeId: 1, // Matches pod1 request
+      noOfPkgs: 1,
+      grossWeightKg: 0,
+      chargeableWeight: 0,
+      hazardDocPath: "",
+      cargoStatusDate: new Date().toISOString().split("T")[0],
+      dimensions: [],
+    };
+  }
+  // --- COMMAND: IS SECTION KO REPLACE KAREIN ---
+  searchFilters: any = {
+    transportMode: "Any",
+    inquiryNo: "",
+    branchName: "",
+    salesCoordinator: "",
+    cargoStatus: "(Any)",
+    receivedDate: null,
+    showMode: "valid",
   };
- 
- // Variables define karein
-allUniqueServices: string[] = []; 
-filteredServices: string[] = [];
 
-loadDropdownData() {
-  const token = localStorage.getItem('cavalier_token');
+  // Variables define karein
+  allUniqueServices: string[] = [];
+  filteredServices: string[] = [];
 
-  const headers = {
-    Authorization: `Bearer ${token}`
-  };
+  loadDropdownData() {
+    const token = localStorage.getItem("cavalier_token");
 
-  this.http.get<any[]>(`${environment.apiUrl}/Inquiry`, { headers })
-    .subscribe({
-      next: (data) => {
-        // 1. Data se transportMode nikalo aur null values hatao
-        const allModes = data.map(item => item.transportMode).filter(m => m);
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
 
-        // 2. 🔥 Set se duplicates hata kar master list banao
-        this.allUniqueServices = [...new Set(allModes)];
-        
-        console.log("Master Unique List ready:", this.allUniqueServices);
+    this.http
+      .get<any[]>(`${environment.apiUrl}/Inquiry`, { headers })
+      .subscribe({
+        next: (data) => {
+          // 1. Data se transportMode nikalo aur null values hatao
+          const allModes = data
+            .map((item) => item.transportMode)
+            .filter((m) => m);
+
+          // 2. 🔥 Set se duplicates hata kar master list banao
+          this.allUniqueServices = [...new Set(allModes)];
+
+          console.log("Master Unique List ready:", this.allUniqueServices);
+        },
+        error: (err) => {
+          console.error("Error loading dropdown data:", err);
+
+          if (err.status === 401) {
+            alert("Unauthorized! Please login again.");
+          }
+        },
+      });
+  }
+
+  // 🔥 Naya function: Jo typing ke waqt filter karega
+  onServiceType() {
+    const query = this.searchFilters.transportMode
+      ? this.searchFilters.transportMode.trim().toLowerCase()
+      : "";
+
+    // 3. Logic: 3 letter ke baad hi filter karke suggestions dikhao
+    if (query.length >= 3) {
+      this.filteredServices = this.allUniqueServices.filter((mode) =>
+        mode.toLowerCase().includes(query),
+      );
+    } else {
+      // 3 se kam characters par list ko khali rakho
+      this.filteredServices = [];
+    }
+  }
+  // Variables declare karein
+  allUniqueInquiryNos: string[] = []; // Master list (Unique)
+  filteredInquiryNos: string[] = []; // Suggestions for UI
+
+  loadInquiryNumbers() {
+    // 1. Token nikaalna (Local storage se ya jahan aapne save kiya ho)
+    const token = localStorage.getItem("cavalier_token");
+
+    // 2. Headers create karna
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
+
+    // 3. Authorized Get Request
+    this.http
+      .get<any[]>(`${environment.apiUrl}/Inquiry`, { headers })
+      .subscribe({
+        next: (data) => {
+          // InquiryNo nikaal kar null/undefined hatao
+          const rawNumbers = data
+            ?.map((item) => item?.inquiryNo)
+            ?.filter((n) => n !== null && n !== undefined && n !== "");
+
+          // Duplicates hatao
+          this.allUniqueInquiryNos = [...new Set(rawNumbers)];
+
+          console.log(
+            "Authorized Unique Inquiry Numbers Loaded",
+            this.allUniqueInquiryNos,
+          );
+        },
+        error: (err) => {
+          console.error("Authorization failed or API error:", err);
+          // Agar token expire ho jaye toh yahan logic handle kar sakte hain
+        },
+      });
+  }
+
+  onInquiryType() {
+    // Query ko authorize/sahi karna (3 words logic)
+    const query = this.searchFilters.inquiryNo
+      ? String(this.searchFilters.inquiryNo).trim().toLowerCase()
+      : "";
+
+    if (query.length >= 3) {
+      this.filteredInquiryNos = this.allUniqueInquiryNos.filter(
+        (num) => num && String(num).toLowerCase().includes(query),
+      );
+    } else {
+      this.filteredInquiryNos = []; // 3 se kam par suggestions hide
+    }
+  }
+  // Variables declare karein
+  allUniqueCoordinators: string[] = []; // Master list (Unique Names)
+  filteredCoordinators: string[] = []; // Suggestions for UI
+
+  loadCoordinators() {
+    // 1. Authorization Token nikalna
+    const token = localStorage.getItem("cavalier_token");
+
+    // 2. Headers mein token set karna
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
+
+    this.http
+      .get<any[]>(`${environment.apiUrl}/Inquiry`, { headers })
+      .subscribe({
+        next: (data) => {
+          // 3. Null check aur string safety ke saath data map karna
+          const rawCoords = data
+            .map((item) => item.salesCoordinator)
+            .filter(
+              (c) => c !== null && c !== undefined && String(c).trim() !== "",
+            );
+
+          // 4. Duplicate hatana
+          this.allUniqueCoordinators = [...new Set(rawCoords)];
+          console.log(
+            "Authorized Coordinators Loaded:",
+            this.allUniqueCoordinators.length,
+          );
+        },
+        error: (err) => {
+          console.error("Coordinator load error (Auth Fail?):", err);
+        },
+      });
+  }
+
+  // 🔥 Typing ke waqt filter karne wala function
+  onCoordinatorType() {
+    // 1. Query ko authorize/validate karna
+    const query = this.searchFilters.salesCoordinator
+      ? String(this.searchFilters.salesCoordinator).trim().toLowerCase()
+      : "";
+
+    // 2. Logic: Exact 3 ya usse zyada characters par hi suggestions aayenge
+    if (query.length >= 3) {
+      this.filteredCoordinators = this.allUniqueCoordinators.filter(
+        (name) => name && String(name).toLowerCase().includes(query),
+      );
+      console.log("Suggestions Found:", this.filteredCoordinators.length);
+    } else {
+      // 3. Agar user backspace dabake 3 se kam kar de, toh list turant khali
+      this.filteredCoordinators = [];
+    }
+  }
+  // Variables declare karein
+  allUniqueBranches: string[] = []; // Master list (Unique Names)
+  filteredBranches: string[] = []; // Suggestions for UI
+
+  loadBranches() {
+    this.http.get<any[]>(`${environment.apiUrl}/Inquiry`).subscribe({
+      next: (res) => {
+        // 1. Saare branchName nikalo aur duplicates hatane ke liye Set use karo
+        // Agar API se array of strings aa raha hai to seedha res use karo
+        const rawBranches = res
+          .map((item) => item.branchName || item)
+          .filter((b) => b);
+        this.allUniqueBranches = [...new Set(rawBranches)];
+        console.log("Unique Branches Loaded");
+      },
+      error: (err) => console.error("Branch load error:", err),
+    });
+  }
+
+  // 🔥 Typing ke waqt trigger hone wala function
+  onBranchType() {
+    const query = this.searchFilters.branchName
+      ? this.searchFilters.branchName.trim().toLowerCase()
+      : "";
+
+    // 2. Logic: 3 letter ke baad suggestions dikhao
+    if (query.length >= 3) {
+      this.filteredBranches = this.allUniqueBranches.filter((branch) =>
+        branch.toLowerCase().includes(query),
+      );
+    } else {
+      // 3 se kam par list khali
+      this.filteredBranches = [];
+    }
+  }
+  isAdvanceFilterVisible: boolean = false; // Default mein band rahega
+
+  toggleAdvanceFilter() {
+    this.isAdvanceFilterVisible = !this.isAdvanceFilterVisible;
+  }
+  onClear() {
+    // 1. Saari fields ko default values par set karein
+    this.searchFilters = {
+      transportMode: "Any",
+      inquiryNo: "",
+      branchName: "",
+      salesCoordinator: "",
+      cargoStatus: "(Any)",
+      receivedDate: null,
+      showMode: "valid",
+    };
+    this.searchDone = false; // "No Data Found" hat jayega
+    this.inquiries = [];
+
+    // 2. Clear karne ke baad wapas sara data load karein (bina filter ke)
+    this.onSearch();
+
+    console.log("Filters Cleared!");
+  }
+
+  showCustomPicker: boolean = false;
+
+  // 2. Logic for all shortcuts
+  setQuickDate(type: string) {
+    const today = new Date();
+
+    // Pehle sab purana clear kar do
+    this.searchFilters.receivedDate = "";
+    this.searchFilters.startDate = "";
+    this.searchFilters.endDate = "";
+
+    const formatDate = (date: Date) => {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    };
+
+    if (type === "today" || type === "tomorrow" || type === "yesterday") {
+      let target = new Date();
+      if (type === "tomorrow") target.setDate(today.getDate() + 1);
+      if (type === "yesterday") target.setDate(today.getDate() - 1);
+      this.searchFilters.receivedDate = formatDate(target);
+    } else {
+      // Range Logic
+      let start = new Date();
+      let end = new Date();
+      if (type === "lastWeek") start.setDate(today.getDate() - 7);
+      if (type === "nextWeek") end.setDate(today.getDate() + 7);
+      if (type === "lastMonth") start.setMonth(today.getMonth() - 1);
+      if (type === "nextMonth") end.setMonth(today.getMonth() + 1);
+
+      this.searchFilters.startDate = formatDate(start);
+      this.searchFilters.endDate = formatDate(end);
+    }
+
+    this.showCustomPicker = false;
+    this.onSearch();
+  }
+  // Component class ke andar
+
+  //-----/////
+  onSearch() {
+    console.log("Search button clicked!");
+    this.searchDone = true;
+
+    const filtersToSend: any = { ...this.searchFilters };
+
+    // --- Date Cleaning Logic (YE ZAROORI HAI) ---
+    // Agar Range mode active hai, toh single receivedDate ko null/delete kar dein
+    if (filtersToSend.startDate && filtersToSend.endDate) {
+      filtersToSend.receivedDate = null;
+    } else {
+      // Agar single date mode hai, toh empty string ko null bhejien
+      if (!filtersToSend.receivedDate || filtersToSend.receivedDate === "") {
+        filtersToSend.receivedDate = null;
+      }
+      // Range fields ko null bhejien
+      filtersToSend.startDate = null;
+      filtersToSend.endDate = null;
+    }
+
+    // --- Baki Cleaning Logic ---
+    if (filtersToSend.transportMode === "Any") filtersToSend.transportMode = "";
+    if (filtersToSend.cargoStatus === "(Any)") filtersToSend.cargoStatus = "";
+    if (
+      filtersToSend.salesCoordinator === "null" ||
+      !filtersToSend.salesCoordinator
+    )
+      filtersToSend.salesCoordinator = "";
+
+    if (
+      filtersToSend.status === "" ||
+      filtersToSend.status === undefined ||
+      filtersToSend.status === null
+    ) {
+      filtersToSend.status = null;
+    } else {
+      filtersToSend.status = Number(filtersToSend.status);
+    }
+
+    if (this.branchSearchText && this.branchSearchText !== "") {
+      const bId = Number(this.searchFilters.branchId);
+      filtersToSend.branchId = isNaN(bId) ? null : bId;
+      delete filtersToSend.branchName;
+    } else {
+      filtersToSend.branchId = null;
+    }
+
+    const token = localStorage.getItem("cavalier_token");
+    const httpOptions = {
+      headers: new HttpHeaders({
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      }),
+    };
+
+    forkJoin({
+      searchResult: this.http.post<any[]>(
+        `${environment.apiUrl}/Inquiry/Search`,
+        filtersToSend,
+        httpOptions,
+      ),
+      hodList: this.userServices.getHodList(),
+      originList: this.http.get<any[]>(
+        `${environment.apiUrl}/origin/all`,
+        httpOptions,
+      ),
+      transportList: this.http.get<any[]>(
+        `${environment.apiUrl}/TransportModes`,
+        httpOptions,
+      ),
+    }).subscribe({
+      next: (res) => {
+        const { searchResult, hodList, originList, transportList } = res;
+
+        const hodMap = new Map(hodList.map((h: any) => [String(h.id), h.name]));
+        const originMap = new Map(
+          originList.map((o: any) => [String(o.id), o.name]),
+        );
+        const transportMap = new Map(
+          transportList.map((t: any) => [String(t.id), t.name]),
+        );
+
+        this.quotations = searchResult.map((item) => {
+          const scId = String(item.salesCoordinator || "");
+          const originId = String(item.originId || "");
+          const transId = String(item.transportMode || "");
+
+          return {
+            ...item,
+            salesCoordinator: hodMap.has(scId)
+              ? hodMap.get(scId)
+              : item.salesCoordinator,
+            originName: originMap.has(originId)
+              ? originMap.get(originId)
+              : item.originName || item.origin || "",
+            transportModeName: transportMap.has(transId)
+              ? transportMap.get(transId)
+              : item.transportMode,
+          };
+        });
+
+        this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error("Error loading dropdown data:", err);
-
-        if (err.status === 401) {
-          alert("Unauthorized! Please login again.");
-        }
-      }
+        console.error("Search failed:", err);
+        alert("Error loading data! Please check your date filters.");
+      },
     });
-}
-
-// 🔥 Naya function: Jo typing ke waqt filter karega
-onServiceType() {
-  const query = this.searchFilters.transportMode ? this.searchFilters.transportMode.trim().toLowerCase() : '';
-
-  // 3. Logic: 3 letter ke baad hi filter karke suggestions dikhao
-  if (query.length >= 3) {
-    this.filteredServices = this.allUniqueServices.filter(mode => 
-      mode.toLowerCase().includes(query)
-    );
-  } else {
-    // 3 se kam characters par list ko khali rakho
-    this.filteredServices = [];
   }
-}
-// Variables declare karein
-allUniqueInquiryNos: string[] = []; // Master list (Unique)
-filteredInquiryNos: string[] = [];  // Suggestions for UI
+  // --- Variables ---
+  isExportOpen = false;
 
-loadInquiryNumbers() {
-  // 1. Token nikaalna (Local storage se ya jahan aapne save kiya ho)
-  const token = localStorage.getItem('cavalier_token'); 
-
-  // 2. Headers create karna
-  const headers = {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json'
-  };
-
-  // 3. Authorized Get Request
-  this.http.get<any[]>(`${environment.apiUrl}/Inquiry`, { headers }).subscribe({
-    next: (data) => {
-      // InquiryNo nikaal kar null/undefined hatao
-      const rawNumbers = data
-        .map(item => item.inquiryNo)
-        .filter(n => n !== null && n !== undefined && n !== '');
-
-      // Duplicates hatao
-      this.allUniqueInquiryNos = [...new Set(rawNumbers)];
-      
-      console.log("Authorized Unique Inquiry Numbers Loaded", this.allUniqueInquiryNos);
-    },
-    error: (err) => {
-      console.error("Authorization failed or API error:", err);
-      // Agar token expire ho jaye toh yahan logic handle kar sakte hain
-    }
-  });
-}
-
-onInquiryType() {
-  // Query ko authorize/sahi karna (3 words logic)
-  const query = this.searchFilters.inquiryNo ? String(this.searchFilters.inquiryNo).trim().toLowerCase() : '';
-
-  if (query.length >= 3) {
-    this.filteredInquiryNos = this.allUniqueInquiryNos.filter(num => 
-      num && String(num).toLowerCase().includes(query)
-    );
-  } else {
-    this.filteredInquiryNos = []; // 3 se kam par suggestions hide
-  }
-}
-// Variables declare karein
-allUniqueCoordinators: string[] = []; // Master list (Unique Names)
-filteredCoordinators: string[] = [];  // Suggestions for UI
-
-loadCoordinators() {
-  // 1. Authorization Token nikalna
-  const token = localStorage.getItem('cavalier_token');
-
-  // 2. Headers mein token set karna
-  const headers = {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json'
-  };
-
-  this.http.get<any[]>(`${environment.apiUrl}/Inquiry`, { headers }).subscribe({
-    next: (data) => {
-      // 3. Null check aur string safety ke saath data map karna
-      const rawCoords = data
-        .map(item => item.salesCoordinator)
-        .filter(c => c !== null && c !== undefined && String(c).trim() !== '');
-
-      // 4. Duplicate hatana
-      this.allUniqueCoordinators = [...new Set(rawCoords)];
-      console.log("Authorized Coordinators Loaded:", this.allUniqueCoordinators.length);
-    },
-    error: (err) => {
-      console.error("Coordinator load error (Auth Fail?):", err);
-    }
-  });
-}
-
-// 🔥 Typing ke waqt filter karne wala function
-onCoordinatorType() {
-  // 1. Query ko authorize/validate karna
-  const query = this.searchFilters.salesCoordinator 
-    ? String(this.searchFilters.salesCoordinator).trim().toLowerCase() 
-    : '';
-
-  // 2. Logic: Exact 3 ya usse zyada characters par hi suggestions aayenge
-  if (query.length >= 3) {
-    this.filteredCoordinators = this.allUniqueCoordinators.filter(name => 
-      name && String(name).toLowerCase().includes(query)
-    );
-    console.log("Suggestions Found:", this.filteredCoordinators.length);
-  } else {
-    // 3. Agar user backspace dabake 3 se kam kar de, toh list turant khali
-    this.filteredCoordinators = [];
-  }
-}
-// Variables declare karein
-allUniqueBranches: string[] = []; // Master list (Unique Names)
-filteredBranches: string[] = [];  // Suggestions for UI
-
-loadBranches() {
-  this.http.get<any[]>(`${environment.apiUrl}/Inquiry`).subscribe({
-    next: (res) => {
-      // 1. Saare branchName nikalo aur duplicates hatane ke liye Set use karo
-      // Agar API se array of strings aa raha hai to seedha res use karo
-      const rawBranches = res.map(item => item.branchName || item).filter(b => b);
-      this.allUniqueBranches = [...new Set(rawBranches)];
-      console.log("Unique Branches Loaded");
-    },
-    error: (err) => console.error("Branch load error:", err)
-  });
-}
-
-// 🔥 Typing ke waqt trigger hone wala function
-onBranchType() {
-  const query = this.searchFilters.branchName ? this.searchFilters.branchName.trim().toLowerCase() : '';
-
-  // 2. Logic: 3 letter ke baad suggestions dikhao
-  if (query.length >= 3) {
-    this.filteredBranches = this.allUniqueBranches.filter(branch => 
-      branch.toLowerCase().includes(query)
-    );
-  } else {
-    // 3 se kam par list khali
-    this.filteredBranches = [];
-  }
-}
-isAdvanceFilterVisible: boolean = false; // Default mein band rahega
-
-toggleAdvanceFilter() {
-  this.isAdvanceFilterVisible = !this.isAdvanceFilterVisible;
-}
-onClear() {
-  // 1. Saari fields ko default values par set karein
-  this.searchFilters = {
-    transportMode: 'Any',
-    inquiryNo: '',
-    branchName: '',
-    salesCoordinator: '',
-    cargoStatus: '(Any)',
-    receivedDate: null,
-    showMode: 'valid'
-  };
-  this.dateRangeInputValue='';
-  this.branchSearchText='';
-  this.modalSearchText='';
-  this.searchDone = false;      // "No Data Found" hat jayega
-  this.inquiries = [];
-
-  // 2. Clear karne ke baad wapas sara data load karein (bina filter ke)
-  this.onSearch(); 
-  
-  console.log("Filters Cleared!");
-}
-
-showCustomPicker: boolean = false;
-
-// 2. Logic for all shortcuts
-setQuickDate(type: string) {
-  const today = new Date();
-  
-  // Pehle sab purana clear kar do
-  this.searchFilters.receivedDate = '';
-  this.searchFilters.startDate = '';
-  this.searchFilters.endDate = '';
-
-  const formatDate = (date: Date) => {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
-  };
-
-  if (type === 'today' || type === 'tomorrow' || type === 'yesterday') {
-    let target = new Date();
-    if (type === 'tomorrow') target.setDate(today.getDate() + 1);
-    if (type === 'yesterday') target.setDate(today.getDate() - 1);
-    this.searchFilters.receivedDate = formatDate(target);
-  } else {
-    // Range Logic
-    let start = new Date();
-    let end = new Date();
-    if (type === 'lastWeek') start.setDate(today.getDate() - 7);
-    if (type === 'nextWeek') end.setDate(today.getDate() + 7);
-    if (type === 'lastMonth') start.setMonth(today.getMonth() - 1);
-    if (type === 'nextMonth') end.setMonth(today.getMonth() + 1);
-    
-    this.searchFilters.startDate = formatDate(start);
-    this.searchFilters.endDate = formatDate(end);
+  toggleExportMenu() {
+    this.isExportOpen = !this.isExportOpen;
   }
 
-  this.showCustomPicker = false;
-  this.onSearch();
-}
-// Component class ke andar
-
-//-----/////
-onSearch() {
-  console.log("Search button clicked!");
-  this.searchDone = true;
-
-  const filtersToSend: any = { ...this.searchFilters };
-
-  // --- Date Cleaning Logic ---
-  if (filtersToSend.startDate && filtersToSend.endDate) {
-    filtersToSend.receivedDate = null; 
-  } else {
-    if (!filtersToSend.receivedDate || filtersToSend.receivedDate === "") {
-      filtersToSend.receivedDate = null;
-    }
-    filtersToSend.startDate = null;
-    filtersToSend.endDate = null;
+  // Click bahar ho toh dropdown band ho jaye
+  @HostListener("document:click", ["$event"])
+  onDocumentClick(event: MouseEvent) {
+    this.isExportOpen = false;
   }
 
-  // --- 🌟 SERVICE TYPE FILTER CLEANING (Yahan Ensure karein) ---
-  // Agar dropdown me "-- Select Type --" yani "" string hai, toh khali bhejien taaki dono type ka data aaye
-  if (filtersToSend.transportMode === 'Any' || !filtersToSend.transportMode) {
-    filtersToSend.transportMode = '';
+  printInquiries() {
+    this.generatePrintLayout("print");
   }
 
-  if (filtersToSend.cargoStatus === '(Any)') filtersToSend.cargoStatus = '';
-  if (filtersToSend.salesCoordinator === 'null' || !filtersToSend.salesCoordinator) filtersToSend.salesCoordinator = "";
-  
-  if (filtersToSend.status === "" || filtersToSend.status === undefined || filtersToSend.status === null) {
-    filtersToSend.status = null;
-  } else {
-    filtersToSend.status = Number(filtersToSend.status);
-  }
-  
-  if (this.branchSearchText && this.branchSearchText !== "") {
-    const bId = Number(this.searchFilters.branchId);
-    filtersToSend.branchId = isNaN(bId) ? null : bId;
-    delete filtersToSend.branchName;
-  } else {
-    filtersToSend.branchId = null;
-  }
+  downloadInquiriesPDF() {
+    this.isExportOpen = false;
+    const printData = this.quotations.slice(0, 20);
 
-  const token = localStorage.getItem('cavalier_token');
-  const httpOptions = {
-    headers: new HttpHeaders({
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    })
-  };
+    const element = document.createElement("div");
+    element.style.padding = "40px";
+    element.style.width = "1000px"; // Fixed width for better resolution
+    element.style.position = "absolute";
+    element.style.left = "-9999px";
+    element.style.backgroundColor = "#ffffff";
 
-  // Remaining forkJoin calling code as it is...
-  forkJoin({
-    searchResult: this.http.post<any[]>(`${environment.apiUrl}/Inquiry/Search`, filtersToSend, httpOptions),
-    hodList: this.userServices.getHodList(),
-    originList: this.http.get<any[]>(`${environment.apiUrl}/origin/all`, httpOptions),
-    transportList: this.http.get<any[]>(`${environment.apiUrl}/TransportModes`, httpOptions)
-  }).subscribe({
-    next: (res) => {
-      const { searchResult, hodList, originList, transportList } = res;
-      const hodMap = new Map(hodList.map((h: any) => [String(h.id), h.name]));
-      const originMap = new Map(originList.map((o: any) => [String(o.id), o.name])); 
-      const transportMap = new Map(transportList.map((t: any) => [String(t.id), t.name]));
-
-      this.quotations = searchResult.map(item => {
-        const scId = String(item.salesCoordinator || '');
-        const originId = String(item.originId || ''); 
-        const transId = String(item.transportMode || '');
-        
-        return {
-          ...item,
-          salesCoordinator: hodMap.has(scId) ? hodMap.get(scId) : item.salesCoordinator,
-          originName: originMap.has(originId) ? originMap.get(originId) : (item.originName || item.origin || ''),
-          transportModeName: transportMap.has(transId) ? transportMap.get(transId) : item.transportMode 
-        };
-      });
-
-      this.cdr.detectChanges();
-    },
-    error: (err) => {
-      console.error("Search failed:", err);
-    }
-  });
-}
-// --- Variables ---
-isExportOpen = false;
-
-toggleExportMenu() {
-  this.isExportOpen = !this.isExportOpen;
-}
-
-// Click bahar ho toh dropdown band ho jaye
-@HostListener('document:click', ['$event'])
-onDocumentClick(event: MouseEvent) {
-  this.isExportOpen = false;
-}
-
-printInquiries() {
-  this.generatePrintLayout('print');
-}
-
-downloadInquiriesPDF() {
-  this.isExportOpen = false;
-  const printData = this.quotations.slice(0, 20);
-
-  const element = document.createElement('div');
-  element.style.padding = '40px';
-  element.style.width = '1000px'; // Fixed width for better resolution
-  element.style.position = 'absolute';
-  element.style.left = '-9999px';
-  element.style.backgroundColor = '#ffffff';
-
-  let rowsHtml = '';
-  printData.forEach((q, index) => {
-    // Zebra crossing effect (alternate row color)
-    const bgColor = index % 2 === 0 ? '#ffffff' : '#f9fafb';
-    rowsHtml += `
+    let rowsHtml = "";
+    printData.forEach((q, index) => {
+      // Zebra crossing effect (alternate row color)
+      const bgColor = index % 2 === 0 ? "#ffffff" : "#f9fafb";
+      rowsHtml += `
       <tr style="background-color: ${bgColor}; border-bottom: 1px solid #e5e7eb;">
         <td style="padding: 12px; color: #111827; font-weight: 600;">${q.id}</td>
         <td style="padding: 12px; color: #4b5563;">${q.inquiryNo}</td>
-        <td style="padding: 12px; color: #4b5563;">${q.receivedDate ? new Date(q.receivedDate).toLocaleDateString('en-GB') : ''}</td>
-        <td style="padding: 12px; color: #111827; text-transform: uppercase; font-size: 11px;">${q.customerName || ''}</td>
-        <td style="padding: 12px; color: #4b5563;">${q.transportMode || ''}</td>
+        <td style="padding: 12px; color: #4b5563;">${q.receivedDate ? new Date(q.receivedDate).toLocaleDateString("en-GB") : ""}</td>
+        <td style="padding: 12px; color: #111827; text-transform: uppercase; font-size: 11px;">${q.customerName || ""}</td>
+        <td style="padding: 12px; color: #4b5563;">${q.transportMode || ""}</td>
         <td style="padding: 12px;">
           <span style="background-color: #d1fae5; color: #065f46; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold;">
-            ${q.cargoStatus || 'PENDING'}
+            ${q.cargoStatus || "PENDING"}
           </span>
         </td>
       </tr>`;
-  });
+    });
 
-  element.innerHTML = `
+    element.innerHTML = `
     <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
       <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #4a3f3f; padding-bottom: 10px; margin-bottom: 20px;">
         <div>
@@ -2328,47 +2604,56 @@ downloadInquiriesPDF() {
     </div>
   `;
 
-  document.body.appendChild(element);
+    document.body.appendChild(element);
 
-  html2canvas(element, { 
-    scale: 3, // Higher scale for crystal clear text
-    useCORS: true,
-    backgroundColor: '#ffffff'
-  }).then(canvas => {
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF('l', 'mm', 'a4');
-    
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+    html2canvas(element, {
+      scale: 3, // Higher scale for crystal clear text
+      useCORS: true,
+      backgroundColor: "#ffffff",
+    }).then((canvas) => {
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("l", "mm", "a4");
 
-    // Center the image if it's smaller than the page
-    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
-    pdf.save(`Inquiry_Summary_${new Date().getTime()}.pdf`);
-    
-    document.body.removeChild(element);
-  });
-}
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
-private generatePrintLayout(mode: string) {
-  this.isExportOpen = false;
-  const printData = this.quotations.slice(0, 20);
-  
-  let rows = '';
-  printData.forEach(q => {
-    rows += `
+      // Center the image if it's smaller than the page
+      pdf.addImage(
+        imgData,
+        "PNG",
+        0,
+        0,
+        pdfWidth,
+        pdfHeight,
+        undefined,
+        "FAST",
+      );
+      pdf.save(`Inquiry_Summary_${new Date().getTime()}.pdf`);
+
+      document.body.removeChild(element);
+    });
+  }
+
+  private generatePrintLayout(mode: string) {
+    this.isExportOpen = false;
+    const printData = this.quotations.slice(0, 20);
+
+    let rows = "";
+    printData.forEach((q) => {
+      rows += `
       <tr>
         <td>${q.id}</td>
         <td><b>${q.inquiryNo}</b></td>
-        <td>${q.receivedDate ? new Date(q.receivedDate).toLocaleDateString('en-GB') : ''}</td>
-        <td style="text-transform: uppercase;">${q.customerName || ''}</td>
-        <td>${q.transportMode || ''}</td>
-        <td>${q.cargoStatus || ''}</td>
+        <td>${q.receivedDate ? new Date(q.receivedDate).toLocaleDateString("en-GB") : ""}</td>
+        <td style="text-transform: uppercase;">${q.customerName || ""}</td>
+        <td>${q.transportMode || ""}</td>
+        <td>${q.cargoStatus || ""}</td>
       </tr>`;
-  });
+    });
 
-  const printWindow = window.open('', '_blank');
-  if (printWindow) {
-    printWindow.document.write(`
+    const printWindow = window.open("", "_blank");
+    if (printWindow) {
+      printWindow.document.write(`
       <html>
         <head>
           <title>Inquiry_Records_${new Date().getTime()}</title>
@@ -2406,920 +2691,990 @@ private generatePrintLayout(mode: string) {
         </body>
       </html>
     `);
-    printWindow.document.close();
+      printWindow.document.close();
+    }
   }
-}
-downloadLeadsExcel() {
-  this.isExportOpen = false;
+  downloadLeadsExcel() {
+    this.isExportOpen = false;
 
-  // Check karein ki data hai ya nahi
-  if (!this.quotations || this.quotations.length === 0) {
-    alert("Excel ke liye koi data nahi mila!");
-    return;
+    // Check karein ki data hai ya nahi
+    if (!this.quotations || this.quotations.length === 0) {
+      alert("Excel ke liye koi data nahi mila!");
+      return;
+    }
+
+    // 1. Data prepare karein (Jo columns aapke table mein hain)
+    const excelData = this.quotations.map((q) => {
+      return {
+        ID: q.id || "-",
+        "Inquiry No": q.inquiryNo || "-",
+        "Received Date": q.receivedDate
+          ? new Date(q.receivedDate).toLocaleDateString("en-GB")
+          : "-",
+        "Customer Name": q.customerName || "-",
+        "Transport Mode": q.transportMode || "-",
+        Status: q.cargoStatus || "PENDING",
+        Branch: q.branchName || "-",
+        Coordinator: q.salesCoordinator || "-",
+        "Shipment Type": q.shipmentType || "-",
+      };
+    });
+
+    // 2. Worksheet create karein
+    const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(excelData);
+
+    // 3. Columns ki width set karein taaki Excel saaf dikhe
+    const colWidths = [
+      { wch: 8 }, // ID
+      { wch: 15 }, // Inquiry No
+      { wch: 15 }, // Date
+      { wch: 30 }, // Customer Name
+      { wch: 15 }, // Mode
+      { wch: 12 }, // Status
+      { wch: 15 }, // Branch
+      { wch: 20 }, // Coordinator
+      { wch: 15 }, // Shipment Type
+    ];
+    ws["!cols"] = colWidths;
+
+    // 4. Workbook banayein aur save karein
+    const wb: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Inquiry Records");
+
+    // File download trigger karein
+    XLSX.writeFile(wb, `Inquiry_Report_${new Date().getTime()}.xlsx`);
   }
+  // --- Pagination Variables ---
+  currentPage: number = 1;
+  pageSize: number = 10; // Ek page par kitne records dikhane hain
+  protected readonly Math = Math; // Template mein Math functions use karne ke liye
 
-  // 1. Data prepare karein (Jo columns aapke table mein hain)
-  const excelData = this.quotations.map(q => {
-    return {
-      'ID': q.id || '-',
-      'Inquiry No': q.inquiryNo || '-',
-      'Received Date': q.receivedDate ? new Date(q.receivedDate).toLocaleDateString('en-GB') : '-',
-      'Customer Name': q.customerName || '-',
-      'Transport Mode': q.transportMode || '-',
-      'Status': q.cargoStatus || 'PENDING',
-      'Branch': q.branchName || '-',
-      'Coordinator': q.salesCoordinator || '-',
-      'Shipment Type': q.shipmentType || '-'
-    };
-  });
-
-  // 2. Worksheet create karein
-  const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(excelData);
-
-  // 3. Columns ki width set karein taaki Excel saaf dikhe
-  const colWidths = [
-    { wch: 8 },  // ID
-    { wch: 15 }, // Inquiry No
-    { wch: 15 }, // Date
-    { wch: 30 }, // Customer Name
-    { wch: 15 }, // Mode
-    { wch: 12 }, // Status
-    { wch: 15 }, // Branch
-    { wch: 20 }, // Coordinator
-    { wch: 15 }  // Shipment Type
-  ];
-  ws['!cols'] = colWidths;
-
-  // 4. Workbook banayein aur save karein
-  const wb: XLSX.WorkBook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Inquiry Records');
-
-  // File download trigger karein
-  XLSX.writeFile(wb, `Inquiry_Report_${new Date().getTime()}.xlsx`);
-}
-// --- Pagination Variables ---
-currentPage: number = 1;
-pageSize: number = 10; // Ek page par kitne records dikhane hain
-protected readonly Math = Math; // Template mein Math functions use karne ke liye
-
-// Computed property: Ye table mein sirf current page ka data filter karke bhejega
-get paginatedInquiries(): any[] {
+ get paginatedInquiries(): any[] {
   const startIndex = (this.currentPage - 1) * this.pageSize;
-  return this.quotations.slice(startIndex, startIndex + this.pageSize);
+  return Array.isArray(this.quotations) 
+    ? this.quotations.slice(startIndex, startIndex + this.pageSize) 
+    : [];
 }
 
-// Total pages calculate karne ke liye
-get totalPages(): number {
-  return Math.ceil(this.quotations.length / this.pageSize) || 1;
-}
-
-// Page badalne ka function
-setPage(page: number) {
-  if (page < 1 || page > this.totalPages) return;
-  this.currentPage = page;
-  this.cdr.detectChanges();
-}
-
-// Page size badalne par page 1 par reset karein
-onPageSizeChange() {
-  this.currentPage = 1;
-  this.cdr.detectChanges();
-}
-loadInquirySettings() {
-  this.http.get<any>(`${environment.apiUrl}/InquiryColumnSettings`).subscribe(res => {
-    if (res && res.selectedColumns) {
-      this.selectedColumns = JSON.parse(res.selectedColumns);
-      this.availableColumns = JSON.parse(res.availableColumns);
-    }
-  });
-}
-onCargoStatusChange() {
-  if (this.quotation.cargoStatusType === 'Ready') {
-    this.setTodayDate();
-  } 
-  else if (this.quotation.cargoStatusType === 'Ready By') {
-
-    if (!this.quotation.cargoStatusDate) {
-      this.setTodayDate();
-    }
-
-    setTimeout(() => {
-      if (this.cargoDateInput?.nativeElement) {
-        const input = this.cargoDateInput.nativeElement;
-
-        input.focus();
-
-        setTimeout(() => {
-          input.click();
-
-          try {
-            (input as any).showPicker();
-          } catch (e) {
-            console.log("showPicker not supported");
-          }
-        }, 50);
-      }
-    }, 120);
-  }
-   
-}
-dropColumn(event: CdkDragDrop<string[]>) {
-  if (event.previousContainer === event.container) {
-    moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
-  } else {
-    transferArrayItem(
-      event.previousContainer.data,
-      event.container.data,
-      event.previousIndex,
-      event.currentIndex
-    );
+  // Total pages calculate karne ke liye
+  get totalPages(): number {
+    return Math.ceil(this.quotations.length / this.pageSize) || 1;
   }
 
-  // Auto-save to Database
-  const payload = {
-    id: 1,
-    selectedColumns: JSON.stringify(this.selectedColumns),
-    availableColumns: JSON.stringify(this.availableColumns)
-  };
-  this.http.post(`${environment.apiUrl}/InquiryColumnSettings/save`, payload).subscribe();
-}
-// inquiry.component.ts ke andar
-showColumnModal: boolean = false; // Isko class properties mein add karein
-// Variables declare karein
-showServicePopup: boolean = false;
-allTransportModes: string[] = [];
-private serviceSub?: Subscription;
-
-// 1. Icon click par popup toggle logic
-toggleServicePopup() {
-  if (this.showServicePopup) {
-    this.showServicePopup = false;
+  // Page badalne ka function
+  setPage(page: number) {
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
     this.cdr.detectChanges();
-    return;
   }
 
-  // 1. Token nikaalo
-  const token = localStorage.getItem('cavalier_token'); 
-  if (!token) {
-    console.warn("Bhai login token nahi mila!");
-    return;
+  // Page size badalne par page 1 par reset karein
+  onPageSizeChange() {
+    this.currentPage = 1;
+    this.cdr.detectChanges();
   }
+  loadInquirySettings() {
+    this.http
+      .get<any>(`${environment.apiUrl}/InquiryColumnSettings`)
+      .subscribe((res) => {
+        if (res && res.selectedColumns) {
+          this.selectedColumns = JSON.parse(res.selectedColumns);
+          this.availableColumns = JSON.parse(res.availableColumns);
+        }
+      });
+  }
+  onCargoStatusChange() {
+    if (this.quotation.cargoStatusType === "Ready") {
+      this.setTodayDate();
+    } else if (this.quotation.cargoStatusType === "Ready By") {
+      if (!this.quotation.cargoStatusDate) {
+        this.setTodayDate();
+      }
 
-  // 2. Headers mein pass karo
-  const headers = new HttpHeaders({
-    'Authorization': `Bearer ${token}`
-  });
+      setTimeout(() => {
+        if (this.cargoDateInput?.nativeElement) {
+          const input = this.cargoDateInput.nativeElement;
 
-  this.serviceSub?.unsubscribe();
+          input.focus();
 
-  // 3. API Call with Headers
-  this.serviceSub = this.http.get<any[]>(`${environment.apiUrl}/Inquiry`, { headers }).subscribe({
-    next: (res) => {
-      // transportMode nikalna aur Duplicates hatana
-      const uniqueModes = [...new Set(
-        res
-          .filter(item => item.transportMode && item.transportMode.trim() !== "")
-          .map(item => item.transportMode)
-      )];
+          setTimeout(() => {
+            input.click();
 
-      this.allTransportModes = uniqueModes;
-      this.showServicePopup = true;
-      this.cdr.detectChanges(); 
-      console.log("Transport modes loaded with token");
-    },
-    error: (err) => {
-      console.error("Error fetching Inquiry Services", err);
+            try {
+              (input as any).showPicker();
+            } catch (e) {
+              console.log("showPicker not supported");
+            }
+          }, 50);
+        }
+      }, 120);
+    }
+  }
+  dropColumn(event: CdkDragDrop<string[]>) {
+    if (event.previousContainer === event.container) {
+      moveItemInArray(
+        event.container.data,
+        event.previousIndex,
+        event.currentIndex,
+      );
+    } else {
+      transferArrayItem(
+        event.previousContainer.data,
+        event.container.data,
+        event.previousIndex,
+        event.currentIndex,
+      );
+    }
+
+    // Auto-save to Database
+    const payload = {
+      id: 1,
+      selectedColumns: JSON.stringify(this.selectedColumns),
+      availableColumns: JSON.stringify(this.availableColumns),
+    };
+    this.http
+      .post(`${environment.apiUrl}/InquiryColumnSettings/save`, payload)
+      .subscribe();
+  }
+  // inquiry.component.ts ke andar
+  showColumnModal: boolean = false; // Isko class properties mein add karein
+  // Variables declare karein
+  showServicePopup: boolean = false;
+  allTransportModes: string[] = [];
+  private serviceSub?: Subscription;
+
+  // 1. Icon click par popup toggle logic
+  toggleServicePopup() {
+    if (this.showServicePopup) {
       this.showServicePopup = false;
       this.cdr.detectChanges();
+      return;
     }
-  });
-}
 
-// Popup se select karne par
-selectServiceFromPopup(val: string) {
-  this.searchFilters.transportMode = val;
-  this.showServicePopup = false;
-  this.cdr.detectChanges();
-}
+    // 1. Token nikaalo
+    const token = localStorage.getItem("cavalier_token");
+    if (!token) {
+      console.warn("Bhai login token nahi mila!");
+      return;
+    }
 
-// 3. ngOnDestroy mein cleanup
-ngOnDestroy() {
-  // Purani subscriptions ke saath isse bhi add karein
-  this.serviceSub?.unsubscribe();
-   this.inqSub?.unsubscribe();
-   this.branchSub?.unsubscribe();
-    this.coordinatorSub?.unsubscribe();
+    // 2. Headers mein pass karo
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+    });
 
-}
-// Variables declare karein
-showInquiryPopup: boolean = false;
-allInquiryNos: string[] = [];
-private inqSub?: Subscription;
+    this.serviceSub?.unsubscribe();
 
-// 1. Icon click par toggle logic
-toggleInquiryPopup() {
-  if (this.showInquiryPopup) {
-    this.showInquiryPopup = false;
+    // 3. API Call with Headers
+    this.serviceSub = this.http
+      .get<any[]>(`${environment.apiUrl}/Inquiry`, { headers })
+      .subscribe({
+        next: (res) => {
+          // transportMode nikalna aur Duplicates hatana
+          const uniqueModes = [
+            ...new Set(
+              res
+                .filter(
+                  (item) =>
+                    item.transportMode && item.transportMode.trim() !== "",
+                )
+                .map((item) => item.transportMode),
+            ),
+          ];
+
+          this.allTransportModes = uniqueModes;
+          this.showServicePopup = true;
+          this.cdr.detectChanges();
+          console.log("Transport modes loaded with token");
+        },
+        error: (err) => {
+          console.error("Error fetching Inquiry Services", err);
+          this.showServicePopup = false;
+          this.cdr.detectChanges();
+        },
+      });
+  }
+
+  // Popup se select karne par
+  selectServiceFromPopup(val: string) {
+    this.searchFilters.transportMode = val;
+    this.showServicePopup = false;
     this.cdr.detectChanges();
-    return;
   }
 
-  // 1. Token nikaalo
-  const token = localStorage.getItem('cavalier_token'); 
-  if (!token) {
-    console.warn("Bhai login token nahi mila!");
-    return;
+  // 3. ngOnDestroy mein cleanup
+  ngOnDestroy() {
+    // Purani subscriptions ke saath isse bhi add karein
+    this.serviceSub?.unsubscribe();
+    this.inqSub?.unsubscribe();
+    this.branchSub?.unsubscribe();
+    this.coordinatorSub?.unsubscribe();
   }
+  // Variables declare karein
+  showInquiryPopup: boolean = false;
+  allInquiryNos: string[] = [];
+  private inqSub?: Subscription;
 
-  // 2. Headers mein pass karo
-  const headers = new HttpHeaders({
-    'Authorization': `Bearer ${token}`
-  });
-
-  this.inqSub?.unsubscribe();
-
-  // 3. API Call with Headers
-  this.inqSub = this.http.get<any[]>(`${environment.apiUrl}/Inquiry`, { headers }).subscribe({
-    next: (res) => {
-      // Inquiry No. nikalna aur Unique banana
-      const uniqueInqs = [...new Set(
-        res
-          .filter(item => item.inquiryNo && item.inquiryNo.trim() !== "")
-          .map(item => item.inquiryNo)
-      )];
-
-      this.allInquiryNos = uniqueInqs;
-      this.showInquiryPopup = true;
-      this.cdr.detectChanges(); 
-      console.log("Inquiry list loaded with token");
-    },
-    error: (err) => {
-      console.error("Error fetching Inquiries", err);
+  // 1. Icon click par toggle logic
+  toggleInquiryPopup() {
+    if (this.showInquiryPopup) {
       this.showInquiryPopup = false;
       this.cdr.detectChanges();
+      return;
     }
-  });
-}
 
-selectInquiryFromPopup(val: string) {
-  this.searchFilters.inquiryNo = val;
-  this.showInquiryPopup = false;
-  this.cdr.detectChanges();
-}
-// Variables declare karein
-showBranchPopup: boolean = false;
-allCustomerNames: string[] = [];
-private branchSub?: Subscription;
+    // 1. Token nikaalo
+    const token = localStorage.getItem("cavalier_token");
+    if (!token) {
+      console.warn("Bhai login token nahi mila!");
+      return;
+    }
 
-// 1. Icon click par popup toggle logic
-toggleBranchPopup() {
-  if (this.showBranchPopup) {
+    // 2. Headers mein pass karo
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+    });
+
+    this.inqSub?.unsubscribe();
+
+    // 3. API Call with Headers
+    this.inqSub = this.http
+      .get<any[]>(`${environment.apiUrl}/Inquiry`, { headers })
+      .subscribe({
+        next: (res) => {
+          // Inquiry No. nikalna aur Unique banana
+          const uniqueInqs = [
+            ...new Set(
+              res
+                .filter(
+                  (item) => item.inquiryNo && item.inquiryNo.trim() !== "",
+                )
+                .map((item) => item.inquiryNo),
+            ),
+          ];
+
+          this.allInquiryNos = uniqueInqs;
+          this.showInquiryPopup = true;
+          this.cdr.detectChanges();
+          console.log("Inquiry list loaded with token");
+        },
+        error: (err) => {
+          console.error("Error fetching Inquiries", err);
+          this.showInquiryPopup = false;
+          this.cdr.detectChanges();
+        },
+      });
+  }
+
+  selectInquiryFromPopup(val: string) {
+    this.searchFilters.inquiryNo = val;
+    this.showInquiryPopup = false;
+    this.cdr.detectChanges();
+  }
+  // Variables declare karein
+  showBranchPopup: boolean = false;
+  allCustomerNames: string[] = [];
+  private branchSub?: Subscription;
+
+  // 1. Icon click par popup toggle logic
+  toggleBranchPopup() {
+    if (this.showBranchPopup) {
+      this.showBranchPopup = false;
+      this.cdr.detectChanges();
+    } else {
+      this.branchSub?.unsubscribe();
+
+      // API call to Inquiry (ya jo bhi aapka endpoint hai)
+      this.branchSub = this.http
+        .get<any[]>(`${environment.apiUrl}/Inquiry`)
+        .subscribe({
+          next: (res) => {
+            // customerName nikalna, empty values hatana aur Duplicates khatam karna
+            const uniqueCustomers = [
+              ...new Set(
+                res
+                  .filter(
+                    (item) =>
+                      item.customerName && item.customerName.trim() !== "",
+                  ) // Sample mein 'organization' naam tha
+                  .map((item) => item.customerName),
+              ),
+            ];
+
+            this.allCustomerNames = uniqueCustomers;
+            this.showBranchPopup = true;
+            this.cdr.detectChanges(); // Fast UI refresh
+          },
+          error: (err) => {
+            console.error("Error fetching customers", err);
+            this.cdr.detectChanges();
+          },
+        });
+    }
+  }
+
+  // 2. Popup se select karne par
+  selectBranchFromPopup(val: string) {
+    this.searchFilters.branchName = val;
     this.showBranchPopup = false;
     this.cdr.detectChanges();
-  } else {
-    this.branchSub?.unsubscribe();
-
-    // API call to Inquiry (ya jo bhi aapka endpoint hai)
-    this.branchSub = this.http.get<any[]>(`${environment.apiUrl}/Inquiry`).subscribe({
-      next: (res) => {
-        // customerName nikalna, empty values hatana aur Duplicates khatam karna
-        const uniqueCustomers = [...new Set(
-          res
-            .filter(item => item.customerName && item.customerName.trim() !== "") // Sample mein 'organization' naam tha
-            .map(item => item.customerName) 
-        )];
-
-        this.allCustomerNames = uniqueCustomers;
-        this.showBranchPopup = true;
-        this.cdr.detectChanges(); // Fast UI refresh
-      },
-      error: (err) => {
-        console.error("Error fetching customers", err);
-        this.cdr.detectChanges();
-      }
-    });
-  }
-}
-
-// 2. Popup se select karne par
-selectBranchFromPopup(val: string) {
-  this.searchFilters.branchName = val;
-  this.showBranchPopup = false;
-  this.cdr.detectChanges();
-}
-
-// Variables declare karein
-showCoordinatorPopup: boolean = false;
-allCoordinators: string[] = [];
-private coordinatorSub?: Subscription;
-
-// 1. Icon click par popup toggle logic
-toggleCoordinatorPopup() {
-  if (this.showCoordinatorPopup) {
-    this.showCoordinatorPopup = false;
-    this.cdr.detectChanges();
-    return;
   }
 
-  // 1. API Call (Inquiry list + HOD List)
-  this.coordinatorSub?.unsubscribe();
+  // Variables declare karein
+  showCoordinatorPopup: boolean = false;
+  allCoordinators: string[] = [];
+  private coordinatorSub?: Subscription;
 
-  // Dono calls parallel mein chalao
-  this.coordinatorSub = forkJoin({
-    inquiries: this.http.get<any[]>(`${environment.apiUrl}/Inquiry`, { 
-      headers: new HttpHeaders({ 'Authorization': `Bearer ${localStorage.getItem('cavalier_token') || ''}` }) 
-    }),
-    hodList: this.userServices.getHodList()
-  }).subscribe({
-    next: (res) => {
-      const { inquiries, hodList } = res;
-
-      // HOD list ka map (id -> name)
-      const hodMap = new Map(hodList.map((h: any) => [String(h.id), h.name]));
-
-      // 2. SalesCoordinator IDs nikaalo, map se Name lao, aur duplicates/empty hatado
-      const uniqueNames = [...new Set(
-        inquiries
-          .filter(item => item.salesCoordinator && item.salesCoordinator.trim() !== "")
-          .map(item => {
-            const coordId = String(item.salesCoordinator);
-            // Agar map mein naam mil gaya toh wo lo, warna original ID hi dikha do
-            return hodMap.get(coordId) || coordId;
-          })
-      )];
-
-      this.allCoordinators = uniqueNames;
-      this.showCoordinatorPopup = true;
-      this.cdr.detectChanges();
-      console.log("Coordinator list loaded with Names");
-    },
-    error: (err) => {
-      console.error("Error fetching data", err);
+  // 1. Icon click par popup toggle logic
+  toggleCoordinatorPopup() {
+    if (this.showCoordinatorPopup) {
       this.showCoordinatorPopup = false;
       this.cdr.detectChanges();
+      return;
     }
-  });
-}
 
-// Popup se select karne par
-selectCoordinatorFromPopup(val: string) {
-  this.searchFilters.salesCoordinator = val;
-  this.showCoordinatorPopup = false;
-  this.cdr.detectChanges();
-}
+    // 1. API Call (Inquiry list + HOD List)
+    this.coordinatorSub?.unsubscribe();
 
-// 3. Subscription Cleanup in ngOnDestroy
+    // Dono calls parallel mein chalao
+    this.coordinatorSub = forkJoin({
+      inquiries: this.http.get<any[]>(`${environment.apiUrl}/Inquiry`, {
+        headers: new HttpHeaders({
+          Authorization: `Bearer ${localStorage.getItem("cavalier_token") || ""}`,
+        }),
+      }),
+      hodList: this.userServices.getHodList(),
+    }).subscribe({
+      next: (res) => {
+        const { inquiries, hodList } = res;
 
-// 1. Naya variable add karein
-isPreviewMode = false;
+        // HOD list ka map (id -> name)
+        const hodMap = new Map(hodList.map((h: any) => [String(h.id), h.name]));
 
-// 2. Review Mode toggle karne ka function
-toggleReview() {
-  if (!this.inquiry.organization) {
-    alert("firstly save org");
-    
-    return;
+        // 2. SalesCoordinator IDs nikaalo, map se Name lao, aur duplicates/empty hatado
+        const uniqueNames = [
+          ...new Set(
+            inquiries
+              .filter(
+                (item) =>
+                  item.salesCoordinator && item.salesCoordinator.trim() !== "",
+              )
+              .map((item) => {
+                const coordId = String(item.salesCoordinator);
+                // Agar map mein naam mil gaya toh wo lo, warna original ID hi dikha do
+                return hodMap.get(coordId) || coordId;
+              }),
+          ),
+        ];
+
+        this.allCoordinators = uniqueNames;
+        this.showCoordinatorPopup = true;
+        this.cdr.detectChanges();
+        console.log("Coordinator list loaded with Names");
+      },
+      error: (err) => {
+        console.error("Error fetching data", err);
+        this.showCoordinatorPopup = false;
+        this.cdr.detectChanges();
+      },
+    });
   }
-  console.log('testing of ids', this.organizationIds);
-  this.isPreviewMode = true;
-  
-}
-// Isse call karein jab modal ke andar 1st row change ho
-syncFirstRow() {
-  if (this.dimRows && this.dimRows.length > 0) {
-    this.dimRow.box = this.dimRows[0].box;
-    this.dimRow.l = this.dimRows[0].l;
-    this.dimRow.w = this.dimRows[0].w;
-    this.dimRow.h = this.dimRows[0].h;
-    this.dimRow.unit = this.dimRows[0].unit;
-    
-    // Baaki calculations jo aapne pehle se banayi hain
-    this.calculateVolumeWeight();
-    this.updatePreview();
+
+  // Popup se select karne par
+  selectCoordinatorFromPopup(val: string) {
+    this.searchFilters.salesCoordinator = val;
+    this.showCoordinatorPopup = false;
+    this.cdr.detectChanges();
   }
-}
-syncToMainRow() {
-  if (this.dimRows && this.dimRows.length > 0) {
-    // 1st row ka data bahar wale object mein copy karein
-    this.dimRow.box = this.dimRows[0].box;
-    this.dimRow.l = this.dimRows[0].l;
-    this.dimRow.w = this.dimRows[0].w;
-    this.dimRow.h = this.dimRows[0].h;
-    this.dimRow.unit = this.dimRows[0].unit;
-    
-    // Calculations trigger karein
-    this.calculateVolumeWeight();
-    this.updatePreview();
-    
-    // Agar calculateTotalPackages bhi bahar ki main row ke liye chahiye:
-    if (typeof this.calculateTotalPackages === 'function') {
-      this.calculateTotalPackages();
+
+  // 3. Subscription Cleanup in ngOnDestroy
+
+  // 1. Naya variable add karein
+  isPreviewMode = false;
+
+  // 2. Review Mode toggle karne ka function
+  toggleReview() {
+    if (!this.inquiry.organization) {
+      alert("firstly save org");
+
+      return;
+    }
+    console.log("testing of ids", this.organizationIds);
+    this.isPreviewMode = true;
+  }
+  // Isse call karein jab modal ke andar 1st row change ho
+  syncFirstRow() {
+    if (this.dimRows && this.dimRows.length > 0) {
+      this.dimRow.box = this.dimRows[0].box;
+      this.dimRow.l = this.dimRows[0].l;
+      this.dimRow.w = this.dimRows[0].w;
+      this.dimRow.h = this.dimRows[0].h;
+      this.dimRow.unit = this.dimRows[0].unit;
+
+      // Baaki calculations jo aapne pehle se banayi hain
+      this.calculateVolumeWeight();
+      this.updatePreview();
     }
   }
-}
-// 3. Wapas edit mode mein jaane ke liye
-// backToEdit() {
-//   this.isPreviewMode = false;
-// }
+  syncToMainRow() {
+    if (this.dimRows && this.dimRows.length > 0) {
+      // 1st row ka data bahar wale object mein copy karein
+      this.dimRow.box = this.dimRows[0].box;
+      this.dimRow.l = this.dimRows[0].l;
+      this.dimRow.w = this.dimRows[0].w;
+      this.dimRow.h = this.dimRows[0].h;
+      this.dimRow.unit = this.dimRows[0].unit;
 
-// 1. Naya variable add karein
-// isPreviewMode = false;
-// 1. Array define karein review list ke liye
-localInquiryList: any[] = [];
-// isPreviewMode: boolean = false;
+      // Calculations trigger karein
+      this.calculateVolumeWeight();
+      this.updatePreview();
 
-// 2. Review Mode toggle karne ka function (With Data Mapping)
-addToLocalReview() {
-  console.log("--- Review Button Clicked ---");
-
-  if (!this.inquiry.organization) {
-    alert("firstly save org");
-    return;
+      // Agar calculateTotalPackages bhi bahar ki main row ke liye chahiye:
+      if (typeof this.calculateTotalPackages === "function") {
+        this.calculateTotalPackages();
+      }
+    }
   }
+  // 3. Wapas edit mode mein jaane ke liye
+  // backToEdit() {
+  //   this.isPreviewMode = false;
+  // }
 
-  // 1. Check Modal Data (dimRows)
-  console.log("1. Raw dimRows from Modal:", this.dimRows);
+  // 1. Naya variable add karein
+  // isPreviewMode = false;
+  // 1. Array define karein review list ke liye
+  localInquiryList: any[] = [];
+  // isPreviewMode: boolean = false;
 
-  // 2. Check Applied Data (appliedDimensions)
-  console.log("2. Raw appliedDimensions:", this.appliedDimensions);
+  // 2. Review Mode toggle karne ka function (With Data Mapping)
+  addToLocalReview() {
+    console.log("--- Review Button Clicked ---");
 
-  let finalDimensions = [];
+    if (!this.inquiry.organization) {
+      alert("firstly save org");
+      return;
+    }
 
-  // Agar dimRows array hai aur usme data hai
-  if (this.dimRows && this.dimRows.length > 0) {
-    // Filter kar rhe hain taaki khali rows na aayein
-    finalDimensions = this.dimRows.filter(d => d.l || d.w || d.h);
-    console.log("3. Filtered Dimensions from dimRows:", finalDimensions);
-  } 
-  
-  // Agar dimRows khali tha, toh appliedDimensions check karo
-  if (finalDimensions.length === 0 && this.appliedDimensions && this.appliedDimensions.length > 0) {
-    finalDimensions = [...this.appliedDimensions];
-    console.log("4. Using appliedDimensions instead:", finalDimensions);
+    // 1. Check Modal Data (dimRows)
+    console.log("1. Raw dimRows from Modal:", this.dimRows);
+
+    // 2. Check Applied Data (appliedDimensions)
+    console.log("2. Raw appliedDimensions:", this.appliedDimensions);
+
+    let finalDimensions = [];
+
+    // Agar dimRows array hai aur usme data hai
+    if (this.dimRows && this.dimRows.length > 0) {
+      // Filter kar rhe hain taaki khali rows na aayein
+      finalDimensions = this.dimRows.filter((d) => d.l || d.w || d.h);
+      console.log("3. Filtered Dimensions from dimRows:", finalDimensions);
+    }
+
+    // Agar dimRows khali tha, toh appliedDimensions check karo
+    if (
+      finalDimensions.length === 0 &&
+      this.appliedDimensions &&
+      this.appliedDimensions.length > 0
+    ) {
+      finalDimensions = [...this.appliedDimensions];
+      console.log("4. Using appliedDimensions instead:", finalDimensions);
+    }
+
+    if (finalDimensions.length === 0) {
+      console.warn("⚠️ No dimensions found anywhere!");
+    }
+
+    const completeData = {
+      lineOfBusiness: this.getLabel(
+        this.companyServices,
+        this.quotation.lineOfBusinessId,
+      ),
+      commodity: this.getLabel(this.commodityTypes, this.quotation.commodityId),
+      incoTerm: this.quotation.incoTerm || "N/A",
+      cargoStatus: this.quotation.cargoStatus || "Pending",
+      noOfPkgs: this.quotation.noOfPkgs || 0,
+      grossWeight: this.quotation.grossWeightKg || 0,
+      chargeableWeight: this.quotation.chargeableWeight || 0,
+      origin: this.inquiry.origin || "N/A",
+      finalDestination: this.quotation.finalDestination || "N/A",
+      pickupAddress: this.quotation.pickupAddress || "N/A",
+      dimensions: finalDimensions, // Snapshot mein save kiya
+    };
+
+    this.localInquiryList = [completeData];
+    console.log("5. Final Snapshot Saved:", this.localInquiryList);
+
+    this.isPreviewMode = true;
   }
-
-  if (finalDimensions.length === 0) {
-    console.warn("⚠️ No dimensions found anywhere!");
-  }
-
-  const completeData = {
-    lineOfBusiness: this.getLabel(this.companyServices, this.quotation.lineOfBusinessId),
-    commodity: this.getLabel(this.commodityTypes, this.quotation.commodityId),
-    incoTerm: this.quotation.incoTerm || 'N/A',
-    cargoStatus: this.quotation.cargoStatus || 'Pending',
-    noOfPkgs: this.quotation.noOfPkgs || 0,
-    grossWeight: this.quotation.grossWeightKg || 0,
-    chargeableWeight: this.quotation.chargeableWeight || 0,
-    origin: this.inquiry.origin || 'N/A',
-    finalDestination: this.quotation.finalDestination || 'N/A',
-    pickupAddress: this.quotation.pickupAddress || 'N/A',
-    dimensions: finalDimensions // Snapshot mein save kiya
-  };
-
-  this.localInquiryList = [completeData];
-  console.log("5. Final Snapshot Saved:", this.localInquiryList);
-  
-  this.isPreviewMode = true;
-}
 
   // Readable Snapshot banana (IDs ko Labels mein convert karke)
-//   const completeData = {
-//     // Admin & References
-//     leadNo: this.inquiry.leadNo || 'N/A',
-//     branchName: this.quotation.branchName || 'N/A',
-//     inquiryNo: this.inquiry.inquiryNo || 'N/A',
-//     location: this.quotation.location || 'N/A',
-//     receivedDate: this.quotation.receivedDate,
-    
-//     // Customer & Business
-//     organization: this.inquiry.organization,
-//     partyRole: this.getSimpleLabel(this.quotation.partyRole),
-//     lineOfBusiness: this.getLabel(this.companyServices, this.quotation.lineOfBusinessId), 
-//     quotedBy: this.quotation.createdBy || 'Current User',
-//     pricingBy: this.quotation.pricingBy || 'N/A',
-    
-//     // Cargo Details
-//     transportMode: this.quotation.transportMode || 'N/A',
-//     shipmentType: this.quotation.shipmentType || 'N/A',
-//     commodity: this.getLabel(this.commodityTypes, this.quotation.commodityId),
-//     cargoStatus: this.quotation.cargoStatus || 'Pending',
-//     hazardDoc: this.quotation.hazardDocPath || 'None',
-    
-//     // Weights
-//     grossWeight: this.quotation.grossWeightKg || 0,
-//     netWeight: this.quotation.netWeightKg || 0,
-//     chargeableWeight: this.quotation.chargeableWeight || 0,
-//     noOfPkgs: this.quotation.noOfPkgs || 0,
-    
-//     // Forwarding & Movement
-//     incoTerm: this.quotation.incoTerm || 'N/A',
-//     movementType: this.quotation.movementType || 'N/A',
-//     origin: this.inquiry.origin || 'N/A',
-//     portOfLoading: this.getLabel(this.ports, this.quotation.portOfLoadingId),
-//     portOfDischarge: this.getLabel(this.ports, this.quotation.portOfDischargeId),
-//     finalDestination: this.quotation.finalDestination || 'N/A',
-//     pickupAddress: this.quotation.pickupAddress || 'N/A',
-//     invoiceStatus: this.quotation.invoiceStatus || 'N/A',
-    
-//     // Dimensions
-//     dimensions: this.appliedDimensions.length > 0 ? [...this.appliedDimensions] : []
-//   };
+  //   const completeData = {
+  //     // Admin & References
+  //     leadNo: this.inquiry.leadNo || 'N/A',
+  //     branchName: this.quotation.branchName || 'N/A',
+  //     inquiryNo: this.inquiry.inquiryNo || 'N/A',
+  //     location: this.quotation.location || 'N/A',
+  //     receivedDate: this.quotation.receivedDate,
 
-//   this.localInquiryList = [completeData]; // Update snapshot
-//   this.isPreviewMode = true; 
-// }
+  //     // Customer & Business
+  //     organization: this.inquiry.organization,
+  //     partyRole: this.getSimpleLabel(this.quotation.partyRole),
+  //     lineOfBusiness: this.getLabel(this.companyServices, this.quotation.lineOfBusinessId),
+  //     quotedBy: this.quotation.createdBy || 'Current User',
+  //     pricingBy: this.quotation.pricingBy || 'N/A',
 
-// 3. Wapas edit mode mein jaane ke liye
-backToEdit() {
-  this.isPreviewMode = false;
-}
+  //     // Cargo Details
+  //     transportMode: this.quotation.transportMode || 'N/A',
+  //     shipmentType: this.quotation.shipmentType || 'N/A',
+  //     commodity: this.getLabel(this.commodityTypes, this.quotation.commodityId),
+  //     cargoStatus: this.quotation.cargoStatus || 'Pending',
+  //     hazardDoc: this.quotation.hazardDocPath || 'None',
 
-// 4. Helper function to get Label from ID (Handles different list structures)
-getLabel(list: any[], id: any): string {
-  if (!id || !list || list.length === 0) return 'N/A';
-  
-  const found = list.find(x => 
-    x.id == id || 
-    x.serviceId == id || 
-    x.commodityId == id || 
-    x.portId == id ||
-    x.value == id
-  );
+  //     // Weights
+  //     grossWeight: this.quotation.grossWeightKg || 0,
+  //     netWeight: this.quotation.netWeightKg || 0,
+  //     chargeableWeight: this.quotation.chargeableWeight || 0,
+  //     noOfPkgs: this.quotation.noOfPkgs || 0,
 
-  return found ? (found.serviceName || found.commodityName || found.name || found.portName || found.text) : id;
-}
-navigateToNewOrg(event?: MouseEvent) {
+  //     // Forwarding & Movement
+  //     incoTerm: this.quotation.incoTerm || 'N/A',
+  //     movementType: this.quotation.movementType || 'N/A',
+  //     origin: this.inquiry.origin || 'N/A',
+  //     portOfLoading: this.getLabel(this.ports, this.quotation.portOfLoadingId),
+  //     portOfDischarge: this.getLabel(this.ports, this.quotation.portOfDischargeId),
+  //     finalDestination: this.quotation.finalDestination || 'N/A',
+  //     pickupAddress: this.quotation.pickupAddress || 'N/A',
+  //     invoiceStatus: this.quotation.invoiceStatus || 'N/A',
+
+  //     // Dimensions
+  //     dimensions: this.appliedDimensions.length > 0 ? [...this.appliedDimensions] : []
+  //   };
+
+  //   this.localInquiryList = [completeData]; // Update snapshot
+  //   this.isPreviewMode = true;
+  // }
+
+  // 3. Wapas edit mode mein jaane ke liye
+  backToEdit() {
+    this.isPreviewMode = false;
+  }
+
+  // 4. Helper function to get Label from ID (Handles different list structures)
+  getLabel(list: any[], id: any): string {
+    if (!id || !list || list.length === 0) return "N/A";
+
+    const found = list.find(
+      (x) =>
+        x.id == id ||
+        x.serviceId == id ||
+        x.commodityId == id ||
+        x.portId == id ||
+        x.value == id,
+    );
+
+    return found
+      ? found.serviceName ||
+          found.commodityName ||
+          found.name ||
+          found.portName ||
+          found.text
+      : id;
+  }
+  navigateToNewOrg(event?: MouseEvent) {
     if (event) {
       event.stopImmediatePropagation();
     }
 
-     // NEW click karte hi dropdown band
+    // NEW click karte hi dropdown band
 
-    this.router.navigate(['/dashboard/organization-add'], {
-      state: { isFormOpen: true }
+    this.router.navigate(["/dashboard/organization-add"], {
+      state: { isFormOpen: true },
     });
   }
-// 5. Helper for simple strings
-getSimpleLabel(val: any): string {
-  return val ? val : 'N/A';
-}// Variables wahi use karein jo HTML mein *ngIf aur *ngFor mein hain
-showInquiryDropdown: boolean = false;
-filteredInquiries: any[] = [];
-loadAllLeads() {
-  if (this.showInquiryDropdown) {
-    this.showInquiryDropdown = false;
-    return;
-  }
-
-  const url = `${environment.apiUrl}/Leads`;
-  
-  this.http.get<any[]>(url).subscribe({
-    next: (res) => {
-      this.filteredInquiries = res; 
-      this.showInquiryDropdown = true; 
-      
-      // Ye line UI ko turant refresh kar degi
-      this.cdr.detectChanges(); 
-      
-      console.log(res, "Leads response loaded");
-    },
-    error: (err) => {
-      console.error("Leads load karne mein error:", err);
+  // 5. Helper for simple strings
+  getSimpleLabel(val: any): string {
+    return val ? val : "N/A";
+  } // Variables wahi use karein jo HTML mein *ngIf aur *ngFor mein hain
+  showInquiryDropdown: boolean = false;
+  filteredInquiries: any[] = [];
+  loadAllLeads() {
+    if (this.showInquiryDropdown) {
       this.showInquiryDropdown = false;
-      this.cdr.detectChanges(); // Error case mein bhi UI update karein
+      return;
     }
-  });
-}
 
-// Variables define karein
-showOrgDropdown: boolean = false;
-organizationList: any[] = [];
+    const url = `${environment.apiUrl}/Leads`;
 
-// Constructor mein CDR inject hona chahiye
+    this.http.get<any[]>(url).subscribe({
+      next: (res) => {
+        this.filteredInquiries = res;
+        this.showInquiryDropdown = true;
 
+        // Ye line UI ko turant refresh kar degi
+        this.cdr.detectChanges();
 
-
-
-loadAllOrganizations() {
-  if (this.showOrgDropdown) {
-    this.showOrgDropdown = false;
-    this.cdr.detectChanges();
-    return;
-  }
-  
-  const token = localStorage.getItem('cavalier_token'); 
-  if (!token) {
-    console.warn("Bhai login token nahi mila!");
-    return;
+        console.log(res, "Leads response loaded");
+      },
+      error: (err) => {
+        console.error("Leads load karne mein error:", err);
+        this.showInquiryDropdown = false;
+        this.cdr.detectChanges(); // Error case mein bhi UI update karein
+      },
+    });
   }
 
-  // 1. Headers object banayein
-  const headers = new HttpHeaders({
-    'Authorization': `Bearer ${token}` // Token yahan bhejna zaroori hai
-  });
+  // Variables define karein
+  showOrgDropdown: boolean = false;
+  organizationList: any[] = [];
 
-  const url = `${environment.apiUrl}/Organization/list`;
-  
-  // 2. HTTP Call mein { headers } pass karein
-  this.http.get<any[]>(url, { headers }).subscribe({
-    next: (res) => {
-      this.organizationList = res; 
-      this.showOrgDropdown = true; 
-      this.cdr.detectChanges(); 
-      console.log(res, "Organization list loaded");
-    },
-    error: (err) => {
-      console.error("Org load error:", err);
+  // Constructor mein CDR inject hona chahiye
+
+  loadAllOrganizations() {
+    if (this.showOrgDropdown) {
       this.showOrgDropdown = false;
       this.cdr.detectChanges();
+      return;
     }
-  });
-}
-filterTransportModes(event: any) {
-  // Baad mein logic likh lena
-}
-filterInquiryList(event: any) {
-  // Baad mein logic likh lena
-}
-filterCoordinatorList(event: any) {
-  // Baad mein logic likh lena
-}
-isSearchModalOpen: boolean = false;
-loadAllLeadss() {
-  // Toggle logic
-  if (this.showInquiryDropdown || this.showLeadDropdown) {
-    this.showInquiryDropdown = true;
-    this.showLeadDropdown = true;
-    this.isSearchModalOpen = true;
-    this.cdr.detectChanges();
-    return;
+
+    const token = localStorage.getItem("cavalier_token");
+    if (!token) {
+      console.warn("Bhai login token nahi mila!");
+      return;
+    }
+
+    // 1. Headers object banayein
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`, // Token yahan bhejna zaroori hai
+    });
+
+    const url = `${environment.apiUrl}/Organization/list`;
+
+    // 2. HTTP Call mein { headers } pass karein
+    this.http.get<any[]>(url, { headers }).subscribe({
+      next: (res) => {
+        this.organizationList = res;
+        this.showOrgDropdown = true;
+        this.cdr.detectChanges();
+        console.log(res, "Organization list loaded");
+      },
+      error: (err) => {
+        console.error("Org load error:", err);
+        this.showOrgDropdown = false;
+        this.cdr.detectChanges();
+      },
+    });
   }
-
-  // 1. Token nikaalo
-  const token = localStorage.getItem('cavalier_token'); 
-  if (!token) {
-    console.warn("Bhai login token nahi mila!");
-    return;
+  filterTransportModes(event: any) {
+    // Baad mein logic likh lena
   }
-
-  // 2. Headers set karo
-  const headers = new HttpHeaders({
-    'Authorization': `Bearer ${token}`
-  });
-
-  const url = `${environment.apiUrl}/leads`; // Ya jo bhi tumhara Leads ka endpoint ho
-  
-  // 3. API Call with Token
-  this.http.get<any[]>(url, { headers }).subscribe({
-    next: (res) => {
-      this.filteredInquiries = res; 
-      this.showInquiryDropdown = true; 
-      this.cdr.detectChanges(); 
-      console.log("Leads loaded with token");
-    },
-    error: (err) => {
-      console.error("Error fetching leads:", err);
-      this.showInquiryDropdown = false;
+  filterInquiryList(event: any) {
+    // Baad mein logic likh lena
+  }
+  filterCoordinatorList(event: any) {
+    // Baad mein logic likh lena
+  }
+  isSearchModalOpen: boolean = false;
+  loadAllLeadss() {
+    // Toggle logic
+    if (this.showInquiryDropdown || this.showLeadDropdown) {
+      this.showInquiryDropdown = true;
+      this.showLeadDropdown = true;
+      this.isSearchModalOpen = true;
       this.cdr.detectChanges();
+      return;
     }
-  });
-}
 
-// Selection Function
-selectInquiry(inq: any) {
-  if (!inq) {
-    console.warn("Invalid lead selected");
-    return;
+    // 1. Token nikaalo
+    const token = localStorage.getItem("cavalier_token");
+    if (!token) {
+      console.warn("Bhai login token nahi mila!");
+      return;
+    }
+
+    // 2. Headers set karo
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+    });
+
+    const url = `${environment.apiUrl}/leads`; // Ya jo bhi tumhara Leads ka endpoint ho
+
+    // 3. API Call with Token
+    this.http.get<any[]>(url, { headers }).subscribe({
+      next: (res) => {
+        this.filteredInquiries = res;
+        this.showInquiryDropdown = true;
+        this.cdr.detectChanges();
+        console.log("Leads loaded with token");
+      },
+      error: (err) => {
+        console.error("Error fetching leads:", err);
+        this.showInquiryDropdown = false;
+        this.cdr.detectChanges();
+      },
+    });
   }
 
-  // 🔥 Yahan Lead ID console mein dikhega
-  console.log("Selected Lead ID (from Modal):", inq);
- this.LeadId = inq.id;
-  this.OrganisationId = inq.organisationId; 
-  this.OrganisationName = inq.organizationName;
-  this.LeadName = inq.leadNo;
-  console.log("Selected Lead's Organisation ID:", inq.organisationId);
-  this.inquiry.leadNo = inq.leadNo || inq.inquiryNo;
-  this.showInquiryDropdown = false;
-  this.isSearchModalOpen = false;
+  // Selection Function
+  selectInquiry(inq: any) {
+    if (!inq) {
+      console.warn("Invalid lead selected");
+      return;
+    }
 
-  // Full data load karne ke liye
-  this.loadLeadByLeadNo(this.inquiry.leadNo);
-}
-// ================== LOAD FULL LEAD BY LEADNO ==================
-// ================== LOAD FULL LEAD BY LEADNO ==================
-loadLeadByLeadNo(leadNo: string) {
-  if (!leadNo) return;
+    // 🔥 Yahan Lead ID console mein dikhega
+    console.log("Selected Lead ID (from Modal):", inq);
+    this.LeadId = inq.id;
+    this.OrganisationId = inq.organisationId;
+    this.OrganisationName = inq.organizationName;
+    this.LeadName = inq.leadNo;
+    console.log("Selected Lead's Organisation ID:", inq.organisationId);
+    this.inquiry.leadNo = inq.leadNo || inq.inquiryNo;
+    this.showInquiryDropdown = false;
+    this.isSearchModalOpen = false;
 
-  const url = `${environment.apiUrl}/Leads/byLeadNo?leadNo=${encodeURIComponent(leadNo)}`;
+    // Full data load karne ke liye
+    this.loadLeadByLeadNo(this.inquiry.leadNo);
+  }
+  // ================== LOAD FULL LEAD BY LEADNO ==================
+  // ================== LOAD FULL LEAD BY LEADNO ==================
+  loadLeadByLeadNo(leadNo: string) {
+    if (!leadNo) return;
 
-  this.http.get<any>(url).subscribe({
-    next: (leadData) => {
-      console.log("✅ Full Lead Data Received:", leadData);
-      this.selectedLeadData = leadData;
-      this.inquiry.leadNo = leadData.leadNo || leadData.LeadNo;
+    const url = `${environment.apiUrl}/Leads/byLeadNo?leadNo=${encodeURIComponent(leadNo)}`;
 
-      if (leadData.organizationName) {
-        this.inquiry.organization = leadData.organizationName;
-        this.quotation.organizationName = leadData.organizationName;
-      }
-      if (leadData.organisationId) {
-        this.organizationIds = leadData.organisationId;
-      }
+    this.http.get<any>(url).subscribe({
+      next: (leadData) => {
+        console.log("✅ Full Lead Data Received:", leadData);
+        this.selectedLeadData = leadData;
+        this.inquiry.leadNo = leadData.leadNo || leadData.LeadNo;
 
-      // 🔥 AUTO-FETCH TEAM AND SALES COORDINATORS FIX
-      if (leadData.team && this.teamsList && this.teamsList.length > 0) {
-        const leadTeamStr = String(leadData.team).trim().toLowerCase();
-        
-        // Master list mein se string matches check karenge
-        const matchingTeam = this.teamsList.find(t => {
-          const tName = String(t.teamName || t.name || '').trim().toLowerCase();
-          return tName === leadTeamStr;
-        });
+        if (leadData.organizationName) {
+          this.inquiry.organization = leadData.organizationName;
+          this.quotation.organizationName = leadData.organizationName;
+        }
+        if (leadData.organisationId) {
+          this.organizationIds = leadData.organisationId;
+        }
 
-        if (matchingTeam) {
-          const tId = matchingTeam.teamId || matchingTeam.id;
-          
-          // 1. Dropdown value update (Ab exact numeric ID set hogi)
-          this.quotation.teamId = tId;
-          console.log("🎯 Dynamic Team Match Found! ID set to:", tId);
-          
-          // 2. Dynamic details endpoint call karke sales coordinators load karenge
-          this.onTeamChange(tId);
-          
-          // 3. Dropdown options parse hone ke liye small timeout
-          setTimeout(() => {
-            if (leadData.salesCoordinator) {
-              this.quotation.salesCoordinator = leadData.salesCoordinator.toString();
-              this.cdr.detectChanges();
-            }
-          }, 300);
+        // 🔥 AUTO-FETCH TEAM AND SALES COORDINATORS FIX
+        if (leadData.team && this.teamsList && this.teamsList.length > 0) {
+          const leadTeamStr = String(leadData.team).trim().toLowerCase();
 
+          // Master list mein se string matches check karenge
+          const matchingTeam = this.teamsList.find((t) => {
+            const tName = String(t.teamName || t.name || "")
+              .trim()
+              .toLowerCase();
+            return tName === leadTeamStr;
+          });
+
+          if (matchingTeam) {
+            const tId = matchingTeam.teamId || matchingTeam.id;
+
+            // 1. Dropdown value update (Ab exact numeric ID set hogi)
+            this.quotation.teamId = tId;
+            console.log("🎯 Dynamic Team Match Found! ID set to:", tId);
+
+            // 2. Dynamic details endpoint call karke sales coordinators load karenge
+            this.onTeamChange(tId);
+
+            // 3. Dropdown options parse hone ke liye small timeout
+            setTimeout(() => {
+              if (leadData.salesCoordinator) {
+                this.quotation.salesCoordinator =
+                  leadData.salesCoordinator.toString();
+                this.cdr.detectChanges();
+              }
+            }, 300);
+          } else {
+            console.warn(
+              `⚠️ Teams master list mein '${leadData.team}' naam ki koi team nahi mili!`,
+            );
+            this.quotation.teamId = null;
+            this.getsalescordinate = [];
+          }
         } else {
-          console.warn(`⚠️ Teams master list mein '${leadData.team}' naam ki koi team nahi mili!`);
+          // Agar dynamic response mein team empty aayi ho
           this.quotation.teamId = null;
           this.getsalescordinate = [];
         }
-      } else {
-        // Agar dynamic response mein team empty aayi ho
-        this.quotation.teamId = null;
-        this.getsalescordinate = [];
-      }
 
-      if (leadData.location) this.quotation.location = leadData.location;
-      if (leadData.branch) this.quotation.branchName = leadData.branch;
-      if (leadData.type) this.quotation.type = leadData.type;
-      
-      this.cdr.detectChanges();
-    },
-    error: (err) => console.error("❌ Error fetching lead:", err)
-  });
-}
-branchList: any[] = [];           
-filteredBranchSuggestions: any[] = []; 
-isBranchModalOpen: boolean = false;
-branchSearchText: string = '';  // Main Input ke liye
-modalSearchText: string = '';   // Modal ke andar search ke liye
+        if (leadData.location) this.quotation.location = leadData.location;
+        if (leadData.branch) this.quotation.branchName = leadData.branch;
+        if (leadData.type) this.quotation.type = leadData.type;
 
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error("❌ Error fetching lead:", err),
+    });
+  }
+  branchList: any[] = [];
+  filteredBranchSuggestions: any[] = [];
+  isBranchModalOpen: boolean = false;
+  branchSearchText: string = ""; // Main Input ke liye
+  modalSearchText: string = ""; // Modal ke andar search ke liye
 
-loadBranchess() {
-  const fullUrl = `${environment.apiUrl}/branch/list`;
-  console.log("📡 Calling API:", fullUrl);
+  loadBranchess() {
+    const fullUrl = `${environment.apiUrl}/branch/list`;
+    console.log("📡 Calling API:", fullUrl);
 
-  this.http.get(fullUrl).subscribe({
-    next: (res: any) => {
-      console.log("✅ API Raw Response:", res);
+    this.http.get(fullUrl).subscribe({
+      next: (res: any) => {
+        console.log("✅ API Raw Response:", res);
 
-      // Data formats handle karna
-      const data = Array.isArray(res) ? res : (res.data || res.result || []);
-      console.log("📊 Extracted Data Array:", data);
+        // Data formats handle karna
+        const data = Array.isArray(res) ? res : res.data || res.result || [];
+        console.log("📊 Extracted Data Array:", data);
 
-      if (data.length === 0) {
-        console.warn("⚠️ Warning: API returned empty array!");
-      }
+        if (data.length === 0) {
+          console.warn("⚠️ Warning: API returned empty array!");
+        }
 
-      this.branchList = data.map((b: any) => ({ 
-        ...b, 
-        isSelected: false 
-      }));
+        this.branchList = data.map((b: any) => ({
+          ...b,
+          isSelected: false,
+        }));
 
+        this.filteredBranchSuggestions = [...this.branchList];
+        console.log("📋 branchList mapped & ready:", this.branchList);
+      },
+      error: (err) => {
+        console.error("❌ API Load Failed!", err);
+      },
+    });
+  }
+
+  // Main Input ki search (Dropdown ke liye)
+  onBranchSearch() {
+    const search = this.branchSearchText.toLowerCase().trim();
+    console.log("🔍 Main Input Search Text:", search);
+
+    if (!search) {
       this.filteredBranchSuggestions = [...this.branchList];
-      console.log("📋 branchList mapped & ready:", this.branchList);
-    },
-    error: (err) => {
-      console.error("❌ API Load Failed!", err);
+      console.log(
+        "🔄 Search empty, reset list to:",
+        this.filteredBranchSuggestions.length,
+      );
+      return;
     }
-  });
-}
 
-// Main Input ki search (Dropdown ke liye)
-onBranchSearch() {
-  const search = this.branchSearchText.toLowerCase().trim();
-  console.log("🔍 Main Input Search Text:", search);
+    this.filteredBranchSuggestions = this.branchList.filter(
+      (b) =>
+        b.branchName?.toLowerCase().includes(search) ||
+        b.branchCode?.toLowerCase().includes(search),
+    );
 
-  if (!search) {
-    this.filteredBranchSuggestions = [...this.branchList];
-    console.log("🔄 Search empty, reset list to:", this.filteredBranchSuggestions.length);
-    return;
+    console.log(
+      "🎯 Main Search Results Found:",
+      this.filteredBranchSuggestions.length,
+    );
   }
 
-  this.filteredBranchSuggestions = this.branchList.filter(b => 
-    b.branchName?.toLowerCase().includes(search) || 
-    b.branchCode?.toLowerCase().includes(search)
-  );
+  // Modal ke andar ki search
+  onModalSearch() {
+    const search = this.modalSearchText.toLowerCase().trim();
+    console.log("🔍 Modal Search Text:", search);
 
-  console.log("🎯 Main Search Results Found:", this.filteredBranchSuggestions.length);
-}
+    if (!search) {
+      this.filteredBranchSuggestions = [...this.branchList];
+      console.log(
+        "🔄 Modal Search empty, showing all:",
+        this.filteredBranchSuggestions.length,
+      );
+      return;
+    }
 
-// Modal ke andar ki search
-onModalSearch() {
-  const search = this.modalSearchText.toLowerCase().trim();
-  console.log("🔍 Modal Search Text:", search);
+    this.filteredBranchSuggestions = this.branchList.filter(
+      (b) =>
+        b.branchName?.toLowerCase().includes(search) ||
+        b.branchCode?.toLowerCase().includes(search),
+    );
 
-  if (!search) {
-    this.filteredBranchSuggestions = [...this.branchList];
-    console.log("🔄 Modal Search empty, showing all:", this.filteredBranchSuggestions.length);
-    return;
+    console.log(
+      "🎯 Modal Search Results Found:",
+      this.filteredBranchSuggestions.length,
+    );
   }
 
-  this.filteredBranchSuggestions = this.branchList.filter(b => 
-    b.branchName?.toLowerCase().includes(search) || 
-    b.branchCode?.toLowerCase().includes(search)
-  );
+  toggleBranchModal() {
+    this.isBranchModalOpen = !this.isBranchModalOpen;
+    console.log(
+      "📦 Modal Status:",
+      this.isBranchModalOpen ? "OPENED" : "CLOSED",
+    );
 
-  console.log("🎯 Modal Search Results Found:", this.filteredBranchSuggestions.length);
-}
+    if (this.isBranchModalOpen) {
+      this.modalSearchText = "";
+      this.filteredBranchSuggestions = [...this.branchList];
+      console.log(
+        "💎 Data available for Modal:",
+        this.filteredBranchSuggestions.length,
+      );
 
-toggleBranchModal() { 
-  this.isBranchModalOpen = !this.isBranchModalOpen; 
-  console.log("📦 Modal Status:", this.isBranchModalOpen ? "OPENED" : "CLOSED");
-
-  if (this.isBranchModalOpen) {
-    this.modalSearchText = ''; 
-    this.filteredBranchSuggestions = [...this.branchList]; 
-    console.log("💎 Data available for Modal:", this.filteredBranchSuggestions.length);
-    
-    if (this.filteredBranchSuggestions.length === 0) {
-      console.error("🚨 Error: branchList is empty when opening modal!");
+      if (this.filteredBranchSuggestions.length === 0) {
+        console.error("🚨 Error: branchList is empty when opening modal!");
+      }
     }
   }
-}
 
-toggleBranchSelection(branch: any) { 
-  branch.isSelected = !branch.isSelected; 
-  console.log(`✅ Toggled Branch: ${branch.branchName} | Selected: ${branch.isSelected}`);
-}
-
-confirmSelection() {
-  console.log("🆗 Confirming Selection...");
-  const selectedBranches = this.branchList.filter(b => b.isSelected);
-  console.log("📍 Branches found with isSelected=true:", selectedBranches);
-
-  if (selectedBranches.length > 0) {
-    // 1. Sabse important: searchFilters mein ID daalo (Yahi pichli baar miss ho raha tha)
-    this.searchFilters.branchId = selectedBranches[0].branchId || selectedBranches[0].id;
-    
-    // 2. Input box mein Name dikhao
-    const selectedNames = selectedBranches.map(b => b.branchName);
-    this.branchSearchText = selectedNames.join(', ');
-  } else {
-    this.searchFilters.branchId = '';
-    this.branchSearchText = '';
+  toggleBranchSelection(branch: any) {
+    branch.isSelected = !branch.isSelected;
+    console.log(
+      `✅ Toggled Branch: ${branch.branchName} | Selected: ${branch.isSelected}`,
+    );
   }
 
-  console.log("📝 Input field updated to:", this.branchSearchText);
-  console.log("🆔 Branch ID saved in filters:", this.searchFilters.branchId);
+  confirmSelection() {
+    console.log("🆗 Confirming Selection...");
+    const selectedBranches = this.branchList.filter((b) => b.isSelected);
+    console.log("📍 Branches found with isSelected=true:", selectedBranches);
 
-  this.isBranchModalOpen = false;
-}
+    if (selectedBranches.length > 0) {
+      // 1. Sabse important: searchFilters mein ID daalo (Yahi pichli baar miss ho raha tha)
+      this.searchFilters.branchId =
+        selectedBranches[0].branchId || selectedBranches[0].id;
 
-selectBranchFromDropdown(branch: any) {
-  console.log("🖱️ Direct dropdown selection:", branch.branchName);
-  branch.isSelected = true;
-  this.confirmSelection(); 
-  this.filteredBranchSuggestions = []; 
-}
-// isFormOpen: boolean = true;
-showCostTable: boolean = false;
-showMultiCarrierTable: boolean = false;
-toggleTable(value: boolean) {
-  console.log("Button clicked! Setting showCostTable to:", value);
-  this.showCostTable = value;
-}
-services = [
-    { serviceName: 'Standard' },
-    { serviceName: 'Express' },
-    { serviceName: 'Economy' }
+      // 2. Input box mein Name dikhao
+      const selectedNames = selectedBranches.map((b) => b.branchName);
+      this.branchSearchText = selectedNames.join(", ");
+    } else {
+      this.searchFilters.branchId = "";
+      this.branchSearchText = "";
+    }
+
+    console.log("📝 Input field updated to:", this.branchSearchText);
+    console.log("🆔 Branch ID saved in filters:", this.searchFilters.branchId);
+
+    this.isBranchModalOpen = false;
+  }
+
+  selectBranchFromDropdown(branch: any) {
+    console.log("🖱️ Direct dropdown selection:", branch.branchName);
+    branch.isSelected = true;
+    this.confirmSelection();
+    this.filteredBranchSuggestions = [];
+  }
+  // isFormOpen: boolean = true;
+  showCostTable: boolean = false;
+  showMultiCarrierTable: boolean = false;
+  toggleTable(value: boolean) {
+    console.log("Button clicked! Setting showCostTable to:", value);
+    this.showCostTable = value;
+  }
+  services = [
+    { serviceName: "Standard" },
+    { serviceName: "Express" },
+    { serviceName: "Economy" },
   ];
 
   currencies = [
-    { label: 'INR', value: 'INR' },
-    { label: 'USD', value: 'USD' },
-    { label: 'AED', value: 'AED' }
+    { label: "INR", value: "INR" },
+    { label: "USD", value: "USD" },
+    { label: "AED", value: "AED" },
   ];
 
   // 3. Cost Rows ka Array
-  
+
   // costRows: any[] = [
   //   {
   //     lob: 'Standard',
@@ -3333,115 +3688,111 @@ services = [
   //   }
   // ];
 
-
-
   // --- LOGIC FUNCTIONS ---
 
   // Nayi row add karne ke liye
- showAlert(type: string, id: any) {
-  // Agar ID null ya undefined hai toh handle karne ke liye
-  const displayId = id ? id : 'N/A';
+  showAlert(type: string, id: any) {
+    // Agar ID null ya undefined hai toh handle karne ke liye
+    const displayId = id ? id : "N/A";
 
-  if (type === 'Organisation ID') {
-    if (!id) {
-      Swal.fire({
-        title: 'Validation Deficiency',
-        text: 'The provided Organization identifier appears to be null. Please ensure a valid ID is selected.',
-        icon: 'warning',
-        confirmButtonColor: '#4a3f3f'
-      });
-      return;
-    }
-
-    // 1. API call to check Organization existence
-    this.http.get(`${environment.apiUrl}/Organization/exists/${id}`).subscribe({
-      next: (res: any) => {
-        if (res.exists) {
-          // 2. Redirect and highlight
-          this.router.navigate(['/dashboard/organization-add'], { 
-            queryParams: { highlightId: id } 
-          });
-        } else {
-          // 3. Error message if ID not in DB
-          Swal.fire({
-            title: 'Resource Unavailability',
-            text: 'The requested Organization record does not correspond to any active entry within our database repository.',
-            icon: 'error',
-            confirmButtonColor: '#4a3f3f'
-          });
-        }
-      },
-      error: (err) => {
-        console.error("Verification anomaly for Organization:", err);
+    if (type === "Organisation ID") {
+      if (!id) {
         Swal.fire({
-          title: 'System Inconsistency',
-          text: 'A transient error occurred while attempting to retrieve the record. Please verify your connection status.',
-          icon: 'error',
-          confirmButtonColor: '#4a3f3f'
+          title: "Validation Deficiency",
+          text: "The provided Organization identifier appears to be null. Please ensure a valid ID is selected.",
+          icon: "warning",
+          confirmButtonColor: "#4a3f3f",
         });
+        return;
       }
-    });
-  } 
-  
-  else if (type === 'Lead ID') {
-    if (!id) {
-      Swal.fire({
-        title: 'Validation Deficiency',
-        text: 'The provided Lead identifier is malformed or invalid.',
-        icon: 'warning',
-        confirmButtonColor: '#4a3f3f'
-      });
-      return;
-    }
 
-    // Call the Leads exists endpoint
-    this.http.get(`${environment.apiUrl}/Leads/exists/${id}`).subscribe({
-      next: (res: any) => {
-        if (res.exists) {
-          this.router.navigate(['/dashboard/salescrm/lead'], { 
-            queryParams: { highlightId: id } 
-          });
-        } else {
-          Swal.fire({
-            title: 'Resource Unavailability',
-            text: 'No Lead record could be identified within the system registry for the provided ID.',
-            icon: 'error',
-            confirmButtonColor: '#4a3f3f'
-          });
-        }
-      },
-      error: (err) => {
-        console.error("Lead existence check failed:", err);
-        Swal.fire({
-          title: 'System Inconsistency',
-          text: 'Unable to perform verification against the Lead registry at this juncture.',
-          icon: 'error',
-          confirmButtonColor: '#4a3f3f'
+      // 1. API call to check Organization existence
+      this.http
+        .get(`${environment.apiUrl}/Organization/exists/${id}`)
+        .subscribe({
+          next: (res: any) => {
+            if (res.exists) {
+              // 2. Redirect and highlight
+              this.router.navigate(["/dashboard/organization-add"], {
+                queryParams: { highlightId: id },
+              });
+            } else {
+              // 3. Error message if ID not in DB
+              Swal.fire({
+                title: "Resource Unavailability",
+                text: "The requested Organization record does not correspond to any active entry within our database repository.",
+                icon: "error",
+                confirmButtonColor: "#4a3f3f",
+              });
+            }
+          },
+          error: (err) => {
+            console.error("Verification anomaly for Organization:", err);
+            Swal.fire({
+              title: "System Inconsistency",
+              text: "A transient error occurred while attempting to retrieve the record. Please verify your connection status.",
+              icon: "error",
+              confirmButtonColor: "#4a3f3f",
+            });
+          },
         });
+    } else if (type === "Lead ID") {
+      if (!id) {
+        Swal.fire({
+          title: "Validation Deficiency",
+          text: "The provided Lead identifier is malformed or invalid.",
+          icon: "warning",
+          confirmButtonColor: "#4a3f3f",
+        });
+        return;
       }
-    });
-  } 
-  
-  else {
-    // Default fallback for other types
-    Swal.fire({
-      title: 'Action Acknowledged',
-      text: `The operation for ${type} has been initialized successfully.`,
-      icon: 'info',
-      confirmButtonColor: '#4a3f3f'
-    });
+
+      // Call the Leads exists endpoint
+      this.http.get(`${environment.apiUrl}/Leads/exists/${id}`).subscribe({
+        next: (res: any) => {
+          if (res.exists) {
+            this.router.navigate(["/dashboard/salescrm/lead"], {
+              queryParams: { highlightId: id },
+            });
+          } else {
+            Swal.fire({
+              title: "Resource Unavailability",
+              text: "No Lead record could be identified within the system registry for the provided ID.",
+              icon: "error",
+              confirmButtonColor: "#4a3f3f",
+            });
+          }
+        },
+        error: (err) => {
+          console.error("Lead existence check failed:", err);
+          Swal.fire({
+            title: "System Inconsistency",
+            text: "Unable to perform verification against the Lead registry at this juncture.",
+            icon: "error",
+            confirmButtonColor: "#4a3f3f",
+          });
+        },
+      });
+    } else {
+      // Default fallback for other types
+      Swal.fire({
+        title: "Action Acknowledged",
+        text: `The operation for ${type} has been initialized successfully.`,
+        icon: "info",
+        confirmButtonColor: "#4a3f3f",
+      });
+    }
   }
-}
   addCostRow() {
     this.costRows.push({
-      lob: 'Standard', // Default value
-      chargeName: '',
-      chargeType: '',
-      basis: '',
-      currency: 'INR',
+      lob: "Standard", // Default value
+      chargeName: "",
+      chargeType: "",
+      basis: "",
+      currency: "INR",
       rate: 0,
       exchangeRate: 1,
-      amount: 0
+      amount: 0,
     });
   }
 
@@ -3455,7 +3806,7 @@ services = [
 
   // Calculation Logic: Amount = Rate * Exchange Rate
   calculateCost() {
-    this.costRows.forEach(row => {
+    this.costRows.forEach((row) => {
       if (row.rate && row.exchangeRate) {
         row.amount = row.rate * row.exchangeRate;
       } else {
@@ -3466,45 +3817,53 @@ services = [
 
   // Final Save Logic
   applyCost() {
-    console.log('Final Cost Data:', this.costRows);
+    console.log("Final Cost Data:", this.costRows);
     this.showCostTable = false; // Table close karke wapas form par
   }
-// showCostTable: boolean = false; // Toggle handle karne ke liye
-costRows: CostBreakdown[] = [
-  { lob: 'Standard', chargeName: '', chargeType: 'Prepaid', basis: 'Per KG', currency: 'INR', rate: 0, exchangeRate: 1, amount: 0 }
-];
-  
+  // showCostTable: boolean = false; // Toggle handle karne ke liye
+  costRows: CostBreakdown[] = [
+    {
+      lob: "Standard",
+      chargeName: "",
+      chargeType: "Prepaid",
+      basis: "Per KG",
+      currency: "INR",
+      rate: 0,
+      exchangeRate: 1,
+      amount: 0,
+    },
+  ];
+
   // Initial empty row
   multiCarrierRows: any[] = [this.createEmptyRow()];
-
-
 
   createEmptyRow() {
     return {
       id: 0,
-      forwarder: '',
-      origin: '',
-      currency: 'USD',
+      forwarder: "",
+      origin: "",
+      currency: "USD",
       airFreight: 0,
-      fsc: 'INC',
-      airline: '',
-      type: 'DIRECT',
-      cutoff: '',
-      schedule: '',
+      fsc: "INC",
+      airline: "",
+      type: "DIRECT",
+      cutoff: "",
+      schedule: "",
       exWorks: 0,
       doCharges: 0,
       ccFee: 0,
       totalCost: 0,
-      remark: ''
+      remark: "",
     };
   }
 
   calculateMultiTotal(i: number) {
     const r = this.multiCarrierRows[i];
-    r.totalCost = (Number(r.airFreight) || 0) + 
-                  (Number(r.exWorks) || 0) + 
-                  (Number(r.doCharges) || 0) + 
-                  (Number(r.ccFee) || 0);
+    r.totalCost =
+      (Number(r.airFreight) || 0) +
+      (Number(r.exWorks) || 0) +
+      (Number(r.doCharges) || 0) +
+      (Number(r.ccFee) || 0);
   }
 
   addMultiCarrierRow() {
@@ -3520,494 +3879,569 @@ costRows: CostBreakdown[] = [
   }
 
   applyAndSave() {
-  // Is function ki ab zaroorat nahi padegi kyunki hum saveQuotation me sab bhej rahe hain.
-  // Bas modal band karne ke liye aap iska use kar sakte hain.
-  this.showMultiCarrierTable = false;
-  alert('Carrier details added to Inquiry!');
-}
-saveQuotation() {
-  if (!this.inquiry.organization) { 
-    alert("Organization Name is required!");
-    return;
+    // Is function ki ab zaroorat nahi padegi kyunki hum saveQuotation me sab bhej rahe hain.
+    // Bas modal band karne ke liye aap iska use kar sakte hain.
+    this.showMultiCarrierTable = false;
+    alert("Carrier details added to Inquiry!");
   }
-
-  // --- CLEAN PAYLOAD MAPPING ---
-  const payload: any = {
-    ...this.quotation, 
-    teamId: (this.quotation.teamId && Number(this.quotation.teamId) > 0) ? Number(this.quotation.teamId) : null,
-    TransportMode: String(this.quotation.TransportMode || this.quotation.transportMode || ''),
-    TransportType: String(this.quotation.TransportType || this.quotation.transportType || ''),
-    inquiryNo: String(this.inquiry.inquiryNo || ''),
-    
-    // --- INDEPENDENT FIELD ---
-    podOrigin: String(this.quotation.podOrigin || ''), 
-    
-    // --- FALLBACK LOGIC FOR ORGANIZATION ---
-    customerName: String(this.inquiry.organization || this.quotation.customerName || ''),
-    organization: String(this.inquiry.organization || this.quotation.organization || ''),
-    OrganisationName: String(this.OrganisationName || this.inquiry.organization || this.quotation.organization || ''),
-    OrganisationId: Number(this.OrganisationId || this.quotation.organisationId || 0),
-    
-    shipmentType: String(this.quotation.shipmentType || ''),
-    leadNo: String(this.inquiry.leadNo || this.quotation.leadNo || ''),
-    leadId: Number(this.LeadId || this.quotation.leadId || 0),
-    LeadName: String(this.LeadName || this.quotation.leadName || this.quotation.leadNo || ''),
-    
-    origin: String(this.inquiry.origin || this.quotation.origin || ''),
-
-    HazardDocPath: this.quotation.hazardDocPath || null,
-    weightUnit: String(this.quotation.GrossweightUnit || 'KGS'),
-    
-    GrossWeightUnit: String(this.quotation.GrossWeightUnit || ''),
-    NetWeightUnit: String(this.quotation.NetWeightUnit || ''),
-    ChargeableWeightUnit: String(this.quotation.ChargeWeightUnit || ''),
-    VolumeWeightUnit: String(this.quotation.VolumeWeightUnit || ''), 
-    NoOfPkgsUnit: String(this.quotation.noOfPkgsUnit || ''),
-    CbmWeightUnit: String(this.quotation.CbmWeightUnit || 'CBM'),
-    cargocurrency: String(this.quotation.currency || 'INR'),
-    cargoValue: String(this.quotation.cargoValue || "0"),
-    lineOfBusinessId: (this.quotation.lineOfBusinessId && Number(this.quotation.lineOfBusinessId) > 0) ? Number(this.quotation.lineOfBusinessId) : null,
-    lineOfBusinessName: String(this.quotation.lineOfBusinessName || ''),
-    originId: (this.originsaveid && Number(this.originsaveid) > 0) ? Number(this.originsaveid) : null,
-    
-    portOfLoadingId: (this.quotation.portOfLoadingId && Number(this.quotation.portOfLoadingId) > 0) ? Number(this.quotation.portOfLoadingId) : null,
-    portOfDischargeId: (this.quotation.portOfDischargeId && Number(this.quotation.portOfDischargeId) > 0) ? Number(this.quotation.portOfDischargeId) : null, 
-    
-    portOfLoading: null, 
-    portOfDischarge: null,
-    
-    codeOfPOD: String(this.quotation.codeOfPOD || ''),
-    codeOfFinalDest: String(this.quotation.codeOfFinalDest || ''),
-
-    cargoStatus: String(this.quotation.cargoStatusType || 'Ready'),
-    createdBy: 'admin@cavalierlogistic.in', 
-    qtnId: String(this.quotation.qtnId || ('QTN-' + Math.floor(1000 + Math.random() * 9000))),
-    createdDate: new Date().toISOString(),
-    dimensions: this.appliedDimensions || [],
-    countryName: String(this.quotation.country || ''),
-    
-    connectingPortIds: (this.selectedConnectingPorts && this.selectedConnectingPorts.length > 0) 
-                        ? String(this.selectedConnectingPorts.map((p: any) => p.id).join(',')) 
-                        : null,
-
-    isDirect: this.quotation.serviceType === 'Direct' || Boolean(this.quotation.isDirect),
-    isIndirect: this.quotation.serviceType === 'Indirect' || Boolean(this.quotation.isIndirect),
-    serviceType: String(this.searchFilters?.transportMode || this.quotation.serviceType || "")
-  };
-
-  // 🔥 CRITICAL FIX: 'commodity' नाम की इंटीजर की को डिलीट करके सही C# फॉरेन की का नाम सेट किया
-  payload.commodityId = (this.quotation.commodity && Number(this.quotation.commodity) > 0) ? Number(this.quotation.commodity) : null;
-  if (payload.hasOwnProperty('commodity')) {
-    delete payload.commodity;
-  }
-
-  console.log("FINAL PAYLOAD BEFORE SENDING:", payload);
-
-  const formData = new FormData();
-  formData.append('inquiryData', JSON.stringify(payload));
-
-  if (this.documents?.length) {
-    this.documents.forEach(doc => { if (doc.file) { formData.append('commodityFiles', doc.file); formData.append('documentNames', doc.name || doc.fileName); }});
-  }
-  if (this.invoices?.length) {
-    this.invoices.forEach(inv => { if (inv.file) { formData.append('invoiceFiles', inv.file); formData.append('invoiceNames', inv.name || inv.fileName); }});
-  }
-
-  const token = localStorage.getItem('cavalier_token');
-  const httpOptions = { headers: { Authorization: `Bearer ${token}` } };
-  
-  const action = (this.quotation.id && this.quotation.id > 0) 
-    ? this.http.put(`${this.apiUrl}/${this.quotation.id}`, formData, httpOptions)
-    : this.http.post(this.apiUrl, formData, httpOptions);
-
-  action.subscribe({
-    next: () => {
-      alert("Success: Saved in CavalierDB!");
-      this.isFormOpen = false;
-      this.router.navigate(['/dashboard/salescrm/inquiry']);
-      this.cdr.detectChanges();
-    },
-    error: (err) => {
-       console.error("Backend Error Details:", err);
-       alert("Failed: Database FK Conflict. Check if Port IDs exist in PortSetup/PortDischarge tables.");
+  saveQuotation() {
+    if (!this.inquiry.organization) {
+      alert("Organization Name is required!");
+      return;
     }
-  });
-}
-// Variables
-isModalOpen = false;
-// selectedInquiryCarriers: any[] = []; // Iski zaroorat nahi agar aap direct array use kar rahe ho
 
-// Button click par ye chalega
-openMultiCarrierModal() {
-  // Agar aapka data 'multiCarrierRows' naam ke array mein hai
-  if (this.multiCarrierRows && this.multiCarrierRows.length > 0) {
-    this.isModalOpen = true;
-    this.cdr.detectChanges();
-  } else {
-    alert("Abhi koi carrier data add nahi kiya gaya hai!");
-  }
-}
+    // --- CLEAN PAYLOAD MAPPING ---
+    const payload: any = {
+      ...this.quotation,
+      teamId:
+        this.quotation.teamId && Number(this.quotation.teamId) > 0
+          ? Number(this.quotation.teamId)
+          : null,
+      TransportMode: String(
+        this.quotation.TransportMode || this.quotation.transportMode || "",
+      ),
+      TransportType: String(
+        this.quotation.TransportType || this.quotation.transportType || "",
+      ),
+      inquiryNo: String(this.inquiry.inquiryNo || ""),
 
-closeModal() {
-  this.isModalOpen = false;
-}
-// calculateMultiTotal(index: number) {
-//   let row = this.multiCarrierRows[index];
-//   // Aap apne calculation logic ke hisaab se ise change kar sakte hain
-//   row.totalCost = (Number(row.airFreight) || 0) + (Number(row.exWorks) || 0) + (Number(row.ccFee) || 0);
-// }
+      // --- INDEPENDENT FIELD ---
+      podOrigin: String(this.quotation.podOrigin || ""),
 
-showRowModal = false;
-selectedInquiryId: any = null;
+      // --- FALLBACK LOGIC FOR ORGANIZATION ---
+      customerName: String(
+        this.inquiry.organization || this.quotation.customerName || "",
+      ),
+      organization: String(
+        this.inquiry.organization || this.quotation.organization || "",
+      ),
+      OrganisationName: String(
+        this.OrganisationName ||
+          this.inquiry.organization ||
+          this.quotation.organization ||
+          "",
+      ),
+      OrganisationId: Number(
+        this.OrganisationId || this.quotation.organisationId || 0,
+      ),
 
-// Double click par call hone wala function
-handleRowDblClick(id: any) {
-  this.selectedInquiryId = id;
-  this.showRowModal = true;
-}
-loadInquiryById(id: number) {
-  const token = localStorage.getItem('cavalier_token');
-  const headers = new HttpHeaders({
-    'Authorization': `Bearer ${token}`
-  });
+      shipmentType: String(this.quotation.shipmentType || ""),
+      leadNo: String(this.inquiry.leadNo || this.quotation.leadNo || ""),
+      leadId: Number(this.LeadId || this.quotation.leadId || 0),
+      LeadName: String(
+        this.LeadName || this.quotation.leadName || this.quotation.leadNo || "",
+      ),
 
-  // Aapki specific API: [HttpGet("{id}")]
-  this.http.get<any>(`${this.apiUrl}/${id}`, { headers }).subscribe({
-    next: (data) => {
-      console.log("Data received from API:", data);
-      if (data) {
-        // Aapka existing edit function call hoga jo poora data map kar dega
-        this.editQuotation(data);
+      origin: String(this.inquiry.origin || this.quotation.origin || ""),
+
+      HazardDocPath: this.quotation.hazardDocPath || null,
+      weightUnit: String(this.quotation.GrossweightUnit || "KGS"),
+
+      GrossWeightUnit: String(this.quotation.GrossWeightUnit || ""),
+      NetWeightUnit: String(this.quotation.NetWeightUnit || ""),
+      ChargeableWeightUnit: String(this.quotation.ChargeWeightUnit || ""),
+      VolumeWeightUnit: String(this.quotation.VolumeWeightUnit || ""),
+      NoOfPkgsUnit: String(this.quotation.noOfPkgsUnit || ""),
+      CbmWeightUnit: String(this.quotation.CbmWeightUnit || "CBM"),
+      cargocurrency: String(this.quotation.currency || "INR"),
+      cargoValue: String(this.quotation.cargoValue || "0"),
+      lineOfBusinessId:
+        this.quotation.lineOfBusinessId &&
+        Number(this.quotation.lineOfBusinessId) > 0
+          ? Number(this.quotation.lineOfBusinessId)
+          : null,
+      lineOfBusinessName: String(this.quotation.lineOfBusinessName || ""),
+      originId:
+        this.originsaveid && Number(this.originsaveid) > 0
+          ? Number(this.originsaveid)
+          : null,
+
+      portOfLoadingId:
+        this.quotation.portOfLoadingId &&
+        Number(this.quotation.portOfLoadingId) > 0
+          ? Number(this.quotation.portOfLoadingId)
+          : null,
+      portOfDischargeId:
+        this.quotation.portOfDischargeId &&
+        Number(this.quotation.portOfDischargeId) > 0
+          ? Number(this.quotation.portOfDischargeId)
+          : null,
+
+      portOfLoading: null,
+      portOfDischarge: null,
+
+      codeOfPOD: String(this.quotation.codeOfPOD || ""),
+      codeOfFinalDest: String(this.quotation.codeOfFinalDest || ""),
+
+      cargoStatus: String(this.quotation.cargoStatusType || "Ready"),
+      createdBy: "admin@cavalierlogistic.in",
+      qtnId: String(
+        this.quotation.qtnId ||
+          "QTN-" + Math.floor(1000 + Math.random() * 9000),
+      ),
+      createdDate: new Date().toISOString(),
+      dimensions: this.appliedDimensions || [],
+      countryName: String(this.quotation.country || ""),
+
+      connectingPortIds:
+        this.selectedConnectingPorts && this.selectedConnectingPorts.length > 0
+          ? String(this.selectedConnectingPorts.map((p: any) => p.id).join(","))
+          : null,
+
+      isDirect:
+        this.quotation.serviceType === "Direct" ||
+        Boolean(this.quotation.isDirect),
+      isIndirect:
+        this.quotation.serviceType === "Indirect" ||
+        Boolean(this.quotation.isIndirect),
+      serviceType: String(
+        this.searchFilters?.transportMode || this.quotation.serviceType || "",
+      ),
+    };
+
+    // 🔥 CRITICAL FIX: 'commodity' नाम की इंटीजर की को डिलीट करके सही C# फॉरेन की का नाम सेट किया
+    payload.commodityId =
+      this.quotation.commodity && Number(this.quotation.commodity) > 0
+        ? Number(this.quotation.commodity)
+        : null;
+    if (payload.hasOwnProperty("commodity")) {
+      delete payload.commodity;
+    }
+
+    console.log("FINAL PAYLOAD BEFORE SENDING:", payload);
+
+    const formData = new FormData();
+    formData.append("inquiryData", JSON.stringify(payload));
+
+    if (this.documents?.length) {
+      this.documents.forEach((doc) => {
+        if (doc.file) {
+          formData.append("commodityFiles", doc.file);
+          formData.append("documentNames", doc.name || doc.fileName);
+        }
+      });
+    }
+    if (this.invoices?.length) {
+      this.invoices.forEach((inv) => {
+        if (inv.file) {
+          formData.append("invoiceFiles", inv.file);
+          formData.append("invoiceNames", inv.name || inv.fileName);
+        }
+      });
+    }
+
+    const token = localStorage.getItem("cavalier_token");
+    const httpOptions = { headers: { Authorization: `Bearer ${token}` } };
+
+    const action =
+      this.quotation.id && this.quotation.id > 0
+        ? this.http.put(
+            `${this.apiUrl}/${this.quotation.id}`,
+            formData,
+            httpOptions,
+          )
+        : this.http.post(this.apiUrl, formData, httpOptions);
+
+    action.subscribe({
+      next: () => {
+        alert("Success: Saved in CavalierDB!");
+        this.isFormOpen = false;
+        this.router.navigate(["/dashboard/salescrm/inquiry"]);
         this.cdr.detectChanges();
-      }
-    },
-    error: (err) => {
-      console.error("Error loading inquiry for edit:", err);
-      Swal.fire('Error', 'Could not load inquiry data', 'error');
-    }
-  });
-}
-closeRowModal() {
-  this.showRowModal = false;
-  this.selectedInquiryId = null;
-}  
-toggleStatus(q: any) {
-  // 1. Authorization Token
-  const token = localStorage.getItem('cavalier_token');
-  const headers = new HttpHeaders({
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json'
-  });
+        window.location.reload();
+      },
+      error: (err) => {
+        console.error("Backend Error Details:", err);
+        alert(
+          "Failed: Database FK Conflict. Check if Port IDs exist in PortSetup/PortDischarge tables.",
+        );
+      },
+    });
+  }
+  // Variables
+  isModalOpen = false;
+  // selectedInquiryCarriers: any[] = []; // Iski zaroorat nahi agar aap direct array use kar rahe ho
 
-  // 2. URL Setup
-  const url = `${environment.apiUrl}/Inquiry/ToggleStatus/${q.id}`;
-
-  // Current state save kar lo (error handle karne ke liye)
-  const previousStatus = q.status;
-
-  // 3. API Call
-  this.http.patch(url, {}, { headers }).subscribe({
-    next: (res: any) => {
-      // Backend (res.newStatus) se sync kar rahe hain
-      q.status = res.newStatus;
-      
-      // UI update trigger
+  // Button click par ye chalega
+  openMultiCarrierModal() {
+    // Agar aapka data 'multiCarrierRows' naam ke array mein hai
+    if (this.multiCarrierRows && this.multiCarrierRows.length > 0) {
+      this.isModalOpen = true;
       this.cdr.detectChanges();
-      
-      console.log(`✅ Status changed for ID ${q.id}:`, res.newStatus);
-    },
-    error: (err) => {
-      console.error("❌ Status update fail:", err);
-      
-      // Error par wapas purani state set karo taaki UI galat na dikhe
-      q.status = previousStatus;
-      
-      alert("Error while change status!");
-      
-      // UI ko revert karne ke liye forcefully update
-      this.cdr.detectChanges();
+    } else {
+      alert("Abhi koi carrier data add nahi kiya gaya hai!");
     }
-  });
-}// --- Variables Section ---
-showCountryDropdown: boolean = false;
-countriesList: any[] = []; 
-filteredCountries: any[] = [];
+  }
 
-// 🔥 Ye variable declare karna zaroori tha error hatane ke liye
-selectedCountryName: string = ''; 
+  closeModal() {
+    this.isModalOpen = false;
+  }
+  // calculateMultiTotal(index: number) {
+  //   let row = this.multiCarrierRows[index];
+  //   // Aap apne calculation logic ke hisaab se ise change kar sakte hain
+  //   row.totalCost = (Number(row.airFreight) || 0) + (Number(row.exWorks) || 0) + (Number(row.ccFee) || 0);
+  // }
 
-fetchAllCountries() {
-  const apiUrl = 'https://restcountries.com/v3.1/all';
-  
-  this.http.get<any[]>(apiUrl).subscribe({
-    next: (data) => {
-      // Data format: Name aur Code nikal rahe hain
-      this.countriesList = data.map(country => ({
-        name: country.name.common,
-        id: country.cca2 
-      })).sort((a, b) => a.name.localeCompare(b.name));
-      
-      this.filteredCountries = this.countriesList;
-    },
-    error: (err) => {
-      console.error('Country API failed:', err);
-      // Fallback
-      this.countriesList = [{ id: 'IN', name: 'India' }];
-      this.filteredCountries = this.countriesList;
-    }
-  });
-}
+  showRowModal = false;
+  selectedInquiryId: any = null;
 
-// 🔍 Search Function
-onCountrySearch() {
-  const searchTerm = this.quotation.country?.toLowerCase() || '';
-  this.showCountryDropdown = true;
-  
-  this.filteredCountries = this.countriesList.filter(c => 
-    c.name.toLowerCase().includes(searchTerm)
-  );
-}
+  // Double click par call hone wala function
+  handleRowDblClick(id: any) {
+    this.selectedInquiryId = id;
+    this.showRowModal = true;
+  }
+  loadInquiryById(id: number) {
+    const token = localStorage.getItem("cavalier_token");
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+    });
 
-// ✅ Selection Function (Updated with selection logic)
-selectCountry(country: any) {
-  this.quotation.country = country.name;     // UI Input box ke liye
-  this.quotation.countryId = country.id;     // Backend ID ke liye
-  
-  // 🔥 Ye line saveQuotation() ke payload mein data bhejegi
-  this.selectedCountryName = country.name; 
-  
-  this.showCountryDropdown = false;
-  console.log("Country Selected for Save:", this.selectedCountryName);
-}
+    // Aapki specific API: [HttpGet("{id}")]
+    this.http.get<any>(`${this.apiUrl}/${id}`, { headers }).subscribe({
+      next: (data) => {
+        console.log("Data received from API:", data);
+        if (data) {
+          // Aapka existing edit function call hoga jo poora data map kar dega
+          this.editQuotation(data);
+          this.cdr.detectChanges();
+        }
+      },
+      error: (err) => {
+        console.error("Error loading inquiry for edit:", err);
+        Swal.fire("Error", "Could not load inquiry data", "error");
+      },
+    });
+  }
+  closeRowModal() {
+    this.showRowModal = false;
+    this.selectedInquiryId = null;
+  }
+  toggleStatus(q: any) {
+    // 1. Authorization Token
+    const token = localStorage.getItem("cavalier_token");
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    });
+
+    // 2. URL Setup
+    const url = `${environment.apiUrl}/Inquiry/ToggleStatus/${q.id}`;
+
+    // Current state save kar lo (error handle karne ke liye)
+    const previousStatus = q.status;
+
+    // 3. API Call
+    this.http.patch(url, {}, { headers }).subscribe({
+      next: (res: any) => {
+        // Backend (res.newStatus) se sync kar rahe hain
+        q.status = res.newStatus;
+
+        // UI update trigger
+        this.cdr.detectChanges();
+
+        console.log(`✅ Status changed for ID ${q.id}:`, res.newStatus);
+      },
+      error: (err) => {
+        console.error("❌ Status update fail:", err);
+
+        // Error par wapas purani state set karo taaki UI galat na dikhe
+        q.status = previousStatus;
+
+        alert("Error while change status!");
+
+        // UI ko revert karne ke liye forcefully update
+        this.cdr.detectChanges();
+      },
+    });
+  } // --- Variables Section ---
+  showCountryDropdown: boolean = false;
+  countriesList: any[] = [];
+  filteredCountries: any[] = [];
+
+  // 🔥 Ye variable declare karna zaroori tha error hatane ke liye
+  selectedCountryName: string = "";
+
+  fetchAllCountries() {
+    const apiUrl = "https://restcountries.com/v3.1/all";
+
+    this.http.get<any[]>(apiUrl).subscribe({
+      next: (data) => {
+        // Data format: Name aur Code nikal rahe hain
+        this.countriesList = data
+          .map((country) => ({
+            name: country.name.common,
+            id: country.cca2,
+          }))
+          .sort((a, b) => a.name.localeCompare(b.name));
+
+        this.filteredCountries = this.countriesList;
+      },
+      error: (err) => {
+        console.error("Country API failed:", err);
+        // Fallback
+        this.countriesList = [{ id: "IN", name: "India" }];
+        this.filteredCountries = this.countriesList;
+      },
+    });
+  }
+
+  // 🔍 Search Function
+  onCountrySearch() {
+    const searchTerm = this.quotation.country?.toLowerCase() || "";
+    this.showCountryDropdown = true;
+
+    this.filteredCountries = this.countriesList.filter((c) =>
+      c.name.toLowerCase().includes(searchTerm),
+    );
+  }
+
+  // ✅ Selection Function (Updated with selection logic)
+  selectCountry(country: any) {
+    this.quotation.country = country.name; // UI Input box ke liye
+    this.quotation.countryId = country.id; // Backend ID ke liye
+
+    // 🔥 Ye line saveQuotation() ke payload mein data bhejegi
+    this.selectedCountryName = country.name;
+
+    this.showCountryDropdown = false;
+    console.log("Country Selected for Save:", this.selectedCountryName);
+  }
   // 🎯 Alert dikhane ka function (Lead/Org ID ke liye)
   // showAlert(title: string, id: any) {
   //   alert(`${title}: ${id || 'N/A'}`);
   // }// --- Variables (Same as yours) ---
-// quotation: any = { portOfLoading: 'DELHI (DEL)', portOfDestination: 'LONDON (LHR)' }; // Example
+  // quotation: any = { portOfLoading: 'DELHI (DEL)', portOfDestination: 'LONDON (LHR)' }; // Example
   allConnectingPorts: any[] = [];
   filteredConnectingPorts: any[] = [];
   selectedConnectingPorts: any[] = [];
-  cpSearchTerm: string = '';
+  cpSearchTerm: string = "";
   isCPModalOpen = false;
 
   // ngOnInit() { this.loadConnectingPortsData(); }
-private apiUrls = `${environment.apiUrl}/ConnectingPort`;
-loadConnectingPortsData() {
-  const url = `${environment.apiUrl}/PortSetup`; 
+  private apiUrls = `${environment.apiUrl}/ConnectingPort`;
+  loadConnectingPortsData() {
+    const url = `${environment.apiUrl}/PortSetup`;
 
-  this.http.get<any[]>(url).subscribe({
-    next: (data) => {
-      // Yahan hum manual 'portType' add kar rahe hain agar wo missing hai
-      this.allConnectingPorts = data.map(p => ({
-        ...p,
-        portType: p.portType || 'AIRPORT' // Agar portType nahi hai, toh default 'AIRPORT' set karo
-      }));
-      
-      this.filteredConnectingPorts = this.allConnectingPorts;
-      console.log("Ports Loaded with Default Type:", this.allConnectingPorts);
-      this.cdr.detectChanges();
-    },
-    error: (err) => console.error("Error loading ports:", err)
-  });
-}
+    this.http.get<any[]>(url).subscribe({
+      next: (data) => {
+        // Yahan hum manual 'portType' add kar rahe hain agar wo missing hai
+        this.allConnectingPorts = data.map((p) => ({
+          ...p,
+          portType: p.portType || "AIRPORT", // Agar portType nahi hai, toh default 'AIRPORT' set karo
+        }));
 
-// Filter helpers (portType check karega)
-getPortsByType(type: string) {
-  // Console ke hisaab se portType field use hogi
-  return this.filteredConnectingPorts.filter(p => p.portType === type);
-}
-
-selectConnectingPort(port: any) {
-  const index = this.selectedConnectingPorts.findIndex(p => p.id === port.id);
-  if (index === -1) this.selectedConnectingPorts.push(port);
-  else this.selectedConnectingPorts.splice(index, 1);
-  this.cdr.detectChanges();
-}
-
-removeConnectingPort(port: any) {
-  this.selectedConnectingPorts = this.selectedConnectingPorts.filter(p => p.id !== port.id);
-  this.cdr.detectChanges();
-}
-
-isPortSelected(port: any): boolean {
-  return this.selectedConnectingPorts.some(p => p.id === port.id);
-}
-
-onSearchingConnectingPorts() {
-  const term = this.cpSearchTerm.toLowerCase();
-  // Yahan p.name ki jagah p.portName aur p.code ki jagah p.portCode use kiya hai
-  this.filteredConnectingPorts = this.allConnectingPorts.filter(p => 
-    (p.portName?.toLowerCase().includes(term) || false) || 
-    (p.portCode?.toLowerCase().includes(term) || false)
-  );
-}
-
-toggleConnectingPortModal() {
-  this.isCPModalOpen = !this.isCPModalOpen;
-  if (!this.isCPModalOpen) this.cpSearchTerm = '';
-}
-calculateTotalPackages() {
-  if (this.dimRows && this.dimRows.length > 0) {
-    this.quotation.noOfPkgs = this.dimRows.reduce((total: number, dim: any) => {
-      return total + (Number(dim.box) || 0);
-    }, 0);
+        this.filteredConnectingPorts = this.allConnectingPorts;
+        console.log("Ports Loaded with Default Type:", this.allConnectingPorts);
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error("Error loading ports:", err),
+    });
   }
-}
-// Component ke andar add karein
-updatePreview() {
-  this.quotation.dimensions = [{ ...this.dimRow }];
-  this.quotation = { ...this.quotation };
-  
-  // Force Angular to check the view
-  this.cdr.detectChanges(); 
-  console.log("Updated Dimensions:", this.quotation.dimensions);
-}
-getTotalPackageCount() {
-  return this.dimRows.reduce((sum, item) => sum + (Number(item.box) || 0), 0);
-}
-getGroupedDimensions(): DimGroup[] {
-  // Yahan type define kar di taaki TS7034 error na aaye
-  const groups: DimGroup[] = [];
 
-  this.dimRows.forEach((dim: any, index: number) => {
-    const dimString = `${dim.l || 0}x${dim.w || 0}x${dim.h || 0} ${dim.unit || 'CMS'}`;
-    
-    // find() method ab return karega 'DimGroup | undefined'
-    let foundGroup = groups.find(g => g.dimString === dimString);
-    
-    if (foundGroup) {
-      foundGroup.indices.push(index + 1);
-      foundGroup.totalBoxQty += Number(dim.box || 0);
-    } else {
-      groups.push({
-        dimString: dimString,
-        l: dim.l || 0, 
-        w: dim.w || 0, 
-        h: dim.h || 0, 
-        unit: dim.unit || 'CMS',
-        indices: [index + 1],
-        totalBoxQty: Number(dim.box || 0)
-      });
+  // Filter helpers (portType check karega)
+  getPortsByType(type: string) {
+    // Console ke hisaab se portType field use hogi
+    return this.filteredConnectingPorts.filter((p) => p.portType === type);
+  }
+
+  selectConnectingPort(port: any) {
+    const index = this.selectedConnectingPorts.findIndex(
+      (p) => p.id === port.id,
+    );
+    if (index === -1) this.selectedConnectingPorts.push(port);
+    else this.selectedConnectingPorts.splice(index, 1);
+    this.cdr.detectChanges();
+  }
+
+  removeConnectingPort(port: any) {
+    this.selectedConnectingPorts = this.selectedConnectingPorts.filter(
+      (p) => p.id !== port.id,
+    );
+    this.cdr.detectChanges();
+  }
+
+  isPortSelected(port: any): boolean {
+    return this.selectedConnectingPorts.some((p) => p.id === port.id);
+  }
+
+  onSearchingConnectingPorts() {
+    const term = this.cpSearchTerm.toLowerCase();
+    // Yahan p.name ki jagah p.portName aur p.code ki jagah p.portCode use kiya hai
+    this.filteredConnectingPorts = this.allConnectingPorts.filter(
+      (p) =>
+        p.portName?.toLowerCase().includes(term) ||
+        false ||
+        p.portCode?.toLowerCase().includes(term) ||
+        false,
+    );
+  }
+
+  toggleConnectingPortModal() {
+    this.isCPModalOpen = !this.isCPModalOpen;
+    if (!this.isCPModalOpen) this.cpSearchTerm = "";
+  }
+  calculateTotalPackages() {
+    if (this.dimRows && this.dimRows.length > 0) {
+      this.quotation.noOfPkgs = this.dimRows.reduce(
+        (total: number, dim: any) => {
+          return total + (Number(dim.box) || 0);
+        },
+        0,
+      );
     }
-  });
-  
-  return groups;
-}
-uomList: any[] = [];
-isUomModalOpen: boolean = false;
-selectedUom: any = null;
+  }
+  // Component ke andar add karein
+  updatePreview() {
+    this.quotation.dimensions = [{ ...this.dimRow }];
+    this.quotation = { ...this.quotation };
 
+    // Force Angular to check the view
+    this.cdr.detectChanges();
+    console.log("Updated Dimensions:", this.quotation.dimensions);
+  }
+  getTotalPackageCount() {
+    return this.dimRows.reduce((sum, item) => sum + (Number(item.box) || 0), 0);
+  }
+  getGroupedDimensions(): DimGroup[] {
+    // Yahan type define kar di taaki TS7034 error na aaye
+    const groups: DimGroup[] = [];
 
+    this.dimRows.forEach((dim: any, index: number) => {
+      const dimString = `${dim.l || 0}x${dim.w || 0}x${dim.h || 0} ${dim.unit || "CMS"}`;
 
-// 1. API se Data Load karna
-loadUomList() {
-  this.http.get<any[]>(`${environment.apiUrl}/Uom/list`).subscribe({
-    next: (data) => {
-      this.uomList = data;
-      
-      // setTimeout isliye taaki Angular ka change detection cycle khatam hone ke baad value set ho
-      setTimeout(() => {
-        if (this.uomList && this.uomList.length > 0) {
-          // Check karein ki quotation object exists karta hai ya nahi
-          if (!this.quotation) {
-            this.quotation = {}; 
+      // find() method ab return karega 'DimGroup | undefined'
+      let foundGroup = groups.find((g) => g.dimString === dimString);
+
+      if (foundGroup) {
+        foundGroup.indices.push(index + 1);
+        foundGroup.totalBoxQty += Number(dim.box || 0);
+      } else {
+        groups.push({
+          dimString: dimString,
+          l: dim.l || 0,
+          w: dim.w || 0,
+          h: dim.h || 0,
+          unit: dim.unit || "CMS",
+          indices: [index + 1],
+          totalBoxQty: Number(dim.box || 0),
+        });
+      }
+    });
+
+    return groups;
+  }
+  uomList: any[] = [];
+  isUomModalOpen: boolean = false;
+  selectedUom: any = null;
+
+  // 1. API se Data Load karna
+  loadUomList() {
+    this.http.get<any[]>(`${environment.apiUrl}/Uom/list`).subscribe({
+      next: (data) => {
+        this.uomList = data;
+
+        // setTimeout isliye taaki Angular ka change detection cycle khatam hone ke baad value set ho
+        setTimeout(() => {
+          if (this.uomList && this.uomList.length > 0) {
+            // Check karein ki quotation object exists karta hai ya nahi
+            if (!this.quotation) {
+              this.quotation = {};
+            }
+
+            // Agar value pehle se set nahi hai, toh pehla item daal do
+            if (!this.quotation.GrossweightUnit) {
+              this.quotation.GrossweightUnit = this.uomList[0].shortCode;
+            }
+            if (!this.quotation.volumeWeightUnit) {
+              this.quotation.volumeWeightUnit = this.uomList[0].shortCode;
+            }
           }
-          
-          // Agar value pehle se set nahi hai, toh pehla item daal do
-          if (!this.quotation.GrossweightUnit) {
-            this.quotation.GrossweightUnit = this.uomList[0].shortCode;
-          }
-          if (!this.quotation.volumeWeightUnit) {
-            this.quotation.volumeWeightUnit = this.uomList[0].shortCode;
-          }
-        }
-      }, 0);
-    },
-    error: (err) => console.error("Error loading UOMs:", err)
-  });
-}
-// 2. Modal Toggle
-toggleUomModal() {
-  this.isUomModalOpen = !this.isUomModalOpen;
-}
+        }, 0);
+      },
+      error: (err) => console.error("Error loading UOMs:", err),
+    });
+  }
+  // 2. Modal Toggle
+  toggleUomModal() {
+    this.isUomModalOpen = !this.isUomModalOpen;
+  }
 
-// 3. Modal se Unit Select karna
-selectUom(uom: any) {
-  this.quotation.GrossweightUnit = uom.shortCode; 
-  this.isUomModalOpen = false;
-}
-// Modal toggle state for Net Weight
-isNetUomModalOpen: boolean = false;
+  // 3. Modal se Unit Select karna
+  selectUom(uom: any) {
+    this.quotation.GrossweightUnit = uom.shortCode;
+    this.isUomModalOpen = false;
+  }
+  // Modal toggle state for Net Weight
+  isNetUomModalOpen: boolean = false;
 
-toggleNetUomModal() {
-  this.isNetUomModalOpen = !this.isNetUomModalOpen;
-}
+  toggleNetUomModal() {
+    this.isNetUomModalOpen = !this.isNetUomModalOpen;
+  }
 
-// Select function for Net Weight
-selectNetUom(uom: any) {
-  this.quotation.netWeightUnit = uom.shortCode;
-  this.isNetUomModalOpen = false;
-}
-// Modal toggle state for Chargeable Weight
-isChargeableUomModalOpen: boolean = false;
+  // Select function for Net Weight
+  selectNetUom(uom: any) {
+    this.quotation.netWeightUnit = uom.shortCode;
+    this.isNetUomModalOpen = false;
+  }
+  // Modal toggle state for Chargeable Weight
+  isChargeableUomModalOpen: boolean = false;
 
-toggleChargeableUomModal() {
-  this.isChargeableUomModalOpen = !this.isChargeableUomModalOpen;
-}
+  toggleChargeableUomModal() {
+    this.isChargeableUomModalOpen = !this.isChargeableUomModalOpen;
+  }
 
-// Select function for Chargeable Weight
-selectChargeableUom(uom: any) {
-  this.quotation.chargeableWeightUnit = uom.shortCode;
-  this.isChargeableUomModalOpen = false;
-}
-// Modal toggle state for Dimension Unit
-isDimUomModalOpen: boolean = false;
+  // Select function for Chargeable Weight
+  selectChargeableUom(uom: any) {
+    this.quotation.chargeableWeightUnit = uom.shortCode;
+    this.isChargeableUomModalOpen = false;
+  }
+  // Modal toggle state for Dimension Unit
+  isDimUomModalOpen: boolean = false;
 
-toggleDimUomModal() {
-  this.isDimUomModalOpen = !this.isDimUomModalOpen;
-}
-// Select function for Dimension Unit (Calculation ke saath)
+  toggleDimUomModal() {
+    this.isDimUomModalOpen = !this.isDimUomModalOpen;
+  }
+  // Select function for Dimension Unit (Calculation ke saath)
 
-selectDimUom(uom: any, dimRow: any) {
-  // Jo current targeted row hai uski unit framework badlo, array context bilkul touch nahi hoga
-  dimRow.unit = uom.shortCode;
-  this.isDimUomModalOpen = false;
+  selectDimUom(uom: any, dimRow: any) {
+    // Jo current targeted row hai uski unit framework badlo, array context bilkul touch nahi hoga
+    dimRow.unit = uom.shortCode;
+    this.isDimUomModalOpen = false;
 
-  // Real-time loop calculation process structure updates pipeline execution
-  this.calculateVolumeWeight();
-  this.updatePreview();
-}
-// Ye function ab UI mein use hoga
-applySelectedUnit(uom: any, dimRow: any) {
-  dimRow.unit = uom.shortCode; 
-  
-  // Calculations aur Preview update karein
-  this.calculateVolumeWeight(); 
-  this.updatePreview(); 
-  
-  // Modal ko close karein
-  this.toggleDimUomModal(); 
-}
-packageUnits: any[] = []; // Yahan API ka data store hoga
-getPackageUnits() {
+    // Real-time loop calculation process structure updates pipeline execution
+    this.calculateVolumeWeight();
+    this.updatePreview();
+  }
+  // Ye function ab UI mein use hoga
+  applySelectedUnit(uom: any, dimRow: any) {
+    dimRow.unit = uom.shortCode;
+
+    // Calculations aur Preview update karein
+    this.calculateVolumeWeight();
+    this.updatePreview();
+
+    // Modal ko close karein
+    this.toggleDimUomModal();
+  }
+  packageUnits: any[] = []; // Yahan API ka data store hoga
+  getPackageUnits() {
     this.http.get(`${environment.apiUrl}/PackageBox/list`).subscribe(
       (res: any) => {
         // Assume API format: [{id: 1, name: 'PKGS'}, {id: 2, name: 'BOXES'}]
-        this.packageUnits = res; 
+        this.packageUnits = res;
         console.log("Package Units loaded:", this.packageUnits);
       },
-      (error) => console.error('Error fetching units', error)
+      (error) => console.error("Error fetching units", error),
     );
- 
- }
-// Jab bhi uomList load ho jaye, ye logic chalao
-setDefaults() {
-  // Check karo ki list mein 'KGS' exist karta hai ya nahi
-  const hasKgs = this.uomList.some(uom => uom.shortCode === 'KGS');
-  
-  // Agar unit abhi tak empty hai, toh use KGS set kar do
-  if (!this.quotation.NetWeightUnit && hasKgs) {
-    this.quotation.NetWeightUnit = 'KGS';
   }
-}
+  // Jab bhi uomList load ho jaye, ye logic chalao
+  setDefaults() {
+    // Check karo ki list mein 'KGS' exist karta hai ya nahi
+    const hasKgs = this.uomList.some((uom) => uom.shortCode === "KGS");
+
+    // Agar unit abhi tak empty hai, toh use KGS set kar do
+    if (!this.quotation.NetWeightUnit && hasKgs) {
+      this.quotation.NetWeightUnit = "KGS";
+    }
+  }
 }

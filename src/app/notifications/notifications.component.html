@@ -2,17 +2,22 @@
     <div class="bg-white shadow-lg max-w-3xl mx-auto border">
 
         <!-- HEADER -->
-        <div class="flex justify-between mb-5 pb-4 bg-[#654E51] items-center px-4 py-3">
+        <div
+            class="flex justify-between mb-5 pb-4 bg-[#654E51] items-center px-4 py-3">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 flex items-center justify-center">
-                    <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    <svg class="w-5 h-5 text-white" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            stroke-width="2"
                             d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                     </svg>
                 </div>
                 <div>
-                    <h1 class="text-lg font-semibold text-white">Notifications</h1>
-                    <p *ngIf="totalCount > 0" class="text-xs text-white/70">{{ totalCount }} total</p>
+                    <h1
+                        class="text-lg font-semibold text-white">Notifications</h1>
+                    <p *ngIf="totalCount > 0" class="text-xs text-white/70">{{
+                        totalCount }} total</p>
                 </div>
             </div>
 
@@ -24,6 +29,13 @@
                 </button>
 
                 <button
+                    *ngIf="notifications.length > 0"
+                    class="px-3 py-1.5 text-xs font-medium border transition bg-transparent text-white border-red-300 hover:bg-red-500 hover:border-red-500 rounded"
+                    (click)="deleteAllNotifications()">
+                    Delete all
+                </button>
+
+                <button
                     class="px-3 py-1.5 text-xs font-medium text-white bg-[#654E51] border border-white/50 hover:bg-white hover:text-[#654E51] transition rounded"
                     (click)="refresh()">
                     Refresh
@@ -32,31 +44,39 @@
         </div>
 
         <!-- LOADING -->
-        <div *ngIf="loading" class="flex flex-col items-center py-12 px-6 py-5 text-gray-400">
-            <svg class="animate-spin h-6 w-6 mb-2" style="color: #654E51;" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+        <div *ngIf="loading"
+            class="flex flex-col items-center py-12 px-6 py-5 text-gray-400">
+            <svg class="animate-spin h-6 w-6 mb-2" style="color: #654E51;"
+                fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10"
+                    stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
             </svg>
             <span class="text-sm">Loading notifications...</span>
         </div>
 
         <!-- ERROR -->
-        <div *ngIf="errorMessage" class="text-center py-4 text-sm text-red-600 bg-red-50 border border-red-100">
+        <div *ngIf="errorMessage"
+            class="text-center py-4 text-sm text-red-600 bg-red-50 border border-red-100">
             {{ errorMessage }}
         </div>
 
         <!-- EMPTY STATE -->
         <div *ngIf="!loading && notifications.length === 0 && !errorMessage"
             class="flex flex-col items-center py-14 text-gray-400">
-            <svg class="w-12 h-12 mb-3 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+            <svg class="w-12 h-12 mb-3 text-gray-300" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    stroke-width="1.5"
                     d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
             </svg>
             <p class="text-sm">Notification not found.</p>
         </div>
 
         <!-- NOTIFICATION LIST -->
-        <div *ngIf="!loading && notifications.length > 0" class="flex flex-col gap-2 px-2 pb-2">
+        <div *ngIf="!loading && notifications.length > 0"
+            class="flex flex-col gap-2 px-2 pb-2">
             <div *ngFor="let notif of notifications"
                 class="flex items-center gap-3 px-4 py-3.5 transition-all hover:shadow-sm rounded"
                 [ngClass]="{
@@ -64,12 +84,16 @@
                     'bg-gray-50': notif.isRead
                 }"
                 [style.border-left]="!notif.isRead ? '3px solid #dc2626' : '3px solid transparent'">
-                
-                <div class="w-9 h-9 rounded flex items-center justify-center shrink-0"
+
+                <div
+                    class="w-9 h-9 rounded flex items-center justify-center shrink-0"
                     [style.background-color]="!notif.isRead ? '#fee2e2' : '#f0eae9'">
-                    <svg class="w-4 h-4" [style.color]="!notif.isRead ? '#dc2626' : '#654E51'" fill="none"
+                    <svg class="w-4 h-4"
+                        [style.color]="!notif.isRead ? '#dc2626' : '#654E51'"
+                        fill="none"
                         viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            stroke-width="2"
                             d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5" />
                     </svg>
                 </div>
@@ -80,10 +104,13 @@
                             [ngClass]="!notif.isRead ? 'font-semibold text-gray-900' : 'font-medium text-gray-600'">
                             {{ notif.title }}
                         </h4>
-                        <span *ngIf="!notif.isRead" class="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0"></span>
+                        <span *ngIf="!notif.isRead"
+                            class="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0"></span>
                     </div>
-                    <p class="text-sm text-gray-500 mt-0.5 line-clamp-2">{{ notif.message }}</p>
-                    <small class="text-xs text-gray-400 mt-1 block">{{ timeAgo(notif.createdAt) }}</small>
+                    <p class="text-sm text-gray-500 mt-0.5 line-clamp-2">{{
+                        notif.message }}</p>
+                    <small class="text-xs text-gray-400 mt-1 block">{{
+                        timeAgo(notif.createdAt) }}</small>
                 </div>
 
                 <!-- VIEW BUTTON -->
@@ -91,6 +118,19 @@
                     class="px-3 py-1 text-sm text-[#654E51] border border-[#654E51] rounded hover:bg-[#654E51] hover:text-white transition-colors shrink-0"
                     (click)="viewNotification(notif)">
                     View
+                </button>
+
+                <!-- 🔥 DELETE BUTTON -->
+                <button
+                    class="p-1.5 text-red-500 border border-red-300 rounded hover:bg-red-500 hover:text-white transition-colors shrink-0"
+                    (click)="deleteNotification(notif, $event)"
+                    title="Delete">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
                 </button>
             </div>
         </div>
@@ -104,7 +144,8 @@
                 ← Previous
             </button>
 
-            <span class="text-xs text-gray-500">Page {{ page }} of {{ totalPages }}</span>
+            <span class="text-xs text-gray-500">Page {{ page }} of {{ totalPages
+                }}</span>
 
             <button
                 class="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition text-[#654E51]"
@@ -117,40 +158,120 @@
 </div>
 
 <!-- VIEW MODAL -->
-<div *ngIf="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-[9999] p-4"
+<div *ngIf="showModal"
+    class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-[9999] p-4"
     (click)="closeModal()">
-    <div class="bg-white w-full max-w-md p-6 relative shadow-xl rounded" (click)="$event.stopPropagation()">
-        
-        <button class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition" (click)="closeModal()">
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+    <div class="bg-white w-full max-w-md p-6 relative shadow-xl rounded"
+        (click)="$event.stopPropagation()">
+
+        <button
+            class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"
+            (click)="closeModal()">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
         </button>
 
         <div class="flex items-center gap-3 mb-4">
-            <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background-color: #654E51;">
-                <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            <div class="w-10 h-10 rounded-full flex items-center justify-center"
+                style="background-color: #654E51;">
+                <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        stroke-width="2"
                         d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
             </div>
             <div>
-                <h3 class="text-lg font-semibold text-gray-800">Notification Detail</h3>
-                <small class="text-xs text-gray-400">{{ timeAgo(selectedNotification?.createdAt || '') }}</small>
+                <h3 class="text-lg font-semibold text-gray-800">Notification
+                    Detail</h3>
+                <small class="text-xs text-gray-400">{{
+                    timeAgo(selectedNotification?.createdAt || '') }}</small>
             </div>
         </div>
 
         <div class="border-t border-gray-100 pt-4">
-            <h4 class="text-base font-semibold text-gray-900 mb-2">{{ selectedNotification?.title }}</h4>
-            <p class="text-sm text-gray-600 leading-relaxed">{{ selectedNotification?.message }}</p>
+            <h4 class="text-base font-semibold text-gray-900 mb-2">{{
+                selectedNotification?.title }}</h4>
+            <p class="text-sm text-gray-600 leading-relaxed">{{
+                selectedNotification?.message }}</p>
 
-            <div *ngIf="selectedNotification?.branchId" class="mt-3 text-xs text-gray-400">
+            <!-- 🔥 BRANCH NAME NOW -->
+            <div *ngIf="selectedNotification?.branchName"
+                class="mt-3 flex items-center gap-2 text-xs text-gray-500 bg-gray-50 px-3 py-2 rounded">
+                <svg class="w-4 h-4 text-gray-400" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5" />
+                </svg>
+                <span><strong>Branch:</strong> {{
+                    selectedNotification?.branchName }}</span>
+            </div>
+        </div>
+
+        <div class="mt-6 flex justify-end">
+            <button
+                class="px-4 py-2 text-sm text-white hover:bg-[#7a5f62] rounded transition"
+                style="background-color: #654E51;" (click)="closeModal()">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- VIEW MODAL -->
+<div *ngIf="showModal"
+    class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-[9999] p-4"
+    (click)="closeModal()">
+    <div class="bg-white w-full max-w-md p-6 relative shadow-xl rounded"
+        (click)="$event.stopPropagation()">
+
+        <button
+            class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"
+            (click)="closeModal()">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center"
+                style="background-color: #654E51;">
+                <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800">Notification
+                    Detail</h3>
+                <small class="text-xs text-gray-400">{{
+                    timeAgo(selectedNotification?.createdAt || '') }}</small>
+            </div>
+        </div>
+
+        <div class="border-t border-gray-100 pt-4">
+            <h4 class="text-base font-semibold text-gray-900 mb-2">{{
+                selectedNotification?.title }}</h4>
+            <p class="text-sm text-gray-600 leading-relaxed">{{
+                selectedNotification?.message }}</p>
+
+            <div *ngIf="selectedNotification?.branchId"
+                class="mt-3 text-xs text-gray-400">
                 Branch ID: {{ selectedNotification?.branchId }}
             </div>
         </div>
 
         <div class="mt-6 flex justify-end">
-            <button class="px-4 py-2 text-sm text-white hover:bg-[#7a5f62] rounded transition"
+            <button
+                class="px-4 py-2 text-sm text-white hover:bg-[#7a5f62] rounded transition"
                 style="background-color: #654E51;" (click)="closeModal()">
                 Close
             </button>

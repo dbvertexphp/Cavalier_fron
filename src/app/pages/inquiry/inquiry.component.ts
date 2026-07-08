@@ -1570,21 +1570,32 @@ export class InquiryComponent implements OnInit {
   neworg() {
     this.router.navigate(["/dashboard/organization-add"]);
   }
+
   deleteQuotation(id: number) {
+
+ // Token fetch karein
+    const token = localStorage.getItem("cavalier_token");
+
+    // Headers set karein
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    });
+
     if (confirm("Are you sure?")) {
       // 1. IMMEDIATE UI UPDATE (Wait mat karo API ka)
       // Maan lo aapka array 'quotations' naam se hai
-      this.quotations = this.quotations.filter((q: any) => q.id !== id);
+      // this.quotations = this.quotations.filter((q: any) => q.id !== id);
 
       // 2. Angular ko bolo ki turant UI badal de
       this.cdr.detectChanges();
 
-      this.http.delete(`${this.apiUrl}/${id}`).subscribe({
+      this.http.delete(`${this.apiUrl}/${id}`, { headers }  ).subscribe({
         next: () => {
           console.log("Deleted Successfully!");
           // Backend se sync karne ke liye piche se load kar lo
-          this.loadQuotations();
           this.cdr.detectChanges();
+          this.loadQuotations();
         },
         error: (err) => {
           console.error("Delete failed", err);
@@ -2212,8 +2223,8 @@ export class InquiryComponent implements OnInit {
         next: (data) => {
           // InquiryNo nikaal kar null/undefined hatao
           const rawNumbers = data
-            .map((item) => item.inquiryNo)
-            .filter((n) => n !== null && n !== undefined && n !== "");
+            ?.map((item) => item?.inquiryNo)
+            ?.filter((n) => n !== null && n !== undefined && n !== "");
 
           // Duplicates hatao
           this.allUniqueInquiryNos = [...new Set(rawNumbers)];
@@ -2738,11 +2749,12 @@ export class InquiryComponent implements OnInit {
   pageSize: number = 10; // Ek page par kitne records dikhane hain
   protected readonly Math = Math; // Template mein Math functions use karne ke liye
 
-  // Computed property: Ye table mein sirf current page ka data filter karke bhejega
-  get paginatedInquiries(): any[] {
-    const startIndex = (this.currentPage - 1) * this.pageSize;
-    return this.quotations.slice(startIndex, startIndex + this.pageSize);
-  }
+ get paginatedInquiries(): any[] {
+  const startIndex = (this.currentPage - 1) * this.pageSize;
+  return Array.isArray(this.quotations) 
+    ? this.quotations.slice(startIndex, startIndex + this.pageSize) 
+    : [];
+}
 
   // Total pages calculate karne ke liye
   get totalPages(): number {

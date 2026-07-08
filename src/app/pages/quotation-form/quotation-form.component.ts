@@ -4193,6 +4193,8 @@ clickout(event: any) {
 }
 isModalOpen = false;
 allPricings: any[] = []; // Yahan full list load hogi
+
+
 openPricingModal() {
   this.isModalOpen = true;
   

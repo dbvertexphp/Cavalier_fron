@@ -5150,6 +5150,7 @@ export class PriceComponent {
   //     error: (err) => console.error("❌ API Error:", err)
   //   });
   // }
+
   isHazard(): boolean {
     // 1. Agar selectcommodityvalue mein seedha 'Hazard' likha hai
 
@@ -5200,6 +5201,7 @@ export class PriceComponent {
     this.token = localStorage.getItem("cavalier_token") || "";
     return this.token;
   }
+
   loadInquiryList() {
     // Toggle logic
     if (this.showInquiryDropdown) {
@@ -5229,7 +5231,7 @@ export class PriceComponent {
     });
 
     const startTime = new Date().getTime(); // Request start time note karo
-    const url = `${environment.apiUrl}/Inquiry`;
+    const url = `${environment.apiUrl}/Inquiry/list `;
 
     this.http
       .get<any[]>(url, {

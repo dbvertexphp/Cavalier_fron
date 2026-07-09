@@ -136,39 +136,74 @@ clearAllLob(event: Event) {
   this.cdr.detectChanges();
 }
 validateCurrentBranch(): boolean {
-
   if (!this.branchName?.trim()) {
-    alert("❌ Please fill Branch Name before adding new branch!");
+    Swal.fire({
+      title: 'Validation Error',
+      text: 'Please fill Branch Name before adding new branch!',
+      icon: 'warning',
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#f39c12'
+    });
     return false;
   }
 
   if (!this.country?.trim()) {
-    alert("❌ Please fill Country before adding new branch!");
+    Swal.fire({
+      title: 'Validation Error',
+      text: 'Please fill Country before adding new branch!',
+      icon: 'warning',
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#f39c12'
+    });
     return false;
   }
 
   if (!this.stateProvince?.trim()) {
-    alert("❌ Please fill State/Province before adding new branch!");
+    Swal.fire({
+      title: 'Validation Error',
+      text: 'Please fill State/Province before adding new branch!',
+      icon: 'warning',
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#f39c12'
+    });
     return false;
   }
 
   if (!this.city?.trim()) {
-    alert("❌ Please fill City before adding new branch!");
+    Swal.fire({
+      title: 'Validation Error',
+      text: 'Please fill City before adding new branch!',
+      icon: 'warning',
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#f39c12'
+    });
     return false;
   }
 
   const firstContact = this.contacts?.[0];
   if (!firstContact?.DepartmentId) {
-    alert("❌ Please select Department before adding new branch!");
+    Swal.fire({
+      title: 'Validation Error',
+      text: 'Please select Department before adding new branch!',
+      icon: 'warning',
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#f39c12'
+    });
     return false;
   }
 
   if (!firstContact?.DesignationId) {
-    alert("❌ Please select Designation before adding new branch!");
+    Swal.fire({
+      title: 'Validation Error',
+      text: 'Please select Designation before adding new branch!',
+      icon: 'warning',
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#f39c12'
+    });
     return false;
   }
 
-  return true;   // Sab theek hai
+  return true;
 }
 
 onNewBranch() {
@@ -318,25 +353,42 @@ closeBranchDetailModal() {
 // ==================== DELETE SELECTED BRANCH ====================
 deleteSelectedBranch() {
   if (this.selectedBranchIndex < 0) {
-    alert("Please Select a Branch First!");
+    Swal.fire({
+      title: 'No Selection',
+      text: 'Please select a branch first!',
+      icon: 'warning',
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#f39c12'
+    });
     return;
   }
 
- 
-    
-    // Branch list se delete kar do
-    this.branchList.splice(this.selectedBranchIndex, 1);
-
-    // Form reset kar do
-    this.resetBranchFormOnly();
-
-    // Selection clear kar do
-    this.selectedBranchIndex = -1;
-    this.isEditMode = false;
-
-    this.cdr.detectChanges();
-
-   
+  Swal.fire({
+    title: 'Delete Branch?',
+    text: 'Are you sure you want to delete this branch?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Yes, delete!',
+    cancelButtonText: 'Cancel'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      this.branchList.splice(this.selectedBranchIndex, 1);
+      this.resetBranchFormOnly();
+      this.selectedBranchIndex = -1;
+      this.isEditMode = false;
+      this.cdr.detectChanges();
+      
+      Swal.fire({
+        title: 'Deleted!',
+        text: 'Branch has been removed.',
+        icon: 'success',
+        timer: 1500,
+        showConfirmButton: false
+      });
+    }
+  });
 }
 AllSearch(){
 this.getOrgList();
@@ -711,17 +763,35 @@ if (index !== -1) {
 
 addCurrentBranchIfValid(): boolean {
   if (!this.branchName?.trim()) {
-    alert("❌ Branch Name is required!");
+    Swal.fire({
+      title: 'Branch Name Required',
+      text: 'Please enter a branch name!',
+      icon: 'warning',
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#f39c12'
+    });
     return false;
   }
   if (!this.country?.trim() || !this.stateProvince?.trim() || !this.city?.trim()) {
-    alert("❌ Country, State & City are required!");
+    Swal.fire({
+      title: 'Information Missing',
+      text: 'Country, State & City are required!',
+      icon: 'warning',
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#f39c12'
+    });
     return false;
   }
 
   const firstContact = this.contacts?.[0];
   if (!firstContact?.DepartmentId || !firstContact?.DesignationId) {
-    alert("❌ Department and Designation are required!");
+    Swal.fire({
+      title: 'Information Missing',
+      text: 'Department and Designation are required!',
+      icon: 'warning',
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#f39c12'
+    });
     return false;
   }
 
@@ -1020,10 +1090,17 @@ saveAllLocalBranches(orgId: number) {
     },
     error: (err) => {
       console.error(`❌ Failed to save branches Or Login Again`, err);
-      alert("Failed to save branches Or Session Expired Please Login Again.");
+      Swal.fire({
+        title: 'Error',
+        text: 'Failed to save branches Or Session Expired Please Login Again.',
+        icon: 'error',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#f39c12'
+      });
     }
   });
 }
+
 // Ek chota sa helper function saare fields khali karne ke liye
 resetFormFields() {
   this.orgName = '';
@@ -1093,22 +1170,29 @@ loaddepartment(){
 // ==================== FINAL SAVE - COMPLETE ORGANIZATION ====================
 // ==================== SAVE COMPLETE ORGANIZATION WITH PROPER VALIDATION ====================
 saveCompleteOrganization() {
-
-  // 1. Organization Name check
   if (!this.orgName?.trim()) {
-    alert("❌ Organization Name is required!");
+    Swal.fire({
+      title: 'Validation Error',
+      text: 'Organization Name is required!',
+      icon: 'warning',
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#f39c12'
+    });
     return;
   }
 
-  // 2. At least one branch should exist
   if (this.branchList.length === 0) {
-    alert("❌ Please add at least one branch!");
+    Swal.fire({
+      title: 'Validation Error',
+      text: 'Please add at least one branch!',
+      icon: 'warning',
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#f39c12'
+    });
     return;
   }
 
-  // 3. Check every branch - kam se kam ek branch mein ye sab fields hone chahiye
   let hasValidBranch = false;
-
   for (let branch of this.branchList) {
     if (
       branch.branchName && branch.branchName.trim() !== '' &&
@@ -1125,11 +1209,26 @@ saveCompleteOrganization() {
   }
 
   if (!hasValidBranch) {
-    alert("❌ At least one branch must have:\n• Branch Name\n• Line of Business\n• Country\n• State/Province\n• City\n• Department\n• Designation");
+    Swal.fire({
+      title: 'Validation Error',
+      html: 'At least one branch must have:<br>• Branch Name<br>• Line of Business<br>• Country<br>• State/Province<br>• City<br>• Department<br>• Designation',
+      icon: 'warning',
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#f39c12'
+    });
     return;
   }
 
-  // Agar sab validation pass ho gaye, tab API call karo
+  // Show loading
+  Swal.fire({
+    title: 'Saving...',
+    text: 'Please wait while organization is being saved.',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+
   const payload = {
     Id: this.selectedOrgId || 0,
     OrgName: this.orgName.trim(),
@@ -1143,21 +1242,33 @@ saveCompleteOrganization() {
 
       if (finalOrgId) {
         this.selectedOrgId = finalOrgId;
-
-        // Saare branches ko database mein save karo
         if (this.branchList.length > 0) {
           this.saveAllLocalBranches(finalOrgId);
         }
-
-        alert("✅ Organization + All Branches Saved Successfully in Database!");
+        
+        Swal.fire({
+          title: 'Success!',
+          text: 'Organization + All Branches Saved Successfully!',
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false
+        });
       }
     },
     error: (err) => {
       console.error("Save Organization Error:", err);
-      alert("❌ Failed to save Organization. Please try again.");
+      Swal.fire({
+        title: 'Error!',
+        text: 'Failed to save Organization. Please try again.',
+        icon: 'error',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#d33'
+      });
     }
   });
 }
+
+
 loadestination(){
   this.http.get(`${environment.apiUrl}/BranchDesignation`).subscribe({
     next: (data: any) => {
@@ -1205,50 +1316,95 @@ saveOrganization() {
 // Maine aapke purane logic ko is naye function mein wrap kar diya hai 
 // taaki "Save" ke andar pehle duplicate check ho sake
 proceedToSave() {
-    if (!this.orgName?.trim()) { alert("❌ Organization Name is required!"); return; }
+  if (!this.orgName?.trim()) {
+    Swal.fire({
+      title: 'Validation Error',
+      text: 'Organization Name is required!',
+      icon: 'warning',
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#f39c12'
+    });
+    return;
+  }
 
-    if (this.branchName && this.branchName.trim() !== '') {
-      const isBranchValid = this.addCurrentBranchIfValid();
-      if (!isBranchValid) return; 
+  if (this.branchName && this.branchName.trim() !== '') {
+    const isBranchValid = this.addCurrentBranchIfValid();
+    if (!isBranchValid) return;
+  }
+
+  if (this.branchList.length === 0) {
+    Swal.fire({
+      title: 'Validation Error',
+      text: 'Please add at least one branch!',
+      icon: 'warning',
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#f39c12'
+    });
+    return;
+  }
+
+  // Show loading
+  Swal.fire({
+    title: 'Saving...',
+    text: 'Please wait',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
     }
-    if (this.branchList.length === 0) { alert("❌ Please add at least one branch!"); return; }
+  });
 
-    // --- Token nikalne ka logic ---
-    const token = localStorage.getItem('cavalier_token'); 
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`
-    });
+  const token = localStorage.getItem('cavalier_token');
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`
+  });
 
-    const payload = { 
-        Id: this.selectedOrgId || 0, 
-        OrgName: this.orgName.trim(), 
-        Alias: this.alias || '', 
-        SelectedRoles: this.selectedRoles.join(',') 
-    };
+  const payload = {
+    Id: this.selectedOrgId || 0,
+    OrgName: this.orgName.trim(),
+    Alias: this.alias || '',
+    SelectedRoles: this.selectedRoles.join(',')
+  };
 
-    const apiUrl = this.isOrgEditMode && this.selectedOrgId 
-        ? `${environment.apiUrl}/Organization/update` 
-        : `${environment.apiUrl}/Organization/save`;
+  const apiUrl = this.isOrgEditMode && this.selectedOrgId
+    ? `${environment.apiUrl}/Organization/update`
+    : `${environment.apiUrl}/Organization/save`;
 
-    // Headers ko post request mein add kar diya
-    this.http.post(apiUrl, payload, { headers }).subscribe({
-      next: (res: any) => {
-        const finalOrgId = res?.id || res?.data?.id || res?.Id || this.selectedOrgId || 0;
-        if (finalOrgId > 0) {
-          this.selectedOrgId = finalOrgId;
-          this.saveAllLocalBranches(finalOrgId); 
-         
-          // this.router.navigate(['/dashboard/organization-add']); 
-        }
-      },
-      error: (err) => {
-        if (err.status === 401) {
-            alert("❌ Session expired! Please login again.");
-        } else {
-            alert(this.isOrgEditMode ? "❌ Failed to Update Organization" : "❌ Failed to Save Organization");
-        }
+  this.http.post(apiUrl, payload, { headers }).subscribe({
+    next: (res: any) => {
+      const finalOrgId = res?.id || res?.data?.id || res?.Id || this.selectedOrgId || 0;
+      if (finalOrgId > 0) {
+        this.selectedOrgId = finalOrgId;
+        this.saveAllLocalBranches(finalOrgId);
+        
+        Swal.fire({
+          title: 'Success!',
+          text: this.isOrgEditMode ? 'Organization updated successfully!' : 'Organization saved successfully!',
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false
+        });
       }
-    });
+    },
+    error: (err) => {
+      if (err.status === 401) {
+        Swal.fire({
+          title: 'Session Expired!',
+          text: 'Please login again.',
+          icon: 'error',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#d33'
+        });
+      } else {
+        Swal.fire({
+          title: 'Error!',
+          text: this.isOrgEditMode ? 'Failed to Update Organization' : 'Failed to Save Organization',
+          icon: 'error',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#d33'
+        });
+      }
+    }
+  });
 }
 // ==================== SAVE AGENT WITH ORGANISATION ID ====================
  
@@ -1302,7 +1458,13 @@ saveAllAgentsForBranches(orgId: number, freshBranchesFromDB: any[]) {
   });
 
   if (allAgentsPayloads.length === 0) {
-      alert("✅ Organization and Branches saved successfully!");
+      Swal.fire({
+        title: 'Success',
+        text: '✅ Organization and Branches saved successfully!',
+        icon: 'success',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#28a745'
+      });
       window.location.href = "/dashboard/organization-add";
       return;
   }
@@ -1328,7 +1490,13 @@ saveAllAgentsForBranches(orgId: number, freshBranchesFromDB: any[]) {
 }
   checkAndRedirect(savedCount: number, totalCount: number) {
       if (savedCount === totalCount) {
-          alert("✅ Organization, Branches, and Agents Saved Successfully!");
+        Swal.fire({
+  title: 'Success!',
+  text: 'Organization, Branches, and Agents Saved Successfully!',
+  icon: 'success',
+  timer: 2000,
+  showConfirmButton: false
+});
           
           // Page Redirect/Reload yahan hoga sabkuch completely finish hone ke baad
           window.location.href = "/dashboard/organization-add";
@@ -1668,7 +1836,13 @@ async downloadPDF() {
     pdf.save('Organization_Records.pdf');
   } catch (error) {
     console.error("PDF Generate karne mein error:", error);
-    alert("PDF download nahi ho paya!");
+    Swal.fire({
+      title: 'Error',
+      text: 'Failed to generate PDF.',
+      icon: 'error',
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#f39c12'
+    });
   }
 }
   isFormOpen: boolean = false; 
@@ -1928,27 +2102,52 @@ this.branchSearchText='';
   this.cdr.detectChanges(); // 👈 Yahan bhi lagao taaki filter boxes turant khali dikhein
 }
 deleteOrg(id: any) {
-  if (confirm('Are you sure?')) {
-    this.http.delete(`${environment.apiUrl}/Organization/delete/${id}`).subscribe({
-      next: () => {
-        alert('Deleted successfully!');
+  Swal.fire({
+    title: 'Are you sure?',
+    text: 'Do you want to delete this organization?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Yes, delete it!',
+    cancelButtonText: 'Cancel'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      Swal.fire({
+        title: 'Deleting...',
+        text: 'Please wait',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
 
-        // 🔥 STEP 1: Frontend array se deleted row ko instant remove karo
-        this.organizations = this.organizations.filter(org => org.id !== id);
-
-        // 🔥 STEP 2: Agar search triggers ho chuki hai, toh page structure ko sync rakhein
-        // getOrgList() call karne se direct change complete stack update kar dega
-        this.getOrgList();
-
-        // 🔥 STEP 3: Change detection pipeline trigger lock ensure karein
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error("❌ Organization delete framework error:", err);
-        alert("Failed to delete organization. Please Login Again");
-      }
-    });
-  }
+      this.http.delete(`${environment.apiUrl}/Organization/delete/${id}`).subscribe({
+        next: () => {
+          Swal.fire({
+            title: 'Deleted!',
+            text: 'Organization deleted successfully.',
+            icon: 'success',
+            timer: 2000,
+            showConfirmButton: false
+          });
+          this.organizations = this.organizations.filter(org => org.id !== id);
+          this.getOrgList();
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error("❌ Organization delete error:", err);
+          Swal.fire({
+            title: 'Error!',
+            text: 'Failed to delete organization. Please Login Again.',
+            icon: 'error',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#d33'
+          });
+        }
+      });
+    }
+  });
 }
   // 1. Keyboard se sirf 0-9 allow karega
 onlyNumbers(event: any) {
@@ -2029,7 +2228,13 @@ downloadExcel() {
   this.isExportOpen = false;
 
   if (!this.organizations || this.organizations.length === 0) {
-    alert("Excel ke liye data nahi hai!");
+    Swal.fire({
+      title: 'Error',
+      text: 'Excel download failed!',
+      icon: 'error',
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#f39c12'
+    });
     return;
   }
 
@@ -2407,16 +2612,12 @@ allCitySearch(type: string) {
 saveAgent() {
   const payload = {
     organisationId: this.selectedOrgId || 1,
-    
-    // 🔥 UPDATE: Array se IDs nikaal kar comma se join karna
-    lineOfBusinessId: this.agentSelectedLineOfBusiness && this.agentSelectedLineOfBusiness.length > 0 
-      ? this.agentSelectedLineOfBusiness.map(item => item.id).join(',') 
+    lineOfBusinessId: this.agentSelectedLineOfBusiness && this.agentSelectedLineOfBusiness.length > 0
+      ? this.agentSelectedLineOfBusiness.map(item => item.id).join(',')
       : "",
-      
     branchName: this.agentBranchName?.trim() || '',
     isDefault: this.agentIsDefault,
     isDeactive: this.agentIsDeactive,
-
     address: this.agentAddress?.trim() || '',
     area: this.agentArea?.trim() || '',
     landmark: this.agentLandmark?.trim() || '',
@@ -2424,13 +2625,10 @@ saveAgent() {
     state: this.agentState?.trim() || '',
     city: this.agentCity?.trim() || '',
     postalCode: this.agentPostalCode?.trim() || '',
-
     telephone: this.agentTelephone?.trim() || '',
     fax: this.agentFax?.trim() || '',
     website: this.agentWebsite?.trim() || '',
     email: this.agentEmail?.trim() || '',
-
-    // 🔥 UPDATE: Contacts ko properly map kiya hai taaki safe rahe
     contacts: this.agentContacts.map(contact => ({
       contactName: contact.contactName?.trim() || '',
       designationId: contact.designationId || '',
@@ -2441,19 +2639,37 @@ saveAgent() {
     }))
   };
 
-  console.log("Sending Payload:", payload);   // Debug ke liye
+  // Show loading
+  Swal.fire({
+    title: 'Saving Agent...',
+    text: 'Please wait',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
 
-  this.http.post(`${environment.apiUrl}/OrganisationAgent/SaveAgent`, payload)
-    .subscribe({
-      next: (res) => {
-        console.log("✅ Success:", res);
-        alert("Agent saved successfully!");
-      },
-      error: (err) => {
-        console.error("❌ Full Error:", err);
-        alert("Failed to save. Check console.");
-      }
-    });
+  this.http.post(`${environment.apiUrl}/OrganisationAgent/SaveAgent`, payload).subscribe({
+    next: () => {
+      Swal.fire({
+        title: 'Success!',
+        text: 'Agent saved successfully!',
+        icon: 'success',
+        timer: 1500,
+        showConfirmButton: false
+      });
+    },
+    error: (err) => {
+      console.error("❌ Full Error:", err);
+      Swal.fire({
+        title: 'Error!',
+        text: 'Failed to save agent. Please try again.',
+        icon: 'error',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#d33'
+      });
+    }
+  });
 }
 
 // Item select karne par
@@ -2470,10 +2686,16 @@ allBranchSearch(type: string) {
   // Pehle check karo ki Org select hui hai ya nahi
   const orgId = this.searchFilters.orgId; 
   
-  if (!orgId) {
-    alert("Please select an Organization first!");
-    return;
-  }
+ if (!orgId) {
+  Swal.fire({
+    title: 'Organization Required',
+    text: 'Please select an Organization first!',
+    icon: 'warning',
+    confirmButtonText: 'OK',
+    confirmButtonColor: '#f39c12'
+  });
+  return;
+}
 
   const url = `${environment.apiUrl}/OrgBranch/GetByOrg/${orgId}`;
   this.http.get(url).subscribe({
@@ -2561,9 +2783,15 @@ selectState(stateName: string) {
 
   fetchRegionalStates() {
     if (!this.country) {
-      alert("Pehle country select karein!");
-      return;
-    }
+  Swal.fire({
+    title: 'Country Required',
+    text: 'Please select a country first!',
+    icon: 'warning',
+    confirmButtonText: 'OK',
+    confirmButtonColor: '#f39c12'
+  });
+  return;
+}
     const payload = { country: this.country };
     fetch('https://countriesnow.space/api/v0.1/countries/states', {
       method: 'POST',
@@ -2842,10 +3070,16 @@ closeOrgModal() {
 // }
 onFindClick() {
   const value = this.postalCode;
-  if (!value || value.length < 3) {
-    alert("Please enter a valid Postal Code");
-    return;
-  }
+if (!value || value.length < 3) {
+  Swal.fire({
+    title: 'Invalid Postal Code',
+    text: 'Please enter a valid Postal Code (minimum 3 characters).',
+    icon: 'warning',
+    confirmButtonText: 'OK',
+    confirmButtonColor: '#f39c12'
+  });
+  return;
+}
 
   // India Specific (6 Digits)
   if (/^\d{6}$/.test(value)) {
@@ -2872,13 +3106,25 @@ private fetchIndiaData(pincode: string) {
         this.cdr.detectChanges(); 
       } else {
         // 🔥 Data nahi mila popup
-        alert("Data not found for this Indian Pincode!");
+Swal.fire({
+  title: 'Not Found',
+  text: 'Data not found for this Indian Pincode!',
+  icon: 'info',
+  confirmButtonText: 'OK',
+  confirmButtonColor: '#4a3f3f'
+});
         this.clearFields();
       }
     })
     .catch(err => {
       console.log(err);
-      alert("Error fetching Indian postal data.");
+      Swal.fire({
+        title: 'Error',
+        text: 'Error fetching Indian postal data.',
+        icon: 'error',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#f39c12'
+      });
     });
 }
 
@@ -2899,13 +3145,25 @@ private fetchGlobalData(zip: string) {
         this.cdr.detectChanges();
       } else {
         // 🔥 Data nahi mila popup
-        alert("Global Location Data Not Found!");
+        Swal.fire({
+          title: 'Not Found',
+          text: 'Global Location Data Not Found!',
+          icon: 'info',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#4a3f3f'
+        });
         this.clearFields();
       }
     })
     .catch(err => {
       console.log(err);
-      alert("Data not found for this Global Postal Code!");
+      Swal.fire({
+        title: 'Error',
+        text: 'Error fetching global postal data.',
+        icon: 'error',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#f39c12'
+      });
       this.clearFields();
     });
 }
@@ -3053,7 +3311,13 @@ toggleOrgStatus(org: any) {
       },
       error: (err) => {
         console.error("Status update failed:", err);
-        alert("Status change karne mein error aaya!");
+        Swal.fire({
+          title: 'Error',
+          text: 'Failed to update organization status.',
+          icon: 'error',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#f39c12'
+        });
       }
     });
 }

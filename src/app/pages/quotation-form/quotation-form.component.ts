@@ -70,7 +70,7 @@ portOfDischargeList: any[] = [];
   isPickupEnabled: boolean = false;
   selectedBranchIds: number[] = []; 
  public apiEndpoint = `${environment.apiUrl}/Quotations`;
- public fileBaseUrl = environment.apiUrl.replace('/api', '');
+public fileBaseUrl = environment.apiUrl.replace(/\/api$/, "");
  apiUrl = environment.apiUrl;
 // -- Dropdown Control Variables --
 companyServices:any[]=[]
@@ -505,23 +505,28 @@ this.cdr.detectChanges();
   }
 
   // Refactored toggleReview function to fetch branches dynamically matching Pricing system framework rules
-  toggleReview() {
-    if (!this.quotation.organization) {
-      Swal.fire('Warning', 'First save or select an organization name!', 'warning');
-      return;
-    }
-
-    // Mapping active targets parameters to route agents matrix summary
-    const activeLobId = this.quotation.lineOfBusiness;
-    const currentCountry = this.quotation.country || '';
-    
-    if (activeLobId) {
-      this.fetchAgentByLobId(activeLobId, currentCountry);
-    }
-
-    this.isPreviewMode = true;
-    this.cdr.detectChanges();
+toggleReview() {
+  if (!this.quotation.organization) {
+    Swal.fire({
+      title: 'Warning',
+      text: 'First save or select an organization name!',
+      icon: 'warning',
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#f39c12'
+    });
+    return;
   }
+
+  const activeLobId = this.quotation.lineOfBusiness;
+  const currentCountry = this.quotation.country || '';
+  
+  if (activeLobId) {
+    this.fetchAgentByLobId(activeLobId, currentCountry);
+  }
+
+  this.isPreviewMode = true;
+  this.cdr.detectChanges();
+}
 
   toggleSelectAllAgents(event: any): void {
     const isChecked = event.target.checked;
@@ -711,14 +716,20 @@ console.error("Save error",err);
 });
 
 }
+
 showPricingDetails(item: any) {
   const pId = item.pricingId || item.PricingId;
   
   if (pId) {
-    // Dashboard/Price page par navigate karein aur 'editId' query parameter bhejien
     this.router.navigate(['/dashboard/Price'], { queryParams: { editId: pId } });
   } else {
-    Swal.fire('Error', 'Pricing ID nahi mili is record ke liye.', 'error');
+    Swal.fire({
+      title: 'Error!',
+      text: 'Pricing ID not found for this record.',
+      icon: 'error',
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#d33'
+    });
   }
 }
 
@@ -1326,7 +1337,6 @@ generateQuotationNo(): string {
 }
 saveQuotation() {
   if (this.quotation) {
-    // Final force sync taaki API request hit hone se pehle JSON body mein absolute fresh value jaye
     if (this.quotation.chargeableWeightUnit) {
       this.quotation.chrgWeightUnit = this.quotation.chargeableWeightUnit;
     }
@@ -1334,9 +1344,10 @@ saveQuotation() {
       this.quotation.GrossWeightUnit = this.quotation.grossWeightUnit;
     }
   }
+  
   const token = localStorage.getItem('cavalier_token');
   if (!token) {
-    Swal.fire('Error', 'Session expire ho gaya hai. Login karein.', 'error');
+    Swal.fire('Error', 'Session expired. Please login again.', 'error');
     return;
   }
 
@@ -1354,9 +1365,12 @@ saveQuotation() {
     return;
   }
 
+  // Check if it's EDIT or CREATE mode
+  const isEdit = this.quotation.id && this.quotation.id > 0;
+
   // --- Start SweetAlert Loading Animation ---
   Swal.fire({
-    title: 'Processing Quotation...',
+    title: isEdit ? 'Updating Quotation...' : 'Creating Quotation...',
     html: '<b>Step 1:</b> Saving main records...',
     allowOutsideClick: false,
     didOpen: () => {
@@ -1364,95 +1378,69 @@ saveQuotation() {
     }
   });
 
-  // 🔥 MAPPING LOGIC: Frontend variables ko Backend Model keys se match kiya hai
+  // Payload mapping
   const payload = {
     ...this.quotation,
-    // ✅ Direct/Indirect added here
     isDirect: Boolean(this.quotation.isDirect),
     isIndirect: Boolean(this.quotation.isIndirect),
-    
-// 🔥 NAYI FIELDS ADDED TO PAYLOAD
     country: this.quotation.country || "",
     finalDestinationCode: this.quotation.finalDestinationCode || "",
     podOrigin: this.quotation.podOrigin || "",
-teamId: this.quotation.teamId ? Number(this.quotation.teamId) : null,
-
+    teamId: this.quotation.teamId ? Number(this.quotation.teamId) : null,
     pricingId: this.quotation.pricingId ? Number(this.quotation.pricingId) : null,
     organisationId: this.quotation.organisationId ? Number(this.quotation.organisationId) : null,
     organisationName: this.quotation.organisationName || this.quotation.organization,
-    // 1. Reference by Pricing
-    referenceByInquiry: this.quotation.referencePricingNo, 
+    referenceByInquiry: this.quotation.referencePricingNo,
     PackageUnit: this.quotation.pkgUnit || '',
     NoOfPkgsUnit: this.quotation.pkgUnit || '',
-    // 2. Sales Coordinator (ID to String)
-    salesCoor: String(this.quotation.salesCoordinator || ""), 
-    
-    // 3. No of Package & Weights (Numeric Conversion)
+    salesCoor: String(this.quotation.salesCoordinator || ""),
     numOfPackages: Number(this.quotation.noOfPkgs || 0),
     grossWeight: Number(this.quotation.grossWeightKg || 0),
     chrgWeight: Number(this.quotation.chargeableWeight || 0),
     volumeWeight: Number(this.quotation.volumeWeight || 0),
-    
-    // 4. IncoTerms & Movement
-    incoTerms: this.quotation.incoterm, 
-    movement: this.quotation.movementType, 
-    
-    // 5. Carrier & Transit Days
-    awbIssuedBy: this.quotation.awbIssuedBy, 
+    incoTerms: this.quotation.incoterm,
+    movement: this.quotation.movementType,
+    awbIssuedBy: this.quotation.awbIssuedBy,
     transitDest: this.quotation.transitDays ? `${this.quotation.transitDest} (${this.quotation.transitDays} Days)` : this.quotation.transitDest,
-    
-    // 6. Cargo Value Currency merge
     cargoValue: `${this.quotation.currency} ${this.quotation.cargoValue}`,
-    
-    // 7. Pickup & Delivery Address merge (Org + Address)
     pickupAddress: `Org: ${this.quotation.pickupOrg || ""}, Addr: ${this.quotation.pickupAddress || ""}`,
     deliveryAddress: `Org: ${this.quotation.deliveryOrg || ""}, Addr: ${this.quotation.deliveryAddress || ""}`,
-
-    // JSON Data (✅ DIMENSIONS DATA UPDATED TO PASS REAL VALUE NOW)
     revenueData: JSON.stringify(this.revenueRows),
     costData: JSON.stringify(this.costRows),
     dimensionsData: this.dimRows && this.dimRows.length > 0 ? JSON.stringify(this.dimRows) : "",
-    
-    // Total Calculations
     totalRevenue: this.totalRevFinal,
     totalCost: this.totalCostFinal,
     totalProfit: this.totalProfitFinal,
     lineOfBusiness: String(this.quotation.lineOfBusiness),
     commodity: String(this.quotation.commodity),
-documents: this.documents.map(d => ({ fileName: d.name, filePath: d.documentPath })),
-// ✅ MultiCarriers Mapping Added
+    documents: this.documents.map(d => ({ fileName: d.name, filePath: d.documentPath })),
     multiCarriers: this.multiCarrierRows ? this.multiCarrierRows.map(m => ({
-        forwarder: m.forwarder,
-        origin: m.origin,
-        lob: m.lob,
-        chargeName: m.chargeName,
-        chargeType: m.chargeType,
-        airFreight: Number(m.airFreight) || 0,
-        fsc: m.fsc,
-        airline: m.airline,
-        cutoff: m.cutoff,
-      // 🔥 FIX: Date agar valid hai toh bhejein, warna null bhejein
-    schedule: (m.schedule && m.schedule !== '0001-01-01' && m.schedule !== '') ? new Date(m.schedule).toISOString() : null,
-        currency: m.currency,
-        rate: Number(m.rate) || 0,
-        exchangeRate: Number(m.exchangeRate) || 1,
-        totalCost: Number(m.totalCost) || 0,
-        remark: m.remark
+      forwarder: m.forwarder,
+      origin: m.origin,
+      lob: m.lob,
+      chargeName: m.chargeName,
+      chargeType: m.chargeType,
+      airFreight: Number(m.airFreight) || 0,
+      fsc: m.fsc,
+      airline: m.airline,
+      cutoff: m.cutoff,
+      schedule: (m.schedule && m.schedule !== '0001-01-01' && m.schedule !== '') ? new Date(m.schedule).toISOString() : null,
+      currency: m.currency,
+      rate: Number(m.rate) || 0,
+      exchangeRate: Number(m.exchangeRate) || 1,
+      totalCost: Number(m.totalCost) || 0,
+      remark: m.remark
     })) : [],
-    // ✅ FIXED PLACEMENT: Inko object ke sabse aakhiri mein rakha hai taaki ...this.quotation ki string values is numeric conversion ko override na kar sakein.
     portOfLoadingId: (this.quotation.portOfLoadingId !== null && this.quotation.portOfLoadingId !== undefined && this.quotation.portOfLoadingId !== '') ? Number(this.quotation.portOfLoadingId) : null,
     portOfDischargeId: (this.quotation.portOfDischargeId !== null && this.quotation.portOfDischargeId !== undefined && this.quotation.portOfDischargeId !== '') ? Number(this.quotation.portOfDischargeId) : null,
-    
-    // ✅ CONNECTING PORTS MAPPING (Array of objects to comma-separated ID string)
     connectingPortIds: this.selectedConnectingPorts && this.selectedConnectingPorts.length > 0 
-        ? this.selectedConnectingPorts.map(p => p.id).join(',') 
-        : ""
+      ? this.selectedConnectingPorts.map(p => p.id).join(',') 
+      : ""
   };
 
-  // 📝 CONSOLE LOG: Isse aap Inspect Element -> Console me pura payload check kar sakte hain api hit hone se pehle
   console.log("🚀 FINAL PAYLOAD BEING SENT TO BACKEND:", payload);
 
-  // 1. API Step 1: Save Quotation
+  // API Call
   const request = this.quotation.id > 0 
     ? this.http.put(`${this.apiEndpoint}/update/${this.quotation.id}`, payload, httpOptions)
     : this.http.post(this.apiEndpoint, payload, httpOptions);
@@ -1466,7 +1454,6 @@ documents: this.documents.map(d => ({ fileName: d.name, filePath: d.documentPath
         html: '<b>Step 2:</b> Syncing Revenue items...'
       });
 
-      // 2. Prepare Revenue Payload
       const revenuePayload = validRevenueRows.map(r => ({
         quotationId: savedQtnId,
         lob: String(r.lob || payload.lineOfBusiness || ""),
@@ -1482,18 +1469,10 @@ documents: this.documents.map(d => ({ fileName: d.name, filePath: d.documentPath
       this.http.post(`${this.apiEndpoint}/SaveQuotationRevenue`, revenuePayload, httpOptions).subscribe({
         next: () => {
           Swal.update({
-            title: 'Cast Is Saving... ⏳',
+            title: 'Cost Is Saving... ⏳',
             html: '<b>Step 3:</b> Finalizing Cost breakdowns...'
           });
-                        Swal.close(); // Main block validation closed
-    
-    // Core structural conditional micro routing matching current selection index
-    if (this.isPreviewMode && this.selectedEmails && this.selectedEmails.size > 0) {
-      console.log("🚀 Quotation entries compiled successfully. Transitioning control stream to bulk mailing matrix architecture...");
-      this.sendBulkEmails(savedQtnId);
-    }
 
-          // 3. Prepare Cost Payload
           const costPayload = validCostRows.map(c => ({
             quotationId: savedQtnId,
             lob: String(c.lob || payload.lineOfBusiness || ""),
@@ -1513,7 +1492,6 @@ documents: this.documents.map(d => ({ fileName: d.name, filePath: d.documentPath
                 html: '<b>Step 4:</b> Generating P&L Summary...'
               });
 
-              // 4. Prepare PnL Summary
               const pnlPayload = this.pnLRows.map(p => ({
                 quotationId: savedQtnId,
                 lob: String(p.lob || ""),
@@ -1526,42 +1504,72 @@ documents: this.documents.map(d => ({ fileName: d.name, filePath: d.documentPath
 
               this.http.post(`${this.apiEndpoint}/SavePnLSummary`, pnlPayload, httpOptions).subscribe({
                 next: () => {
-                 Swal.close(); // Main block validation closed
-    
-    // Core structural conditional micro routing matching current selection index
-    if (this.isPreviewMode && this.selectedEmails && this.selectedEmails.size > 0) {
-      console.log("🚀 Quotation entries compiled successfully. Transitioning control stream to bulk mailing matrix architecture...");
-     
-    } else {
-      Swal.fire({
-        icon: 'success',
-        title: 'All Done! 🚀',
-        text: 'Quotation created and metrics aligned perfectly!',
-        timer: 2000,
-        showConfirmButton: false
-      });
-// ✅ YE LINE ADD KI HAI
-                  setTimeout(() => { window.location.reload(); }, 2000);
-                  this.loadQuotations();
-                  this.toggleForm();
-                  this.cdr.detectChanges();
-    }
+                  Swal.close();
+
+                  // Check if email should be sent
+                  if (this.isPreviewMode && this.selectedEmails && this.selectedEmails.size > 0) {
+                    console.log("🚀 Quotation entries compiled successfully. Transitioning control stream to bulk mailing matrix architecture...");
+                    this.sendBulkEmails(savedQtnId);
+                  } else {
+                    // ✅ SUCCESS SWEETALERT
+                    Swal.fire({
+                      icon: 'success',
+                      title: isEdit ? 'Updated! 🚀' : 'Created! 🚀',
+                      text: isEdit 
+                        ? 'Quotation updated and metrics aligned perfectly!' 
+                        : 'Quotation created and metrics aligned perfectly!',
+                      timer: 2000,
+                      showConfirmButton: false
+                    });
+                    
+                this.onSearch();
+                    this.loadQuotations();
+                    this.toggleForm();
+                    this.cdr.detectChanges();
+                  }
                 },
-                error: () => Swal.fire('Error', 'PnL Summary save fail hui.', 'warning')
-                
+                error: () => {
+                  Swal.fire({
+                    title: 'Error!',
+                    text: 'PnL Summary save failed.',
+                    icon: 'warning',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#f39c12'
+                  });
+                }
               });
-                 setTimeout(() => { window.location.reload(); }, 2000);
             },
-            error: () => Swal.fire('Error', 'Cost save fail hua.', 'error')
+            error: () => {
+              Swal.fire({
+                title: 'Error!',
+                text: 'Cost save failed.',
+                icon: 'error',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#d33'
+              });
+            }
           });
-             setTimeout(() => { window.location.reload(); }, 2000);
         },
-        error: () => Swal.fire('Error', 'Revenue save fail hua.', 'error')
+        error: () => {
+          Swal.fire({
+            title: 'Error!',
+            text: 'Revenue save failed.',
+            icon: 'error',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#d33'
+          });
+        }
       });
     },
     error: (err) => {
       console.error(err);
-      Swal.fire('Failed', 'Main Quotation save nahi ho saki.', 'error');
+      Swal.fire({
+        title: 'Failed!',
+        text: 'Main Quotation could not be saved. Please try again.',
+        icon: 'error',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#d33'
+      });
     }
   });
 }
@@ -1622,17 +1630,31 @@ loadQuotationForEdit(id: number) {
     'Authorization': `Bearer ${token}`
   });
 
-  // 1. Backend ki specific ID wali API call (Jo aapne upar di hai)
+  Swal.fire({
+    title: 'Loading...',
+    text: 'Fetching quotation data',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+
   this.http.get<any>(`${this.apiEndpoint}/${id}`, { headers }).subscribe({
     next: (data) => {
+      Swal.close();
       console.log("✅ Fresh Quotation Data Received:", data);
-      // 2. Data milte hi aapka existing autofill logic trigger kar do
       this.editQuotation(data);
-      this.cdr.detectChanges(); // Ensure UI updates with new data
+      this.cdr.detectChanges();
     },
     error: (err) => {
       console.error("❌ Error fetching quotation:", err);
-      Swal.fire('Error', 'Data load karne mein problem aayi!', 'error');
+      Swal.fire({
+        title: 'Error!',
+        text: 'Failed to load quotation data for editing.',
+        icon: 'error',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#d33'
+      });
     }
   });
 }
@@ -1859,32 +1881,60 @@ setTimeout(() => {
 // Constructor mein inject karein
 
 deleteQuotation(id: number) {
-  if (confirm("Are you sure?")) {
-    // --- Authorization Logic Start ---
-    const token = localStorage.getItem('cavalier_token');
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    });
-    // --- Authorization Logic End ---
+  Swal.fire({
+    title: 'Are you sure?',
+    text: 'Do you want to delete this quotation?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Yes, delete it!',
+    cancelButtonText: 'Cancel'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      Swal.fire({
+        title: 'Deleting...',
+        text: 'Please wait',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
 
-    this.http.delete(`${this.apiEndpoint}/${id}`, { headers }).subscribe({
-      next: () => {
-        // 2. Data load hone ke baad manual refresh trigger karein
-        this.loadQuotations();
+      const token = localStorage.getItem('cavalier_token');
+      const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      });
 
-        // 3. Ek chota sa delay de kar Angular ko force karein UI update ke liye
-        setTimeout(() => {
+      this.http.delete(`${this.apiEndpoint}/${id}`, { headers }).subscribe({
+        next: () => {
+          Swal.fire({
+            title: 'Deleted!',
+            text: 'Quotation has been deleted successfully.',
+            icon: 'success',
+            timer: 2000,
+            showConfirmButton: false
+          });
+          this.loadQuotations();
+          setTimeout(() => {
+            this.cdr.detectChanges();
+          }, 100);
+        },
+        error: (err) => {
+          console.error("Delete Error:", err);
+          Swal.fire({
+            title: 'Error!',
+            text: 'Failed to delete quotation. Please try again.',
+            icon: 'error',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#d33'
+          });
           this.cdr.detectChanges();
-          console.log("UI Refreshed!");
-        }, 100);
-      },
-      error: (err) => {
-        console.error("Delete Error:", err);
-        this.cdr.detectChanges();
-      }
-    });
-  }
+        }
+      });
+    }
+  });
 }
 
   // --- Filter & Search Methods (Fixes 'searchQuotations', 'clearFilters' errors) ---
@@ -3860,10 +3910,16 @@ addDocument() {
 removeDocument(index: number) {
   this.documents.splice(index, 1);
 }
+
 saveDocumentChanges() {
-  // Is logic se files temporary store ho jayengi, main saveQuotation ke time upload hogi
   this.closeDocumentModal();
-  Swal.fire('Success', 'Documents prepared for saving.', 'success');
+  Swal.fire({
+    title: 'Documents Prepared!',
+    text: 'Documents have been saved successfully.',
+    icon: 'success',
+    timer: 1500,
+    showConfirmButton: false
+  });
 }
 // onCommodityChange(event: any) {
 //   this.quotation.commodity = event.target.value;

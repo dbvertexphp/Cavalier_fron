@@ -625,7 +625,7 @@ export class PriceComponent {
   ];
   isFormOpen = false;
   public apiUrl = `${environment.apiUrl}/Pricing`;
-  public fileBaseUrl = environment.apiUrl.replace("/api", "");
+ public fileBaseUrl = environment.apiUrl.replace(/\/api$/, "");
   inquiries: any[] = [];
   quotations: any[] = [];
   quotation: any = this.resetQuotationModel();
@@ -4347,8 +4347,8 @@ export class PriceComponent {
 
     // 🔄 LOADING ANIMATION STAGE WHILE SAVING IN DB
     Swal.fire({
-      title: "Saving Pricing Data...",
-      text: "Please wait while database transactional integrity completes.",
+     title: this.quotation.id > 0 ? "Updating Pricing..." : "Saving Pricing...",
+  text: "Please wait while your data is being processed securely.",
       allowOutsideClick: false,
       didOpen: () => {
         Swal.showLoading();
@@ -4377,9 +4377,15 @@ export class PriceComponent {
         } else {
           // Fallback: Agar standard Form screen se direct save kiya ya koi agent select nahi kiya
           Swal.fire(
-            "Saved!",
-            "Pricing entry with table configurations saved successfully!",
-            "success",
+            {
+               title: this.quotation.id > 0 ? "Updated Successfully!" : "Saved Successfully!",
+        text: this.quotation.id > 0
+          ? "Pricing data has been updated successfully with all table configurations!"
+          : "Pricing data has been created successfully with all table configurations!",
+        icon: "success",
+        confirmButtonColor: "#3085d6",
+        confirmButtonText: "OK",
+            }
           ).then(() => {
             this.isFormOpen = false;
             this.isPreviewMode = false;

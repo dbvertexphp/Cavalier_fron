@@ -618,7 +618,7 @@ export class InquiryComponent implements OnInit {
   availableColumns: string[] = ["Mode", "Destination", "Sales Person"];
   isFormOpen = false;
   public apiUrl = `${environment.apiUrl}/Inquiry`;
-  public fileBaseUrl = environment.apiUrl.replace('/api', '');
+  public fileBaseUrl = environment.apiUrl.replace(/\/api$/, "");
   inquiries: any[] = [];
   quotations: any[] = [];
   quotation: any = this.resetQuotationModel();
@@ -1572,8 +1572,7 @@ export class InquiryComponent implements OnInit {
   }
 
   deleteQuotation(id: number) {
-
- // Token fetch karein
+    // Token fetch karein
     const token = localStorage.getItem("cavalier_token");
 
     // Headers set karein
@@ -1582,30 +1581,56 @@ export class InquiryComponent implements OnInit {
       "Content-Type": "application/json",
     });
 
-    if (confirm("Are you sure?")) {
-      // 1. IMMEDIATE UI UPDATE (Wait mat karo API ka)
-      // Maan lo aapka array 'quotations' naam se hai
-      // this.quotations = this.quotations.filter((q: any) => q.id !== id);
+    // Replace confirm with SweetAlert
+    Swal.fire({
+      title: "Are you sure?",
+      text: "Do you want to delete this inquiry?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Show loading
+        Swal.fire({
+          title: "Deleting...",
+          text: "Please wait",
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          },
+        });
 
-      // 2. Angular ko bolo ki turant UI badal de
-      this.cdr.detectChanges();
-
-      this.http.delete(`${this.apiUrl}/${id}`, { headers }  ).subscribe({
-        next: () => {
-          console.log("Deleted Successfully!");
-          // Backend se sync karne ke liye piche se load kar lo
-          this.cdr.detectChanges();
-          this.loadQuotations();
-        },
-        error: (err) => {
-          console.error("Delete failed", err);
-          alert("Delete failed! Refreshing list...");
-          this.loadQuotations(); // Agar error aaye toh wapas list le aao
-          this.cdr.detectChanges();
-        },
-      });
-    }
+        this.http.delete(`${this.apiUrl}/${id}`, { headers }).subscribe({
+          next: () => {
+            Swal.fire({
+              title: "Deleted!",
+              text: "Inquiry has been deleted successfully.",
+              icon: "success",
+              timer: 2000,
+              showConfirmButton: false,
+            });
+            this.cdr.detectChanges();
+            this.loadQuotations();
+          },
+          error: (err) => {
+            console.error("Delete failed", err);
+            Swal.fire({
+              title: "Error!",
+              text: "Failed to delete inquiry. Please try again.",
+              icon: "error",
+              confirmButtonText: "OK",
+            });
+            this.loadQuotations();
+            this.cdr.detectChanges();
+          },
+        });
+      }
+    });
   }
+
   getFormattedInquiryNo(): string {
     // 1️⃣ Line of Business Name (Air Import -> AI)
     const lobName = this.quotation.lineOfBusinessName || "";
@@ -1808,10 +1833,16 @@ export class InquiryComponent implements OnInit {
     this.updatePreview();
     this.closeDimModal();
   }
-  onTransportModeChange() {
-    alert(this.quotation.TransportMode);
-  }
 
+  onTransportModeChange() {
+    Swal.fire({
+      title: "Transport Mode Changed",
+      text: `Selected Transport Mode: ${this.quotation.TransportMode}`,
+      icon: "info",
+      timer: 2000,
+      showConfirmButton: false,
+    });
+  }
   // 4. Save button par calculation trigger karna
 
   // ✅ Ye declare karna zaroori hai
@@ -2180,7 +2211,13 @@ export class InquiryComponent implements OnInit {
           console.error("Error loading dropdown data:", err);
 
           if (err.status === 401) {
-            alert("Unauthorized! Please login again.");
+            Swal.fire({
+              title: "Unauthorized!",
+              text: "Please login again.",
+              icon: "error",
+              confirmButtonText: "OK",
+              confirmButtonColor: "#d33",
+            });
           }
         },
       });
@@ -2240,6 +2277,8 @@ export class InquiryComponent implements OnInit {
         },
       });
   }
+
+  
 
   onInquiryType() {
     // Query ko authorize/sahi karna (3 words logic)
@@ -2518,7 +2557,14 @@ export class InquiryComponent implements OnInit {
       },
       error: (err) => {
         console.error("Search failed:", err);
-        alert("Error loading data! Please check your date filters.");
+
+        Swal.fire({
+          title: "Error!",
+          text: "Error loading data! Please check your date filters.",
+          icon: "error",
+          confirmButtonText: "OK",
+          confirmButtonColor: "#d33",
+        });
       },
     });
   }
@@ -2699,7 +2745,13 @@ export class InquiryComponent implements OnInit {
 
     // Check karein ki data hai ya nahi
     if (!this.quotations || this.quotations.length === 0) {
-      alert("Excel ke liye koi data nahi mila!");
+      Swal.fire({
+        title: "No Data",
+        text: "No data found for Excel export!",
+        icon: "warning",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#4a3f3f",
+      });
       return;
     }
 
@@ -2749,12 +2801,12 @@ export class InquiryComponent implements OnInit {
   pageSize: number = 10; // Ek page par kitne records dikhane hain
   protected readonly Math = Math; // Template mein Math functions use karne ke liye
 
- get paginatedInquiries(): any[] {
-  const startIndex = (this.currentPage - 1) * this.pageSize;
-  return Array.isArray(this.quotations) 
-    ? this.quotations.slice(startIndex, startIndex + this.pageSize) 
-    : [];
-}
+  get paginatedInquiries(): any[] {
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    return Array.isArray(this.quotations)
+      ? this.quotations.slice(startIndex, startIndex + this.pageSize)
+      : [];
+  }
 
   // Total pages calculate karne ke liye
   get totalPages(): number {
@@ -2939,7 +2991,7 @@ export class InquiryComponent implements OnInit {
 
     // 3. API Call with Headers
     this.inqSub = this.http
-      .get<any[]>(`${environment.apiUrl}/Inquiry`, { headers })
+      .get<any[]>(`${environment.apiUrl}/Inquiry/list`, { headers })
       .subscribe({
         next: (res) => {
           // Inquiry No. nikalna aur Unique banana
@@ -3095,8 +3147,13 @@ export class InquiryComponent implements OnInit {
   // 2. Review Mode toggle karne ka function
   toggleReview() {
     if (!this.inquiry.organization) {
-      alert("firstly save org");
-
+      Swal.fire({
+        title: "Validation Error",
+        text: "Please save organization first before reviewing.",
+        icon: "warning",
+        confirmButtonColor: "#4a3f3f",
+        confirmButtonText: "OK",
+      });
       return;
     }
     console.log("testing of ids", this.organizationIds);
@@ -3151,7 +3208,13 @@ export class InquiryComponent implements OnInit {
     console.log("--- Review Button Clicked ---");
 
     if (!this.inquiry.organization) {
-      alert("firstly save org");
+      Swal.fire({
+        title: "Validation Error",
+        text: "Please save organization first.",
+        icon: "warning",
+        confirmButtonColor: "#4a3f3f",
+        confirmButtonText: "OK",
+      });
       return;
     }
 
@@ -3882,182 +3945,215 @@ export class InquiryComponent implements OnInit {
     // Is function ki ab zaroorat nahi padegi kyunki hum saveQuotation me sab bhej rahe hain.
     // Bas modal band karne ke liye aap iska use kar sakte hain.
     this.showMultiCarrierTable = false;
-    alert("Carrier details added to Inquiry!");
-  }
-  saveQuotation() {
-    if (!this.inquiry.organization) {
-      alert("Organization Name is required!");
-      return;
-    }
-
-    // --- CLEAN PAYLOAD MAPPING ---
-    const payload: any = {
-      ...this.quotation,
-      teamId:
-        this.quotation.teamId && Number(this.quotation.teamId) > 0
-          ? Number(this.quotation.teamId)
-          : null,
-      TransportMode: String(
-        this.quotation.TransportMode || this.quotation.transportMode || "",
-      ),
-      TransportType: String(
-        this.quotation.TransportType || this.quotation.transportType || "",
-      ),
-      inquiryNo: String(this.inquiry.inquiryNo || ""),
-
-      // --- INDEPENDENT FIELD ---
-      podOrigin: String(this.quotation.podOrigin || ""),
-
-      // --- FALLBACK LOGIC FOR ORGANIZATION ---
-      customerName: String(
-        this.inquiry.organization || this.quotation.customerName || "",
-      ),
-      organization: String(
-        this.inquiry.organization || this.quotation.organization || "",
-      ),
-      OrganisationName: String(
-        this.OrganisationName ||
-          this.inquiry.organization ||
-          this.quotation.organization ||
-          "",
-      ),
-      OrganisationId: Number(
-        this.OrganisationId || this.quotation.organisationId || 0,
-      ),
-
-      shipmentType: String(this.quotation.shipmentType || ""),
-      leadNo: String(this.inquiry.leadNo || this.quotation.leadNo || ""),
-      leadId: Number(this.LeadId || this.quotation.leadId || 0),
-      LeadName: String(
-        this.LeadName || this.quotation.leadName || this.quotation.leadNo || "",
-      ),
-
-      origin: String(this.inquiry.origin || this.quotation.origin || ""),
-
-      HazardDocPath: this.quotation.hazardDocPath || null,
-      weightUnit: String(this.quotation.GrossweightUnit || "KGS"),
-
-      GrossWeightUnit: String(this.quotation.GrossWeightUnit || ""),
-      NetWeightUnit: String(this.quotation.NetWeightUnit || ""),
-      ChargeableWeightUnit: String(this.quotation.ChargeWeightUnit || ""),
-      VolumeWeightUnit: String(this.quotation.VolumeWeightUnit || ""),
-      NoOfPkgsUnit: String(this.quotation.noOfPkgsUnit || ""),
-      CbmWeightUnit: String(this.quotation.CbmWeightUnit || "CBM"),
-      cargocurrency: String(this.quotation.currency || "INR"),
-      cargoValue: String(this.quotation.cargoValue || "0"),
-      lineOfBusinessId:
-        this.quotation.lineOfBusinessId &&
-        Number(this.quotation.lineOfBusinessId) > 0
-          ? Number(this.quotation.lineOfBusinessId)
-          : null,
-      lineOfBusinessName: String(this.quotation.lineOfBusinessName || ""),
-      originId:
-        this.originsaveid && Number(this.originsaveid) > 0
-          ? Number(this.originsaveid)
-          : null,
-
-      portOfLoadingId:
-        this.quotation.portOfLoadingId &&
-        Number(this.quotation.portOfLoadingId) > 0
-          ? Number(this.quotation.portOfLoadingId)
-          : null,
-      portOfDischargeId:
-        this.quotation.portOfDischargeId &&
-        Number(this.quotation.portOfDischargeId) > 0
-          ? Number(this.quotation.portOfDischargeId)
-          : null,
-
-      portOfLoading: null,
-      portOfDischarge: null,
-
-      codeOfPOD: String(this.quotation.codeOfPOD || ""),
-      codeOfFinalDest: String(this.quotation.codeOfFinalDest || ""),
-
-      cargoStatus: String(this.quotation.cargoStatusType || "Ready"),
-      createdBy: "admin@cavalierlogistic.in",
-      qtnId: String(
-        this.quotation.qtnId ||
-          "QTN-" + Math.floor(1000 + Math.random() * 9000),
-      ),
-      createdDate: new Date().toISOString(),
-      dimensions: this.appliedDimensions || [],
-      countryName: String(this.quotation.country || ""),
-
-      connectingPortIds:
-        this.selectedConnectingPorts && this.selectedConnectingPorts.length > 0
-          ? String(this.selectedConnectingPorts.map((p: any) => p.id).join(","))
-          : null,
-
-      isDirect:
-        this.quotation.serviceType === "Direct" ||
-        Boolean(this.quotation.isDirect),
-      isIndirect:
-        this.quotation.serviceType === "Indirect" ||
-        Boolean(this.quotation.isIndirect),
-      serviceType: String(
-        this.searchFilters?.transportMode || this.quotation.serviceType || "",
-      ),
-    };
-
-    // 🔥 CRITICAL FIX: 'commodity' नाम की इंटीजर की को डिलीट करके सही C# फॉरेन की का नाम सेट किया
-    payload.commodityId =
-      this.quotation.commodity && Number(this.quotation.commodity) > 0
-        ? Number(this.quotation.commodity)
-        : null;
-    if (payload.hasOwnProperty("commodity")) {
-      delete payload.commodity;
-    }
-
-    console.log("FINAL PAYLOAD BEFORE SENDING:", payload);
-
-    const formData = new FormData();
-    formData.append("inquiryData", JSON.stringify(payload));
-
-    if (this.documents?.length) {
-      this.documents.forEach((doc) => {
-        if (doc.file) {
-          formData.append("commodityFiles", doc.file);
-          formData.append("documentNames", doc.name || doc.fileName);
-        }
-      });
-    }
-    if (this.invoices?.length) {
-      this.invoices.forEach((inv) => {
-        if (inv.file) {
-          formData.append("invoiceFiles", inv.file);
-          formData.append("invoiceNames", inv.name || inv.fileName);
-        }
-      });
-    }
-
-    const token = localStorage.getItem("cavalier_token");
-    const httpOptions = { headers: { Authorization: `Bearer ${token}` } };
-
-    const action =
-      this.quotation.id && this.quotation.id > 0
-        ? this.http.put(
-            `${this.apiUrl}/${this.quotation.id}`,
-            formData,
-            httpOptions,
-          )
-        : this.http.post(this.apiUrl, formData, httpOptions);
-
-    action.subscribe({
-      next: () => {
-        alert("Success: Saved in CavalierDB!");
-        this.isFormOpen = false;
-        this.router.navigate(["/dashboard/salescrm/inquiry"]);
-        this.cdr.detectChanges();
-        window.location.reload();
-      },
-      error: (err) => {
-        console.error("Backend Error Details:", err);
-        alert(
-          "Failed: Database FK Conflict. Check if Port IDs exist in PortSetup/PortDischarge tables.",
-        );
-      },
+    Swal.fire({
+      title: "Success!",
+      text: "Carrier details added to Inquiry!",
+      icon: "success",
+      timer: 2000,
+      showConfirmButton: false,
     });
   }
+  
+saveQuotation() {
+  if (!this.inquiry.organization) {
+    Swal.fire({
+      title: "Validation Error",
+      text: "Organization Name is required!",
+      icon: "warning",
+      confirmButtonColor: "#4a3f3f",
+      confirmButtonText: "OK",
+    });
+    return;
+  }
+
+  // --- CLEAN PAYLOAD MAPPING ---
+  const payload: any = {
+    ...this.quotation,
+    teamId:
+      this.quotation.teamId && Number(this.quotation.teamId) > 0
+        ? Number(this.quotation.teamId)
+        : null,
+    TransportMode: String(
+      this.quotation.TransportMode || this.quotation.transportMode || "",
+    ),
+    TransportType: String(
+      this.quotation.TransportType || this.quotation.transportType || "",
+    ),
+    inquiryNo: String(this.inquiry.inquiryNo || ""),
+    podOrigin: String(this.quotation.podOrigin || ""),
+    customerName: String(
+      this.inquiry.organization || this.quotation.customerName || "",
+    ),
+    organization: String(
+      this.inquiry.organization || this.quotation.organization || "",
+    ),
+    OrganisationName: String(
+      this.OrganisationName ||
+        this.inquiry.organization ||
+        this.quotation.organization ||
+        "",
+    ),
+    OrganisationId: Number(
+      this.OrganisationId || this.quotation.organisationId || 0,
+    ),
+    shipmentType: String(this.quotation.shipmentType || ""),
+    leadNo: String(this.inquiry.leadNo || this.quotation.leadNo || ""),
+    leadId: Number(this.LeadId || this.quotation.leadId || 0),
+    LeadName: String(
+      this.LeadName || this.quotation.leadName || this.quotation.leadNo || "",
+    ),
+    origin: String(this.inquiry.origin || this.quotation.origin || ""),
+    HazardDocPath: this.quotation.hazardDocPath || null,
+    weightUnit: String(this.quotation.GrossweightUnit || "KGS"),
+    GrossWeightUnit: String(this.quotation.GrossWeightUnit || ""),
+    NetWeightUnit: String(this.quotation.NetWeightUnit || ""),
+    ChargeableWeightUnit: String(this.quotation.ChargeWeightUnit || ""),
+    VolumeWeightUnit: String(this.quotation.VolumeWeightUnit || ""),
+    NoOfPkgsUnit: String(this.quotation.noOfPkgsUnit || ""),
+    CbmWeightUnit: String(this.quotation.CbmWeightUnit || "CBM"),
+    cargocurrency: String(this.quotation.currency || "INR"),
+    cargoValue: String(this.quotation.cargoValue || "0"),
+    lineOfBusinessId:
+      this.quotation.lineOfBusinessId &&
+      Number(this.quotation.lineOfBusinessId) > 0
+        ? Number(this.quotation.lineOfBusinessId)
+        : null,
+    lineOfBusinessName: String(this.quotation.lineOfBusinessName || ""),
+    originId:
+      this.originsaveid && Number(this.originsaveid) > 0
+        ? Number(this.originsaveid)
+        : null,
+    portOfLoadingId:
+      this.quotation.portOfLoadingId &&
+      Number(this.quotation.portOfLoadingId) > 0
+        ? Number(this.quotation.portOfLoadingId)
+        : null,
+    portOfDischargeId:
+      this.quotation.portOfDischargeId &&
+      Number(this.quotation.portOfDischargeId) > 0
+        ? Number(this.quotation.portOfDischargeId)
+        : null,
+    portOfLoading: null,
+    portOfDischarge: null,
+    codeOfPOD: String(this.quotation.codeOfPOD || ""),
+    codeOfFinalDest: String(this.quotation.codeOfFinalDest || ""),
+    cargoStatus: String(this.quotation.cargoStatusType || "Ready"),
+    createdBy: "admin@cavalierlogistic.in",
+    qtnId: String(
+      this.quotation.qtnId ||
+        "QTN-" + Math.floor(1000 + Math.random() * 9000),
+    ),
+    createdDate: new Date().toISOString(),
+    dimensions: this.appliedDimensions || [],
+    countryName: String(this.quotation.country || ""),
+    connectingPortIds:
+      this.selectedConnectingPorts && this.selectedConnectingPorts.length > 0
+        ? String(this.selectedConnectingPorts.map((p: any) => p.id).join(","))
+        : null,
+    isDirect:
+      this.quotation.serviceType === "Direct" ||
+      Boolean(this.quotation.isDirect),
+    isIndirect:
+      this.quotation.serviceType === "Indirect" ||
+      Boolean(this.quotation.isIndirect),
+    serviceType: String(
+      this.searchFilters?.transportMode || this.quotation.serviceType || "",
+    ),
+  };
+
+  // CRITICAL FIX: 'commodity' name ki integer ko delete kar ke sahi C# foreign key ka naam set kiya
+  payload.commodityId =
+    this.quotation.commodity && Number(this.quotation.commodity) > 0
+      ? Number(this.quotation.commodity)
+      : null;
+  if (payload.hasOwnProperty("commodity")) {
+    delete payload.commodity;
+  }
+
+  console.log("FINAL PAYLOAD BEFORE SENDING:", payload);
+
+  const formData = new FormData();
+  formData.append("inquiryData", JSON.stringify(payload));
+
+  // ---------------- COMMODITY DOCS ----------------
+  if (this.documents?.length) {
+    this.documents.forEach((doc) => {
+      if (doc.file) {
+        formData.append("commodityFiles", doc.file);
+        formData.append("documentNames", doc.name || doc.fileName);
+      } else if (doc.isExisting && doc.id) {
+        formData.append("keepCommodityDocumentIds", doc.id.toString());
+      }
+    });
+  }
+  formData.append("commodityDocsTouched", "true");
+
+  // ---------------- INVOICE DOCS ----------------
+  if (this.invoices?.length) {
+    this.invoices.forEach((inv) => {
+      if (inv.file) {
+        formData.append("invoiceFiles", inv.file);
+        formData.append("invoiceNames", inv.name || inv.fileName);
+      } else if (inv.isExisting && inv.id) {
+        formData.append("keepInvoiceDocumentIds", inv.id.toString());
+      }
+    });
+  }
+  formData.append("invoiceDocsTouched", "true");
+
+  const token = localStorage.getItem("cavalier_token");
+  const httpOptions = { headers: { Authorization: `Bearer ${token}` } };
+
+  // Check if it's CREATE or UPDATE
+  const isEdit = this.quotation.id && this.quotation.id > 0;
+
+  const action = isEdit
+    ? this.http.put(
+        `${this.apiUrl}/${this.quotation.id}`,
+        formData,
+        httpOptions,
+      )
+    : this.http.post(this.apiUrl, formData, httpOptions);
+
+  // Show loading
+  Swal.fire({
+    title: isEdit ? "Updating..." : "Saving...",
+    text: "Please wait",
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    },
+  });
+
+  action.subscribe({
+    next: () => {
+      Swal.fire({
+        title: isEdit ? "Updated!" : "Success!",
+        text: isEdit
+          ? "Inquiry has been updated successfully in CavalierDB!"
+          : "Inquiry has been created successfully in CavalierDB!",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      this.isFormOpen = false;
+      this.router.navigate(["/dashboard/salescrm/inquiry"]);
+      this.cdr.detectChanges();
+      this.onSearch()
+      // window.location.reload();
+    },
+    error: (err) => {
+      console.error("Backend Error Details:", err);
+      Swal.fire({
+        title: "Error!",
+        text: "Failed to save inquiry. Please check database constraints.",
+        icon: "error",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#d33",
+      });
+    },
+  });
+}
   // Variables
   isModalOpen = false;
   // selectedInquiryCarriers: any[] = []; // Iski zaroorat nahi agar aap direct array use kar rahe ho
@@ -4069,7 +4165,13 @@ export class InquiryComponent implements OnInit {
       this.isModalOpen = true;
       this.cdr.detectChanges();
     } else {
-      alert("Abhi koi carrier data add nahi kiya gaya hai!");
+      Swal.fire({
+        title: "No Data",
+        text: "No carrier data has been added yet!",
+        icon: "info",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#4a3f3f",
+      });
     }
   }
 
@@ -4108,7 +4210,13 @@ export class InquiryComponent implements OnInit {
       },
       error: (err) => {
         console.error("Error loading inquiry for edit:", err);
-        Swal.fire("Error", "Could not load inquiry data", "error");
+        Swal.fire({
+          title: "Error!",
+          text: "Could not load inquiry data",
+          icon: "error",
+          confirmButtonText: "OK",
+          confirmButtonColor: "#d33",
+        });
       },
     });
   }
@@ -4147,8 +4255,13 @@ export class InquiryComponent implements OnInit {
         // Error par wapas purani state set karo taaki UI galat na dikhe
         q.status = previousStatus;
 
-        alert("Error while change status!");
-
+        Swal.fire({
+          title: "Error!",
+          text: "Failed to change status. Please try again.",
+          icon: "error",
+          confirmButtonText: "OK",
+          confirmButtonColor: "#d33",
+        });
         // UI ko revert karne ke liye forcefully update
         this.cdr.detectChanges();
       },

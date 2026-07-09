@@ -12,7 +12,7 @@
         
         <div class="space-y-2">
           <div class="flex items-center mb-1">
-            <label class="w-28 font-bold text-gray-600 text-[12px]">Branch</label>
+            <label class="w-24 font-bold text-gray-600 text-[12px]">Branch</label>
             <div class="flex-1 flex border border-gray-300 relative rounded-sm bg-white shadow-sm focus-within:ring-1 focus-within:ring-red-400">
               <input type="text" [(ngModel)]="branchSearchText" (input)="onBranchSearch()" placeholder="Type to search branch..." class="w-full p-1.5 outline-none text-[12px] bg-white" autocomplete="off" />
               <span (click)="toggleBranchModal()" class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-red-500 hover:text-white transition-all flex items-center justify-center w-9" title="View All Branches">🔍</span>
@@ -364,8 +364,8 @@
           </div>
 
           <div class="flex justify-end gap-3 pt-1">
-            <button class="text-blue-600 underline text-[11px] font-bold">Advance Filter</button>
-            <button type="button" (click)="resetLeadFilters()" class="text-blue-600 underline text-[11px] font-bold">Clear</button>
+
+            <button type="button" (click)="resetLeadFilters()" class="bg-gray-200 text-gray-700 px-6 py-1.5 font-bold shadow-sm uppercase text-[11px] hover:bg-gray-300 transition-all">Clear</button>
             <button type="button" (click)="onLeadSearch()" class="bg-[#4a3f3f] text-white px-6 py-1 font-bold shadow-md uppercase text-[11px] hover:bg-black">Search</button>
           </div>
         </div>

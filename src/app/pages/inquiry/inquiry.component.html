@@ -495,11 +495,11 @@
           </div> -->
           <div class="flex items-center">
             <label
-              class="w-28 font-bold text-gray-600 text-[12px]">Status</label>
+              class="w-24 font-bold text-gray-600 text-[12px]">Status</label>
             <div class="flex-1">
               <select
                 [(ngModel)]="searchFilters.status"
-                class="w-full p-1 border border-gray-300 outline-none text-[12px] h-[26px] bg-white cursor-pointer">
+                class="w-full p-1.5 border border-gray-300 outline-none text-[12px] h-[26px] bg-white cursor-pointer">
                 <option value>Both</option>
                 <!-- "Both" ke liye empty value rakhi hai -->
                 <option value="1">Active</option>
@@ -510,7 +510,7 @@
           <div class="space-y-2">
             <div class="flex items-center mb-1">
               <label
-                class="w-28 font-bold text-gray-600 text-[12px]">Branch</label>
+                class="w-24 font-bold text-gray-600 text-[12px]">Branch</label>
 
               <div
                 class="flex-1 flex border border-gray-300 relative rounded-sm bg-white shadow-sm focus-within:ring-1 focus-within:ring-red-400">
@@ -610,13 +610,13 @@
 
         <!-- Main Wrapper (Is par 'relative' hona zaroori hai) -->
         <div
-          class="relative p-4 bg-white border border-gray-200 rounded-sm shadow-sm">
+          class="relative">
 
           <!-- Buttons Container: Fixed at Top Right -->
-          <div class="absolute top-4 right-4 flex items-center gap-3 z-10">
+          <div class="absolute bottom-2 right-4 flex items-center gap-3 z-10">
             <button
               (click)="onClear()"
-              class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline outline-none">
+              class="bg-gray-200 text-gray-700 px-6 py-1.5 font-bold shadow-sm uppercase text-[11px] hover:bg-gray-300 transition-all">
               Clear
             </button>
 

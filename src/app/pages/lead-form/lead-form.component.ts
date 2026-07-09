@@ -561,19 +561,63 @@ hodDisplayText: string = '';
     this.leadForm.patchValue({ leadNo: this.nextLeadNo });
   }
 
-  onDeleteLead(id: any) {
-    if (confirm('Do you want to delete this lead?')) {
-      this.leads = this.leads.filter((l: any) => l.id !== id);
-      this.updatePagination();
-      this.http.delete(`${environment.apiUrl}/Leads/${id}`, { responseType: 'text' }).subscribe({
-        next: () => this.onLeadSearch(),
-        error: (err) => {
-          console.error(err);
-          this.onLeadSearch();
-        }
-      });
-    }
-  }
+
+onDeleteLead(id: any) {
+  Swal.fire({
+    title: 'Delete Lead?',
+    text: 'Do you want to delete this lead?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Yes, delete it!',
+    cancelButtonText: 'Cancel'
+  }).then((confirmResult) => {
+    if (!confirmResult.isConfirmed) return;
+
+    // Show loading
+    Swal.fire({
+      title: 'Deleting...',
+      text: 'Please wait',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
+    this.http.delete(`${environment.apiUrl}/Leads/${id}`, { responseType: 'text' }).subscribe({
+      next: () => {
+        // Update local data
+        this.leads = this.leads.filter((l: any) => l.id !== id);
+        this.updatePagination();
+        
+        // Close loading and show success
+        Swal.fire({
+          title: 'Deleted!',
+          text: 'Lead has been deleted successfully.',
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false
+        });
+        
+        this.onLeadSearch();
+      },
+      error: (err) => {
+        console.error(err);
+        
+        // Close loading and show error
+        Swal.fire({
+          title: 'Error!',
+          text: 'Failed to delete lead. Please try again.',
+          icon: 'error',
+          confirmButtonText: 'OK'
+        });
+        
+        this.onLeadSearch();
+      }
+    });
+  });
+}
 
   private loadOrganizations(): void {
     this.http.get<any[]>(`${environment.apiUrl}/Organization/List`).subscribe({
@@ -1154,7 +1198,7 @@ onLeadSearch() {
     next: (response) => {
       this.leads = response || [];
       this.updatePagination();
-      if (this.leads.length === 0) Swal.fire({ icon: 'info', title: 'No Records', text: 'No data found in DB.' });
+      // if (this.leads.length === 0) Swal.fire({ icon: 'info', title: 'No Records', text: 'No data found in DB.' });
     },
     error: () => Swal.fire({ icon: 'error', title: 'Error', text: 'Search failed!' })
   });

@@ -141,7 +141,7 @@
   </label>
 
   <!-- Simple Dropdown -->
-  <div class="flex-1 max-w-xs">
+  <div class="flex-1 max-w-[400px]">
     <select
       [(ngModel)]="searchFilters.lineOfBusiness"
       class="w-full p-1.5 border border-gray-300 rounded-sm bg-white text-[12px] text-gray-800 outline-none cursor-pointer focus:border-red-600"
@@ -282,13 +282,13 @@
   <label class="w-24 font-bold text-gray-600 text-[12px]">Date Range</label>
   
   <div (click)="openCustomRangeCalendar()" 
-       class="flex-1 flex border border-gray-300 items-center pr-2 bg-white relative h-[30px] rounded-sm shadow-sm cursor-pointer hover:border-red-400 transition-colors">
+       class="flex-1 flex border border-gray-300 items-center pr-2 bg-white relative rounded-sm shadow-sm cursor-pointer hover:border-red-400 transition-colors">
     <input type="text"
            [value]="dateRangeInputValue"
            placeholder="Select Date Timeline Range..."
-           class="w-full p-1 outline-none text-[12px] bg-transparent cursor-pointer pointer-events-none"
+           class="w-full p-1.5 outline-none text-[12px] bg-white"
            readonly />
-    <span class="text-gray-400 text-[12px]">📅</span>
+    <span class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-red-500 hover:text-white transition-all flex items-center justify-center w-9">📅</span>
   </div>
 </div>
 
@@ -400,12 +400,12 @@
 </div>
 
           <!-- 3. QUOTED BY SECTION -->
-         <div class="flex items-center">
-            <label class="w-28 font-bold text-gray-600">Show</label>
+         <div class="flex max-w-[500px] items-center">
+            <label class="w-24 font-bold text-gray-600">Show</label>
             <div class="relative flex-1">
               <select
                 [(ngModel)]="searchFilters.showMode"
-                class="w-full border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white cursor-pointer"
+                class="w-full p-1.5 border border-gray-300 rounded-sm bg-white text-[12px] text-gray-800 outline-none cursor-pointer focus:border-red-600"
               >
                 <option value="Valid">Valid Quotations Only</option>
                 <option value="All">All</option>
@@ -420,7 +420,7 @@
             <div class="relative flex-1">
               <select
                 [(ngModel)]="searchFilters.status"
-                class="w-full border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white cursor-pointer appearance-none"
+                class="w-full p-1.5 border border-gray-300 rounded-sm bg-white text-[12px] text-gray-800 outline-none cursor-pointer focus:border-red-600"
               >
                 <option [value]="-1">Both (Default)</option>
                 <option [value]="1">Active</option>
@@ -469,16 +469,17 @@
 
             
 
+          </div>
+
+            <div class="flex justify-end mt-4 gap-2">
             <div class="relative group inline-block">
               <div
-                class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline flex items-center gap-1"
-              >
+                class="bg-blue-500 text-white px-6 py-1.5 font-bold shadow-sm uppercase text-[11px] hover:bg-blue-600 transition-all">
                 <i class="fa fa-info-circle"></i> Legend
               </div>
 
               <div
-                class="absolute left-0 bottom-full mb-2 hidden group-hover:block w-48 bg-white border border-gray-200 shadow-lg rounded-md p-2 z-50 text-[10px]"
-              >
+                class="absolute left-0 top-5 mb-2 hidden group-hover:block w-48 bg-white border border-gray-200 shadow-lg rounded-md p-2 z-50 text-[10px]">
                 <h4 class="font-bold border-b pb-1 mb-1 text-gray-700">
                   Status Meanings
                 </h4>
@@ -504,26 +505,23 @@
                 </div>
               </div>
             </div>
-            <div
-              class="text-blue-600 font-bold text-[11px] cursor-pointer hover:underline"
-              (click)="openColumnModal()"
-            >
-              Customized Columns
-            </div>
+            <!-- <div
+              class="bg-blue-500 text-white px-6 py-1.5 font-bold shadow-sm uppercase text-[11px] hover:bg-blue-600 transition-all"
+              (click)="openColumnModal()">
+              Customize
+            </div> -->
             <!-- COLUMN CUSTOMIZATION MODAL -->
 
             <div
               *ngIf="showColumnModal"
-              class="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
-            >
+              class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
               <div class="bg-white w-[800px] p-6 rounded shadow-lg">
                 <div class="flex justify-between mb-4">
                   <h2 class="font-bold text-lg">Customize Columns</h2>
 
                   <button
                     (click)="closeColumnModal()"
-                    class="text-red-500 font-bold"
-                  >
+                    class="text-red-500 font-bold">
                     X
                   </button>
                 </div>
@@ -540,13 +538,11 @@
                       [cdkDropListData]="availableColumns"
                       [cdkDropListConnectedTo]="[selectedList]"
                       class="border p-3 max-h-[250px] overflow-y-auto"
-                      (cdkDropListDropped)="drop($event)"
-                    >
+                      (cdkDropListDropped)="drop($event)">
                       <div
                         *ngFor="let col of availableColumns"
                         cdkDrag
-                        class="p-2 border mb-1 bg-gray-100 cursor-move text-xs"
-                      >
+                        class="p-2 border mb-1 bg-gray-100 cursor-move text-xs">
                         {{ col }}
                       </div>
                     </div>
@@ -563,13 +559,11 @@
                       [cdkDropListData]="selectedColumns"
                       [cdkDropListConnectedTo]="[availableList]"
                       class="border p-3 max-h-[250px] overflow-y-auto"
-                      (cdkDropListDropped)="drop($event)"
-                    >
+                      (cdkDropListDropped)="drop($event)">
                       <div
                         *ngFor="let col of selectedColumns"
                         cdkDrag
-                        class="p-2 border mb-1 bg-green-100 cursor-move text-xs"
-                      >
+                        class="p-2 border mb-1 bg-green-100 cursor-move text-xs">
                         {{ col }}
                       </div>
                     </div>
@@ -579,27 +573,21 @@
                 <div class="flex justify-end gap-3 mt-5">
                   <button
                     (click)="closeColumnModal()"
-                    class="px-4 py-2 border text-sm"
-                  >
+                    class="px-4 py-2 border text-sm">
                     Cancel
                   </button>
                 </div>
               </div>
             </div>
-          </div>
-
-          <div class="flex justify-end mt-4 gap-2">
             <button
               (click)="resetFilters()"
-              class="bg-gray-200 text-gray-700 px-6 py-1.5 font-bold shadow-sm uppercase text-[11px] hover:bg-gray-300 transition-all"
-            >
-              Reset
+              class="bg-gray-200 text-gray-700 px-6 py-1.5 font-bold shadow-sm uppercase text-[11px] hover:bg-gray-300 transition-all">
+              clear
             </button>
 
             <button
               (click)="onSearch()"
-              class="bg-[#4a3f3f] text-white px-8 py-1.5 font-bold shadow-md uppercase text-[11px] hover:bg-black transition-all"
-            >
+              class="bg-[#4a3f3f] text-white px-8 py-1.5 font-bold shadow-md uppercase text-[11px] hover:bg-black transition-all">
               Search
             </button>
             <!-- <button
@@ -608,7 +596,9 @@
             >
               All Quotations
             </button> -->
-          </div>
+          </div>  
+
+      
         </div>
       </div>
     </div>
@@ -673,54 +663,61 @@
         </button>
       </div>
     </div>
-    <div class="p-0 overflow-x-auto">
-      <div class="relative">
-        <table class="w-full border-collapse text-[13px]">
-          <thead>
-            <tr class="bg-gray-50 text-gray-500 uppercase text-[11px] border-b">
-              <th
-                *ngFor="let col of selectedColumns"
-                class="p-4 text-left font-bold"
-              >
-                {{ col }}
-              </th>
-              <th
-                class="p-4 text-center font-bold sticky right-0 bg-gray-50 border-l"
-              >
-                Action
-              </th>
-            </tr>
-          </thead>
-
-          <tbody
-            *ngIf="CheckPermissionService.hasPermission(PermissionID, 'View')"
+<div class="p-0 ">
+  <div class="relative overflow-x-auto">
+    <table class="w-full  border-collapse text-[13px]">
+      <thead>
+        <tr class="bg-gray-50 text-gray-500 uppercase text-[11px] border-b">
+          <th
+            *ngFor="let col of selectedColumns"
+            class="p-4 text-left font-bold"
           >
+            {{ col }}
+          </th>
+          <th
+            class="p-4 text-center font-bold sticky right-0 bg-gray-50 border-l"
+          >
+            Action
+          </th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <!-- Check if user has View permission -->
+        <ng-container *ngIf="CheckPermissionService.hasPermission(PermissionID, 'View')">
+          <!-- Check if data exists -->
+          <ng-container *ngIf="paginatedQuotations && paginatedQuotations.length > 0">
             <tr
               *ngFor="let q of paginatedQuotations"
               (dblclick)="editQuotation(q)"
-              class="hover:bg-gray-50 border-b text-gray-700 cursor-pointer transition-colors"
+              class="hover:bg-gray-50 border-b  text-gray-700 cursor-pointer transition-colors"
             >
+              <!-- Dynamic Columns -->
               <td *ngFor="let col of selectedColumns" class="p-4">
+                <!-- Special handling for referenceByInquiry column -->
                 <div *ngIf="col === 'referenceByInquiry'">
                   <span
                     (click)="$event.stopPropagation(); showPricingDetails(q)"
                     class="text-blue-600 font-bold hover:text-blue-800 hover:underline cursor-pointer transition-all flex items-center gap-1"
                     title="Click to Edit Pricing"
                   >
-                    {{ q[col] }}
+                    {{ q[col] || '-' }}
                     <i
                       class="fa fa-external-link-alt text-[9px] opacity-70"
                     ></i>
                   </span>
                 </div>
 
+                <!-- Default column rendering -->
                 <div *ngIf="col !== 'referenceByInquiry'">
-                  {{ q[col] }}
+                  {{ q[col] || '-' }}
                 </div>
               </td>
 
+              <!-- Action Column -->
               <td class="p-4 sticky right-0 bg-white border-l text-center">
                 <div class="flex justify-center gap-2">
+                  <!-- Toggle Status Button -->
                   <button
                     [title]="q.status === 1 ? 'Deactivate' : 'Activate'"
                     (click)="$event.stopPropagation(); toggleStatus(q)"
@@ -746,6 +743,7 @@
                     <span>{{ q.status === 1 ? "Active" : "Inactive" }}</span>
                   </button>
 
+                  <!-- Edit Button -->
                   <button
                     title="Edit"
                     (click)="loadQuotationForEdit(q.id)"
@@ -769,6 +767,7 @@
                     <span>Edit</span>
                   </button>
 
+                  <!-- Delete Button -->
                   <button
                     title="Delete"
                     (click)="deleteQuotation(q.id)"
@@ -797,102 +796,129 @@
                 </div>
               </td>
             </tr>
-          </tbody>
-        </table>
-      </div>
+          </ng-container>
+
+          <!-- No Data Found Row -->
+          <tr *ngIf="!paginatedQuotations || paginatedQuotations.length === 0">
+            <td
+              [attr.colspan]="selectedColumns.length + 1"
+              class="p-10 text-center text-gray-400 italic"
+            >
+              <div class="flex flex-col items-center gap-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-12 h-12 text-gray-300"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                  />
+                </svg>
+                <span>No records found</span>
+              </div>
+            </td>
+          </tr>
+        </ng-container>
+
+        <!-- No Permission Row -->
+        <tr *ngIf="!CheckPermissionService.hasPermission(PermissionID, 'View')">
+          <td
+            [attr.colspan]="selectedColumns.length + 1"
+            class="p-10 text-center text-red-400 italic"
+          >
+            <div class="flex flex-col items-center gap-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-12 h-12 text-red-300"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                />
+              </svg>
+              <span>You don't have permission to view this data</span>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+
+ <!-- PREMIUM SERVER-SIDE STYLE PAGINATION -->
+  <div
+    *ngIf="CheckPermissionService.hasPermission(PermissionID, 'View') && quotations && quotations.length > 0"
+    class="flex flex-col md:flex-row justify-between items-center bg-white p-5 border-t-2 border-gray-100 mt-4 rounded-b-xl shadow-inner gap-4">
+
+    <!-- Info -->
+    <div class="flex items-center gap-4">
       <div
-        class="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4 bg-white border shadow-md rounded-xl px-5 py-3.5"
-        *ngIf="CheckPermissionService.hasPermission(PermissionID, 'View')"
-      >
-        <div
-          class="flex items-center gap-4 flex-wrap justify-center sm:justify-start"
-        >
-          <div class="flex items-center gap-2">
-            <label class="text-[12px] font-bold text-gray-600 whitespace-nowrap"
-              >Show entries:</label
-            >
-            <select
-              [(ngModel)]="pageSize"
-              (change)="onPageSizeChange()"
-              class="bg-gray-50 border border-gray-300 text-gray-700 text-[12px] font-bold rounded p-1 outline-none shadow-sm cursor-pointer focus:border-blue-500 focus:ring-1 focus:ring-blue-400"
-            >
-              <option [value]="10">10</option>
-              <option [value]="20">20</option>
-              <option [value]="30">30</option>
-              <option [value]="40">40</option>
-              <option [value]="50">50</option>
-              <option [value]="100">100</option>
-            </select>
-          </div>
-
-          <div class="text-sm text-gray-500 text-center sm:text-left">
-            Showing
-            <span class="font-semibold text-gray-700">
-              {{
-                quotations.length === 0 ? 0 : (currentPage - 1) * pageSize + 1
-              }}
-            </span>
-            -
-            <span class="font-semibold text-gray-700">
-              {{ (currentPage - 1) * pageSize + paginatedQuotations.length }}
-            </span>
-            of
-            <span class="font-semibold text-gray-700">{{
-              quotations.length
-            }}</span>
-            entries
-          </div>
-        </div>
-
-        <div class="flex items-center gap-1">
-          <button
-            (click)="setPage(1)"
-            [disabled]="currentPage === 1"
-            class="px-2.5 py-1 text-xs font-bold rounded bg-white border hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-          >
-            ««
-          </button>
-
-          <button
-            (click)="previousPage()"
-            [disabled]="currentPage === 1"
-            class="px-3 py-1 rounded border bg-white text-sm hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-          >
-            ◀
-          </button>
-
-          <button
-            *ngFor="let page of [].constructor(totalPages); let i = index"
-            (click)="goToPage(i + 1)"
-            class="px-3 py-1 rounded text-sm min-w-[36px] transition-all font-medium"
-            [ngClass]="{
-              'bg-blue-500 text-white font-bold shadow-md':
-                currentPage === i + 1,
-              'hover:bg-gray-100 text-gray-700 bg-white border border-gray-200':
-                currentPage !== i + 1,
-            }"
-          >
-            {{ i + 1 }}
-          </button>
-
-          <button
-            (click)="nextPage()"
-            [disabled]="currentPage === totalPages || totalPages === 0"
-            class="px-3 py-1 rounded border bg-white text-sm hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-          >
-            ▶
-          </button>
-
-          <button
-            (click)="setPage(totalPages)"
-            [disabled]="currentPage === totalPages || totalPages === 0"
-            class="px-2.5 py-1 text-xs font-bold rounded bg-white border hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-          >
-            »»
-          </button>
-        </div>
+        class="bg-gray-50 border border-gray-200 px-4 py-2 rounded-lg shadow-sm">
+        <span
+          class="text-[10px] font-black uppercase text-gray-400 tracking-tighter block">Total
+          Records</span>
+        <span class="text-sm font-bold text-[#4a3f3f]">{{ quotations.length
+          }}</span>
+      </div>
+      <div class="text-[12px] text-gray-400 italic">
+        Page <span class="text-[#4a3f3f] font-bold">{{ currentPage }}</span>
+        of {{ totalPages }}
       </div>
     </div>
+
+    <!-- Page Buttons -->
+    <div class="flex items-center gap-1">
+      <!-- Prev -->
+      <button (click)="setPage(currentPage - 1)"
+        [disabled]="currentPage === 1"
+        class="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-[#4a3f3f] hover:text-white transition-all disabled:opacity-20 shadow-sm">
+        <span class="text-lg">‹</span>
+      </button>
+
+      <!-- Page Numbers -->
+      <div class="flex items-center gap-1 px-2">
+        <button
+          *ngFor="let p of [].constructor(totalPages > 5 ? 5 : totalPages); let i = index"
+          (click)="setPage(i + 1)"
+          [ngClass]="currentPage === (i + 1) ? 'bg-[#4a3f3f] text-white border-[#4a3f3f] scale-110 shadow-md' : 'bg-white text-gray-600 hover:bg-gray-50 border-gray-200'"
+          class="w-9 h-9 rounded-lg border font-bold text-xs transition-all duration-200">
+          {{ i + 1 }}
+        </button>
+        <span *ngIf="totalPages > 5" class="px-1 text-gray-400">...</span>
+      </div>
+
+      <!-- Next -->
+      <button (click)="setPage(currentPage + 1)"
+        [disabled]="currentPage === totalPages || totalPages === 0"
+        class="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-[#4a3f3f] hover:text-white transition-all disabled:opacity-20 shadow-sm">
+        <span class="text-lg">›</span>
+      </button>
+    </div>
+
+    <!-- Rows Per Page -->
+    <div class="flex items-center gap-3">
+      <label
+        class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Rows</label>
+      <select [(ngModel)]="pageSize"
+        (change)="onPageSizeChange()"
+        class="bg-gray-50 border border-gray-200 text-[#4a3f3f] font-bold text-xs rounded-lg p-2 outline-none focus:ring-2 focus:ring-[#4a3f3f]/20 transition-all cursor-pointer">
+        <option [value]="10">10 Rows</option>
+        <option [value]="25">25 Rows</option>
+        <option [value]="50">50 Rows</option>
+      </select>
+    </div>
+  </div>
+</div>
   </div>
 
   <div *ngIf="isFormOpen" class="bg-white border border-gray-300 shadow-lg">

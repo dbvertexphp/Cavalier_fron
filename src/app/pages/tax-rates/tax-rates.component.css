@@ -1,0 +1,261 @@
+/* ============================================ */
+/* CUSTOM CALENDAR / DATE PICKER STYLING */
+/* ============================================ */
+
+/* Date input container */
+.date-picker-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* Date input field */
+input[type="date"] {
+  width: 100%;
+  padding: 8px 12px;
+  padding-right: 40px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background-color: white;
+  font-size: 12px;
+  color: #1f2937;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  min-height: 38px;
+}
+
+input[type="date"]:focus {
+  border-color: #4a3f3f;
+  box-shadow: 0 0 0 2px rgba(74, 63, 63, 0.1);
+  outline: none;
+}
+
+input[type="date"]:hover {
+  border-color: #4a3f3f;
+}
+
+/* Calendar icon */
+.date-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: #9ca3af;
+  pointer-events: none;
+  transition: color 0.2s ease;
+}
+
+.date-picker-wrapper:hover .date-icon {
+  color: #4a3f3f;
+}
+
+/* Custom calendar popup styling */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  background: transparent;
+  color: transparent;
+  cursor: pointer;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  z-index: 2;
+}
+
+/* For Firefox */
+input[type="date"]::-moz-calendar-picker-indicator {
+  background: transparent;
+  cursor: pointer;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  z-index: 2;
+}
+
+/* For Edge/IE */
+input[type="date"]::-ms-clear {
+  display: none;
+}
+
+/* Selected field checkbox */
+input[type="checkbox"] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+
+/* Disabled state */
+input[type="date"]:disabled {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Error state */
+input[type="date"].border-red-500 {
+  border-color: #ef4444 !important;
+}
+
+input[type="date"].border-red-500:focus {
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1);
+}
+
+/* SweetAlert custom styles */
+.swal2-popup {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.swal2-confirm {
+  background-color: #4a3f3f !important;
+}
+
+.swal2-confirm:hover {
+  background-color: #1f2937 !important;
+}
+
+.swal2-cancel {
+  background-color: #6b7280 !important;
+}
+
+.swal2-cancel:hover {
+  background-color: #4b5563 !important;
+}
+
+/* Toast notifications */
+.swal2-toast {
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.swal2-toast .swal2-title {
+  font-size: 14px !important;
+}
+
+.swal2-toast .swal2-html-container {
+  font-size: 12px !important;
+}
+/* ============================================ */
+/* DATE PICKER STYLING */
+/* ============================================ */
+
+/* Make date input look nice */
+#applicableDateInput {
+  padding-right: 48px;
+  min-height: 40px;
+  background-color: white;
+  color: #1f2937;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#applicableDateInput:focus {
+  border-color: #4a3f3f;
+  box-shadow: 0 0 0 3px rgba(74, 63, 63, 0.1);
+  outline: none;
+}
+
+#applicableDateInput:hover {
+  border-color: #4a3f3f;
+}
+
+/* Make calendar icon clickable area larger */
+[title="Click to open calendar"] {
+  z-index: 10;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  min-height: 32px;
+}
+
+[title="Click to open calendar"]:hover {
+  background-color: #e5e7eb !important;
+}
+
+[title="Click to open calendar"]:active {
+  background-color: #d1d5db !important;
+  transform: scale(0.95);
+}
+
+/* Webkit (Chrome, Safari, Edge) */
+#applicableDateInput::-webkit-calendar-picker-indicator {
+  background: transparent;
+  color: transparent;
+  cursor: pointer;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  z-index: 5;
+}
+
+/* Firefox */
+#applicableDateInput::-moz-calendar-picker-indicator {
+  background: transparent;
+  cursor: pointer;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  z-index: 5;
+}
+
+/* Remove spin buttons for number inputs */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Error state for date input */
+#applicableDateInput.border-red-500 {
+  border-color: #ef4444 !important;
+}
+
+#applicableDateInput.border-red-500:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  #applicableDateInput {
+    font-size: 14px; /* Better for mobile */
+    padding: 10px 12px;
+  }
+}
+
+/* ✅ Sirf ye rakho - jo already the */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type="date"]::-moz-calendar-picker-indicator {
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}

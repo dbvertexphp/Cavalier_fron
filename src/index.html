@@ -7,9 +7,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="logo.png">
 
-  <link rel="preload" href="images/assets/logo.png" as="image">
-  <link rel="preload" href="images/assets/background.jpg" as="image">
-
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -17,9 +14,9 @@
       theme: {
         extend: {
           colors: {
-            primary: '#2563eb',
+            primary:   '#2563eb',
             secondary: '#9333ea',
-            accent: '#22c55e',
+            accent:    '#22c55e',
           }
         }
       }
@@ -27,171 +24,89 @@
   </script>
 
   <style>
-    .cavalier-splash-screen {
+    /* ══════════════════════════════════════════
+       SPLASH SCREEN — Simple Minimal Loader
+       ══════════════════════════════════════════ */
+    #cavalier-splash {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background-color: #111827; /* Dark Premium Interface */
+      inset: 0;
+      z-index: 999999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;  /* No background color */
+      transition: opacity 0.4s ease;
+      opacity: 1;
+    }
+
+    /* ── Simple Loader ── */
+    #splash-loader {
       display: flex;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
-      z-index: 999999;
-      overflow: hidden;
-      padding: 20px;
+      gap: 12px;
     }
 
-    .animation-universe {
-      position: relative;
-      width: 100%;
-      max-width: 650px;
-      min-width: 280px;
-      aspect-ratio: 630 / 200;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+    /* Simple Spinner */
+    .simple-spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid rgba(220, 38, 38, 0.2);
+      border-top-color: #4a3f3f;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
     }
 
-    .split-container {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      overflow: hidden;
-      height: 100%;
-      will-change: transform, opacity;
-    }
-
-    .left-box {
-      left: 0;
-      width: 30.5%;
-      transform: translateX(-150%);
-      animation: hiltStrike 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-    }
-
-    .right-box {
-      right: 0;
-      width: 69.5%;
-      transform: translateX(150%);
-      animation: bladeStrike 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-    }
-
-    .logo-asset-render {
-      position: absolute;
-      top: 0;
-      height: 100%;
-      width: 650px; 
-      background-image: url('images/assets/logo.png');
-      background-size: contain;
-      background-repeat: no-repeat;
-      background-position: center;
-    }
-
-    .left-box .logo-asset-render {
-      left: 0;
-    }
-
-    .right-box .logo-asset-render {
-      right: 0;
-      margin-right: calc(650px * -0.305); 
-    }
-
-    .text-reveal-layer {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-image: url('images/assets/logo.png');
-      background-size: contain;
-      background-repeat: no-repeat;
-      background-position: center;
-      opacity: 0;
-      animation: textGlowReveal 0.8s ease-out 1.3s forwards;
-    }
-
-    .logistics-subtext {
-      margin-top: 32px;
-      font-family: 'Arial Black', sans-serif;
-      font-size: 14px;
-      font-weight: 900;
-      color: #ffffff;
-      letter-spacing: 0.35em;
+    /* Small text */
+    #splash-text {
+      font-size: 11px;
+      font-weight: 600;
+      color: #6b7280;
+      letter-spacing: 0.05em;
       text-transform: uppercase;
-      opacity: 0;
-      transform: translateY(12px);
-      animation: subtextFadeUp 0.6s ease-out 1.9s forwards;
-      text-align: center;
+      animation: pulse 1.5s ease-in-out infinite;
     }
 
-    @media (max-width: 650px) {
-      .logo-asset-render {
-        width: calc(100vw - 40px) !important;
-      }
-      .right-box .logo-asset-render {
-        margin-right: calc((100vw - 40px) * -0.305) !important;
-      }
-      .logistics-subtext {
-        font-size: 2.8vw;
-      }
+    /* ── Keyframes ── */
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
 
-    @keyframes hiltStrike {
-      0% { transform: translateX(-150%); opacity: 0; }
-      80% { transform: translateX(2%); opacity: 1; }
-      100% { transform: translateX(0); }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
     }
 
-    @keyframes bladeStrike {
-      0% { transform: translateX(150%); opacity: 0; }
-      80% { transform: translateX(-2%); opacity: 1; }
-      100% { transform: translateX(0); }
-    }
-
-    @keyframes textGlowReveal {
-      0% { opacity: 0; transform: scale(0.99); filter: brightness(0) drop-shadow(0 0 0px transparent); }
-      30% { opacity: 0.95; filter: brightness(2.2) drop-shadow(0 0 25px #dc2626); }
-      100% { opacity: 1; transform: scale(1); filter: brightness(1) drop-shadow(0 4px 8px rgba(0,0,0,0.6)); }
-    }
-
-    @keyframes subtextFadeUp {
-      0% { opacity: 0; transform: translateY(12px); }
-      100% { opacity: 0.8; transform: translateY(0); }
-    }
-
-    /* ENGINE CONNECTOR: FOR INITIAL FADE TRANSITION */
-    .cavalier-splash-screen.fade-out {
+    /* ── Fade out ── */
+    #cavalier-splash.fade-out {
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: opacity 0.4s ease;
     }
+    
     app-root.show-app {
       display: block !important;
-      animation: fadeInApp 0.6s ease-out forwards;
+      animation: showApp 0.3s ease-out forwards;
     }
-    @keyframes fadeInApp {
-      from { opacity: 0; transform: scale(0.98); }
-      to { opacity: 1; transform: scale(1); }
+    
+    @keyframes showApp {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
   </style>
 </head>
+
 <body>
-
-  <div id="cavalier-splash" class="cavalier-splash-screen">
-    <div class="animation-universe">
-      <div class="split-container left-box">
-        <div class="logo-asset-render"></div>
-      </div>
-      <div class="split-container right-box">
-        <div class="logo-asset-render"></div>
-      </div>
-      <div class="text-reveal-layer"></div>
+  <!-- ══ SPLASH — Simple Minimal Loader ══ -->
+  <div id="cavalier-splash">
+    <div id="splash-loader">
+      <div class="simple-spinner"></div>
+      <div id="splash-text">Loading...</div>
     </div>
-    <div class="logistics-subtext">Cavalier Logistics Page Loading Please Wait...</div>
   </div>
+  <!-- ══ END SPLASH ══ -->
 
+  <!-- Angular mounts here -->
   <app-root style="display: none;"></app-root>
-
 </body>
 </html>

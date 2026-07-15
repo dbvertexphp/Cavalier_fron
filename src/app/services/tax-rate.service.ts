@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable,BehaviorSubject, tap, catchError, of, map, shareReplay } from 'rxjs';
 import { environment } from '../../environments/environment';
+
 
 export interface TaxRate {
   id: number;
@@ -73,6 +74,57 @@ export class TaxRateService {
 
   constructor(private http: HttpClient) {}
 
+   private readonly _taxRates$ = new BehaviorSubject<TaxRate[]>([]);
+  private loaded = false;
+ 
+  readonly taxRates$: Observable<TaxRate[]> = this._taxRates$.asObservable();
+ 
+  
+  readonly activeCategoryOptions$: Observable<TaxCategoryOption[]> = this.taxRates$.pipe(
+    map(rows => rows
+      .filter(r => r.status === 'Applicable')
+      .map(r => ({ code: r.categoryCode, name: r.categoryName, gstType: r.gstType, status: r.status }))
+    ),
+    shareReplay(1)
+  );
+ 
+
+  /** Loads tax rates from the API once; subsequent calls are no-ops unless force=true. */
+  loadAll(force = false): Observable<TaxRate[]> {
+    if (this.loaded && !force) {
+      return this.taxRates$;
+    }
+    return this.http.get<TaxRate[]>(API_BASE).pipe(
+      tap(rows => {
+        this._taxRates$.next(rows);
+        this.loaded = true;
+      }),
+      catchError(err => {
+        console.error('Failed to load tax rates from API:', err);
+        // Keep whatever was already cached rather than wiping the UI on a transient error.
+        return of(this._taxRates$.value);
+      })
+    );
+  }
+ 
+  refresh(): Observable<TaxRate[]> {
+    return this.loadAll(true);
+  }
+ 
+  getSnapshot(): TaxRate[] {
+    return this._taxRates$.value;
+  }
+ 
+ 
+ 
+  remove(id: number): Observable<void> {
+    return this.http.delete<void>(`${API_BASE}/${id}`).pipe(
+      tap(() => {
+        this._taxRates$.next(this._taxRates$.value.filter(r => r.id !== id));
+      })
+    );
+  }
+
   // Get all tax rates
   getAll(): Observable<TaxRate[]> {
     return this.http.get<TaxRate[]>(this.apiUrl);
@@ -127,3 +179,32 @@ export class TaxRateService {
     return this.http.get<string[]>(`${this.apiUrl}/statuses`);
   }
 }
+
+ 
+export interface TaxRate {
+  id: number;
+  categoryCode: string;
+  categoryName: string;
+  applicableDate: string;
+  cgst: number;
+  sgst: number;
+  igst: number;
+  cess: number;
+  liabilitySupplier: number;
+  liabilityRecipient: number;
+  group: string;
+  gstType: string;
+  status: 'Applicable' | 'Not Applicable';
+  selected: boolean;
+}
+ 
+
+export interface TaxCategoryOption {
+  code: string;
+  name: string;
+  gstType: string;
+  status: 'Applicable' | 'Not Applicable';
+}
+ 
+const API_BASE = '/api/tax-rates';
+ 

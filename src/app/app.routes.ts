@@ -88,6 +88,8 @@ import { PackageBoxesComponent } from "./pages/package-boxes/package-boxes.compo
 import { BccConfigComponent } from "./bcc-config/bcc-config.component";
 import { NotificationsComponent } from "./notifications/notifications.component";
 import { TaxRatesComponent } from "./pages/tax-rates/tax-rates.component";
+import { ChargeMasterComponent } from "./pages/charge-master/charge-master.component";
+import { AirlineListComponent } from "./pages/airline/airline.component";
 export const routes: Routes = [
   // 1. AUTH & ROLE SELECTION (Root Pages)
   {
@@ -451,6 +453,18 @@ export const routes: Routes = [
         component: TaxRatesComponent,
         canActivate: [authGuard],
         title: "Tax Rates",
+      },
+      {
+        path: "charge-master",
+        component: ChargeMasterComponent,
+        canActivate: [authGuard],
+        title: "Charge Master",
+      },
+      {
+        path: "airline",
+        component: AirlineListComponent,
+        canActivate: [authGuard],
+        title: "Airlines",
       },
     ],
   },

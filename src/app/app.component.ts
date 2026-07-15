@@ -7,7 +7,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
   standalone: true,
   imports: [CommonModule, RouterOutlet],
   template: `
-    <div *ngIf="isRouteLoading" class="fixed inset-0 z-[999999] flex flex-col items-center justify-center bg-slate-950/40 backdrop-blur-[4px]">
+    <div *ngIf="isRouteLoading" class="fixed inset-0 z-[999999] flex flex-col items-center justify-center backdrop-blur-[4px]">
       
       <div class="absolute top-0 left-0 right-0 h-[6px] bg-gray-950 overflow-hidden shadow-[0_3px_20px_rgba(239,68,68,0.45)]">
         <div class="h-full bg-gradient-to-r from-red-600 via-orange-500 to-yellow-400 dynamic-progress-bar"></div>

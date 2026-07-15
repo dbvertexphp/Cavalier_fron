@@ -819,6 +819,22 @@
                     </div>
                   </td>
                 </tr>
+                <!-- 🔴 EMPTY STATE ROW -->
+
+                <tr
+                  *ngIf="!paginatedInquiries || paginatedInquiries.length === 0">
+                  <td [attr.colspan]="selectedColumns.length + 1" class="p-0">
+                    <div
+                      class="flex flex-col items-center justify-center py-10 gap-4 text-gray-400 bg-gray-50/50">
+
+                      <p
+                        class="text-lg uppercase  ">
+                        Inquiry Not Found
+                      </p>
+
+                    </div>
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -1044,6 +1060,15 @@
                   name="repliedDate"
                   class="border p-2 text-[11px] outline-none" />
               </div>
+              <div class="grid grid-cols-1 gap-1">
+                <label class="font-bold text-gray-700 text-[12px]">Sales
+                  Team</label>
+                <select [(ngModel)]="quotation.salesTeam" name="salesTeam"
+                  class="border border-gray-300 p-2 outline-none text-[12px] bg-white rounded-sm cursor-pointer">
+                  <option *ngFor="let sp of getsalesTeamList" [value]="sp.id">{{
+                    sp.name }}</option>
+                </select>
+              </div>
             </div>
 
             <div class="space-y-3">
@@ -1090,6 +1115,7 @@
                   </option>
                 </select>
               </div>
+
             </div>
 
             <div class="space-y-3">
@@ -2295,13 +2321,29 @@
               </div>
               <div class="flex items-center text-red-700 font-bold">
                 <label class="w-40">POD (Origin)</label>
-                <div class="relative flex-1">
+                <div class="relative flex-1 flex items-center">
                   <input
-                    type="text"
                     [(ngModel)]="quotation.podOrigin"
                     name="podOrigin"
-                    placeholder="Enter POD Origin"
-                    class="w-full border p-2 border-red-300 outline-none text-[12px] text-gray-700 font-normal" />
+                    placeholder="Search POD Origin..."
+                    (input)="onPodOriginSearchInput()"
+                    (focus)="showPodOriginDropdown = true"
+                    (keydown.enter)="onPodOriginKeyDown($event)"
+                    class="w-full border p-2 border-red-300 outline-none pr-8 text-[12px] text-gray-700 font-normal" />
+
+                  <ul
+                    *ngIf="showPodOriginDropdown"
+                    class="absolute top-full left-0 z-10 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto text-gray-700 font-normal"
+                    (mousedown)="$event.preventDefault()">
+                    <li
+                      *ngFor="let origin of filteredPodOrigins"
+                      (click)="selectPodOrigin(origin)"
+                      class="p-2 hover:bg-gray-100 cursor-pointer text-[12px] border-b border-gray-100">
+                      <div class="font-bold">{{ origin.name }}</div>
+                      <div class="text-[10px] text-gray-500">{{
+                        origin.countryName }} ({{ origin.isoCode }})</div>
+                    </li>
+                  </ul>
                 </div>
               </div>
 

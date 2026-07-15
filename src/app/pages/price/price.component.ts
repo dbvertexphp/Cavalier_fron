@@ -6,7 +6,7 @@ import {
   OnInit,
   ViewChild,
 } from "@angular/core";
-
+import { AirlineService, Airline } from "../../services/airline.service";
 import { CommonModule } from "@angular/common";
 import {
   HttpClient,
@@ -84,6 +84,7 @@ export class PriceComponent {
   dateRangeInputValue: string = "";
   getquotedByList: any[] = [];
   getpricingByList: any[] = [];
+  getsalesTeamList: any[] = [];
   // PriceComponent Class ke properties section mein add karein
   teamsList: any[] = [];
   showCountryDropdown: boolean = false;
@@ -112,6 +113,10 @@ export class PriceComponent {
   isDocumentModalOpen = false;
   OrganisationName: string = "";
   LeadName: string = "";
+  // --- Airline Search Variables ---
+  airlineList: any[] = [];
+  filteredAirlines: any[] = [];
+  showAirlineDropdownIndex: number | null = null;
   // Preview ke liye nayi variables
   isPreviewModalOpen = false;
   agentDetail: any[] = [];
@@ -562,6 +567,7 @@ export class PriceComponent {
       this.quotation.netWeight,
     );
   }
+
   calculateChargeableWeight() {
     const gross = Number(this.quotation.grossWeightKg) || 0;
     const volume = Number(this.quotation.volumeWeight) || 0;
@@ -598,6 +604,7 @@ export class PriceComponent {
       "Chrg:",
       this.quotation.chargeableWeight,
     );
+    this.cdr.detectChanges();
   }
   columnFieldMap: any = {
     "Pricing No.": "pricingNo",
@@ -625,7 +632,7 @@ export class PriceComponent {
   ];
   isFormOpen = false;
   public apiUrl = `${environment.apiUrl}/Pricing`;
- public fileBaseUrl = environment.apiUrl.replace(/\/api$/, "");
+  public fileBaseUrl = environment.apiUrl.replace(/\/api$/, "");
   inquiries: any[] = [];
   quotations: any[] = [];
   quotation: any = this.resetQuotationModel();
@@ -646,6 +653,8 @@ export class PriceComponent {
 
     // ... baki fields ...
   };
+  // Add this in your component class
+airlineDropdownClicked: boolean = false;
   companyServices: any[] = [];
   organizations: any[] = [];
   filteredOrganizations: any[] = [];
@@ -676,11 +685,13 @@ export class PriceComponent {
     private sanitizer: DomSanitizer,
     private eRef: ElementRef,
     private route: ActivatedRoute,
+      private airlineService: AirlineService,
   ) {}
   orgData: any = null;
   isLoading: boolean = true;
   ngOnInit() {
     this.loadChargeNamesMaster();
+    this.loadAirlines();
     this.route.queryParams.subscribe((params) => {
       const editId = params["editId"];
       if (editId) {
@@ -792,6 +803,144 @@ export class PriceComponent {
       },
     });
   }
+
+  // --- AIRLINE MASTER LOAD ---
+loadAirlines() {
+  this.airlineService.getAll().subscribe({
+    next: (data: Airline[]) => {
+      this.airlineList = data || [];
+      console.log("Airlines loaded via service:", this.airlineList.length);
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error("Airline API error via service:", err);
+      // Fallback: try direct HTTP call if service fails
+      this.loadAirlinesFallback();
+    }
+  });
+}
+// Fallback method if service fails
+loadAirlinesFallback() {
+  const token = localStorage.getItem("cavalier_token");
+  const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+  
+  this.http.get<any[]>(`${environment.apiUrl}/Airline`, { headers }).subscribe({
+    next: (data) => {
+      this.airlineList = data || [];
+      console.log("Airlines loaded via fallback:", this.airlineList.length);
+      this.cdr.detectChanges();
+    },
+    error: (err) => console.error("Fallback airline API error:", err)
+  });
+}
+
+  // --- SEARCH LOGIC (row-wise, kyunki multi-carrier mein multiple rows hoti hain) ---
+onAirlineSearch(index: number, event?: Event) {
+  const row = this.multiCarrierRows[index];
+  if (!row) return;
+
+  // row.airline ki jagah direct event se lo
+  const searchTerm = event
+    ? (event.target as HTMLInputElement).value.trim().toLowerCase()
+    : (row.airline || "").toString().trim().toLowerCase();
+
+  if (searchTerm === "") {
+    this.filteredAirlines = [];
+    this.showAirlineDropdownIndex = null;
+    this.cdr.detectChanges();
+    return;
+  }
+
+  // Filter from the airlineList
+  this.filteredAirlines = this.airlineList.filter((a) => {
+    const name = (a.airlineName || "").toLowerCase();
+    const code = (a.airlineCode || "").toLowerCase();
+    const prefix = (a.airlinePrefix || "").toLowerCase();
+    return (
+      name.includes(searchTerm) ||
+      code.includes(searchTerm) ||
+      prefix.includes(searchTerm)
+    );
+  });
+
+  // Limit results to prevent UI overload
+  if (this.filteredAirlines.length > 50) {
+    this.filteredAirlines = this.filteredAirlines.slice(0, 50);
+  }
+
+  this.showAirlineDropdownIndex = this.filteredAirlines.length > 0 ? index : null;
+
+  // 🔥 Position update karo har baar jab search ho
+  if (event) {
+    const target = event.target as HTMLInputElement;
+    const rect = target.getBoundingClientRect();
+    this.airlineDropdownPos = {
+      top: rect.bottom + window.scrollY,
+      left: rect.left + window.scrollX,
+      width: Math.max(rect.width, 220),
+    };
+  }
+
+  this.cdr.detectChanges();
+}
+
+  // Naya variable — dropdown ki screen position store karega
+  airlineDropdownPos: { top: number; left: number; width: number } = {
+    top: 0,
+    left: 0,
+    width: 0,
+  };
+
+  // --- FOCUS ON A ROW (dropdown open karne ke liye jab field pe click ho) ---
+onAirlineFocus(index: number, event: FocusEvent) {
+  const row = this.multiCarrierRows[index];
+  if (!row) return;
+
+  // Input ki screen position nikal ke dropdown ko wahi place karo
+  const target = event.target as HTMLInputElement;
+  const rect = target.getBoundingClientRect();
+  this.airlineDropdownPos = {
+    top: rect.bottom + window.scrollY,
+    left: rect.left + window.scrollX,
+    width: Math.max(rect.width, 220),
+  };
+
+  // Agar field mein kuch type kiya hai toh search karo, warna saari airlines dikhao
+  const currentValue = (row.airline || "").toString().trim();
+  
+  if (currentValue.length > 0) {
+    // Search with current value
+    this.filteredAirlines = this.airlineList.filter((a) => {
+      const name = (a.airlineName || "").toLowerCase();
+      const code = (a.airlineCode || "").toLowerCase();
+      const prefix = (a.airlinePrefix || "").toLowerCase();
+      const search = currentValue.toLowerCase();
+      return name.includes(search) || code.includes(search) || prefix.includes(search);
+    });
+  } else {
+    // 🔥 Sabhi airlines ko dropdown mein dikhao (limit 50 tak)
+    this.filteredAirlines = this.airlineList.slice(0, 50);
+  }
+
+  this.showAirlineDropdownIndex = this.filteredAirlines.length > 0 ? index : null;
+  this.cdr.detectChanges();
+}
+
+// --- SELECT LOGIC ---
+selectAirline(airline: any, index: number) {
+  const row = this.multiCarrierRows[index];
+  if (!row || !airline) return;
+
+  row.airline = airline.airlineName || airline.name || "";
+  row.airlineCode = airline.airlineCode || "";
+  row.airlinePrefix = airline.airlinePrefix || "";
+
+  // 🔥 Dropdown band karo
+  this.showAirlineDropdownIndex = null;
+  this.filteredAirlines = [];
+  this.cdr.detectChanges();
+}
+
   loadPricingForEdit(id: any) {
     const token = localStorage.getItem("cavalier_token");
     const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
@@ -902,6 +1051,8 @@ export class PriceComponent {
       this.getsalescordinate = [];
       this.getquotedByList = [];
       this.getpricingByList = [];
+      this.getsalesTeamList = []; // 🔥 NAYA
+      this.quotation.salesTeam = "";
       return;
     }
 
@@ -913,22 +1064,13 @@ export class PriceComponent {
       next: (res) => {
         console.log("📊 Raw Team Payload Received:", res);
 
-        // Directly matching key references matching incoming JSON schema contract
         this.getsalescordinate =
           res && res.salesCoordinators ? res.salesCoordinators : [];
         this.getquotedByList = res && res.quotedBy ? res.quotedBy : [];
         this.getpricingByList = res && res.pricingBy ? res.pricingBy : [];
+        this.getsalesTeamList = res && res.salesTeam ? res.salesTeam : []; // 🔥 NAYA — Inquiry jaisa
 
-        console.log(
-          "Successfully bound getquotedByList size:",
-          this.getquotedByList.length,
-        );
-        console.log(
-          "Successfully bound getpricingByList size:",
-          this.getpricingByList.length,
-        );
-
-        this.cdr.detectChanges(); // Force Angular view-tree layout synchronization update
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error(
@@ -938,10 +1080,12 @@ export class PriceComponent {
         this.getsalescordinate = [];
         this.getquotedByList = [];
         this.getpricingByList = [];
+        this.getsalesTeamList = [];
         this.cdr.detectChanges();
       },
     });
   }
+
   // 2. Select Logic
   selectPortOfLoading(port: any) {
     if (!port) return;
@@ -1268,6 +1412,32 @@ export class PriceComponent {
       error: (err) => console.error("Error fetching Shipment Types:", err),
     });
   }
+
+  // Add this method in your PriceComponent class
+closeAirlineDropdownWithDelay() {
+  setTimeout(() => {
+    if (!this.airlineDropdownClicked) {
+      this.showAirlineDropdownIndex = null;
+      this.cdr.detectChanges();
+    }
+  }, 300);
+}
+onAirlineSelectChange(selectedName: string, index: number) {
+  const row = this.multiCarrierRows[index];
+  if (!row) return;
+
+  const found = this.airlineList.find(
+    a => (a.airlineName || a.name) === selectedName
+  );
+
+  if (found) {
+    row.airline = found.airlineName || found.name || '';
+    row.airlineCode = found.airlineCode || '';
+    row.airlinePrefix = found.airlinePrefix || '';
+  }
+
+  this.cdr.detectChanges();
+}
   // --- Fetch Origins List --
 
   fetchCompanyServices() {
@@ -2063,7 +2233,7 @@ export class PriceComponent {
       lineOfBusinessId: null,
       commodityId: 1,
       cargoStatusType: "Ready",
-
+      salesTeam: "", // 🔥 NAYA
       portOfLoadingId: 1, // Matches pol1 request
       portOfDischargeId: 1, // Matches pod1 request
       noOfPkgs: 1,
@@ -2467,7 +2637,7 @@ export class PriceComponent {
         // 1. Saare branchName nikalo aur duplicates hatane ke liye Set use karo
         // Agar API se array of strings aa raha hai to seedha res use karo
         const rawBranches = res
-          .map((item) => item.branchName || item)
+          ?.map((item) => item?.branchName || item)
           .filter((b) => b);
         this.allUniqueBranches = [...new Set(rawBranches)];
         console.log("Unique Branches Loaded");
@@ -2509,7 +2679,7 @@ export class PriceComponent {
       receivedDate: null,
       showMode: "valid",
     };
-    this.dateRangeInputValue='';
+    this.dateRangeInputValue = "";
     this.searchDone = false; // "No Data Found" hat jayega
     this.inquiries = [];
 
@@ -3990,6 +4160,8 @@ export class PriceComponent {
       airFreight: 0,
       fsc: "INC",
       airline: "",
+      airlineCode: "", // 🔥 NAYA
+      airlinePrefix: "",
       type: "INDIRECT", // Default Indirect as per requirement
       cutoff: "",
       schedule: "", // Flight Date/Schedule
@@ -4043,7 +4215,7 @@ export class PriceComponent {
       emptyRow.lob = this.quotation.lineOfBusinessName; // Auto-selects active LOB inside new cell
     }
     if (this.inquiry.origin) {
-      emptyRow.origin = this.inquiry.origin; // Direct validation match for origin
+      emptyRow.origin = this.inquiry.origin; // ✅ Already sahi hai
     }
 
     this.multiCarrierRows.push(emptyRow);
@@ -4206,13 +4378,13 @@ export class PriceComponent {
       documentPath: d.documentPath && !d.isReplacing ? d.documentPath : null,
     }));
 
-  const processedInvoices = (this.invoices || []).map((i) => {
-    console.log(i);
-    return {
-      name: i.name,
-      documentPath: i.documentPath && !i.isReplacing ? i.documentPath : null,
-    };
-  });
+    const processedInvoices = (this.invoices || []).map((i) => {
+      console.log(i);
+      return {
+        name: i.name,
+        documentPath: i.documentPath && !i.isReplacing ? i.documentPath : null,
+      };
+    });
 
     // 4. Compiling Master Payload matching C# Back-End contract requirements
     const payload: any = {
@@ -4226,6 +4398,7 @@ export class PriceComponent {
       CodeOfPOD: this.quotation.portOfDestinationCode || "",
       CodeOfFinalDest: this.quotation.finalDestinationCode || "",
       podOrigin: String(this.quotation.podOrigin || ""),
+      salesTeam: String(this.quotation.salesTeam || ""),
       inquiryNo: String(
         this.quotation.inquiryNo || this.inquiry.inquiryNo || "",
       ),
@@ -4324,13 +4497,12 @@ export class PriceComponent {
         formData.append("docTypes", "Commodity");
       }
     });
-      this.invoices.forEach((i) => {
+    this.invoices.forEach((i) => {
       if (i.file) {
-    
         formData.append("invoiceFiles", i.file);
         formData.append("invoiceNames", i.name || i.fileName);
       }
-});
+    });
 
     const token = localStorage.getItem("cavalier_token");
     const httpOptions = { headers: { Authorization: `Bearer ${token}` } };
@@ -4347,8 +4519,9 @@ export class PriceComponent {
 
     // 🔄 LOADING ANIMATION STAGE WHILE SAVING IN DB
     Swal.fire({
-     title: this.quotation.id > 0 ? "Updating Pricing..." : "Saving Pricing...",
-  text: "Please wait while your data is being processed securely.",
+      title:
+        this.quotation.id > 0 ? "Updating Pricing..." : "Saving Pricing...",
+      text: "Please wait while your data is being processed securely.",
       allowOutsideClick: false,
       didOpen: () => {
         Swal.showLoading();
@@ -4376,17 +4549,19 @@ export class PriceComponent {
           this.sendBulkEmails(savedInquiryId);
         } else {
           // Fallback: Agar standard Form screen se direct save kiya ya koi agent select nahi kiya
-          Swal.fire(
-            {
-               title: this.quotation.id > 0 ? "Updated Successfully!" : "Saved Successfully!",
-        text: this.quotation.id > 0
-          ? "Pricing data has been updated successfully with all table configurations!"
-          : "Pricing data has been created successfully with all table configurations!",
-        icon: "success",
-        confirmButtonColor: "#3085d6",
-        confirmButtonText: "OK",
-            }
-          ).then(() => {
+          Swal.fire({
+            title:
+              this.quotation.id > 0
+                ? "Updated Successfully!"
+                : "Saved Successfully!",
+            text:
+              this.quotation.id > 0
+                ? "Pricing data has been updated successfully with all table configurations!"
+                : "Pricing data has been created successfully with all table configurations!",
+            icon: "success",
+            confirmButtonColor: "#3085d6",
+            confirmButtonText: "OK",
+          }).then(() => {
             this.isFormOpen = false;
             this.isPreviewMode = false;
             this.onSearch();
@@ -4723,6 +4898,10 @@ export class PriceComponent {
             if (data.pricingDoneBy) {
               this.quotation.pricingDoneBy = data.pricingDoneBy.toString();
             }
+            if (data.salesTeam) {
+              // 🔥 NAYA
+              this.quotation.salesTeam = data.salesTeam.toString();
+            }
             this.cdr.detectChanges();
           }, 400);
         }
@@ -4826,9 +5005,17 @@ export class PriceComponent {
         this.quotation.isIndirect = data.isIndirect === true;
 
         // --- 9. Movement & Ports ---
+        // --- 9. Movement & Ports ---
         this.quotation.movementType = data.movementType || "";
         this.inquiry.origin = data.originName || "";
         this.originsaveid = data.originId || null;
+
+        // 🔥 NAYA FIX: Existing multi-carrier rows me bhi Origin sync karo
+        if (this.multiCarrierRows && this.multiCarrierRows.length > 0) {
+          this.multiCarrierRows.forEach((row: any) => {
+            row.origin = this.inquiry.origin;
+          });
+        }
 
         this.quotation.portOfLoadingId = data.portOfLoadingId
           ? Number(data.portOfLoadingId)
@@ -5648,6 +5835,21 @@ export class PriceComponent {
                 pricing.salesCoordinator.toString();
               this.cdr.detectChanges();
             }
+            if (pricing.salesTeam) {
+              // 🔥 NAYA
+              this.quotation.salesTeam = pricing.salesTeam.toString();
+              this.cdr.detectChanges();
+            }
+          }, 800);
+        }
+        // editPricing() ke andar, jahan teamId set ho raha hai wahan:
+        if (this.quotation.teamId) {
+          this.onTeamChange(this.quotation.teamId);
+          setTimeout(() => {
+            if (pricing.salesTeam) {
+              this.quotation.salesTeam = pricing.salesTeam.toString();
+              this.cdr.detectChanges();
+            }
           }, 800);
         }
         if (!this.quotation) this.quotation = {};
@@ -6361,6 +6563,9 @@ export class PriceComponent {
     }
     if (this.el && !this.el.nativeElement.contains(event.target)) {
       this.showFinalDestinationDropdown = false;
+    }
+    if (this.el && !this.el.nativeElement.contains(event.target)) {
+      this.showAirlineDropdownIndex = null;
     }
   }
 }

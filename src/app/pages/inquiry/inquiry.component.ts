@@ -98,6 +98,7 @@ export class InquiryComponent implements OnInit {
   // Preview ke liye nayi variables
   isPreviewModalOpen = false;
   agentDetail: any[] = [];
+  getsalesTeamList: any[] = [];
   selectedEmails: string[] = [];
   currentPreviewUrl: SafeResourceUrl | null = null;
   showincoterms: string = "";
@@ -584,8 +585,15 @@ export class InquiryComponent implements OnInit {
     // 1. CBM calculate hota rahega kyunki wo volume par depend hai
     this.quotation.cbm = parseFloat((volume / 167).toFixed(3));
 
-    // 2. 🔥 NET WEIGHT WALI LINE HATA DI HAI 🔥
-    // Ab ye hamesha wahi rahega jo aapne hath se likha hai.
+
+    
+  // 2. Net Weight (gross - volume)
+  this.quotation.netWeight = parseFloat((gross - volume).toFixed(2));
+
+  // 3. Chargeable Weight (max of gross and volume)
+  this.quotation.chargeableWeight = parseFloat(
+    Math.max(gross, volume).toFixed(2)
+  );
 
     // 3. Chargeable Weight hamesha bada wala hi select karega (Gross vs Volume)
     this.quotation.chargeableWeight = parseFloat(
@@ -594,6 +602,13 @@ export class InquiryComponent implements OnInit {
 
     this.cdr.detectChanges();
   }
+
+onWeightChange() {
+  this.calculateNetWeight();
+  this.calculateVolumeWeightLogic();
+  this.cdr.detectChanges();
+}
+
   columnFieldMap: any = {
     ID: "id",
     "Inquiry No": "inquiryNo",
@@ -640,6 +655,8 @@ export class InquiryComponent implements OnInit {
     // ... baki fields ...
   };
   companyServices: any[] = [];
+  filteredPodOrigins: any[] = [];
+  showPodOriginDropdown: boolean = false;
   organizations: any[] = [];
   filteredOrganizations: any[] = [];
   showDropdown: boolean = false;
@@ -917,9 +934,11 @@ export class InquiryComponent implements OnInit {
       this.getsalescordinate = [];
       this.getquotedByList = [];
       this.getpricingByList = [];
+      this.getsalesTeamList = []; // 🔥 NAYA
       this.quotation.salesCoordinator = "";
       this.quotation.qtnDoneBy = "";
       this.quotation.pricingDoneBy = "";
+      this.quotation.salesTeam = ""; // 🔥 NAYA
       return;
     }
 
@@ -929,12 +948,10 @@ export class InquiryComponent implements OnInit {
 
     this.http.get<any>(url, { headers }).subscribe({
       next: (res) => {
-        // API response se saari lists update karein
-        this.getsalescordinate =
-          res && res.salesCoordinators ? res.salesCoordinators : [];
-        this.getquotedByList = res && res.quotedBy ? res.quotedBy : [];
-        this.getpricingByList = res && res.pricingBy ? res.pricingBy : [];
-
+        this.getsalescordinate = res?.salesCoordinators || [];
+        this.getquotedByList = res?.quotedBy || [];
+        this.getpricingByList = res?.pricingBy || [];
+     this.getsalesTeamList = res?.salesTeam || []; 
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -942,6 +959,7 @@ export class InquiryComponent implements OnInit {
         this.getsalescordinate = [];
         this.getquotedByList = [];
         this.getpricingByList = [];
+        this.getsalesTeamList = [];
       },
     });
   }
@@ -1308,6 +1326,7 @@ export class InquiryComponent implements OnInit {
   clickout(event: any) {
     if (!this.eRef.nativeElement.contains(event.target)) {
       this.showOriginDropdown = false;
+      this.showPodOriginDropdown = false;
     }
     const clickedInside = this.eRef.nativeElement.contains(event.target);
     if (!clickedInside) {
@@ -2278,8 +2297,6 @@ export class InquiryComponent implements OnInit {
       });
   }
 
-  
-
   onInquiryType() {
     // Query ko authorize/sahi karna (3 words logic)
     const query = this.searchFilters.inquiryNo
@@ -2954,6 +2971,41 @@ export class InquiryComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
+  // --- POD (Origin) Search Logic — same as Origin field ---
+  onPodOriginSearchInput() {
+    const searchTerm = (this.quotation.podOrigin || "")
+      .toString()
+      .trim()
+      .toLowerCase();
+
+    if (searchTerm === "") {
+      this.showPodOriginDropdown = false;
+      this.filteredPodOrigins = [];
+      return;
+    }
+
+    this.filteredPodOrigins = this.origins.filter((org) => {
+      return (
+        (org.name || "").toLowerCase().includes(searchTerm) ||
+        (org.countryName || "").toLowerCase().includes(searchTerm)
+      );
+    });
+
+    this.showPodOriginDropdown = true;
+  }
+
+  selectPodOrigin(origin: any) {
+    this.quotation.podOrigin = origin.name;
+    this.showPodOriginDropdown = false;
+  }
+
+  onPodOriginKeyDown(event: any) {
+    if (event.key === "Enter" && this.filteredPodOrigins.length > 0) {
+      event.preventDefault();
+      this.selectPodOrigin(this.filteredPodOrigins[0]);
+    }
+  }
+
   // 3. ngOnDestroy mein cleanup
   ngOnDestroy() {
     // Purani subscriptions ke saath isse bhi add karein
@@ -3504,8 +3556,10 @@ export class InquiryComponent implements OnInit {
     if (!leadNo) return;
 
     const url = `${environment.apiUrl}/Leads/byLeadNo?leadNo=${encodeURIComponent(leadNo)}`;
+    const token = localStorage.getItem("cavalier_token");
+    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
 
-    this.http.get<any>(url).subscribe({
+    this.http.get<any>(url, { headers }).subscribe({
       next: (leadData) => {
         console.log("✅ Full Lead Data Received:", leadData);
         this.selectedLeadData = leadData;
@@ -3517,54 +3571,63 @@ export class InquiryComponent implements OnInit {
         }
         if (leadData.organisationId) {
           this.organizationIds = leadData.organisationId;
-        }
-
-        // 🔥 AUTO-FETCH TEAM AND SALES COORDINATORS FIX
-        if (leadData.team && this.teamsList && this.teamsList.length > 0) {
-          const leadTeamStr = String(leadData.team).trim().toLowerCase();
-
-          // Master list mein se string matches check karenge
-          const matchingTeam = this.teamsList.find((t) => {
-            const tName = String(t.teamName || t.name || "")
-              .trim()
-              .toLowerCase();
-            return tName === leadTeamStr;
-          });
-
-          if (matchingTeam) {
-            const tId = matchingTeam.teamId || matchingTeam.id;
-
-            // 1. Dropdown value update (Ab exact numeric ID set hogi)
-            this.quotation.teamId = tId;
-            console.log("🎯 Dynamic Team Match Found! ID set to:", tId);
-
-            // 2. Dynamic details endpoint call karke sales coordinators load karenge
-            this.onTeamChange(tId);
-
-            // 3. Dropdown options parse hone ke liye small timeout
-            setTimeout(() => {
-              if (leadData.salesCoordinator) {
-                this.quotation.salesCoordinator =
-                  leadData.salesCoordinator.toString();
-                this.cdr.detectChanges();
-              }
-            }, 300);
-          } else {
-            console.warn(
-              `⚠️ Teams master list mein '${leadData.team}' naam ki koi team nahi mili!`,
-            );
-            this.quotation.teamId = null;
-            this.getsalescordinate = [];
-          }
-        } else {
-          // Agar dynamic response mein team empty aayi ho
-          this.quotation.teamId = null;
-          this.getsalescordinate = [];
+          this.OrganisationId = leadData.organisationId;
         }
 
         if (leadData.location) this.quotation.location = leadData.location;
         if (leadData.branch) this.quotation.branchName = leadData.branch;
         if (leadData.type) this.quotation.type = leadData.type;
+
+        // 🔥 FIX: Team ab ID hai, naam se match mat karo — direct ID use karo
+        const teamId = leadData.team;
+
+        if (teamId) {
+          this.quotation.teamId = teamId;
+
+          // Team ke members fetch karo, aur RESPONSE AANE PAR HI sab fields patch karo
+          this.http
+            .get<any>(`${environment.apiUrl}/Teams/${teamId}/details`, {
+              headers,
+            })
+            .subscribe({
+              next: (res) => {
+                this.getsalescordinate = res?.salesCoordinators || [];
+                this.getquotedByList = res?.quotedBy || [];
+                this.getpricingByList = res?.pricingBy || [];
+this.getsalesTeamList = res?.salesTeam || []; 
+                // 🔥 Ab dropdown options load ho chuki hain, TABHI values patch karo
+                if (leadData.salesCoordinator) {
+                  this.quotation.salesCoordinator =
+                    leadData.salesCoordinator.toString();
+                }
+                if (leadData.hod) {
+                  this.quotation.hod = leadData.hod.toString(); // agar aapke quotation model me hod field hai
+                }
+                if (leadData.reportingManager) {
+                  this.quotation.reportingManager =
+                    leadData.reportingManager.toString();
+                }
+                if (leadData.pricingBy) {
+                  this.quotation.pricingDoneBy = leadData.pricingBy.toString();
+                }
+                if (leadData.salesTeam) {
+                  this.quotation.salesTeam = leadData.salesTeam.toString();
+                }
+                this.cdr.detectChanges();
+              },
+              error: (err) => {
+                console.error("❌ Team Details Fetch Error:", err);
+                this.getsalescordinate = [];
+                this.getquotedByList = [];
+                this.getpricingByList = [];
+              },
+            });
+        } else {
+          this.quotation.teamId = null;
+          this.getsalescordinate = [];
+          this.getquotedByList = [];
+          this.getpricingByList = [];
+        }
 
         this.cdr.detectChanges();
       },
@@ -3953,207 +4016,215 @@ export class InquiryComponent implements OnInit {
       showConfirmButton: false,
     });
   }
-  
-saveQuotation() {
-  if (!this.inquiry.organization) {
-    Swal.fire({
-      title: "Validation Error",
-      text: "Organization Name is required!",
-      icon: "warning",
-      confirmButtonColor: "#4a3f3f",
-      confirmButtonText: "OK",
-    });
-    return;
-  }
 
-  // --- CLEAN PAYLOAD MAPPING ---
-  const payload: any = {
-    ...this.quotation,
-    teamId:
-      this.quotation.teamId && Number(this.quotation.teamId) > 0
-        ? Number(this.quotation.teamId)
-        : null,
-    TransportMode: String(
-      this.quotation.TransportMode || this.quotation.transportMode || "",
-    ),
-    TransportType: String(
-      this.quotation.TransportType || this.quotation.transportType || "",
-    ),
-    inquiryNo: String(this.inquiry.inquiryNo || ""),
-    podOrigin: String(this.quotation.podOrigin || ""),
-    customerName: String(
-      this.inquiry.organization || this.quotation.customerName || "",
-    ),
-    organization: String(
-      this.inquiry.organization || this.quotation.organization || "",
-    ),
-    OrganisationName: String(
-      this.OrganisationName ||
-        this.inquiry.organization ||
-        this.quotation.organization ||
-        "",
-    ),
-    OrganisationId: Number(
-      this.OrganisationId || this.quotation.organisationId || 0,
-    ),
-    shipmentType: String(this.quotation.shipmentType || ""),
-    leadNo: String(this.inquiry.leadNo || this.quotation.leadNo || ""),
-    leadId: Number(this.LeadId || this.quotation.leadId || 0),
-    LeadName: String(
-      this.LeadName || this.quotation.leadName || this.quotation.leadNo || "",
-    ),
-    origin: String(this.inquiry.origin || this.quotation.origin || ""),
-    HazardDocPath: this.quotation.hazardDocPath || null,
-    weightUnit: String(this.quotation.GrossweightUnit || "KGS"),
-    GrossWeightUnit: String(this.quotation.GrossWeightUnit || ""),
-    NetWeightUnit: String(this.quotation.NetWeightUnit || ""),
-    ChargeableWeightUnit: String(this.quotation.ChargeWeightUnit || ""),
-    VolumeWeightUnit: String(this.quotation.VolumeWeightUnit || ""),
-    NoOfPkgsUnit: String(this.quotation.noOfPkgsUnit || ""),
-    CbmWeightUnit: String(this.quotation.CbmWeightUnit || "CBM"),
-    cargocurrency: String(this.quotation.currency || "INR"),
-    cargoValue: String(this.quotation.cargoValue || "0"),
-    lineOfBusinessId:
-      this.quotation.lineOfBusinessId &&
-      Number(this.quotation.lineOfBusinessId) > 0
-        ? Number(this.quotation.lineOfBusinessId)
-        : null,
-    lineOfBusinessName: String(this.quotation.lineOfBusinessName || ""),
-    originId:
-      this.originsaveid && Number(this.originsaveid) > 0
-        ? Number(this.originsaveid)
-        : null,
-    portOfLoadingId:
-      this.quotation.portOfLoadingId &&
-      Number(this.quotation.portOfLoadingId) > 0
-        ? Number(this.quotation.portOfLoadingId)
-        : null,
-    portOfDischargeId:
-      this.quotation.portOfDischargeId &&
-      Number(this.quotation.portOfDischargeId) > 0
-        ? Number(this.quotation.portOfDischargeId)
-        : null,
-    portOfLoading: null,
-    portOfDischarge: null,
-    codeOfPOD: String(this.quotation.codeOfPOD || ""),
-    codeOfFinalDest: String(this.quotation.codeOfFinalDest || ""),
-    cargoStatus: String(this.quotation.cargoStatusType || "Ready"),
-    createdBy: "admin@cavalierlogistic.in",
-    qtnId: String(
-      this.quotation.qtnId ||
-        "QTN-" + Math.floor(1000 + Math.random() * 9000),
-    ),
-    createdDate: new Date().toISOString(),
-    dimensions: this.appliedDimensions || [],
-    countryName: String(this.quotation.country || ""),
-    connectingPortIds:
-      this.selectedConnectingPorts && this.selectedConnectingPorts.length > 0
-        ? String(this.selectedConnectingPorts.map((p: any) => p.id).join(","))
-        : null,
-    isDirect:
-      this.quotation.serviceType === "Direct" ||
-      Boolean(this.quotation.isDirect),
-    isIndirect:
-      this.quotation.serviceType === "Indirect" ||
-      Boolean(this.quotation.isIndirect),
-    serviceType: String(
-      this.searchFilters?.transportMode || this.quotation.serviceType || "",
-    ),
-  };
-
-  // CRITICAL FIX: 'commodity' name ki integer ko delete kar ke sahi C# foreign key ka naam set kiya
-  payload.commodityId =
-    this.quotation.commodity && Number(this.quotation.commodity) > 0
-      ? Number(this.quotation.commodity)
-      : null;
-  if (payload.hasOwnProperty("commodity")) {
-    delete payload.commodity;
-  }
-
-  console.log("FINAL PAYLOAD BEFORE SENDING:", payload);
-
-  const formData = new FormData();
-  formData.append("inquiryData", JSON.stringify(payload));
-
-  // ---------------- COMMODITY DOCS ----------------
-  if (this.documents?.length) {
-    this.documents.forEach((doc) => {
-      if (doc.file) {
-        formData.append("commodityFiles", doc.file);
-        formData.append("documentNames", doc.name || doc.fileName);
-      } else if (doc.isExisting && doc.id) {
-        formData.append("keepCommodityDocumentIds", doc.id.toString());
-      }
-    });
-  }
-  formData.append("commodityDocsTouched", "true");
-
-  // ---------------- INVOICE DOCS ----------------
-  if (this.invoices?.length) {
-    this.invoices.forEach((inv) => {
-      if (inv.file) {
-        formData.append("invoiceFiles", inv.file);
-        formData.append("invoiceNames", inv.name || inv.fileName);
-      } else if (inv.isExisting && inv.id) {
-        formData.append("keepInvoiceDocumentIds", inv.id.toString());
-      }
-    });
-  }
-  formData.append("invoiceDocsTouched", "true");
-
-  const token = localStorage.getItem("cavalier_token");
-  const httpOptions = { headers: { Authorization: `Bearer ${token}` } };
-
-  // Check if it's CREATE or UPDATE
-  const isEdit = this.quotation.id && this.quotation.id > 0;
-
-  const action = isEdit
-    ? this.http.put(
-        `${this.apiUrl}/${this.quotation.id}`,
-        formData,
-        httpOptions,
-      )
-    : this.http.post(this.apiUrl, formData, httpOptions);
-
-  // Show loading
-  Swal.fire({
-    title: isEdit ? "Updating..." : "Saving...",
-    text: "Please wait",
-    allowOutsideClick: false,
-    didOpen: () => {
-      Swal.showLoading();
-    },
-  });
-
-  action.subscribe({
-    next: () => {
+  saveQuotation() {
+    if (!this.inquiry.organization) {
       Swal.fire({
-        title: isEdit ? "Updated!" : "Success!",
-        text: isEdit
-          ? "Inquiry has been updated successfully in CavalierDB!"
-          : "Inquiry has been created successfully in CavalierDB!",
-        icon: "success",
-        timer: 2000,
-        showConfirmButton: false,
-      });
-      this.isFormOpen = false;
-      this.router.navigate(["/dashboard/salescrm/inquiry"]);
-      this.cdr.detectChanges();
-      this.onSearch()
-      // window.location.reload();
-    },
-    error: (err) => {
-      console.error("Backend Error Details:", err);
-      Swal.fire({
-        title: "Error!",
-        text: "Failed to save inquiry. Please check database constraints.",
-        icon: "error",
+        title: "Validation Error",
+        text: "Organization Name is required!",
+        icon: "warning",
+        confirmButtonColor: "#4a3f3f",
         confirmButtonText: "OK",
-        confirmButtonColor: "#d33",
       });
-    },
+      return;
+    }
+
+    // --- CLEAN PAYLOAD MAPPING ---
+    const payload: any = {
+      ...this.quotation,
+      teamId:
+        this.quotation.teamId && Number(this.quotation.teamId) > 0
+          ? Number(this.quotation.teamId)
+          : null,
+      TransportMode: String(
+        this.quotation.TransportMode || this.quotation.transportMode || "",
+      ),
+      TransportType: String(
+        this.quotation.TransportType || this.quotation.transportType || "",
+      ),
+      inquiryNo: String(this.inquiry.inquiryNo || ""),
+      podOrigin: String(this.quotation.podOrigin || ""),
+      customerName: String(
+        this.inquiry.organization || this.quotation.customerName || "",
+      ),
+      organization: String(
+        this.inquiry.organization || this.quotation.organization || "",
+      ),
+      OrganisationName: String(
+        this.OrganisationName ||
+          this.inquiry.organization ||
+          this.quotation.organization ||
+          "",
+      ),
+      OrganisationId: Number(
+        this.OrganisationId || this.quotation.organisationId || 0,
+      ),
+      shipmentType: String(this.quotation.shipmentType || ""),
+      leadNo: String(this.inquiry.leadNo || this.quotation.leadNo || ""),
+      leadId: Number(this.LeadId || this.quotation.leadId || 0),
+      LeadName: String(
+        this.LeadName || this.quotation.leadName || this.quotation.leadNo || "",
+      ),
+      origin: String(this.inquiry.origin || this.quotation.origin || ""),
+      HazardDocPath: this.quotation.hazardDocPath || null,
+      salesTeam: String(this.quotation.salesTeam || ""),
+      weightUnit: String(this.quotation.GrossweightUnit || "KGS"),
+      GrossWeightUnit: String(this.quotation.GrossWeightUnit || ""),
+      NetWeightUnit: String(this.quotation.NetWeightUnit || ""),
+      ChargeableWeightUnit: String(this.quotation.ChargeWeightUnit || ""),
+      VolumeWeightUnit: String(this.quotation.VolumeWeightUnit || ""),
+      NoOfPkgsUnit: String(this.quotation.noOfPkgsUnit || ""),
+      CbmWeightUnit: String(this.quotation.CbmWeightUnit || "CBM"),
+      cargocurrency: String(this.quotation.currency || "INR"),
+      cargoValue: String(this.quotation.cargoValue || "0"),
+      lineOfBusinessId:
+        this.quotation.lineOfBusinessId &&
+        Number(this.quotation.lineOfBusinessId) > 0
+          ? Number(this.quotation.lineOfBusinessId)
+          : null,
+      lineOfBusinessName: String(this.quotation.lineOfBusinessName || ""),
+      originId:
+        this.originsaveid && Number(this.originsaveid) > 0
+          ? Number(this.originsaveid)
+          : null,
+      portOfLoadingId:
+        this.quotation.portOfLoadingId &&
+        Number(this.quotation.portOfLoadingId) > 0
+          ? Number(this.quotation.portOfLoadingId)
+          : null,
+      portOfDischargeId:
+        this.quotation.portOfDischargeId &&
+        Number(this.quotation.portOfDischargeId) > 0
+          ? Number(this.quotation.portOfDischargeId)
+          : null,
+      portOfLoading: null,
+      portOfDischarge: null,
+      codeOfPOD: String(this.quotation.codeOfPOD || ""),
+      codeOfFinalDest: String(this.quotation.codeOfFinalDest || ""),
+      cargoStatus: String(this.quotation.cargoStatusType || "Ready"),
+      createdBy: "admin@cavalierlogistic.in",
+      qtnId: String(
+        this.quotation.qtnId ||
+          "QTN-" + Math.floor(1000 + Math.random() * 9000),
+      ),
+      createdDate: new Date().toISOString(),
+      dimensions: this.appliedDimensions || [],
+      countryName: String(this.quotation.country || ""),
+      connectingPortIds:
+        this.selectedConnectingPorts && this.selectedConnectingPorts.length > 0
+          ? String(this.selectedConnectingPorts.map((p: any) => p.id).join(","))
+          : null,
+      isDirect:
+        this.quotation.serviceType === "Direct" ||
+        Boolean(this.quotation.isDirect),
+      isIndirect:
+        this.quotation.serviceType === "Indirect" ||
+        Boolean(this.quotation.isIndirect),
+      serviceType: String(
+        this.searchFilters?.transportMode || this.quotation.serviceType || "",
+      ),
+    };
+
+    // CRITICAL FIX: 'commodity' name ki integer ko delete kar ke sahi C# foreign key ka naam set kiya
+    payload.commodityId =
+      this.quotation.commodity && Number(this.quotation.commodity) > 0
+        ? Number(this.quotation.commodity)
+        : null;
+    if (payload.hasOwnProperty("commodity")) {
+      delete payload.commodity;
+    }
+
+    console.log("FINAL PAYLOAD BEFORE SENDING:", payload);
+
+    const formData = new FormData();
+    formData.append("inquiryData", JSON.stringify(payload));
+
+    // ---------------- COMMODITY DOCS ----------------
+    if (this.documents?.length) {
+      this.documents.forEach((doc) => {
+        if (doc.file) {
+          formData.append("commodityFiles", doc.file);
+          formData.append("documentNames", doc.name || doc.fileName);
+        } else if (doc.isExisting && doc.id) {
+          formData.append("keepCommodityDocumentIds", doc.id.toString());
+        }
+      });
+    }
+    formData.append("commodityDocsTouched", "true");
+
+    // ---------------- INVOICE DOCS ----------------
+    if (this.invoices?.length) {
+      this.invoices.forEach((inv) => {
+        if (inv.file) {
+          formData.append("invoiceFiles", inv.file);
+          formData.append("invoiceNames", inv.name || inv.fileName);
+        } else if (inv.isExisting && inv.id) {
+          formData.append("keepInvoiceDocumentIds", inv.id.toString());
+        }
+      });
+    }
+    formData.append("invoiceDocsTouched", "true");
+
+    const token = localStorage.getItem("cavalier_token");
+    const httpOptions = { headers: { Authorization: `Bearer ${token}` } };
+
+    // Check if it's CREATE or UPDATE
+    const isEdit = this.quotation.id && this.quotation.id > 0;
+
+    const action = isEdit
+      ? this.http.put(
+          `${this.apiUrl}/${this.quotation.id}`,
+          formData,
+          httpOptions,
+        )
+      : this.http.post(this.apiUrl, formData, httpOptions);
+
+    // Show loading
+    Swal.fire({
+      title: isEdit ? "Updating..." : "Saving...",
+      text: "Please wait",
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+
+    action.subscribe({
+      next: () => {
+        Swal.fire({
+          title: isEdit ? "Updated!" : "Success!",
+          text: isEdit
+            ? "Inquiry has been updated successfully in CavalierDB!"
+            : "Inquiry has been created successfully in CavalierDB!",
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+        this.isFormOpen = false;
+        this.router.navigate(["/dashboard/salescrm/inquiry"]);
+        this.cdr.detectChanges();
+        this.onSearch();
+        // window.location.reload();
+      },
+      error: (err) => {
+  console.error("Backend Error Details:", err);
+
+  const backendMessage =
+    (err.error && typeof err.error === "object" && err.error.message) ||
+    (typeof err.error === "string" ? err.error : null) ||
+    err.message ||
+    "Failed to save inquiry. Please check database constraints.";
+
+  Swal.fire({
+    title: "Error!",
+    text: backendMessage,
+    icon: "error",
+    confirmButtonText: "OK",
+    confirmButtonColor: "#d33",
   });
-}
+},
+    });
+  }
   // Variables
   isModalOpen = false;
   // selectedInquiryCarriers: any[] = []; // Iski zaroorat nahi agar aap direct array use kar rahe ho

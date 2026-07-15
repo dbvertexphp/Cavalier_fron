@@ -1,0 +1,346 @@
+<div class="min-h-screen p-4 md:p-6 font-sans bg-gray-100 text-slate-700 text-[13px]">
+    <div class="max-w-[1500px] mx-auto">
+
+        <div class="bg-white shadow-sm border border-gray-300 overflow-hidden">
+
+            <!-- Filter bar -->
+            <div class="flex flex-wrap items-end gap-3 p-4 border-b border-gray-300 bg-gray-50">
+
+                <div class="flex flex-col gap-1 flex-1 min-w-[220px]">
+                    <label class="text-xs font-medium text-slate-500">Code / Name</label>
+                    <input type="text" [(ngModel)]="searchCode" (ngModelChange)="currentPage = 1"
+                        placeholder="Search charge code or name"
+                        class="h-9 w-full border border-slate-300 bg-white px-3 text-sm focus:outline-none focus:ring-1 focus:ring-[#4a3f3f] focus:border-[#4a3f3f]" />
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs font-medium text-slate-500">Charge Type</label>
+                    <select [(ngModel)]="searchChargeType" (ngModelChange)="currentPage = 1"
+                        class="h-9 min-w-[160px] border border-slate-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#4a3f3f] focus:border-[#4a3f3f]">
+                        <option value>All</option>
+                        <option *ngFor="let t of chargeTypeOptions" [value]="t">{{ t }}</option>
+                    </select>
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs font-medium text-slate-500">Applicable For</label>
+                    <select [(ngModel)]="searchApplicableFor" (ngModelChange)="currentPage = 1"
+                        class="h-9 min-w-[150px] border border-slate-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#4a3f3f] focus:border-[#4a3f3f]">
+                        <option value>All</option>
+                        <option *ngFor="let a of applicableForOptions" [value]="a">{{ a }}</option>
+                    </select>
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs font-medium text-slate-500">Charge Category</label>
+                    <select [(ngModel)]="searchChargeCategory" (ngModelChange)="currentPage = 1"
+                        class="h-9 min-w-[140px] border border-slate-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#4a3f3f] focus:border-[#4a3f3f]">
+                        <option value>All</option>
+                        <option *ngFor="let c of chargeCategoryOptions" [value]="c">{{ c }}</option>
+                    </select>
+                </div>
+
+                <div class="flex gap-2">
+                    <button type="button" (click)="clearFilters()"
+                        class="bg-gray-200 text-gray-700 px-6 py-2.5 font-bold shadow-sm uppercase text-[11px] hover:bg-gray-300 transition-all">
+                        Clear
+                    </button>
+                    <button type="button"
+                        class="bg-[#4a3f3f] text-white px-5 py-1.5 font-bold shadow-md uppercase text-[10px] hover:bg-black transition-all rounded-sm outline-none">
+                        Search
+                    </button>
+                </div>
+            </div>
+
+            <!-- Header bar + Add Charge -->
+            <div class="bg-[#4a3f3f] p-3 flex justify-between items-center text-white">
+                <div class="font-bold uppercase tracking-widest px-2 text-[12px]">
+                    Charge Master Records
+                </div>
+                <button type="button" (click)="openAddForm()"
+                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 text-[11px] font-bold shadow-sm flex items-center gap-2 transition-all rounded-lg uppercase tracking-wider">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
+                    </svg>
+                    ADD NEW CHARGE
+                </button>
+            </div>
+
+            <!-- Result count -->
+            <div class="flex items-center justify-between px-4 py-2 text-xs text-slate-400 border-b border-gray-300">
+                <span>Showing {{ paginatedRows.length }} of {{ filteredRows.length }} records</span>
+                <div class="hidden sm:flex items-center gap-3">
+                    <span class="inline-flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Tax mapped
+                    </span>
+                    <span class="inline-flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-slate-400"></span> No tax mapped
+                    </span>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm min-w-[1400px]">
+                    <thead>
+                        <tr class="bg-[rgb(70,50,50)]/80 text-slate-200 text-xs uppercase tracking-wide">
+                            <th class="left-0 z-20 px-3 py-3 text-left whitespace-nowrap bg-[rgb(70,50,50)]/80 shadow-[4px_0_6px_-2px_rgba(0,0,0,0.15)]">Code</th>
+                            <th class="px-3 py-3 text-left min-w-[220px]">Name</th>
+                            <th class="px-3 py-3 text-left whitespace-nowrap">Charge Type</th>
+                            <th class="px-3 py-3 text-left min-w-[220px]">Applicable For</th>
+                            <th class="px-3 py-3 text-left whitespace-nowrap">Charge Category</th>
+                            <th class="px-3 py-3 text-left whitespace-nowrap">IATA Code</th>
+                            <th class="px-3 py-3 text-left min-w-[240px]">Tax Mapping</th>
+                            <th class="px-3 py-3 text-center whitespace-nowrap">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let row of paginatedRows; trackBy: trackById; let odd = odd"
+                            [class.bg-slate-50]="odd"
+                            class="group border-b border-gray-300 hover:bg-sky-50 transition-colors">
+                            <td class="px-3 py-2.5 font-semibold text-sky-700 whitespace-nowrap">{{ row.code }}</td>
+                            <td class="px-3 py-2.5 text-slate-700">{{ row.name }}</td>
+                            <td class="px-3 py-2.5 whitespace-nowrap">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ring-1 ring-inset bg-indigo-50 text-indigo-700 ring-indigo-200">
+                                    {{ row.chargeType }}
+                                </span>
+                            </td>
+                            <td class="px-3 py-2.5">
+                                <div class="flex flex-wrap gap-1">
+                                    <span *ngFor="let a of row.applicableFor"
+                                        class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200">
+                                        {{ a }}
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="px-3 py-2.5 whitespace-nowrap">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ring-1 ring-inset bg-amber-50 text-amber-700 ring-amber-200">
+                                    {{ row.chargeCategory }}
+                                </span>
+                            </td>
+                            <td class="px-3 py-2.5 text-slate-500 whitespace-nowrap">{{ row.iataCode || '—' }}</td>
+                            <td class="px-3 py-2.5 whitespace-nowrap">
+                                <span
+                                    [ngClass]="activeTaxSummary(row) === '—' ? 'bg-slate-100 text-slate-500 ring-slate-200' : 'bg-emerald-50 text-emerald-700 ring-emerald-200'"
+                                    class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ring-1 ring-inset">
+                                    <span [ngClass]="activeTaxSummary(row) === '—' ? 'bg-slate-400' : 'bg-emerald-500'"
+                                        class="w-1.5 h-1.5 rounded-full"></span>
+                                    {{ activeTaxSummary(row) }}
+                                </span>
+                            </td>
+                            <td class="px-3 py-2.5 text-center whitespace-nowrap">
+                                <div class="flex justify-center gap-2">
+                                    <button title="Edit" (click)="openEditForm(row)"
+                                        class="flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-600 border border-blue-200 rounded-md hover:bg-blue-600 hover:text-white transition-all text-[10px]">
+                                        Edit
+                                    </button>
+                                    <button title="Delete" (click)="deleteCharge(row)"
+                                        class="flex items-center gap-1 px-2 py-1 bg-red-50 text-red-600 border border-red-200 rounded-md hover:bg-red-600 hover:text-white transition-all text-[10px]">
+                                        Del
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr *ngIf="filteredRows.length === 0">
+                            <td colspan="8" class="px-3 py-10 text-center text-slate-400">
+                                No matching charges found. Try adjusting filters.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="flex flex-col md:flex-row justify-between items-center bg-white p-4 border-t border-gray-300 gap-4">
+                <div class="text-[12px] text-gray-400 italic">
+                    Page <span class="text-[#4a3f3f] font-bold">{{ currentPage }}</span> of {{ totalPages }}
+                </div>
+                <div class="flex items-center gap-1">
+                    <button (click)="setPage(currentPage - 1)" [disabled]="currentPage === 1"
+                        class="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-[#4a3f3f] hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-sm">
+                        <span class="text-lg">‹</span>
+                    </button>
+                    <div class="flex items-center gap-1 px-2">
+                        <button *ngFor="let p of pageNumbers" (click)="setPage(p)"
+                            [ngClass]="currentPage === p ? 'bg-[#4a3f3f] text-white border-[#4a3f3f] scale-105 shadow-md' : 'bg-white text-gray-600 hover:bg-gray-50 border-gray-200'"
+                            class="w-9 h-9 rounded-lg border font-bold text-xs transition-all duration-200">
+                            {{ p }}
+                        </button>
+                    </div>
+                    <button (click)="setPage(currentPage + 1)" [disabled]="currentPage === totalPages"
+                        class="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-[#4a3f3f] hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-sm">
+                        <span class="text-lg">›</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- ADD / EDIT CHARGE — MODAL -->
+    <!-- ================================================================ -->
+    <div *ngIf="isFormOpen" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+        (click)="closeForm()">
+
+        <div class="relative w-full max-w-4xl bg-white rounded-lg shadow-2xl border border-gray-200 max-h-[92vh] overflow-hidden flex flex-col"
+            (click)="$event.stopPropagation()">
+
+            <!-- Header -->
+            <div class="bg-[#4a3f3f] px-5 py-4 flex justify-between items-center text-white shrink-0">
+                <h3 class="font-bold uppercase text-[13px] tracking-widest flex items-center gap-2">
+                    <span>{{ isEditMode ? '✏️' : '➕' }}</span>
+                    {{ isEditMode ? 'Update Charge' : 'New Charge' }}
+                </h3>
+                <button type="button" (click)="closeForm()"
+                    class="text-white/70 hover:text-white text-2xl leading-none font-bold transition-colors">
+                    &times;
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="p-5 overflow-y-auto custom-scrollbar">
+                <p *ngIf="formError"
+                    class="bg-red-50 border border-red-300 text-red-700 text-[12px] font-semibold px-3 py-2 mb-4 rounded">
+                    {{ formError }}
+                </p>
+
+                <!-- Identity -->
+                <div class="bg-gray-50 p-4 border border-gray-200 rounded mb-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
+                        <div class="grid grid-cols-1 gap-1">
+                            <label class="text-gray-700 font-bold uppercase text-[11px]">Code</label>
+                            <input type="text" [(ngModel)]="form.code" name="code" placeholder="e.g. AAT"
+                                class="border border-gray-300 p-2 outline-none text-[12px] bg-white focus:border-[#4a3f3f]" />
+                        </div>
+                        <div class="grid grid-cols-1 gap-1">
+                            <label class="text-gray-700 font-bold uppercase text-[11px]">Global Charge Code</label>
+                            <input type="text" [(ngModel)]="form.globalChargeCode" name="globalChargeCode"
+                                class="border border-gray-300 p-2 outline-none text-[12px] bg-white focus:border-[#4a3f3f]" />
+                        </div>
+                        <div class="grid grid-cols-1 gap-1">
+                            <label class="text-gray-700 font-bold uppercase text-[11px]">Name</label>
+                            <input type="text" [(ngModel)]="form.name" name="name" placeholder="e.g. AAI CHARGES"
+                                class="border border-gray-300 p-2 outline-none text-[12px] bg-white focus:border-[#4a3f3f]" />
+                        </div>
+                        <div class="grid grid-cols-1 gap-1">
+                            <label class="text-gray-700 font-bold uppercase text-[11px]">Global Charge Name</label>
+                            <input type="text" [(ngModel)]="form.globalChargeName" name="globalChargeName"
+                                class="border border-gray-300 p-2 outline-none text-[12px] bg-white focus:border-[#4a3f3f]" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Classification -->
+                <div class="bg-gray-50 p-4 border border-gray-200 rounded mb-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
+                        <div class="grid grid-cols-1 gap-1 md:col-span-2">
+                            <label class="text-gray-700 font-bold uppercase text-[11px]">Applicable For</label>
+                            <div class="flex flex-wrap gap-3 bg-white border border-gray-300 p-2.5 rounded">
+                                <label *ngFor="let opt of applicableForOptions" class="flex items-center gap-1.5 cursor-pointer text-[12px]">
+                                    <input type="checkbox"
+                                        [checked]="form.applicableFor.includes(opt)"
+                                        (change)="toggleApplicableFor(opt, $any($event.target).checked)"
+                                        class="h-3.5 w-3.5 accent-[#4a3f3f]" />
+                                    {{ opt }}
+                                </label>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 gap-1">
+                            <label class="font-bold text-gray-700 text-[12px]">Charge Category</label>
+                            <select [(ngModel)]="form.chargeCategory" name="chargeCategory"
+                                class="border border-gray-300 p-2 outline-none text-[12px] bg-white focus:border-[#4a3f3f]">
+                                <option value disabled>-- Select --</option>
+                                <option *ngFor="let c of chargeCategoryOptions" [value]="c">{{ c }}</option>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-1 gap-1">
+                            <label class="font-bold text-gray-700 text-[12px]">Charge Type</label>
+                            <select [(ngModel)]="form.chargeType" name="chargeType"
+                                class="border border-gray-300 p-2 outline-none text-[12px] bg-white focus:border-[#4a3f3f]">
+                                <option *ngFor="let t of chargeTypeOptions" [value]="t">{{ t }}</option>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-1 gap-1">
+                            <label class="font-bold text-gray-700 text-[12px]">IATA Code</label>
+                            <input type="text" [(ngModel)]="form.iataCode" name="iataCode"
+                                class="border border-gray-300 p-2 outline-none text-[12px] bg-white focus:border-[#4a3f3f]" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Applicable Tax mapping -->
+                <div class="border border-gray-300 rounded overflow-hidden">
+                    <div class="bg-[#4a3f3f] text-white px-3 py-2 font-bold text-[12px] uppercase tracking-wider">
+                        Applicable Tax
+                    </div>
+                    <table class="w-full text-[12px]">
+                        <thead>
+                            <tr class="bg-gray-100 text-gray-600 uppercase text-[10px] border-b border-gray-300">
+                                <th class="px-3 py-2 text-left w-10"></th>
+                                <th class="px-3 py-2 text-left">Tax</th>
+                                <th class="px-3 py-2 text-left min-w-[280px]">Category (HSN/SAC)</th>
+                                <th class="px-3 py-2 text-left w-44">Taxable</th>
+                                <th class="px-3 py-2 text-right w-24">%</th>
+                                <th class="px-3 py-2 text-center w-20">Override</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let t of form.taxRows" class="border-b border-gray-100 last:border-none">
+                                <td class="px-3 py-2">
+                                    <input type="checkbox" [(ngModel)]="t.checked" [name]="'chk_' + t.key"
+                                        (change)="onTaxRowToggle(t)"
+                                        class="h-4 w-4 accent-[#4a3f3f]" />
+                                </td>
+                                <td class="px-3 py-2 font-semibold text-gray-700">{{ t.label }}</td>
+                                <td class="px-3 py-2">
+                                    <select [(ngModel)]="t.categoryCode" [name]="'cat_' + t.key" [disabled]="!t.checked || taxCategoriesLoading"
+                                        class="w-full border border-gray-300 p-1.5 outline-none bg-white text-[11px] disabled:bg-gray-100 disabled:text-gray-400 focus:border-[#4a3f3f]">
+                                        <option [ngValue]="null">{{ taxCategoriesLoading ? 'Loading tax categories…' : '-- Select tax category --' }}</option>
+                                        <option *ngFor="let opt of taxCategoryOptions" [ngValue]="opt.code">
+                                            {{ opt.gstType }} — {{ opt.name }}
+                                        </option>
+                                    </select>
+                                    <p *ngIf="t.checked && t.categoryCode && !isCategoryStillValid(t.categoryCode)"
+                                        class="text-[10px] text-red-600 font-semibold mt-1">
+                                        ⚠ This tax category is no longer Applicable on Tax Rates — please re-select.
+                                    </p>
+                                </td>
+                                <td class="px-3 py-2">
+                                    <select [(ngModel)]="t.taxable" [name]="'txbl_' + t.key" [disabled]="!t.checked"
+                                        class="w-full border border-gray-300 p-1.5 outline-none bg-white text-[11px] disabled:bg-gray-100 disabled:text-gray-400 focus:border-[#4a3f3f]">
+                                        <option *ngFor="let m of taxableModes" [value]="m">{{ m }}</option>
+                                    </select>
+                                </td>
+                                <td class="px-3 py-2">
+                                    <input type="number" step="0.01" [(ngModel)]="t.percentage" [name]="'pct_' + t.key" [disabled]="!t.checked"
+                                        class="w-full border border-gray-300 p-1.5 outline-none bg-white text-[11px] text-right disabled:bg-gray-100 disabled:text-gray-400 focus:border-[#4a3f3f]" />
+                                </td>
+                                <td class="px-3 py-2 text-center">
+                                    <input type="checkbox" [(ngModel)]="t.override" [name]="'ovr_' + t.key" [disabled]="!t.checked"
+                                        class="h-4 w-4 accent-[#4a3f3f]" />
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-[11px] text-gray-400 italic mt-2">
+                    Tip: only checked tax rows are applied at invoice time. A checked row needs a Category selected — a checked
+                    row with no category will block Save, since that would silently produce an untaxed charge.
+                </p>
+            </div>
+
+            <!-- Footer -->
+            <div class="p-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3 shrink-0">
+                <button type="button" (click)="closeForm()"
+                    class="bg-gray-200 text-gray-700 px-6 py-2.5 font-bold shadow-sm uppercase text-[11px] hover:bg-gray-300 transition-all">
+                    Cancel
+                </button>
+                <button type="button" (click)="saveCharge()"
+                    class="bg-[#4a3f3f] text-white px-8 py-2.5 font-bold shadow-md uppercase text-[11px] hover:bg-black transition-all">
+                    {{ isEditMode ? 'Update Charge' : 'Save Charge' }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -6,7 +6,7 @@
       class="bg-gray-100 p-1.5 border-b border-gray-300 flex gap-4 items-center">
       <div class="text-[11px] italic text-gray-500">
         Items in <span class="text-green-600 font-bold">green</span> = Sucess |
-        <span class="text-red-600 font-bold">Red</span> = Faild
+        <span class="text-red-600 font-bold">Red</span> = Failed
       </div>
     </div>
 
@@ -220,7 +220,7 @@
             <select
               [(ngModel)]="searchFilters.showMode"
               class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white">
-              
+
               <option value="valid">Valid Inquiry Only</option>
               <option value="all">All Inquiries</option>
             </select>
@@ -694,7 +694,7 @@ Selection Modal Popup
       <div class="flex items-center justify-end gap-3 mb-4">
 
         <button (click)="$event.stopPropagation(); toggleColumnSelector()"
-          class="group flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 text-[11px] font-bold uppercase tracking-wider rounded-lg shadow-sm hover:shadow-md transition-all duration-300 active:scale-95">
+          class="group flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 text-[11px] font-bold uppercase shadow-sm hover:shadow-md transition-all duration-300 active:scale-95">
           <span
             class="text-[14px] group-hover:rotate-180 transition-transform duration-500">⚙️</span>
           <span>Columns</span>
@@ -703,7 +703,7 @@ Selection Modal Popup
         <div class="relative inline-block">
           <button type="button"
             (click)="toggleExportMenu(); $event.stopPropagation()"
-            class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] px-4 py-2 uppercase shadow-sm flex items-center gap-2 transition-all rounded-lg">
+            class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 text-[12px] font-bold shadow-sm flex items-center gap-2 transition-all ">
             <span>💾</span> EXPORT
             <span [class.rotate-180]="isExportOpen"
               class="transition-transform text-[10px]">▼</span>
@@ -728,7 +728,7 @@ Selection Modal Popup
 
         <button (click)="toggleForm()"
           *ngIf="CheckPermissionService.hasPermission(PermissionID, 'Add')"
-          class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 text-[11px] font-bold shadow-sm flex items-center gap-2 transition-all rounded-lg uppercase tracking-wider">
+          class="bg-green-600 hover:bg-green-700 px-5 py-2 text-[12px] font-bold shadow-sm flex items-center gap-2 transition-all">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none"
             viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round"
@@ -1151,6 +1151,18 @@ Selection Modal Popup
                   name="repliedDate"
                   class="border p-2 text-[11px] outline-none" />
               </div>
+
+              <div class="grid grid-cols-1 gap-1">
+                <label class="font-bold text-gray-700 text-[12px]">Sales
+                  Team</label>
+                <select [(ngModel)]="quotation.salesTeam" name="salesTeam"
+                  class="border border-gray-300 p-2 outline-none text-[12px] bg-white rounded-sm cursor-pointer">
+                  <option value>-- Select Sales Team --</option>
+                  <option *ngFor="let sp of getsalesTeamList" [value]="sp.id">
+                    {{ sp.name }}
+                  </option>
+                </select>
+              </div>
             </div>
 
             <div class="space-y-3">
@@ -1181,6 +1193,7 @@ Selection Modal Popup
                     }}</option>
                 </select>
               </div>
+
               <div class="grid grid-cols-1 gap-1">
                 <label class="font-bold text-gray-700 text-[12px]">Sales
                   Coor.</label>
@@ -1291,33 +1304,31 @@ Selection Modal Popup
                   </option>
                 </select>
               </div>
+
               <div class="grid grid-cols-1 gap-1">
                 <label class="font-bold text-gray-700 text-[12px]">Cargo
                   Status</label>
-                <div class="grid grid-cols-1 gap-1">
-                  <label class="font-bold text-gray-700 text-[12px]">Cargo
-                    Status</label>
 
-                  <div class="flex gap-1 items-center">
-                    <input
-                      #cargoDateInput
-                      type="date"
-                      [(ngModel)]="quotation.cargoStatusDate"
-                      name="cargoStatusDate"
-                      [disabled]="quotation.cargoStatusType === 'Ready'"
-                      class="border p-2 text-[11px] outline-none w-full bg-white" />
+                <div class="flex gap-1 items-center">
+                  <input
+                    #cargoDateInput
+                    type="date"
+                    [(ngModel)]="quotation.cargoStatusDate"
+                    name="cargoStatusDate"
+                    [disabled]="quotation.cargoStatusType === 'Ready'"
+                    class="border p-2 text-[11px] outline-none w-full bg-white" />
 
-                    <select
-                      [(ngModel)]="quotation.cargoStatusType"
-                      name="cargoStatusType"
-                      (change)="onCargoStatusChange()"
-                      class="border p-2 text-[11px] outline-none bg-white">
-                      <option value="Ready">Ready</option>
-                      <option value="Ready By">Ready By</option>
-                    </select>
-                  </div>
+                  <select
+                    [(ngModel)]="quotation.cargoStatusType"
+                    name="cargoStatusType"
+                    (change)="onCargoStatusChange()"
+                    class="border p-2 text-[11px] outline-none bg-white">
+                    <option value="Ready">Ready</option>
+                    <option value="Ready By">Ready By</option>
+                  </select>
                 </div>
               </div>
+
               <div class="grid grid-cols-1 gap-1">
                 <label class="font-bold text-gray-700 text-[12px]">Service
                   Type</label>
@@ -2965,10 +2976,18 @@ Selection Modal Popup
                         placeholder="INC">
                     </td>
 
+                    <!-- Airline Dropdown (Simple Select) -->
                     <td class="px-2 py-2">
-                      <input [(ngModel)]="m.airline"
-                        class="w-24 text-center bg-transparent border-b border-transparent focus:border-gray-300 outline-none italic font-medium"
-                        placeholder="Airline">
+                      <select
+                        [(ngModel)]="m.airline"
+                        (ngModelChange)="onAirlineSelectChange($event, i)"
+                        class="w-32 text-center bg-transparent border-b border-transparent focus:border-amber-500 outline-none italic font-medium uppercase">
+                        <option value>-- Select Airline --</option>
+                        <option *ngFor="let a of airlineList"
+                          [value]="a.airlineName || a.name">
+                          {{ a.airlineName || a.name }} ({{ a.airlineCode }})
+                        </option>
+                      </select>
                     </td>
 
                     <td class="px-2 py-2">
@@ -3576,9 +3595,18 @@ Selection Modal Popup
                   class="w-full outline-none p-1 bg-transparent text-center" />
               </td>
               <!-- Airline -->
+              <!-- Airline Dropdown -->
               <td class="border p-1 text-center">
-                <input [(ngModel)]="m.airline"
-                  class="w-full outline-none p-1 bg-transparent text-center font-bold" />
+                <select
+                  [(ngModel)]="m.airline"
+                  (ngModelChange)="onAirlineSelectChange($event, i)"
+                  class="w-full outline-none p-1 bg-transparent text-center font-bold uppercase">
+                  <option value>-- Select Airline --</option>
+                  <option *ngFor="let a of airlineList"
+                    [value]="a.airlineName || a.name">
+                    {{ a.airlineName || a.name }} ({{ a.airlineCode }})
+                  </option>
+                </select>
               </td>
               <!-- Direct/Indirect -->
               <td class="border p-1 text-center">

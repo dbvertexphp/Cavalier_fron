@@ -127,7 +127,7 @@ checkUserRole() {
     const token = localStorage.getItem('cavalier_token'); 
     
     if (token) {
-      const userRole= localStorage.getItem('userRole'); // Assuming you store user role in localStorage
+      const userRole= localStorage.getItem('userRole'); 
       if (userRole === 'Master') {
         this.isMasterRole = true;
       }

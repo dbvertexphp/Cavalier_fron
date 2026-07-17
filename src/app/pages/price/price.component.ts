@@ -101,6 +101,7 @@ export class PriceComponent {
   referenceByInquiryNo: string = "";
   organisationId: number = 0;
   organisationName: string = "";
+
   // Add these lines in your class variables section
 
   paginatedPricings: any[] = [];
@@ -654,7 +655,7 @@ export class PriceComponent {
     // ... baki fields ...
   };
   // Add this in your component class
-airlineDropdownClicked: boolean = false;
+  airlineDropdownClicked: boolean = false;
   companyServices: any[] = [];
   organizations: any[] = [];
   filteredOrganizations: any[] = [];
@@ -685,7 +686,7 @@ airlineDropdownClicked: boolean = false;
     private sanitizer: DomSanitizer,
     private eRef: ElementRef,
     private route: ActivatedRoute,
-      private airlineService: AirlineService,
+    private airlineService: AirlineService,
   ) {}
   orgData: any = null;
   isLoading: boolean = true;
@@ -805,84 +806,87 @@ airlineDropdownClicked: boolean = false;
   }
 
   // --- AIRLINE MASTER LOAD ---
-loadAirlines() {
-  this.airlineService.getAll().subscribe({
-    next: (data: Airline[]) => {
-      this.airlineList = data || [];
-      console.log("Airlines loaded via service:", this.airlineList.length);
-      this.cdr.detectChanges();
-    },
-    error: (err) => {
-      console.error("Airline API error via service:", err);
-      // Fallback: try direct HTTP call if service fails
-      this.loadAirlinesFallback();
-    }
-  });
-}
-// Fallback method if service fails
-loadAirlinesFallback() {
-  const token = localStorage.getItem("cavalier_token");
-  const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
-  
-  this.http.get<any[]>(`${environment.apiUrl}/Airline`, { headers }).subscribe({
-    next: (data) => {
-      this.airlineList = data || [];
-      console.log("Airlines loaded via fallback:", this.airlineList.length);
-      this.cdr.detectChanges();
-    },
-    error: (err) => console.error("Fallback airline API error:", err)
-  });
-}
+  loadAirlines() {
+    this.airlineService.getAll().subscribe({
+      next: (data: Airline[]) => {
+        this.airlineList = data || [];
+        console.log("Airlines loaded via service:", this.airlineList.length);
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error("Airline API error via service:", err);
+        // Fallback: try direct HTTP call if service fails
+        this.loadAirlinesFallback();
+      },
+    });
+  }
+  // Fallback method if service fails
+  loadAirlinesFallback() {
+    const token = localStorage.getItem("cavalier_token");
+    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+
+    this.http
+      .get<any[]>(`${environment.apiUrl}/Airline`, { headers })
+      .subscribe({
+        next: (data) => {
+          this.airlineList = data || [];
+          console.log("Airlines loaded via fallback:", this.airlineList.length);
+          this.cdr.detectChanges();
+        },
+        error: (err) => console.error("Fallback airline API error:", err),
+      });
+  }
 
   // --- SEARCH LOGIC (row-wise, kyunki multi-carrier mein multiple rows hoti hain) ---
-onAirlineSearch(index: number, event?: Event) {
-  const row = this.multiCarrierRows[index];
-  if (!row) return;
+  onAirlineSearch(index: number, event?: Event) {
+    const row = this.multiCarrierRows[index];
+    if (!row) return;
 
-  // row.airline ki jagah direct event se lo
-  const searchTerm = event
-    ? (event.target as HTMLInputElement).value.trim().toLowerCase()
-    : (row.airline || "").toString().trim().toLowerCase();
+    // row.airline ki jagah direct event se lo
+    const searchTerm = event
+      ? (event.target as HTMLInputElement).value.trim().toLowerCase()
+      : (row.airline || "").toString().trim().toLowerCase();
 
-  if (searchTerm === "") {
-    this.filteredAirlines = [];
-    this.showAirlineDropdownIndex = null;
+    if (searchTerm === "") {
+      this.filteredAirlines = [];
+      this.showAirlineDropdownIndex = null;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    // Filter from the airlineList
+    this.filteredAirlines = this.airlineList.filter((a) => {
+      const name = (a.airlineName || "").toLowerCase();
+      const code = (a.airlineCode || "").toLowerCase();
+      const prefix = (a.airlinePrefix || "").toLowerCase();
+      return (
+        name.includes(searchTerm) ||
+        code.includes(searchTerm) ||
+        prefix.includes(searchTerm)
+      );
+    });
+
+    // Limit results to prevent UI overload
+    if (this.filteredAirlines.length > 50) {
+      this.filteredAirlines = this.filteredAirlines.slice(0, 50);
+    }
+
+    this.showAirlineDropdownIndex =
+      this.filteredAirlines.length > 0 ? index : null;
+
+    // 🔥 Position update karo har baar jab search ho
+    if (event) {
+      const target = event.target as HTMLInputElement;
+      const rect = target.getBoundingClientRect();
+      this.airlineDropdownPos = {
+        top: rect.bottom + window.scrollY,
+        left: rect.left + window.scrollX,
+        width: Math.max(rect.width, 220),
+      };
+    }
+
     this.cdr.detectChanges();
-    return;
   }
-
-  // Filter from the airlineList
-  this.filteredAirlines = this.airlineList.filter((a) => {
-    const name = (a.airlineName || "").toLowerCase();
-    const code = (a.airlineCode || "").toLowerCase();
-    const prefix = (a.airlinePrefix || "").toLowerCase();
-    return (
-      name.includes(searchTerm) ||
-      code.includes(searchTerm) ||
-      prefix.includes(searchTerm)
-    );
-  });
-
-  // Limit results to prevent UI overload
-  if (this.filteredAirlines.length > 50) {
-    this.filteredAirlines = this.filteredAirlines.slice(0, 50);
-  }
-
-  this.showAirlineDropdownIndex = this.filteredAirlines.length > 0 ? index : null;
-
-  // 🔥 Position update karo har baar jab search ho
-  if (event) {
-    const target = event.target as HTMLInputElement;
-    const rect = target.getBoundingClientRect();
-    this.airlineDropdownPos = {
-      top: rect.bottom + window.scrollY,
-      left: rect.left + window.scrollX,
-      width: Math.max(rect.width, 220),
-    };
-  }
-
-  this.cdr.detectChanges();
-}
 
   // Naya variable — dropdown ki screen position store karega
   airlineDropdownPos: { top: number; left: number; width: number } = {
@@ -892,54 +896,59 @@ onAirlineSearch(index: number, event?: Event) {
   };
 
   // --- FOCUS ON A ROW (dropdown open karne ke liye jab field pe click ho) ---
-onAirlineFocus(index: number, event: FocusEvent) {
-  const row = this.multiCarrierRows[index];
-  if (!row) return;
+  onAirlineFocus(index: number, event: FocusEvent) {
+    const row = this.multiCarrierRows[index];
+    if (!row) return;
 
-  // Input ki screen position nikal ke dropdown ko wahi place karo
-  const target = event.target as HTMLInputElement;
-  const rect = target.getBoundingClientRect();
-  this.airlineDropdownPos = {
-    top: rect.bottom + window.scrollY,
-    left: rect.left + window.scrollX,
-    width: Math.max(rect.width, 220),
-  };
+    // Input ki screen position nikal ke dropdown ko wahi place karo
+    const target = event.target as HTMLInputElement;
+    const rect = target.getBoundingClientRect();
+    this.airlineDropdownPos = {
+      top: rect.bottom + window.scrollY,
+      left: rect.left + window.scrollX,
+      width: Math.max(rect.width, 220),
+    };
 
-  // Agar field mein kuch type kiya hai toh search karo, warna saari airlines dikhao
-  const currentValue = (row.airline || "").toString().trim();
-  
-  if (currentValue.length > 0) {
-    // Search with current value
-    this.filteredAirlines = this.airlineList.filter((a) => {
-      const name = (a.airlineName || "").toLowerCase();
-      const code = (a.airlineCode || "").toLowerCase();
-      const prefix = (a.airlinePrefix || "").toLowerCase();
-      const search = currentValue.toLowerCase();
-      return name.includes(search) || code.includes(search) || prefix.includes(search);
-    });
-  } else {
-    // 🔥 Sabhi airlines ko dropdown mein dikhao (limit 50 tak)
-    this.filteredAirlines = this.airlineList.slice(0, 50);
+    // Agar field mein kuch type kiya hai toh search karo, warna saari airlines dikhao
+    const currentValue = (row.airline || "").toString().trim();
+
+    if (currentValue.length > 0) {
+      // Search with current value
+      this.filteredAirlines = this.airlineList.filter((a) => {
+        const name = (a.airlineName || "").toLowerCase();
+        const code = (a.airlineCode || "").toLowerCase();
+        const prefix = (a.airlinePrefix || "").toLowerCase();
+        const search = currentValue.toLowerCase();
+        return (
+          name.includes(search) ||
+          code.includes(search) ||
+          prefix.includes(search)
+        );
+      });
+    } else {
+      // 🔥 Sabhi airlines ko dropdown mein dikhao (limit 50 tak)
+      this.filteredAirlines = this.airlineList.slice(0, 50);
+    }
+
+    this.showAirlineDropdownIndex =
+      this.filteredAirlines.length > 0 ? index : null;
+    this.cdr.detectChanges();
   }
 
-  this.showAirlineDropdownIndex = this.filteredAirlines.length > 0 ? index : null;
-  this.cdr.detectChanges();
-}
+  // --- SELECT LOGIC ---
+  selectAirline(airline: any, index: number) {
+    const row = this.multiCarrierRows[index];
+    if (!row || !airline) return;
 
-// --- SELECT LOGIC ---
-selectAirline(airline: any, index: number) {
-  const row = this.multiCarrierRows[index];
-  if (!row || !airline) return;
+    row.airline = airline.airlineName || airline.name || "";
+    row.airlineCode = airline.airlineCode || "";
+    row.airlinePrefix = airline.airlinePrefix || "";
 
-  row.airline = airline.airlineName || airline.name || "";
-  row.airlineCode = airline.airlineCode || "";
-  row.airlinePrefix = airline.airlinePrefix || "";
-
-  // 🔥 Dropdown band karo
-  this.showAirlineDropdownIndex = null;
-  this.filteredAirlines = [];
-  this.cdr.detectChanges();
-}
+    // 🔥 Dropdown band karo
+    this.showAirlineDropdownIndex = null;
+    this.filteredAirlines = [];
+    this.cdr.detectChanges();
+  }
 
   loadPricingForEdit(id: any) {
     const token = localStorage.getItem("cavalier_token");
@@ -1285,7 +1294,6 @@ selectAirline(airline: any, index: number) {
     const fullName = selectedService.serviceName.trim();
     this.quotation.lineOfBusinessName = fullName;
 
-    // 1. Existing sync logic
     if (this.costRows && this.costRows.length > 0) {
       this.costRows[0].lob = fullName;
     }
@@ -1296,12 +1304,8 @@ selectAirline(airline: any, index: number) {
       });
     }
 
-    // 2. Enhanced Logic: Auto-detect Transport Mode AND Transport Type
-    // Explicitly defined type string[] to avoid TS7006 error
     const parts: string[] = fullName.split(/[\s\-]+/);
-
     if (parts.length >= 1) {
-      // Mode Detect (e.g., Air, Sea)
       const modeName = parts[0];
       const modeObj = this.transportModes.find(
         (m) => m.name.toLowerCase() === modeName.toLowerCase(),
@@ -1310,20 +1314,24 @@ selectAirline(airline: any, index: number) {
         this.quotation.TransportMode = modeObj.id;
       }
 
-      // Type Detect (e.g., Export, Import)
       const typeKeyword = parts.find((p) =>
         ["export", "import"].includes(p.toLowerCase()),
       );
       if (typeKeyword) {
-        // First letter capital karke save karein (Export/Import)
         this.quotation.TransportType =
           typeKeyword.charAt(0).toUpperCase() +
           typeKeyword.slice(1).toLowerCase();
       }
     }
 
+    // 🔥 NAYA: LOB select hote hi agents fetch karo
+    const currentCountry =
+      this.quotation.country || this.selectedCountryName || "";
+    this.fetchAgentByLobId(selectedId, currentCountry);
+
     this.cdr.detectChanges();
   }
+
   getIncoTerms() {
     this.http.get<any[]>(`${environment.apiUrl}/IncoTerms`).subscribe({
       next: (data) => {
@@ -1332,6 +1340,7 @@ selectAirline(airline: any, index: number) {
       error: (err) => console.error("Error fetching IncoTerms:", err),
     });
   }
+
   onServiceTypeChange() {
     console.log(
       `Service Type Changed → Direct: ${this.quotation.isDirect} | Indirect: ${this.quotation.isIndirect}`,
@@ -1347,6 +1356,7 @@ selectAirline(airline: any, index: number) {
     if (this.quotation.isDirect) this.quotation.isIndirect = false;
     if (this.quotation.isIndirect) this.quotation.isDirect = false;
   }
+
   onIncotermChange(event: any) {
     const selectedIncoterm = event.target.value?.toUpperCase().trim();
     this.showincoterms = selectedIncoterm;
@@ -1414,30 +1424,30 @@ selectAirline(airline: any, index: number) {
   }
 
   // Add this method in your PriceComponent class
-closeAirlineDropdownWithDelay() {
-  setTimeout(() => {
-    if (!this.airlineDropdownClicked) {
-      this.showAirlineDropdownIndex = null;
-      this.cdr.detectChanges();
-    }
-  }, 300);
-}
-onAirlineSelectChange(selectedName: string, index: number) {
-  const row = this.multiCarrierRows[index];
-  if (!row) return;
-
-  const found = this.airlineList.find(
-    a => (a.airlineName || a.name) === selectedName
-  );
-
-  if (found) {
-    row.airline = found.airlineName || found.name || '';
-    row.airlineCode = found.airlineCode || '';
-    row.airlinePrefix = found.airlinePrefix || '';
+  closeAirlineDropdownWithDelay() {
+    setTimeout(() => {
+      if (!this.airlineDropdownClicked) {
+        this.showAirlineDropdownIndex = null;
+        this.cdr.detectChanges();
+      }
+    }, 300);
   }
+  onAirlineSelectChange(selectedName: string, index: number) {
+    const row = this.multiCarrierRows[index];
+    if (!row) return;
 
-  this.cdr.detectChanges();
-}
+    const found = this.airlineList.find(
+      (a) => (a.airlineName || a.name) === selectedName,
+    );
+
+    if (found) {
+      row.airline = found.airlineName || found.name || "";
+      row.airlineCode = found.airlineCode || "";
+      row.airlinePrefix = found.airlinePrefix || "";
+    }
+
+    this.cdr.detectChanges();
+  }
   // --- Fetch Origins List --
 
   fetchCompanyServices() {
@@ -1462,6 +1472,28 @@ onAirlineSelectChange(selectedName: string, index: number) {
     this.http.get<any[]>(url).subscribe((data) => {
       this.origins = data;
     });
+  }
+
+  onForwarderSelectChange(selectedAgentName: string, index: number) {
+    const row = this.multiCarrierRows[index];
+    if (!row) return;
+
+    const found = this.agentDetail.find(
+      (a: any) => a.agentName === selectedAgentName,
+    );
+
+    row.forwarder = selectedAgentName;
+
+    if (found) {
+      // Extra useful fields bhi row me store kar lo agar chahiye
+      row.forwarderOrgName = found.orgName || "";
+      row.forwarderBranch = found.branchName || "";
+      row.forwarderEmail = found.email || "";
+      // Origin bhi agent ke city se auto-fill kar sakte hain agar chahiye
+      // row.origin = found.city || row.origin;
+    }
+
+    this.cdr.detectChanges();
   }
 
   // 3. Search Logic
@@ -1570,6 +1602,9 @@ onAirlineSelectChange(selectedName: string, index: number) {
     this.http.get<any[]>(url).subscribe({
       next: (res) => {
         this.agentDetail = res || []; // Master display buffer snapshot update
+        if (this.quotation.Agent) {
+          this.markAgentAsSelected(this.quotation.Agent);
+        }
         this.cdr.detectChanges(); // Force layout visual frame modification refresh
         console.log(
           "✅ Agents/Branches synced for review sequence:",
@@ -1638,6 +1673,7 @@ onAirlineSelectChange(selectedName: string, index: number) {
     this.isPreviewMode = true;
     this.cdr.detectChanges();
   }
+
   onAgentSelect(event: any, agent: any) {
     const email = agent.email || agent.email;
     const branch = agent.agentName || agent.agentName || "Global";
@@ -1911,7 +1947,13 @@ onAirlineSelectChange(selectedName: string, index: number) {
         },
         error: (err) => {
           console.error("Delete failed", err);
-          alert("Delete failed! Refreshing list...");
+          Swal.fire({
+            icon: 'error',
+            title: 'Delete Failed',
+            text: 'Delete failed! Refreshing list...',
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'OK'
+          });
           this.loadQuotations(); // Agar error aaye toh wapas list le aao
           this.cdr.detectChanges();
         },
@@ -2072,7 +2114,13 @@ onAirlineSelectChange(selectedName: string, index: number) {
     }
   }
   onTransportModeChange() {
-    alert(this.quotation.TransportMode);
+    Swal.fire({
+      icon: 'info',
+      title: 'Transport Mode Changed',
+      text: `Transport mode changed to ${this.quotation.TransportMode}`,
+      confirmButtonColor: '#3085d6',
+      confirmButtonText: 'OK'
+    });
   }
   // Sahi initialization:
   // dimRows: any[] = [];
@@ -2274,7 +2322,13 @@ onAirlineSelectChange(selectedName: string, index: number) {
           console.error("Error loading dropdown data:", err);
 
           if (err.status === 401) {
-            alert("Unauthorized! Please login again.");
+            Swal.fire({
+              icon: 'error',
+              title: 'Unauthorized!',
+              text: 'Please login again.',
+              confirmButtonColor: '#d33',
+              confirmButtonText: 'OK'
+            });
           }
         },
       });
@@ -2419,9 +2473,12 @@ onAirlineSelectChange(selectedName: string, index: number) {
     this.showPricingPopup = true;
 
     const fullUrl = `${environment.apiUrl}/pricing`;
+    const headers = {
+      Authorization: `Bearer ${localStorage.getItem("cavalier_token")}`,
+    };
     console.log("Fetching directly from target API URL:", fullUrl);
 
-    this.http.get(fullUrl).subscribe({
+    this.http.get(fullUrl, { headers }).subscribe({
       next: (response: any) => {
         console.log("Backend API Raw Response:", response);
 
@@ -2850,7 +2907,13 @@ onAirlineSelectChange(selectedName: string, index: number) {
   }
 
   AllSearchprice() {
-    alert("All Price Search");
+    Swal.fire({
+      icon: 'info',
+      title: 'All Price Search',
+      text: 'Performing all price search...',
+      confirmButtonColor: '#3085d6',
+      confirmButtonText: 'OK'
+    });
     return;
   }
   // --- Pagination Logic ---
@@ -3032,7 +3095,13 @@ onAirlineSelectChange(selectedName: string, index: number) {
 
     // Check karein ki data hai ya nahi
     if (!this.quotations || this.quotations.length === 0) {
-      alert("Excel ke liye koi data nahi mila!");
+      Swal.fire({
+        icon: 'warning',
+        title: 'No Data Available',
+        text: 'Excel file is empty!',
+        confirmButtonColor: '#3085d6',
+        confirmButtonText: 'OK'
+      });
       return;
     }
 
@@ -4234,7 +4303,13 @@ onAirlineSelectChange(selectedName: string, index: number) {
     // Is function ki ab zaroorat nahi padegi kyunki hum saveQuotation me sab bhej rahe hain.
     // Bas modal band karne ke liye aap iska use kar sakte hain.
     this.showMultiCarrierTable = false;
-    alert("Carrier details added to Inquiry!");
+    Swal.fire({
+    icon: 'success',
+    title: 'Success!',
+    text: 'Carrier details added to Inquiry!',
+    confirmButtonColor: '#3085d6',
+    confirmButtonText: 'OK'
+});
   }
 
   loadPricings() {
@@ -4612,7 +4687,13 @@ onAirlineSelectChange(selectedName: string, index: number) {
       this.isModalOpen = true;
       this.cdr.detectChanges();
     } else {
-      alert("Abhi koi carrier data add nahi kiya gaya hai!");
+      Swal.fire({
+        icon: 'warning',
+        title: 'No Data Available',
+        text: 'No carrier data has been added yet!',
+        confirmButtonColor: '#3085d6',
+        confirmButtonText: 'OK'
+      });
     }
   }
 
@@ -4664,8 +4745,13 @@ onAirlineSelectChange(selectedName: string, index: number) {
         // Error par wapas purani state set karo taaki UI galat na dikhe
         q.status = previousStatus;
 
-        alert("Error while change status!");
-
+     Swal.fire({
+    icon: 'error',
+    title: 'Error!',
+    text: 'Error while changing status!',
+    confirmButtonColor: '#d33',
+    confirmButtonText: 'OK'
+});
         // UI ko revert karne ke liye forcefully update
         this.cdr.detectChanges();
       },
@@ -4860,7 +4946,10 @@ onAirlineSelectChange(selectedName: string, index: number) {
         this.OrganisationName = data.organisationName || "";
         this.LeadId = data.leadId || 0;
         this.LeadName = data.leadName || "";
-
+        this.quotation.CarrierCode = data.carrierCode || data.CarrierCode || "";
+        this.quotation.CarrierName = data.carrierName || data.CarrierName || "";
+        this.quotation.Agent = data.agent || data.Agent || "";
+        this.agentSearchText = this.quotation.Agent || "";
         this.quotation.referenceByInquiry = data.inquiryNo || "";
         this.quotation.customerName = data.customerName || "";
         this.quotation.organization = data.organisationName || "";
@@ -5375,10 +5464,16 @@ onAirlineSelectChange(selectedName: string, index: number) {
       (inv) => inv.name && inv.name.trim() !== "",
     );
 
-    if (!isValid) {
-      alert("Please provide a name for all invoices.");
-      return;
-    }
+if (!isValid) {
+    Swal.fire({
+        icon: 'warning',
+        title: 'Validation Error',
+        text: 'Please provide a name for all invoices.',
+        confirmButtonColor: '#3085d6',
+        confirmButtonText: 'OK'
+    });
+    return;
+}
 
     // 2. Local State update ho chuki hai (kyunki tumne [(ngModel)] use kiya hai),
     // bas hume modal band karna hai.
@@ -5914,6 +6009,18 @@ onAirlineSelectChange(selectedName: string, index: number) {
           pricing.placeOfDelivery ||
           pricing.PlaceOfDelivery ||
           "";
+
+        // 🔥 NAYA: Carrier & Agent fields sync (edit mode)
+        this.quotation.CarrierCode =
+          pricing.carrierCode || pricing.CarrierCode || "";
+        this.quotation.CarrierName =
+          pricing.carrierName || pricing.CarrierName || "";
+        this.quotation.Agent = pricing.agent || pricing.Agent || "";
+        this.agentSearchText = this.quotation.Agent || "";
+
+        // Agent ko agentDetail list me turant mark karne ki koshish (agar list already loaded hai)
+        this.markAgentAsSelected(this.quotation.Agent);
+
         this.quotation.country =
           pricing["[CountryName]"] ||
           pricing.countryName ||
@@ -6037,7 +6144,15 @@ onAirlineSelectChange(selectedName: string, index: number) {
         this.quotation.weight =
           pricing.weight || pricing.grossWeightKg || pricing.grossWeight || 0;
         this.quotation.cbmUnit = pricing.cbmUnit || "CBM";
-
+        const editLobId = this.quotation.lineOfBusinessId;
+        const editCountry =
+          pricing.countryName ||
+          pricing.CountryName ||
+          this.selectedCountryName ||
+          "";
+        if (editLobId) {
+          this.fetchAgentByLobId(editLobId, editCountry);
+        }
         this.costRows =
           pricing.costBreakdowns && pricing.costBreakdowns.length > 0
             ? [...pricing.costBreakdowns]
@@ -6454,10 +6569,17 @@ onAirlineSelectChange(selectedName: string, index: number) {
   loadUomList() {
     this.http.get<any[]>(`${environment.apiUrl}/Uom/list`).subscribe({
       next: (data) => {
-        this.uomList = data; // Yahan ensure karein ki data array format mein aaye
+        this.uomList = data;
       },
       error: (err) => console.error("Error loading UOMs:", err),
     });
+  }
+  getFilteredUomList() {
+    return (
+      this.uomList?.filter(
+        (uom) => uom.shortCode === "KGS" || uom.shortCode === "LBS",
+      ) || []
+    );
   }
   // isUomModalOpen: boolean = false;
 
@@ -6547,6 +6669,208 @@ onAirlineSelectChange(selectedName: string, index: number) {
     this.isUnitModalOpen = !this.isUnitModalOpen;
   }
 
+  // ================== CARRIER (Code + Name) SEARCH DROPDOWN ==================
+  filteredCarrierList: any[] = [];
+  showCarrierDropdown = false;
+  highlightedCarrierIndex = -1;
+
+  onCarrierCodeInput() {
+    const term = (this.quotation.CarrierCode || "").trim().toLowerCase();
+    this.filterCarrierList(term);
+  }
+
+  onCarrierNameSearch() {
+    const term = (this.quotation.CarrierName || "").trim().toLowerCase();
+    this.filterCarrierList(term);
+  }
+
+  private filterCarrierList(term: string) {
+    if (!term) {
+      this.filteredCarrierList = this.airlineList.slice(0, 50);
+    } else {
+      this.filteredCarrierList = this.airlineList.filter((a) => {
+        const name = (a.airlineName || a.name || "").toLowerCase();
+        const code = (a.airlineCode || "").toLowerCase();
+        return name.includes(term) || code.includes(term);
+      });
+    }
+    this.showCarrierDropdown = this.filteredCarrierList.length > 0;
+    this.highlightedCarrierIndex = -1;
+    this.cdr.detectChanges();
+  }
+
+  selectCarrier(a: any) {
+    if (!a) return;
+    this.quotation.CarrierCode = a.airlineCode || "";
+    this.quotation.CarrierName = a.airlineName || a.name || "";
+    this.showCarrierDropdown = false;
+    this.filteredCarrierList = [];
+    this.cdr.detectChanges();
+  }
+
+  onCarrierKeyDown(event: KeyboardEvent) {
+    if (!this.showCarrierDropdown || this.filteredCarrierList.length === 0)
+      return;
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      if (this.highlightedCarrierIndex < this.filteredCarrierList.length - 1)
+        this.highlightedCarrierIndex++;
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      if (this.highlightedCarrierIndex > 0) this.highlightedCarrierIndex--;
+    } else if (event.key === "Enter") {
+      event.preventDefault();
+      const selected =
+        this.highlightedCarrierIndex >= 0
+          ? this.filteredCarrierList[this.highlightedCarrierIndex]
+          : this.filteredCarrierList[0];
+      this.selectCarrier(selected);
+    }
+  }
+
+  onCarrierBlur() {
+    // Thoda delay taaki mousedown (selectCarrier) pehle fire ho jaye
+    setTimeout(() => {
+      this.showCarrierDropdown = false;
+      this.cdr.detectChanges();
+    }, 200);
+  }
+
+  onCarrierFocus() {
+    if (this.airlineList && this.airlineList.length > 0) {
+      this.filteredCarrierList = this.airlineList.slice(0, 50);
+      this.showCarrierDropdown = true;
+      this.cdr.detectChanges();
+    }
+  }
+
+  // ================== AGENT DROPDOWN (Forwarding & Movement) ==================
+  agentSearchText: string = "";
+  filteredAgentList: any[] = [];
+  showAgentDropdown = false;
+  highlightedAgentIndex = -1;
+
+  // Click/Focus par turant poori list dikhao
+  toggleAgentDropdown() {
+    if (this.showAgentDropdown) {
+      this.showAgentDropdown = false;
+      return;
+    }
+
+    if (!this.agentDetail || this.agentDetail.length === 0) {
+      console.warn("⚠️ Agent list khali hai. Pehle LOB/Origin select karo.");
+      return;
+    }
+
+    this.filteredAgentList = [...this.agentDetail];
+    this.showAgentDropdown = true;
+    this.highlightedAgentIndex = -1;
+    this.cdr.detectChanges();
+  }
+
+  onAgentSearchInput() {
+    const term = (this.agentSearchText || "").trim().toLowerCase();
+
+    if (!term) {
+      this.filteredAgentList = [...this.agentDetail];
+    } else {
+      this.filteredAgentList = this.agentDetail.filter((a: any) => {
+        const name = (a.agentName || "").toLowerCase();
+        const org = (a.orgName || "").toLowerCase();
+        const branch = (a.branchName || "").toLowerCase();
+        return (
+          name.includes(term) || org.includes(term) || branch.includes(term)
+        );
+      });
+    }
+
+    this.showAgentDropdown = true;
+    this.highlightedAgentIndex = -1;
+    this.cdr.detectChanges();
+  }
+
+  onAgentKeyDown(event: KeyboardEvent) {
+    if (!this.showAgentDropdown || this.filteredAgentList.length === 0) return;
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      if (this.highlightedAgentIndex < this.filteredAgentList.length - 1)
+        this.highlightedAgentIndex++;
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      if (this.highlightedAgentIndex > 0) this.highlightedAgentIndex--;
+    } else if (event.key === "Enter") {
+      event.preventDefault();
+      const selected =
+        this.highlightedAgentIndex >= 0
+          ? this.filteredAgentList[this.highlightedAgentIndex]
+          : this.filteredAgentList[0];
+      this.selectAgentFromForwarding(selected);
+    } else if (event.key === "Escape") {
+      this.showAgentDropdown = false;
+    }
+  }
+
+  selectAgentFromForwarding(a: any) {
+    if (!a) return;
+
+    this.quotation.Agent = a.agentName || "";
+    this.agentSearchText = a.agentName || "";
+    this.showAgentDropdown = false;
+    this.filteredAgentList = [];
+
+    // 🔥 Review popup ("Assigned Agents") me isko mark/tick karna
+    const match = this.agentDetail.find(
+      (x: any) => (x.agentName || "").trim() === (a.agentName || "").trim(),
+    );
+    if (match) {
+      match.isSelected = true;
+      if (match.email) {
+        this.selectedEmails.add(match.email);
+        this.lastSelectedBranch =
+          match.agentName || match.branchName || "Global";
+      }
+      console.log(
+        "✅ Agent auto-marked in Assigned Agents list:",
+        match.agentName,
+      );
+    }
+
+    this.cdr.detectChanges();
+  }
+  // 🔥 Edit mode me saved Agent ko list me mark karta hai (retry-safe, kyunki agentDetail delay se load hoti hai)
+  markAgentAsSelected(agentName: string, attempt: number = 0) {
+    if (!agentName) return;
+
+    if (this.agentDetail && this.agentDetail.length > 0) {
+      const match = this.agentDetail.find(
+        (x: any) => (x.agentName || "").trim() === agentName.trim(),
+      );
+      if (match) {
+        match.isSelected = true;
+        if (match.email) {
+          this.selectedEmails.add(match.email);
+          this.lastSelectedBranch =
+            match.agentName || match.branchName || "Global";
+        }
+        console.log("✅ [EDIT MODE] Agent auto-marked:", match.agentName);
+        this.cdr.detectChanges();
+        return;
+      }
+    }
+
+    // Agar agentDetail abhi tak load nahi hui (LOB change ke baad API call chal rahi hai),
+    // toh thodi der baad dobara try karo (max 5 baar, 500ms gap)
+    if (attempt < 5) {
+      setTimeout(() => this.markAgentAsSelected(agentName, attempt + 1), 600);
+    } else {
+      console.warn(
+        "⚠️ Agent list load nahi hui, mark nahi ho paya:",
+        agentName,
+      );
+    }
+  }
   // Click outside to close modal
   @HostListener("document:click", ["$event"])
   clickout(event: any) {
@@ -6566,6 +6890,10 @@ onAirlineSelectChange(selectedName: string, index: number) {
     }
     if (this.el && !this.el.nativeElement.contains(event.target)) {
       this.showAirlineDropdownIndex = null;
+    }
+    if (this.el && !this.el.nativeElement.contains(event.target)) {
+      this.showCarrierDropdown = false;
+      this.showAgentDropdown = false;
     }
   }
 }

@@ -112,7 +112,7 @@ export const routes: Routes = [
       },
 
       {
-        path: "salecrm/qoutation",
+        path: "salecrm/quotation",
         component: QuotationFormComponent,
       },
       {

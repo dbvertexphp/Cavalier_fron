@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { CheckPermissionService } from '../../services/check-permission.service';
+import Swal from 'sweetalert2';   // 🔥 NAYA IMPORT
 
 @Component({
   selector: 'app-company-service',
@@ -12,12 +13,12 @@ import { CheckPermissionService } from '../../services/check-permission.service'
   templateUrl: './company-service.component.html',
 })
 export class CompanyServiceComponent implements OnInit {
-  
+
   isModalOpen = false;
   isEditMode = false;
   currentServiceId: number | null = null;
-  newServiceName: string = ''; 
-  services: any[] = []; 
+  newServiceName: string = '';
+  services: any[] = [];
   PermissionID: number = 0;
   private apiUrl = environment.apiUrl + '/CompanyService';
 
@@ -32,41 +33,39 @@ export class CompanyServiceComponent implements OnInit {
     if (storedID) {
       this.PermissionID = Number(storedID);
     }
-    
-    // Direct fetch call bina kisi condition ke, taaki data hamesha dikhe
     this.fetchServices();
   }
 
   fetchServices() {
     this.http.get<any[]>(this.apiUrl).subscribe({
       next: (res) => {
-        // API response ko services array mein daal rahe hain
+        // 🔥 FIX: Backend ke 'status' string field se isActive boolean banao
         this.services = res.map(s => ({
           ...s,
-          isActive: s.isActive ?? true
+          isActive: s.status === 'Active'
         }));
         console.log("Services loaded:", this.services.length);
-        this.cdr.detectChanges(); // UI update force karein
+        this.cdr.detectChanges();
       },
       error: (err) => console.error('Error fetching services', err)
     });
   }
 
-  openModal() { 
+  openModal() {
     this.isEditMode = false;
     this.currentServiceId = null;
-    this.newServiceName = ''; 
-    this.isModalOpen = true; 
+    this.newServiceName = '';
+    this.isModalOpen = true;
     this.cdr.detectChanges();
   }
 
-  closeModal() { 
-    this.isModalOpen = false; 
+  closeModal() {
+    this.isModalOpen = false;
     this.newServiceName = '';
     this.cdr.detectChanges();
   }
-  
-  saveService() { 
+
+  saveService() {
     if (!this.newServiceName.trim()) return;
 
     const upperName = this.newServiceName.trim().toUpperCase();
@@ -75,7 +74,7 @@ export class CompanyServiceComponent implements OnInit {
       const payload = { id: this.currentServiceId, serviceName: upperName };
       this.http.put(`${this.apiUrl}/${this.currentServiceId}`, payload).subscribe({
         next: () => {
-          this.fetchServices(); // Update ke baad fresh load
+          this.fetchServices();
           this.closeModal();
         },
         error: (err) => console.error('Error updating service', err)
@@ -84,7 +83,7 @@ export class CompanyServiceComponent implements OnInit {
       const payload = { serviceName: upperName };
       this.http.post(this.apiUrl, payload).subscribe({
         next: () => {
-          this.fetchServices(); // Add ke baad fresh load
+          this.fetchServices();
           this.closeModal();
         },
         error: (err) => console.error('Error saving service', err)
@@ -93,15 +92,32 @@ export class CompanyServiceComponent implements OnInit {
   }
 
   deleteService(id: number) {
-    if(confirm('Are you sure you want to delete this service?')) {
-      this.http.delete(`${this.apiUrl}/${id}`).subscribe({
-        next: () => this.fetchServices(),
-        error: (err) => console.error('Error deleting service', err)
-      });
-    }
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'Do you want to delete this service?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.http.delete(`${this.apiUrl}/${id}`).subscribe({
+          next: () => {
+            this.fetchServices();
+            Swal.fire('Deleted!', 'Service has been deleted.', 'success');
+          },
+          error: (err) => {
+            console.error('Error deleting service', err);
+            Swal.fire('Error!', 'Failed to delete service.', 'error');
+          }
+        });
+      }
+    });
   }
 
-  modifyService(service: any) { 
+  modifyService(service: any) {
     this.isEditMode = true;
     this.currentServiceId = service.id;
     this.newServiceName = service.serviceName;
@@ -109,8 +125,46 @@ export class CompanyServiceComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
+  
   toggleStatus(service: any) {
-    service.isActive = !service.isActive;
-    // Note: Yahan server par status update ki API call honi chahiye agar database mein save karna hai
+    const newStatusText = service.isActive ? 'Inactive' : 'Active';
+
+    Swal.fire({
+      title: 'Are you sure?',
+      text: `Do you want to mark this service as ${newStatusText}?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#aaa',
+      confirmButtonText: `Yes, make it ${newStatusText}!`,
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const previousState = service.isActive;
+
+        this.http.patch<any>(`${this.apiUrl}/ToggleStatus/${service.id}`, {}).subscribe({
+          next: (res) => {
+            // Backend se aaye naye status se sync karo
+            service.isActive = res.newStatus === 'Active';
+            service.status = res.newStatus;
+            this.cdr.detectChanges();
+
+            Swal.fire({
+              icon: 'success',
+              title: 'Updated!',
+              text: `Service status changed to ${res.newStatus}.`,
+              timer: 1500,
+              showConfirmButton: false
+            });
+          },
+          error: (err) => {
+            console.error('Error toggling status', err);
+            service.isActive = previousState; // revert on failure
+            this.cdr.detectChanges();
+            Swal.fire('Error!', 'Failed to update status. Please try again.', 'error');
+          }
+        });
+      }
+    });
   }
 }

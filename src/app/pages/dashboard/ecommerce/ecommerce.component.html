@@ -1,123 +1,416 @@
-<div class="p-6 min-h-screen bg-gray-50">
-  <div class="max-w-7xl mx-auto">
-    <div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-      <div>
-        <h1 class="text-3xl font-bold text-gray-800 tracking-tight">Branch Dashboard</h1>
-        <p class="text-gray-500 text-sm">
-          Welcome back to the Cavalier Logistics Management Portal.
-        </p>
+<div class="flex min-h-screen bg-slate-100 text-slate-900 font-sans overflow-hidden">
+  
+  <!-- MAIN CONTAINER -->
+  <div class="flex-1 flex flex-col overflow-y-auto">
+    
+    <!-- CONTENT BODY -->
+    <main class="p-4 sm:p-6 lg:p-8 space-y-6 max-w-[1680px] mx-auto w-full">
+      
+      <!-- HERO / HEADER SECTION -->
+      <div class="relative overflow-hidden bg-white p-6 sm:p-7 rounded-3xl border border-slate-200/90 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-6 transition-all duration-300 hover:shadow-md">
+        <!-- Background Gradient Glow -->
+        <div class="absolute -right-16 -top-16 w-64 h-64 bg-[#654E51]/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10 flex items-center gap-4">
+          <div class="w-13 h-13 rounded-2xl bg-gradient-to-tr from-[#654E51] to-[#654E51] text-white flex items-center justify-center font-black shadow-lg shadow-[#654E51]/30 text-2xl shrink-0" style="color:red">
+            CV
+          </div>
+          <div>
+            <div class="flex items-center gap-2.5">
+              <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Dashboard</h1>
+              <span class="px-3 py-1 text-xs font-black uppercase tracking-wider bg-[#654E51]/10 text-[#654E51] rounded-full border border-[#654E51]/30">Welcome</span>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-600 font-semibold mt-1">Cavalier Logistics Operations & Real-Time Analytics Portal</p>
+          </div>
+        </div>
+
+        <!-- Timer & Quick Controls -->
+        <div class="relative z-10 flex items-center gap-3 self-start lg:self-auto">
+          <div class="flex items-center gap-3 bg-slate-50 px-4 py-2.5 rounded-2xl border border-slate-200 shadow-inner">
+            <div class="relative flex h-3 w-3">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-3 w-3 bg-rose-600"></span>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-[10px] font-black text-slate-500 uppercase tracking-wider leading-none">Session Security</span>
+              <span class="font-mono text-base font-black text-slate-900 leading-tight mt-0.5">{{ displayTime }}</span>
+            </div>
+            <button (click)="refreshTimer()" class="ml-2 p-2 bg-[#654E51] text-white rounded-xl hover:bg-[#523e41] hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer shadow-sm" title="Refresh Session">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div class="flex flex-col items-end gap-1.5 w-full md:w-auto">
-        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] hidden md:block">Session Security</span>
-        
-        <div class="flex items-center gap-2 bg-white p-1 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300">
-          
-          <div class="flex items-center gap-3 bg-gray-50/50 px-4 py-2 rounded-xl border border-gray-50 group/timer">
-            <div class="relative flex h-2 w-2">
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span>
-            </div>
-            
-            <div class="flex flex-col">
-              <div class="font-mono text-xl font-black text-gray-800 tracking-tighter flex items-center">
-                <span>{{ displayTime.split(':')[0] }}</span>
-                <span class="text-red-500 mx-0.5 animate-pulse">:</span>
-                <span>{{ displayTime.split(':')[1] }}</span>
-              </div>
-              <span class="text-[8px] font-bold text-gray-400 uppercase tracking-tighter leading-none -mt-0.5">Time Left</span>
-            </div>
+      <!-- LINE OF BUSINESS FILTER BAR -->
+      <div class="bg-white rounded-3xl p-4 border border-slate-200/90 shadow-sm">
+        <div class="flex items-center justify-between mb-3 px-1">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-4 bg-[#654E51] rounded-full"></span>
+            <span class="text-xs font-black text-slate-900 uppercase tracking-wider">Line of Business</span>
           </div>
-
-          <div class="w-px h-8 bg-gray-200/60 mx-1"></div>
-
-          <button (click)="refreshTimer()" 
-                  title="Extend Session" 
-                  class="flex items-center justify-center w-10 h-10 bg-[#654E51] text-white rounded-xl hover:bg-red-600 transition-all active:scale-95 group/btn shadow-lg shadow-[#654E51]/20">
-            <svg xmlns="http://www.w3.org/2000/svg" 
-                  class="h-5 w-5 group-hover/btn:rotate-180 transition-transform duration-700 ease-in-out" 
-                  fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
+          <span class="text-xs text-slate-600 font-bold hidden sm:inline">Select segment to filter global data</span>
+        </div>
+        
+        <div class="flex items-center gap-2.5 overflow-x-auto pb-1 scrollbar-none">
+          <button class="flex items-center gap-2 bg-[#654E51] text-white px-4 py-2.5 rounded-2xl text-xs font-black whitespace-nowrap shadow-md shadow-[#654E51]/30 transition-all duration-300 cursor-pointer active:scale-95">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+            Air Import
+          </button>
+          <button class="flex items-center gap-2 bg-slate-50 hover:bg-[#654E51] hover:text-white text-slate-800 border border-slate-200 px-4 py-2.5 rounded-2xl text-xs font-bold whitespace-nowrap transition-all duration-300 cursor-pointer active:scale-95 group">
+            <span class="group-hover:scale-110 transition-transform">🚢</span> Sea Import
+          </button>
+          <button class="flex items-center gap-2 bg-slate-50 hover:bg-[#654E51] hover:text-white text-slate-800 border border-slate-200 px-4 py-2.5 rounded-2xl text-xs font-bold whitespace-nowrap transition-all duration-300 cursor-pointer active:scale-95 group">
+            <span class="group-hover:scale-110 transition-transform">✈️</span> Air Export
+          </button>
+          <button class="flex items-center gap-2 bg-slate-50 hover:bg-[#654E51] hover:text-white text-slate-800 border border-slate-200 px-4 py-2.5 rounded-2xl text-xs font-bold whitespace-nowrap transition-all duration-300 cursor-pointer active:scale-95 group">
+            <span class="group-hover:scale-110 transition-transform">📦</span> Sea Export
+          </button>
+          <button class="flex items-center gap-2 bg-slate-50 hover:bg-[#654E51] hover:text-white text-slate-800 border border-slate-200 px-4 py-2.5 rounded-2xl text-xs font-bold whitespace-nowrap transition-all duration-300 cursor-pointer active:scale-95 group">
+            <span class="group-hover:scale-110 transition-transform">🚚</span> Import Courier
+          </button>
+          <button class="flex items-center gap-2 bg-slate-50 hover:bg-[#654E51] hover:text-white text-slate-800 border border-slate-200 px-4 py-2.5 rounded-2xl text-xs font-bold whitespace-nowrap transition-all duration-300 cursor-pointer active:scale-95 group">
+            <span class="group-hover:scale-110 transition-transform">📦</span> Export Courier
+          </button>
+          <button class="flex items-center gap-2 bg-slate-50 hover:bg-[#654E51] hover:text-white text-slate-800 border border-slate-200 px-4 py-2.5 rounded-2xl text-xs font-bold whitespace-nowrap transition-all duration-300 cursor-pointer active:scale-95 group">
+            <span class="group-hover:scale-110 transition-transform">📄</span> Import Clearance
+          </button>
+          <button class="flex items-center gap-2 bg-slate-50 hover:bg-[#654E51] hover:text-white text-slate-800 border border-slate-200 px-4 py-2.5 rounded-2xl text-xs font-bold whitespace-nowrap transition-all duration-300 cursor-pointer active:scale-95 group">
+            <span class="group-hover:scale-110 transition-transform">📄</span> Export Clearance
+          </button>
+          <button class="flex items-center gap-2 bg-slate-50 hover:bg-[#654E51] hover:text-white text-slate-800 border border-slate-200 px-4 py-2.5 rounded-2xl text-xs font-bold whitespace-nowrap transition-all duration-300 cursor-pointer active:scale-95 group">
+            <span class="group-hover:scale-110 transition-transform">🚛</span> By Road
           </button>
         </div>
       </div>
-    </div>
 
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
-      <div class="bg-[#654E51] p-4 text-white">
-        <div class="flex items-center gap-3">
-          <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-lg font-bold backdrop-blur-md">
-            {{ lastLoginUser?.userName?.charAt(0) || 'U' }}
+      <!-- TOP METRICS (PRIMARY CARDS WITH SMOOTH COLOR TRANSITION ON HOVER & CLICK) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        
+        <!-- Branches -->
+        <div class="group bg-white hover:bg-[#654E51] text-slate-900 hover:text-white rounded-3xl p-5 border border-slate-200/90 shadow-sm hover:shadow-2xl hover:shadow-[#654E51]/30 hover:-translate-y-1.5 active:scale-95 transition-all duration-500 ease-in-out cursor-pointer">
+          <div class="flex items-center justify-between">
+            <div class="w-13 h-13 rounded-2xl bg-[#654E51]/10 group-hover:bg-white/20 text-[#654E51] group-hover:text-white flex items-center justify-center font-bold border border-[#654E51]/20 group-hover:border-white/30 group-hover:scale-110 transition-all duration-500">
+              <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+            </div>
+            <span class="text-xs font-black px-2.5 py-1 bg-emerald-100 group-hover:bg-emerald-500 text-emerald-800 group-hover:text-white rounded-full border border-emerald-300 group-hover:border-emerald-400 transition-colors duration-500">Active Hubs</span>
           </div>
+          <div class="mt-4">
+            <h3 class="text-3xl font-black tracking-tight text-slate-900 group-hover:text-white transition-colors duration-500">4</h3>
+            <p class="text-xs font-bold text-slate-600 group-hover:text-slate-200 mt-1 transition-colors duration-500">Total Operating Branches</p>
+          </div>
+        </div>
+
+        <!-- Employees -->
+        <div class="group bg-white hover:bg-[#654E51] text-slate-900 hover:text-white rounded-3xl p-5 border border-slate-200/90 shadow-sm hover:shadow-2xl hover:shadow-[#654E51]/30 hover:-translate-y-1.5 active:scale-95 transition-all duration-500 ease-in-out cursor-pointer">
+          <div class="flex items-center justify-between">
+            <div class="w-13 h-13 rounded-2xl bg-[#654E51]/10 group-hover:bg-white/20 text-[#654E51] group-hover:text-white flex items-center justify-center font-bold border border-[#654E51]/20 group-hover:border-white/30 group-hover:scale-110 transition-all duration-500">
+              <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+            </div>
+            <span class="text-xs font-black px-2.5 py-1 bg-blue-100 group-hover:bg-blue-500 text-blue-800 group-hover:text-white rounded-full border border-blue-300 group-hover:border-blue-400 transition-colors duration-500">Staff</span>
+          </div>
+          <div class="mt-4">
+            <h3 class="text-3xl font-black tracking-tight text-slate-900 group-hover:text-white transition-colors duration-500">18</h3>
+            <p class="text-xs font-bold text-slate-600 group-hover:text-slate-200 mt-1 transition-colors duration-500">Active Workforce Onboarded</p>
+          </div>
+        </div>
+
+        <!-- Users -->
+        <div class="group bg-white hover:bg-[#654E51] text-slate-900 hover:text-white rounded-3xl p-5 border border-slate-200/90 shadow-sm hover:shadow-2xl hover:shadow-[#654E51]/30 hover:-translate-y-1.5 active:scale-95 transition-all duration-500 ease-in-out cursor-pointer">
+          <div class="flex items-center justify-between">
+            <div class="w-13 h-13 rounded-2xl bg-[#654E51]/10 group-hover:bg-white/20 text-[#654E51] group-hover:text-white flex items-center justify-center font-bold border border-[#654E51]/20 group-hover:border-white/30 group-hover:scale-110 transition-all duration-500">
+              <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+            </div>
+            <span class="text-xs font-black px-2.5 py-1 bg-purple-100 group-hover:bg-purple-500 text-purple-800 group-hover:text-white rounded-full border border-purple-300 group-hover:border-purple-400 transition-colors duration-500">Online</span>
+          </div>
+          <div class="mt-4">
+            <h3 class="text-3xl font-black tracking-tight text-slate-900 group-hover:text-white transition-colors duration-500">12</h3>
+            <p class="text-xs font-bold text-slate-600 group-hover:text-slate-200 mt-1 transition-colors duration-500">Portal System Accounts</p>
+          </div>
+        </div>
+
+        <!-- Quotations -->
+        <div class="group bg-white hover:bg-[#654E51] text-slate-900 hover:text-white rounded-3xl p-5 border border-slate-200/90 shadow-sm hover:shadow-2xl hover:shadow-[#654E51]/30 hover:-translate-y-1.5 active:scale-95 transition-all duration-500 ease-in-out cursor-pointer">
+          <div class="flex items-center justify-between">
+            <div class="w-13 h-13 rounded-2xl bg-[#654E51]/10 group-hover:bg-white/20 text-[#654E51] group-hover:text-white flex items-center justify-center font-bold border border-[#654E51]/20 group-hover:border-white/30 group-hover:scale-110 transition-all duration-500">
+              <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            </div>
+            <span class="text-xs font-black px-2.5 py-1 bg-amber-100 group-hover:bg-amber-500 text-amber-800 group-hover:text-white rounded-full border border-amber-300 group-hover:border-amber-400 transition-colors duration-500">Processed</span>
+          </div>
+          <div class="mt-4">
+            <h3 class="text-3xl font-black tracking-tight text-slate-900 group-hover:text-white transition-colors duration-500">85</h3>
+            <p class="text-xs font-bold text-slate-600 group-hover:text-slate-200 mt-1 transition-colors duration-500">Total Quotes Generated</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- SECOND ROW KPI METRICS (SMOOTH TRANSITION & CLEAR CONTRAST) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        
+        <!-- Pending Inquiry -->
+        <div class="group bg-white hover:bg-[#654E51] text-slate-900 hover:text-white rounded-3xl p-5 border border-slate-200/90 shadow-sm hover:shadow-xl hover:shadow-[#654E51]/20 hover:-translate-y-1 active:scale-95 transition-all duration-500 cursor-pointer flex items-center justify-between">
           <div>
-            <h2 class="text-lg font-semibold">Session Authenticated</h2>
-            <p class="text-white/80 text-xs">Last successful login detected</p>
+            <span class="text-xs font-black text-slate-600 group-hover:text-slate-200 uppercase tracking-wider block transition-colors duration-500">Pending Inquiry</span>
+            <div class="flex items-baseline gap-2 mt-1">
+              <span class="text-2xl font-black text-slate-900 group-hover:text-white transition-colors duration-500">24</span>
+              <span class="text-xs font-black text-emerald-800 bg-emerald-100 group-hover:bg-emerald-500 group-hover:text-white px-2 py-0.5 rounded-lg border border-emerald-300 transition-colors duration-500">↗ 12%</span>
+            </div>
+          </div>
+          <div class="w-12 h-12 rounded-2xl bg-slate-100 group-hover:bg-white/20 text-slate-700 group-hover:text-white flex items-center justify-center border border-slate-200 group-hover:border-white/30 shrink-0 transition-colors duration-500">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+          </div>
+        </div>
+
+        <!-- Approved Quote -->
+        <div class="group bg-white hover:bg-[#654E51] text-slate-900 hover:text-white rounded-3xl p-5 border border-slate-200/90 shadow-sm hover:shadow-xl hover:shadow-[#654E51]/20 hover:-translate-y-1 active:scale-95 transition-all duration-500 cursor-pointer flex items-center justify-between">
+          <div>
+            <span class="text-xs font-black text-slate-600 group-hover:text-slate-200 uppercase tracking-wider block transition-colors duration-500">Approved Quote</span>
+            <div class="flex items-baseline gap-2 mt-1">
+              <span class="text-2xl font-black text-slate-900 group-hover:text-white transition-colors duration-500">15</span>
+              <span class="text-xs font-black text-emerald-800 bg-emerald-100 group-hover:bg-emerald-500 group-hover:text-white px-2 py-0.5 rounded-lg border border-emerald-300 transition-colors duration-500">↗ 8%</span>
+            </div>
+          </div>
+          <div class="w-12 h-12 rounded-2xl bg-slate-100 group-hover:bg-white/20 text-slate-700 group-hover:text-white flex items-center justify-center border border-slate-200 group-hover:border-white/30 shrink-0 transition-colors duration-500">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          </div>
+        </div>
+
+        <!-- Shipment Booked -->
+        <div class="group bg-white hover:bg-[#654E51] text-slate-900 hover:text-white rounded-3xl p-5 border border-slate-200/90 shadow-sm hover:shadow-xl hover:shadow-[#654E51]/20 hover:-translate-y-1 active:scale-95 transition-all duration-500 cursor-pointer flex items-center justify-between">
+          <div>
+            <span class="text-xs font-black text-slate-600 group-hover:text-slate-200 uppercase tracking-wider block transition-colors duration-500">Shipment Booked</span>
+            <div class="flex items-baseline gap-2 mt-1">
+              <span class="text-2xl font-black text-slate-900 group-hover:text-white transition-colors duration-500">11</span>
+              <span class="text-xs font-black text-emerald-800 bg-emerald-100 group-hover:bg-emerald-500 group-hover:text-white px-2 py-0.5 rounded-lg border border-emerald-300 transition-colors duration-500">↗ 5%</span>
+            </div>
+          </div>
+          <div class="w-12 h-12 rounded-2xl bg-slate-100 group-hover:bg-white/20 text-slate-700 group-hover:text-white flex items-center justify-center border border-slate-200 group-hover:border-white/30 shrink-0 transition-colors duration-500">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+          </div>
+        </div>
+
+        <!-- Revenue Hero Card -->
+        <div class="group relative overflow-hidden bg-gradient-to-br from-[#654E51] to-[#4D3A3D] text-white rounded-3xl p-5 border border-[#654E51]/40 shadow-xl shadow-[#654E51]/25 flex items-center justify-between hover:scale-[1.02] active:scale-95 transition-all duration-500 cursor-pointer">
+          <div class="relative z-10">
+            <span class="text-xs font-black text-slate-200 uppercase tracking-widest block">Revenue (This Month)</span>
+            <div class="flex items-baseline gap-2 mt-1">
+              <span class="text-2xl font-black text-white tracking-tight">₹12,50,000</span>
+            </div>
+            <span class="inline-flex items-center gap-1 text-xs font-bold text-emerald-300 bg-emerald-500/20 px-2.5 py-0.5 rounded-full mt-1.5 border border-emerald-400/30">↗ +18% vs Last Month</span>
+          </div>
+          <div class="w-13 h-13 rounded-2xl bg-white/15 backdrop-blur-md text-white font-black text-2xl flex items-center justify-center shrink-0 border border-white/30 group-hover:scale-110 transition-transform duration-500">
+            ₹
           </div>
         </div>
       </div>
 
-      <div class="p-5">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <!-- MAIN DATA GRID (ANALYTICS CHART + TABLES) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left: Revenue Interactive Chart (5 Cols) -->
+        <div class="lg:col-span-5 bg-white rounded-3xl p-6 border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
           <div>
-            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Full Name</label>
-            <p class="text-base font-medium text-gray-900">
-              {{ lastLoginUser?.userName }}
-            </p>
-          </div>
-          <div>
-            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Email Address</label>
-            <p class="text-base font-medium text-[#654E51] truncate">
-              {{ lastLoginUser?.email }}
-            </p>
-          </div>
-          <div>
-            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Timestamp</label>
-            <p class="text-base font-medium text-gray-900">{{ loginTime }}</p>
-          </div>
-        </div>
-        <div class="mt-4 flex items-center gap-2 p-2 bg-green-50 border border-green-100 rounded-lg">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-          </svg>
-          <p class="text-green-800 font-medium text-xs">Secure Connection Active</p>
-        </div>
-      </div>
-    </div>
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-base font-black text-slate-900 tracking-tight">Air Import Revenue</h3>
+                <p class="text-xs text-slate-600 font-bold mt-0.5">Daily income performance tracking</p>
+              </div>
+              <select 
+                (change)="onRangeChange($event)" 
+                class="text-xs font-black bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#654E51]/30 cursor-pointer shadow-xs">
+                <option value="this_month">This Month</option>
+                <option value="last_month">Last Month</option>
+              </select>
+            </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:border-[#654E51] transition-colors cursor-default">
-        <p class="text-sm text-gray-500 font-medium">Branches</p>
-        <h3 class="text-3xl font-bold text-[#654E51] mt-2">12</h3>
+            <!-- Dynamic Chart Canvas Container -->
+            <div class="relative w-full h-60 my-2">
+              <canvas #revenueCanvas></canvas>
+            </div>
+          </div>
+
+          <!-- Chart Footer -->
+          <div class="flex items-center justify-between text-xs font-bold text-slate-500 pt-4 border-t border-slate-200">
+            <span class="flex items-center gap-2 font-bold text-slate-700">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              Live telemetry connected
+            </span>
+            <span class="text-[#654E51] font-black text-sm">Total: ₹{{ currentTotal }}</span>
+          </div>
+        </div>
+
+        <!-- Middle: Recent Air Import Quotations (3.5 Cols) -->
+        <div class="lg:col-span-3 bg-white rounded-3xl p-6 border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-200">
+              <div>
+                <h3 class="text-base font-black text-slate-900 tracking-tight">Recent Quotations</h3>
+                <p class="text-xs text-slate-600 font-bold mt-0.5">Air import quotes status</p>
+              </div>
+              <button class="text-xs text-[#654E51] hover:bg-[#654E51] hover:text-white px-3 py-1.5 rounded-xl font-black transition-all duration-300 cursor-pointer active:scale-95">View All</button>
+            </div>
+
+            <!-- Scrollable Container for Quotations -->
+            <div class="space-y-3 max-h-[290px] overflow-y-auto pr-1">
+              
+              <div class="flex items-center justify-between p-3 rounded-2xl hover:bg-[#654E51] text-slate-900 hover:text-white transition-all duration-300 cursor-pointer border border-transparent hover:border-[#654E51] group">
+                <div class="flex flex-col">
+                  <span class="font-black text-xs group-hover:text-white text-slate-900 transition-colors">AIQ-2026-1258</span>
+                  <span class="text-xs font-bold text-slate-600 group-hover:text-slate-200 mt-0.5 transition-colors">Global Tech Pvt. Ltd.</span>
+                </div>
+                <div class="flex flex-col items-end gap-1">
+                  <span class="px-2.5 py-0.5 text-xs font-black bg-amber-100 group-hover:bg-amber-500 text-amber-900 group-hover:text-white rounded-lg border border-amber-300 transition-colors">Pending</span>
+                  <span class="text-xs font-bold text-slate-500 group-hover:text-slate-300 transition-colors">16 Jul 2026</span>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between p-3 rounded-2xl hover:bg-[#654E51] text-slate-900 hover:text-white transition-all duration-300 cursor-pointer border border-transparent hover:border-[#654E51] group">
+                <div class="flex flex-col">
+                  <span class="font-black text-xs group-hover:text-white text-slate-900 transition-colors">AIQ-2026-1257</span>
+                  <span class="text-xs font-bold text-slate-600 group-hover:text-slate-200 mt-0.5 transition-colors">Swift Solutions</span>
+                </div>
+                <div class="flex flex-col items-end gap-1">
+                  <span class="px-2.5 py-0.5 text-xs font-black bg-emerald-100 group-hover:bg-emerald-500 text-emerald-900 group-hover:text-white rounded-lg border border-emerald-300 transition-colors">Approved</span>
+                  <span class="text-xs font-bold text-slate-500 group-hover:text-slate-300 transition-colors">15 Jul 2026</span>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between p-3 rounded-2xl hover:bg-[#654E51] text-slate-900 hover:text-white transition-all duration-300 cursor-pointer border border-transparent hover:border-[#654E51] group">
+                <div class="flex flex-col">
+                  <span class="font-black text-xs group-hover:text-white text-slate-900 transition-colors">AIQ-2026-1256</span>
+                  <span class="text-xs font-bold text-slate-600 group-hover:text-slate-200 mt-0.5 transition-colors">NextGen Industries</span>
+                </div>
+                <div class="flex flex-col items-end gap-1">
+                  <span class="px-2.5 py-0.5 text-xs font-black bg-amber-100 group-hover:bg-amber-500 text-amber-900 group-hover:text-white rounded-lg border border-amber-300 transition-colors">Pending</span>
+                  <span class="text-xs font-bold text-slate-500 group-hover:text-slate-300 transition-colors">14 Jul 2026</span>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between p-3 rounded-2xl hover:bg-[#654E51] text-slate-900 hover:text-white transition-all duration-300 cursor-pointer border border-transparent hover:border-[#654E51] group">
+                <div class="flex flex-col">
+                  <span class="font-black text-xs group-hover:text-white text-slate-900 transition-colors">AIQ-2026-1255</span>
+                  <span class="text-xs font-bold text-slate-600 group-hover:text-slate-200 mt-0.5 transition-colors">Oceanic Exports</span>
+                </div>
+                <div class="flex flex-col items-end gap-1">
+                  <span class="px-2.5 py-0.5 text-xs font-black bg-emerald-100 group-hover:bg-emerald-500 text-emerald-900 group-hover:text-white rounded-lg border border-emerald-300 transition-colors">Approved</span>
+                  <span class="text-xs font-bold text-slate-500 group-hover:text-slate-300 transition-colors">13 Jul 2026</span>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between p-3 rounded-2xl hover:bg-[#654E51] text-slate-900 hover:text-white transition-all duration-300 cursor-pointer border border-transparent hover:border-[#654E51] group">
+                <div class="flex flex-col">
+                  <span class="font-black text-xs group-hover:text-white text-slate-900 transition-colors">AIQ-2026-1254</span>
+                  <span class="text-xs font-bold text-slate-600 group-hover:text-slate-200 mt-0.5 transition-colors">Bright Star Pvt. Ltd.</span>
+                </div>
+                <div class="flex flex-col items-end gap-1">
+                  <span class="px-2.5 py-0.5 text-xs font-black bg-amber-100 group-hover:bg-amber-500 text-amber-900 group-hover:text-white rounded-lg border border-amber-300 transition-colors">Pending</span>
+                  <span class="text-xs font-bold text-slate-500 group-hover:text-slate-300 transition-colors">12 Jul 2026</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Recent Air Import Shipments (3.5 Cols) -->
+        <div class="lg:col-span-4 bg-white rounded-3xl p-6 border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-200">
+              <div>
+                <h3 class="text-base font-black text-slate-900 tracking-tight">Recent Shipments</h3>
+                <p class="text-xs text-slate-600 font-bold mt-0.5">In-flight active logistics</p>
+              </div>
+              <button class="text-xs text-[#654E51] hover:bg-[#654E51] hover:text-white px-3 py-1.5 rounded-xl font-black transition-all duration-300 cursor-pointer active:scale-95">View All</button>
+            </div>
+
+            <!-- Scrollable Container for Shipments -->
+            <div class="space-y-3 max-h-[290px] overflow-y-auto pr-1">
+              
+              <div class="flex items-center justify-between p-3 rounded-2xl hover:bg-[#654E51] text-slate-900 hover:text-white transition-all duration-300 cursor-pointer border border-transparent hover:border-[#654E51] group">
+                <div class="flex flex-col">
+                  <span class="font-black text-xs group-hover:text-white text-slate-900 transition-colors">AIM-2026-0896</span>
+                  <span class="text-xs font-bold text-slate-600 group-hover:text-slate-200 mt-0.5 flex items-center gap-1 transition-colors">
+                    Delhi <span class="text-[#654E51] group-hover:text-amber-300 font-black">→</span> New York
+                  </span>
+                </div>
+                <div class="flex flex-col items-end gap-1">
+                  <span class="px-2.5 py-0.5 text-xs font-black bg-blue-100 group-hover:bg-blue-500 text-blue-900 group-hover:text-white rounded-lg border border-blue-300 transition-colors">In Transit</span>
+                  <span class="text-xs font-bold text-slate-500 group-hover:text-slate-300 transition-colors">16 Jul 2026</span>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between p-3 rounded-2xl hover:bg-[#654E51] text-slate-900 hover:text-white transition-all duration-300 cursor-pointer border border-transparent hover:border-[#654E51] group">
+                <div class="flex flex-col">
+                  <span class="font-black text-xs group-hover:text-white text-slate-900 transition-colors">AIM-2026-0895</span>
+                  <span class="text-xs font-bold text-slate-600 group-hover:text-slate-200 mt-0.5 flex items-center gap-1 transition-colors">
+                    Mumbai <span class="text-[#654E51] group-hover:text-amber-300 font-black">→</span> London
+                  </span>
+                </div>
+                <div class="flex flex-col items-end gap-1">
+                  <span class="px-2.5 py-0.5 text-xs font-black bg-blue-100 group-hover:bg-blue-500 text-blue-900 group-hover:text-white rounded-lg border border-blue-300 transition-colors">In Transit</span>
+                  <span class="text-xs font-bold text-slate-500 group-hover:text-slate-300 transition-colors">15 Jul 2026</span>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between p-3 rounded-2xl hover:bg-[#654E51] text-slate-900 hover:text-white transition-all duration-300 cursor-pointer border border-transparent hover:border-[#654E51] group">
+                <div class="flex flex-col">
+                  <span class="font-black text-xs group-hover:text-white text-slate-900 transition-colors">AIM-2026-0894</span>
+                  <span class="text-xs font-bold text-slate-600 group-hover:text-slate-200 mt-0.5 flex items-center gap-1 transition-colors">
+                    Bangalore <span class="text-[#654E51] group-hover:text-amber-300 font-black">→</span> Frankfurt
+                  </span>
+                </div>
+                <div class="flex flex-col items-end gap-1">
+                  <span class="px-2.5 py-0.5 text-xs font-black bg-orange-100 group-hover:bg-orange-500 text-orange-900 group-hover:text-white rounded-lg border border-orange-300 transition-colors">Customs</span>
+                  <span class="text-xs font-bold text-slate-500 group-hover:text-slate-300 transition-colors">14 Jul 2026</span>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between p-3 rounded-2xl hover:bg-[#654E51] text-slate-900 hover:text-white transition-all duration-300 cursor-pointer border border-transparent hover:border-[#654E51] group">
+                <div class="flex flex-col">
+                  <span class="font-black text-xs group-hover:text-white text-slate-900 transition-colors">AIM-2026-0893</span>
+                  <span class="text-xs font-bold text-slate-600 group-hover:text-slate-200 mt-0.5 flex items-center gap-1 transition-colors">
+                    Chennai <span class="text-[#654E51] group-hover:text-amber-300 font-black">→</span> Dubai
+                  </span>
+                </div>
+                <div class="flex flex-col items-end gap-1">
+                  <span class="px-2.5 py-0.5 text-xs font-black bg-emerald-100 group-hover:bg-emerald-500 text-emerald-900 group-hover:text-white rounded-lg border border-emerald-300 transition-colors">Delivered</span>
+                  <span class="text-xs font-bold text-slate-500 group-hover:text-slate-300 transition-colors">13 Jul 2026</span>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between p-3 rounded-2xl hover:bg-[#654E51] text-slate-900 hover:text-white transition-all duration-300 cursor-pointer border border-transparent hover:border-[#654E51] group">
+                <div class="flex flex-col">
+                  <span class="font-black text-xs group-hover:text-white text-slate-900 transition-colors">AIM-2026-0892</span>
+                  <span class="text-xs font-bold text-slate-600 group-hover:text-slate-200 mt-0.5 flex items-center gap-1 transition-colors">
+                    Hyderabad <span class="text-[#654E51] group-hover:text-amber-300 font-black">→</span> Singapore
+                  </span>
+                </div>
+                <div class="flex flex-col items-end gap-1">
+                  <span class="px-2.5 py-0.5 text-xs font-black bg-blue-100 group-hover:bg-blue-500 text-blue-900 group-hover:text-white rounded-lg border border-blue-300 transition-colors">In Transit</span>
+                  <span class="text-xs font-bold text-slate-500 group-hover:text-slate-300 transition-colors">12 Jul 2026</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
       </div>
-      <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:border-[#654E51] transition-colors cursor-default">
-        <p class="text-sm text-gray-500 font-medium">Employees</p>
-        <h3 class="text-3xl font-bold text-[#654E51] mt-2">86</h3>
+
+      <!-- BOTTOM ENTERPRISE NOTICE BANNER -->
+      <div class="bg-gradient-to-r from-slate-900 via-[#3B2C2E] to-slate-900 text-white rounded-3xl p-5 flex items-center justify-between gap-4 shadow-xl border border-slate-800">
+        <div class="flex items-center gap-4">
+          <div class="w-10 h-10 rounded-2xl bg-[#654E51] text-white flex items-center justify-center font-black text-base shrink-0 shadow-inner">
+            i
+          </div>
+          <div>
+            <h4 class="text-xs font-black uppercase tracking-wider text-slate-200" style="color:white">System Notice</h4>
+            <p class="text-xs text-slate-300 font-bold mt-0.5" style="color:white">Metrics are bound to the active Line of Business filter. Select any tab above to trigger a real-time data refresh.</p>
+          </div>
+        </div>
       </div>
-      <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:border-[#654E51] transition-colors cursor-default">
-        <p class="text-sm text-gray-500 font-medium">Users</p>
-        <h3 class="text-3xl font-bold text-[#654E51] mt-2">48</h3>
-      </div>
-      <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:border-[#654E51] transition-colors cursor-default">
-        <p class="text-sm text-gray-500 font-medium">Quotations</p>
-        <h3 class="text-3xl font-bold text-[#654E51] mt-2">126</h3>
-      </div>
-      <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm border-l-4 border-l-green-500">
-        <p class="text-sm text-gray-500 font-medium">Attendance Today</p>
-        <h3 class="text-3xl font-bold text-green-600 mt-2">72</h3>
-      </div>
-      <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm border-l-4 border-l-yellow-500">
-        <p class="text-sm text-gray-500 font-medium">On Leave</p>
-        <h3 class="text-3xl font-bold text-yellow-600 mt-2">9</h3>
-      </div>
-      <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm border-l-4 border-l-red-500">
-        <p class="text-sm text-gray-500 font-medium">Late Check-ins</p>
-        <h3 class="text-3xl font-bold text-red-600 mt-2">5</h3>
-      </div>
-      <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-        <p class="text-sm text-gray-500 font-medium">Active Orders</p>
-        <h3 class="text-3xl font-bold text-[#654E51] mt-2">32</h3>
-      </div>
-    </div>
+
+    </main>
   </div>
 </div>

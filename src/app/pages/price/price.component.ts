@@ -101,7 +101,8 @@ export class PriceComponent {
   referenceByInquiryNo: string = "";
   organisationId: number = 0;
   organisationName: string = "";
-
+  filteredPodOrigins: any[] = [];
+  showPodOriginDropdown: boolean = false;
   // Add these lines in your class variables section
 
   paginatedPricings: any[] = [];
@@ -973,7 +974,8 @@ export class PriceComponent {
             if (data.multiCarrierBreakdowns) {
               this.multiCarrierRows = data.multiCarrierBreakdowns;
             }
-
+            this.quotation.currency = data.cargoCurrency || "";
+            this.quotation.cargoValue = data.cargoValue || null;
             this.cdr.detectChanges();
             console.log("Edit Form automatically opened for ID:", id);
           }
@@ -1948,11 +1950,11 @@ export class PriceComponent {
         error: (err) => {
           console.error("Delete failed", err);
           Swal.fire({
-            icon: 'error',
-            title: 'Delete Failed',
-            text: 'Delete failed! Refreshing list...',
-            confirmButtonColor: '#d33',
-            confirmButtonText: 'OK'
+            icon: "error",
+            title: "Delete Failed",
+            text: "Delete failed! Refreshing list...",
+            confirmButtonColor: "#d33",
+            confirmButtonText: "OK",
           });
           this.loadQuotations(); // Agar error aaye toh wapas list le aao
           this.cdr.detectChanges();
@@ -2115,11 +2117,11 @@ export class PriceComponent {
   }
   onTransportModeChange() {
     Swal.fire({
-      icon: 'info',
-      title: 'Transport Mode Changed',
+      icon: "info",
+      title: "Transport Mode Changed",
       text: `Transport mode changed to ${this.quotation.TransportMode}`,
-      confirmButtonColor: '#3085d6',
-      confirmButtonText: 'OK'
+      confirmButtonColor: "#3085d6",
+      confirmButtonText: "OK",
     });
   }
   // Sahi initialization:
@@ -2290,6 +2292,8 @@ export class PriceComponent {
       hazardDocPath: "",
       cargoStatusDate: new Date().toISOString().split("T")[0],
       dimensions: [],
+      currency: "",
+      cargoValue: null,
     };
   }
 
@@ -2323,11 +2327,11 @@ export class PriceComponent {
 
           if (err.status === 401) {
             Swal.fire({
-              icon: 'error',
-              title: 'Unauthorized!',
-              text: 'Please login again.',
-              confirmButtonColor: '#d33',
-              confirmButtonText: 'OK'
+              icon: "error",
+              title: "Unauthorized!",
+              text: "Please login again.",
+              confirmButtonColor: "#d33",
+              confirmButtonText: "OK",
             });
           }
         },
@@ -2908,11 +2912,11 @@ export class PriceComponent {
 
   AllSearchprice() {
     Swal.fire({
-      icon: 'info',
-      title: 'All Price Search',
-      text: 'Performing all price search...',
-      confirmButtonColor: '#3085d6',
-      confirmButtonText: 'OK'
+      icon: "info",
+      title: "All Price Search",
+      text: "Performing all price search...",
+      confirmButtonColor: "#3085d6",
+      confirmButtonText: "OK",
     });
     return;
   }
@@ -3096,11 +3100,11 @@ export class PriceComponent {
     // Check karein ki data hai ya nahi
     if (!this.quotations || this.quotations.length === 0) {
       Swal.fire({
-        icon: 'warning',
-        title: 'No Data Available',
-        text: 'Excel file is empty!',
-        confirmButtonColor: '#3085d6',
-        confirmButtonText: 'OK'
+        icon: "warning",
+        title: "No Data Available",
+        text: "Excel file is empty!",
+        confirmButtonColor: "#3085d6",
+        confirmButtonText: "OK",
       });
       return;
     }
@@ -4304,12 +4308,12 @@ export class PriceComponent {
     // Bas modal band karne ke liye aap iska use kar sakte hain.
     this.showMultiCarrierTable = false;
     Swal.fire({
-    icon: 'success',
-    title: 'Success!',
-    text: 'Carrier details added to Inquiry!',
-    confirmButtonColor: '#3085d6',
-    confirmButtonText: 'OK'
-});
+      icon: "success",
+      title: "Success!",
+      text: "Carrier details added to Inquiry!",
+      confirmButtonColor: "#3085d6",
+      confirmButtonText: "OK",
+    });
   }
 
   loadPricings() {
@@ -4688,11 +4692,11 @@ export class PriceComponent {
       this.cdr.detectChanges();
     } else {
       Swal.fire({
-        icon: 'warning',
-        title: 'No Data Available',
-        text: 'No carrier data has been added yet!',
-        confirmButtonColor: '#3085d6',
-        confirmButtonText: 'OK'
+        icon: "warning",
+        title: "No Data Available",
+        text: "No carrier data has been added yet!",
+        confirmButtonColor: "#3085d6",
+        confirmButtonText: "OK",
       });
     }
   }
@@ -4745,13 +4749,13 @@ export class PriceComponent {
         // Error par wapas purani state set karo taaki UI galat na dikhe
         q.status = previousStatus;
 
-     Swal.fire({
-    icon: 'error',
-    title: 'Error!',
-    text: 'Error while changing status!',
-    confirmButtonColor: '#d33',
-    confirmButtonText: 'OK'
-});
+        Swal.fire({
+          icon: "error",
+          title: "Error!",
+          text: "Error while changing status!",
+          confirmButtonColor: "#d33",
+          confirmButtonText: "OK",
+        });
         // UI ko revert karne ke liye forcefully update
         this.cdr.detectChanges();
       },
@@ -4961,7 +4965,8 @@ export class PriceComponent {
         this.quotation.partyRole = data.partyRole || "";
         this.quotation.businessDimensions = data.businessDimensions || "";
         this.quotation.serviceType = data.serviceType || "";
-
+        this.quotation.currency = data.cargoCurrency || "";
+        this.quotation.cargoValue = data.cargoValue || null;
         // --- 2. Team & Coordinator Sync ---
         this.quotation.teamId = null;
         this.getsalescordinate = [];
@@ -5464,16 +5469,16 @@ export class PriceComponent {
       (inv) => inv.name && inv.name.trim() !== "",
     );
 
-if (!isValid) {
-    Swal.fire({
-        icon: 'warning',
-        title: 'Validation Error',
-        text: 'Please provide a name for all invoices.',
-        confirmButtonColor: '#3085d6',
-        confirmButtonText: 'OK'
-    });
-    return;
-}
+    if (!isValid) {
+      Swal.fire({
+        icon: "warning",
+        title: "Validation Error",
+        text: "Please provide a name for all invoices.",
+        confirmButtonColor: "#3085d6",
+        confirmButtonText: "OK",
+      });
+      return;
+    }
 
     // 2. Local State update ho chuki hai (kyunki tumne [(ngModel)] use kiya hai),
     // bas hume modal band karna hai.
@@ -5994,6 +5999,8 @@ if (!isValid) {
         this.quotation.volumeWeightUnit = pricing.volumeWeightUnit || "";
         this.quotation.cbmUnit = pricing.cbmWeightUnit || ""; // API mein cbmWeightUnit aa raha hai
         this.quotation.noOfPkgsUnit = pricing.noOfPkgsUnit || "";
+        this.quotation.currency = pricing.cargoCurrency || "";
+        this.quotation.cargoValue = pricing.cargoValue || null;
         // Code Mapping
         this.quotation.portOfLoadingCode =
           pricing.codeOfPOL || pricing.CodeOfPOL || "";
@@ -6871,6 +6878,79 @@ if (!isValid) {
       );
     }
   }
+
+  onPodOriginSearchInput() {
+    const searchTerm = (this.quotation.podOrigin || "")
+      .toString()
+      .trim()
+      .toLowerCase();
+
+    if (searchTerm === "") {
+      this.showPodOriginDropdown = false;
+      this.filteredPodOrigins = [];
+      return;
+    }
+
+    this.filteredPodOrigins = this.origins.filter((org) => {
+      return (
+        (org.name || "").toLowerCase().includes(searchTerm) ||
+        (org.countryName || "").toLowerCase().includes(searchTerm)
+      );
+    });
+
+    this.showPodOriginDropdown = true;
+  }
+
+  selectPodOrigin(origin: any) {
+    this.quotation.podOrigin = origin.name;
+    this.showPodOriginDropdown = false;
+  }
+
+  onPodOriginKeyDown(event: any) {
+    if (event.key === "Enter" && this.filteredPodOrigins.length > 0) {
+      event.preventDefault();
+      this.selectPodOrigin(this.filteredPodOrigins[0]);
+    }
+  }
+
+  // --- Place of Delivery Search Logic ---
+  filteredPlaceOfDelivery: any[] = [];
+  showPlaceOfDeliveryDropdown: boolean = false;
+
+  onPlaceOfDeliverySearchInput() {
+    const searchTerm = (this.quotation.placeOfDelivery || "")
+      .toString()
+      .trim()
+      .toLowerCase();
+
+    if (searchTerm === "") {
+      this.showPlaceOfDeliveryDropdown = false;
+      this.filteredPlaceOfDelivery = [];
+      return;
+    }
+
+    this.filteredPlaceOfDelivery = this.origins.filter((org) => {
+      return (
+        (org.name || "").toLowerCase().includes(searchTerm) ||
+        (org.countryName || "").toLowerCase().includes(searchTerm)
+      );
+    });
+
+    this.showPlaceOfDeliveryDropdown = true;
+  }
+
+  selectPlaceOfDelivery(place: any) {
+    this.quotation.placeOfDelivery = place.name;
+    this.showPlaceOfDeliveryDropdown = false;
+  }
+
+  onPlaceOfDeliveryKeyDown(event: any) {
+    if (event.key === "Enter" && this.filteredPlaceOfDelivery.length > 0) {
+      event.preventDefault();
+      this.selectPlaceOfDelivery(this.filteredPlaceOfDelivery[0]);
+    }
+  }
+
   // Click outside to close modal
   @HostListener("document:click", ["$event"])
   clickout(event: any) {
@@ -6878,6 +6958,8 @@ if (!isValid) {
       this.isUnitModalOpen = false;
       this.showOriginDropdown = false;
       this.showCountryDropdown = false;
+      this.showPodOriginDropdown = false; // 🔥 naya
+      this.showPlaceOfDeliveryDropdown = false;
     }
     if (this.el && !this.el.nativeElement.contains(event.target)) {
       this.showPortOfLoadingDropdown = false;

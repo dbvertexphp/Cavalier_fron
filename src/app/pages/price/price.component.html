@@ -892,16 +892,37 @@ Selection Modal Popup
                   </td>
 
                   <td
-                    class="p-3 sticky right-0 bg-white border-l text-center shadow-sm">
+                    class="p-4 sticky right-0 bg-white border-l text-center">
                     <div class="flex justify-center gap-2">
+
                       <button title="Edit" (click)="editPricing(q)"
-                        class="flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-600 border border-blue-200 rounded-md hover:bg-blue-600 hover:text-white transition-all text-[10px]">
-                        Edit
+                        class="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-600 border border-blue-200 rounded-md hover:bg-blue-600 hover:text-white transition-all font-medium text-sm shadow-sm">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke-width="2"
+                          stroke="currentColor"
+                          class="w-4 h-4">
+                          <path
+                            d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                        </svg>
+                        <span>Edit</span>
                       </button>
                       <button title="Delete"
                         (click)="$event.stopPropagation(); deletePricing(q.id || q.Id)"
-                        class="flex items-center gap-1 px-2 py-1 bg-red-50 text-red-600 border border-red-200 rounded-md hover:bg-red-600 hover:text-white transition-all text-[10px]">
-                        Del
+                        class="flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 rounded-md hover:bg-red-600 hover:text-white transition-all font-medium text-sm shadow-sm">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke-width="2"
+                          stroke="currentColor"
+                          class="w-4 h-4">
+                          <path
+                            d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                        </svg>
+                        <span>Delete</span>
                       </button>
                     </div>
                   </td>
@@ -1678,112 +1699,6 @@ Selection Modal Popup
                 </div>
               </div>
 
-              <!-- Carrier (Code + Name combined search) -->
-              <div class="flex items-center text-red-700 font-bold">
-                <label class="w-40">Carrier</label>
-
-                <div class="flex flex-1 gap-2 relative">
-                  <!-- Code Box -->
-                  <input
-                    [(ngModel)]="quotation.CarrierCode"
-                    name="CarrierCode"
-                    placeholder="Code"
-                    (input)="onCarrierCodeInput()"
-                    (focus)="onCarrierFocus()"
-                    (blur)="onCarrierBlur()"
-                    (keydown)="onCarrierKeyDown($event)"
-                    class="w-20 border p-2 border-red-300 text-[12px] text-center outline-none uppercase" />
-
-                  <!-- Name Box + Dropdown -->
-                  <div class="relative flex-1">
-                    <input
-                      [(ngModel)]="quotation.CarrierName"
-                      name="CarrierName"
-                      placeholder="Search Carrier / Airline..."
-                      (input)="onCarrierNameSearch()"
-                      (focus)="onCarrierFocus()"
-                      (blur)="onCarrierBlur()"
-                      (keydown)="onCarrierKeyDown($event)"
-                      class="w-full border p-2 border-red-300 outline-none text-[12px]" />
-
-                    <ul *ngIf="showCarrierDropdown"
-                      class="absolute top-full left-0 z-50 w-full bg-white border border-gray-200 rounded-md shadow-xl max-h-56 overflow-y-auto text-[13px] mt-1">
-                      <li
-                        *ngFor="let a of filteredCarrierList; let ci = index"
-                        (mousedown)="selectCarrier(a)"
-                        [class.bg-indigo-50]="ci === highlightedCarrierIndex"
-                        class="px-4 py-2.5 cursor-pointer transition-colors duration-150 flex items-center justify-between border-b border-gray-50 last:border-0 hover:bg-indigo-50 group">
-                        <div class="flex flex-col">
-                          <span class="font-semibold text-gray-800">{{
-                            a.airlineCode || a.code }}</span>
-                          <span class="text-gray-500 text-[11px]">{{
-                            a.airlineName || a.name }}</span>
-                        </div>
-                        <span
-                          class="text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
-                      </li>
-                      <li *ngIf="filteredCarrierList.length === 0"
-                        class="p-3 text-center text-red-500 italic text-[12px]">
-                        No Carrier Found
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Agent (Click-to-open Dropdown) -->
-              <div class="flex items-center text-red-700 font-bold">
-                <label class="w-40">Agent</label>
-
-                <div class="relative flex-1">
-                  <div class="flex border border-red-300 bg-white">
-                    <input
-                      [(ngModel)]="agentSearchText"
-                      name="forwardingAgentSearch"
-                      placeholder="Search or select agent..."
-                      (input)="onAgentSearchInput()"
-                      (focus)="toggleAgentDropdown()"
-                      (keydown)="onAgentKeyDown($event)"
-                      (click)="$event.stopPropagation()"
-                      class="w-full p-2 outline-none text-[12px]"
-                      autocomplete="off" />
-
-                    <span
-                      (mousedown)="$event.preventDefault(); toggleAgentDropdown()"
-                      class="p-1 px-2 bg-gray-50 border-l border-red-200 text-gray-400 cursor-pointer hover:bg-red-50 hover:text-red-600 flex items-center transition-colors">
-                      <span [class.rotate-180]="showAgentDropdown"
-                        class="transition-transform text-[10px]">▼</span>
-                    </span>
-                  </div>
-
-                  <ul *ngIf="showAgentDropdown"
-                    class="absolute top-full left-0 z-50 w-full bg-white border border-gray-200 rounded-md shadow-xl max-h-56 overflow-y-auto text-[13px] mt-1">
-                    <li
-                      *ngFor="let a of filteredAgentList; let ai = index"
-                      (mousedown)="selectAgentFromForwarding(a)"
-                      [class.bg-indigo-50]="ai === highlightedAgentIndex"
-                      class="px-4 py-2.5 cursor-pointer transition-colors duration-150 flex items-center justify-between border-b border-gray-50 last:border-0 hover:bg-indigo-50 group">
-                      <div class="flex flex-col">
-                        <span class="font-semibold text-gray-800 uppercase">{{
-                          a.agentName }}</span>
-                        <span class="text-gray-500 text-[11px]">{{ a.orgName ||
-                          a.branchName }}</span>
-                      </div>
-                      <span
-                        class="text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
-                    </li>
-                    <li *ngIf="filteredAgentList.length === 0"
-                      class="p-3 text-center text-red-500 italic text-[12px]">
-                      No Agent Found
-                    </li>
-                  </ul>
-                </div>
-
-                <span *ngIf="!agentDetail || agentDetail.length === 0"
-                  class="ml-2 text-[10px] text-red-500 italic whitespace-nowrap">
-                  Select LOB/Origin first
-                </span>
-              </div>
             </div>
 
             <div class="space-y-3">
@@ -2316,13 +2231,33 @@ Selection Modal Popup
               </div>
               <div class="flex items-center text-red-700 font-bold">
                 <label class="w-40">POD (Origin)</label>
-                <div class="relative flex-1">
+                <div class="relative flex-1 flex items-center">
                   <input
                     type="text"
                     [(ngModel)]="quotation.podOrigin"
                     name="podOrigin"
-                    placeholder="Enter POD Origin"
-                    class="w-full border p-2 border-red-300 outline-none text-[12px] text-gray-700 font-normal" />
+                    placeholder="Search POD Origin..."
+                    (input)="onPodOriginSearchInput()"
+                    (focus)="showPodOriginDropdown = true"
+                    (keydown.enter)="onPodOriginKeyDown($event)"
+                    class="w-full border p-2 border-red-300 outline-none pr-8 text-[12px] text-gray-700 font-normal" />
+
+                  <ul
+                    *ngIf="showPodOriginDropdown"
+                    class="absolute top-full left-0 z-10 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto text-gray-700 font-normal">
+                    <li
+                      *ngFor="let origin of filteredPodOrigins"
+                      (mousedown)="selectPodOrigin(origin)"
+                      class="p-2 hover:bg-gray-100 cursor-pointer text-[12px] border-b border-gray-100">
+                      <div class="font-bold">{{ origin.name }}</div>
+                      <div class="text-[10px] text-gray-500">{{
+                        origin.countryName }} ({{ origin.isoCode }})</div>
+                    </li>
+                    <li *ngIf="filteredPodOrigins.length === 0"
+                      class="p-3 text-center text-red-500 text-[12px] font-medium">
+                      No Origin Found
+                    </li>
+                  </ul>
                 </div>
               </div>
               <div class="flex items-center text-red-700 font-bold mt-2">
@@ -2639,20 +2574,139 @@ Selection Modal Popup
               </div>
 
               <!-- Place of Delivery -->
-              <div class="flex items-center">
-                <label class="w-40 font-bold text-gray-700">Place of
-                  Delivery</label>
-                <input
-                  [(ngModel)]="quotation.placeOfDelivery"
-                  name="placeOfDelivery"
-                  class="flex-1 border p-2 outline-none" />
-              </div>
-              <!-- Connecting Ports Section -->
+              <div class="flex items-center text-red-700 font-bold">
+                <label class="w-40">Place of Delivery</label>
+                <div class="relative flex-1 flex items-center">
+                  <input
+                    [(ngModel)]="quotation.placeOfDelivery"
+                    name="placeOfDelivery"
+                    placeholder="Search Place of Delivery..."
+                    (input)="onPlaceOfDeliverySearchInput()"
+                    (focus)="showPlaceOfDeliveryDropdown = true"
+                    (keydown.enter)="onPlaceOfDeliveryKeyDown($event)"
+                    class="w-full border p-2 border-red-300 outline-none pr-8 text-[12px] text-gray-700 font-normal" />
 
-              <!-- Button -->
-              <!-- <div class="flex flex-wrap gap-4 mb-6">
-    
-</div> -->
+                  <ul
+                    *ngIf="showPlaceOfDeliveryDropdown"
+                    class="absolute top-full left-0 z-10 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto text-gray-700 font-normal">
+                    <li
+                      *ngFor="let place of filteredPlaceOfDelivery"
+                      (mousedown)="selectPlaceOfDelivery(place)"
+                      class="p-2 hover:bg-gray-100 cursor-pointer text-[12px] border-b border-gray-100">
+                      <div class="font-bold">{{ place.name }}</div>
+                      <div class="text-[10px] text-gray-500">{{
+                        place.countryName }} ({{ place.isoCode }})</div>
+                    </li>
+                    <li *ngIf="filteredPlaceOfDelivery.length === 0"
+                      class="p-3 text-center text-red-500 text-[12px] font-medium">
+                      No Location Found
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              <!-- Carrier (Code + Name combined search) -->
+              <div class="flex items-center text-red-700 font-bold">
+                <label class="w-40">Carrier</label>
+
+                <div class="flex flex-1 gap-2 relative">
+                  <!-- Code Box -->
+                  <input
+                    [(ngModel)]="quotation.CarrierCode"
+                    name="CarrierCode"
+                    placeholder="Code"
+                    (input)="onCarrierCodeInput()"
+                    (focus)="onCarrierFocus()"
+                    (blur)="onCarrierBlur()"
+                    (keydown)="onCarrierKeyDown($event)"
+                    class="w-20 border p-2 border-red-300 text-[12px] text-center outline-none uppercase" />
+
+                  <!-- Name Box + Dropdown -->
+                  <div class="relative flex-1">
+                    <input
+                      [(ngModel)]="quotation.CarrierName"
+                      name="CarrierName"
+                      placeholder="Search Carrier / Airline..."
+                      (input)="onCarrierNameSearch()"
+                      (focus)="onCarrierFocus()"
+                      (blur)="onCarrierBlur()"
+                      (keydown)="onCarrierKeyDown($event)"
+                      class="w-full border p-2 border-red-300 outline-none text-[12px]" />
+
+                    <ul *ngIf="showCarrierDropdown"
+                      class="absolute top-full left-0 z-50 w-full bg-white border border-gray-200 rounded-md shadow-xl max-h-56 overflow-y-auto text-[13px] mt-1">
+                      <li
+                        *ngFor="let a of filteredCarrierList; let ci = index"
+                        (mousedown)="selectCarrier(a)"
+                        [class.bg-indigo-50]="ci === highlightedCarrierIndex"
+                        class="px-4 py-2.5 cursor-pointer transition-colors duration-150 flex items-center justify-between border-b border-gray-50 last:border-0 hover:bg-indigo-50 group">
+                        <div class="flex flex-col">
+                          <span class="font-semibold text-gray-800">{{
+                            a.airlineCode || a.code }}</span>
+                          <span class="text-gray-500 text-[11px]">{{
+                            a.airlineName || a.name }}</span>
+                        </div>
+                        <span
+                          class="text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+                      </li>
+                      <li *ngIf="filteredCarrierList.length === 0"
+                        class="p-3 text-center text-red-500 italic text-[12px]">
+                        No Carrier Found
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Agent (Click-to-open Dropdown) -->
+              <div class="flex items-center text-red-700 font-bold">
+                <label class="w-40">Select Agent</label>
+
+                <div class="relative flex-1">
+                  <div class="flex border border-red-300 bg-white">
+                    <input
+                      [(ngModel)]="agentSearchText"
+                      name="forwardingAgentSearch"
+                      placeholder="Search or select agent..."
+                      (input)="onAgentSearchInput()"
+                      (focus)="toggleAgentDropdown()"
+                      (keydown)="onAgentKeyDown($event)"
+                      (click)="$event.stopPropagation()"
+                      class="w-full p-2 outline-none text-[12px]"
+                      autocomplete="off" />
+
+                    <span
+                      (mousedown)="$event.preventDefault(); toggleAgentDropdown()"
+                      class="p-1 px-2 bg-gray-50 border-l border-red-200 text-gray-400 cursor-pointer hover:bg-red-50 hover:text-red-600 flex items-center transition-colors">
+                      <span [class.rotate-180]="showAgentDropdown"
+                        class="transition-transform text-[10px]">▼</span>
+                    </span>
+                  </div>
+
+                  <ul *ngIf="showAgentDropdown"
+                    class="absolute top-full left-0 z-50 w-full bg-white border border-gray-200 rounded-md shadow-xl max-h-56 overflow-y-auto text-[13px] mt-1">
+                    <li
+                      *ngFor="let a of filteredAgentList; let ai = index"
+                      (mousedown)="selectAgentFromForwarding(a)"
+                      [class.bg-indigo-50]="ai === highlightedAgentIndex"
+                      class="px-4 py-2.5 cursor-pointer transition-colors duration-150 flex items-center justify-between border-b border-gray-50 last:border-0 hover:bg-indigo-50 group">
+                      <div class="flex flex-col">
+                        <span class="font-semibold text-gray-800 uppercase">{{
+                          a.agentName }}</span>
+                        <span class="text-gray-500 text-[11px]">{{ a.orgName ||
+                          a.branchName }}</span>
+                      </div>
+                      <span
+                        class="text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+                    </li>
+                    <li *ngIf="filteredAgentList.length === 0"
+                      class="p-3 text-center text-red-500 italic text-[12px]">
+                      No Agent Found
+                    </li>
+                  </ul>
+                </div>
+
+              </div>
+
               <!-- MODAL CONTAINER -->
               <div *ngIf="isModalOpen"
                 class="fixed inset-0 z-[1050] flex items-center justify-center p-4 sm:p-6 overflow-hidden transition-all duration-300">

@@ -2112,7 +2112,7 @@
                     name="currency"
                     [(ngModel)]="quotation.currency"
                     class="border-r p-2 outline-none bg-gray-50 text-gray-700 w-52">
-                    <option value>Select Currency</option>
+                    <option value = "">Select Currency</option>
 
                     <!-- Major Currencies (Recommended first) -->
                     <option value="₹ INR - Indian Rupee">
@@ -2652,13 +2652,32 @@
               </div>
 
               <!-- Place of Delivery -->
-              <div class="flex items-center">
-                <label class="w-40 font-bold text-gray-700">Place of
-                  Delivery</label>
-                <input
-                  [(ngModel)]="quotation.placeOfDelivery"
-                  name="placeOfDelivery"
-                  class="flex-1 border p-2 outline-none" />
+              <div class="flex items-center text-red-700 font-bold">
+                <label class="w-40">Place of Delivery</label>
+                <div class="relative flex-1 flex items-center">
+                  <input
+                    [(ngModel)]="quotation.placeOfDelivery"
+                    name="placeOfDelivery"
+                    placeholder="Search Place of Delivery..."
+                    (input)="onPlaceOfDeliverySearchInput()"
+                    (focus)="showPlaceOfDeliveryDropdown = true"
+                    (keydown.enter)="onPlaceOfDeliveryKeyDown($event)"
+                    class="w-full border p-2 border-gray-300 outline-none pr-8 text-[12px] text-gray-700 font-normal" />
+
+                  <ul
+                    *ngIf="showPlaceOfDeliveryDropdown"
+                    class="absolute top-full left-0 z-10 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto text-gray-700 font-normal"
+                    (mousedown)="$event.preventDefault()">
+                    <li
+                      *ngFor="let place of filteredPlaceOfDelivery"
+                      (click)="selectPlaceOfDelivery(place)"
+                      class="p-2 hover:bg-gray-100 cursor-pointer text-[12px] border-b border-gray-100">
+                      <div class="font-bold">{{ place.name }}</div>
+                      <div class="text-[10px] text-gray-500">{{
+                        place.countryName }} ({{ place.isoCode }})</div>
+                    </li>
+                  </ul>
+                </div>
               </div>
               <!-- Connecting Ports Section -->
 

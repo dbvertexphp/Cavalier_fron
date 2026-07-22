@@ -8,32 +8,34 @@
 
                 <div class="flex flex-col gap-1 flex-1 min-w-[220px]">
                     <label class="text-xs font-medium text-slate-500">Code / Name</label>
-                    <input type="text" [(ngModel)]="searchCode" (ngModelChange)="currentPage = 1"
+                    <input type="text" [(ngModel)]="searchCode" (ngModelChange)="onFilterChange()"
                         placeholder="Search charge code or name"
                         class="h-9 w-full border border-slate-300 bg-white px-3 text-sm focus:outline-none focus:ring-1 focus:ring-[#4a3f3f] focus:border-[#4a3f3f]" />
                 </div>
 
                 <div class="flex flex-col gap-1">
                     <label class="text-xs font-medium text-slate-500">Charge Type</label>
-                    <select [(ngModel)]="searchChargeType" (ngModelChange)="currentPage = 1"
+                    <select [(ngModel)]="searchChargeType" (ngModelChange)="onFilterChange()"
                         class="h-9 min-w-[160px] border border-slate-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#4a3f3f] focus:border-[#4a3f3f]">
                         <option value>All</option>
                         <option *ngFor="let t of chargeTypeOptions" [value]="t">{{ t }}</option>
                     </select>
                 </div>
 
+                <!-- Applicable For (Line of Business) — now live from CompanyService API -->
                 <div class="flex flex-col gap-1">
                     <label class="text-xs font-medium text-slate-500">Applicable For</label>
-                    <select [(ngModel)]="searchApplicableFor" (ngModelChange)="currentPage = 1"
-                        class="h-9 min-w-[150px] border border-slate-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#4a3f3f] focus:border-[#4a3f3f]">
-                        <option value>All</option>
-                        <option *ngFor="let a of applicableForOptions" [value]="a">{{ a }}</option>
+                    <select [(ngModel)]="searchApplicableFor" (ngModelChange)="onFilterChange()"
+                        [disabled]="applicableForLoading"
+                        class="h-9 min-w-[170px] border border-slate-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#4a3f3f] focus:border-[#4a3f3f] disabled:bg-gray-100 disabled:text-gray-400">
+                        <option value>{{ applicableForLoading ? 'Loading…' : 'All' }}</option>
+                        <option *ngFor="let a of applicableForOptions" [value]="a.serviceName">{{ a.serviceName }}</option>
                     </select>
                 </div>
 
                 <div class="flex flex-col gap-1">
                     <label class="text-xs font-medium text-slate-500">Charge Category</label>
-                    <select [(ngModel)]="searchChargeCategory" (ngModelChange)="currentPage = 1"
+                    <select [(ngModel)]="searchChargeCategory" (ngModelChange)="onFilterChange()"
                         class="h-9 min-w-[140px] border border-slate-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#4a3f3f] focus:border-[#4a3f3f]">
                         <option value>All</option>
                         <option *ngFor="let c of chargeCategoryOptions" [value]="c">{{ c }}</option>
@@ -45,7 +47,7 @@
                         class="bg-gray-200 text-gray-700 px-6 py-2.5 font-bold shadow-sm uppercase text-[11px] hover:bg-gray-300 transition-all">
                         Clear
                     </button>
-                    <button type="button"
+                    <button type="button" (click)="loadData()"
                         class="bg-[#4a3f3f] text-white px-5 py-1.5 font-bold shadow-md uppercase text-[10px] hover:bg-black transition-all rounded-sm outline-none">
                         Search
                     </button>
@@ -68,7 +70,7 @@
 
             <!-- Result count -->
             <div class="flex items-center justify-between px-4 py-2 text-xs text-slate-400 border-b border-gray-300">
-                <span>Showing {{ paginatedRows.length }} of {{ filteredRows.length }} records</span>
+                <span>Showing {{ rows.length }} of {{ totalCount }} records</span>
                 <div class="hidden sm:flex items-center gap-3">
                     <span class="inline-flex items-center gap-1.5">
                         <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Tax mapped
@@ -128,19 +130,39 @@
                                     {{ activeTaxSummary(row) }}
                                 </span>
                             </td>
-                            <td class="px-3 py-2.5 text-center whitespace-nowrap">
+     <td
+                                class="p-4 sticky right-0 bg-white border-l text-center shadow-[-5px_0_10px_rgba(0,0,0,0.02)]">
                                 <div class="flex justify-center gap-2">
-                                    <button title="Edit" (click)="openEditForm(row)"
-                                        class="flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-600 border border-blue-200 rounded-md hover:bg-blue-600 hover:text-white transition-all text-[10px]">
-                                        Edit
+                                    <button title="Edit"
+                                        (click)="openEditForm(row)"
+                                        class="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-600 border border-blue-200 rounded-md hover:bg-blue-600 hover:text-white transition-all font-medium text-sm shadow-sm">
+                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                            fill="none" viewBox="0 0 24 24"
+                                            stroke-width="2"
+                                            stroke="currentColor"
+                                            class="w-4 h-4">
+                                            <path
+                                                d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                        </svg>
+                                        <span>Edit</span>
                                     </button>
-                                    <button title="Delete" (click)="deleteCharge(row)"
-                                        class="flex items-center gap-1 px-2 py-1 bg-red-50 text-red-600 border border-red-200 rounded-md hover:bg-red-600 hover:text-white transition-all text-[10px]">
-                                        Del
+                                    <button title="Delete"
+                                        (click)="deleteCharge(row)"
+                                        class="flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 rounded-md hover:bg-red-600 hover:text-white transition-all font-medium text-sm shadow-sm">
+                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                            fill="none" viewBox="0 0 24 24"
+                                            stroke-width="2"
+                                            stroke="currentColor"
+                                            class="w-4 h-4">
+                                            <path
+                                                d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                        </svg>
+                                        <span>Delete</span>
                                     </button>
                                 </div>
                             </td>
-                        </tr>
+
+
 
                         <tr *ngIf="filteredRows.length === 0">
                             <td colspan="8" class="px-3 py-10 text-center text-slate-400">
@@ -234,18 +256,33 @@
                 <!-- Classification -->
                 <div class="bg-gray-50 p-4 border border-gray-200 rounded mb-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
+
+                        <!-- Applicable For (Line of Business) — live from CompanyService API, with search -->
                         <div class="grid grid-cols-1 gap-1 md:col-span-2">
                             <label class="text-gray-700 font-bold uppercase text-[11px]">Applicable For</label>
-                            <div class="flex flex-wrap gap-3 bg-white border border-gray-300 p-2.5 rounded">
-                                <label *ngFor="let opt of applicableForOptions" class="flex items-center gap-1.5 cursor-pointer text-[12px]">
+
+                            <input type="text" [(ngModel)]="applicableForSearch" name="applicableForSearch"
+                                placeholder="Search line of business…"
+                                class="border border-gray-300 p-2 mb-1 outline-none text-[12px] bg-white focus:border-[#4a3f3f]" />
+
+                            <div class="flex flex-wrap gap-3 bg-white border border-gray-300 p-2.5 rounded max-h-40 overflow-y-auto">
+                                <span *ngIf="applicableForLoading" class="text-[11px] text-gray-400 italic">
+                                    Loading line of business…
+                                </span>
+                                <span *ngIf="!applicableForLoading && filteredApplicableForOptions.length === 0"
+                                    class="text-[11px] text-gray-400 italic">
+                                    No matches.
+                                </span>
+                                <label *ngFor="let opt of filteredApplicableForOptions" class="flex items-center gap-1.5 cursor-pointer text-[12px]">
                                     <input type="checkbox"
-                                        [checked]="form.applicableFor.includes(opt)"
-                                        (change)="toggleApplicableFor(opt, $any($event.target).checked)"
+                                        [checked]="form.applicableFor.includes(opt.serviceName)"
+                                        (change)="toggleApplicableFor(opt.serviceName, $any($event.target).checked)"
                                         class="h-3.5 w-3.5 accent-[#4a3f3f]" />
-                                    {{ opt }}
+                                    {{ opt.serviceName }}
                                 </label>
                             </div>
                         </div>
+
                         <div class="grid grid-cols-1 gap-1">
                             <label class="font-bold text-gray-700 text-[12px]">Charge Category</label>
                             <select [(ngModel)]="form.chargeCategory" name="chargeCategory"
@@ -269,7 +306,7 @@
                     </div>
                 </div>
 
-                <!-- Applicable Tax mapping -->
+                <!-- Applicable Tax mapping — GST only; Service Tax / VAT are hidden -->
                 <div class="border border-gray-300 rounded overflow-hidden">
                     <div class="bg-[#4a3f3f] text-white px-3 py-2 font-bold text-[12px] uppercase tracking-wider">
                         Applicable Tax
@@ -286,21 +323,24 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr *ngFor="let t of form.taxRows" class="border-b border-gray-100 last:border-none">
+                            <tr *ngFor="let t of form.taxRows" [hidden]="t.key === 'ServiceTax' || t.key === 'VAT'"
+                                class="border-b border-gray-100 last:border-none">
                                 <td class="px-3 py-2">
                                     <input type="checkbox" [(ngModel)]="t.checked" [name]="'chk_' + t.key"
                                         (change)="onTaxRowToggle(t)"
                                         class="h-4 w-4 accent-[#4a3f3f]" />
                                 </td>
                                 <td class="px-3 py-2 font-semibold text-gray-700">{{ t.label }}</td>
-                                <td class="px-3 py-2">
-                                    <select [(ngModel)]="t.categoryCode" [name]="'cat_' + t.key" [disabled]="!t.checked || taxCategoriesLoading"
-                                        class="w-full border border-gray-300 p-1.5 outline-none bg-white text-[11px] disabled:bg-gray-100 disabled:text-gray-400 focus:border-[#4a3f3f]">
-                                        <option [ngValue]="null">{{ taxCategoriesLoading ? 'Loading tax categories…' : '-- Select tax category --' }}</option>
-                                        <option *ngFor="let opt of taxCategoryOptions" [ngValue]="opt.code">
-                                            {{ opt.gstType }} — {{ opt.name }}
-                                        </option>
-                                    </select>
+                                <td class="px-3 py-2 relative">
+                                    <input type="text"
+                                        [(ngModel)]="categorySearch[t.key]"
+                                        [name]="'catsearch_' + t.key"
+                                        [disabled]="!t.checked || taxCategoriesLoading"
+                                        (focus)="openCategoryDropdown(t.key, t, $event)"
+                                        (blur)="closeCategoryDropdown()"
+                                        [placeholder]="taxCategoriesLoading ? 'Loading tax categories…' : 'Search tax category…'"
+                                        class="w-full border border-gray-300 p-1.5 outline-none bg-white text-[11px] disabled:bg-gray-100 disabled:text-gray-400 focus:border-[#4a3f3f]" />
+
                                     <p *ngIf="t.checked && t.categoryCode && !isCategoryStillValid(t.categoryCode)"
                                         class="text-[10px] text-red-600 font-semibold mt-1">
                                         ⚠ This tax category is no longer Applicable on Tax Rates — please re-select.
@@ -341,6 +381,25 @@
                     {{ isEditMode ? 'Update Charge' : 'Save Charge' }}
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- TAX CATEGORY SEARCH DROPDOWN — rendered at root, position:fixed  -->
+    <!-- so it is never clipped by the modal's overflow-y-auto container -->
+    <!-- ================================================================ -->
+    <div *ngIf="openCategoryDropdownFor && activeCategoryRow"
+        class="fixed z-[10000] max-h-48 overflow-y-auto bg-white border border-gray-300 rounded shadow-lg"
+        [style.top.px]="categoryDropdownPos.top"
+        [style.left.px]="categoryDropdownPos.left"
+        [style.width.px]="categoryDropdownPos.width">
+        <div *ngIf="filteredCategoryOptions(openCategoryDropdownFor).length === 0" class="px-3 py-2 text-[11px] text-gray-400 italic">
+            No matching tax categories.
+        </div>
+        <div *ngFor="let opt of filteredCategoryOptions(openCategoryDropdownFor)"
+            (mousedown)="selectCategory(activeCategoryRow, opt)"
+            class="px-3 py-2 text-[11px] cursor-pointer hover:bg-gray-100">
+            {{ opt.gstType }} — {{ opt.name }} <span class="text-gray-400">({{ opt.code }})</span>
         </div>
     </div>
 </div>

@@ -119,7 +119,8 @@ export class QuotationFormComponent implements OnInit {
 
   quotations: any[] = [];
   quotation: any = this.resetQuotationModel();
-
+  filteredPodOrigins: any[] = [];
+  showPodOriginDropdown: boolean = false;
   // --- Revenue & Cost Logic ---
   revenueRows: any[] = [
     {
@@ -1433,6 +1434,93 @@ export class QuotationFormComponent implements OnInit {
     }
   }
 
+
+  // Origin dropdown ko blur par close karne ke liye
+onOriginBlur() {
+  setTimeout(() => {
+    this.showOriginDropdown = false;
+  }, 200);
+}
+
+// Country dropdown ko blur par close karne ke liye
+onCountryBlur() {
+  setTimeout(() => {
+    this.showCountryDropdown = false;
+  }, 200);
+}
+
+  onPodOriginSearchInput() {
+    const searchTerm = (this.quotation.podOrigin || "")
+      .toString()
+      .trim()
+      .toLowerCase();
+
+    if (searchTerm === "") {
+      this.showPodOriginDropdown = false;
+      this.filteredPodOrigins = [];
+      return;
+    }
+
+    this.filteredPodOrigins = this.origins.filter((org) => {
+      return (
+        (org.name || "").toLowerCase().includes(searchTerm) ||
+        (org.countryName || "").toLowerCase().includes(searchTerm)
+      );
+    });
+
+    this.showPodOriginDropdown = true;
+  }
+
+  selectPodOrigin(origin: any) {
+    this.quotation.podOrigin = origin.name;
+    this.showPodOriginDropdown = false;
+  }
+
+  onPodOriginKeyDown(event: any) {
+    if (event.key === "Enter" && this.filteredPodOrigins.length > 0) {
+      event.preventDefault();
+      this.selectPodOrigin(this.filteredPodOrigins[0]);
+    }
+  }
+
+  // --- Place of Delivery Search Logic ---
+  filteredPlaceOfDelivery: any[] = [];
+  showPlaceOfDeliveryDropdown: boolean = false;
+
+  onPlaceOfDeliverySearchInput() {
+    const searchTerm = (this.quotation.placeOfDelivery || "")
+      .toString()
+      .trim()
+      .toLowerCase();
+
+    if (searchTerm === "") {
+      this.showPlaceOfDeliveryDropdown = false;
+      this.filteredPlaceOfDelivery = [];
+      return;
+    }
+
+    this.filteredPlaceOfDelivery = this.origins.filter((org) => {
+      return (
+        (org.name || "").toLowerCase().includes(searchTerm) ||
+        (org.countryName || "").toLowerCase().includes(searchTerm)
+      );
+    });
+
+    this.showPlaceOfDeliveryDropdown = true;
+  }
+
+  selectPlaceOfDelivery(place: any) {
+    this.quotation.placeOfDelivery = place.name;
+    this.showPlaceOfDeliveryDropdown = false;
+  }
+
+  onPlaceOfDeliveryKeyDown(event: any) {
+    if (event.key === "Enter" && this.filteredPlaceOfDelivery.length > 0) {
+      event.preventDefault();
+      this.selectPlaceOfDelivery(this.filteredPlaceOfDelivery[0]);
+    }
+  }
+
   // --- SELECTION LOGIC WITH TIMEOUT (FIXED) ---
   selectOrganization(org: any) {
     // 1. Sahi variable 'quotation.organization' mein data daalo
@@ -1992,7 +2080,7 @@ export class QuotationFormComponent implements OnInit {
       carrierAgent: q.carrierAgent || q.CarrierAgent || "",
     };
 
-    this.quotation.version = q.version || 0; 
+    this.quotation.version = q.version || 0;
     console.log("🔍 pkgUnit:", this.quotation.packageUnit);
     // --- POL aur POD ka Name auto-fill logic ---
 
@@ -2059,18 +2147,19 @@ export class QuotationFormComponent implements OnInit {
         this.selectedConnectingPorts,
       );
     }
-    // 4. Cargo Value Splitting
-    if (q.cargoValue) {
-      const amountMatch = q.cargoValue.match(/(\d+(\.\d+)?)/);
-      if (amountMatch) {
-        const amount = amountMatch[0];
-        this.quotation.currency = q.cargoValue.replace(amount, "").trim();
-        this.quotation.cargoValue = parseFloat(amount);
-      }
-    } else {
-      this.quotation.currency = "";
-      this.quotation.cargoValue = null;
-    }
+    
+  // 4. Cargo Value Splitting
+if (q.cargoValue) {
+  const amountMatch = q.cargoValue.match(/(\d+(\.\d+)?)/);
+  if (amountMatch) {
+    const amount = amountMatch[0];
+    this.quotation.currency = q.cargoValue.replace(amount, "").trim();
+    this.quotation.cargoValue = parseFloat(amount);
+  }
+} else { 
+  this.quotation.currency = "";   // ✅ FIXED: Empty string
+  this.quotation.cargoValue = null;
+}
     // q.documents database se aayega, hum use local 'documents' array mein load kar rahe hain
     if (q.documents && Array.isArray(q.documents)) {
       this.documents = q.documents.map((doc: any) => ({
@@ -2119,23 +2208,26 @@ export class QuotationFormComponent implements OnInit {
         ? q.validFrom.split("T")[0]
         : null;
     }
-this.quotation.teamId = q.teamId ? q.teamId.toString() : null;
-this.quotation.teamId = q.teamId ? Number(q.teamId) : null; 
-console.log("🔍 Team ID for Edit:", this.quotation.teamId);
-if (this.quotation.teamId) {
-    this.onTeamChange(this.quotation.teamId);
-    setTimeout(() => {
+    this.quotation.teamId = q.teamId ? q.teamId.toString() : null;
+    this.quotation.teamId = q.teamId ? Number(q.teamId) : null;
+    console.log("🔍 Team ID for Edit:", this.quotation.teamId);
+    if (this.quotation.teamId) {
+      this.onTeamChange(this.quotation.teamId);
+      setTimeout(() => {
         if (q.salesCoordinator) {
-            this.quotation.salesCoordinator = Number(q.salesCoordinator);
-            this.cdr.detectChanges();
+          this.quotation.salesCoordinator = Number(q.salesCoordinator);
+          this.cdr.detectChanges();
         }
-    }, 500);
-}
-// 🔥 Agent list load karo taaki Carrier/Agent dropdown populate ho aur match ho
-if (this.quotation.lineOfBusiness) {
-  this.fetchAgentByLobId(this.quotation.lineOfBusiness, this.quotation.country || '');
-}
-    
+      }, 500);
+    }
+    // 🔥 Agent list load karo taaki Carrier/Agent dropdown populate ho aur match ho
+    if (this.quotation.lineOfBusiness) {
+      this.fetchAgentByLobId(
+        this.quotation.lineOfBusiness,
+        this.quotation.country || "",
+      );
+    }
+
     // 8. Tables Data
     this.revenueRows = q.revenueData
       ? typeof q.revenueData === "string"
@@ -2556,6 +2648,8 @@ if (this.quotation.lineOfBusiness) {
       numOfPackages: 0,
       packageUnit: "PCS",
       volumeWeight: 0,
+      cargoValue: "",
+    currency: "",
       volumeWeightUnit: "CBM",
       isServiceRequired: true,
       movement: "",
@@ -2566,7 +2660,7 @@ if (this.quotation.lineOfBusiness) {
       originPOL: "",
       incoTerms: "",
       carrierAgent: "",
-      cargoValue: "",
+      carrierCode: "",
       placeOfDelivery: "",
       podFinalDest: "",
       pickupAddress: "",
@@ -4853,13 +4947,20 @@ if (this.quotation.lineOfBusiness) {
       error: (err) => console.error("Error fetching origins:", err),
     });
   }
-  onOriginSearch() {
-    const term = (this.quotation.originPOL || "").toLowerCase();
-    this.filteredOrigins = this.origins.filter((o) =>
-      o.name.toLowerCase().includes(term),
-    );
-    this.showOriginDropdown = true;
+onOriginSearch() {
+  const term = (this.quotation.originPOL || "").toString().trim().toLowerCase();
+
+  if (term === "") {
+    this.showOriginDropdown = false;
+    this.filteredOrigins = [];
+    return;
   }
+
+  this.filteredOrigins = this.origins.filter((o) =>
+    o.name.toLowerCase().includes(term),
+  );
+  this.showOriginDropdown = this.filteredOrigins.length > 0;
+}
 
   selectOrigin(org: any) {
     this.quotation.originPOL = org.name;
@@ -4875,13 +4976,20 @@ if (this.quotation.lineOfBusiness) {
   }
 
   // --- Country Logic (Separate) ---
-  onCountrySearch() {
-    const term = (this.quotation.country || "").toLowerCase();
-    this.filteredCountries = this.countries.filter((c) =>
-      c.name.toLowerCase().includes(term),
-    );
-    this.showCountryDropdown = true;
+onCountrySearch() {
+  const term = (this.quotation.country || "").toString().trim().toLowerCase();
+
+  if (term === "") {
+    this.showCountryDropdown = false;
+    this.filteredCountries = [];
+    return;
   }
+
+  this.filteredCountries = this.countries.filter((c) =>
+    c.name.toLowerCase().includes(term),
+  );
+  this.showCountryDropdown = this.filteredCountries.length > 0;
+}
 
   selectCountry(country: any) {
     this.quotation.country = country.name;
@@ -4894,6 +5002,8 @@ if (this.quotation.lineOfBusiness) {
     if (!this.eRef.nativeElement.contains(event.target)) {
       this.showOriginDropdown = false;
       this.showCountryDropdown = false;
+      this.showPodOriginDropdown = false; // 🔥 naya
+      this.showPlaceOfDeliveryDropdown = false;
     }
   }
   isModalOpen = false;

@@ -715,7 +715,7 @@ onWeightChange() {
     this.quotation.chargeableWeightUnit = "KGS";
     this.quotation.cbmUnit = "CBM";
     this.quotation.shipmentType = "Ready";
-
+this.quotation.currency = this.quotation.currency || ""
     // 3. Routing aur Data Fetching
     this.route.queryParams.subscribe((params) => {
       const editId = params["editId"];
@@ -1327,6 +1327,7 @@ onWeightChange() {
     if (!this.eRef.nativeElement.contains(event.target)) {
       this.showOriginDropdown = false;
       this.showPodOriginDropdown = false;
+       this.showPlaceOfDeliveryDropdown = false
     }
     const clickedInside = this.eRef.nativeElement.contains(event.target);
     if (!clickedInside) {
@@ -2179,7 +2180,7 @@ onWeightChange() {
       lineOfBusinessId: null,
       commodityId: 1,
       cargoStatusType: "Ready",
-
+    currency: "",
       portOfLoadingId: 1, // Matches pol1 request
       portOfDischargeId: 1, // Matches pod1 request
       noOfPkgs: 1,
@@ -4628,4 +4629,45 @@ this.getsalesTeamList = res?.salesTeam || [];
       this.quotation.NetWeightUnit = "KGS";
     }
   }
+
+// --- Place of Delivery Search Logic (Origin jaisa hi) ---
+filteredPlaceOfDelivery: any[] = [];
+showPlaceOfDeliveryDropdown: boolean = false;
+
+onPlaceOfDeliverySearchInput() {
+  const searchTerm = (this.quotation.placeOfDelivery || "")
+    .toString()
+    .trim()
+    .toLowerCase();
+
+  if (searchTerm === "") {
+    this.showPlaceOfDeliveryDropdown = false;
+    this.filteredPlaceOfDelivery = [];
+    return;
+  }
+
+  this.filteredPlaceOfDelivery = this.origins.filter((org) => {
+    return (
+      (org.name || "").toLowerCase().includes(searchTerm) ||
+      (org.countryName || "").toLowerCase().includes(searchTerm)
+    );
+  });
+
+  this.showPlaceOfDeliveryDropdown = true;
+}
+
+selectPlaceOfDelivery(place: any) {
+  this.quotation.placeOfDelivery = place.name;
+  this.showPlaceOfDeliveryDropdown = false;
+}
+
+onPlaceOfDeliveryKeyDown(event: any) {
+  if (event.key === "Enter" && this.filteredPlaceOfDelivery.length > 0) {
+    event.preventDefault();
+    this.selectPlaceOfDelivery(this.filteredPlaceOfDelivery[0]);
+  }
+}
+
+
+
 }

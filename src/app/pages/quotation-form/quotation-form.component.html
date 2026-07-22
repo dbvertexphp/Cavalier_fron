@@ -1909,7 +1909,7 @@
             </div>
 
             <div class="flex items-center text-red-700 font-bold">
-              <label class="w-40 font-bold text-gray-700">Carrier Name</label>
+              <label class="w-40  font-bold text-gray-700">Carrier Name</label>
               <div class="flex flex-1 items-center gap-2">
 
                 <div class="relative w-20">
@@ -1989,7 +1989,7 @@
                   name="originPOL"
                   placeholder="Search Origin..."
                   (input)="onOriginSearch()"
-                  (focus)="showOriginDropdown = true"
+                  (blur)="onOriginBlur()"
                   (keydown.enter)="onOriginKeyDown($event)"
                   class="w-full border p-2 border-red-300 outline-none text-[12px]" />
                 <ul
@@ -1997,7 +1997,7 @@
                   class="absolute z-10 w-full bg-white border border-gray-300 shadow-lg max-h-40 overflow-y-auto text-[12px]">
                   <li
                     *ngFor="let org of filteredOrigins"
-                    (click)="selectOrigin(org)"
+                    (mousedown)="selectOrigin(org)"
                     class="p-2 hover:bg-gray-100 cursor-pointer">
                     {{ org.name }}
                   </li>
@@ -2009,14 +2009,14 @@
                   name="country"
                   placeholder="Search Country..."
                   (input)="onCountrySearch()"
-                  (focus)="showCountryDropdown = true"
+                  (blur)="onCountryBlur()"
                   class="w-full border p-2 border-red-300 outline-none text-[12px]" />
                 <ul
                   *ngIf="showCountryDropdown"
                   class="absolute z-10 w-full bg-white border border-gray-300 shadow-lg max-h-40 overflow-y-auto text-[12px]">
                   <li
                     *ngFor="let c of filteredCountries"
-                    (click)="selectCountry(c)"
+                    (mousedown)="selectCountry(c)"
                     class="p-2 hover:bg-gray-100 cursor-pointer">
                     {{ c.name }}
                   </li>
@@ -2030,13 +2030,33 @@
                   type="text"
                   [(ngModel)]="quotation.podOrigin"
                   name="podOrigin"
-                  placeholder="Enter POD Origin"
+                  placeholder="Search POD Origin..."
+                  (input)="onPodOriginSearchInput()"
+                  (focus)="showPodOriginDropdown = true"
+                  (keydown.enter)="onPodOriginKeyDown($event)"
                   class="w-full border p-2 border-red-300 outline-none text-[12px] text-gray-700 font-normal" />
+
+                <ul
+                  *ngIf="showPodOriginDropdown"
+                  class="absolute top-full left-0 z-10 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto text-gray-700 font-normal">
+                  <li
+                    *ngFor="let origin of filteredPodOrigins"
+                    (mousedown)="selectPodOrigin(origin)"
+                    class="p-2 hover:bg-gray-100 cursor-pointer text-[12px] border-b border-gray-100">
+                    <div class="font-bold">{{ origin.name }}</div>
+                    <div class="text-[10px] text-gray-500">{{ origin.countryName
+                      }} ({{ origin.isoCode }})</div>
+                  </li>
+                  <li *ngIf="filteredPodOrigins.length === 0"
+                    class="p-3 text-center text-red-500 text-[12px] font-medium">
+                    No Origin Found
+                  </li>
+                </ul>
               </div>
             </div>
             <!-- POL -->
             <div class="flex items-center text-red-700 font-bold">
-              <label class="w-40 ml-6 font-bold text-gray-700">POL</label>
+              <label class="w-40 font-bold text-gray-700">POL</label>
               <div class="flex flex-1 items-center gap-2">
 
                 <div class="relative w-20">
@@ -2051,7 +2071,7 @@
                     class="w-full border p-2 border-red-300 outline-none text-[12px] text-center" />
                 </div>
 
-                <div class="relative w-60">
+                <div class="relative flex-1">
                   <input
                     name="portOfLoading"
                     [(ngModel)]="quotation.portOfLoadingName"
@@ -2117,14 +2137,14 @@
 
             <!-- Cargo Value & Currency -->
             <div class="flex items-center gap-3">
-              <label class="w-40 font-bold text-gray-700">Cargo Value</label>
+              <label class="w-36 font-bold text-gray-700">Cargo Value</label>
               <div
-                class="flex flex-1 border border-gray-300 rounded-md overflow-hidden focus-within:border-blue-500">
+                class="flex-1  border border-gray-300  overflow-hidden focus-within:border-blue-500">
                 <select
                   name="currency"
                   [(ngModel)]="quotation.currency"
-                  class="border-r p-2 outline-none bg-gray-50 text-gray-700 w-52">
-                  <option value>Select Currency</option>
+                  class="border-r p-2 outline-none bg-gray-50 text-gray-700 w-48">
+                  <option value = "">Select Currency</option>
                   <option value="₹ INR - Indian Rupee">
                     ₹ INR - Indian Rupee
                   </option>
@@ -2160,7 +2180,7 @@
                   type="number"
                   name="cargoValue"
                   [(ngModel)]="quotation.cargoValue"
-                  class="flex-1 p-3 outline-none text-right"
+                  class="flex-1 p-2 outline-none text-right"
                   placeholder="0.00"
                   min="0"
                   step="0.01" />
@@ -2169,15 +2189,38 @@
 
             <div class="flex items-center text-red-700 font-bold">
               <label class="w-40">Place of Delivery</label>
-              <input
-                name="placeOfDelivery"
-                [(ngModel)]="quotation.placeOfDelivery"
-                class="flex-1 border p-2 border-red-300 outline-none" />
+              <div class="relative flex-1">
+                <input
+                  name="placeOfDelivery"
+                  [(ngModel)]="quotation.placeOfDelivery"
+                  placeholder="Search Place of Delivery..."
+                  (input)="onPlaceOfDeliverySearchInput()"
+                  (focus)="showPlaceOfDeliveryDropdown = true"
+                  (keydown.enter)="onPlaceOfDeliveryKeyDown($event)"
+                  class="w-full border p-2 border-red-300 outline-none text-[12px]" />
+
+                <ul
+                  *ngIf="showPlaceOfDeliveryDropdown"
+                  class="absolute top-full left-0 z-10 w-full bg-white border border-gray-300 rounded-sm shadow-lg max-h-40 overflow-y-auto text-gray-700 font-normal">
+                  <li
+                    *ngFor="let place of filteredPlaceOfDelivery"
+                    (mousedown)="selectPlaceOfDelivery(place)"
+                    class="p-2 hover:bg-gray-100 cursor-pointer text-[12px] border-b border-gray-100">
+                    <div class="font-bold">{{ place.name }}</div>
+                    <div class="text-[10px] text-gray-500">{{ place.countryName
+                      }} ({{ place.isoCode }})</div>
+                  </li>
+                  <li *ngIf="filteredPlaceOfDelivery.length === 0"
+                    class="p-3 text-center text-red-500 text-[12px] font-medium">
+                    No Location Found
+                  </li>
+                </ul>
+              </div>
             </div>
 
             <!-- POD & Final Dest -->
             <div class="flex items-center text-red-700 font-bold">
-              <label class="w-40 ml-6 font-bold text-gray-700">POD</label>
+              <label class="w-40 font-bold text-gray-700">POD</label>
               <div class="flex flex-1 items-center gap-2">
 
                 <div class="relative w-20">
@@ -2222,7 +2265,7 @@
             </div>
 
             <div class="flex items-center text-red-700 font-bold">
-              <label class="w-40 ml-6 font-bold text-gray-700">Final
+              <label class="w-40 font-bold text-gray-700">Final
                 Dest</label>
               <div class="flex flex-1 items-center gap-2">
                 <div class="relative w-20">
@@ -2236,7 +2279,7 @@
                     class="w-full border p-2 border-red-300 outline-none text-[12px] text-center" />
                 </div>
 
-                <div class="relative w-60">
+                <div class="relative flex-1">
                   <input
                     name="finalDestination"
                     [(ngModel)]="quotation.podFinalDest"

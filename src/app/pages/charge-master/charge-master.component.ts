@@ -1,7 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClientModule } from '@angular/common/http';
+import Swal from 'sweetalert2';
+
 import { TaxCategoryOption, TaxRateService } from '../../services/tax-rate.service';
+import { CompanyServiceApiService, CompanyServiceOption } from '../../services/company-service.service';
+import { ChargeService, ChargeDto, ChargeUpsertDto, ChargeFilter } from '../../services/Charge.service';
 
 type TaxableMode = 'Pure Agent Always' | 'Pure Agent Optional' | 'Taxable' | 'Exempt';
 
@@ -9,12 +14,14 @@ interface ApplicableTaxRow {
   key: 'ServiceTax' | 'VAT' | 'GST';
   label: string;
   checked: boolean;
-  categoryCode: string | null;   // links to TaxCategoryOption.code, sourced from TaxRateService
+  categoryCode: string | null;
   taxable: TaxableMode;
   percentage: number;
   override: boolean;
 }
 
+// Local form/view shape — mirrors ChargeDto but keeps a fixed 3-row taxRows
+// array (ServiceTax/VAT/GST) so the UI logic (onTaxRowToggle, etc.) stays simple.
 interface ChargeMaster {
   id: number;
   code: string;
@@ -51,70 +58,111 @@ function emptyCharge(): ChargeMaster {
   };
 }
 
+// ---- mapping helpers between backend ChargeDto and local ChargeMaster ----
+
+function dtoToChargeMaster(dto: ChargeDto): ChargeMaster {
+  const rows = freshTaxRows();
+  dto.taxRows.forEach(t => {
+    const row = rows.find(r => r.key === t.key);
+    if (row) {
+      row.checked = t.checked;
+      row.categoryCode = t.categoryCode;
+      row.taxable = (t.taxable as TaxableMode) || 'Taxable';
+      row.percentage = t.percentage;
+      row.override = t.override;
+    }
+  });
+
+  return {
+    id: dto.id,
+    code: dto.code,
+    globalChargeCode: dto.globalChargeCode || '',
+    name: dto.name,
+    globalChargeName: dto.globalChargeName || '',
+    applicableFor: dto.applicableFor || [],
+    chargeCategory: dto.chargeCategory,
+    chargeType: dto.chargeType,
+    iataCode: dto.iataCode || '',
+    taxRows: rows,
+  };
+}
+
+function chargeMasterToUpsertDto(form: ChargeMaster): ChargeUpsertDto {
+  return {
+    code: form.code.trim(),
+    globalChargeCode: form.globalChargeCode || null,
+    name: form.name.trim(),
+    globalChargeName: form.globalChargeName || null,
+    applicableFor: form.applicableFor,
+    chargeCategory: form.chargeCategory,
+    chargeType: form.chargeType,
+    iataCode: form.iataCode || null,
+    taxRows: form.taxRows.map(t => ({
+      key: t.key,
+      checked: t.checked,
+      categoryCode: t.checked ? t.categoryCode : null,
+      taxable: t.taxable,
+      percentage: t.checked ? t.percentage : 0,
+      override: t.checked && t.override,
+    })),
+  };
+}
+
 @Component({
   selector: 'app-charge-master',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, HttpClientModule],
   templateUrl: './charge-master.component.html',
   styleUrls: ['./charge-master.component.css']
 })
 export class ChargeMasterComponent implements OnInit {
-  // ---- tax categories now come live from the shared service, not a local copy ----
+  // ---- tax categories (for the searchable category picker) ----
   taxCategoryOptions: TaxCategoryOption[] = [];
   taxCategoriesLoading = false;
 
-  applicableForOptions = ['AIR EXPORT', 'AIR IMPORT', 'SEA EXPORT', 'SEA IMPORT', 'CUSTOM CLEARING', 'DOMESTIC'];
+  // ---- Line of Business ("Applicable For") — live from CompanyService API ----
+  applicableForOptions: CompanyServiceOption[] = [];
+  applicableForLoading = false;
+  applicableForSearch = '';
+
   chargeCategoryOptions = ['Margin', 'Freight', 'Handling', 'Documentation', 'Commission'];
   chargeTypeOptions = ['Others', 'Freight Identification Charge', 'Commission'];
   taxableModes: TaxableMode[] = ['Pure Agent Always', 'Pure Agent Optional', 'Taxable', 'Exempt'];
 
-  // ---- list + filters ----
+  // ---- list + filters (server-side, mirrors tax-rates.component.ts pattern) ----
   searchCode = '';
   searchChargeType = '';
   searchApplicableFor = '';
   searchChargeCategory = '';
 
-  rows: ChargeMaster[] = [
-    {
-      id: 1, code: 'AAT', globalChargeCode: '', name: 'AAI CHARGES', globalChargeName: '',
-      applicableFor: ['AIR EXPORT', 'AIR IMPORT', 'CUSTOM CLEARING'],
-      chargeCategory: 'Margin', chargeType: 'Others', iataCode: '',
-      taxRows: [
-        { key: 'ServiceTax', label: 'Service Tax', checked: false, categoryCode: null, taxable: 'Taxable', percentage: 0, override: false },
-        { key: 'VAT', label: 'Value Added Tax', checked: false, categoryCode: null, taxable: 'Taxable', percentage: 0, override: false },
-        { key: 'GST', label: 'GST', checked: true, categoryCode: 'FF012179', taxable: 'Taxable', percentage: 100, override: false },
-      ],
-    },
-    {
-      id: 2, code: 'AFCE', globalChargeCode: '', name: 'AIR FREIGHT COLLECT', globalChargeName: '',
-      applicableFor: ['AIR EXPORT'],
-      chargeCategory: 'Freight', chargeType: 'Others', iataCode: 'AIRFREIGHT',
-      taxRows: freshTaxRows(),
-    },
-    {
-      id: 3, code: 'AFPE', globalChargeCode: '', name: 'AIR FREIGHT PREPAID', globalChargeName: '',
-      applicableFor: ['AIR EXPORT'],
-      chargeCategory: 'Freight', chargeType: 'Others', iataCode: 'AIRFREIGHT',
-      taxRows: freshTaxRows(),
-    },
-  ];
-
-  // ---- pagination ----
+  rows: ChargeMaster[] = [];
+  isLoading = false;
+  totalCount = 0;
   currentPage = 1;
   pageSize = 10;
+  totalPages = 1;
 
   // ---- Add / Edit modal ----
   isFormOpen = false;
   isEditMode = false;
   form: ChargeMaster = emptyCharge();
   formError = '';
+  isSaving = false;
 
-  constructor(private TaxRateService: TaxRateService) {}
+  // ---- searchable tax-category picker (per tax row) ----
+  categorySearch: Record<string, string> = { ServiceTax: '', VAT: '', GST: '' };
+  openCategoryDropdownFor: string | null = null;
+  activeCategoryRow: ApplicableTaxRow | null = null;
+  categoryDropdownPos = { top: 0, left: 0, width: 0 };
+
+  constructor(
+    private TaxRateService: TaxRateService,
+    private companyServiceApi: CompanyServiceApiService,
+    private chargeService: ChargeService
+  ) {}
 
   ngOnInit(): void {
-    // Stay subscribed so that if a tax rate is added/edited/retired on the Tax Rates page
-    // (or by anyone else using the service) while this screen is open, the Category
-    // dropdown here updates itself — no manual refresh, no stale/duplicated list.
+    // Tax categories — live subscription, same pattern used elsewhere in the app.
     this.TaxRateService.activeCategoryOptions$.subscribe(options => {
       this.taxCategoryOptions = options;
     });
@@ -124,26 +172,68 @@ export class ChargeMasterComponent implements OnInit {
       next: () => (this.taxCategoriesLoading = false),
       error: () => (this.taxCategoriesLoading = false),
     });
+
+    // Line of Business — live subscription from CompanyService.
+    this.companyServiceApi.activeServices$.subscribe(options => {
+      this.applicableForOptions = options;
+    });
+
+    this.applicableForLoading = true;
+    this.companyServiceApi.loadActiveServices().subscribe({
+      next: () => (this.applicableForLoading = false),
+      error: () => (this.applicableForLoading = false),
+    });
+
+    // Charges themselves — actually hit the backend now.
+    this.loadData();
   }
 
-  get filteredRows(): ChargeMaster[] {
-    const code = this.searchCode.trim().toLowerCase();
-    return this.rows.filter(r => {
-      const matchesCode = !code || r.code.toLowerCase().includes(code) || r.name.toLowerCase().includes(code);
-      const matchesType = !this.searchChargeType || r.chargeType === this.searchChargeType;
-      const matchesApplicable = !this.searchApplicableFor || r.applicableFor.includes(this.searchApplicableFor);
-      const matchesCategory = !this.searchChargeCategory || r.chargeCategory === this.searchChargeCategory;
-      return matchesCode && matchesType && matchesApplicable && matchesCategory;
+  // ============================================
+  // LOAD DATA FROM API
+  // ============================================
+
+  loadData(): void {
+    this.isLoading = true;
+
+    const filter: ChargeFilter = {
+      code: this.searchCode || undefined,
+      chargeType: this.searchChargeType || undefined,
+      applicableFor: this.searchApplicableFor || undefined,
+      chargeCategory: this.searchChargeCategory || undefined,
+      page: this.currentPage,
+      pageSize: this.pageSize,
+    };
+
+    this.chargeService.getAll(filter).subscribe({
+      next: (response) => {
+        this.rows = response.items.map(dtoToChargeMaster);
+        this.totalCount = response.totalCount;
+        this.currentPage = response.page;
+        this.pageSize = response.pageSize;
+        this.totalPages = response.totalPages;
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading charges:', error);
+        this.isLoading = false;
+        this.showErrorAlert('Failed to load charge master records.');
+      },
     });
   }
 
-  get totalPages(): number {
-    return Math.max(1, Math.ceil(this.filteredRows.length / this.pageSize));
+  onFilterChange(): void {
+    this.currentPage = 1;
+    this.loadData();
+  }
+
+  // filteredRows kept for template compatibility — server already filters,
+  // this getter just exposes the currently loaded page.
+  get filteredRows(): ChargeMaster[] {
+    return this.rows;
   }
 
   get paginatedRows(): ChargeMaster[] {
-    const start = (this.currentPage - 1) * this.pageSize;
-    return this.filteredRows.slice(start, start + this.pageSize);
+    return this.rows;
   }
 
   get pageNumbers(): number[] {
@@ -155,9 +245,17 @@ export class ChargeMasterComponent implements OnInit {
     return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   }
 
+  // Search box inside the Add/Edit modal that filters the Line of Business checklist.
+  get filteredApplicableForOptions(): CompanyServiceOption[] {
+    const term = this.applicableForSearch.trim().toLowerCase();
+    if (!term) return this.applicableForOptions;
+    return this.applicableForOptions.filter(o => o.serviceName.toLowerCase().includes(term));
+  }
+
   setPage(p: number) {
     if (p < 1 || p > this.totalPages) return;
     this.currentPage = p;
+    this.loadData();
   }
 
   clearFilters() {
@@ -166,6 +264,7 @@ export class ChargeMasterComponent implements OnInit {
     this.searchApplicableFor = '';
     this.searchChargeCategory = '';
     this.currentPage = 1;
+    this.loadData();
   }
 
   trackById(_i: number, row: ChargeMaster) {
@@ -178,21 +277,23 @@ export class ChargeMasterComponent implements OnInit {
     return active.map(t => t.label).join(', ');
   }
 
-  // A charge may have been saved against a tax category that has since been edited or
-  // retired ("Not Applicable") on the Tax Rates page. Flag that in the UI rather than
-  // silently showing nothing, since that's exactly the kind of drift a shared service
-  // is meant to catch instead of hide.
+  // A charge may have been saved against a tax category that has since been
+  // edited or retired ("Not Applicable") on the Tax Rates page.
   isCategoryStillValid(code: string | null): boolean {
     if (!code) return true;
     return this.taxCategoryOptions.some(o => o.code === code);
   }
 
-  // ---- Add / Edit ----
+  // ============================================
+  // ADD / EDIT
+  // ============================================
 
   openAddForm() {
     this.isEditMode = false;
     this.form = emptyCharge();
     this.formError = '';
+    this.applicableForSearch = '';
+    this.categorySearch = { ServiceTax: '', VAT: '', GST: '' };
     this.isFormOpen = true;
   }
 
@@ -200,6 +301,15 @@ export class ChargeMasterComponent implements OnInit {
     this.isEditMode = true;
     this.form = JSON.parse(JSON.stringify(row));
     this.formError = '';
+    this.applicableForSearch = '';
+
+    this.categorySearch = { ServiceTax: '', VAT: '', GST: '' };
+    this.form.taxRows.forEach(t => {
+      if (t.categoryCode) {
+        this.categorySearch[t.key] = this.categoryLabel(t.categoryCode);
+      }
+    });
+
     this.isFormOpen = true;
   }
 
@@ -207,13 +317,17 @@ export class ChargeMasterComponent implements OnInit {
     this.isFormOpen = false;
     this.form = emptyCharge();
     this.formError = '';
+    this.applicableForSearch = '';
+    this.categorySearch = { ServiceTax: '', VAT: '', GST: '' };
+    this.openCategoryDropdownFor = null;
+    this.activeCategoryRow = null;
   }
 
-  toggleApplicableFor(option: string, checked: boolean) {
+  toggleApplicableFor(serviceName: string, checked: boolean) {
     if (checked) {
-      if (!this.form.applicableFor.includes(option)) this.form.applicableFor.push(option);
+      if (!this.form.applicableFor.includes(serviceName)) this.form.applicableFor.push(serviceName);
     } else {
-      this.form.applicableFor = this.form.applicableFor.filter(o => o !== option);
+      this.form.applicableFor = this.form.applicableFor.filter(o => o !== serviceName);
     }
   }
 
@@ -222,6 +336,7 @@ export class ChargeMasterComponent implements OnInit {
       row.categoryCode = null;
       row.percentage = 0;
       row.override = false;
+      this.categorySearch[row.key] = '';
     }
   }
 
@@ -230,6 +345,49 @@ export class ChargeMasterComponent implements OnInit {
     const opt = this.taxCategoryOptions.find(o => o.code === code);
     return opt ? `${opt.gstType} — ${opt.name}` : code;
   }
+
+  // ---- searchable tax-category dropdown ----
+
+  filteredCategoryOptions(rowKey: string): TaxCategoryOption[] {
+    const term = (this.categorySearch[rowKey] || '').trim().toLowerCase();
+    if (!term) return this.taxCategoryOptions;
+    return this.taxCategoryOptions.filter(o =>
+      o.name.toLowerCase().includes(term) ||
+      o.code.toLowerCase().includes(term) ||
+      (o.gstType || '').toLowerCase().includes(term)
+    );
+  }
+
+  openCategoryDropdown(rowKey: string, row: ApplicableTaxRow, event: FocusEvent) {
+    this.openCategoryDropdownFor = rowKey;
+    this.activeCategoryRow = row;
+
+    const target = event.target as HTMLElement;
+    const rect = target.getBoundingClientRect();
+    this.categoryDropdownPos = {
+      top: rect.bottom + 4,
+      left: rect.left,
+      width: rect.width,
+    };
+  }
+
+  closeCategoryDropdown() {
+    setTimeout(() => {
+      this.openCategoryDropdownFor = null;
+      this.activeCategoryRow = null;
+    }, 150);
+  }
+
+  selectCategory(row: ApplicableTaxRow, opt: TaxCategoryOption) {
+    row.categoryCode = opt.code;
+    this.categorySearch[row.key] = `${opt.gstType} — ${opt.name}`;
+    this.openCategoryDropdownFor = null;
+    this.activeCategoryRow = null;
+  }
+
+  // ============================================
+  // SAVE / DELETE — now hitting the real backend
+  // ============================================
 
   saveCharge() {
     this.formError = '';
@@ -253,28 +411,88 @@ export class ChargeMasterComponent implements OnInit {
       return;
     }
 
-    // Guard against saving a charge against a tax category that's no longer Applicable —
-    // this can happen if the Tax Rates page retired that category while this form was open.
     const staleTax = this.form.taxRows.find(t => t.checked && !this.isCategoryStillValid(t.categoryCode));
     if (staleTax) {
       this.formError = `"${staleTax.label}" is mapped to a tax category that is no longer Applicable. Please re-select it.`;
       return;
     }
 
-    if (this.isEditMode) {
-      const idx = this.rows.findIndex(r => r.id === this.form.id);
-      if (idx > -1) this.rows[idx] = JSON.parse(JSON.stringify(this.form));
-    } else {
-      const nextId = this.rows.length ? Math.max(...this.rows.map(r => r.id)) + 1 : 1;
-      this.rows = [{ ...JSON.parse(JSON.stringify(this.form)), id: nextId }, ...this.rows];
-      this.currentPage = 1;
-    }
+    const dto = chargeMasterToUpsertDto(this.form);
+    this.isSaving = true;
 
-    this.closeForm();
+    if (this.isEditMode) {
+      this.chargeService.update(this.form.id, dto).subscribe({
+        next: () => {
+          this.isSaving = false;
+          this.closeForm();
+          this.loadData();
+          this.showSuccessAlert('Updated!', `${dto.code} has been updated.`);
+        },
+        error: (error) => {
+          console.error('Error updating charge:', error);
+          this.isSaving = false;
+          this.formError = error.error?.message || 'Failed to update charge.';
+          this.showErrorAlert(this.formError);
+        },
+      });
+    } else {
+      this.chargeService.create(dto).subscribe({
+        next: () => {
+          this.isSaving = false;
+          this.currentPage = 1;
+          this.closeForm();
+          this.loadData();
+          this.showSuccessAlert('Added!', `${dto.code} has been created.`);
+        },
+        error: (error) => {
+          console.error('Error creating charge:', error);
+          this.isSaving = false;
+          this.formError = error.error?.message || 'Failed to create charge.';
+          this.showErrorAlert(this.formError);
+        },
+      });
+    }
   }
 
   deleteCharge(row: ChargeMaster) {
-    this.rows = this.rows.filter(r => r.id !== row.id);
-    if (this.currentPage > this.totalPages) this.currentPage = this.totalPages;
+    Swal.fire({
+      title: 'Delete Charge?',
+      html: `Are you sure you want to delete <strong>${row.code}</strong>?<br><span style="color:#6b7280;font-size:13px;">${row.name}</span>`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Yes, Delete!',
+      cancelButtonText: 'Cancel',
+      reverseButtons: true,
+    }).then((result) => {
+      if (!result.isConfirmed) return;
+
+      this.chargeService.delete(row.id).subscribe({
+        next: () => {
+          if (this.rows.length === 1 && this.currentPage > 1) {
+            this.currentPage -= 1;
+          }
+          this.loadData();
+          this.showSuccessAlert('Deleted!', `${row.code} has been removed.`);
+        },
+        error: (error) => {
+          console.error('Error deleting charge:', error);
+          this.showErrorAlert(error.error?.message || 'Failed to delete charge.');
+        },
+      });
+    });
+  }
+
+  // ============================================
+  // ALERT HELPERS
+  // ============================================
+
+  showSuccessAlert(title: string, message: string): void {
+    Swal.fire({ icon: 'success', title, text: message, timer: 2000, showConfirmButton: false });
+  }
+
+  showErrorAlert(message: string): void {
+    Swal.fire({ icon: 'error', title: 'Error!', text: message, confirmButtonColor: '#4a3f3f' });
   }
 }

@@ -1,7 +1,9 @@
-
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, HostListener } from '@angular/core'; 
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, HostListener, ViewChild, ElementRef, AfterViewInit } from '@angular/core'; 
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { Chart, registerables } from 'chart.js';
+
+Chart.register(...registerables);
 
 @Component({
   selector: 'app-ecommerce',
@@ -9,42 +11,36 @@ import { Router } from '@angular/router';
   imports: [CommonModule],
   templateUrl: './ecommerce.component.html',
 })
-export class EcommerceComponent implements OnInit, OnDestroy {
+export class EcommerceComponent implements OnInit, AfterViewInit, OnDestroy {
+  @ViewChild('revenueCanvas') private revenueCanvas!: ElementRef<HTMLCanvasElement>;
+
   lastLoginUser: any = null;
   loginTime: string = '';
+  currentTotal: string = '12.5L';
+  chart: Chart | undefined;
 
-  // Timer Variables
   timeLeft: number = 0; 
   interval: any;
   displayTime: string = "20:00"; 
   private readonly TIMER_KEY = 'session_expiry_time';
-  
-  // Activity check karne ke liye variable
   private idleTimeout: any;
 
   constructor(private router: Router, private cdr: ChangeDetectorRef) {}
 
-  // --- User Activity Logic ---
-  // Note: mousemove ko commented rakha hai aapki request ke hisaab se
   @HostListener('document:mousemove') 
   @HostListener('document:click')
   @HostListener('document:keydown')
   @HostListener('document:scroll')
   resetUserActivity() {
-    // 1. Chalte huye timer ko stop karo
     this.stopTimer();
-    
-    // 2. Display ko reset karke 20:00 dikhao
     this.displayTime = "20:00";
     localStorage.removeItem(this.TIMER_KEY); 
 
-    // 3. Purana wait clear karo
     if (this.idleTimeout) clearTimeout(this.idleTimeout);
 
-    // 4. AB SIRF 5 SECOND (5000ms) BAAD TIMER SHURU HOGA
     this.idleTimeout = setTimeout(() => {
       this.startTimer();
-    }, 5000); // 10 second se badal kar 5 second kar diya hai
+    }, 5000);
   }
 
   ngOnInit() {
@@ -67,8 +63,94 @@ export class EcommerceComponent implements OnInit, OnDestroy {
       hour: '2-digit', minute: '2-digit', hour12: true
     });
 
-    // Pehli baar load hone par check shuru karega
     this.resetUserActivity();
+  }
+
+  ngAfterViewInit(): void {
+    this.initRevenueChart();
+  }
+
+initRevenueChart(): void {
+  if (!this.revenueCanvas) return;
+  const ctx = this.revenueCanvas.nativeElement.getContext('2d');
+  if (!ctx) return;
+
+  const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+  gradient.addColorStop(0, 'rgba(101, 78, 81, 0.35)');
+  gradient.addColorStop(1, 'rgba(101, 78, 81, 0.0)');
+
+  this.chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['01 Jul', '05 Jul', '10 Jul', '15 Jul', '20 Jul', '25 Jul', '30 Jul'],
+      datasets: [{
+        label: 'Revenue (₹)',
+        data: [350000, 520000, 600000, 1250000, 890000, 950000, 1100000],
+        borderColor: '#654E51',
+        borderWidth: 3,
+        backgroundColor: gradient,
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: '#654E51',
+        pointBorderColor: '#ffffff',
+        pointBorderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 7,
+        pointHoverBackgroundColor: '#654E51',
+        pointHoverBorderColor: '#ffffff',
+        pointHoverBorderWidth: 3
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#654E51',
+          titleFont: { size: 10, weight: 'bold' },
+          bodyFont: { size: 12, weight: 'bold' },
+          padding: 10,
+          cornerRadius: 10,
+          displayColors: false,
+          callbacks: {
+            label: (context) => '₹' + Number(context.raw).toLocaleString('en-IN')
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { color: '#9ca3af', font: { size: 10, weight: 600 } } // FIXED: Removed quotes from '600'
+        },
+        y: {
+          grid: { color: '#f1f5f9' },
+          ticks: {
+            color: '#9ca3af',
+            font: { size: 10, weight: 600 }, // FIXED: Removed quotes from '600'
+            callback: (value) => (Number(value) / 100000) + 'L'
+          },
+          beginAtZero: true
+        }
+      }
+    }
+  });
+}
+
+  onRangeChange(event: Event): void {
+    const selectedValue = (event.target as HTMLSelectElement).value;
+    if (!this.chart) return;
+
+    if (selectedValue === 'last_month') {
+      this.currentTotal = '9.8L';
+      this.chart.data.labels = ['01 Jun', '05 Jun', '10 Jun', '15 Jun', '20 Jun', '25 Jun', '30 Jun'];
+      this.chart.data.datasets[0].data = [200000, 410000, 550000, 980000, 750000, 820000, 910000];
+    } else {
+      this.currentTotal = '12.5L';
+      this.chart.data.labels = ['01 Jul', '05 Jul', '10 Jul', '15 Jul', '20 Jul', '25 Jul', '30 Jul'],
+      this.chart.data.datasets[0].data = [350000, 520000, 600000, 1250000, 890000, 950000, 1100000];
+    }
+    this.chart.update();
   }
 
   startTimer() {
@@ -124,5 +206,6 @@ export class EcommerceComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.stopTimer();
     if (this.idleTimeout) clearTimeout(this.idleTimeout);
+    if (this.chart) this.chart.destroy();
   }
 }

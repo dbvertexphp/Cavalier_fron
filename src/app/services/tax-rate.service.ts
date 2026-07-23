@@ -10,6 +10,7 @@ export interface TaxRate {
   applicableDate: string;
   cgst: number;
   sgst: number;
+  utgst: number;
   igst: number;
   cess: number;
   otherTax: number;
@@ -34,6 +35,7 @@ export interface TaxRateRequest {
   applicableDate: string;
   cgst: number;
   sgst: number;
+  utgst: number;
   igst: number;
   cess: number;
   otherTax: number;
@@ -80,7 +82,7 @@ export class TaxRateService {
   // Backend controller route yehi hai (model TaxRates table se match).
   private apiUrl = `${environment.apiUrl}/TaxRates`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   private readonly _taxRates$ = new BehaviorSubject<TaxRate[]>([]);
   private loaded = false;

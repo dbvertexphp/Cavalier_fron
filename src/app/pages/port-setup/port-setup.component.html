@@ -19,6 +19,7 @@
             <th class="px-6 py-3 text-xs font-bold uppercase">AirPort Name</th>
             <th class="px-6 py-3 text-xs font-bold uppercase">AirPort Code</th>
             <th class="px-6 py-3 text-xs font-bold uppercase">City</th>
+            <th class="px-6 py-3 text-xs font-bold uppercase">State</th>
             <th class="px-6 py-3 text-xs font-bold uppercase">Country</th>
             <th class="px-6 py-3 text-xs font-bold uppercase">Code / ISO</th>
             <th class="px-6 py-3 text-xs font-bold uppercase">Pincode</th>
@@ -30,6 +31,7 @@
             <td class="px-6 py-3 font-bold">{{ port.portName }}</td>
             <td class="px-6 py-3">{{ port.portCode }}</td>
             <td class="px-6 py-3">{{ port.cityName }}</td>
+            <td class="px-6 py-3">{{ port.stateName }}</td>
             <td class="px-6 py-3">{{ port.countryName }}</td>
             <td class="px-6 py-3">{{ port.countryCode }} / {{ port.isoCode }}</td>
             <td class="px-6 py-3">{{ port.pinCode }}</td>
@@ -46,19 +48,31 @@
   <div *ngIf="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
     <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6">
       <h3 class="font-bold text-lg mb-4">{{ isEditMode ? 'Update Port' : 'Create Port' }}</h3>
-      
+
       <div class="space-y-3">
         <input [(ngModel)]="newPort.portName" placeholder="Port Name" class="w-full border p-2 rounded" (input)="newPort.portName = newPort.portName.toUpperCase()">
         <input [(ngModel)]="newPort.portCode" placeholder="Port Code" class="w-full border p-2 rounded">
-        
-        <ng-select [items]="countries" bindLabel="name" [(ngModel)]="selectedCountry" (change)="onCountryChange($event)" placeholder="Select Country" class="w-full"></ng-select>
-        
+
+        <!-- Step 1: Country -->
+        <ng-select [items]="countries" bindLabel="name" [(ngModel)]="selectedCountry"
+          (change)="onCountryChange($event)" placeholder="Select Country" class="w-full"></ng-select>
+
         <div class="flex gap-2">
-            <input [(ngModel)]="newPort.countryCode" placeholder="Dial Code" class="w-full border p-2 rounded bg-gray-50">
-            <input [(ngModel)]="newPort.isoCode" placeholder="ISO Code" class="w-full border p-2 rounded bg-gray-50">
+            <input [(ngModel)]="newPort.countryCode" placeholder="Dial Code" class="w-full border p-2 rounded bg-gray-50" readonly>
+            <input [(ngModel)]="newPort.isoCode" placeholder="ISO Code" class="w-full border p-2 rounded bg-gray-50" readonly>
         </div>
-        
-        <ng-select [items]="cities" [(ngModel)]="newPort.cityName" placeholder="Select City" class="w-full"></ng-select>
+
+        <!-- Step 2: State -->
+        <!-- Sirf state ka naam dikhta hai (bindLabel="name"), stateCode UI me kahin nahi dikhaya jata -->
+        <!-- lekin object select hone par newPort.stateCode model me hidden set ho jata hai (onStateChange) -->
+        <ng-select [items]="states" bindLabel="name" [(ngModel)]="selectedState"
+          (change)="onStateChange($event)" placeholder="Select State"
+          [disabled]="!states.length" class="w-full"></ng-select>
+
+        <!-- Step 3: City (state ke basis par) -->
+        <ng-select [items]="cities" [(ngModel)]="newPort.cityName" placeholder="Select City"
+          [disabled]="!cities.length" class="w-full"></ng-select>
+
         <input [(ngModel)]="newPort.pinCode" placeholder="Pin Code" type="number" class="w-full border p-2 rounded">
       </div>
 

@@ -37,10 +37,34 @@
     right: 20px !important;
 }
 
-/* Agar center me lana hai toh ye use karein */
-/* .swal2-toast-container {
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) !important;
-} 
-*/
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Ensure sticky columns work properly */
+
+
+/* Table row hover effect */
+.hover\:bg-amber-50\/30:hover {
+  background-color: rgba(251, 191, 36, 0.08);
+}

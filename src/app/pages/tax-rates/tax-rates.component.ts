@@ -20,6 +20,7 @@ const EMPTY_TAX: TaxRate = {
   applicableDate: "",
   cgst: 0,
   sgst: 0,
+  utgst: 0,
   igst: 0,
   cess: 0,
   otherTax: 0,
@@ -72,7 +73,7 @@ export class TaxRatesComponent implements OnInit {
   // ---- Validation errors ----
   validationErrors: { [key: string]: string } = {};
 
-  constructor(private taxRateService: TaxRateService) {}
+  constructor(private taxRateService: TaxRateService) { }
 
   ngOnInit(): void {
     this.loadData();
@@ -185,19 +186,8 @@ export class TaxRatesComponent implements OnInit {
       },
     });
 
-    // Load GST types
-    this.taxRateService.getGstTypes().subscribe({
-      next: (data) => {
-        this.gstTypes = data;
-        if (this.gstTypes.length === 0) {
-          this.gstTypes = ["SAC", "HSN"];
-        }
-      },
-      error: (error) => {
-        console.error("Error loading GST types:", error);
-        this.gstTypes = ["SAC", "HSN"];
-      },
-    });
+    // Load GST types - Hardcoded as per requirement
+    this.gstTypes = ["SAC", "HSN"];
   }
 
   // ============================================
@@ -279,71 +269,71 @@ export class TaxRatesComponent implements OnInit {
     this.validationErrors = {};
   }
 
-// ============================================
-// CLAMP PERCENTAGE - SHOW ERROR IF >100
-// ============================================
+  // ============================================
+  // CLAMP PERCENTAGE - SHOW ERROR IF >100
+  // ============================================
 
-clampPercent(field: keyof TaxRate): void {
-  let val = Number(this.taxForm[field]);
-  
-  if (isNaN(val) || val < 0) {
-    val = 0;
-    (this.taxForm as any)[field] = 0;
-    return;
-  }
-  
-  // If value > 100, show error and set to 100
-  if (val > 100) {
-    (this.taxForm as any)[field] = 100;
-    // Show error alert
-    this.showErrorAlert(`${field} cannot exceed 100%. Value has been set to 100.`);
-    // Set validation error
-    this.validationErrors[field] = `${field} cannot exceed 100%`;
-    return;
-  }
-  
-  // Clear validation error for this field
-  this.validationErrors[field] = '';
-}
+  clampPercent(field: keyof TaxRate): void {
+    let val = Number(this.taxForm[field]);
 
-/**
- * Prevent user from typing > 100
- */
-preventInvalidKey(event: KeyboardEvent): void {
-  const input = event.target as HTMLInputElement;
-  const key = event.key;
-  
-  // Allow navigation keys
-  const allowedKeys = [
-    'Backspace', 'Delete', 'Tab', 'Escape', 'Enter',
-    'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
-    'Home', 'End', 'PageUp', 'PageDown'
-  ];
-  
-  if (allowedKeys.includes(key)) {
-    return;
+    if (isNaN(val) || val < 0) {
+      val = 0;
+      (this.taxForm as any)[field] = 0;
+      return;
+    }
+
+    // If value > 100, show error and set to 100
+    if (val > 100) {
+      (this.taxForm as any)[field] = 100;
+      // Show error alert
+      this.showErrorAlert(`${field} cannot exceed 100%. Value has been set to 100.`);
+      // Set validation error
+      this.validationErrors[field] = `${field} cannot exceed 100%`;
+      return;
+    }
+
+    // Clear validation error for this field
+    this.validationErrors[field] = '';
   }
-  
-  // Only allow numbers and decimal
-  if (!/^[0-9.]$/.test(key)) {
-    event.preventDefault();
-    return;
-  }
-  
-  // Check if new value would exceed 100
-  const currentValue = input.value;
-  const selectionStart = input.selectionStart || 0;
-  const selectionEnd = input.selectionEnd || 0;
-  const newValue = currentValue.substring(0, selectionStart) + key + currentValue.substring(selectionEnd);
-  
-  if (newValue !== '' && !isNaN(Number(newValue))) {
-    const numValue = Number(newValue);
-    if (numValue > 100) {
+
+  /**
+   * Prevent user from typing > 100
+   */
+  preventInvalidKey(event: KeyboardEvent): void {
+    const input = event.target as HTMLInputElement;
+    const key = event.key;
+
+    // Allow navigation keys
+    const allowedKeys = [
+      'Backspace', 'Delete', 'Tab', 'Escape', 'Enter',
+      'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+      'Home', 'End', 'PageUp', 'PageDown'
+    ];
+
+    if (allowedKeys.includes(key)) {
+      return;
+    }
+
+    // Only allow numbers and decimal
+    if (!/^[0-9.]$/.test(key)) {
       event.preventDefault();
-      this.showErrorAlert('Value cannot exceed 100');
+      return;
+    }
+
+    // Check if new value would exceed 100
+    const currentValue = input.value;
+    const selectionStart = input.selectionStart || 0;
+    const selectionEnd = input.selectionEnd || 0;
+    const newValue = currentValue.substring(0, selectionStart) + key + currentValue.substring(selectionEnd);
+
+    if (newValue !== '' && !isNaN(Number(newValue))) {
+      const numValue = Number(newValue);
+      if (numValue > 100) {
+        event.preventDefault();
+        this.showErrorAlert('Value cannot exceed 100');
+      }
     }
   }
-}
 
   // Validate form
   validateForm(): boolean {
@@ -387,6 +377,7 @@ preventInvalidKey(event: KeyboardEvent): void {
     const percentFields: { field: keyof TaxRate; label: string }[] = [
       { field: "cgst", label: "CGST" },
       { field: "sgst", label: "SGST" },
+      { field: "utgst", label: "UTGST" },
       { field: "igst", label: "IGST" },
       { field: "cess", label: "CESS" },
       { field: "otherTax", label: "Other Tax" },
@@ -436,6 +427,7 @@ preventInvalidKey(event: KeyboardEvent): void {
       applicableDate: this.taxForm.applicableDate.trim(),
       cgst: this.taxForm.cgst || 0,
       sgst: this.taxForm.sgst || 0,
+      utgst: this.taxForm.utgst || 0,
       igst: this.taxForm.igst || 0,
       cess: this.taxForm.cess || 0,
       otherTax: this.taxForm.otherTax || 0,

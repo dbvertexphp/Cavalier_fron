@@ -31,18 +31,40 @@ import { BranchService } from "../../services/branch.service";
 import { UserService } from "../../services/user.service";
 import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
 import Swal from "sweetalert2";
+import { ChargeService, ChargeDto } from "../../services/Charge.service";
+import { TaxRate, TaxRateService } from "../../services/tax-rate.service";
+import { GstCalculationService } from "../../services/gst-calculation.service";
 export interface CostBreakdown {
   id?: number;
   inquiryId?: number;
+  pricingId?: number;
   lob: string;
-  chargeName: string;
+  chargeName?: string;
+  chargeCode?: string;
   chargeType: string;
   basis: string;
   currency: string;
   rate: number;
   exchangeRate: number;
   amount: number;
-  remark?: string; // <--- YE LINE ADD KAREIN (optional '?' ke sath)
+  remark?: string;
+
+  // --- GST Fields ---
+  gstStatus?: "Taxable" | "Non-Taxable";
+  isGstApplicable?: boolean;
+  sacHsn?: string;
+  taxableValue?: number;
+  nonTaxableValue?: number;
+  taxName?: string;
+  taxPercent?: number;
+  cgst?: number;
+  sgst?: number;
+  igst?: number;
+  taxAmount?: number;
+  totalAmount?: number;
+  isZeroRated?: boolean;
+  isRcmApplicable?: boolean;
+  shipmentDirection?: string;
 }
 interface DimGroup {
   dimString: string;
@@ -69,8 +91,10 @@ interface DimGroup {
 export class PriceComponent {
   @ViewChild("cargoDateInput") cargoDateInput!: ElementRef<HTMLInputElement>;
   totalCount: number = 0;
+  chargeMasterList: ChargeDto[] = [];
+  taxRatesList: TaxRate[] = [];
+  /** @deprecated use chargeMasterList */
   chargesList: any[] = [];
-  // ✅ CONFIGURATION VARIABLES FOR INDEPENDENT DUAL RANGE CALENDAR
   isCustomRangeModalOpen: boolean = false;
   currentLeftCalendarDate: Date = new Date();
   currentRightCalendarDate: Date = new Date(
@@ -85,7 +109,6 @@ export class PriceComponent {
   getquotedByList: any[] = [];
   getpricingByList: any[] = [];
   getsalesTeamList: any[] = [];
-  // PriceComponent Class ke properties section mein add karein
   teamsList: any[] = [];
   showCountryDropdown: boolean = false;
   countriesList: any[] = [];
@@ -103,10 +126,9 @@ export class PriceComponent {
   organisationName: string = "";
   filteredPodOrigins: any[] = [];
   showPodOriginDropdown: boolean = false;
-  // Add these lines in your class variables section
 
   paginatedPricings: any[] = [];
-  costBreakdowns: any[] = []; // Check if you intended to use 'costRows' instead
+  costBreakdowns: any[] = [];
   OrganisationId: number = 0;
   invoices: any[] = [];
   lastSelectedBranch: string = "";
@@ -115,11 +137,9 @@ export class PriceComponent {
   isDocumentModalOpen = false;
   OrganisationName: string = "";
   LeadName: string = "";
-  // --- Airline Search Variables ---
   airlineList: any[] = [];
   filteredAirlines: any[] = [];
   showAirlineDropdownIndex: number | null = null;
-  // Preview ke liye nayi variables
   isPreviewModalOpen = false;
   agentDetail: any[] = [];
   selectedEmails = new Set<string>();
@@ -128,11 +148,11 @@ export class PriceComponent {
   selectcommodityvalue: string = "";
   organizationIds: number = 0;
   isDeliveryEnabled: boolean = false;
-  portsOfDischarge: any[] = []; // API se aane wala full list
+  portsOfDischarge: any[] = [];
   filteredPortsOfDischarge: any[] = [];
   originsaveid: number = 0;
   showPortOfDischargeDropdown: boolean = false;
-  portsOfLoading: any[] = []; // Full list from API
+  portsOfLoading: any[] = [];
   filteredPortsOfLoading: any[] = [];
   showPortOfLoadingDropdown: boolean = false;
   branchlist: any[] = [];
@@ -173,10 +193,7 @@ export class PriceComponent {
     this.isDocumentModalOpen = true;
   }
   onCommodityChange(event: any) {
-    // Yeh aapko ID dega (jo value="" mein set hai)
     const selectedId = event.target.value;
-
-    // Yeh aapko exact wo TEXT dega jo user ko dropdown mein dikh raha hai
     const selectedText = event.target.options[event.target.selectedIndex].text;
     this.selectcommodityvalue = selectedText;
     console.log("Selected ID:", selectedId);
@@ -187,7 +204,6 @@ export class PriceComponent {
     this.isDocumentModalOpen = false;
   }
 
-  // Modal Open/Close Functions
   openInvoiceModal() {
     this.isInvoiceModalOpen = true;
   }
@@ -196,7 +212,6 @@ export class PriceComponent {
     this.isInvoiceModalOpen = false;
   }
 
-  // Add New Invoice Row
   addInvoice() {
     this.invoices.push({
       name: "",
@@ -222,66 +237,41 @@ export class PriceComponent {
     this.currentPreviewUrl = null;
   }
 
-  // Pehle wala modal open/close functions
-  // Save button click hone par console me data dikhane ke liye
   saveDocuments() {
     console.log("=== 📦 Commodity Documents List ===");
 
-    // Check agar array khali hai
     if (this.documents.length === 0) {
       console.log("Koi document add nahi kiya gaya hai.");
     } else {
-      // Har ek document ko loop karke console me dikhana
       this.documents.forEach((doc, index) => {
         console.log(`\n--- Document ${index + 1} ---`);
         console.log("Document Name/Type :", doc.name || "Name not entered");
         console.log("Original File Name :", doc.fileName || "No file selected");
-        console.log("Actual File Object :", doc.file); // Yeh actual file hai (Image/PDF) jo backend me jayegi
+        console.log("Actual File Object :", doc.file);
       });
 
-      // Poora array ek sath dekhne ke liye
       console.log("\nFull Array Data:", this.documents);
     }
 
-    // Console me print hone ke baad modal close kar do
     this.closeDocumentModal();
   }
-  // Handle File Selection
   onInvoiceFileSelected(event: any, index: number) {
     const file = event.target.files[0];
 
     if (file) {
       this.invoices[index].file = file;
-      this.invoices[index].fileName = file.name; // Naam UI par dikhane ke liye
+      this.invoices[index].fileName = file.name;
 
-      // Local file ka URL banana preview ke liye
       const objectUrl = URL.createObjectURL(file);
 
-      // Angular ko batana padega ki ye URL safe hai iframe me dikhane ke liye
       this.invoices[index].previewUrl =
         this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
     }
   }
-  // test(){
-  //   alert(this.quotation.TransportType);
-  // }
 
-  // add/remove
-
-  // file select
-
-  // ================== VOLUME WEIGHT CALCULATION ==================
-  // ================== VOLUME WEIGHT CALCULATION ==================
-  // InquiryComponent.ts mein ye add karein
-  // 1. Single row jo bahar dikhti hai
   dimRow: any = { box: 1, l: 0, w: 0, h: 0, unit: "kgs" };
   dimRows: any[] = [];
 
-  // Component initialize hote hi dimRow ko array mein daal dein
-  // ngOnInit() {
-  //   this.dimRows = [this.dimRow];
-  // }
-  // ✅ INDEPENDENT DUAL PIPELINE CALENDAR EXECUTION STREAM
   openCustomRangeCalendar() {
     this.isCustomRangeModalOpen = true;
     this.renderDualCalendars();
@@ -443,7 +433,6 @@ export class PriceComponent {
     if (this.customStartSelectedDate && this.customEndSelectedDate) {
       this.dateRangeInputValue = `${this.customStartSelectedDate} - ${this.customEndSelectedDate}`;
 
-      // Sync parameters to the backend structure pipeline cleanly
       this.searchFilters.fromDate = this.customStartSelectedDate;
       this.searchFilters.toDate = this.customEndSelectedDate;
 
@@ -456,20 +445,16 @@ export class PriceComponent {
     return date.toLocaleString("default", { month: "long", year: "numeric" });
   }
   calculateVolumeWeight() {
-    // 1. Sirf calculation karo, dimRows ko mat chhedo!
     const weight = this.calculateSingleVolumeWeight(this.dimRow);
     this.quotation.volumeWeight = parseFloat(weight.toFixed(2));
     this.calculateCBM();
 
-    // 2. Sirf tabhi update karo agar modal open nahi hai (Optional safety)
-    // YA PHIR: Sirf pehli row ko update karo, baaki array ko mat overwrite karo!
     if (this.dimRows.length > 0) {
       this.dimRows[0] = { ...this.dimRow };
     } else {
       this.dimRows = [{ ...this.dimRow }];
     }
 
-    // 3. Calculation logic call karo (Lekin dimRows ko overwrite mat karo)
     this.appliedDimensions = this.dimRows.filter(
       (d) => d.l > 0 && d.w > 0 && d.h > 0,
     );
@@ -477,18 +462,13 @@ export class PriceComponent {
     this.calculateVolumeWeightLogic();
     this.syncFinalData();
   }
-  // Ye function banaye jo modal ke button se bhi chale aur bahar se bhi
   syncFinalData() {
-    // Yahan woh logic likhein jo aapke database ya main form ko update karta hai
-    // Example:
     this.quotation.dimensions = JSON.parse(JSON.stringify(this.dimRows));
     console.log("Data Auto-Synced!");
   }
 
-  // Ye function modal ke 'Apply' button ki zaroorat khatam kar dega
   getTotalVolumeWeight(): number {
     let total = 0;
-    //  let total = 0;
     if (this.dimRows && this.dimRows.length > 0) {
       this.dimRows.forEach((dim) => {
         total += this.calculateSingleVolumeWeight(dim);
@@ -497,8 +477,6 @@ export class PriceComponent {
       total = this.calculateSingleVolumeWeight(this.dimRow);
     }
     return parseFloat(total.toFixed(2));
-    // Agar modal mein multiple rows hain toh loop chalega
-    // Agar sirf bahar input bhara hai toh bhi ye dimRows[0] se utha lega
     this.dimRows.forEach((dim) => {
       total += this.calculateSingleVolumeWeight(dim);
     });
@@ -512,28 +490,14 @@ export class PriceComponent {
 
     let volumeCm3 = dim.l * dim.w * dim.h;
     if (dim.unit === "INCH") {
-      volumeCm3 = volumeCm3 * 16.387; // Inch to CM3 conversion
+      volumeCm3 = volumeCm3 * 16.387;
     }
 
-    // (L * W * H / 6000) * Number of Boxes
     return (dim.box || 1) * (volumeCm3 / 6000);
   }
-  // getTotalVolumeWeight(): number {
-  // let total = 0;
-  // if (this.dimRows && this.dimRows.length > 0) {
-  //   this.dimRows.forEach(dim => {
-  //     total += this.calculateSingleVolumeWeight(dim);
-  //   });
-  // } else {
-  //   total = this.calculateSingleVolumeWeight(this.dimRow);
-  // }
-  // return parseFloat(total.toFixed(2));
-  // }
 
-  // 2. CBM Calculation logic
   calculateCBM() {
     if (this.quotation.volumeWeight) {
-      // Formula as per your requirement: Volume Weight / 167
       const calculatedCbm = this.quotation.volumeWeight / 167;
       this.quotation.cbm = parseFloat(calculatedCbm.toFixed(3));
     } else {
@@ -549,17 +513,13 @@ export class PriceComponent {
     this.cdr.detectChanges();
   }
   calculateNetWeight() {
-    // Number() ensures ki hum string nahi, number minus kar rahe hain
     const gross = Number(this.quotation.grossWeightKg) || 0;
     const volume = Number(this.quotation.volumeWeight) || 0;
 
-    // Minus karne ke baad sirf 2 decimal tak limit karo
     const result = gross - volume;
 
-    // toFixed(2) se 4 digit wali problem khatam ho jayegi
     this.quotation.netWeight = parseFloat(result.toFixed(2));
 
-    // Console mein check karne ke liye
     console.log(
       "Gross:",
       gross,
@@ -574,27 +534,20 @@ export class PriceComponent {
     const gross = Number(this.quotation.grossWeightKg) || 0;
     const volume = Number(this.quotation.volumeWeight) || 0;
 
-    // Jo bhi bada hoga (Math.max), wo chargeableWeight mein jayega
     const higherWeight = Math.max(gross, volume);
 
-    // Result ko 2 decimal points tak set karein
     this.quotation.chargeableWeight = parseFloat(higherWeight.toFixed(2));
   }
-  // Volume weight badalne par CBM aur Net Weight dono update hone chahiye
   calculateVolumeWeightLogic() {
-    // Numbers mein convert karna zaroori hai
     const gross = Number(this.quotation.grossWeightKg) || 0;
     const volume = Number(this.quotation.volumeWeight) || 0;
 
-    // 1. CBM Calculation (Volume / 167)
     const calculatedCbm = volume / 167;
     this.quotation.cbm = parseFloat(calculatedCbm.toFixed(3));
 
-    // 2. Net Weight Calculation (Volume - Gross)
     const netResult = volume - gross;
     this.quotation.netWeight = parseFloat(netResult.toFixed(2));
 
-    // 3. Chargeable Weight Calculation (Higher of Gross or Volume)
     const higherWeight = Math.max(gross, volume);
     this.quotation.chargeableWeight = parseFloat(higherWeight.toFixed(2));
 
@@ -642,20 +595,16 @@ export class PriceComponent {
   servicesList: any[] = [];
   isDimModalOpen = false;
   appliedDimensions: any[] = [];
-  // dimRows: any[] = [{ box: 1, l: 0, w: 0, h: 0, unit: 'CMS' }];
   inquiry: any = {
     inquiryNo: "",
     customerName: "",
-    organization: "", // Search input ke liye
+    organization: "",
     organizationAddress: "",
     leadNo: "",
     isDirect: false,
     isIndirect: false,
     origin: "",
-
-    // ... baki fields ...
   };
-  // Add this in your component class
   airlineDropdownClicked: boolean = false;
   companyServices: any[] = [];
   organizations: any[] = [];
@@ -664,7 +613,6 @@ export class PriceComponent {
   leads: any[] = [];
   filteredLeads: any[] = [];
   showLeadDropdown: boolean = false;
-  // Origins list fetch karne ke liye
   origins: any[] = [];
   filteredOrigins: any[] = [];
   showOriginDropdown: boolean = false;
@@ -673,9 +621,8 @@ export class PriceComponent {
 
   coordinators: any[] = [];
   branchesList: any[] = [];
-  searchDone: boolean = false; // Shuru mein false rahega
+  searchDone: boolean = false;
   uploadedDocuments: any[] = [];
-  // Ye line add karein
   constructor(
     private http: HttpClient,
     private router: Router,
@@ -688,11 +635,19 @@ export class PriceComponent {
     private eRef: ElementRef,
     private route: ActivatedRoute,
     private airlineService: AirlineService,
+    private chargeService: ChargeService,
+    private taxRateService: TaxRateService,
+    private gstCalculationService: GstCalculationService,
   ) {}
   orgData: any = null;
   isLoading: boolean = true;
   ngOnInit() {
-    this.loadChargeNamesMaster();
+    this.loadChargeMaster();
+    this.taxRateService.loadAll().subscribe((rows) => {
+      this.taxRatesList = rows || [];
+      this.cdr.detectChanges();
+      this.recalculateAllGst();
+    });
     this.loadAirlines();
     this.route.queryParams.subscribe((params) => {
       const editId = params["editId"];
@@ -703,10 +658,8 @@ export class PriceComponent {
     });
     const idFromUrl = this.route.snapshot.paramMap.get("id");
 
-    // Aapki purani list wali API call kar rahe hain
     this.http.get<any[]>(`${environment.apiUrl}/Organization/list`).subscribe({
       next: (allOrgs) => {
-        // List mein se wo wali Org dhoond rahe hain jiski ID match kare
         this.orgData = allOrgs.find(
           (o) => o.id == idFromUrl || o.Id == idFromUrl,
         );
@@ -720,7 +673,6 @@ export class PriceComponent {
 
     this.PermissionID = Number(localStorage.getItem("permissionID"));
     console.log("Direct API call trigger ho rahi hai...");
-    //  this.getsales();
     this.getTeams();
     this.loadConnectingPortsData();
     this.getbranch();
@@ -765,8 +717,8 @@ export class PriceComponent {
 
     this.setTodayDate();
   }
+
   getCommodityTypes() {
-    // Hits: https://localhost:xxxx/api/CommodityType
     this.http.get<any[]>(`${environment.apiUrl}/CommodityType`).subscribe({
       next: (data) => {
         this.commodityTypes = data;
@@ -775,7 +727,7 @@ export class PriceComponent {
     });
   }
   setTodayDate() {
-    const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
+    const today = new Date().toISOString().split("T")[0];
     this.quotation.cargoStatusDate = today;
   }
   getsales(): void {
@@ -783,7 +735,6 @@ export class PriceComponent {
 
     this.userServices.getHodList().subscribe({
       next: (data: any[]) => {
-        // Yahan check karo ki data aa raha hai ya nahi
         console.log("HOD/Sales Coord data received:", data);
 
         this.getsalescordinate = data;
@@ -806,7 +757,6 @@ export class PriceComponent {
     });
   }
 
-  // --- AIRLINE MASTER LOAD ---
   loadAirlines() {
     this.airlineService.getAll().subscribe({
       next: (data: Airline[]) => {
@@ -816,12 +766,10 @@ export class PriceComponent {
       },
       error: (err) => {
         console.error("Airline API error via service:", err);
-        // Fallback: try direct HTTP call if service fails
         this.loadAirlinesFallback();
       },
     });
   }
-  // Fallback method if service fails
   loadAirlinesFallback() {
     const token = localStorage.getItem("cavalier_token");
     const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
@@ -838,12 +786,10 @@ export class PriceComponent {
       });
   }
 
-  // --- SEARCH LOGIC (row-wise, kyunki multi-carrier mein multiple rows hoti hain) ---
   onAirlineSearch(index: number, event?: Event) {
     const row = this.multiCarrierRows[index];
     if (!row) return;
 
-    // row.airline ki jagah direct event se lo
     const searchTerm = event
       ? (event.target as HTMLInputElement).value.trim().toLowerCase()
       : (row.airline || "").toString().trim().toLowerCase();
@@ -855,7 +801,6 @@ export class PriceComponent {
       return;
     }
 
-    // Filter from the airlineList
     this.filteredAirlines = this.airlineList.filter((a) => {
       const name = (a.airlineName || "").toLowerCase();
       const code = (a.airlineCode || "").toLowerCase();
@@ -867,7 +812,6 @@ export class PriceComponent {
       );
     });
 
-    // Limit results to prevent UI overload
     if (this.filteredAirlines.length > 50) {
       this.filteredAirlines = this.filteredAirlines.slice(0, 50);
     }
@@ -875,7 +819,6 @@ export class PriceComponent {
     this.showAirlineDropdownIndex =
       this.filteredAirlines.length > 0 ? index : null;
 
-    // 🔥 Position update karo har baar jab search ho
     if (event) {
       const target = event.target as HTMLInputElement;
       const rect = target.getBoundingClientRect();
@@ -889,19 +832,16 @@ export class PriceComponent {
     this.cdr.detectChanges();
   }
 
-  // Naya variable — dropdown ki screen position store karega
   airlineDropdownPos: { top: number; left: number; width: number } = {
     top: 0,
     left: 0,
     width: 0,
   };
 
-  // --- FOCUS ON A ROW (dropdown open karne ke liye jab field pe click ho) ---
   onAirlineFocus(index: number, event: FocusEvent) {
     const row = this.multiCarrierRows[index];
     if (!row) return;
 
-    // Input ki screen position nikal ke dropdown ko wahi place karo
     const target = event.target as HTMLInputElement;
     const rect = target.getBoundingClientRect();
     this.airlineDropdownPos = {
@@ -910,11 +850,9 @@ export class PriceComponent {
       width: Math.max(rect.width, 220),
     };
 
-    // Agar field mein kuch type kiya hai toh search karo, warna saari airlines dikhao
     const currentValue = (row.airline || "").toString().trim();
 
     if (currentValue.length > 0) {
-      // Search with current value
       this.filteredAirlines = this.airlineList.filter((a) => {
         const name = (a.airlineName || "").toLowerCase();
         const code = (a.airlineCode || "").toLowerCase();
@@ -927,7 +865,6 @@ export class PriceComponent {
         );
       });
     } else {
-      // 🔥 Sabhi airlines ko dropdown mein dikhao (limit 50 tak)
       this.filteredAirlines = this.airlineList.slice(0, 50);
     }
 
@@ -936,7 +873,6 @@ export class PriceComponent {
     this.cdr.detectChanges();
   }
 
-  // --- SELECT LOGIC ---
   selectAirline(airline: any, index: number) {
     const row = this.multiCarrierRows[index];
     if (!row || !airline) return;
@@ -945,7 +881,6 @@ export class PriceComponent {
     row.airlineCode = airline.airlineCode || "";
     row.airlinePrefix = airline.airlinePrefix || "";
 
-    // 🔥 Dropdown band karo
     this.showAirlineDropdownIndex = null;
     this.filteredAirlines = [];
     this.cdr.detectChanges();
@@ -955,27 +890,30 @@ export class PriceComponent {
     const token = localStorage.getItem("cavalier_token");
     const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
 
-    // Pura data fetch karne ke liye API call (Aapke controller ka specific GET endpoint)
     this.http
       .get(`${environment.apiUrl}/Pricing/${id}`, { headers })
       .subscribe({
         next: (data: any) => {
           if (data) {
-            // 1. Quotation object mein data bharo
             this.quotation = { ...data };
 
-            // 2. Form open kar do
             this.isFormOpen = true;
 
-            // 3. Agar table data parse karna ho (Jaise Revenue/Cost)
+            // ✅ FIX: normalize gstStatus (Taxable/Non-Taxable) from isGstApplicable
+            // before recalculating, otherwise GST fields stay empty on edit.
             if (data.costBreakdowns) {
-              this.costRows = data.costBreakdowns;
+              this.costRows = data.costBreakdowns.map((r: any) =>
+                this.normalizeBreakdownRow(r),
+              );
             }
             if (data.multiCarrierBreakdowns) {
-              this.multiCarrierRows = data.multiCarrierBreakdowns;
+              this.multiCarrierRows = data.multiCarrierBreakdowns.map(
+                (r: any) => this.normalizeBreakdownRow(r),
+              );
             }
             this.quotation.currency = data.cargoCurrency || "";
             this.quotation.cargoValue = data.cargoValue || null;
+            this.recalculateAllGst();
             this.cdr.detectChanges();
             console.log("Edit Form automatically opened for ID:", id);
           }
@@ -990,12 +928,8 @@ export class PriceComponent {
         },
       });
   }
-  // Add these variables in your class
-  // showPortOfLoadingDropdown = false;x
-  // filteredPortsOfLoading: any[] = [];
   activePOLIndex = -1;
 
-  // 1. Unified Search Logic
   onPortOfLoadingSearch(type: "name" | "code") {
     const searchTerm = (
       type === "name"
@@ -1028,7 +962,6 @@ export class PriceComponent {
     this.showPortOfLoadingDropdown = this.filteredPortsOfLoading.length > 0;
     this.activePOLIndex = -1;
   }
-  // 1. Master Teams list load karne ke liye function
   getTeams() {
     const token = localStorage.getItem("cavalier_token");
     const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
@@ -1043,10 +976,6 @@ export class PriceComponent {
     });
   }
 
-  // 2. Team select hone par specific sales coordinators fetch karne ke liye function
-  // --- 1. Properties Section me ye dono arrays declare karo (Baki variables ke sath top par) ---
-
-  // --- 2. Apne existing onTeamChange() function ko is upgraded system logic se replace karo ---
   onTeamChange(teamId: any) {
     console.log(
       "📡 Dynamic Team Change triggered inside Pricing Engine, Team ID:",
@@ -1062,7 +991,7 @@ export class PriceComponent {
       this.getsalescordinate = [];
       this.getquotedByList = [];
       this.getpricingByList = [];
-      this.getsalesTeamList = []; // 🔥 NAYA
+      this.getsalesTeamList = [];
       this.quotation.salesTeam = "";
       return;
     }
@@ -1079,7 +1008,7 @@ export class PriceComponent {
           res && res.salesCoordinators ? res.salesCoordinators : [];
         this.getquotedByList = res && res.quotedBy ? res.quotedBy : [];
         this.getpricingByList = res && res.pricingBy ? res.pricingBy : [];
-        this.getsalesTeamList = res && res.salesTeam ? res.salesTeam : []; // 🔥 NAYA — Inquiry jaisa
+        this.getsalesTeamList = res && res.salesTeam ? res.salesTeam : [];
 
         this.cdr.detectChanges();
       },
@@ -1097,7 +1026,6 @@ export class PriceComponent {
     });
   }
 
-  // 2. Select Logic
   selectPortOfLoading(port: any) {
     if (!port) return;
     this.quotation.portOfLoadingId = Number(port.id || port.Id);
@@ -1107,9 +1035,9 @@ export class PriceComponent {
     this.showPortOfLoadingDropdown = false;
     this.filteredPortsOfLoading = [];
     this.activePOLIndex = -1;
+    this.recalculateAllGst();
   }
 
-  // 3. Keyboard Navigation
   onPOLKeyDown(event: KeyboardEvent) {
     if (!this.showPortOfLoadingDropdown) return;
 
@@ -1130,15 +1058,10 @@ export class PriceComponent {
     }
   }
 
-  // 4. Outside Click
-  // inal Destination Search Logic
-  // Add these with your other class-level variables
-  // Add variables
   showFinalDestinationDropdown = false;
   filteredFinalDestinations: any[] = [];
   activeFDIndex = -1;
 
-  // 1. Unified Search Logic (Supports Name & Code)
   onFinalDestinationSearch(type: "name" | "code") {
     const searchTerm = (
       type === "name"
@@ -1173,7 +1096,6 @@ export class PriceComponent {
     this.activeFDIndex = -1;
   }
 
-  // 2. Selection Logic
   selectFinalDestination(port: any) {
     if (!port) return;
     this.quotation.finalDestination =
@@ -1184,7 +1106,6 @@ export class PriceComponent {
     this.activeFDIndex = -1;
   }
 
-  // 3. Keyboard Navigation
   onFDKeyDown(event: KeyboardEvent) {
     if (!this.showFinalDestinationDropdown) return;
 
@@ -1217,9 +1138,6 @@ export class PriceComponent {
     }, 0);
   }
 
-  // 4. Outside Click
-
-  // Jab user Ready ya Ready By select kare
   onShipmentTypeChange() {
     if (this.quotation.shipmentType === "Ready") {
       this.setTodayDate();
@@ -1228,48 +1146,262 @@ export class PriceComponent {
         this.setTodayDate();
       }
 
-      // Better logic to open calendar every time
       setTimeout(() => {
         if (this.cargoDateInput?.nativeElement) {
           const input = this.cargoDateInput.nativeElement;
 
-          // Focus + Click + showPicker (sab try karo)
           input.focus();
 
-          // Small delay for better reliability
           setTimeout(() => {
             input.click();
 
-            // Modern browsers ke liye best method
             try {
               (input as any).showPicker();
             } catch (e) {
-              // Fallback
               console.log("showPicker not supported, using click");
             }
           }, 50);
         }
-      }, 120); // Thoda zyada delay diya hai better result ke liye
+      }, 120);
     }
   }
-  loadChargeNamesMaster() {
-    this.http.get<any[]>(`${environment.apiUrl}/Charge`).subscribe({
+  loadChargeMaster() {
+    const lob = this.quotation?.lineOfBusinessName || "";
+    this.chargeService.getDropdown(lob || undefined).subscribe({
       next: (data) => {
-        this.chargesList = data;
+        this.chargeMasterList = data || [];
+        this.chargesList = this.chargeMasterList.map((c) => ({
+          id: c.id,
+          name: c.name,
+          code: c.code,
+        }));
         this.cdr.detectChanges();
       },
-      error: (err) => console.error("Error fetching charges:", err),
+      error: (err) => console.error("Error fetching charge master:", err),
     });
+  }
+
+  getFilteredChargeMaster(): ChargeDto[] {
+    const lob = (this.quotation?.lineOfBusinessName || "").trim();
+    if (!lob) return this.chargeMasterList;
+    return this.chargeMasterList.filter((c) =>
+      (c.applicableFor || []).some(
+        (a) => a.toLowerCase() === lob.toLowerCase(),
+      ),
+    );
+  }
+
+private getBranchState(): string {
+  const branchName = this.quotation?.branchName || "";
+  const branch = (this.branchlist || []).find(
+    (b) =>
+      (b.branchName || b.BranchName || "").toLowerCase() ===
+      branchName.toLowerCase(),
+  );
+  const state = branch?.state || branch?.State || "";
+  console.log('🔍 Branch State resolved:', state);
+  return state;
+}
+
+private getGstPortContext() {
+  const pol = this.portsOfLoading.find(
+    (p) => Number(p.id) === Number(this.quotation.portOfLoadingId),
+  );
+  const pod = this.portsOfDischarge.find(
+    (p) => Number(p.id) === Number(this.quotation.portOfDischargeId),
+  );
+  // Clean extra characters: extract only first part (e.g., "+91" from "+91 / IN")
+  const cleanCountry = (code: string) => {
+    if (!code) return '';
+    return code.split('/')[0].trim(); // removes "/ IN" etc.
+  };
+  const polCountry = cleanCountry(pol?.isoCode || pol?.IsoCode || pol?.countryCode || pol?.CountryCode || "");
+  const podCountry = cleanCountry(pod?.isoCode || pod?.IsoCode || pod?.countryCode || pod?.CountryCode || "");
+  
+  console.log('🔍 GST Port Context:', { polCountry, podCountry, pol, pod });
+  
+  return {
+    polCountryCode: polCountry,
+    podCountryCode: podCountry,
+    polCity: pol?.cityName || pol?.CityName || pol?.name || this.quotation.portOfLoading || "",
+    podCity: pod?.cityName || pod?.CityName || pod?.name || this.quotation.portOfDestination || "",
+    branchState: this.getBranchState(),
+  };
+}
+
+  private defaultGstFields(): Partial<CostBreakdown> {
+    return {
+      chargeCode: "",
+      gstStatus: "Non-Taxable",
+      isGstApplicable: false,
+      sacHsn: "",
+      taxableValue: 0,
+      nonTaxableValue: 0,
+      taxName: "",
+      taxPercent: 0,
+      cgst: 0,
+      sgst: 0,
+      igst: 0,
+      taxAmount: 0,
+      totalAmount: 0,
+      isZeroRated: false,
+      isRcmApplicable: false,
+      shipmentDirection: "",
+    };
+  }
+
+  applyGstToCostRow(row: any) {
+    const amountInr = Number(row.amount) || 0;
+    const isTaxable = row.gstStatus === "Taxable";
+    row.isGstApplicable = isTaxable;
+
+    const charge = this.chargeMasterList.find((c) => c.code === row.chargeCode);
+    if (!charge) {
+      console.warn("Charge not found in master list:", row.chargeCode);
+      return;
+    }
+
+    if (!this.taxRatesList || this.taxRatesList.length === 0) {
+      console.warn("Tax rates not loaded yet. Skipping GST calculation.");
+      return;
+    }
+
+    const ctx = this.getGstPortContext();
+    const result = this.gstCalculationService.calculateLineLocal(
+      {
+        chargeCode: row.chargeCode || "",
+        isTaxable,
+        amountInr,
+        ...ctx,
+        isZeroRated: !!row.isZeroRated,
+        isRcmApplicable: !!row.isRcmApplicable,
+      },
+      charge,
+      this.taxRatesList,
+    );
+
+    row.sacHsn = result.sacHsn;
+    row.taxableValue = result.taxableValue;
+    row.nonTaxableValue = result.nonTaxableValue;
+    row.taxName = result.taxName;
+    row.taxPercent = result.taxPercent;
+    row.cgst = result.cgst;
+    row.sgst = result.sgst;
+    row.igst = result.igst;
+    row.taxAmount = result.taxAmount;
+    row.totalAmount = result.totalAmount;
+    row.shipmentDirection = result.shipmentDirection;
+
+    console.log("GST calculation result:", result);
+  }
+
+  applyGstToMultiCarrierRow(row: any) {
+    const amountInr = Number(row.totalCost) || 0;
+    const isTaxable = row.gstStatus === "Taxable";
+    row.isGstApplicable = isTaxable;
+
+    const charge = this.chargeMasterList.find((c) => c.code === row.chargeCode);
+    const ctx = this.getGstPortContext();
+    const result = this.gstCalculationService.calculateLineLocal(
+      {
+        chargeCode: row.chargeCode || "",
+        isTaxable,
+        amountInr,
+        ...ctx,
+        isZeroRated: !!row.isZeroRated,
+        isRcmApplicable: !!row.isRcmApplicable,
+      },
+      charge,
+      this.taxRatesList,
+    );
+
+    row.sacHsn = result.sacHsn;
+    row.taxableValue = result.taxableValue;
+    row.nonTaxableValue = result.nonTaxableValue;
+    row.taxName = result.taxName;
+    row.taxPercent = result.taxPercent;
+    row.cgst = result.cgst;
+    row.sgst = result.sgst;
+    row.igst = result.igst;
+    row.taxAmount = result.taxAmount;
+    row.totalAmount = result.totalAmount;
+    row.shipmentDirection = result.shipmentDirection;
+  }
+
+  onCostChargeSelect(row: any, chargeCode: string) {
+    const charge = this.chargeMasterList.find((c) => c.code === chargeCode);
+    row.chargeCode = chargeCode || "";
+    row.chargeName = charge?.name || "";
+    if (charge) {
+      const gstRow = charge.taxRows?.find((t) => t.key === "GST" && t.checked);
+      row.isGstApplicable = !!gstRow && !!gstRow.categoryCode;
+      row.gstStatus = row.isGstApplicable ? "Taxable" : "Non-Taxable";
+    } else {
+      row.gstStatus = "Non-Taxable";
+      row.isGstApplicable = false;
+    }
+    this.applyGstToCostRow(row);
+    this.cdr.detectChanges();
+  }
+
+  onMultiCarrierChargeSelect(row: any, chargeCode: string) {
+    const charge = this.chargeMasterList.find((c) => c.code === chargeCode);
+    row.chargeCode = chargeCode || "";
+    row.chargeName = charge?.name || "";
+    if (charge) {
+      row.gstStatus = this.gstCalculationService.isChargeTaxableByDefault(
+        charge,
+      )
+        ? "Taxable"
+        : "Non-Taxable";
+    }
+    this.applyGstToMultiCarrierRow(row);
+    this.cdr.detectChanges();
+  }
+
+  onCostGstStatusChange(row: any) {
+    this.applyGstToCostRow(row);
+    this.cdr.detectChanges();
+  }
+
+  onMultiCarrierGstStatusChange(row: any) {
+    this.applyGstToMultiCarrierRow(row);
+    this.cdr.detectChanges();
+  }
+
+  normalizeBreakdownRow(row: any) {
+    row.gstStatus =
+      row.isGstApplicable || row.gstStatus === "Taxable"
+        ? "Taxable"
+        : "Non-Taxable";
+    if (!row.chargeCode && row.chargeName) {
+      const match = this.chargeMasterList.find(
+        (c) => c.name === row.chargeName,
+      );
+      if (match) row.chargeCode = match.code;
+    }
+    return row;
+  }
+
+  recalculateAllGst() {
+    (this.costRows || []).forEach((row) => this.applyGstToCostRow(row));
+    (this.multiCarrierRows || []).forEach((row) =>
+      this.applyGstToMultiCarrierRow(row),
+    );
+    this.cdr.detectChanges();
+  }
+
+  loadChargeNamesMaster() {
+    this.loadChargeMaster();
   }
   getbranch() {
     this.branchservice.getBranches().subscribe({
       next: (response: any) => {
-        this.branchlist = response; // insert all response data
+        this.branchlist = response;
         console.log("Branches loaded:", this.branchlist);
       },
       error: (err: any) => {
         console.error("Error fetching branches:", err);
-        // Optional: show toast/error message to user
       },
       complete: () => {
         console.log("Branch fetch completed");
@@ -1277,7 +1409,6 @@ export class PriceComponent {
     });
   }
   getMovementTypes() {
-    // Hits: https://localhost:xxxx/api/MovementTypes
     this.http.get<any[]>(`${environment.apiUrl}/MovementTypes`).subscribe({
       next: (data) => {
         this.movementTypes = data;
@@ -1295,6 +1426,7 @@ export class PriceComponent {
 
     const fullName = selectedService.serviceName.trim();
     this.quotation.lineOfBusinessName = fullName;
+    this.loadChargeMaster();
 
     if (this.costRows && this.costRows.length > 0) {
       this.costRows[0].lob = fullName;
@@ -1326,7 +1458,6 @@ export class PriceComponent {
       }
     }
 
-    // 🔥 NAYA: LOB select hote hi agents fetch karo
     const currentCountry =
       this.quotation.country || this.selectedCountryName || "";
     this.fetchAgentByLobId(selectedId, currentCountry);
@@ -1353,15 +1484,15 @@ export class PriceComponent {
       "Indirect:",
       this.quotation.isIndirect,
     );
-    // Optional: Agar dono select nahi karna chahte toh logic laga sakte ho
-    // Example: Agar Direct true hai to Indirect false kar do (mutually exclusive)
     if (this.quotation.isDirect) this.quotation.isIndirect = false;
     if (this.quotation.isIndirect) this.quotation.isDirect = false;
   }
 
   onIncotermChange(event: any) {
     const selectedIncoterm = event.target.value?.toUpperCase().trim();
+    console.log(selectedIncoterm)
     this.showincoterms = selectedIncoterm;
+   this.cdr.detectChanges();
     if (!selectedIncoterm) return;
 
     this.quotation.incoterm = selectedIncoterm;
@@ -1378,22 +1509,18 @@ export class PriceComponent {
       this.quotation.deliveryAddress = "";
     }
 
-    // 🔥 Updated Logic as per your requirement
     switch (selectedIncoterm) {
-      // PORT TO PORT
       case "FOB":
         this.quotation.movementType = "PORT TO PORT";
         this.isPickupEnabled = false;
         this.quotation.pickupAddress = "";
         break;
 
-      // DOOR TO PORT
       case "EXWORK":
         this.quotation.movementType = "DOOR TO PORT";
         this.isPickupEnabled = true;
         break;
 
-      // DOOR TO DOOR (Default for everything else)
       default:
         this.quotation.movementType = "DOOR TO DOOR";
         this.isPickupEnabled = false;
@@ -1405,7 +1532,6 @@ export class PriceComponent {
     );
   }
   getTransportModes() {
-    // Using environment.apiUrl + your controller route
     const url = `${environment.apiUrl}/TransportModes`;
 
     this.http.get<any[]>(url).subscribe({
@@ -1416,7 +1542,6 @@ export class PriceComponent {
     });
   }
   getShipmentTypes() {
-    // This hits: https://localhost:xxxx/api/ShipmentTypes
     this.http.get<any[]>(`${environment.apiUrl}/ShipmentTypes`).subscribe({
       next: (data) => {
         this.shipmentTypes = data;
@@ -1425,7 +1550,6 @@ export class PriceComponent {
     });
   }
 
-  // Add this method in your PriceComponent class
   closeAirlineDropdownWithDelay() {
     setTimeout(() => {
       if (!this.airlineDropdownClicked) {
@@ -1450,14 +1574,12 @@ export class PriceComponent {
 
     this.cdr.detectChanges();
   }
-  // --- Fetch Origins List --
 
   fetchCompanyServices() {
     const url = `${environment.apiUrl}/CompanyService`;
     this.http.get<any[]>(url).subscribe({
       next: (data) => {
         this.companyServices = data;
-        // Ye logs help karenge check karne mein ki 'serviceName' aa raha hai ya nahi
         console.log("Line of Business loaded:", data);
         this.cdr.detectChanges();
       },
@@ -1465,10 +1587,6 @@ export class PriceComponent {
     });
   }
 
-  // --- Search Logic ---
-  // PriceComponent mein sirf ek hi `clickout` hona chahiye:
-
-  // 2. Fetch API Updated
   fetchOrigins() {
     const url = `${environment.apiUrl}/origin/all`;
     this.http.get<any[]>(url).subscribe((data) => {
@@ -1487,18 +1605,14 @@ export class PriceComponent {
     row.forwarder = selectedAgentName;
 
     if (found) {
-      // Extra useful fields bhi row me store kar lo agar chahiye
       row.forwarderOrgName = found.orgName || "";
       row.forwarderBranch = found.branchName || "";
       row.forwarderEmail = found.email || "";
-      // Origin bhi agent ke city se auto-fill kar sakte hain agar chahiye
-      // row.origin = found.city || row.origin;
     }
 
     this.cdr.detectChanges();
   }
 
-  // 3. Search Logic
   onOriginSearchInput() {
     const searchTerm = (this.inquiry.origin || "")
       .toString()
@@ -1519,24 +1633,19 @@ export class PriceComponent {
     this.showOriginDropdown = true;
   }
 
-  // --- Selection Logic ---
   selectOrigin(origin: any) {
-    // Mapping logic
     this.originsaveid = origin.id;
     this.originpinCode = origin.countryCode;
 
-    // Origin field update
     this.inquiry.origin = origin.name;
 
-    // FIX: Country auto-fill for BOTH properties (display and underlying data)
-    this.quotation.countryName = origin.countryName || origin.country; // Ye template ke liye zaroori hai
-    this.quotation.country = origin.countryName || origin.country; // Ye backend/logic ke liye
+    this.quotation.countryName = origin.countryName || origin.country;
+    this.quotation.country = origin.countryName || origin.country;
 
     this.showOriginDropdown = false;
 
     console.log("Selected Origin and Country:", origin);
 
-    // Multi-Carrier Grid update
     if (this.multiCarrierRows?.length > 0) {
       this.multiCarrierRows.forEach((row: any) => {
         row.origin = origin.name;
@@ -1556,14 +1665,13 @@ export class PriceComponent {
 
     this.http.get<any[]>(url).subscribe({
       next: (res) => {
-        this.agentDetail = res; // API ka pura data array mein save
+        this.agentDetail = res;
 
-        // Force change detection agar zarurat ho
         this.cdr.detectChanges();
       },
       error: (err) => {
         console.error("Agent fetch fail ho gaya bhai:", err);
-        this.agentDetail = []; // Error aane par array clear
+        this.agentDetail = [];
       },
     });
   }
@@ -1573,8 +1681,6 @@ export class PriceComponent {
     this.agentDetail.forEach((agent) => {
       agent.isSelected = isChecked;
 
-      // Agar aapka puraana 'onAgentSelect' logic kuch aur fields ya arrays populate karta hai,
-      // toh use bhi yahan sync mein rakhne ke liye pseudo-event bana kar call kar sakte hain:
       const mockEvent = { target: { checked: isChecked } };
       this.onAgentSelect(mockEvent, agent);
     });
@@ -1591,23 +1697,20 @@ export class PriceComponent {
       return;
     }
 
-    // Fallback structure sequence filtering array
     const safeCountry = countryName
       ? encodeURIComponent(countryName.trim())
       : "";
 
-    // API URL compilation layout routing template architecture
-    // Resulting format: api/OrgBranch/GetByLobIdAgent/25?country=India
     const url = `${environment.apiUrl}/OrgBranch/GetByLobIdAgent/${lobId}?country=${safeCountry}`;
     console.log("📡 Dispatching Combined Agent Query Payload:", url);
 
     this.http.get<any[]>(url).subscribe({
       next: (res) => {
-        this.agentDetail = res || []; // Master display buffer snapshot update
+        this.agentDetail = res || [];
         if (this.quotation.Agent) {
           this.markAgentAsSelected(this.quotation.Agent);
         }
-        this.cdr.detectChanges(); // Force layout visual frame modification refresh
+        this.cdr.detectChanges();
         console.log(
           "✅ Agents/Branches synced for review sequence:",
           this.agentDetail,
@@ -1615,7 +1718,7 @@ export class PriceComponent {
       },
       error: (err) => {
         console.error("❌ Agent dynamic fetch protocol failed:", err);
-        this.agentDetail = []; // Safe error state resetting logic sequential stream
+        this.agentDetail = [];
         this.cdr.detectChanges();
       },
     });
@@ -1645,7 +1748,6 @@ export class PriceComponent {
       finalDimensions = [...this.appliedDimensions];
     }
 
-    // Compiling readable data stream summary block mapping matrix array layout configuration
     const completeData = {
       lineOfBusiness: this.getLabel(
         this.companyServices,
@@ -1665,7 +1767,6 @@ export class PriceComponent {
 
     this.localInquiryList = [completeData];
 
-    // 🔥 CORE INTEGRATION MODULE: Fire network hit using the current form configuration parameter keys
     const activeLobId = this.quotation.lineOfBusinessId;
     const currentCountry =
       this.quotation.country || this.selectedCountryName || "";
@@ -1687,7 +1788,7 @@ export class PriceComponent {
       console.log(
         `✅ Agent selected: ${Array.from(this.selectedEmails)} | Branch: ${branch}`,
       );
-      this.lastSelectedBranch = branch; // Latest branch ko save kar liya
+      this.lastSelectedBranch = branch;
     } else {
       this.selectedEmails.delete(email);
     }
@@ -1702,7 +1803,6 @@ export class PriceComponent {
     });
   }
 
-  // --- Search Logic ---
   onLeadSearchInput() {
     if (this.inquiry.leadNo && this.inquiry.leadNo.length > 3) {
       this.showLeadDropdown = true;
@@ -1724,12 +1824,8 @@ export class PriceComponent {
       },
     });
   }
-  // Variables
-  // showPortOfDischargeDropdown = false;
-  // filteredPortsOfDischarge: any[] = [];
   activePODIndex = -1;
 
-  // 1. Unified Search Logic
   onPortOfDischargeSearch(type: "name" | "code") {
     const searchTerm = (
       type === "name"
@@ -1763,7 +1859,6 @@ export class PriceComponent {
     this.activePODIndex = -1;
   }
 
-  // 2. Select Logic
   selectPortOfDischarge(port: any) {
     if (!port) return;
     this.quotation.portOfDischargeId = Number(port.id || port.Id);
@@ -1773,9 +1868,9 @@ export class PriceComponent {
     this.showPortOfDischargeDropdown = false;
     this.filteredPortsOfDischarge = [];
     this.activePODIndex = -1;
+    this.recalculateAllGst();
   }
 
-  // 3. Keyboard Navigation
   onPODKeyDown(event: KeyboardEvent) {
     if (!this.showPortOfDischargeDropdown) return;
 
@@ -1796,38 +1891,15 @@ export class PriceComponent {
     }
   }
 
-  // 4. Outside Click (Ensure ElementRef is injected)
-
-  // --- Selection Logic ---
-  //  selectLead(lead: any) {
-  //   if (!lead) return;
-
-  //   // 🔥 Yahan Lead ID console mein dikhega
-  //   console.log("Selected Lead ID (from list):", lead.id);
-
-  // console.log("Selected Lead's Organization ID:", lead.organisationId);
-  //   this.inquiry.leadNo = lead.leadNo;
-  //  // Agar lead ke sath organization ka naam bhi aata hai toh
-  //   this.showLeadDropdown = false;
-  // console.log("Lead selected, now fetching full details for Lead ID:", this.LeadId);
-  // console.log("Lead No set to:", this.OrganisationId);
-  //   // Pura data fetch karne ke liye call
-  //   this.loadLeadByLeadNo(lead.leadNo);
-  // }
-  // --- Fetch Organization List ---
-
   fetchOrganizations() {
     const url = `${environment.apiUrl}/Organization/list`;
 
-    // 1. Token nikaalo
     const token = localStorage.getItem("cavalier_token");
 
-    // 2. Headers setup karo
     const headers = new HttpHeaders({
       Authorization: `Bearer ${token}`,
     });
 
-    // 3. Headers pass karo (options object mein)
     this.http.get<any[]>(url, { headers }).subscribe({
       next: (data) => {
         this.organizations = data;
@@ -1838,7 +1910,6 @@ export class PriceComponent {
     });
   }
 
-  // --- Search Logic ---
   onSearchInput() {
     if (this.inquiry.organization && this.inquiry.organization.length > 3) {
       this.showDropdown = true;
@@ -1852,11 +1923,9 @@ export class PriceComponent {
     }
   }
 
-  // --- Selection Logic ---
   selectOrganization(org: any) {
     this.inquiry.organization = org.orgName;
 
-    // Address update karein
     setTimeout(() => {
       this.inquiry.organizationAddress = org.address;
     }, 0);
@@ -1867,20 +1936,15 @@ export class PriceComponent {
     this.cdr.detectChanges();
   }
   getNextInquiryNumber() {
-    // 1. URL ko environment variable se combine karein
-    // Ensure you are calling: GET api/Inquiry/NextInquiryNo
     const url = `${environment.apiUrl}/Inquiry/NextInquiryNo`;
 
-    // 2. API Call (responseType 'text' use karein kyunki hum sirf number ki string mang rahe hain)
     this.http.get(url, { responseType: "text" }).subscribe({
       next: (nextNo) => {
-        // 3. Form ke inquiryNo field mein value set karein
         this.inquiry.inquiryNo = nextNo;
         console.log("Next Inquiry No set to:", nextNo);
       },
       error: (err) => {
         console.error("API Error:", err);
-        // Yahan aap user ko error message dikha sakte hain
       },
     });
   }
@@ -1892,38 +1956,24 @@ export class PriceComponent {
     });
   }
 
-  //     onFileSelected(event: any) {
-  //   const file = event.target.files[0];
-  //   if (file) {
-  //     this.selectedFile = file;
-  //     // 🔥 Important: Database ke column ke liye file ka naam yahan set ho raha hai
-  //     this.quotation.hazardDocPath = file.name;
-  //     console.log("Selected File Name:", file.name);
-  //   }
-  // }
-
   onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
-      // Nayi file ko array mein add kar rahe hain (Ye static list banayega)
       this.uploadedDocuments.push({
         file: file,
         fileName: file.name,
       });
 
-      // Pehli file ka naam purane logic ki tarah set kar rahe hain (Optional)
       if (this.uploadedDocuments.length === 1) {
         this.quotation.hazardDocPath = file.name;
       }
 
-      // Input ko reset karna taaki user dubara wahi button daba sake
       event.target.value = "";
 
       console.log("Documents List:", this.uploadedDocuments);
     }
   }
 
-  // Static list se file hatane ke liye function
   removeDoc(index: number) {
     this.uploadedDocuments.splice(index, 1);
   }
@@ -1933,17 +1983,13 @@ export class PriceComponent {
   }
   deleteQuotation(id: number) {
     if (confirm("Are you sure?")) {
-      // 1. IMMEDIATE UI UPDATE (Wait mat karo API ka)
-      // Maan lo aapka array 'quotations' naam se hai
       this.quotations = this.quotations.filter((q: any) => q.id !== id);
 
-      // 2. Angular ko bolo ki turant UI badal de
       this.cdr.detectChanges();
 
       this.http.delete(`${this.apiUrl}/${id}`).subscribe({
         next: () => {
           console.log("Deleted Successfully!");
-          // Backend se sync karne ke liye piche se load kar lo
           this.loadQuotations();
           this.cdr.detectChanges();
         },
@@ -1956,14 +2002,13 @@ export class PriceComponent {
             confirmButtonColor: "#d33",
             confirmButtonText: "OK",
           });
-          this.loadQuotations(); // Agar error aaye toh wapas list le aao
+          this.loadQuotations();
           this.cdr.detectChanges();
         },
       });
     }
   }
   getFormattedInquiryNo(): string {
-    // 1️⃣ Line of Business Name (Air Import -> AI)
     const lobName = this.quotation.lineOfBusinessName || "";
 
     const initials = (lobName || "")
@@ -1973,7 +2018,6 @@ export class PriceComponent {
       .join("")
       .toUpperCase();
 
-    // 2️⃣ Running Number (temporary frontend)
     let number = 1;
 
     if (this.inquiry.inquiryNo) {
@@ -1982,7 +2026,6 @@ export class PriceComponent {
 
     const formattedNumber = number.toString().padStart(4, "0");
 
-    // 3️⃣ Financial Year
     const now = new Date();
     const startYear =
       now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1;
@@ -1990,7 +2033,6 @@ export class PriceComponent {
 
     const fy = `${startYear.toString().slice(-2)}-${endYear.toString().slice(-2)}`;
 
-    // 4️⃣ Final Format
     return `CAV/INQ/${initials}/${formattedNumber}/${fy}`;
   }
 
@@ -1998,14 +2040,11 @@ export class PriceComponent {
     this.isFormOpen = !this.isFormOpen;
 
     if (!this.isFormOpen) {
-      // Jab form BAND ho raha ho (Existing logic)
       this.isPreviewMode = false;
       this.quotation = this.resetQuotationModel();
       this.appliedDimensions = [];
       this.dimRows = [{ box: 1, l: 0, w: 0, h: 0, unit: "CMS" }];
     } else {
-      // Jab form KHUL raha ho (New logic for Pricing No)
-      // Check karein ki ye New Entry hai (ID nahi hai) ya Edit hai
       if (!this.quotation || !this.quotation.id || this.quotation.id === 0) {
         this.fetchNextPricingNumber();
       }
@@ -2014,7 +2053,6 @@ export class PriceComponent {
     this.cdr.detectChanges();
   }
 
-  // Yeh function bhi niche add kar dena agar pehle nahi kiya hai
   fetchNextPricingNumber() {
     const token = localStorage.getItem("cavalier_token");
     const headers = { Authorization: `Bearer ${token}` };
@@ -2024,7 +2062,6 @@ export class PriceComponent {
       .subscribe({
         next: (res: any) => {
           if (res && res.nextNo) {
-            // Form khulne ke turant baad input mein number dikh jayega
             this.quotation.pricingNo = res.nextNo;
             this.cdr.detectChanges();
           }
@@ -2034,66 +2071,6 @@ export class PriceComponent {
         },
       });
   }
-
-  //    openDimModal() {
-  //   // Agar dimRows khali hai ya purana data hai toh reset kar do
-  //   if (!this.dimRows || this.dimRows.length === 0) {
-  //     this.dimRows = [{
-  //       box: 1,
-  //       l: 0,
-  //       w: 0,
-  //       h: 0,
-  //       unit: 'CMS'
-  //     }];
-  //   }
-
-  //   this.isDimModalOpen = true;
-  // }
-  //     closeDimModal() { this.isDimModalOpen = false; }
-
-  //     addNewDimRow() {
-  //   this.dimRows.push({
-  //     box: 1,
-  //     l: 0,
-  //     w: 0,
-  //     h: 0,
-  //     unit: 'CMS'
-  //   });
-
-  //   // UI update ke liye
-  //   this.cdr.detectChanges();
-  // }
-
-  //  removeDimRow(i: number) {
-  //   if (this.dimRows.length > 1) {
-  //     this.dimRows.splice(i, 1);
-  //   }
-  // }
-
-  // saveDimensions() {
-  //   this.appliedDimensions = this.dimRows.filter(d => d.l > 0 && d.w > 0 && d.h > 0);
-
-  //   // Volume Weight automatically set kar do
-  //   // this.quotation.volumeWeight = this.getTotalVolumeWeight();
-
-  //   console.log("Volume Weight Calculated:", this.quotation.volumeWeight);
-
-  //   this.closeDimModal();
-  // }
-  // ================== MODAL FUNCTIONS ==================
-
-  // openDimModal() {
-  //   if (!this.dimRows || this.dimRows.length === 0) {
-  //     this.dimRows = [{
-  //       box: 1,
-  //       l: 0,
-  //       w: 0,
-  //       h: 0,
-  //       unit: 'CMS'
-  //     }];
-  //   }
-  //   this.isDimModalOpen = true;
-  // }
 
   closeDimModal() {
     this.isDimModalOpen = false;
@@ -2124,43 +2101,34 @@ export class PriceComponent {
       confirmButtonText: "OK",
     });
   }
-  // Sahi initialization:
-  // dimRows: any[] = [];
   saveDimensions() {
     console.log(
       "--- 💾 Syncing and Applying Multiple Dimensions ---",
       this.dimRows,
     );
 
-    // 1. Array reference ko completely copy aur break down karein
     this.dimRows = [...this.dimRows];
 
-    // Valid rows ko filter out karein jisme dimensions enter ho chuki hain
     this.appliedDimensions = this.dimRows.filter(
       (d) => Number(d.l) > 0 || Number(d.w) > 0 || Number(d.h) > 0,
     );
 
-    // 2. Direct assignment to quotation parent model for tracking payload stability
     this.quotation.dimensions = [...this.dimRows];
 
-    // 3. Keep main screen row (dimRow) synced with first row element configuration
     if (this.dimRows.length > 0) {
       this.dimRow = { ...this.dimRows[0] };
     }
 
-    // 4. Recalculate everything sequentially inside dynamic buffer matrix
     this.quotation.volumeWeight = this.getTotalVolumeWeight();
     this.calculateCBM();
     this.calculateNetWeight();
     this.calculateVolumeWeightLogic();
-    this.calculateTotalPackages(); // Total packages count automatically synched here
+    this.calculateTotalPackages();
 
     this.isDimModalOpen = false;
-    this.cdr.detectChanges(); // Force dynamic visual screen tree refresh
+    this.cdr.detectChanges();
   }
-  // 4. Save button par calculation trigger karna
   openDimModal() {
-    // Agar dimRows empty hai, toh dimRow (Main UI) wala data push kar do
     if (!this.dimRows || this.dimRows.length === 0) {
       this.dimRows = [{ ...this.dimRow }];
     }
@@ -2168,96 +2136,15 @@ export class PriceComponent {
     this.cdr.detectChanges();
   }
 
-  // Jab Modal Open ho
-
-  // editQuotation(q: any) {
-  //   // environment se URL lekar fresh API call
-  //   const url = `${environment.apiUrl}/Pricing/${q.id}`;
-
-  //   this.http.get(url).subscribe({
-  //     next: (fullData: any) => {
-  //       console.log("DEBUG: Fresh API Data received:", fullData);
-
-  //       // Mapping logic
-  //       this.quotation = { ...fullData };
-
-  //       // IDs mapping
-  //       this.quotation.lineOfBusinessId = fullData.lineOfBusinessId ? Number(fullData.lineOfBusinessId) : null;
-  //       this.quotation.originId = fullData.originId ? Number(fullData.originId) : null;
-  //       this.quotation.portOfLoadingId = fullData.portOfLoadingId ? Number(fullData.portOfLoadingId) : null;
-  //       this.quotation.portOfDischargeId = fullData.portOfDischargeId ? Number(fullData.portOfDischargeId) : null;
-
-  //       // UI object update
-  //       this.inquiry = {
-  //         ...this.inquiry,
-  //         inquiryNo: fullData.inquiryNo,
-  //         organization: fullData.customerName || fullData.organization,
-  //         origin: fullData.origin,
-  //         leadNo: fullData.leadNo
-  //       };
-
-  //       // --- DOCUMENTS MAPPING ---
-  //       const allDocs = fullData.pricingDocuments || [];
-  //       console.log("DEBUG: Total Docs found:", allDocs.length);
-
-  //       this.documents = allDocs
-  //         .filter((d: any) => d.docType === 'Commodity')
-  //         .map((d: any) => ({
-  //           id: d.docId,
-  //           name: d.docType,
-  //           documentPath: d.docPath,
-  //           isExisting: true,
-  //           file: null,
-  //           isReplacing: false
-  //         }));
-
-  //       this.invoices = allDocs
-  //         .filter((d: any) => d.docType === 'Invoice')
-  //         .map((d: any) => ({
-  //           id: d.docId,
-  //           name: d.docType,
-  //           documentPath: d.docPath,
-  //           isExisting: true,
-  //           file: null,
-  //           isReplacing: false
-  //         }));
-
-  //       this.quotation.invoiceList = (this.invoices.length > 0) ? 'Available' : 'Not Available';
-
-  //       // Dates & Dimensions
-  //       if (fullData.receivedDate) {
-  //         this.quotation.receivedDate = new Date(fullData.receivedDate).toISOString().split('T')[0];
-  //       }
-
-  //       this.appliedDimensions = fullData.dimensions || [];
-  //       this.dimRows = this.appliedDimensions.length > 0
-  //         ? [...this.appliedDimensions]
-  //         : [{ box: 1, l: 0, w: 0, h: 0, unit: 'CMS' }];
-
-  //       // Modal open
-  //       this.isFormOpen = true;
-
-  //       setTimeout(() => {
-  //         this.cdr.detectChanges();
-  //       }, 100);
-  //     },
-  //     error: (err) => {
-  //       console.error("DEBUG: Error fetching data from:", url, err);
-  //     }
-  //   });
-  // }
   editQuotation(q: any) {
     const url = `${environment.apiUrl}/Pricing/${q.id}`;
 
     this.http.get<any>(url).subscribe({
       next: (fullData) => {
-        console.log("FULL DATA RECEIVED:", fullData); // Ye check karo, yahan documents dikhne chahiye!
+        console.log("FULL DATA RECEIVED:", fullData);
 
         this.quotation = { ...fullData };
 
-        // YAHAN Galti hoti hai: Backend 'pricingDocuments' bhej raha hai,
-        // par tumne screenshot mein 'pricingDocuments' khali dikhaya hai.
-        // Check karo kya backend ne sach mein data diya?
         this.documents = fullData.pricingDocuments.filter(
           (d: any) => d.docType === "Commodity",
         );
@@ -2283,9 +2170,9 @@ export class PriceComponent {
       lineOfBusinessId: null,
       commodityId: 1,
       cargoStatusType: "Ready",
-      salesTeam: "", // 🔥 NAYA
-      portOfLoadingId: 1, // Matches pol1 request
-      portOfDischargeId: 1, // Matches pod1 request
+      salesTeam: "",
+      portOfLoadingId: 1,
+      portOfDischargeId: 1,
       noOfPkgs: 1,
       grossWeightKg: 0,
       chargeableWeight: 0,
@@ -2297,7 +2184,6 @@ export class PriceComponent {
     };
   }
 
-  // Variables define karein
   allUniqueServices: string[] = [];
   filteredServices: string[] = [];
 
@@ -2312,12 +2198,10 @@ export class PriceComponent {
       .get<any[]>(`${environment.apiUrl}/Pricing`, { headers })
       .subscribe({
         next: (data) => {
-          // 1. Data se transportMode nikalo aur null values hatao
           const allModes = data
             .map((item) => item.transportMode)
             .filter((m) => m);
 
-          // 2. 🔥 Set se duplicates hata kar master list banao
           this.allUniqueServices = [...new Set(allModes)];
 
           console.log("Master Unique List ready:", this.allUniqueServices);
@@ -2338,11 +2222,7 @@ export class PriceComponent {
       });
   }
 
-  // 🔥 Naya function: Jo typing ke waqt filter karega
-  // ---- 1. Toggle Service Popup (Token + Headers + Correct Object Mapping) ----
-  // ---- 1. Toggle Service Popup (Token + Headers + Correct Object Mapping) ----
   toggleServicePopup() {
-    // FIX: Service popup variable check karo
     if (this.showServicePopup) {
       this.showServicePopup = false;
       this.cdr.detectChanges();
@@ -2387,7 +2267,6 @@ export class PriceComponent {
 
         this.allTransportModes = uniqueModes;
 
-        // FIX: Yahan 'allUniqueServices' use karo jo aapne pehle declare kiya hai
         this.allUniqueServices = [...uniqueModes];
 
         this.showServicePopup = true;
@@ -2402,7 +2281,6 @@ export class PriceComponent {
     });
   }
 
-  // ---- 2. Input change search filter logic ----
   onServiceType() {
     const query = this.searchFilters.transportMode
       ? this.searchFilters.transportMode.trim().toLowerCase()
@@ -2423,24 +2301,19 @@ export class PriceComponent {
     this.cdr.detectChanges();
   }
 
-  // ---- 3. Helper: Item selection handler ----
   selectServiceType(val: string) {
     console.log("--- 🎯 Item Selected ---", val);
     this.searchFilters.transportMode = val;
     this.filteredServices = [];
-    // FIX: Service popup ko band karenge
     this.showServicePopup = false;
     this.cdr.detectChanges();
   }
-  // Variables declare karein
-  allUniqueInquiryNos: string[] = []; // Master list (Unique)
-  filteredInquiryNos: string[] = []; // Suggestions for UI
-  // --- Pricing Number Search Variables ---
+  allUniqueInquiryNos: string[] = [];
+  filteredInquiryNos: string[] = [];
   showPricingPopup: boolean = false;
   allUniquePricingNos: string[] = [];
-  masterPricingList: string[] = []; // Backup ke liye
+  masterPricingList: string[] = [];
   filteredPricingNos: string[] = [];
-  // 1. Isko ngOnInit mein ek hi baar call karo
   loadPricingNumbers() {
     const token = localStorage.getItem("cavalier_token");
     const headers = { Authorization: `Bearer ${token}` };
@@ -2453,25 +2326,20 @@ export class PriceComponent {
             .map((item) => item.pricingNo)
             .filter((n) => n);
 
-          this.masterPricingList = [...new Set(rawNumbers)]; // Backup list
-          this.allUniquePricingNos = [...this.masterPricingList]; // Display list
+          this.masterPricingList = [...new Set(rawNumbers)];
+          this.allUniquePricingNos = [...this.masterPricingList];
         },
         error: (err) => console.error("Error:", err),
       });
   }
 
-  // 2. Icon click par bina kisi delay ke modal kholna
   togglePricingPopup() {
     this.showPricingPopup = !this.showPricingPopup;
-    this.allUniquePricingNos = [...this.masterPricingList]; // List reset karo instantly
+    this.allUniquePricingNos = [...this.masterPricingList];
 
-    // 🔥 Ye magic line hai: UI ko turant update karega
     this.cdr.detectChanges();
   }
-  // 1. Main Field me type karne par chalne wala function (Inline Dropdown ke liye)
 
-  // 2. Modal ke andar search box me type karne par chalne wala function
-  // ---- 1. Icon (🔍) Clicked - Map response object to string array ----
   openPricingModal() {
     console.log("--- 🔍 Icon Clicked: openPricingModal() Triggered ---");
     this.showPricingPopup = true;
@@ -2486,7 +2354,6 @@ export class PriceComponent {
       next: (response: any) => {
         console.log("Backend API Raw Response:", response);
 
-        // FIX: Pehle response.data check karenge, fir usme se sirf pricingNo ki string nikalenge
         if (response && response.data && Array.isArray(response.data)) {
           this.masterPricingList = response.data.map(
             (item: any) => item.pricingNo,
@@ -2500,14 +2367,13 @@ export class PriceComponent {
           this.masterPricingList,
         );
 
-        // Ab yeh safely spread (...) ho jayega kyunki yeh pure array hai
         this.allUniquePricingNos = [...this.masterPricingList];
         console.log(
           "Modal rendering data sequence ready:",
           this.allUniquePricingNos,
         );
 
-        this.cdr.detectChanges(); // UI Update
+        this.cdr.detectChanges();
       },
       error: (error: any) => {
         console.error("API call directly failed! Trace:", error);
@@ -2516,7 +2382,6 @@ export class PriceComponent {
     });
   }
 
-  // ---- 2. Main Input Change Observer (Dropdown Control) ----
   onPricingNoType() {
     const query = this.searchFilters.pricingNo
       ? this.searchFilters.pricingNo.trim().toLowerCase()
@@ -2525,7 +2390,6 @@ export class PriceComponent {
     console.log("Normalized query filter:", query);
 
     if (query.length >= 3) {
-      // FIX: ensure masterPricingList string array hi ho
       this.filteredPricingNos = this.masterPricingList.filter(
         (pNo: any) => pNo && pNo.toLowerCase().includes(query),
       );
@@ -2541,7 +2405,6 @@ export class PriceComponent {
     this.cdr.detectChanges();
   }
 
-  // ---- 3. Modal Inner Filtration Control ----
   filterPricingList(event: any) {
     const searchTerm = event.target.value
       ? event.target.value.toLowerCase().trim()
@@ -2552,7 +2415,6 @@ export class PriceComponent {
       this.allUniquePricingNos = [...this.masterPricingList];
       console.log("Search field empty. Reverted back to full master dataset.");
     } else {
-      // FIX: safe check lagaya taaki lowercase crash na ho
       this.allUniquePricingNos = this.masterPricingList.filter(
         (pNo: any) => pNo && pNo.toLowerCase().includes(searchTerm),
       );
@@ -2565,45 +2427,32 @@ export class PriceComponent {
     this.cdr.detectChanges();
   }
 
-  // ---- Helper Option Selection Control ----
   selectPricingNumber(num: string) {
     console.log("--- 🎯 Selection Event Fired ---", num);
 
     this.searchFilters.pricingNo = num;
-    this.filteredPricingNos = []; // Suggestion List reset
-    this.showPricingPopup = false; // Modal close
+    this.filteredPricingNos = [];
+    this.showPricingPopup = false;
 
     this.cdr.detectChanges();
   }
 
-  // 3. Ek extra helper function (Modal kholte waqt list ko reset karne ke liye)
-  // Isko aap tab trigger karna jab 🔍 button par click karke modal open ho
-
-  // 3. Modal ke andar search - Ab ye bina API ke chalega (Local Search)
-
-  // 2. Ye raha wo function jo error de raha hai
-
   loadInquiryNumbers() {
-    // 1. Token nikaalna (Local storage se ya jahan aapne save kiya ho)
     const token = localStorage.getItem("cavalier_token");
 
-    // 2. Headers create karna
     const headers = {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     };
 
-    // 3. Authorized Get Request
     this.http
       .get<any[]>(`${environment.apiUrl}/Inquiry`, { headers })
       .subscribe({
         next: (data) => {
-          // InquiryNo nikaal kar null/undefined hatao
           const rawNumbers = data
             .map((item) => item.inquiryNo)
             .filter((n) => n !== null && n !== undefined && n !== "");
 
-          // Duplicates hatao
           this.allUniqueInquiryNos = [...new Set(rawNumbers)];
 
           console.log(
@@ -2613,13 +2462,11 @@ export class PriceComponent {
         },
         error: (err) => {
           console.error("Authorization failed or API error:", err);
-          // Agar token expire ho jaye toh yahan logic handle kar sakte hain
         },
       });
   }
 
   onInquiryType() {
-    // Query ko authorize/sahi karna (3 words logic)
     const query = this.searchFilters.inquiryNo
       ? String(this.searchFilters.inquiryNo).trim().toLowerCase()
       : "";
@@ -2629,18 +2476,15 @@ export class PriceComponent {
         (num) => num && String(num).toLowerCase().includes(query),
       );
     } else {
-      this.filteredInquiryNos = []; // 3 se kam par suggestions hide
+      this.filteredInquiryNos = [];
     }
   }
-  // Variables declare karein
-  allUniqueCoordinators: string[] = []; // Master list (Unique Names)
-  filteredCoordinators: string[] = []; // Suggestions for UI
+  allUniqueCoordinators: string[] = [];
+  filteredCoordinators: string[] = [];
 
   loadCoordinators() {
-    // 1. Authorization Token nikalna
     const token = localStorage.getItem("cavalier_token");
 
-    // 2. Headers mein token set karna
     const headers = {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
@@ -2650,14 +2494,12 @@ export class PriceComponent {
       .get<any[]>(`${environment.apiUrl}/Inquiry`, { headers })
       .subscribe({
         next: (data) => {
-          // 3. Null check aur string safety ke saath data map karna
           const rawCoords = data
             .map((item) => item.salesCoordinator)
             .filter(
               (c) => c !== null && c !== undefined && String(c).trim() !== "",
             );
 
-          // 4. Duplicate hatana
           this.allUniqueCoordinators = [...new Set(rawCoords)];
           console.log(
             "Authorized Coordinators Loaded:",
@@ -2670,33 +2512,26 @@ export class PriceComponent {
       });
   }
 
-  // 🔥 Typing ke waqt filter karne wala function
   onCoordinatorType() {
-    // 1. Query ko authorize/validate karna
     const query = this.searchFilters.salesCoordinator
       ? String(this.searchFilters.salesCoordinator).trim().toLowerCase()
       : "";
 
-    // 2. Logic: Exact 3 ya usse zyada characters par hi suggestions aayenge
     if (query.length >= 3) {
       this.filteredCoordinators = this.allUniqueCoordinators.filter(
         (name) => name && String(name).toLowerCase().includes(query),
       );
       console.log("Suggestions Found:", this.filteredCoordinators.length);
     } else {
-      // 3. Agar user backspace dabake 3 se kam kar de, toh list turant khali
       this.filteredCoordinators = [];
     }
   }
-  // Variables declare karein
-  allUniqueBranches: string[] = []; // Master list (Unique Names)
-  filteredBranches: string[] = []; // Suggestions for UI
+  allUniqueBranches: string[] = [];
+  filteredBranches: string[] = [];
 
   loadBranches() {
     this.http.get<any[]>(`${environment.apiUrl}/Inquiry`).subscribe({
       next: (res) => {
-        // 1. Saare branchName nikalo aur duplicates hatane ke liye Set use karo
-        // Agar API se array of strings aa raha hai to seedha res use karo
         const rawBranches = res
           ?.map((item) => item?.branchName || item)
           .filter((b) => b);
@@ -2707,30 +2542,25 @@ export class PriceComponent {
     });
   }
 
-  // 🔥 Typing ke waqt trigger hone wala function
   onBranchType() {
     const query = this.searchFilters.branchName
       ? this.searchFilters.branchName.trim().toLowerCase()
       : "";
 
-    // 2. Logic: 3 letter ke baad suggestions dikhao
     if (query.length >= 3) {
       this.filteredBranches = this.allUniqueBranches.filter((branch) =>
         branch.toLowerCase().includes(query),
       );
     } else {
-      // 3 se kam par list khali
       this.filteredBranches = [];
     }
   }
-  isAdvanceFilterVisible: boolean = false; // Default mein band rahega
+  isAdvanceFilterVisible: boolean = false;
 
   toggleAdvanceFilter() {
     this.isAdvanceFilterVisible = !this.isAdvanceFilterVisible;
   }
   onClear() {
-    // 1. Saari fields ko default values par set karein
-
     this.searchFilters = {
       transportMode: "Any",
       inquiryNo: "",
@@ -2741,10 +2571,9 @@ export class PriceComponent {
       showMode: "valid",
     };
     this.dateRangeInputValue = "";
-    this.searchDone = false; // "No Data Found" hat jayega
+    this.searchDone = false;
     this.inquiries = [];
 
-    // 2. Clear karne ke baad wapas sara data load karein (bina filter ke)
     this.onSearch();
 
     console.log("Filters Cleared!");
@@ -2752,8 +2581,6 @@ export class PriceComponent {
 
   showCustomPicker: boolean = false;
 
-  // 2. Logic for all shortcuts
-  // Add these variables in your class
   showDateDropdown = false;
 
   setQuickDate(range: string) {
@@ -2779,20 +2606,15 @@ export class PriceComponent {
         break;
     }
 
-    // Format YYYY-MM-DD for input fields
     this.searchFilters.fromDate = from.toISOString().split("T")[0];
     this.searchFilters.toDate = to.toISOString().split("T")[0];
 
     this.showDateDropdown = false;
-    this.onSearch(); // Auto search after selection
+    this.onSearch();
   }
-  pricings: any[] = []; // Master display list
-  // Table mein jo loop ho raha hai
-  allPricingData: any[] = []; // Backend se aaya hua full search result
+  pricings: any[] = [];
+  allPricingData: any[] = [];
 
-  // --- Pagination Variables ---
-
-  // --- Filter Model ---
   searchFilters: any = {
     pricingNo: "",
     transportMode: "",
@@ -2803,9 +2625,7 @@ export class PriceComponent {
     status: -1,
   };
 
-  // 2. Updated Search Function with Date
   onSearch() {
-    // 1. Agar filters khali hain, to simple loadPricings (GET) call karo
     const isBlank =
       !this.searchFilters.pricingNo &&
       !this.searchFilters.transportMode &&
@@ -2819,11 +2639,9 @@ export class PriceComponent {
 
     if (isBlank) {
       this.currentPage = 1;
-      // Yahan apni default loading method call karein, e.g., this.loadPricings();
       return;
     }
 
-    // 2. SEARCH WALA LOGIC (POST)
     const token = localStorage.getItem("cavalier_token");
     const headers = new HttpHeaders({
       Authorization: `Bearer ${token}`,
@@ -2885,8 +2703,6 @@ export class PriceComponent {
   onPageChange(page: number) {
     this.currentPage = page;
 
-    // Agar 'pricings' array mein data hai aur 'searchFilters' empty hai,
-    // toh hum "All" mode mein hain (Server-side pagination)
     const isSearchActive =
       this.pricings.length > 0 &&
       (this.searchFilters.pricingNo ||
@@ -2896,14 +2712,12 @@ export class PriceComponent {
         this.searchFilters.branchIds?.length > 0);
 
     if (isSearchActive) {
-      // Client-side pagination (Search result ko slice karo)
       const startIndex = (page - 1) * this.pageSize;
       this.paginatedPricings = this.pricings.slice(
         startIndex,
         startIndex + this.pageSize,
       );
     } else {
-      // Server-side pagination (All data ke liye API call karo)
       this.onSearch();
     }
 
@@ -2920,16 +2734,12 @@ export class PriceComponent {
     });
     return;
   }
-  // --- Pagination Logic ---
-
-  // --- Placeholder
   isExportOpen = false;
 
   toggleExportMenu() {
     this.isExportOpen = !this.isExportOpen;
   }
 
-  // Click bahar ho toh dropdown band ho jaye
   @HostListener("document:click", ["$event"])
   onDocumentClick(event: MouseEvent) {
     this.isExportOpen = false;
@@ -2945,14 +2755,13 @@ export class PriceComponent {
 
     const element = document.createElement("div");
     element.style.padding = "40px";
-    element.style.width = "1000px"; // Fixed width for better resolution
+    element.style.width = "1000px";
     element.style.position = "absolute";
     element.style.left = "-9999px";
     element.style.backgroundColor = "#ffffff";
 
     let rowsHtml = "";
     printData.forEach((q, index) => {
-      // Zebra crossing effect (alternate row color)
       const bgColor = index % 2 === 0 ? "#ffffff" : "#f9fafb";
       rowsHtml += `
       <tr style="background-color: ${bgColor}; border-bottom: 1px solid #e5e7eb;">
@@ -3007,7 +2816,7 @@ export class PriceComponent {
     document.body.appendChild(element);
 
     html2canvas(element, {
-      scale: 3, // Higher scale for crystal clear text
+      scale: 3,
       useCORS: true,
       backgroundColor: "#ffffff",
     }).then((canvas) => {
@@ -3017,7 +2826,6 @@ export class PriceComponent {
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
-      // Center the image if it's smaller than the page
       pdf.addImage(
         imgData,
         "PNG",
@@ -3097,7 +2905,6 @@ export class PriceComponent {
   downloadLeadsExcel() {
     this.isExportOpen = false;
 
-    // Check karein ki data hai ya nahi
     if (!this.quotations || this.quotations.length === 0) {
       Swal.fire({
         icon: "warning",
@@ -3109,7 +2916,6 @@ export class PriceComponent {
       return;
     }
 
-    // 1. Data prepare karein (Jo columns aapke table mein hain)
     const excelData = this.quotations.map((q) => {
       return {
         ID: q.id || "-",
@@ -3126,45 +2932,33 @@ export class PriceComponent {
       };
     });
 
-    // 2. Worksheet create karein
     const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(excelData);
 
-    // 3. Columns ki width set karein taaki Excel saaf dikhe
     const colWidths = [
-      { wch: 8 }, // ID
-      { wch: 15 }, // Inquiry No
-      { wch: 15 }, // Date
-      { wch: 30 }, // Customer Name
-      { wch: 15 }, // Mode
-      { wch: 12 }, // Status
-      { wch: 15 }, // Branch
-      { wch: 20 }, // Coordinator
-      { wch: 15 }, // Shipment Type
+      { wch: 8 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 30 },
+      { wch: 15 },
+      { wch: 12 },
+      { wch: 15 },
+      { wch: 20 },
+      { wch: 15 },
     ];
     ws["!cols"] = colWidths;
 
-    // 4. Workbook banayein aur save karein
     const wb: XLSX.WorkBook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Inquiry Records");
 
-    // File download trigger karein
     XLSX.writeFile(wb, `Inquiry_Report_${new Date().getTime()}.xlsx`);
   }
-  // --- Pagination Variables ---
-  // Ek page par kitne records dikhane hain
-  protected readonly Math = Math; // Template mein Math functions use karne ke liye
+  protected readonly Math = Math;
 
-  // Computed property: Ye table mein sirf current page ka data filter karke bhejega
   get paginatedInquiries(): any[] {
     const startIndex = (this.currentPage - 1) * this.pageSize;
     return this.quotations.slice(startIndex, startIndex + this.pageSize);
   }
 
-  // Total pages calculate karne ke liye
-
-  // Page badalne ka function
-
-  // Page size badalne par page 1 par reset karein
   onPageSizeChange() {
     this.currentPage = 1;
     this.cdr.detectChanges();
@@ -3222,7 +3016,6 @@ export class PriceComponent {
       );
     }
 
-    // Auto-save to Database
     const payload = {
       id: 1,
       selectedColumns: JSON.stringify(this.selectedColumns),
@@ -3232,36 +3025,27 @@ export class PriceComponent {
       .post(`${environment.apiUrl}/InquiryColumnSettings/save`, payload)
       .subscribe();
   }
-  // inquiry.component.ts ke andar
-  showColumnModal: boolean = false; // Isko class properties mein add karein
-  // Variables declare karein
+  showColumnModal: boolean = false;
   showServicePopup: boolean = false;
   allTransportModes: string[] = [];
   private serviceSub?: Subscription;
 
-  // 1. Icon click par popup toggle logic
-
-  // Popup se select karne par
   selectServiceFromPopup(val: string) {
     this.searchFilters.transportMode = val;
     this.showServicePopup = false;
     this.cdr.detectChanges();
   }
 
-  // 3. ngOnDestroy mein cleanup
   ngOnDestroy() {
-    // Purani subscriptions ke saath isse bhi add karein
     this.serviceSub?.unsubscribe();
     this.inqSub?.unsubscribe();
     this.branchSub?.unsubscribe();
     this.coordinatorSub?.unsubscribe();
   }
-  // Variables declare karein
   showInquiryPopup: boolean = false;
   allInquiryNos: string[] = [];
   private inqSub?: Subscription;
 
-  // 1. Icon click par toggle logic
   toggleInquiryPopup() {
     if (this.showInquiryPopup) {
       this.showInquiryPopup = false;
@@ -3269,26 +3053,22 @@ export class PriceComponent {
       return;
     }
 
-    // 1. Token nikaalo
     const token = localStorage.getItem("cavalier_token");
     if (!token) {
       console.warn("Bhai login token nahi mila!");
       return;
     }
 
-    // 2. Headers mein pass karo
     const headers = new HttpHeaders({
       Authorization: `Bearer ${token}`,
     });
 
     this.inqSub?.unsubscribe();
 
-    // 3. API Call with Headers
     this.inqSub = this.http
       .get<any[]>(`${environment.apiUrl}/Inquiry`, { headers })
       .subscribe({
         next: (res) => {
-          // Inquiry No. nikalna aur Unique banana
           const uniqueInqs = [
             ...new Set(
               res
@@ -3317,12 +3097,10 @@ export class PriceComponent {
     this.showInquiryPopup = false;
     this.cdr.detectChanges();
   }
-  // Variables declare karein
   showBranchPopup: boolean = false;
   allCustomerNames: string[] = [];
   private branchSub?: Subscription;
 
-  // 1. Icon click par popup toggle logic
   toggleBranchPopup() {
     if (this.showBranchPopup) {
       this.showBranchPopup = false;
@@ -3330,26 +3108,24 @@ export class PriceComponent {
     } else {
       this.branchSub?.unsubscribe();
 
-      // API call to Inquiry (ya jo bhi aapka endpoint hai)
       this.branchSub = this.http
         .get<any[]>(`${environment.apiUrl}/Inquiry`)
         .subscribe({
           next: (res) => {
-            // customerName nikalna, empty values hatana aur Duplicates khatam karna
             const uniqueCustomers = [
               ...new Set(
                 res
                   .filter(
                     (item) =>
                       item.customerName && item.customerName.trim() !== "",
-                  ) // Sample mein 'organization' naam tha
+                  )
                   .map((item) => item.customerName),
               ),
             ];
 
             this.allCustomerNames = uniqueCustomers;
             this.showBranchPopup = true;
-            this.cdr.detectChanges(); // Fast UI refresh
+            this.cdr.detectChanges();
           },
           error: (err) => {
             console.error("Error fetching customers", err);
@@ -3359,19 +3135,16 @@ export class PriceComponent {
     }
   }
 
-  // 2. Popup se select karne par
   selectBranchFromPopup(val: string) {
     this.searchFilters.branchName = val;
     this.showBranchPopup = false;
     this.cdr.detectChanges();
   }
 
-  // Variables declare karein
   showCoordinatorPopup: boolean = false;
   allCoordinators: string[] = [];
   private coordinatorSub?: Subscription;
 
-  // 1. Icon click par popup toggle logic
   toggleCoordinatorPopup() {
     if (this.showCoordinatorPopup) {
       this.showCoordinatorPopup = false;
@@ -3379,26 +3152,22 @@ export class PriceComponent {
       return;
     }
 
-    // 1. Token nikaalo
     const token = localStorage.getItem("cavalier_token");
     if (!token) {
       console.warn("Bhai login token nahi mila!");
       return;
     }
 
-    // 2. Headers mein pass karo
     const headers = new HttpHeaders({
       Authorization: `Bearer ${token}`,
     });
 
     this.coordinatorSub?.unsubscribe();
 
-    // 3. API Call with Headers
     this.coordinatorSub = this.http
       .get<any[]>(`${environment.apiUrl}/Inquiry`, { headers })
       .subscribe({
         next: (res) => {
-          // SalesCoordinator nikalna, empty values filter karna aur Duplicates hatana
           const uniqueCoords = [
             ...new Set(
               res
@@ -3424,142 +3193,24 @@ export class PriceComponent {
       });
   }
 
-  // Popup se select karne par
   selectCoordinatorFromPopup(val: string) {
     this.searchFilters.salesCoordinator = val;
     this.showCoordinatorPopup = false;
     this.cdr.detectChanges();
   }
 
-  // 3. Subscription Cleanup in ngOnDestroy
-
-  // 1. Naya variable add karein
   isPreviewMode = false;
 
-  // 2. Review Mode toggle karne ka function
   toggleReview() {
-    // Calling the unified structural dynamic data flow layout matrix system architecture
     this.addToLocalReview();
   }
 
-  // 3. Wapas edit mode mein jaane ke liye
-  // backToEdit() {
-  //   this.isPreviewMode = false;
-  // }
-
-  // 1. Naya variable add karein
-  // isPreviewMode = false;
-  // 1. Array define karein review list ke liye
   localInquiryList: any[] = [];
-  // isPreviewMode: boolean = false;
 
-  // 2. Review Mode toggle karne ka function (With Data Mapping)
-  // addToLocalReview() {
-  //   console.log("--- Review Button Clicked ---");
-
-  //   if (!this.inquiry.organization) {
-  //     alert("firstly save org");
-  //     return;
-  //   }
-
-  //   // 1. Check Modal Data (dimRows)
-  //   console.log("1. Raw dimRows from Modal:", this.dimRows);
-
-  //   // 2. Check Applied Data (appliedDimensions)
-  //   console.log("2. Raw appliedDimensions:", this.appliedDimensions);
-
-  //   let finalDimensions = [];
-
-  //   // Agar dimRows array hai aur usme data hai
-  //   if (this.dimRows && this.dimRows.length > 0) {
-  //     // Filter kar rhe hain taaki khali rows na aayein
-  //     finalDimensions = this.dimRows.filter(d => d.l || d.w || d.h);
-  //     console.log("3. Filtered Dimensions from dimRows:", finalDimensions);
-  //   }
-
-  //   // Agar dimRows khali tha, toh appliedDimensions check karo
-  //   if (finalDimensions.length === 0 && this.appliedDimensions && this.appliedDimensions.length > 0) {
-  //     finalDimensions = [...this.appliedDimensions];
-  //     console.log("4. Using appliedDimensions instead:", finalDimensions);
-  //   }
-
-  //   if (finalDimensions.length === 0) {
-  //     console.warn("⚠️ No dimensions found anywhere!");
-  //   }
-
-  //   const completeData = {
-  //     lineOfBusiness: this.getLabel(this.companyServices, this.quotation.lineOfBusinessId),
-  //     commodity: this.getLabel(this.commodityTypes, this.quotation.commodityId),
-  //     incoTerm: this.quotation.incoTerm || 'N/A',
-  //     cargoStatus: this.quotation.cargoStatus || 'Pending',
-  //     noOfPkgs: this.quotation.noOfPkgs || 0,
-  //     grossWeight: this.quotation.grossWeightKg || 0,
-  //     chargeableWeight: this.quotation.chargeableWeight || 0,
-  //     origin: this.inquiry.origin || 'N/A',
-  //     finalDestination: this.quotation.finalDestination || 'N/A',
-  //     pickupAddress: this.quotation.pickupAddress || 'N/A',
-  //     dimensions: finalDimensions // Snapshot mein save kiya
-  //   };
-
-  //   this.localInquiryList = [completeData];
-  //   console.log("5. Final Snapshot Saved:", this.localInquiryList);
-
-  //   this.isPreviewMode = true;
-  // }
-
-  // Readable Snapshot banana (IDs ko Labels mein convert karke)
-  //   const completeData = {
-  //     // Admin & References
-  //     leadNo: this.inquiry.leadNo || 'N/A',
-  //     branchName: this.quotation.branchName || 'N/A',
-  //     inquiryNo: this.inquiry.inquiryNo || 'N/A',
-  //     location: this.quotation.location || 'N/A',
-  //     receivedDate: this.quotation.receivedDate,
-
-  //     // Customer & Business
-  //     organization: this.inquiry.organization,
-  //     partyRole: this.getSimpleLabel(this.quotation.partyRole),
-  //     lineOfBusiness: this.getLabel(this.companyServices, this.quotation.lineOfBusinessId),
-  //     quotedBy: this.quotation.createdBy || 'Current User',
-  //     pricingBy: this.quotation.pricingBy || 'N/A',
-
-  //     // Cargo Details
-  //     transportMode: this.quotation.transportMode || 'N/A',
-  //     shipmentType: this.quotation.shipmentType || 'N/A',
-  //     commodity: this.getLabel(this.commodityTypes, this.quotation.commodityId),
-  //     cargoStatus: this.quotation.cargoStatus || 'Pending',
-  //     hazardDoc: this.quotation.hazardDocPath || 'None',
-
-  //     // Weights
-  //     grossWeight: this.quotation.grossWeightKg || 0,
-  //     netWeight: this.quotation.netWeightKg || 0,
-  //     chargeableWeight: this.quotation.chargeableWeight || 0,
-  //     noOfPkgs: this.quotation.noOfPkgs || 0,
-
-  //     // Forwarding & Movement
-  //     incoTerm: this.quotation.incoTerm || 'N/A',
-  //     movementType: this.quotation.movementType || 'N/A',
-  //     origin: this.inquiry.origin || 'N/A',
-  //     portOfLoading: this.getLabel(this.ports, this.quotation.portOfLoadingId),
-  //     portOfDischarge: this.getLabel(this.ports, this.quotation.portOfDischargeId),
-  //     finalDestination: this.quotation.finalDestination || 'N/A',
-  //     pickupAddress: this.quotation.pickupAddress || 'N/A',
-  //     invoiceStatus: this.quotation.invoiceStatus || 'N/A',
-
-  //     // Dimensions
-  //     dimensions: this.appliedDimensions.length > 0 ? [...this.appliedDimensions] : []
-  //   };
-
-  //   this.localInquiryList = [completeData]; // Update snapshot
-  //   this.isPreviewMode = true;
-  // }
-
-  // 3. Wapas edit mode mein jaane ke liye
   backToEdit() {
     this.isPreviewMode = false;
   }
 
-  // 4. Helper function to get Label from ID (Handles different list structures)
   getLabel(list: any[], id: any): string {
     if (!id || !list || list.length === 0) return "N/A";
 
@@ -3585,16 +3236,13 @@ export class PriceComponent {
       event.stopImmediatePropagation();
     }
 
-    // NEW click karte hi dropdown band
-
     this.router.navigate(["/dashboard/organization-add"], {
       state: { isFormOpen: true },
     });
   }
-  // 5. Helper for simple strings
   getSimpleLabel(val: any): string {
     return val ? val : "N/A";
-  } // Variables wahi use karein jo HTML mein *ngIf aur *ngFor mein hain
+  }
   showInquiryDropdown: boolean = false;
   filteredInquiries: any[] = [];
   loadAllLeads() {
@@ -3610,7 +3258,6 @@ export class PriceComponent {
         this.filteredInquiries = res;
         this.showInquiryDropdown = true;
 
-        // Ye line UI ko turant refresh kar degi
         this.cdr.detectChanges();
 
         console.log(res, "Leads response loaded");
@@ -3618,35 +3265,27 @@ export class PriceComponent {
       error: (err) => {
         console.error("Leads load karne mein error:", err);
         this.showInquiryDropdown = false;
-        this.cdr.detectChanges(); // Error case mein bhi UI update karein
+        this.cdr.detectChanges();
       },
     });
   }
 
-  // Variables define karein
   showOrgDropdown: boolean = false;
   organizationList: any[] = [];
 
-  // Constructor mein CDR inject hona chahiye
-
-  // import { HttpHeaders } from '@angular/common/http';
-
   loadAllOrganizations() {
-    // 1. Toggle logic
     if (this.showOrgDropdown) {
       this.showOrgDropdown = false;
       this.cdr.detectChanges();
       return;
     }
 
-    // 2. Token nikaalo
     const token = localStorage.getItem("cavalier_token");
     if (!token) {
       console.warn("Bhai login token nahi mila!");
       return;
     }
 
-    // 3. Headers setup karo (Authorization header yahan add hoga)
     const headers = new HttpHeaders({
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
@@ -3654,7 +3293,6 @@ export class PriceComponent {
 
     const url = `${environment.apiUrl}/Organization/list`;
 
-    // 4. API Call mein { headers } object pass karo
     this.http.get<any[]>(url, { headers }).subscribe({
       next: (res) => {
         this.organizationList = res;
@@ -3664,25 +3302,17 @@ export class PriceComponent {
       },
       error: (err) => {
         console.error("Org load error:", err);
-        // Agar 401 error ab bhi aaye, toh check karo token sahi hai ya nahi
         this.showOrgDropdown = false;
         this.cdr.detectChanges();
       },
     });
   }
 
-  filterTransportModes(event: any) {
-    // Baad mein logic likh lena
-  }
-  filterInquiryList(event: any) {
-    // Baad mein logic likh lena
-  }
-  filterCoordinatorList(event: any) {
-    // Baad mein logic likh lena
-  }
+  filterTransportModes(event: any) {}
+  filterInquiryList(event: any) {}
+  filterCoordinatorList(event: any) {}
   isSearchModalOpen: boolean = false;
   loadAllLeadss() {
-    // Toggle logic
     if (this.showInquiryDropdown || this.showLeadDropdown) {
       this.showInquiryDropdown = true;
       this.showLeadDropdown = true;
@@ -3691,21 +3321,18 @@ export class PriceComponent {
       return;
     }
 
-    // 1. Token nikaalo
     const token = localStorage.getItem("cavalier_token");
     if (!token) {
       console.warn("Bhai login token nahi mila!");
       return;
     }
 
-    // 2. Headers set karo
     const headers = new HttpHeaders({
       Authorization: `Bearer ${token}`,
     });
 
-    const url = `${environment.apiUrl}/leads`; // Ya jo bhi tumhara Leads ka endpoint ho
+    const url = `${environment.apiUrl}/leads`;
 
-    // 3. API Call with Token
     this.http.get<any[]>(url, { headers }).subscribe({
       next: (res) => {
         this.filteredInquiries = res;
@@ -3721,76 +3348,11 @@ export class PriceComponent {
     });
   }
 
-  // Selection Function
-  // selectInquiry(inq: any) {
-  //   if (!inq) {
-  //     console.warn("Invalid lead selected");
-  //     return;
-  //   }
-
-  //   // 🔥 Yahan Lead ID console mein dikhega
-  //   console.log("Selected Lead ID (from Modal):", inq);
-  //  this.LeadId = inq.id;
-  //   this.OrganisationId = inq.organisationId;
-  //   this.OrganisationName = inq.organizationName;
-  //   this.LeadName = inq.leadNo;
-  //   console.log("Selected Lead's Organisation ID:", inq.organisationId);
-  //   this.inquiry.leadNo = inq.leadNo || inq.inquiryNo;
-  //   this.showInquiryDropdown = false;
-  //   this.isSearchModalOpen = false;
-
-  //   // Full data load karne ke liye
-  //   this.loadLeadByLeadNo(this.inquiry.leadNo);
-  // }
-  // ================== LOAD FULL LEAD BY LEADNO ==================
-  // ================== LOAD FULL LEAD BY LEADNO ==================
-  // loadLeadByLeadNo(leadNo: string) {
-  //   if (!leadNo) return;
-
-  //   const url = `${environment.apiUrl}/Leads/byLeadNo?leadNo=${encodeURIComponent(leadNo)}`;
-
-  //   this.http.get<any>(url).subscribe({
-  //     next: (leadData) => {
-  //       console.log("✅ Full Lead Data Received:", leadData);
-
-  //       this.selectedLeadData = leadData;
-
-  //       // Form auto-fill
-  //       this.inquiry.leadNo = leadData.leadNo || leadData.LeadNo;
-
-  //       if (leadData.organizationName) {
-  //         this.inquiry.organization = leadData.organizationName;
-  //         this.quotation.organizationName = leadData.organizationName;
-  //       }
-  //       if (leadData.organisationId) {
-  //         this.organizationIds = leadData.organisationId;
-  //       }
-
-  //       if (leadData.location) this.quotation.location = leadData.location;
-  //       if (leadData.branch) this.quotation.branchName = leadData.branch;
-  //       if (leadData.type) this.quotation.type = leadData.type;
-  // if (leadData.salesCoordinator) {
-  //         // Lead se "25" jaise ID aa raha hai
-  //         this.quotation.salesCoordinator = leadData.salesCoordinator.toString();
-  //         // .toString() isliye taaki type match ho (agar sc.id number hai toh bhi safe rahe)
-  //       }
-  //       this.cdr.detectChanges();
-  //     },
-  //     error: (err) => {
-  //       console.error("❌ Error fetching lead:", err);
-  //       if (err.status === 404) {
-  //         alert(`Lead ${leadNo} not found!`);
-  //       } else {
-  //         alert("Failed to load lead details");
-  //       }
-  //     }
-  //   });
-  // }
   branchList: any[] = [];
   filteredBranchSuggestions: any[] = [];
   isBranchModalOpen: boolean = false;
-  branchSearchText: string = ""; // Main Input ke liye
-  modalSearchText: string = ""; // Modal ke andar search ke liye
+  branchSearchText: string = "";
+  modalSearchText: string = "";
 
   loadBranchess() {
     const fullUrl = `${environment.apiUrl}/branch/list`;
@@ -3800,7 +3362,6 @@ export class PriceComponent {
       next: (res: any) => {
         console.log("✅ API Raw Response:", res);
 
-        // Data formats handle karna
         const data = Array.isArray(res) ? res : res.data || res.result || [];
         console.log("📊 Extracted Data Array:", data);
 
@@ -3822,7 +3383,6 @@ export class PriceComponent {
     });
   }
 
-  // Main Input ki search (Dropdown ke liye)
   onBranchSearch() {
     const search = this.branchSearchText.toLowerCase().trim();
     console.log("🔍 Main Input Search Text:", search);
@@ -3848,7 +3408,6 @@ export class PriceComponent {
     );
   }
 
-  // Modal ke andar ki search
   onModalSearch() {
     const search = this.modalSearchText.toLowerCase().trim();
     console.log("🔍 Modal Search Text:", search);
@@ -3905,28 +3464,21 @@ export class PriceComponent {
   confirmSelection() {
     console.log("🆗 Confirming Selection...");
 
-    // 1. Saari selected branches nikaalo
     const selectedBranches = this.branchList.filter((b) => b.isSelected);
     console.log("📍 Selected Branches:", selectedBranches);
 
     if (selectedBranches.length > 0) {
-      // 2. 🔥 Sabki IDs ka array banao (Multiple select ke liye)
-      // Map karke check karo ki property 'id' hai ya 'branchId'
       this.searchFilters.branchIds = selectedBranches.map(
         (b) => b.branchId || b.id,
       );
 
-      // 3. Input box mein saare selected names dikhao (comma separated)
       this.branchSearchText = selectedBranches
         .map((b) => b.branchName)
         .join(", ");
 
-      // Agar aapka backend purana hai aur sirf ek ID leta hai,
-      // toh purani property bhi set rakhte hain (safe side)
       this.searchFilters.branchId =
         selectedBranches[0].branchId || selectedBranches[0].id;
     } else {
-      // Agar kuch select nahi kiya toh sab khali
       this.searchFilters.branchIds = [];
       this.searchFilters.branchId = "";
       this.branchSearchText = "";
@@ -3940,7 +3492,6 @@ export class PriceComponent {
 
     this.isBranchModalOpen = false;
 
-    // 4. Search function ko call karo taaki table refresh ho jaye
     this.onSearch();
   }
 
@@ -3950,7 +3501,6 @@ export class PriceComponent {
     this.confirmSelection();
     this.filteredBranchSuggestions = [];
   }
-  // isFormOpen: boolean = true;
   showCostTable: boolean = false;
   showMultiCarrierTable: boolean = false;
   toggleTable(value: boolean) {
@@ -4105,120 +3655,82 @@ export class PriceComponent {
     { value: "ZMW", label: "Zambian kwacha" },
   ];
 
-  // 3. Cost Rows ka Array
-
-  // costRows: any[] = [
-  //   {
-  //     lob: 'Standard',
-  //     chargeName: '',
-  //     chargeType: '',
-  //     basis: '',
-  //     currency: 'INR',
-  //     rate: 0,
-  //     exchangeRate: 1,
-  //     amount: 0
-  //   }
-  // ];
-
-  // --- LOGIC FUNCTIONS ---
-
-  // Nayi row add karne ke liye
-  //   showAlert(type: string, id: any) {
-  //   // Agar ID null ya undefined hai toh handle karne ke liye
-  //   const displayId = id ? id : 'N/A';
-
-  //   if (type === 'Organisation ID') {
-  //     const orgId = id ? id : 'N/A';
-  //     this.router.navigate(['/dashboard/organization-add'], {
-  //       queryParams: { highlightId: orgId }
-  //     });
-  //   }
-  //   else if (type === 'Lead ID') {
-  //     const leadId = id ? id : 'N/A';
-  //     this.router.navigate(['/dashboard/salescrm/lead'], {
-  //       queryParams: { highlightId: leadId }
-  //     });
-  //   }
-  //   else {
-  //     alert('Action performed: ' + type);
-  //   }
-  // }
   addCostRow() {
     const newRow: any = {
-      lob: "Standard",
+      lob: this.quotation.lineOfBusinessName || "Standard",
       chargeName: "",
+      chargeCode: "",
       chargeType: "Prepaid",
       basis: "",
-      basisUnit: "KG", // Bina interface mein likhe yahan add ho jayega
-      basisValue: 1, // Bina interface mein likhe yahan add ho jayega
+      basisUnit: "KG",
+      basisValue: 1,
       currency: "INR",
       rate: 0,
       exchangeRate: 1,
       amount: 0,
+      ...this.defaultGstFields(),
     };
     this.costRows.push(newRow);
   }
 
-  // Row delete karne ke liye (Index base par)
   removeCostRow(index: number) {
     if (this.costRows.length > 1) {
       this.costRows.splice(index, 1);
-      this.calculateCost(); // Delete ke baad total recalculate karne ke liye
+      this.calculateCost();
     }
   }
 
-  // Calculation Logic: Amount = Rate * Exchange Rate
-  // calculateCost() {
-  //   this.costRows.forEach((row: any) => { // Yahan 'any' cast kar diya
-  //     const basisVal = Number(row.basisValue) || 0;
-  //     const rate = Number(row.rate) || 0;
-
-  //     row.amount = basisVal * rate;
-  //   });
-  // }
   calculateCost() {
     const chargeableWeight = Number(this.quotation.chargeableWeight) || 0;
 
     this.costRows.forEach((row: any) => {
       const rate = Number(row.rate) || 0;
-      const exchangeRate = Number(row.exchangeRate) || 1; // Agar exchange rate empty hai to 1 le lo
+      const exchangeRate = Number(row.exchangeRate) || 1;
 
-      // Sahi formula: Weight * Rate * Ex. Rate
       row.amount = chargeableWeight * rate * exchangeRate;
+      this.applyGstToCostRow(row);
     });
 
-    // Agar UI update nahi ho raha, to ye line jaruri hai
     this.cdr.detectChanges();
   }
+
   openCalendar(input: HTMLInputElement) {
     try {
-      // Cast to any to bypass strict TS check
       (input as any).showPicker();
     } catch (error) {
-      // Fallback agar browser support na kare
       input.click();
     }
   }
-  // Final Save Logic
   applyCost() {
     console.log("Final Cost Data:", this.costRows);
-    this.showCostTable = false; // Table close karke wapas form par
+    this.showCostTable = false;
   }
-  // showCostTable: boolean = false; // Toggle handle karne ke liye
   costRows: CostBreakdown[] = [
     {
       lob: "Standard",
       chargeName: "",
+      chargeCode: "",
       chargeType: "Prepaid",
       basis: "Per KG",
       currency: "INR",
       rate: 0,
       exchangeRate: 1,
       amount: 0,
+      gstStatus: "Non-Taxable",
+      isGstApplicable: false,
+      sacHsn: "",
+      taxableValue: 0,
+      nonTaxableValue: 0,
+      taxName: "",
+      taxPercent: 0,
+      cgst: 0,
+      sgst: 0,
+      igst: 0,
+      taxAmount: 0,
+      totalAmount: 0,
     },
   ];
 
-  // Initial empty row
   multiCarrierRows: any[] = [this.createEmptyRow()];
 
   createEmptyRow() {
@@ -4226,25 +3738,38 @@ export class PriceComponent {
       id: 0,
       forwarder: "",
       origin: "",
-      lob: "Standard", // Added for DB mapping
-      chargeName: "", // Added for DB mapping
-      chargeType: "Prepaid", // Added for DB mapping
+      lob: "Standard",
+      chargeName: "",
+      chargeCode: "",
+      chargeType: "Prepaid",
       currency: "USD",
       airFreight: 0,
       fsc: "INC",
       airline: "",
-      airlineCode: "", // 🔥 NAYA
+      airlineCode: "",
       airlinePrefix: "",
-      type: "INDIRECT", // Default Indirect as per requirement
+      type: "INDIRECT",
       cutoff: "",
-      schedule: "", // Flight Date/Schedule
+      schedule: "",
       exWorks: 0,
       doCharges: 0,
       ccFee: 0,
-      rate: 0, // Added for DB mapping
-      exchangeRate: 1, // Added for DB mapping
+      rate: 0,
+      exchangeRate: 1,
       totalCost: 0,
       remark: "",
+      gstStatus: "Non-Taxable",
+      isGstApplicable: false,
+      sacHsn: "",
+      taxableValue: 0,
+      nonTaxableValue: 0,
+      taxName: "",
+      taxPercent: 0,
+      cgst: 0,
+      sgst: 0,
+      igst: 0,
+      taxAmount: 0,
+      totalAmount: 0,
     };
   }
 
@@ -4255,18 +3780,21 @@ export class PriceComponent {
       (Number(r.exWorks) || 0) +
       (Number(r.doCharges) || 0) +
       (Number(r.ccFee) || 0);
+    this.applyGstToMultiCarrierRow(r);
+    this.cdr.detectChanges();
   }
+
   calculateIndirectCost(index: number) {
     const row = this.multiCarrierRows[index];
     if (row) {
       const basisValue = Number(row.basisValue) || 0;
       const rate = Number(row.rate) || 0;
 
-      // Multi Carrier Formula calculation -> Basis Value * Rate
       row.amount = basisValue * rate;
     }
     this.cdr.detectChanges();
   }
+
   calculateMasterIndirectTotal(index: number) {
     const mRow = this.multiCarrierRows[index];
     if (mRow) {
@@ -4275,20 +3803,20 @@ export class PriceComponent {
       const inputRate = Number(mRow.rate) || 0;
       const exchangeVal = Number(mRow.exchangeRate) || 1;
 
-      // Premium Logic: Airfreight + (Chargeable Weight * Rate * Ex. Rate)
       mRow.totalCost = airfreightCost + chrgWeight * inputRate * exchangeVal;
+      this.applyGstToMultiCarrierRow(mRow);
     }
     this.cdr.detectChanges();
   }
+
   addMultiCarrierRow() {
     const emptyRow = this.createEmptyRow();
 
-    // 🔥 EXTENSION SECURITY: Nayi row bante hi existing active master filters check karega
     if (this.quotation.lineOfBusinessName) {
-      emptyRow.lob = this.quotation.lineOfBusinessName; // Auto-selects active LOB inside new cell
+      emptyRow.lob = this.quotation.lineOfBusinessName;
     }
     if (this.inquiry.origin) {
-      emptyRow.origin = this.inquiry.origin; // ✅ Already sahi hai
+      emptyRow.origin = this.inquiry.origin;
     }
 
     this.multiCarrierRows.push(emptyRow);
@@ -4304,8 +3832,6 @@ export class PriceComponent {
   }
 
   applyAndSave() {
-    // Is function ki ab zaroorat nahi padegi kyunki hum saveQuotation me sab bhej rahe hain.
-    // Bas modal band karne ke liye aap iska use kar sakte hain.
     this.showMultiCarrierTable = false;
     Swal.fire({
       icon: "success",
@@ -4320,12 +3846,10 @@ export class PriceComponent {
     const token = localStorage.getItem("cavalier_token");
     const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
 
-    // Pass pageNumber and pageSize as Query Params
     const url = `${environment.apiUrl}/Pricing?pageNumber=${this.currentPage}&pageSize=${this.pageSize}`;
 
     this.http.get(url, { headers }).subscribe({
       next: (res: any) => {
-        // Backend returns { totalCount, data, ... }
         this.pricings = res.data;
         this.totalCount = res.totalCount;
         this.cdr.detectChanges();
@@ -4334,11 +3858,10 @@ export class PriceComponent {
     });
   }
 
-  // Function to handle page change
   setPage(page: number) {
     if (page < 1 || page > this.totalPages) return;
     this.currentPage = page;
-    this.onSearch(); // Fetch new data from server
+    this.onSearch();
   }
 
   get totalPages(): number {
@@ -4348,7 +3871,6 @@ export class PriceComponent {
     const startIndex = (this.currentPage - 1) * this.pageSize;
     const endIndex = startIndex + this.pageSize;
 
-    // 'pricings' se data nikaal kar 'paginatedPricings' mein daalna
     this.paginatedPricings = this.pricings.slice(startIndex, endIndex);
   }
   saveQuotation() {
@@ -4357,10 +3879,8 @@ export class PriceComponent {
       return;
     }
 
-    // 1. Synchronize and map Dimensions Data Array
     let finalDimensionsPayload: any[] = [];
 
-    // 🔥 FIX: Naya Pricing (id 0/falsy) create karte waqt dimId/id hamesha 0 bhejo,
     const isExistingPricing = Number(this.quotation.id || 0) > 0;
 
     if (this.dimRows && this.dimRows.length > 0) {
@@ -4405,7 +3925,6 @@ export class PriceComponent {
       ];
     }
 
-    // 2. Cost Breakdowns Formatting
     const costData = (
       this.costRows && this.costRows.length > 0
         ? this.costRows
@@ -4420,9 +3939,21 @@ export class PriceComponent {
       exchangeRate: Number(cb.exchangeRate) || 1,
       amount: Number(cb.amount) || 0,
       remark: cb.remark || "",
+      chargeCode: cb.chargeCode || null,
+      isGstApplicable:
+        cb.isGstApplicable || cb.gstStatus === "Taxable" || false,
+      sacHsn: cb.sacHsn || "",
+      taxableValue: Number(cb.taxableValue) || 0,
+      nonTaxableValue: Number(cb.nonTaxableValue) || 0,
+      taxName: cb.taxName || "",
+      taxPercent: Number(cb.taxPercent) || 0,
+      cgst: Number(cb.cgst) || 0,
+      sgst: Number(cb.sgst) || 0,
+      igst: Number(cb.igst) || 0,
+      taxAmount: Number(cb.taxAmount) || 0,
+      totalAmount: Number(cb.totalAmount) || Number(cb.amount) || 0,
     }));
 
-    // 3. Multi-Carrier Master Breakdown Matrix Alignment Mapping
     const multiCarrierData = (this.multiCarrierRows || []).map((mcb: any) => ({
       id: Number(mcb.id || 0),
       pricingId: Number(this.quotation.id || 0),
@@ -4445,6 +3976,19 @@ export class PriceComponent {
       exchangeRate: Number(mcb.exchangeRate) || 1,
       totalCost: Number(mcb.totalCost) || 0,
       remark: String(mcb.remark || "").trim(),
+      chargeCode: mcb.chargeCode || null,
+      isGstApplicable:
+        mcb.isGstApplicable || mcb.gstStatus === "Taxable" || false,
+      sacHsn: mcb.sacHsn || "",
+      taxableValue: Number(mcb.taxableValue) || 0,
+      nonTaxableValue: Number(mcb.nonTaxableValue) || 0,
+      taxName: mcb.taxName || "",
+      taxPercent: Number(mcb.taxPercent) || 0,
+      cgst: Number(mcb.cgst) || 0,
+      sgst: Number(mcb.sgst) || 0,
+      igst: Number(mcb.igst) || 0,
+      taxAmount: Number(mcb.taxAmount) || 0,
+      totalAmount: Number(mcb.totalAmount) || Number(mcb.totalCost) || 0,
     }));
 
     console.log(
@@ -4465,7 +4009,6 @@ export class PriceComponent {
       };
     });
 
-    // 4. Compiling Master Payload matching C# Back-End contract requirements
     const payload: any = {
       ...this.quotation,
       invoiceList: this.quotation.invoiceList || "",
@@ -4596,7 +4139,6 @@ export class PriceComponent {
           )
         : this.http.post(pricingApiUrl, formData, httpOptions);
 
-    // 🔄 LOADING ANIMATION STAGE WHILE SAVING IN DB
     Swal.fire({
       title:
         this.quotation.id > 0 ? "Updating Pricing..." : "Saving Pricing...",
@@ -4609,13 +4151,9 @@ export class PriceComponent {
 
     action.subscribe({
       next: (res: any) => {
-        // 🛠️ BACKEND RESPONSE SE RECONCILED PRICING/INQUIRY ID NIKALNA
-        // Note: Agar aapka backend direct updated object ya ID res.data me deta hai toh vahan se target karenge.
         const savedInquiryId =
           res?.id || res?.data?.id || this.quotation.id || this.InquiryId;
 
-        // 🔥 EXPLICIT EMAIL CONDITION ROUTING MODULE:
-        // Agar user Preview screen par tha aur selectedEmails khali NAHI hain, toh email process trigger hoga
         console.log("testing", this.selectedEmails);
         if (
           this.isPreviewMode &&
@@ -4627,7 +4165,6 @@ export class PriceComponent {
           );
           this.sendBulkEmails(savedInquiryId);
         } else {
-          // Fallback: Agar standard Form screen se direct save kiya ya koi agent select nahi kiya
           Swal.fire({
             title:
               this.quotation.id > 0
@@ -4658,35 +4195,22 @@ export class PriceComponent {
       },
     });
   }
-  // Variables
-  // 1. Add new document slot
-
-  // 2. File select handler
   onFileSelecteds(event: any, index: number) {
     const file = event.target.files[0];
     if (file) {
       this.documents[index].file = file;
-      // Agar replace kar rahe the, to isReplacing ko false kar do
       this.documents[index].isReplacing = false;
     }
   }
 
-  // 3. Save button logic inside Modal
   saveDocumentChanges() {
-    // Yahan validate kar sakte ho ki sabhi documents ke naam/files bhare hain
     console.log("Documents saved to local state:", this.documents);
     this.isDocumentModalOpen = false;
-    // Optional: Swal.fire('Success', 'Documents prepared', 'success');
   }
 
-  // 4. Remove document
-
   isModalOpen = false;
-  // selectedInquiryCarriers: any[] = []; // Iski zaroorat nahi agar aap direct array use kar rahe ho
 
-  // Button click par ye chalega
   openMultiCarrierModal() {
-    // Agar aapka data 'multiCarrierRows' naam ke array mein hai
     if (this.multiCarrierRows && this.multiCarrierRows.length > 0) {
       this.isModalOpen = true;
       this.cdr.detectChanges();
@@ -4708,7 +4232,6 @@ export class PriceComponent {
   showRowModal = false;
   selectedInquiryId: any = null;
 
-  // Double click par call hone wala function
   handleRowDblClick(id: any) {
     this.selectedInquiryId = id;
     this.showRowModal = true;
@@ -4719,26 +4242,20 @@ export class PriceComponent {
     this.selectedInquiryId = null;
   }
   toggleStatus(q: any) {
-    // 1. Authorization Token
     const token = localStorage.getItem("cavalier_token");
     const headers = new HttpHeaders({
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     });
 
-    // 2. URL Setup
     const url = `${environment.apiUrl}/Pricing/ToggleStatus/${q.id}`;
 
-    // Current state save kar lo (error handle karne ke liye)
     const previousStatus = q.status;
 
-    // 3. API Call
     this.http.patch(url, {}, { headers }).subscribe({
       next: (res: any) => {
-        // Backend (res.newStatus) se sync kar rahe hain
         q.status = res.newStatus;
 
-        // UI update trigger
         this.cdr.detectChanges();
 
         console.log(`✅ Status changed for ID ${q.id}:`, res.newStatus);
@@ -4746,7 +4263,6 @@ export class PriceComponent {
       error: (err) => {
         console.error("❌ Status update fail:", err);
 
-        // Error par wapas purani state set karo taaki UI galat na dikhe
         q.status = previousStatus;
 
         Swal.fire({
@@ -4756,14 +4272,13 @@ export class PriceComponent {
           confirmButtonColor: "#d33",
           confirmButtonText: "OK",
         });
-        // UI ko revert karne ke liye forcefully update
         this.cdr.detectChanges();
       },
     });
-  } // --- Variables Section ---
+  }
 
   fetchAllCountries() {
-    const apiUrl = "https://restcountries.com/v3.1/all?fields=name,cca2"; // Specific fields mangayi taaki payload fast load ho
+    const apiUrl = "https://restcountries.com/v3.1/all?fields=name,cca2";
     console.log("📡 Triggering External Country API Fetch Sequence...");
 
     this.http.get<any[]>(apiUrl).subscribe({
@@ -4774,7 +4289,7 @@ export class PriceComponent {
               name: country.name?.common || "",
               id: country.cca2 || "",
             }))
-            .filter((c) => c.name !== "") // Khali data filter out kiya
+            .filter((c) => c.name !== "")
             .sort((a, b) => a.name.localeCompare(b.name));
 
           console.log(
@@ -4789,12 +4304,11 @@ export class PriceComponent {
           "⚠️ Country API Failed, turning on secure local fallback list. Reason:",
           err,
         );
-        this.loadFallbackCountries(); // API fail hone par system automatic is list ko active kar dega
+        this.loadFallbackCountries();
       },
     });
   }
 
-  // 📦 Hardcoded Fallback Master List - Agar internet down ho ya API block ho, toh yeh backup chalega
   loadFallbackCountries() {
     const fallback = [
       { id: "IN", name: "India" },
@@ -4824,60 +4338,49 @@ export class PriceComponent {
     );
   }
 
-  // 🔍 2. Pura dynamic local filtering logic (Jo bina delay ke output dega)
   onCountrySearch() {
     const searchTerm = this.quotation.country?.trim().toLowerCase() || "";
 
-    // Agar user input delete karke poora khali kar de
     if (!searchTerm) {
       this.filteredCountries = [];
       this.showCountryDropdown = false;
       return;
     }
 
-    // Pure data filter flow mapping
     this.filteredCountries = this.countriesList.filter((c) =>
       c.name.toLowerCase().includes(searchTerm),
     );
 
-    // Suggestions list sirf tabhi khulegi jab elements match honge
     this.showCountryDropdown = this.filteredCountries.length > 0;
-    this.cdr.detectChanges(); // UI tracking broadcast engine trigger
+    this.cdr.detectChanges();
   }
 
-  // ✅ 3. Option Selection Handler
   selectCountry(country: any) {
     if (!country) return;
-    this.quotation.countryName = country.name; // Ye line verify karo
-    this.quotation.country = country.name; // UI input template mapping
-    this.quotation.countryId = country.id; // Database parameters tracking mapping
-    this.selectedCountryName = country.name; // Payload payload tracking parameter synchronization
+    this.quotation.countryName = country.name;
+    this.quotation.country = country.name;
+    this.quotation.countryId = country.id;
+    this.selectedCountryName = country.name;
 
-    this.showCountryDropdown = false; // Instant close dropdown menu
-    this.filteredCountries = []; // Stream flush
+    this.showCountryDropdown = false;
+    this.filteredCountries = [];
 
     console.log(
       "🎯 Selected Country metadata compilation active:",
       this.selectedCountryName,
     );
-    this.cdr.detectChanges(); // View update forced
+    this.recalculateAllGst();
+    this.cdr.detectChanges();
   }
-  // 🎯 Alert dikhane ka function (Lead/Org ID ke liye)
-  // showAlert(title: string, id: any) {
-  //   alert(`${title}: ${id || 'N/A'}`);
-  // }// --- Variables (Same as yours) ---
   allConnectingPorts: any[] = [];
   filteredConnectingPorts: any[] = [];
   selectedConnectingPorts: any[] = [];
   isCPModalOpen: boolean = false;
   cpSearchTerm: string = "";
 
-  // Load Data (Directly from your single ConnectingPort API)
   loadConnectingPortsData() {
-    // API URL update kar diya hai
     this.http.get<any[]>(`${environment.apiUrl}/PortSetup`).subscribe({
       next: (data) => {
-        // API se aaye hue data ko map kiya taaki agar portType missing ho toh default 'AIRPORT' mile
         this.allConnectingPorts = data.map((p) => ({
           ...p,
           portType: p.portType || "AIRPORT",
@@ -4925,7 +4428,6 @@ export class PriceComponent {
   isPortSelected(port: any): boolean {
     return this.selectedConnectingPorts.some((p) => p.id === port.id);
   }
-  // public invoices: any[] = [];
   commodityDocuments: any[] = [];
   packageOrInvoiceDocuments: any[] = [];
   selectInquiry(inq: any) {
@@ -4939,9 +4441,6 @@ export class PriceComponent {
 
     this.http.get<any>(url).subscribe({
       next: (data) => {
-        // console.log("✅ Full Inquiry Data Received:", data);
-
-        // --- 1. Basic References ---
         this.InquiryId = data.id || 0;
         this.referenceByInquiryNo = data.inquiryNo || "";
         this.organisationId = data.organisationId || 0;
@@ -4967,7 +4466,6 @@ export class PriceComponent {
         this.quotation.serviceType = data.serviceType || "";
         this.quotation.currency = data.cargoCurrency || "";
         this.quotation.cargoValue = data.cargoValue || null;
-        // --- 2. Team & Coordinator Sync ---
         this.quotation.teamId = null;
         this.getsalescordinate = [];
         this.getquotedByList = [];
@@ -4978,7 +4476,6 @@ export class PriceComponent {
         if (targetTeamId) {
           this.quotation.teamId = targetTeamId.toString();
 
-          // Dynamic fetch sets getsalescordinate, getquotedByList, getpricingByList
           this.onTeamChange(this.quotation.teamId);
 
           setTimeout(() => {
@@ -4993,14 +4490,12 @@ export class PriceComponent {
               this.quotation.pricingDoneBy = data.pricingDoneBy.toString();
             }
             if (data.salesTeam) {
-              // 🔥 NAYA
               this.quotation.salesTeam = data.salesTeam.toString();
             }
             this.cdr.detectChanges();
           }, 400);
         }
 
-        // --- 3. Documents ---
         this.commodityDocuments = data.commodityDocuments || [];
         this.packageOrInvoiceDocuments = data.packageOrInvoiceDocuments || [];
 
@@ -5028,7 +4523,6 @@ export class PriceComponent {
           data.invoiceList ||
           (this.invoices.length > 0 ? "Available" : "Not Available");
 
-        // --- 4. Line of Business & Transport ---
         this.quotation.lineOfBusinessId = data.lineOfBusinessId
           ? Number(data.lineOfBusinessId)
           : null;
@@ -5047,7 +4541,6 @@ export class PriceComponent {
         }
         this.quotation.TransportType = data.transportType || "";
 
-        // Trigger LOB change to auto-sync cost/multicarrier lob names
         if (this.quotation.lineOfBusinessId) {
           setTimeout(() => {
             this.onLOBChange({
@@ -5056,7 +4549,6 @@ export class PriceComponent {
           }, 100);
         }
 
-        // --- 5. Commodity ---
         this.quotation.commodity = data.commodityId
           ? Number(data.commodityId)
           : null;
@@ -5067,7 +4559,6 @@ export class PriceComponent {
           this.selectcommodityvalue = commObj ? commObj.name : "";
         }, 100);
 
-        // --- 6. Cargo Status ---
         this.quotation.cargoStatusType = data.cargoStatus || "Ready";
         if (data.cargoStatusDate) {
           this.quotation.cargoStatusDate = data.cargoStatusDate
@@ -5075,7 +4566,6 @@ export class PriceComponent {
             .split("T")[0];
         }
 
-        // --- 7. Weights & Packages ---
         this.quotation.noOfPkgs = data.noOfPkgs || 0;
         this.quotation.noOfPkgsUnit = data.noOfPkgsUnit || "PKG";
         this.quotation.grossWeightKg = data.grossWeightKg || 0;
@@ -5094,17 +4584,13 @@ export class PriceComponent {
           data.isServiceRequired !== undefined ? data.isServiceRequired : true;
         this.quotation.shipmentType = data.shipmentType || "";
 
-        // --- 8. Service Type (Direct/Indirect) ---
         this.quotation.isDirect = data.isDirect === true;
         this.quotation.isIndirect = data.isIndirect === true;
 
-        // --- 9. Movement & Ports ---
-        // --- 9. Movement & Ports ---
         this.quotation.movementType = data.movementType || "";
         this.inquiry.origin = data.originName || "";
         this.originsaveid = data.originId || null;
 
-        // 🔥 NAYA FIX: Existing multi-carrier rows me bhi Origin sync karo
         if (this.multiCarrierRows && this.multiCarrierRows.length > 0) {
           this.multiCarrierRows.forEach((row: any) => {
             row.origin = this.inquiry.origin;
@@ -5140,17 +4626,14 @@ export class PriceComponent {
         this.quotation.placeOfDelivery = data.placeOfDelivery || "";
         this.quotation.incoterm = data.incoterm || "";
 
-        // Trigger incoterm change logic (auto-enable pickup/delivery)
         if (this.quotation.incoterm) {
           this.onIncotermChange({ target: { value: this.quotation.incoterm } });
         }
 
-        // --- 10. Country ---
         this.quotation.countryName = data.countryName || "";
         this.quotation.country = data.countryName || "";
         this.selectedCountryName = data.countryName || "";
 
-        // --- 11. Connecting Ports ---
         this.selectedConnectingPorts = [];
         this.quotation.connectingPortIds = [];
         const rawCP = data.connectingPortIds;
@@ -5174,7 +4657,6 @@ export class PriceComponent {
           });
         }
 
-        // --- 12. Dates ---
         try {
           if (data.receivedDate) {
             this.quotation.receivedDate = new Date(data.receivedDate)
@@ -5196,7 +4678,6 @@ export class PriceComponent {
           console.error("Date parsing issue:", dateErr);
         }
 
-        // --- 13. Dimensions ---
         if (
           data.dimensions &&
           Array.isArray(data.dimensions) &&
@@ -5218,11 +4699,9 @@ export class PriceComponent {
           this.appliedDimensions = [];
         }
 
-        // Recalculate everything based on loaded dimensions/weights
         this.calculateVolumeWeightLogic();
         this.calculateTotalPackages();
 
-        // --- 14. Close dropdown, refresh UI ---
         this.showInquiryDropdown = false;
         this.showCountryDropdown = false;
         this.showPortOfLoadingDropdown = false;
@@ -5241,213 +4720,10 @@ export class PriceComponent {
     });
   }
 
-  // selectInquiry(inq: any) {
-  //   if (!inq || !inq.inquiryNo) {
-  //     console.error("❌ Inquiry No missing!");
-  //     return;
-  //   }
-
-  //   this.InquiryId = inq.id || 0;
-  //   this.referenceByInquiryNo = inq.inquiryNo || 0;
-  //   this.organisationId = inq.organisationId || 0;
-  //   this.organisationName = inq.organisationName || '';
-
-  //   const inquiryNo = inq.inquiryNo?.trim();
-  //   const url = `${environment.apiUrl}/Inquiry/by-no?inquiryNo=${inquiryNo}`;
-
-  //   this.http.get<any>(url).subscribe({
-  //     next: (data) => {
-  //       console.log("✅ Actual API Data:", data);
-
-  //       // --- 1. Basic & Organization ---
-  //       this.quotation.referenceByInquiry = data.inquiryNo || '';
-  //       this.quotation.customerName = data.customerName || '';
-  //       this.quotation.organization = data.organisationName || '';
-  //       if (this.inquiry) this.inquiry.organization = data.organisationName || '';
-  //       this.quotation.branchName = data.branchName || '';
-  //       this.quotation.location = data.location || '';
-  //       this.quotation.partyRole = data.partyRole || '';
-  // // --- SINGLE SOURCE OF TRUTH FOR TEAM & COORDINATOR ---
-  // this.quotation.teamId = null;
-  // this.getsalescordinate = [];
-
-  // // 1. Team ID Resolve karein
-  // let targetTeamId = data.teamId || data.TeamId || null;
-
-  // // Agar ID nahi mili toh Name se dhundein
-  // if (!targetTeamId && data.team && Array.isArray(this.teamsList)) {
-  //   const teamName = String(data.team).trim().toLowerCase();
-  //   const match = this.teamsList.find(t =>
-  //     String(t.teamName || t.name || '').trim().toLowerCase() === teamName
-  //   );
-  //   if (match) targetTeamId = match.teamId || match.id;
-  // }
-
-  // // 2. Data Bind karein
-  // if (targetTeamId) {
-  //   this.quotation.teamId = targetTeamId.toString(); // Dropdown ke liye string convert
-  //   console.log("🎯 Setting Team ID:", this.quotation.teamId);
-
-  //   // 3. API se Coordinator List mangwayein
-  //   this.onTeamChange(this.quotation.teamId);
-
-  //   // 4. Coordinator Select karein (List aane ka wait)
-  //   // In selectInquiry() inside the setTimeout where salesCoordinator is handled:
-  // setTimeout(() => {
-  //   // Safe validation fallback assignment parameters mapping array flow matrix logic
-  //   if (data.salesCoordinator) {
-  //     const scVal = data.salesCoordinator.toString().toLowerCase();
-  //     const found = this.getsalescordinate.find(sc => sc.id.toString() === scVal || (sc.name && sc.name.toString().toLowerCase() === scVal));
-  //     this.quotation.salesCoordinator = found ? found.id.toString() : data.salesCoordinator.toString();
-  //   }
-
-  //   // 🔥 ADD THESE TWO TARGET SYNCHRONIZATION LINES FOR QUOTED BY & PRICING BY
-  //   if (data.qtnDoneBy || data.quotedBy) {
-  //     this.quotation.qtnDoneBy = (data.qtnDoneBy || data.quotedBy).toString();
-  //   }
-  //   if (data.pricingDoneBy || data.pricingBy) {
-  //     this.quotation.pricingDoneBy = (data.pricingDoneBy || data.pricingBy).toString();
-  //   }
-
-  //   this.cdr.detectChanges();
-  // }, 800); // 800ms alignment timing parameter for rendering safety stability template// 1 sec ka time buffer zaroori hai
-  // }
-
-  //       // --- 3. Documents ---
-  //       this.commodityDocuments = data.commodityDocuments || [];
-  //       this.packageOrInvoiceDocuments = data.packageOrInvoiceDocuments || [];
-  //       this.documents = (data.commodityDocuments || []).map((doc: any) => ({
-  //         id: doc.id, name: doc.name || 'Document', documentPath: doc.documentPath,
-  //         isExisting: true, file: null, isReplacing: false
-  //       }));
-  //       this.invoices = (data.packageOrInvoiceDocuments || []).map((doc: any) => ({
-  //         id: doc.id, name: doc.name || 'Document', documentPath: doc.documentPath,
-  //         isExisting: true, file: null, isReplacing: false
-  //       }));
-  //       this.quotation.invoiceList = (this.invoices.length > 0) ? 'Available' : 'Not Available';
-
-  //       // --- 4. LOB & Transport ---
-  //       this.quotation.lineOfBusinessId = data.lineOfBusinessId ? Number(data.lineOfBusinessId) : null;
-  //       if (data.transportMode) {
-  //         const modeObj = this.transportModes.find(m =>
-  //           m.name.toLowerCase() === data.transportMode.toLowerCase() || m.id == data.transportMode
-  //         );
-  //         this.quotation.TransportMode = modeObj ? modeObj.id : data.transportMode;
-  //       }
-  //       this.quotation.TransportType = data.transportType || '';
-
-  //       // --- 5. Pricing ---
-  //       this.quotation.commodity = data.commodityId ? Number(data.commodityId) : null;
-  //       this.quotation.pricingDoneBy = data.pricingDoneBy || '';
-  //       this.quotation.qtnDoneBy = data.qtnDoneBy || '';
-  //       this.quotation.businessDimensions = data.businessDimensions || '';
-
-  //       // --- UNITS MAPPING ---
-  //       this.quotation.GrossWeightUnit = data.grossWeightUnit || data.GrossWeightUnit || '';
-  //       this.quotation.netWeightUnit = data.netWeightUnit || data.NetWeightUnit || '';
-  //       this.quotation.chargeableWeightUnit = data.chargeableWeightUnit || data.ChargeableWeightUnit || '';
-  //       this.quotation.volumeWeightUnit = data.volumeWeightUnit || data.VolumeWeightUnit || '';
-  //       this.quotation.CbmWeightUnit = data.cbmWeightUnit || data.CbmWeightUnit || '';
-  //       this.quotation.noOfPkgsUnit = data.noOfPkgsUnit || data.NoOfPkgsUnit || '';
-
-  //       // --- 6. Movement & Ports ---
-  //       this.quotation.shipmentType = data.shipmentType?.toString() || '';
-  //       this.quotation.movementType = data.movementType || '';
-  //       this.inquiry.origin = data.originName || '';
-  //       this.originsaveid = data.originId || null;
-  //       this.originpinCode = data.originCountryCode || '';
-
-  //       this.quotation.portOfLoadingId = data.portOfLoadingId ? Number(data.portOfLoadingId) : null;
-  //       this.quotation.portOfLoadingCode = data.codeOfPOL || '';
-  //       const polMatch = this.portsOfLoading?.find(p => p && Number(p.id) === Number(data.portOfLoadingId));
-  //       this.quotation.portOfLoading = polMatch ? (polMatch.portName || polMatch.name) : (data.portOfLoadingName || '');
-
-  //       this.quotation.portOfDischargeId = data.portOfDischargeId ? Number(data.portOfDischargeId) : null;
-  //       this.quotation.portOfDestinationCode = data.codeOfPOD || '';
-  //       const podMatch = this.portsOfDischarge?.find(p => p && Number(p.id) === Number(data.portOfDischargeId));
-  //       this.quotation.portOfDestination = podMatch ? (podMatch.portName || podMatch.name) : (data.portOfDischargeName || '');
-
-  //       this.quotation.finalDestination = data.finalDestination || '';
-  //       this.quotation.finalDestinationCode = data.codeOfFinalDest || '';
-  //       this.quotation.isDirect = data.isDirect === true;
-  //       this.quotation.isIndirect = data.isIndirect === true;
-  //       this.quotation.podOrigin = data.podOrigin || '';
-
-  //       // --- 7. Connecting Ports ---
-  //       this.selectedConnectingPorts = [];
-  //       this.quotation.connectingPortIds = [];
-  //       const rawCP = data.connectingPortIds || data.ConnectingPortIds;
-  //       if (rawCP) {
-  //         const idsArray = Array.isArray(rawCP) ? rawCP : rawCP.toString().split(',').map(Number);
-  //         this.quotation.connectingPortIds = idsArray;
-
-  //         this.selectedConnectingPorts = idsArray.map((id: number) => {
-  //           const masterPort = this.filteredConnectingPorts?.find(p => Number(p.id) === id);
-  //           return {
-  //             id: id,
-  //             portName: masterPort ? (masterPort.portName || masterPort.name) : `Port ID: ${id}`,
-  //             portCode: masterPort ? masterPort.portCode : 'N/A'
-  //           };
-  //         });
-  //       }
-
-  //       try {
-  //         if (data.receivedDate) this.quotation.receivedDate = new Date(data.receivedDate).toISOString().split('T')[0];
-  //         if (data.cargoStatusDate) this.quotation.cargoStatusDate = data.cargoStatusDate.split('T')[0];
-  //         if (data.repliedDate && data.repliedDate !== '2000-02-12T00:00:00' && data.repliedDate !== '0001-01-01T00:00:00') {
-  //           this.quotation.repliedDate = new Date(data.repliedDate).toISOString().split('T')[0];
-  //         }
-  //       } catch (dateErr) { console.error('Date parsing issue:', dateErr); }
-
-  //       this.quotation.incoterm = data.incoterm || '';
-  //       if (this.quotation.incoterm) this.onIncotermChange({ target: { value: this.quotation.incoterm } });
-
-  //       this.quotation.noOfPkgs = data.noOfPkgs || 0;
-  //       this.quotation.grossWeightKg = data.grossWeightKg || 0;
-  //       this.quotation.chargeableWeight = data.chargeableWeight || 0;
-  //       this.quotation.volumeWeight = data.volumeWeight || 0;
-  //       this.quotation.description = data.description || '';
-  //       this.quotation.cargoValue = data.cargoValue || '';
-  //       this.quotation.currency = data.cargoCurrency || '';
-  //       this.quotation.cargoStatusType = data.cargoStatus || '';
-
-  //       if (data.dimensions?.length > 0) {
-  //         this.dimRows = data.dimensions.map((d: any) => ({ box: d.box || 0, l: d.l || 0, w: d.w || 0, h: d.h || 0, unit: d.unit || 'CMS' }));
-  //         this.dimRow = { ...this.dimRows[0] };
-  //       } else {
-  //         this.dimRow = { box: 0, l: 0, w: 0, h: 0, unit: 'CMS' };
-  //         this.dimRows = [];
-  //       }
-  //       this.calculateVolumeWeight();
-
-  //       this.quotation.countryName = data.countryName || '';
-  //       this.quotation.country = data.countryName || '';
-  //       this.quotation.countryId = data.countryId || null;
-
-  //       this.showInquiryDropdown = false;
-  //       this.showCountryDropdown = false;
-  //       this.showPortOfDischargeDropdown = false;
-  //       this.showOriginDropdown = false;
-  // // ff
-  //       this.cdr.detectChanges();
-  //       if (this.quotation.lineOfBusinessId) this.onLOBChange({ target: { value: this.quotation.lineOfBusinessId } });
-
-  //       setTimeout(() => { this.cdr.detectChanges(); }, 200);
-  //     },
-  //     error: (err) => console.error("❌ API Error:", err)
-  //   });
-  // }
-
   isHazard(): boolean {
-    // 1. Agar selectcommodityvalue mein seedha 'Hazard' likha hai
-
     const val = (this.selectcommodityvalue || "").toLowerCase();
 
     if (["hazard", "hazardous"].includes(val)) return true;
-
-    // 2. Agar quotation.commodity (ID) se check karna hai
-
-    // Aapke commodityTypes array mein se hazard wali entry dhund rahe hain
 
     const selectedType = this.commodityTypes?.find(
       (t) => t.id == this.quotation?.commodity,
@@ -5464,7 +4740,6 @@ export class PriceComponent {
   saveInvoices() {
     console.log("Updating local invoices array:", this.invoices);
 
-    // 1. Validation (Optional): Check karo ki har invoice ka naam hai ya nahi
     const isValid = this.invoices.every(
       (inv) => inv.name && inv.name.trim() !== "",
     );
@@ -5480,11 +4755,8 @@ export class PriceComponent {
       return;
     }
 
-    // 2. Local State update ho chuki hai (kyunki tumne [(ngModel)] use kiya hai),
-    // bas hume modal band karna hai.
     this.isInvoiceModalOpen = false;
 
-    // 3. Optional: Agar kuch specific formatting karni ho toh yahan kar sakte ho.
     console.log("Local state updated successfully.");
   }
   token: string = "";
@@ -5496,7 +4768,6 @@ export class PriceComponent {
   }
 
   loadInquiryList() {
-    // Toggle logic
     if (this.showInquiryDropdown) {
       this.showInquiryDropdown = false;
       this.cdr.detectChanges();
@@ -5513,7 +4784,6 @@ export class PriceComponent {
       return;
     }
 
-    // 1. Loading Start
     Swal.fire({
       title: "Loading Inquiries",
       text: "Please wait while we fetch the data...",
@@ -5523,7 +4793,7 @@ export class PriceComponent {
       },
     });
 
-    const startTime = new Date().getTime(); // Request start time note karo
+    const startTime = new Date().getTime();
     const url = `${environment.apiUrl}/Inquiry/list `;
 
     this.http
@@ -5538,7 +4808,6 @@ export class PriceComponent {
           const endTime = new Date().getTime();
           const duration = endTime - startTime;
 
-          // Agar request 1 second (1000ms) se jaldi complete hui, toh bacha hua time wait karo
           const delay = duration < 1000 ? 1000 - duration : 0;
 
           setTimeout(() => {
@@ -5546,8 +4815,8 @@ export class PriceComponent {
             this.filteredInquiries = res || [];
             this.showInquiryDropdown = this.inquiryList.length > 0;
 
-            this.cdr.detectChanges(); // UI update trigger
-            Swal.close(); // Swal band karo
+            this.cdr.detectChanges();
+            Swal.close();
           }, delay);
         },
         error: (err) => {
@@ -5566,7 +4835,6 @@ export class PriceComponent {
         },
       });
   }
-  // Blur issue fix karne ke liye delay function
   hideDropdownWithDelay() {
     setTimeout(() => {
       this.showInquiryDropdown = false;
@@ -5582,7 +4850,6 @@ export class PriceComponent {
 
       this.filteredInquiries = this.allInquiries.filter(
         (inq) =>
-          // InquiryNo ya CustomerName dono se search kar sakte hain
           (inq.inquiryNo && inq.inquiryNo.toLowerCase().includes(searchTerm)) ||
           (inq.customerName &&
             inq.customerName.toLowerCase().includes(searchTerm)),
@@ -5591,31 +4858,26 @@ export class PriceComponent {
       this.showInquiryDropdown = false;
     }
   }
-  // TS File ke andar
   generateTemporaryPricingNo() {
     const today = new Date();
     const year = today.getFullYear();
-    const month = today.getMonth() + 1; // Months 0-11 hote hain
+    const month = today.getMonth() + 1;
 
     let financialYear = "";
     if (month >= 4) {
-      // April ya uske baad: 2024-25 format
       financialYear = `${year.toString().slice(-2)}-${(year + 1).toString().slice(-2)}`;
     } else {
-      // Jan-March: 2023-24 format
       financialYear = `${(year - 1).toString().slice(-2)}-${year.toString().slice(-2)}`;
     }
 
-    // Naya temporary number (Controller save karte waqt real number de dega)
     this.quotation.pricingNo = `CAV/PRC/${financialYear}/---`;
   }
   openPricingForm(inquiryData: any) {
     this.isFormOpen = true;
-    this.inquiry = inquiryData; // Purana data map karein
-    this.generateTemporaryPricingNo(); // Pricing No set karein
+    this.inquiry = inquiryData;
+    this.generateTemporaryPricingNo();
   }
   redirectdata(type: any, id: any) {
-    // 1. Guard clause: Architectural Validation (Id check)
     if (!id) {
       Swal.fire({
         icon: "warning",
@@ -5623,19 +4885,16 @@ export class PriceComponent {
         text: "The redirection sequence cannot be instantiated due to the absence of a valid operational reference. Please cross-verify the data integrity with our technical support infrastructure.",
         confirmButtonColor: "#4a3f3f",
       });
-      return; // Navigation block ho gaya
+      return;
     }
 
-    // 2. Toast notification configuration
     const Toast = Swal.mixin({
       toast: true,
-      // position: 'top-end',
       showConfirmButton: false,
       timer: 2500,
       timerProgressBar: true,
     });
 
-    // 3. Routing Logic (Strict condition checking)
     if (type === "org") {
       Toast.fire({
         icon: "info",
@@ -5653,204 +4912,14 @@ export class PriceComponent {
         queryParams: { editId: id },
       });
     } else {
-      // 4. Fallback for Protocol Deviation (Jab type mismatch ho)
       Swal.fire({
         icon: "error",
         title: "Protocol Deviation",
         text: "The requested routing protocol is currently incompatible with existing system configurations. Should this persistence anomaly continue, please escalate the matter to the technical support department.",
         confirmButtonColor: "#4a3f3f",
       });
-      // Yahan navigate nahi hoga kyunki hum else block mein hain
     }
   }
-  // 1. Edit Function
-  // editPricing(pricing: any) {
-  //   console.log("Editing Pricing Entry Data:", pricing);
-  //   if (!pricing) return;
-
-  //   // --- Documents Mapping (Integration) ---
-  // const allDocs = pricing.pricingDocuments || pricing.PricingDocuments || [];
-  // console.log("DEBUG: Total Docs from API:", allDocs.length);
-
-  // this.documents = allDocs
-  //   .filter((d: any) => (d.docType || d.DocType || '').toLowerCase() === 'commodity')
-  //   .map((d: any) => ({
-  //     id: d.docId || d.DocId,
-  //     name: 'Commodity Document', // Yahan tum 'Commodity' ya file ka naam set kar sakte ho
-  //     documentPath: d.docPath || d.DocPath,
-  //     isExisting: true
-  //   }));
-
-  // this.invoices = allDocs
-  //   .filter((d: any) => (d.docType || d.DocType || '').toLowerCase() === 'invoice')
-  //   .map((d: any) => ({
-  //     id: d.docId || d.DocId,
-  //     name: 'Invoice Document',
-  //     documentPath: d.docPath || d.DocPath,
-  //     isExisting: true
-  //   }));
-
-  // console.log("DEBUG: Final Array (Commodity):", this.documents);
-  // console.log("DEBUG: Final Array (Invoices):", this.invoices);
-
-  // // UI Force Refresh
-  // this.cdr.detectChanges();
-
-  //   // Saare background data ko ek jagah safe nikaal lo
-  //   const rawCbm = pricing.cbm || pricing.volume || pricing.totalCbm || pricing.cbmWeight || pricing.cbm_weight;
-  //   const rawVolWeight = pricing.volumeWeight || pricing.volume_weight || pricing.volumetricWeight || (this.quotation && this.quotation.volumeWeight);
-  //   const rawCommodityId = pricing.commodityId || pricing.commodityID || pricing.commodity_id || pricing.commodity;
-  //   const rawCommodityName = pricing.commodityName || pricing.commodity_name || pricing.commodity || '';
-
-  //   // 1. Data Copying (Deep Merge Safety)
-  //   if (!this.quotation) this.quotation = {};
-  //   this.quotation = { ...this.quotation, ...pricing };
-
-  //   // 2. Transport Mode Fix
-  //   if (pricing.transportMode && this.transportModes) {
-  //     const modeObj = this.transportModes.find(m => m && m.name && m.name.toLowerCase() === pricing.transportMode.toLowerCase());
-  //     this.quotation.TransportMode = modeObj ? modeObj.id : pricing.transportMode;
-  //   }
-
-  //   // 3. Transport Type & Currency Fix
-  //   this.quotation.TransportType = pricing.transportType;
-  //   this.quotation.currency = pricing.cargoCurrency;
-
-  //   // 4. Origin Display
-  //   if (!this.inquiry) this.inquiry = {};
-  //   this.inquiry.origin = pricing.originName || pricing.origin;
-  //   this.originsaveid = pricing.originId;
-
-  //   // ========================================================
-  //   // 🎯 DB SPECIFIC AUTOFILL FIELDS & DROPDOWN ID FIXING
-  //   // ========================================================
-  //   const dbPortOfLoadingId = pricing['[PortOfLoadingId]'] || pricing.portOfLoadingId || pricing.PortOfLoadingId || null;
-  //   const dbPortOfDischargeId = pricing['[PortOfDischargeId]'] || pricing.portOfDischargeId || pricing.PortOfDischargeId || null;
-  //   const dbPlaceOfDelivery = pricing['[PlaceOfDelivery]'] || pricing.placeOfDelivery || pricing.PlaceOfDelivery || "";
-  //   const dbCountryName = pricing['[CountryName]'] || pricing.countryName || pricing.CountryName || "";
-
-  //   // Dropdown safe matching ke liye IDs ko Hamesha String banao
-  //   this.quotation.portOfLoadingId = dbPortOfLoadingId ? dbPortOfLoadingId.toString() : null;
-  //   this.quotation.portOfDischargeId = dbPortOfDischargeId ? dbPortOfDischargeId.toString() : null;
-
-  //   // HTML Binding text variable fallback
-  //   this.quotation.originPOL = pricing.originName || pricing.origin || "";
-  //   this.quotation.placeOfDelivery = dbPlaceOfDelivery;
-  //   this.quotation.country = dbCountryName;
-  //   this.quotation.countryName = dbCountryName;
-  //   this.quotation.countryId = pricing.countryId || null;
-
-  //   // --- Master Array Se Names Filter Karke Text Boxes Me Bharo ---
-  //   if (dbPortOfLoadingId && this.filteredConnectingPorts) {
-  //     const foundPol = this.filteredConnectingPorts.find(p => p.id.toString() === dbPortOfLoadingId.toString());
-  //     this.quotation.portOfLoading = foundPol ? foundPol.name : (pricing.portOfLoadingName || '');
-  //   } else {
-  //     this.quotation.portOfLoading = pricing.portOfLoadingName || "";
-  //   }
-
-  //   if (dbPortOfDischargeId && this.filteredConnectingPorts) {
-  //     const foundPod = this.filteredConnectingPorts.find(p => p.id.toString() === dbPortOfDischargeId.toString());
-  //     this.quotation.portOfDischarge = foundPod ? foundPod.name : (pricing.portOfDischargeName || '');
-  //     this.quotation.portOfDestination = this.quotation.portOfDischarge;
-  //   } else {
-  //     this.quotation.portOfDischarge = pricing.portOfDischargeName || "";
-  //     this.quotation.portOfDestination = pricing.portOfDischargeName || "";
-  //   }
-
-  //   // --- CONNECTING PORTS MAPPING ---
-  //   const rawCP = pricing.connectingPortIds || pricing.ConnectingPortIds;
-  //   const cPortIds = typeof rawCP === 'string' ? rawCP.split(',').map(id => Number(id.trim())) : (Array.isArray(rawCP) ? rawCP : []);
-  //   this.quotation.connectingPortIds = cPortIds;
-
-  //   if (this.filteredConnectingPorts) {
-  //     this.selectedConnectingPorts = this.filteredConnectingPorts.filter(p => cPortIds.includes(Number(p.id)));
-  //   }
-
-  //   // 6. Org & Ref
-  //   this.inquiry.organization = pricing.organisationName || pricing.customerName;
-  //   this.quotation.referenceByInquiry = pricing.referenceByInquiryNo;
-
-  //   // 7. Dates
-  //   if (pricing.receivedDate) this.quotation.receivedDate = pricing.receivedDate.split('T')[0];
-  //   if (pricing.cargoStatusDate) this.quotation.cargoStatusDate = pricing.cargoStatusDate.split('T')[0];
-
-  //   // 8. COMMODITY IMMEDIATE ASSIGNMENT
-  //   if (rawCommodityId) {
-  //     this.quotation.commodity = Number(rawCommodityId);
-  //   }
-  //   this.selectcommodityvalue = rawCommodityName;
-
-  //   // 9. CBM INITIAL ASSIGNMENT & CALCULATION
-  //   if (rawVolWeight) {
-  //     this.quotation.volumeWeight = Number(rawVolWeight);
-  //   }
-
-  //   if (rawCbm && Number(rawCbm) > 0) {
-  //     this.quotation.cbm = parseFloat(Number(rawCbm).toFixed(3));
-  //   } else if (this.quotation.volumeWeight && Number(this.quotation.volumeWeight) > 0) {
-  //     const calc = Number(this.quotation.volumeWeight) / 167;
-  //     this.quotation.cbm = parseFloat(calc.toFixed(3));
-  //   } else {
-  //     this.quotation.cbm = 0;
-  //   }
-
-  //   this.quotation.weight = pricing.weight || pricing.grossWeightKg || pricing.grossWeight || 0;
-  //   this.quotation.cbmUnit = pricing.cbmUnit || 'CBM';
-
-  //   // 10. Tables Grid Data
-  //   this.costRows = pricing.costBreakdowns && pricing.costBreakdowns.length > 0 ? [...pricing.costBreakdowns] : [{ lob: 'Standard', chargeName: '', chargeType: 'Prepaid', basis: 'Per KG', currency: 'INR', rate: 0, exchangeRate: 1, amount: 0 }];
-  //   this.multiCarrierRows = pricing.multiCarrierBreakdowns && pricing.multiCarrierBreakdowns.length > 0 ? [...pricing.multiCarrierBreakdowns] : [this.createEmptyRow()];
-
-  //   // 11. Dimensions
-  //   if (pricing.dimensions && Array.isArray(pricing.dimensions) && pricing.dimensions.length > 0) {
-  //     this.dimRows = [...pricing.dimensions];
-  //     this.dimRow = { ...pricing.dimensions[0] };
-  //     this.appliedDimensions = [...pricing.dimensions];
-  //   } else {
-  //     this.dimRows = [];
-  //     this.dimRow = {};
-  //     this.appliedDimensions = [];
-  //   }
-
-  //   this.isFormOpen = true;
-  //   this.cdr.detectChanges();
-
-  //   // ========================================================
-  //   // 🎯 ULTIMATE TEMPLATE SYNC
-  //   // ========================================================
-  //   setTimeout(() => {
-  //     if (rawCommodityId) this.quotation.commodity = Number(rawCommodityId);
-  //     this.selectcommodityvalue = rawCommodityName;
-
-  //     const freshVolWeight = this.quotation.volumeWeight || rawVolWeight;
-  //     if (rawCbm && Number(rawCbm) > 0) {
-  //       this.quotation.cbm = parseFloat(Number(rawCbm).toFixed(3));
-  //     } else if (freshVolWeight && Number(freshVolWeight) > 0) {
-  //       const coreCalc = Number(freshVolWeight) / 167;
-  //       this.quotation.cbm = parseFloat(coreCalc.toFixed(3));
-  //     }
-
-  //     if (dbPortOfLoadingId) this.quotation.portOfLoadingId = dbPortOfLoadingId.toString();
-  //     if (dbPortOfDischargeId) this.quotation.portOfDischargeId = dbPortOfDischargeId.toString();
-  //     if (dbPlaceOfDelivery) this.quotation.placeOfDelivery = dbPlaceOfDelivery;
-  //     if (dbCountryName) {
-  //       this.quotation.country = dbCountryName;
-  //       this.quotation.countryName = dbCountryName;
-  //     }
-
-  //     // Re-sync Connecting Ports in Timeout
-  //     if (this.filteredConnectingPorts) {
-  //         this.selectedConnectingPorts = this.filteredConnectingPorts.filter(p => this.quotation.connectingPortIds.includes(Number(p.id)));
-  //     }
-
-  //     if (pricing.countryId && typeof this.selectCountry === 'function') {
-  //       this.selectCountry({ id: pricing.countryId, name: dbCountryName });
-  //     }
-
-  //     console.log("🔥 Sync Finished! Documents, Ports, and Commodity Synchronized.");
-  //     this.cdr.detectChanges();
-  //   }, 400);
-  // }
   editPricing(pricing: any) {
     console.log("Editing Pricing Entry Data:", pricing);
     if (!pricing) return;
@@ -5862,9 +4931,8 @@ export class PriceComponent {
       (fullData: any) => {
         console.log("DEBUG: Full Data fetched from API:", fullData);
 
-        pricing = fullData; // Updated with full data
+        pricing = fullData;
 
-        // --- Documents Mapping (Original) ---
         const allDocs =
           pricing.pricingDocuments || pricing.PricingDocuments || [];
         this.documents = allDocs
@@ -5893,7 +4961,6 @@ export class PriceComponent {
 
         this.cdr.detectChanges();
 
-        // --- BAAKI KA PURA LOGIC ---
         const rawCbm =
           pricing.cbm ||
           pricing.volume ||
@@ -5915,34 +4982,27 @@ export class PriceComponent {
           pricing.commodity_name ||
           pricing.commodity ||
           "";
-        // 1. Team ID map karein
         this.quotation.teamId = pricing.teamId
           ? pricing.teamId.toString()
           : null;
 
-        // 2. Sales Coordinator map karein
         this.quotation.salesCoordinator = pricing.salesCoordinator || "";
 
-        // 3. Team change trigger karein taaki Coordinator list load ho jaye
         if (this.quotation.teamId) {
           this.onTeamChange(this.quotation.teamId);
 
-          // Coordinator list load hone ka wait aur phir value set karna
           setTimeout(() => {
-            // Agar salesCoordinator mil gaya hai, toh ensure karein ki wo UI mein select ho
             if (pricing.salesCoordinator) {
               this.quotation.salesCoordinator =
                 pricing.salesCoordinator.toString();
               this.cdr.detectChanges();
             }
             if (pricing.salesTeam) {
-              // 🔥 NAYA
               this.quotation.salesTeam = pricing.salesTeam.toString();
               this.cdr.detectChanges();
             }
           }, 800);
         }
-        // editPricing() ke andar, jahan teamId set ho raha hai wahan:
         if (this.quotation.teamId) {
           this.onTeamChange(this.quotation.teamId);
           setTimeout(() => {
@@ -5974,7 +5034,6 @@ export class PriceComponent {
         this.inquiry.origin = pricing.originName || pricing.origin;
         this.originsaveid = pricing.originId;
 
-        // --- POL / POD / FINAL DESTINATION MAPPING ---
         const dbPortOfLoadingId =
           pricing["[PortOfLoadingId]"] ||
           pricing.portOfLoadingId ||
@@ -5992,16 +5051,14 @@ export class PriceComponent {
         this.quotation.portOfDischargeId = dbPortOfDischargeId
           ? dbPortOfDischargeId.toString()
           : null;
-        // --- FIX: UNIT MAPPING FROM API TO UI ---
         this.quotation.GrossWeightUnit = pricing.grossWeightUnit || "";
         this.quotation.netWeightUnit = pricing.netWeightUnit || "";
         this.quotation.chargeableWeightUnit = pricing.chargeWeightUnit || "";
         this.quotation.volumeWeightUnit = pricing.volumeWeightUnit || "";
-        this.quotation.cbmUnit = pricing.cbmWeightUnit || ""; // API mein cbmWeightUnit aa raha hai
+        this.quotation.cbmUnit = pricing.cbmWeightUnit || "";
         this.quotation.noOfPkgsUnit = pricing.noOfPkgsUnit || "";
         this.quotation.currency = pricing.cargoCurrency || "";
         this.quotation.cargoValue = pricing.cargoValue || null;
-        // Code Mapping
         this.quotation.portOfLoadingCode =
           pricing.codeOfPOL || pricing.CodeOfPOL || "";
         this.quotation.portOfDestinationCode =
@@ -6017,7 +5074,6 @@ export class PriceComponent {
           pricing.PlaceOfDelivery ||
           "";
 
-        // 🔥 NAYA: Carrier & Agent fields sync (edit mode)
         this.quotation.CarrierCode =
           pricing.carrierCode || pricing.CarrierCode || "";
         this.quotation.CarrierName =
@@ -6025,7 +5081,6 @@ export class PriceComponent {
         this.quotation.Agent = pricing.agent || pricing.Agent || "";
         this.agentSearchText = this.quotation.Agent || "";
 
-        // Agent ko agentDetail list me turant mark karne ki koshish (agar list already loaded hai)
         this.markAgentAsSelected(this.quotation.Agent);
 
         this.quotation.country =
@@ -6035,7 +5090,6 @@ export class PriceComponent {
           "";
         this.quotation.countryName = this.quotation.country;
         this.quotation.countryId = pricing.countryId || null;
-        // --- 7. Dates (Updated with Replied Date Logic) ---
         try {
           if (pricing.receivedDate)
             this.quotation.receivedDate = new Date(pricing.receivedDate)
@@ -6043,14 +5097,11 @@ export class PriceComponent {
               .split("T")[0];
 
           if (pricing.cargoStatusDate) {
-            // .split('T')[0] sirf tab sahi chalta hai agar date "2026-06-16T00:00:00" format mein ho
-            // Agar date direct "2026-06-16" hai, toh split ki zaroorat nahi hai
             this.quotation.cargoStatusDate = pricing.cargoStatusDate
               .toString()
               .split("T")[0];
           }
 
-          // Yahan 'repliedDate' check ho raha hai
           if (
             pricing.repliedDate &&
             pricing.repliedDate !== "2000-02-12T00:00:00" &&
@@ -6060,12 +5111,11 @@ export class PriceComponent {
               .toISOString()
               .split("T")[0];
           } else {
-            this.quotation.repliedDate = null; // Agar date valid nahi hai to null kar do
+            this.quotation.repliedDate = null;
           }
         } catch (dateErr) {
           console.error("Date parsing issue:", dateErr);
         }
-        // POL Logic: Check list first, fallback to API name
         if (
           dbPortOfLoadingId &&
           this.filteredConnectingPorts &&
@@ -6081,7 +5131,6 @@ export class PriceComponent {
           this.quotation.portOfLoading = pricing.portOfLoadingName || "";
         }
 
-        // POD Logic: Check list first, fallback to API name
         if (
           dbPortOfDischargeId &&
           this.filteredConnectingPorts &&
@@ -6099,7 +5148,6 @@ export class PriceComponent {
           this.quotation.portOfDestination = pricing.portOfDischargeName || "";
         }
 
-        // Connecting Ports
         const rawCP = pricing.connectingPortIds || pricing.ConnectingPortIds;
         const cPortIds =
           typeof rawCP === "string"
@@ -6160,9 +5208,16 @@ export class PriceComponent {
         if (editLobId) {
           this.fetchAgentByLobId(editLobId, editCountry);
         }
+
+        // ✅ FIX: normalize gstStatus (Taxable/Non-Taxable) from isGstApplicable
+        // for both Single-Carrier (costRows) and Multi-Carrier rows, before
+        // recalculating GST — otherwise Tax Name/%/CGST/SGST/IGST stay blank
+        // when editing an existing pricing record.
         this.costRows =
           pricing.costBreakdowns && pricing.costBreakdowns.length > 0
-            ? [...pricing.costBreakdowns]
+            ? pricing.costBreakdowns.map((r: any) =>
+                this.normalizeBreakdownRow(r),
+              )
             : [
                 {
                   lob: "Standard",
@@ -6173,12 +5228,15 @@ export class PriceComponent {
                   rate: 0,
                   exchangeRate: 1,
                   amount: 0,
+                  ...this.defaultGstFields(),
                 },
               ];
         this.multiCarrierRows =
           pricing.multiCarrierBreakdowns &&
           pricing.multiCarrierBreakdowns.length > 0
-            ? [...pricing.multiCarrierBreakdowns]
+            ? pricing.multiCarrierBreakdowns.map((r: any) =>
+                this.normalizeBreakdownRow(r),
+              )
             : [this.createEmptyRow()];
 
         if (
@@ -6199,6 +5257,10 @@ export class PriceComponent {
         this.cdr.detectChanges();
 
         setTimeout(() => {
+          // ✅ FIX: recalculate GST after everything (charge master, tax
+          // rates, ports, branch state) is in place, so Taxable rows get
+          // their Tax Name/%/CGST/SGST/IGST/Total populated automatically.
+          this.recalculateAllGst();
           this.cdr.detectChanges();
           console.log("🔥 Sync Finished!");
         }, 400);
@@ -6206,15 +5268,12 @@ export class PriceComponent {
       (err) => console.error("Error fetching full data:", err),
     );
   }
-  // Keep it safe for other components calling it
 
   sendBulkEmails(inqId: number) {
-    // 🔥 CRITICAL REQUIREMENT MATCH: अगर कोई भी ईमेल सिलेक्टेड नहीं है, तो न एनिमेशन आएगा और न API कॉल होगी!
     if (!this.selectedEmails || this.selectedEmails.size === 0) {
       console.warn(
         "⚠️ Redirection flow complete: No agents selected, bypassing email deployment.",
       );
-      // बिना ईमेल भेजे सीधे प्राइसिंग लिस्ट स्क्रीन पर रिडायरेक्ट कर दें
       this.router.navigate(["/dashboard/Price"]);
       return;
     }
@@ -6228,7 +5287,6 @@ export class PriceComponent {
     const token = localStorage.getItem("cavalier_token");
     const headers = { Authorization: `Bearer ${token}` };
 
-    // 🔥 STEP 1: Sending Animation वाला Modal सिर्फ़ तभी खुलेगा जब ईमेल सिलेक्टेड होंगे
     Swal.fire({
       title: "Processing...",
       html: `
@@ -6249,7 +5307,6 @@ export class PriceComponent {
       },
     });
 
-    // 🔥 STEP 2: Actual API Call
     this.http
       .post(`${this.apiUrl}/SendBulkEmail`, payload, { headers })
       .subscribe({
@@ -6279,54 +5336,28 @@ export class PriceComponent {
               err.error?.message || "Something went wrong while sending email.",
             confirmButtonColor: "#4a3f3f",
           }).then(() => {
-            // एरर आने पर भी लिस्ट स्क्रीन पर भेजें ताकि डेटा सेव हो चुका है तो यूज़र देख सके
             this.router.navigate(["/dashboard/Price"]);
           });
         },
       });
   }
-  // 2. Delete Function
-  // deletePricing(id: number) {
-  //   if (confirm("Are you sure you want to delete this pricing?")) {
-  //     const token = localStorage.getItem('cavalier_token');
-  //     const httpOptions = {
-  //       headers: { Authorization: `Bearer ${token}` }
-  //     };
-
-  //     this.http.delete(`${environment.apiUrl}/api/Pricing/${id}`, httpOptions).subscribe({
-  //       next: () => {
-  //         alert("Pricing deleted successfully!");
-  //         this.onSearch();  // Table refresh karein
-  //       },
-  //       error: (err) => {
-  //         console.error("Delete Error:", err);
-  //         alert("Failed to delete pricing.");
-  //       }
-  //     });
-  //   }
-  // }
   openNewQuotation() {
-    this.quotation = {}; // Reset form or initialize
+    this.quotation = {};
 
-    // Yahan 'pricingsList' ki jagah 'pricings' kar diya hai
     if (this.pricings && this.pricings.length > 0) {
-      // 1. Saare Pricing Numbers ki list nikaalo
       const numbers = this.pricings
         .map((p: any) => {
-          // Agar format 'PR-101' hai toh digit nikaalo, warna direct number lo
           const val = p.pricingNo || p.PricingNo;
           const match = val?.toString().match(/\d+/);
           return match ? parseInt(match[0]) : 0;
         })
         .filter((n: number) => !isNaN(n));
 
-      // 2. Sabse bada number dhundo
       const maxNo = Math.max(...numbers, 0);
 
-      // 3. Agla number set karo
       this.quotation.pricingNo = (maxNo + 1).toString();
     } else {
-      this.quotation.pricingNo = "1"; // Agar list khali hai toh 1 se start
+      this.quotation.pricingNo = "1";
     }
 
     this.isFormOpen = true;
@@ -6354,24 +5385,20 @@ export class PriceComponent {
           headers: { Authorization: `Bearer ${token}` },
         };
 
-        // API Call to delete pricing
         this.http
           .delete(`${environment.apiUrl}/Pricing/${id}`, httpOptions)
           .subscribe({
             next: (res: any) => {
-              // 1. Show success message in English
               Swal.fire(
                 "Deleted!",
                 "The record has been successfully deleted.",
                 "success",
               );
 
-              // 2. Filter out the deleted item from the local array
               this.pricings = this.pricings.filter(
                 (p) => (p.id || p.Id) !== id,
               );
 
-              // 3. Trigger Change Detection manually to refresh the table UI
               this.cdr.detectChanges();
             },
             error: (err) => {
@@ -6386,7 +5413,6 @@ export class PriceComponent {
   }
   goToOrganization(id: any) {
     if (id) {
-      // Ye Angular router ko bypass karke browser se redirect karega
       window.location.href = `/dashboard/organization-add/${id}`;
     }
   }
@@ -6401,8 +5427,6 @@ export class PriceComponent {
     }
   }
   updatePreview() {
-    // Yeh function sirf Angular ko refresh karne ka trigger deta hai
-    // Agar values update nahi ho rahi hain, toh ChangeDetectorRef use karo:
     this.cdr.detectChanges();
 
     console.log("Current Dimensions List:", this.dimRows);
@@ -6422,7 +5446,6 @@ export class PriceComponent {
     Status: "status",
   };
 
-  // 1. Backend se settings laane ke liye
   fetchPricingSettings() {
     this.http.get(`${environment.apiUrl}/PricingColumnSettings`).subscribe({
       next: (res: any) => {
@@ -6434,7 +5457,6 @@ export class PriceComponent {
     });
   }
 
-  // 2. Drag & Drop aur API Save ke liye
   dropPricingColumn(event: CdkDragDrop<string[]>) {
     moveItemInArray(
       this.selectedPricingColumns,
@@ -6446,7 +5468,7 @@ export class PriceComponent {
 
   savePricingSettings() {
     const payload = {
-      Id: 1, // Controller logic ke hisaab se
+      Id: 1,
       AvailableColumns: JSON.stringify(this.selectedPricingColumns),
       SelectedColumns: JSON.stringify(this.selectedPricingColumns),
     };
@@ -6459,14 +5481,12 @@ export class PriceComponent {
       });
   }
 
-  // Component ke andar
-  isColumnModalOpen: boolean = false; // Initial state false honi chahiye
+  isColumnModalOpen: boolean = false;
 
   toggleColumnSelector() {
     this.isColumnModalOpen = !this.isColumnModalOpen;
-    console.log("Modal state is now:", this.isColumnModalOpen); // F12 (Console) mein check karo
+    console.log("Modal state is now:", this.isColumnModalOpen);
   }
-  // 1. Column list jo tum dikhana chahte ho
   allPossibleColumns: string[] = [
     "Pricing No",
     "Organisation",
@@ -6479,38 +5499,22 @@ export class PriceComponent {
     "Status",
   ];
 
-  // 2. Modal/Selector toggle state
-  // isColumnModalOpen: boolean = false;
-
-  // toggleColumnSelector() {
-  //   this.isColumnModalOpen = !this.isColumnModalOpen;
-  // }
-
-  // 3. Checkbox toggle logic
   toggleColumn(colName: string) {
     const index = this.selectedPricingColumns.indexOf(colName);
     if (index > -1) {
-      this.selectedPricingColumns.splice(index, 1); // Remove kar do
+      this.selectedPricingColumns.splice(index, 1);
     } else {
-      this.selectedPricingColumns.push(colName); // Add kar do
+      this.selectedPricingColumns.push(colName);
     }
-    this.savePricingSettings(); // Auto-save ho jayega
+    this.savePricingSettings();
   }
-  // Component ke andar
-  // allPossibleColumns: string[] = [
-  //   'Pricing No', 'Organisation', 'Inquiry No', 'Customer',
-  //   'Location', 'Route', 'Incoterm', 'Movement', 'Commodity', 'Status'
-  // ];
-  // State variables
   isOrgModalOpen = false;
 
-  // Open Modal
   openOrgModal() {
     this.loadAllOrganizations();
     this.isOrgModalOpen = true;
   }
 
-  // Select Organization and close
   selectAndClose(org: any) {
     this.inquiry.organization = org.orgName || org.organizationName;
     this.isOrgModalOpen = false;
@@ -6518,33 +5522,15 @@ export class PriceComponent {
     this.showOrgDropdown = false;
   }
 
-  // Standard select for dropdown
-
-  // Input handling
-  // onSearchInput() {
-  //   const query = this.inquiry.organization;
-  //   if (query && query.length >= 3) {
-  //     // Apni filtering logic yahan likho
-  //     this.filteredOrganizations = this.organizationList.filter(o =>
-  //       o.orgName?.toLowerCase().includes(query.toLowerCase())
-  //     );
-  //     this.showDropdown = this.filteredOrganizations.length > 0;
-  //   } else {
-  //     this.showDropdown = false;
-  //   }
-  // }
-  // Component mein ye function use karein
   getTotalPackageCount() {
     return this.dimRows.reduce((sum, item) => sum + (Number(item.box) || 0), 0);
   }
   getGroupedDimensions(): DimGroup[] {
-    // Yahan type define kar di taaki TS7034 error na aaye
     const groups: DimGroup[] = [];
 
     this.dimRows.forEach((dim: any, index: number) => {
       const dimString = `${dim.l || 0}x${dim.w || 0}x${dim.h || 0} ${dim.unit || "CMS"}`;
 
-      // find() method ab return karega 'DimGroup | undefined'
       let foundGroup = groups.find((g) => g.dimString === dimString);
 
       if (foundGroup) {
@@ -6565,13 +5551,10 @@ export class PriceComponent {
 
     return groups;
   }
-  // quotation: any = { grossWeightKg: '', GrossweightUnit: 'KGS' }; // Default KGS
   unitsList: any[] = [];
   showModal: boolean = false;
-  // Variables
   uomList: any[] = [];
   isUomModalOpen: boolean = false;
-  // ... baaki modals bhi yahan define hain
 
   loadUomList() {
     this.http.get<any[]>(`${environment.apiUrl}/Uom/list`).subscribe({
@@ -6588,73 +5571,57 @@ export class PriceComponent {
       ) || []
     );
   }
-  // isUomModalOpen: boolean = false;
 
-  // Ye function public hona chahiye
   toggleUomModal() {
     this.isUomModalOpen = !this.isUomModalOpen;
   }
-  // Gross Weight ke liye select
   selectUom(uom: any) {
     this.quotation.GrossweightUnit = uom.shortCode;
     this.isUomModalOpen = false;
-    this.calculateVolumeWeightLogic(); // Calculation update karna zaroori hai
+    this.calculateVolumeWeightLogic();
   }
-  // Net Weight ke liye modal state
   isNetUomModalOpen: boolean = false;
 
-  // Net Weight select function
   selectNetUom(uom: any) {
     this.quotation.netWeightUnit = uom.shortCode;
     this.isNetUomModalOpen = false;
   }
 
-  // Toggle function
   toggleNetUomModal() {
     this.isNetUomModalOpen = !this.isNetUomModalOpen;
   }
-  // Variable initialize karein
   isChargeableUomModalOpen: boolean = false;
 
-  // Toggle function
   toggleChargeableUomModal() {
     this.isChargeableUomModalOpen = !this.isChargeableUomModalOpen;
   }
 
-  // Select function
   selectChargeableUom(uom: any) {
     this.quotation.chargeableWeightUnit = uom.shortCode;
     this.isChargeableUomModalOpen = false;
-    // Agar koi calculation hai toh yahan call karein
   }
-  // Modal state
   isVolumeUomModalOpen: boolean = false;
 
-  // Toggle function
   toggleVolumeUomModal() {
     this.isVolumeUomModalOpen = !this.isVolumeUomModalOpen;
   }
 
-  // Select function
   selectVolumeUom(uom: any) {
     this.quotation.volumeWeightUnit = uom.shortCode;
     this.isVolumeUomModalOpen = false;
-    this.calculateVolumeWeightLogic(); // Calculation trigger
+    this.calculateVolumeWeightLogic();
   }
-  // Naya row add karne ke liye function
   addNewDimensionRow() {
-    this.dimRows.push({ box: 0, l: 0, w: 0, h: 0, unit: "KGS" }); // Default KGS
+    this.dimRows.push({ box: 0, l: 0, w: 0, h: 0, unit: "KGS" });
     this.updatePreview();
   }
 
-  // Modal Toggle
   toggleDimModal() {
     this.isDimModalOpen = !this.isDimModalOpen;
   }
   fixExistingRows() {
     if (this.dimRows && this.dimRows.length > 0) {
       this.dimRows.forEach((row) => {
-        // Agar unit set nahi hai, toh default KGS de do
         if (!row.unit) {
           row.unit = "KGS";
         }
@@ -6662,7 +5629,6 @@ export class PriceComponent {
     }
   }
   packageUnits: any[] = [];
-  // isModalOpen = false;
   getPackageUnits() {
     this.http
       .get(`${environment.apiUrl}/PackageBox/list`)
@@ -6672,11 +5638,10 @@ export class PriceComponent {
   }
   isUnitModalOpen = false;
   toggleUnitModal(event: Event) {
-    event.stopPropagation(); // Click event ko bubble hone se rokne ke liye
+    event.stopPropagation();
     this.isUnitModalOpen = !this.isUnitModalOpen;
   }
 
-  // ================== CARRIER (Code + Name) SEARCH DROPDOWN ==================
   filteredCarrierList: any[] = [];
   showCarrierDropdown = false;
   highlightedCarrierIndex = -1;
@@ -6737,7 +5702,6 @@ export class PriceComponent {
   }
 
   onCarrierBlur() {
-    // Thoda delay taaki mousedown (selectCarrier) pehle fire ho jaye
     setTimeout(() => {
       this.showCarrierDropdown = false;
       this.cdr.detectChanges();
@@ -6752,13 +5716,11 @@ export class PriceComponent {
     }
   }
 
-  // ================== AGENT DROPDOWN (Forwarding & Movement) ==================
   agentSearchText: string = "";
   filteredAgentList: any[] = [];
   showAgentDropdown = false;
   highlightedAgentIndex = -1;
 
-  // Click/Focus par turant poori list dikhao
   toggleAgentDropdown() {
     if (this.showAgentDropdown) {
       this.showAgentDropdown = false;
@@ -6827,7 +5789,6 @@ export class PriceComponent {
     this.showAgentDropdown = false;
     this.filteredAgentList = [];
 
-    // 🔥 Review popup ("Assigned Agents") me isko mark/tick karna
     const match = this.agentDetail.find(
       (x: any) => (x.agentName || "").trim() === (a.agentName || "").trim(),
     );
@@ -6846,7 +5807,6 @@ export class PriceComponent {
 
     this.cdr.detectChanges();
   }
-  // 🔥 Edit mode me saved Agent ko list me mark karta hai (retry-safe, kyunki agentDetail delay se load hoti hai)
   markAgentAsSelected(agentName: string, attempt: number = 0) {
     if (!agentName) return;
 
@@ -6867,8 +5827,6 @@ export class PriceComponent {
       }
     }
 
-    // Agar agentDetail abhi tak load nahi hui (LOB change ke baad API call chal rahi hai),
-    // toh thodi der baad dobara try karo (max 5 baar, 500ms gap)
     if (attempt < 5) {
       setTimeout(() => this.markAgentAsSelected(agentName, attempt + 1), 600);
     } else {
@@ -6913,7 +5871,6 @@ export class PriceComponent {
     }
   }
 
-  // --- Place of Delivery Search Logic ---
   filteredPlaceOfDelivery: any[] = [];
   showPlaceOfDeliveryDropdown: boolean = false;
 
@@ -6951,14 +5908,13 @@ export class PriceComponent {
     }
   }
 
-  // Click outside to close modal
   @HostListener("document:click", ["$event"])
   clickout(event: any) {
     if (!this.el.nativeElement.contains(event.target)) {
       this.isUnitModalOpen = false;
       this.showOriginDropdown = false;
       this.showCountryDropdown = false;
-      this.showPodOriginDropdown = false; // 🔥 naya
+      this.showPodOriginDropdown = false;
       this.showPlaceOfDeliveryDropdown = false;
     }
     if (this.el && !this.el.nativeElement.contains(event.target)) {

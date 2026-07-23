@@ -4,7 +4,7 @@
     class="bg-white border border-gray-300 shadow-sm rounded-sm overflow-hidden">
     <div
       class="bg-gray-100 p-1.5 border-b border-gray-300 flex gap-4 items-center">
-      <div class="text-[11px] italic text-gray-500">
+      <div class="text-[11px]  text-gray-500">
         Items in <span class="text-green-600 font-bold">green</span> = Sucess |
         <span class="text-red-600 font-bold">Red</span> = Failed
       </div>
@@ -142,7 +142,7 @@
                       class="py-16 text-center text-gray-500 flex flex-col items-center gap-4">
                       <span class="text-4xl opacity-50">📄</span>
                       <div>
-                        <p class="text-sm font-medium italic text-gray-600">No
+                        <p class="text-sm font-medium  text-gray-600">No
                           Pricing numbers found.</p>
                       </div>
                     </div>
@@ -165,56 +165,6 @@
               </div>
             </div>
           </div>
-          <!-- <div class="flex items-center relative">
-            <label class="w-28 font-bold text-red-700 text-[12px]"
-              >Inquiry to</label
-            >
-            <div class="flex-1 flex border border-red-200">
-              <input
-                type="text"
-                [(ngModel)]="searchFilters.branchName"
-                (input)="onBranchType()"
-                list="branchList"
-                placeholder="Type min 3 chars..."
-                class="w-full p-1 outline-none text-[12px] bg-white"
-              />
-
-              <span
-                (click)="toggleBranchPopup()"
-                class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-gray-200"
-              >
-                🔍
-              </span>
-            </div>
-
-            <datalist id="branchList">
-              <option
-                *ngFor="let branch of filteredBranches"
-                [value]="branch"
-              ></option>
-            </datalist>
-
-            <div
-              *ngIf="showBranchPopup"
-              class="absolute top-full left-28 right-0 mt-1 bg-white border border-gray-300 shadow-lg z-[999] max-h-60 overflow-y-auto rounded-sm"
-            >
-              <ul>
-                <li
-                  *ngFor="let cust of allCustomerNames"
-                  (click)="selectBranchFromPopup(cust)"
-                  class="p-2 text-[12px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 last:border-none"
-                >
-                  {{ cust }}
-                </li>
-                <li
-                  *ngIf="allCustomerNames.length === 0"
-                  class="p-2 text-[12px] text-gray-400 text-center italic"
-                >
-                  No customers found
-                </li>
-              </ul>
-            </div>
-          </div> -->
           <div class="flex items-center">
             <label class="w-28 font-bold text-gray-600">Show</label>
             <select
@@ -388,145 +338,6 @@
 
             </div>
           </div>
-          <!-- <div class="flex items-center relative">
-  <label class="w-24 font-bold text-gray-600 text-[12px]">Inquiry By</label>
-
-  <div class="flex-1 flex flex-col relative">
-    <div class="flex border border-gray-300 rounded-sm overflow-hidden">
-      <input
-        type="text"
-        [(ngModel)]="searchFilters.salesCoordinator"
-        (input)="onCoordinatorType()"
-        placeholder="Type min 3 chars..."
-        class="w-full p-1 outline-none text-[12px] bg-white"
-        autocomplete="off"
-      />
-
-       Instant Modal Trigger Button 
-      <button
-        type="button"
-        (mousedown)="toggleCoordinatorPopup(); $event.preventDefault()"
-        class="p-1 bg-gray-50 border-l border-gray-200 text-gray-400 cursor-pointer hover:bg-gray-200 transition-colors outline-none"
-      >
-        🔍
-      </button>
-    </div>
-
-    Custom Dropdown (3 chars ke baad hi activate hoga)
-    <div *ngIf="filteredCoordinators && filteredCoordinators.length > 0" 
-         class="absolute top-full left-0 right-0 bg-white border border-gray-300 shadow-xl z-[1000] max-h-48 overflow-y-auto mt-0.5 custom-scrollbar">
-      <ul class="list-none p-0 m-0">
-        <li *ngFor="let name of filteredCoordinators" 
-            (mousedown)="searchFilters.salesCoordinator = name; filteredCoordinators = []"
-            class="p-2 text-[11px] hover:bg-blue-600 hover:text-white cursor-pointer border-b border-gray-50 last:border-none uppercase transition-colors"
-        >
-          {{ name }}
-        </li>
-      </ul>
-    </div>
-  </div>
-</div>
-
-Modal Backdrop
-<div
-  *ngIf="showCoordinatorPopup"
-  class="fixed inset-0 bg-gray-900/70 backdrop-blur-sm z-[9998] transition-opacity duration-300"
-  (click)="showCoordinatorPopup = false"
-></div>
-
-Selection Modal Popup
-<div
-  *ngIf="showCoordinatorPopup"
-  class="fixed inset-0 flex items-center justify-center z-[9999] p-4 sm:p-6"
-  (click)="$event.stopPropagation()"
->
-  <div
-    class="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-gray-100 flex flex-col max-h-[85vh] overflow-hidden transform transition-all duration-300"
-  >
-    Modal Header
-    <div class="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex-shrink-0">
-      <div class="flex justify-between items-center mb-4">
-        <div>
-          <h3 class="text-xl font-bold text-gray-950 tracking-tight">Select Coordinator</h3>
-          <p class="text-xs text-gray-500 mt-1">Assign a coordinator for this task</p>
-        </div>
-        <button
-          (click)="showCoordinatorPopup = false"
-          class="w-9 h-9 flex items-center justify-center rounded-full bg-white hover:bg-red-50 text-gray-400 hover:text-red-500 border border-gray-200 transition-all outline-none"
-        >
-          ✕
-        </button>
-      </div>
-
-      <div class="relative">
-        <span class="absolute inset-y-0 left-4 flex items-center text-gray-400">🔍</span>
-        <input
-          type="text"
-          placeholder="Search coordinator name..."
-          class="w-full pl-12 pr-4 py-3 text-sm bg-white border border-gray-200 rounded-2xl outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all"
-          (input)="filterCoordinatorList($event)"
-        />
-      </div>
-    </div>
-
-    Modal List Body
-    <div class="overflow-y-auto bg-white flex-1 min-h-0 custom-scrollbar">
-      <div class="p-3 space-y-1">
-        <div *ngIf="allCoordinators.length > 0; else noData">
-          <div
-            *ngFor="let coord of allCoordinators"
-            (click)="searchFilters.salesCoordinator = coord; showCoordinatorPopup = false"
-            class="group flex items-center justify-between px-4 py-4 rounded-xl hover:bg-blue-50/70 cursor-pointer transition-all border border-transparent hover:border-blue-100"
-          >
-            <div class="flex items-center gap-4">
-              <div class="w-10 h-10 rounded-full bg-blue-100/70 text-blue-600 flex items-center justify-center text-sm font-bold flex-shrink-0 border border-blue-200 uppercase">
-                {{ coord.substring(0, 1) }}
-              </div>
-              <span class="text-sm font-semibold text-gray-800 group-hover:text-blue-700 truncate pr-2">
-                {{ coord }}
-              </span>
-            </div>
-            <span class="flex-shrink-0 opacity-0 group-hover:opacity-100 text-blue-500 transform translate-x-1 group-hover:translate-x-0 transition-all text-xs font-bold flex items-center gap-1.5 bg-blue-100/70 px-3 py-1.5 rounded-full">
-              Select <span>→</span>
-            </span>
-          </div>
-        </div>
-        <ng-template #noData>
-          <div class="py-16 text-center text-gray-500 flex flex-col items-center gap-4">
-            <span class="text-4xl opacity-50">👤</span>
-            <p class="text-sm font-medium italic">No coordinators found.</p>
-          </div>
-        </ng-template>
-      </div>
-    </div>
-
-    Footer
-    <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex-shrink-0 flex items-center justify-between">
-      <p class="text-[10px] text-gray-400 uppercase tracking-widest font-black opacity-60">
-        Cavalier Logistics
-      </p>
-      <button
-        (click)="showCoordinatorPopup = false"
-        class="px-5 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-100 transition-all outline-none"
-      >
-        Cancel
-      </button>
-    </div>
-  </div>
-</div> -->
-          <!-- <div class="flex items-center">
-            <label class="w-24 font-bold text-gray-600">Inquiry Status</label>
-            <select
-              [(ngModel)]="searchFilters.cargoStatus"
-              class="flex-1 border border-gray-300 p-1 outline-none text-[12px] rounded-sm bg-white"
-            >
-              <option value="(Any)">(Any)</option>
-              <option value="Pending">Pending</option>
-              <option value="Success">Success</option>
-              <option value="Failed">Failed</option>
-              <option value="In Progress">In Progress</option>
-            </select>
-          </div> -->
           <div class="flex items-center">
             <label
               class="w-24 font-bold text-gray-600 text-[12px]">Status</label>
@@ -619,7 +430,7 @@ Selection Modal Popup
                     </li>
 
                     <li *ngIf="filteredBranchSuggestions.length === 0"
-                      class="p-5 text-center text-gray-400 text-[11px] italic">
+                      class="p-5 text-center text-gray-400 text-[11px] ">
                       No branches found.
                     </li>
                   </ul>
@@ -659,29 +470,10 @@ Selection Modal Popup
               class="bg-[#4a3f3f] text-white px-5 py-1.5 font-bold shadow-md uppercase text-[10px] hover:bg-black transition-all rounded-sm outline-none">
               Search
             </button>
-            <!-- <button
-      (click)="testing()"
-      class="bg-[#4a3f3f] text-white px-5 py-1.5 font-bold shadow-md uppercase text-[10px] hover:bg-black transition-all rounded-sm outline-none"
-    >
-      All Price
-    </button> -->
-
-            <!-- <button
-      (click)="AllSearch()"
-      class="bg-[#4a3f3f] text-white px-5 py-1.5 font-bold shadow-md uppercase text-[10px] hover:bg-black transition-all rounded-sm outline-none"
-    >
-      All Search
-    </button> -->
           </div>
 
           <!-- Grid Code: Added pr-[280px] to prevent overlapping with buttons -->
           <div class="grid grid-cols-2 gap-x-8 gap-y-3 pt-2 pr-[280px]">
-
-            <!-- Row 1: Service Type | Date -->
-            <!-- Row 2: Inquiry No   | Inquiry By -->
-            <!-- Row 3: Show         | Branch -->
-
-            <!-- Tip: Is grid ke andar apna puraana logic (Service Type to Branch) wapas daal de -->
           </div>
         </div>
       </div>
@@ -932,7 +724,7 @@ Selection Modal Popup
               <tbody *ngIf="!pricings || pricings.length === 0">
                 <tr>
                   <td [attr.colspan]="selectedPricingColumns.length + 1"
-                    class="p-10 text-center text-gray-400 italic">No records
+                    class="p-10 text-center text-gray-400 ">No records
                     found.</td>
                 </tr>
               </tbody>
@@ -954,7 +746,7 @@ Selection Modal Popup
             <span class="text-sm font-bold text-[#4a3f3f]">{{ totalCount
               }}</span>
           </div>
-          <div class="text-[12px] text-gray-400 italic">
+          <div class="text-[12px] text-gray-400 ">
             Page <span class="text-[#4a3f3f] font-bold">{{ currentPage }}</span>
             of {{ totalPages }}
           </div>
@@ -1004,89 +796,7 @@ Selection Modal Popup
       </div>
     </div>
   </div>
-  <div
-    *ngIf="showColumnModal"
-    class="fixed inset-0 z-[100] overflow-y-auto"
-    aria-labelledby="modal-title"
-    role="dialog"
-    aria-modal="true">
-    <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
 
-    <div class="flex min-h-full items-center justify-center p-4 text-center">
-      <div
-        class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl">
-        <div
-          class="bg-gray-50 px-6 py-4 border-b flex justify-between items-center">
-          <div>
-            <h3 class="text-lg font-bold text-gray-800">
-              Customize Table Columns
-            </h3>
-            <p class="text-xs text-gray-500 font-medium">
-              Drag and drop to reorder or show/hide columns
-            </p>
-          </div>
-          <button
-            (click)="showColumnModal = false"
-            class="text-gray-400 hover:text-gray-600 text-2xl">
-            &times;
-          </button>
-        </div>
-
-        <div class="p-6 bg-white flex gap-6" cdkDropListGroup>
-          <div class="flex-1">
-            <label
-              class="block text-[11px] font-black uppercase text-gray-400 mb-3 tracking-wider">Available
-              (Hidden)</label>
-            <div
-              cdkDropList
-              [cdkDropListData]="availableColumns"
-              (cdkDropListDropped)="dropColumn($any($event))"
-              class="min-h-[300px] bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg p-3 space-y-2">
-              <div
-                *ngFor="let item of availableColumns"
-                cdkDrag
-                class="bg-white border border-gray-200 p-3 rounded shadow-sm text-[12px] font-bold text-gray-600 cursor-move hover:border-blue-400 transition-colors">
-                <span class="mr-2 text-gray-300">⠿</span> {{ item }}
-              </div>
-            </div>
-          </div>
-
-          <div class="flex items-center text-gray-300 text-xl mt-6">⇄</div>
-
-          <div class="flex-1">
-            <label
-              class="block text-[11px] font-black uppercase text-blue-500 mb-3 tracking-wider">Visible
-              in Table</label>
-            <div
-              cdkDropList
-              [cdkDropListData]="selectedColumns"
-              (cdkDropListDropped)="dropColumn($any($event))"
-              class="min-h-[300px] bg-blue-50/30 border-2 border-blue-100 rounded-lg p-3 space-y-2">
-              <div
-                *ngFor="let item of selectedColumns"
-                cdkDrag
-                class="bg-white border border-blue-200 p-3 rounded shadow-sm text-[12px] font-bold text-gray-800 cursor-move hover:border-blue-400 transition-colors">
-                <span class="mr-2 text-blue-200">⠿</span> {{ item }}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t mt-2">
-          <button
-            (click)="showColumnModal = false"
-            class="px-4 py-2 text-[11px] font-bold uppercase text-gray-500 hover:bg-gray-200 rounded transition-all">
-            Close
-          </button>
-          <button
-            (click)="showColumnModal = false"
-            class="px-6 py-2 text-[11px] font-bold uppercase bg-[#4a3f3f] text-white rounded hover:bg-black shadow-md transition-all">
-            Apply Settings
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
   <div *ngIf="!showCostTable && !showMultiCarrierTable"
     class="p-4 bg-white shadow-lg rounded-xl">
     <div *ngIf="isFormOpen" class="bg-white border border-gray-300 shadow-lg">
@@ -1108,8 +818,6 @@ Selection Modal Popup
           CLOSE
         </button>
       </div>
-
-      <!-- cbvhshggsfsdfgsdf  -->
 
       <div class="p-5 space-y-6">
         <div class="bg-gray-50 p-4 border border-gray-200 rounded">
@@ -1152,6 +860,7 @@ Selection Modal Popup
                 <label
                   class="font-bold text-gray-700 text-[12px]">Branch</label>
                 <select [(ngModel)]="quotation.branchName" name="branchName"
+                  (change)="recalculateAllGst()"
                   class="border p-2 outline-none text-[12px]">
                   <option value>--Select--</option>
                   <option *ngFor="let branch of branchlist"
@@ -1300,7 +1009,6 @@ Selection Modal Popup
                           stroke-linejoin="round" stroke-width="2"
                           d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                     </div>
-                    <!-- ff -->
                     <ul *ngIf="showDropdown && filteredOrganizations.length > 0"
                       class="absolute top-full left-0 z-50 w-full bg-white border border-gray-300 shadow-xl max-h-48 overflow-y-auto">
                       <li *ngFor="let org of filteredOrganizations"
@@ -1945,21 +1653,6 @@ Selection Modal Popup
 
                   <div
                     class="flex items-center border border-l-0 bg-gray-50 px-2 h-10 cursor-pointer gap-1">
-                    <!-- <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="w-3 h-3 text-gray-400"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                        />
-                      </svg> -->
-
                     <select
                       [ngModel]="quotation.cbmUnit || 'CBM'"
                       (ngModelChange)="quotation.cbmUnit = $event"
@@ -2104,14 +1797,12 @@ Selection Modal Popup
 
                 <div
                   class="flex flex-1 border border-gray-300 rounded-md overflow-hidden">
-                  <!-- Currency Dropdown with Symbol -->
                   <select
                     name="currency"
                     [(ngModel)]="quotation.currency"
                     class="border-r p-2 outline-none bg-gray-50 text-gray-700 w-52">
                     <option value>Select Currency</option>
 
-                    <!-- Major Currencies (Recommended first) -->
                     <option value="₹ INR - Indian Rupee">₹ INR - Indian
                       Rupee</option>
                     <option value="$ USD - United States Dollar">$ USD - United
@@ -2182,10 +1873,8 @@ Selection Modal Popup
                       Lira</option>
                     <option value="R ZAR - South African Rand">R ZAR - South
                       African Rand</option>
-                    <!-- Agar aur chahiye toh pehle wale message se copy kar sakte ho -->
                   </select>
 
-                  <!-- Amount Input -->
                   <input
                     type="number"
                     name="cargoValue"
@@ -2318,7 +2007,7 @@ Selection Modal Popup
                         port.PortName }}
                       </li>
                       <li *ngIf="filteredPortsOfLoading.length === 0"
-                        class="p-3 text-center text-red-500 italic">
+                        class="p-3 text-center text-red-500 ">
                         No Port Found
                       </li>
                     </ul>
@@ -2396,7 +2085,7 @@ Selection Modal Popup
                         port.PortName }}
                       </li>
                       <li *ngIf="filteredPortsOfDischarge.length === 0"
-                        class="p-3 text-center text-red-500 italic">
+                        class="p-3 text-center text-red-500 ">
                         No Port Found
                       </li>
                     </ul>
@@ -2407,7 +2096,7 @@ Selection Modal Popup
                 <div
                   class="flex items-center justify-between border-b border-red-200 pb-2">
                   <label
-                    class="text-red-800 font-black uppercase text-[13px] italic">Connecting
+                    class="text-red-800 font-black uppercase text-[13px] ">Connecting
                     Ports Configuration</label>
                   <button (click)="toggleConnectingPortModal()"
                     class="bg-red-700 text-white px-3 py-1 rounded text-[11px] font-bold hover:bg-red-800 transition-all">
@@ -2565,7 +2254,7 @@ Selection Modal Popup
                         port.PortName }}
                       </li>
                       <li *ngIf="filteredFinalDestinations.length === 0"
-                        class="p-3 text-center text-red-500 italic">
+                        class="p-3 text-center text-red-500 ">
                         No Port Found
                       </li>
                     </ul>
@@ -2649,7 +2338,7 @@ Selection Modal Popup
                           class="text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
                       </li>
                       <li *ngIf="filteredCarrierList.length === 0"
-                        class="p-3 text-center text-red-500 italic text-[12px]">
+                        class="p-3 text-center text-red-500  text-[12px]">
                         No Carrier Found
                       </li>
                     </ul>
@@ -2699,7 +2388,7 @@ Selection Modal Popup
                         class="text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
                     </li>
                     <li *ngIf="filteredAgentList.length === 0"
-                      class="p-3 text-center text-red-500 italic text-[12px]">
+                      class="p-3 text-center text-red-500  text-[12px]">
                       No Agent Found
                     </li>
                   </ul>
@@ -2732,7 +2421,7 @@ Selection Modal Popup
                           class="text-lg font-bold uppercase tracking-wider">Multi-Carrier
                           Breakdown</h5>
                         <p
-                          class="text-[10px] text-gray-300 uppercase italic">Preview
+                          class="text-[10px] text-gray-300 uppercase ">Preview
                           Mode - Local Data Only</p>
                       </div>
                     </div>
@@ -2813,7 +2502,7 @@ Selection Modal Popup
                               class="px-4 py-4 text-center text-sm text-gray-600">{{
                               carrier.fsc }}</td>
                             <td
-                              class="px-4 py-4 text-center text-sm italic text-gray-600">{{
+                              class="px-4 py-4 text-center text-sm  text-gray-600">{{
                               carrier.airline }}</td>
                             <td class="px-4 py-4 text-center">
                               <span
@@ -2838,11 +2527,11 @@ Selection Modal Popup
                               class="px-4 py-4 text-center text-sm text-gray-600">{{
                               carrier.ccFee | number }}</td>
                             <td
-                              class="px-4 py-4 text-center text-sm font-black text-[#4a3f3f] bg-amber-50/50 italic">
+                              class="px-4 py-4 text-center text-sm font-black text-[#4a3f3f] bg-amber-50/50 ">
                               {{ carrier.totalCost | number }}
                             </td>
                             <td
-                              class="px-6 py-4 text-sm text-gray-500 italic">{{
+                              class="px-6 py-4 text-sm text-gray-500 ">{{
                               carrier.remark }}</td>
                           </tr>
 
@@ -2863,7 +2552,7 @@ Selection Modal Popup
                   <!-- FOOTER: Remarkss -->
                   <div
                     class="bg-gray-50 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4 border-t border-gray-200">
-                    <p class="text-xs text-gray-400 italic font-medium">* This
+                    <p class="text-xs text-gray-400  font-medium">* This
                       data is stored locally and will be saved with the
                       inquiry.</p>
                     <button (click)="closeModal()"
@@ -2891,7 +2580,7 @@ Selection Modal Popup
               <div>
                 <h5 class="text-lg font-bold uppercase tracking-wider"> Single
                   Carrier Cost Breakdown</h5>
-                <p class="text-[10px] text-gray-300 uppercase italic">Single
+                <p class="text-[10px] text-gray-300 uppercase ">Single
                   Carrier (Direct Service)</p>
               </div>
             </div>
@@ -2903,110 +2592,126 @@ Selection Modal Popup
             </div>
           </div>
 
-          <div
-            class="overflow-x-auto bg-gray-50 custom-scrollbar shadow-inner rounded-lg">
-            <table class="min-w-full border-separate border-spacing-0">
-              <thead>
-                <tr class="bg-gray-100 shadow-sm">
-                  <th
-                    class="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase border-b border-gray-200">LOB</th>
-                  <th
-                    class="px-4 py-4 text-left text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Charge
-                    Name</th>
-                  <th
-                    class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Type</th>
-                  <th
-                    class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Chrg.
-                    Weight</th>
-                  <th
-                    class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Currency</th>
-                  <th
-                    class="px-4 py-4 text-right text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Rate</th>
-                  <th
-                    class="px-4 py-4 text-right text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Ex.
-                    Rate</th>
-                  <th
-                    class="px-4 py-4 text-right text-xs font-bold text-[#4a3f3f] bg-amber-50 uppercase border-b border-amber-200">Amount</th>
-                  <th
-                    class="px-4 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200">Remarks</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-200 bg-white">
-                <tr *ngFor="let row of costRows; let i = index"
-                  class="hover:bg-amber-50/30 transition-colors">
-                  <td class="px-3 py-3">
-                    <select [(ngModel)]="row.lob"
-                      class="w-full bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none">
-                      <option *ngFor="let service of companyServices"
-                        [value]="service.serviceName"> {{ service.serviceName
-                        }}</option>
-                    </select>
-                  </td>
-                  <td class="px-3 py-3">
-                    <select [(ngModel)]="row.chargeName"
-                      class="w-full bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none italic">
-                      <option value>-- Select Charge Name --</option>
-                      <option *ngFor="let c of chargesList" [value]="c.name">
-                        {{ c.name }}
-                      </option>
-                    </select>
-                  </td>
-                  <td class="px-3 py-3">
-                    <select [(ngModel)]="row.chargeType"
-                      class="w-full text-center bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none">
-                      <option value="Prepaid">Prepaid</option>
-                      <option value="Collect">Collect</option>
-                    </select>
-                  </td>
-
-                  <td class="px-3 py-3 text-center text-sm font-medium">
-                    {{ quotation.chargeableWeight || 0 }}
-                  </td>
-
-                  <td class="px-3 py-3">
-                    <input [(ngModel)]="row.currency"
-                      [attr.list]="'costCurList' + i"
-                      class="w-full text-center bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none uppercase font-semibold text-blue-600">
-                    <datalist [id]="'costCurList' + i">
-                      <option *ngFor="let c of currencies"
-                        [value]="c.value">{{c.label}}</option>
-                    </datalist>
-                  </td>
-
-                  <td class="px-3 py-3">
-                    <input type="number" [(ngModel)]="row.rate"
-                      (input)="calculateCost()"
-                      class="w-full text-right bg-transparent border-b border-transparent focus:border-amber-500 text-sm font-semibold py-1 outline-none">
-                  </td>
-
-                  <td class="px-3 py-3">
-                    <input type="number" [(ngModel)]="row.exchangeRate"
-                      (input)="calculateCost()"
-                      class="w-full text-right bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none">
-                  </td>
-
-                  <td
-                    class="px-4 py-3 text-right font-black text-[#4a3f3f] bg-amber-50/50 italic">
-                    {{ row.amount | number:'1.2-2' }}
-                  </td>
-                  <td
-                    class="px-4 py-3 text-right font-black text-[#4a3f3f] bg-amber-50/50 italic">
-                    <input type="text" [(ngModel)]="row.remark"
-                      placeholder="Enter Remark"
-                      class="w-full text-right bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none">
-
-                  </td>
-
-                  <td class="px-3 py-3 text-center">
-                    <button (click)="removeCostRow(i)"
-                      class="text-gray-400 hover:text-red-500">
-                      <i class="fa fa-trash-alt"></i>
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+  <div class="overflow-x-auto bg-gray-50 custom-scrollbar shadow-inner rounded-lg">
+  <table class="min-w-[1600px] border-separate border-spacing-0">
+    <thead>
+      <tr class="bg-gray-100 shadow-sm">
+        <!-- Sticky LOB Column -->
+        <th class=" [80px] left-0 z-20 bg-gray-100 px-3 py-4 text-left text-xs font-bold text-gray-600 uppercase border-b border-gray-200 shadow-[2px_0_8px_rgba(0,0,0,0.06)] min-w-[100px]">
+          LOB
+        </th>
+        <!-- Sticky Charge Name Column -->
+        <th class=" left-[100px] z-20 bg-gray-100 px-3 py-4 text-left text-xs font-bold text-gray-600 uppercase border-b border-gray-200 shadow-[2px_0_8px_rgba(0,0,0,0.06)] min-w-[200px]">
+          Charge Name
+        </th>
+        <th class="px-3 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200 min-w-[100px]">Type</th>
+        <th class="px-3 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200 min-w-[90px]">GST</th>
+        <th class="px-3 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200 min-w-[100px]">Chrg. Weight</th>
+        <th class="px-3 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200 min-w-[80px]">Currency</th>
+        <th class="px-3 py-4 text-right text-xs font-bold text-gray-600 uppercase border-b border-gray-200 min-w-[80px]">Rate</th>
+        <th class="px-3 py-4 text-right text-xs font-bold text-gray-600 uppercase border-b border-gray-200 min-w-[80px]">Ex. Rate</th>
+        <th class="px-3 py-4 text-right text-xs font-bold text-[#4a3f3f] bg-amber-50 uppercase border-b border-amber-200 min-w-[100px]">Amount</th>
+        <th class="px-3 py-4 text-center text-xs font-bold text-green-600 uppercase border-b border-green-200 min-w-[100px]">Tax Name</th>
+        <th class="px-3 py-4 text-center text-xs font-bold text-green-600 uppercase border-b border-green-200 min-w-[70px]">Tax %</th>
+        <th class="px-3 py-4 text-right text-xs font-bold text-green-600 uppercase border-b border-green-200 min-w-[100px]">Tax Amt</th>
+        <th class="px-3 py-4 text-right text-xs font-bold text-amber-800 bg-amber-100 uppercase border-b border-amber-300 min-w-[160px]">Total (Incl. GST)</th>
+        <th class="px-3 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200 min-w-[160px]">SAC/HSN</th>
+        <th class="px-3 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200 min-w-[140px]">Remarks</th>
+        <th class="px-3 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200 min-w-[70px]">Action</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-200 bg-white">
+      <tr *ngFor="let row of costRows; let i = index" class="hover:bg-amber-50/30 transition-colors">
+        <!-- Sticky LOB -->
+        <td class="sticky left-0 z-10 bg-white group-hover:bg-amber-50/50 px-3 py-3 border-r border-gray-100 shadow-[2px_0_8px_rgba(0,0,0,0.04)]">
+          <select [(ngModel)]="row.lob"
+            class="w-full bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none">
+            <option *ngFor="let service of companyServices" [value]="service.serviceName">
+              {{ service.serviceName }}
+            </option>
+          </select>
+        </td>
+        <!-- Sticky Charge Name -->
+        <td class="sticky left-[100px] z-10 bg-white group-hover:bg-amber-50/50 px-3 py-3 border-r border-gray-100 shadow-[2px_0_8px_rgba(0,0,0,0.04)]">
+          <select [(ngModel)]="row.chargeCode"
+            (ngModelChange)="onCostChargeSelect(row, $event)"
+            class="w-full bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none">
+            <option value="">-- Select Charge --</option>
+            <option *ngFor="let charge of getFilteredChargeMaster()" [value]="charge.code">
+              {{ charge.name }} ({{ charge.code }})
+            </option>
+          </select>
+        </td>
+        <td class="px-3 py-3">
+          <select [(ngModel)]="row.chargeType"
+            class="w-full text-center bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none">
+            <option value="Prepaid">Prepaid</option>
+            <option value="Collect">Collect</option>
+          </select>
+        </td>
+        <td class="px-3 py-3">
+          <select [(ngModel)]="row.gstStatus"
+            (ngModelChange)="onCostGstStatusChange(row)"
+            class="w-full text-center bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none font-semibold"
+            [class.text-green-600]="row.gstStatus === 'Taxable'"
+            [class.text-gray-600]="row.gstStatus === 'Non-Taxable'">
+            <option value="Non-Taxable">Non-Taxable</option>
+            <option value="Taxable">Taxable</option>
+          </select>
+        </td>
+        <td class="px-3 py-3 text-center text-sm font-medium">
+          {{ quotation.chargeableWeight || 0 }}
+        </td>
+        <td class="px-3 py-3">
+          <input [(ngModel)]="row.currency"
+            [attr.list]="'costCurList' + i"
+            class="w-full text-center bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none uppercase font-semibold text-blue-600">
+          <datalist [id]="'costCurList' + i">
+            <option *ngFor="let c of currencies" [value]="c.value">{{ c.label }}</option>
+          </datalist>
+        </td>
+        <td class="px-3 py-3">
+          <input type="number" [(ngModel)]="row.rate"
+            (input)="calculateCost()"
+            class="w-full text-right bg-transparent border-b border-transparent focus:border-amber-500 text-sm font-semibold py-1 outline-none">
+        </td>
+        <td class="px-3 py-3">
+          <input type="number" [(ngModel)]="row.exchangeRate"
+            (input)="calculateCost()"
+            class="w-full text-right bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none">
+        </td>
+        <td class="px-4 py-3 text-right font-black text-[#4a3f3f] bg-amber-50/50 ">
+          {{ row.amount | number:'1.2-2' }}
+        </td>
+        <td class="px-3 py-3 text-center text-xs text-gray-600 font-semibold">
+          {{ row.taxName || '-' }}
+        </td>
+        <td class="px-3 py-3 text-right text-xs text-gray-700">
+          {{ row.taxPercent || 0 }}%
+        </td>
+        <td class="px-3 py-3 text-right text-xs font-semibold text-green-700">
+          {{ row.taxAmount | number:'1.2-2' }}
+        </td>
+        <td class="px-4 py-3 text-right text-sm font-black text-amber-800 bg-amber-100/60">
+          {{ row.totalAmount | number:'1.2-2' }}
+        </td>
+        <td class="px-3 py-3 text-center text-xs text-gray-500">
+          {{ row.sacHsn || '-' }}
+        </td>
+        <td class="px-4 py-3">
+          <input type="text" [(ngModel)]="row.remark"
+            placeholder="Enter Remark"
+            class="w-full text-center bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none">
+        </td>
+        <td class="px-3 py-3 text-center">
+          <button (click)="removeCostRow(i)" class="text-gray-400 hover:text-red-500">
+            <i class="fa fa-trash-alt"></i>
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 
           <div
             class="bg-gray-50 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4 border-t border-gray-200">
@@ -3029,7 +2734,7 @@ Selection Modal Popup
                 <h5
                   class="text-lg font-bold uppercase tracking-wider">Multi-Carrier
                   Master Breakdown</h5>
-                <p class="text-[10px] text-gray-300 uppercase italic">Combined
+                <p class="text-[10px] text-gray-300 uppercase ">Combined
                   Logistics & Cost Breakdown Matrix</p>
               </div>
             </div>
@@ -3056,11 +2761,11 @@ Selection Modal Popup
                     <th class="px-4 py-4 border-b border-gray-200">Charge
                       Name</th>
                     <th class="px-4 py-4 border-b border-gray-200">Type</th>
+                    <th class="px-4 py-4 border-b border-gray-200">GST</th>
 
                     <th
                       class="px-4 py-4 border-b border-gray-200 bg-blue-50/50">Chrg.
                       Weight</th>
-                    <!-- <th class="px-4 py-4 border-b border-gray-200">Airfreight</th> -->
                     <th class="px-4 py-4 border-b border-gray-200">FSC/ISS</th>
                     <th class="px-4 py-4 border-b border-gray-200">Airline</th>
                     <th class="px-4 py-4 border-b border-gray-200">Cut-off</th>
@@ -3073,7 +2778,21 @@ Selection Modal Popup
                     <th
                       class="px-4 py-4 bg-amber-100 text-[#4a3f3f] border-b border-amber-300 font-black">Total
                       Cost</th>
+                    <th
+                      class="px-4 py-4 bg-green-50 border-b border-green-200 text-green-700">Tax
+                      Name</th>
+                    <th
+                      class="px-4 py-4 bg-green-50 border-b border-green-200 text-green-700">Tax
+                      %</th>
+                    <th
+                      class="px-4 py-4 bg-green-50 border-b border-green-200 text-green-700">Tax
+                      Amt</th>
+                    <th
+                      class="px-4 py-4 bg-amber-200 text-[#4a3f3f] border-b border-amber-300 font-black">Total
+                      (Incl. GST)</th>
+                    <th class="px-4 py-4 border-b border-gray-200">SAC/HSN</th>
                     <th class="px-4 py-4 border-b border-gray-200">Remarks</th>
+                    <th class="px-4 py-4 border-b border-gray-200">Action</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200 bg-white">
@@ -3110,11 +2829,14 @@ Selection Modal Popup
                     </td>
 
                     <td class="px-2 py-2">
-                      <select [(ngModel)]="m.chargeName"
-                        class="w-36 bg-transparent border-b border-transparent focus:border-amber-500 outline-none italic">
-                        <option value>-- Select Charge Name --</option>
-                        <option *ngFor="let c of chargesList" [value]="c.name">
-                          {{ c.name }}
+                      <select
+                        [(ngModel)]="m.chargeCode"
+                        (ngModelChange)="onMultiCarrierChargeSelect(m, $event)"
+                        class="w-36 bg-transparent border-b border-transparent focus:border-amber-500 outline-none ">
+                        <option value>-- Select Charge --</option>
+                        <option *ngFor="let charge of getFilteredChargeMaster()"
+                          [value]="charge.code">
+                          {{ charge.name }} ({{ charge.code }})
                         </option>
                       </select>
                     </td>
@@ -3127,14 +2849,23 @@ Selection Modal Popup
                       </select>
                     </td>
 
+                    <!-- GST Status Column -->
+                    <td class="px-2 py-2">
+                      <select
+                        [(ngModel)]="m.gstStatus"
+                        (ngModelChange)="onMultiCarrierGstStatusChange(m)"
+                        class="w-24 text-center bg-transparent border-b border-transparent focus:border-amber-500 outline-none font-semibold text-xs"
+                        [class.text-green-600]="m.gstStatus === 'Taxable'"
+                        [class.text-gray-600]="m.gstStatus === 'Non-Taxable'">
+                        <option value="Non-Taxable">Non-Taxable</option>
+                        <option value="Taxable">Taxable</option>
+                      </select>
+                    </td>
+
                     <td
                       class="px-2 py-2 bg-blue-50/30 text-center font-bold text-blue-900">
                       {{ quotation.chargeableWeight || 0 }}
                     </td>
-
-                    <!-- <td class="px-2 py-2">
-                            <input type="number" [(ngModel)]="m.airFreight" (input)="calculateMasterIndirectTotal(i)" class="w-20 text-center font-semibold bg-transparent border-b border-transparent focus:border-gray-300 outline-none" placeholder="0">
-                        </td> -->
 
                     <td class="px-2 py-2">
                       <input [(ngModel)]="m.fsc"
@@ -3147,7 +2878,7 @@ Selection Modal Popup
                       <select
                         [(ngModel)]="m.airline"
                         (ngModelChange)="onAirlineSelectChange($event, i)"
-                        class="w-32 text-center bg-transparent border-b border-transparent focus:border-amber-500 outline-none italic font-medium uppercase">
+                        class="w-32 text-center bg-transparent border-b border-transparent focus:border-amber-500 outline-none  font-medium uppercase">
                         <option value>-- Select Airline --</option>
                         <option *ngFor="let a of airlineList"
                           [value]="a.airlineName || a.name">
@@ -3190,15 +2921,37 @@ Selection Modal Popup
                     </td>
 
                     <td
-                      class="px-4 py-2 text-right font-black text-[#4a3f3f] bg-amber-50 italic border-l border-r border-amber-200">
+                      class="px-4 py-2 text-right font-black text-[#4a3f3f] bg-amber-50  border-l border-r border-amber-200">
                       {{ (m.totalCost || 0) | number:'1.2-2' }}
                     </td>
+
+                    <!-- GST Columns -->
                     <td
-                      class="px-4 py-2 text-right font-black text-[#4a3f3f] bg-amber-50 italic border-l border-r border-amber-200">
+                      class="px-3 py-2 text-center text-xs text-gray-600 font-semibold bg-green-50/30">
+                      {{ m.taxName || '-' }}
+                    </td>
+                    <td
+                      class="px-3 py-2 text-right text-xs text-gray-700 bg-green-50/30">
+                      {{ m.taxPercent || 0 }}%
+                    </td>
+                    <td
+                      class="px-3 py-2 text-right text-xs font-semibold text-green-700 bg-green-50/30">
+                      {{ m.taxAmount | number:'1.2-2' }}
+                    </td>
+
+                    <td
+                      class="px-4 py-2 text-right font-black text-[#4a3f3f] bg-amber-100 border-l border-r border-amber-300">
+                      {{ (m.totalAmount || m.totalCost) | number:'1.2-2' }}
+                    </td>
+
+                    <td class="px-3 py-2 text-center text-xs text-gray-500">
+                      {{ m.sacHsn || '-' }}
+                    </td>
+
+                    <td class="px-4 py-2 text-right">
                       <input type="text" [(ngModel)]="m.remark"
                         placeholder="Enter Remark"
                         class="w-full text-right bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none">
-
                     </td>
 
                     <td class="px-3 py-2 text-center">
@@ -3221,24 +2974,13 @@ Selection Modal Popup
               <i class="fa fa-plus-circle text-lg text-amber-500"></i> Add
               Another Carrier Row
             </button>
-            <p class="text-[10px] text-gray-400 italic">Showing master
+            <p class="text-[10px] text-gray-400 ">Showing master
               integrated pricing structures across all multi-carrier lines.</p>
           </div>
         </div>
         <div
           *ngIf="isFormOpen"
           class="bg-white border shadow-sm rounded-sm mb-6">
-          <!-- <div *ngIf="!isPreviewMode" class="p-6">
-    <h3 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2 uppercase tracking-wide">Add/Edit Inquiry</h3>
-    
-    <div class="form-group mb-6">
-      <label class="block text-sm font-bold text-gray-700 mb-2 uppercase">Organization</label>
-      <input 
-        [(ngModel)]="inquiry.organization" 
-        (input)="onSearchInput()"
-        class="w-full border border-gray-300 p-2 focus:outline-none focus:border-[#4a3f3f]"
-        placeholder="Enter Organization Name">
-    </div> -->
 
           <div class="p-4 bg-gray-50 border-t flex items-center gap-3">
 
@@ -3285,12 +3027,12 @@ Selection Modal Popup
                 <div
                   class="shrink-0 sticky top-0 z-50 bg-gray-50 px-4 md:px-6 py-4 border-b-2 border-[#4a3f3f] flex justify-between items-center">
                   <h3
-                    class="text-lg md:text-2xl font-black text-[#4a3f3f] uppercase tracking-tighter italic flex items-center gap-2">
+                    class="text-lg md:text-2xl font-black text-[#4a3f3f] uppercase tracking-tighter  flex items-center gap-2">
                     <span>🔍</span> INQUIRY DETAILS
                   </h3>
                   <div class="flex items-center gap-2 md:gap-4">
                     <span
-                      class="hidden sm:block bg-[#4a3f3f] text-white px-3 py-1 text-[10px] font-bold uppercase italic tracking-widest">
+                      class="hidden sm:block bg-[#4a3f3f] text-white px-3 py-1 text-[10px] font-bold uppercase  tracking-widest">
                       Cavalier Logistics
                     </span>
                     <button
@@ -3324,7 +3066,7 @@ Selection Modal Popup
                             class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Cargo
                             Status</td>
                           <td
-                            class="p-3 md:p-4 text-orange-600 font-black text-sm uppercase italic">{{
+                            class="p-3 md:p-4 text-orange-600 font-black text-sm uppercase ">{{
                             quotation.cargoStatusType || "Pending" }}</td>
                         </tr>
                         <tr>
@@ -3409,16 +3151,11 @@ Selection Modal Popup
                             class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Pickup
                             Address</td>
                           <td
-                            class="p-3 md:p-4 text-gray-800 text-sm italic break-words">
+                            class="p-3 md:p-4 text-gray-800 text-sm  break-words">
                             {{ quotation.pickupAddress || 'N/A' }}
                           </td>
-                          <!-- kk -->
                         </tr>
 
-                        <!-- <tr>
-                  <td class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Chg. Weight</td>
-                  <td class="p-3 md:p-4 text-[#4a3f3f] font-black text-base">{{ quotation.chargeableWeight }} {{ quotation.weightUnit || "KGS" }}</td>
-                </tr> -->
                         <tr>
                           <td
                             class="p-3 md:p-4 bg-gray-50 font-bold text-gray-600 text-[10px] md:text-xs uppercase">Inco-Term</td>
@@ -3444,7 +3181,7 @@ Selection Modal Popup
                   <div class="mt-8 border-t-4 border-[#4a3f3f] pt-6">
                     <div class="flex items-center justify-between mb-6">
                       <h3
-                        class="text-lg md:text-2xl font-black text-[#4a3f3f] uppercase tracking-tighter italic flex items-center gap-2 m-0">
+                        class="text-lg md:text-2xl font-black text-[#4a3f3f] uppercase tracking-tighter  flex items-center gap-2 m-0">
                         <span>🕵️</span> ASSIGNED AGENTS
                       </h3>
 
@@ -3501,7 +3238,7 @@ Selection Modal Popup
                         <div *ngIf="agentDetail.length === 0"
                           class="col-span-full py-10 text-center border-2 border-dashed border-gray-100 rounded-xl">
                           <p
-                            class="text-gray-400 font-bold italic uppercase text-sm tracking-widest">No
+                            class="text-gray-400 font-bold  uppercase text-sm tracking-widest">No
                             Branches Found for this Pincode</p>
                         </div>
                       </div>
@@ -3528,6 +3265,7 @@ Selection Modal Popup
       </div>
     </div>
   </div>
+
   <div
     *ngIf="showCostTable"
     class="p-4 bg-white shadow-lg rounded-xl border border-gray-200 animate-in fade-in duration-300">
@@ -3559,16 +3297,29 @@ Selection Modal Popup
           <thead class="bg-gray-50 border-b border-gray-300">
             <tr class="text-gray-600 uppercase">
               <th class="border p-2 text-left min-w-[100px]">LOB</th>
-              <th class="border p-2 text-left min-w-[150px]">Charge Name</th>
+              <th class="border p-2 text-left min-w-[180px]">Charge Name</th>
               <th class="border p-2 text-left min-w-[100px]">Charge Type</th>
-              <th class="border p-2 text-left min-w-[80px]">Basis</th>
+              <th class="border p-2 text-center min-w-[110px]">GST Status</th>
+              <th class="border p-2 text-left min-w-[80px]">Chrg. Weight</th>
               <th class="border p-2 text-center min-w-[60px]">Cur</th>
               <th class="border p-2 text-right min-w-[90px]">Rate</th>
               <th class="border p-2 text-right min-w-[100px]">Ex. Rate</th>
               <th
-                class="border p-2 text-right min-w-[110px] bg-red-50 text-red-700">
-                Amount
-              </th>
+                class="border p-2 text-right min-w-[110px] bg-red-50 text-red-700">Amount</th>
+              <th
+                class="border p-2 text-center min-w-[90px] bg-green-50 text-green-700">Tax
+                Name</th>
+              <th
+                class="border p-2 text-center min-w-[60px] bg-green-50 text-green-700">Tax
+                %</th>
+              <th
+                class="border p-2 text-right min-w-[100px] bg-green-50 text-green-700">Tax
+                Amt</th>
+              <th
+                class="border p-2 text-right min-w-[110px] bg-amber-100 text-[#4a3f3f]">Total
+                (Incl. GST)</th>
+              <th
+                class="border p-2 text-center min-w-[100px] bg-green-50 text-green-700">SAC/HSN</th>
               <th class="border p-2 text-center w-[40px] bg-gray-50"></th>
             </tr>
           </thead>
@@ -3587,11 +3338,13 @@ Selection Modal Popup
               <td class="border p-1">
                 <select
                   [name]="'ccharge' + i"
-                  [(ngModel)]="c.chargeName"
+                  [(ngModel)]="c.chargeCode"
+                  (ngModelChange)="onCostChargeSelect(c, $event)"
                   class="w-full outline-none p-1 bg-transparent">
-                  <option value>-- Select Charge Name --</option>
-                  <option *ngFor="let c of chargesList" [value]="c.name">
-                    {{ c.name }}
+                  <option value>-- Select Charge --</option>
+                  <option *ngFor="let charge of getFilteredChargeMaster()"
+                    [value]="charge.code">
+                    {{ charge.name }} ({{ charge.code }})
                   </option>
                 </select>
               </td>
@@ -3606,11 +3359,19 @@ Selection Modal Popup
                 </select>
               </td>
               <td class="border p-1">
-                <input
-                  [name]="'cbasis' + i"
-                  [(ngModel)]="c.basis"
-                  placeholder="Basis"
-                  class="w-full outline-none p-1 bg-transparent text-center" />
+                <select
+                  [name]="'cgst' + i"
+                  [(ngModel)]="c.gstStatus"
+                  (ngModelChange)="onCostGstStatusChange(c)"
+                  class="w-full outline-none p-1 bg-transparent font-semibold text-center"
+                  [class.text-green-600]="c.gstStatus === 'Taxable'"
+                  [class.text-gray-600]="c.gstStatus === 'Non-Taxable'">
+                  <option value="Non-Taxable">Non-Taxable</option>
+                  <option value="Taxable">Taxable</option>
+                </select>
+              </td>
+              <td class=" border p-1 text-center">
+               {{ quotation.chargeableWeight || 0 }}
               </td>
               <td class="border p-1">
                 <input
@@ -3649,6 +3410,23 @@ Selection Modal Popup
                   readonly
                   class="w-full outline-none p-1 bg-transparent text-right" />
               </td>
+
+              <td class="border p-1 text-center bg-green-50 text-[10px] font-semibold text-green-700">
+                {{ c.taxName || '-' }}
+              </td>
+              <td class="border p-1 text-center bg-green-50 text-[10px] text-green-700">
+                {{ c.taxPercent || 0 }}%
+              </td>
+              <td class="border p-1 text-right bg-green-50 text-[10px] font-semibold text-green-700">
+                {{ c.taxAmount | number:'1.2-2' }}
+              </td>
+              <td class="border p-1 text-right bg-amber-100 font-black text-[#4a3f3f]">
+                {{ c.totalAmount | number:'1.2-2' }}
+              </td>
+              <td class="border p-1 text-center bg-green-50 text-[10px] text-gray-600">
+                {{ c.sacHsn || '-' }}
+              </td>
+
               <td class="border p-1 text-center bg-gray-50">
                 <button
                   type="button"
@@ -3714,6 +3492,7 @@ Selection Modal Popup
               <th class="border p-2 min-w-[100px]">LOB</th>
               <th class="border p-2 min-w-[130px]">Charge
                 Name</th>
+              <th class="border p-2 min-w-[90px]">GST Status</th>
 
               <th class="border p-2 min-w-[60px]">Currency</th>
               <th class="border p-2 min-w-[110px] bg-blue-50">Chrg.
@@ -3728,6 +3507,17 @@ Selection Modal Popup
               <th class="border p-2 min-w-[70px]">CC fee</th>
               <th class="border p-2 min-w-[100px] bg-red-100 text-red-800">Cost
                 (Total)</th>
+
+                     <th
+                      class="border p-2 min-w-[70px] bg-green-50 text-green-700">Tax
+                      Name</th>
+                   
+              <th class="border p-2 min-w-[70px] bg-green-50 text-green-700">Tax
+                %</th>
+              <th class="border p-2 min-w-[90px] bg-green-50 text-green-700">Tax
+                Amt</th>
+              <th class="border p-2 min-w-[110px] bg-amber-100 text-[#4a3f3f]">Total
+                (Incl. GST)</th>
               <th class="border p-2 min-w-[180px]">REMARK</th>
               <th class="border p-2 w-[30px] bg-gray-50"></th>
             </tr>
@@ -3764,12 +3554,25 @@ Selection Modal Popup
 
               <td class="border p-1">
                 <select [(ngModel)]="m.chargeName"
-                  class="w-36 bg-transparent border-b border-transparent focus:border-amber-500 outline-none italic">
+                  class="w-36 bg-transparent border-b border-transparent focus:border-amber-500 outline-none ">
                   <option value>-- Select Charge Name --</option>
                   <option *ngFor="let c of chargesList" [value]="c.name">
                     {{ c.name }}
                   </option>
                 </select> </td>
+
+              <!-- GST Status -->
+              <td class="border p-1">
+                <select [(ngModel)]="m.gstStatus"
+                  (ngModelChange)="onMultiCarrierGstStatusChange(m)"
+                  class="w-full outline-none bg-transparent text-center text-[9px] font-semibold"
+                  [class.text-green-600]="m.gstStatus === 'Taxable'"
+                  [class.text-gray-600]="m.gstStatus === 'Non-Taxable'">
+                  <option value="Non-Taxable">Non-Taxable</option>
+                  <option value="Taxable">Taxable</option>
+                </select>
+              </td>
+
               <td class="border p-1">
                 <input [(ngModel)]="m.currency"
                   [attr.list]="'mMasterCur' + i"
@@ -3790,7 +3593,6 @@ Selection Modal Popup
                 <input [(ngModel)]="m.fsc"
                   class="w-full outline-none p-1 bg-transparent text-center" />
               </td>
-              <!-- Airline -->
               <!-- Airline Dropdown -->
               <td class="border p-1 text-center">
                 <select
@@ -3848,13 +3650,31 @@ Selection Modal Popup
                 class="border p-1 bg-red-100 text-right font-bold text-red-900">
                 {{ m.totalCost | number:'1.2-2' }}
               </td>
+
+                 <!-- GST Columns -->
+                    <td
+                      class="border p-1 text-center bg-green-50 text-[9px] text-green-700">
+                      {{ m.taxName || '-' }}
+                    </td>
+              <!-- Tax % -->
+              <td class="border p-1 text-center bg-green-50 text-[9px] text-green-700">
+                {{ m.taxPercent || 0 }}%
+              </td>
+              <!-- Tax Amt -->
+              <td class="border p-1 text-right bg-green-50 text-[9px] font-semibold text-green-700">
+                {{ m.taxAmount | number:'1.2-2' }}
+              </td>
+              <!-- Total Incl GST -->
+              <td class="border p-1 text-right bg-amber-100 font-black text-[#4a3f3f]">
+                {{ (m.totalAmount || m.totalCost) | number:'1.2-2' }}
+              </td>
               <!-- REMARK -->
               <td class="border p-1">
                 <textarea [(ngModel)]="m.remark"
                   class="w-full outline-none p-1 bg-transparent text-[8px] leading-tight"
                   rows="2"></textarea>
               </td>
-              <!-- Remarkss -->
+              <!-- Remove -->
               <td class="border p-1 text-center bg-gray-50">
                 <button type="button" *ngIf="multiCarrierRows.length > 1"
                   (click)="removeMultiCarrierRow(i)"
@@ -3868,10 +3688,7 @@ Selection Modal Popup
       </div>
     </div>
 
-    <!-- Remarkss -->
-    <!-- Remarkss -->
     <div class="mt-6 flex justify-end gap-3">
-      <!-- Cancel button sirf table hide karega -->
       <button type="button"
         (click)="showMultiCarrierTable = false"
         class="px-6 py-2 bg-gray-100 text-gray-600 rounded-lg font-medium hover:bg-gray-200 transition-colors">
@@ -3884,5 +3701,5 @@ Selection Modal Popup
         Apply To Form
       </button>
     </div>
-  </div>`
+  </div>
 </div>

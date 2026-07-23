@@ -69,7 +69,7 @@ export class ChargeService {
   // Controller route [Route("api/[controller]")] on ChargeMasterController resolves to api/ChargeMaster
   private apiUrl = environment.apiUrl + '/ChargeMaster';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getAll(filter: ChargeFilter): Observable<PagedResult<ChargeDto>> {
     let params = new HttpParams();
@@ -81,6 +81,12 @@ export class ChargeService {
     params = params.set('pageSize', String(filter.pageSize ?? 10));
 
     return this.http.get<PagedResult<ChargeDto>>(this.apiUrl, { params });
+  }
+
+  getDropdown(applicableFor?: string): Observable<ChargeDto[]> {
+    let params = new HttpParams();
+    if (applicableFor) params = params.set('applicableFor', applicableFor);
+    return this.http.get<ChargeDto[]>(`${this.apiUrl}/dropdown`, { params });
   }
 
   getById(id: number): Observable<ChargeDto> {

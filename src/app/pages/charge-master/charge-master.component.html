@@ -29,7 +29,8 @@
                         [disabled]="applicableForLoading"
                         class="h-9 min-w-[170px] border border-slate-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#4a3f3f] focus:border-[#4a3f3f] disabled:bg-gray-100 disabled:text-gray-400">
                         <option value>{{ applicableForLoading ? 'Loading…' : 'All' }}</option>
-                        <option *ngFor="let a of applicableForOptions" [value]="a.serviceName">{{ a.serviceName }}</option>
+                        <option *ngFor="let a of applicableForOptions" [value]="a.serviceName">{{ a.serviceName }}
+                        </option>
                     </select>
                 </div>
 
@@ -61,7 +62,8 @@
                 </div>
                 <button type="button" (click)="openAddForm()"
                     class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 text-[11px] font-bold shadow-sm flex items-center gap-2 transition-all rounded-lg uppercase tracking-wider">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
                     </svg>
                     ADD NEW CHARGE
@@ -86,7 +88,9 @@
                 <table class="w-full text-sm min-w-[1400px]">
                     <thead>
                         <tr class="bg-[rgb(70,50,50)]/80 text-slate-200 text-xs uppercase tracking-wide">
-                            <th class="left-0 z-20 px-3 py-3 text-left whitespace-nowrap bg-[rgb(70,50,50)]/80 shadow-[4px_0_6px_-2px_rgba(0,0,0,0.15)]">Code</th>
+                            <th
+                                class="left-0 z-20 px-3 py-3 text-left whitespace-nowrap bg-[rgb(70,50,50)]/80 shadow-[4px_0_6px_-2px_rgba(0,0,0,0.15)]">
+                                Code</th>
                             <th class="px-3 py-3 text-left min-w-[220px]">Name</th>
                             <th class="px-3 py-3 text-left whitespace-nowrap">Charge Type</th>
                             <th class="px-3 py-3 text-left min-w-[220px]">Applicable For</th>
@@ -103,7 +107,8 @@
                             <td class="px-3 py-2.5 font-semibold text-sky-700 whitespace-nowrap">{{ row.code }}</td>
                             <td class="px-3 py-2.5 text-slate-700">{{ row.name }}</td>
                             <td class="px-3 py-2.5 whitespace-nowrap">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ring-1 ring-inset bg-indigo-50 text-indigo-700 ring-indigo-200">
+                                <span
+                                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ring-1 ring-inset bg-indigo-50 text-indigo-700 ring-indigo-200">
                                     {{ row.chargeType }}
                                 </span>
                             </td>
@@ -116,7 +121,8 @@
                                 </div>
                             </td>
                             <td class="px-3 py-2.5 whitespace-nowrap">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ring-1 ring-inset bg-amber-50 text-amber-700 ring-amber-200">
+                                <span
+                                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ring-1 ring-inset bg-amber-50 text-amber-700 ring-amber-200">
                                     {{ row.chargeCategory }}
                                 </span>
                             </td>
@@ -130,30 +136,22 @@
                                     {{ activeTaxSummary(row) }}
                                 </span>
                             </td>
-     <td
+                            <td
                                 class="p-4 sticky right-0 bg-white border-l text-center shadow-[-5px_0_10px_rgba(0,0,0,0.02)]">
                                 <div class="flex justify-center gap-2">
-                                    <button title="Edit"
-                                        (click)="openEditForm(row)"
+                                    <button title="Edit" (click)="openEditForm(row)"
                                         class="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-600 border border-blue-200 rounded-md hover:bg-blue-600 hover:text-white transition-all font-medium text-sm shadow-sm">
-                                        <svg xmlns="http://www.w3.org/2000/svg"
-                                            fill="none" viewBox="0 0 24 24"
-                                            stroke-width="2"
-                                            stroke="currentColor"
-                                            class="w-4 h-4">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="2" stroke="currentColor" class="w-4 h-4">
                                             <path
                                                 d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
                                         </svg>
                                         <span>Edit</span>
                                     </button>
-                                    <button title="Delete"
-                                        (click)="deleteCharge(row)"
+                                    <button title="Delete" (click)="deleteCharge(row)"
                                         class="flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 rounded-md hover:bg-red-600 hover:text-white transition-all font-medium text-sm shadow-sm">
-                                        <svg xmlns="http://www.w3.org/2000/svg"
-                                            fill="none" viewBox="0 0 24 24"
-                                            stroke-width="2"
-                                            stroke="currentColor"
-                                            class="w-4 h-4">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="2" stroke="currentColor" class="w-4 h-4">
                                             <path
                                                 d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                                         </svg>
@@ -161,8 +159,7 @@
                                     </button>
                                 </div>
                             </td>
-
-
+                        </tr>
 
                         <tr *ngIf="filteredRows.length === 0">
                             <td colspan="8" class="px-3 py-10 text-center text-slate-400">
@@ -174,7 +171,8 @@
             </div>
 
             <!-- Pagination -->
-            <div class="flex flex-col md:flex-row justify-between items-center bg-white p-4 border-t border-gray-300 gap-4">
+            <div
+                class="flex flex-col md:flex-row justify-between items-center bg-white p-4 border-t border-gray-300 gap-4">
                 <div class="text-[12px] text-gray-400 italic">
                     Page <span class="text-[#4a3f3f] font-bold">{{ currentPage }}</span> of {{ totalPages }}
                 </div>
@@ -202,7 +200,8 @@
     <!-- ================================================================ -->
     <!-- ADD / EDIT CHARGE — MODAL -->
     <!-- ================================================================ -->
-    <div *ngIf="isFormOpen" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+    <div *ngIf="isFormOpen"
+        class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
         (click)="closeForm()">
 
         <div class="relative w-full max-w-4xl bg-white rounded-lg shadow-2xl border border-gray-200 max-h-[92vh] overflow-hidden flex flex-col"
@@ -265,7 +264,8 @@
                                 placeholder="Search line of business…"
                                 class="border border-gray-300 p-2 mb-1 outline-none text-[12px] bg-white focus:border-[#4a3f3f]" />
 
-                            <div class="flex flex-wrap gap-3 bg-white border border-gray-300 p-2.5 rounded max-h-40 overflow-y-auto">
+                            <div
+                                class="flex flex-wrap gap-3 bg-white border border-gray-300 p-2.5 rounded max-h-40 overflow-y-auto">
                                 <span *ngIf="applicableForLoading" class="text-[11px] text-gray-400 italic">
                                     Loading line of business…
                                 </span>
@@ -273,9 +273,9 @@
                                     class="text-[11px] text-gray-400 italic">
                                     No matches.
                                 </span>
-                                <label *ngFor="let opt of filteredApplicableForOptions" class="flex items-center gap-1.5 cursor-pointer text-[12px]">
-                                    <input type="checkbox"
-                                        [checked]="form.applicableFor.includes(opt.serviceName)"
+                                <label *ngFor="let opt of filteredApplicableForOptions"
+                                    class="flex items-center gap-1.5 cursor-pointer text-[12px]">
+                                    <input type="checkbox" [checked]="form.applicableFor.includes(opt.serviceName)"
                                         (change)="toggleApplicableFor(opt.serviceName, $any($event.target).checked)"
                                         class="h-3.5 w-3.5 accent-[#4a3f3f]" />
                                     {{ opt.serviceName }}
@@ -318,7 +318,7 @@
                                 <th class="px-3 py-2 text-left">Tax</th>
                                 <th class="px-3 py-2 text-left min-w-[280px]">Category (HSN/SAC)</th>
                                 <th class="px-3 py-2 text-left w-44">Taxable</th>
-                                <th class="px-3 py-2 text-right w-24">%</th>
+                                <th class="px-3 py-2 text-right w-32">{{ dynamicPercentHeader }}</th>
                                 <th class="px-3 py-2 text-center w-20">Override</th>
                             </tr>
                         </thead>
@@ -327,19 +327,25 @@
                                 class="border-b border-gray-100 last:border-none">
                                 <td class="px-3 py-2">
                                     <input type="checkbox" [(ngModel)]="t.checked" [name]="'chk_' + t.key"
-                                        (change)="onTaxRowToggle(t)"
-                                        class="h-4 w-4 accent-[#4a3f3f]" />
+                                        (change)="onTaxRowToggle(t)" class="h-4 w-4 accent-[#4a3f3f]" />
                                 </td>
                                 <td class="px-3 py-2 font-semibold text-gray-700">{{ t.label }}</td>
                                 <td class="px-3 py-2 relative">
-                                    <input type="text"
-                                        [(ngModel)]="categorySearch[t.key]"
-                                        [name]="'catsearch_' + t.key"
-                                        [disabled]="!t.checked || taxCategoriesLoading"
-                                        (focus)="openCategoryDropdown(t.key, t, $event)"
-                                        (blur)="closeCategoryDropdown()"
-                                        [placeholder]="taxCategoriesLoading ? 'Loading tax categories…' : 'Search tax category…'"
-                                        class="w-full border border-gray-300 p-1.5 outline-none bg-white text-[11px] disabled:bg-gray-100 disabled:text-gray-400 focus:border-[#4a3f3f]" />
+                                    <div class="flex gap-1 items-center w-full">
+                                        <select [(ngModel)]="categoryGstTypeFilter[t.key]" [name]="'catgsttype_' + t.key"
+                                            [disabled]="!t.checked || taxCategoriesLoading" (change)="onGstTypeFilterChange(t)"
+                                            class="border border-gray-300 p-1.5 outline-none bg-white text-[11px] disabled:bg-gray-100 disabled:text-gray-400 focus:border-[#4a3f3f] min-w-[70px]">
+                                            <option value="">All</option>
+                                            <option value="SAC">SAC</option>
+                                            <option value="HSN">HSN</option>
+                                        </select>
+                                        <input type="text" [(ngModel)]="categorySearch[t.key]" [name]="'catsearch_' + t.key"
+                                            [disabled]="!t.checked || taxCategoriesLoading"
+                                            (focus)="openCategoryDropdown(t.key, t, $event)"
+                                            (blur)="closeCategoryDropdown()"
+                                            [placeholder]="taxCategoriesLoading ? 'Loading tax categories…' : 'Search tax category…'"
+                                            class="w-full flex-1 border border-gray-300 p-1.5 outline-none bg-white text-[11px] disabled:bg-gray-100 disabled:text-gray-400 focus:border-[#4a3f3f]" />
+                                    </div>
 
                                     <p *ngIf="t.checked && t.categoryCode && !isCategoryStillValid(t.categoryCode)"
                                         class="text-[10px] text-red-600 font-semibold mt-1">
@@ -347,17 +353,24 @@
                                     </p>
                                 </td>
                                 <td class="px-3 py-2">
-                                    <select [(ngModel)]="t.taxable" [name]="'txbl_' + t.key" [disabled]="!t.checked"
+                                    <select [(ngModel)]="t.taxable" [name]="'txbl_' + t.key" [disabled]="!t.checked" (change)="onTaxableChange(t)"
                                         class="w-full border border-gray-300 p-1.5 outline-none bg-white text-[11px] disabled:bg-gray-100 disabled:text-gray-400 focus:border-[#4a3f3f]">
                                         <option *ngFor="let m of taxableModes" [value]="m">{{ m }}</option>
                                     </select>
                                 </td>
-                                <td class="px-3 py-2">
-                                    <input type="number" step="0.01" [(ngModel)]="t.percentage" [name]="'pct_' + t.key" [disabled]="!t.checked"
+                                <!--
+                                    % field: category select karte hi selectCategory() -> percentage = 100
+                                    aur override = false ho jaata hai, isliye ye field disabled rahegi
+                                    jab tak niche wala "Override" checkbox tick na ho.
+                                -->
+                                <td class="px-3 py-2 text-right">
+                                    <input type="number" step="0.01" [(ngModel)]="t.percentage" [name]="'pct_' + t.key"
+                                        [disabled]="!t.checked || (t.taxable === 'Taxable' && !t.override)"
                                         class="w-full border border-gray-300 p-1.5 outline-none bg-white text-[11px] text-right disabled:bg-gray-100 disabled:text-gray-400 focus:border-[#4a3f3f]" />
                                 </td>
                                 <td class="px-3 py-2 text-center">
-                                    <input type="checkbox" [(ngModel)]="t.override" [name]="'ovr_' + t.key" [disabled]="!t.checked"
+                                    <input type="checkbox" [(ngModel)]="t.override" [name]="'ovr_' + t.key"
+                                        [disabled]="!t.checked || t.taxable !== 'Taxable'" (change)="onOverrideToggle(t)"
                                         class="h-4 w-4 accent-[#4a3f3f]" />
                                 </td>
                             </tr>
@@ -365,8 +378,10 @@
                     </table>
                 </div>
                 <p class="text-[11px] text-gray-400 italic mt-2">
-                    Tip: only checked tax rows are applied at invoice time. A checked row needs a Category selected — a checked
+                    Tip: only checked tax rows are applied at invoice time. A checked row needs a Category selected — a
+                    checked
                     row with no category will block Save, since that would silently produce an untaxed charge.
+                    Selecting a Category auto-sets % to 100 (locked); tick "Override" to edit it manually.
                 </p>
             </div>
 
@@ -390,10 +405,10 @@
     <!-- ================================================================ -->
     <div *ngIf="openCategoryDropdownFor && activeCategoryRow"
         class="fixed z-[10000] max-h-48 overflow-y-auto bg-white border border-gray-300 rounded shadow-lg"
-        [style.top.px]="categoryDropdownPos.top"
-        [style.left.px]="categoryDropdownPos.left"
+        [style.top.px]="categoryDropdownPos.top" [style.left.px]="categoryDropdownPos.left"
         [style.width.px]="categoryDropdownPos.width">
-        <div *ngIf="filteredCategoryOptions(openCategoryDropdownFor).length === 0" class="px-3 py-2 text-[11px] text-gray-400 italic">
+        <div *ngIf="filteredCategoryOptions(openCategoryDropdownFor).length === 0"
+            class="px-3 py-2 text-[11px] text-gray-400 italic">
             No matching tax categories.
         </div>
         <div *ngFor="let opt of filteredCategoryOptions(openCategoryDropdownFor)"

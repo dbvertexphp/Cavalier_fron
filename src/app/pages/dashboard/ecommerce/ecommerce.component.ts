@@ -1,9 +1,10 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef, HostListener, ViewChild, ElementRef, AfterViewInit } from '@angular/core'; 
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { HttpClient, HttpHeaders } from '@angular/common/http'; // 👈 1. HttpClient import kiya
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Chart, registerables } from 'chart.js';
-import { environment } from '../../../../environments/environment'; // 👈 API Url ke liye
+import { environment } from '../../../../environments/environment';
+import { DataShareService } from '../../../services/data-share.service';
 
 Chart.register(...registerables);
 
@@ -15,14 +16,13 @@ Chart.register(...registerables);
 })
 export class EcommerceComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('revenueCanvas') private revenueCanvas!: ElementRef<HTMLCanvasElement>;
-
+  
+  userLinesOfBusiness: any[] = [];
+  selectedLOB: any = null;
   lastLoginUser: any = null;
   loginTime: string = '';
   currentTotal: string = '12.5L';
   chart: Chart | undefined;
-
-  // 👈 Line of Business Store karne ke liye array variable
-  userLinesOfBusiness: any[] = [];
 
   timeLeft: number = 0; 
   interval: any;
@@ -30,11 +30,11 @@ export class EcommerceComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly TIMER_KEY = 'session_expiry_time';
   private idleTimeout: any;
 
-  // 👈 2. HttpClient Inject kiya Constructor me
   constructor(
     private router: Router, 
     private cdr: ChangeDetectorRef,
-    private http: HttpClient 
+    private http: HttpClient,
+    private dataShare: DataShareService
   ) {}
 
   @HostListener('document:mousemove') 
@@ -74,36 +74,65 @@ export class EcommerceComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
     this.resetUserActivity();
-    
-    // 👈 3. Here API Call for My Line of Business
     this.fetchMyLineOfBusiness();
   }
 
-  // 👈 4. Naya Function API consume karne ke liye
+  onTextChange(text: string) {
+    this.dataShare.updateSidebarText(text);
+  }
+
   fetchMyLineOfBusiness() {
     const token = localStorage.getItem('cavalier_token');
+    if (!token) return;
 
-    if (!token) {
-      console.warn('⚠️ cavalier_token not found in localStorage');
-      return;
-    }
-
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`
-    });
+    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
     this.http.get<any>(`${environment.apiUrl}/User/my-line-of-business`, { headers }).subscribe({
       next: (res) => {
-        console.log('✅ My Line of Business API Response:', res);
         if (res && res.linesOfBusiness) {
           this.userLinesOfBusiness = res.linesOfBusiness;
-          this.cdr.detectChanges(); // UI Update
+          this.dataShare.updateSidebarText(`Total LOBs: ${res.linesOfBusiness.length}`);
+          this.cdr.detectChanges();
         }
       },
+      error: (err) => console.error('Error fetching LOBs:', err)
+    });
+  }
+
+  // 👈 LOB SELECT + SET-LOB API CALL INTEGRATION
+  selectLineOfBusiness(lob: any) {
+    this.selectedLOB = lob; 
+    console.log('Selected LOB ID:', lob.id);
+    console.log('Selected LOB Name:', lob.serviceName);
+
+    const token = localStorage.getItem('cavalier_token');
+    if (!token) return;
+
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+
+    const payload = {
+      lineOfBusinessId: lob.id
+    };
+
+    // 🔥 API Call to set LOB Claim in Token
+    this.http.post<any>(`${environment.apiUrl}/Auth/set-lob`, payload, { headers }).subscribe({
+      next: (res) => {
+        if (res && res.token) {
+          // Token update in localStorage
+          localStorage.setItem('cavalier_token', res.token);
+          console.log('✅ New JWT Token updated with LOB Claim:', res.token);
+        }
+        this.cdr.detectChanges();
+      },
       error: (err) => {
-        console.error('❌ Error fetching my-line-of-business:', err);
+        console.error('❌ Error setting Line of Business claim:', err);
       }
     });
+
+    this.cdr.detectChanges();
   }
 
   ngAfterViewInit(): void {

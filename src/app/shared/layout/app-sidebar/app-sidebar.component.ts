@@ -9,7 +9,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { FormsModule } from '@angular/forms';
 import { CheckPermissionService } from '../../../services/check-permission.service';
-
+import { DataShareService } from '../../../services/data-share.service';
 
 type NavItem = {
   name: string;
@@ -49,14 +49,15 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
   readonly isHovered$;
 
   private subscription: Subscription = new Subscription();
-
+ecommerceCustomText: string = '';
   constructor(
     public sidebarService: SidebarService,
     private router: Router,
     private cdr: ChangeDetectorRef,
     private http: HttpClient,
     private eRef: ElementRef,
-    public CheckPermissionService:CheckPermissionService
+    public CheckPermissionService:CheckPermissionService,
+    private dataShare: DataShareService
     
   ) {
     this.isExpanded$ = this.sidebarService.isExpanded$;
@@ -95,7 +96,12 @@ branchId:number | null = null;
     this.setActiveMenuFromRoute(this.router.url);
       this.loadBranches();
       
-    
+    this.subscription.add(
+    this.dataShare.sidebarData$.subscribe(text => {
+      this.ecommerceCustomText = text;
+      this.cdr.detectChanges(); // Direct UI update
+    })
+  );
       
   }
   ngOnDestroy() {

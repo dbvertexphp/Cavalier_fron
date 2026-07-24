@@ -7,7 +7,7 @@ import { TaxRate } from "./tax-rate.service";
 
 export interface GstLineRequest {
   chargeCode: string;
-  isTaxable: boolean;
+taxType: string;  
   amountInr: number;
   polCountryCode: string;
   podCountryCode: string;
@@ -124,211 +124,214 @@ export class GstCalculationService {
   }
 
   /** Instant client-side GST calculation — runs the moment charge/rate/status/port changes. Works for ANY country lane. */
-  calculateLineLocal(
-    request: GstLineRequest,
-    chargeMaster?: ChargeDto | null,
-    taxRates?: TaxRate[],
-  ): GstLineResult {
-    console.log("calculateLineLocal input:", {
-      request,
-      chargeMaster,
-      taxRates,
-    });
+calculateLineLocal(
+  request: GstLineRequest,
+  chargeMaster?: ChargeDto | null,
+  taxRates?: TaxRate[],
+): GstLineResult {
+  console.log("calculateLineLocal input:", {
+    request,
+    chargeMaster,
+    taxRates,
+  });
 
-    const amount = round2(request.amountInr || 0);
+  const amount = round2(request.amountInr || 0);
 
-    const polIndia = isIndia(request.polCountryCode);
-    const podIndia = isIndia(request.podCountryCode);
-    const shipmentDirection = resolveShipmentDirection(polIndia, podIndia);
+  const polIndia = isIndia(request.polCountryCode);
+  const podIndia = isIndia(request.podCountryCode);
+  const shipmentDirection = resolveShipmentDirection(polIndia, podIndia);
 
-    const empty: GstLineResult = {
-      sacHsn: "",
+  const empty: GstLineResult = {
+    sacHsn: "",
+    taxableValue: 0,
+    nonTaxableValue: amount,
+    taxName: "",
+    taxPercent: 0,
+    cgstPercent: 0,
+    sgstPercent: 0,
+    igstPercent: 0,
+    cgst: 0,
+    sgst: 0,
+    igst: 0,
+    taxAmount: 0,
+    totalAmount: amount,
+    placeOfSupplyState: "",
+    isZeroRated: false,
+    isRcmApplicable: false,
+    shipmentDirection,
+  };
+
+// ✅ FIX: blacklist approach — sirf "Non-Taxable" exclude, baaki sab taxable
+  const taxTypeNormalized = (request.taxType || "").toLowerCase().replace(/[\s-]+/g, "");
+  const isTaxable = taxTypeNormalized !== "";
+
+  // Non-taxable / zero amount → nothing to compute
+  if (!isTaxable || amount <= 0) return empty;
+
+  // ✅ WORLDWIDE RULE: Indian GST (CGST/SGST/IGST) only applies when India is
+  // POL or POD. Any lane not touching India (e.g. Singapore→UAE, USA→Germany)
+  // is treated as OUT OF SCOPE for Indian GST — clean pass-through, no tax.
+  if (shipmentDirection === "OTHER") {
+    return {
+      ...empty,
       taxableValue: 0,
       nonTaxableValue: amount,
-      taxName: "",
-      taxPercent: 0,
-      cgstPercent: 0,
-      sgstPercent: 0,
-      igstPercent: 0,
-      cgst: 0,
-      sgst: 0,
-      igst: 0,
-      taxAmount: 0,
       totalAmount: amount,
-      placeOfSupplyState: "",
-      isZeroRated: false,
-      isRcmApplicable: false,
-      shipmentDirection,
-    };
-
-    // Non-taxable / zero amount → nothing to compute
-    if (!request.isTaxable || amount <= 0) return empty;
-
-    // ✅ WORLDWIDE RULE: Indian GST (CGST/SGST/IGST) only applies when India is
-    // POL or POD. Any lane not touching India (e.g. Singapore→UAE, USA→Germany)
-    // is treated as OUT OF SCOPE for Indian GST — clean pass-through, no tax.
-    if (shipmentDirection === "OTHER") {
-      return {
-        ...empty,
-        taxableValue: 0,
-        nonTaxableValue: amount,
-        totalAmount: amount,
-        taxName: "Out of GST Scope (Non-India Lane)",
-      };
-    }
-
-    const charge = chargeMaster;
-    if (!charge) {
-      return {
-        ...empty,
-        taxableValue: amount,
-        nonTaxableValue: 0,
-        totalAmount: amount,
-      };
-    }
-
-    const gstRow = charge.taxRows?.find(
-      (t) => t.key?.toLowerCase() === "gst" && t.checked,
-    );
-    if (!gstRow?.categoryCode) {
-      return {
-        ...empty,
-        taxableValue: amount,
-        nonTaxableValue: 0,
-        totalAmount: amount,
-      };
-    }
-
-    const taxRate = (taxRates ?? [])
-      .filter(
-        (t) =>
-          t.status === "Applicable" && t.categoryCode === gstRow.categoryCode,
-      )
-      .sort(
-        (a, b) =>
-          new Date(b.applicableDate).getTime() -
-          new Date(a.applicableDate).getTime(),
-      )[0];
-
-    if (!taxRate) {
-      return {
-        ...empty,
-        taxableValue: amount,
-        nonTaxableValue: 0,
-        totalAmount: amount,
-      };
-    }
-
-    const placeOfSupply = resolvePlaceOfSupplyState(
-      request.polCountryCode,
-      request.podCountryCode,
-      request.polCity,
-      request.podCity,
-      request.polState,
-      request.podState,
-    );
-
-    // ✅ Seedha polState vs podState (placeOfSupply) compare, branchState use nahi
-    const polStateResolved =
-      request.polState || resolveStateFromCity(request.polCity);
-
-    const useIntraState =
-      shipmentDirection === "DOMESTIC" &&
-      shouldUseIntraStateTax(polStateResolved, placeOfSupply);
-
-let cgstRate = taxRate.cgst;
-// ✅ FIX: UTGST sirf legislature-less Union Territories me lagta hai
-const isUT = isLegislatureLessUT(placeOfSupply);
-let sgstRate = isUT ? taxRate.utgst : taxRate.sgst;
-let igstRate = taxRate.igst;
-
-    if (gstRow.override && gstRow.percentage > 0) {
-      if (useIntraState) {
-        cgstRate = gstRow.percentage / 2;
-        sgstRate = gstRow.percentage / 2;
-        igstRate = 0;
-      } else {
-        igstRate = gstRow.percentage;
-        cgstRate = 0;
-        sgstRate = 0;
-      }
-    }
-
-    const liabilityPercent =
-      taxRate.liabilitySupplier && taxRate.liabilitySupplier > 0
-        ? taxRate.liabilitySupplier
-        : 100;
-    const liabilityFactor = liabilityPercent / 100;
-
-    cgstRate = round2(cgstRate * liabilityFactor);
-    sgstRate = round2(sgstRate * liabilityFactor);
-    igstRate = round2(igstRate * liabilityFactor);
-
-    let taxName = "IGST";
-    let cgst = 0;
-    let sgst = 0;
-    let igst = 0;
-    let taxPercent = 0;
-    let cgstPercent = 0;
-    let sgstPercent = 0;
-    let igstPercent = 0;
-
-    if (useIntraState) {
-       taxName = isUT ? "CGST / UTGST" : "CGST / SGST";
-      cgst = round2((amount * cgstRate) / 100);
-      sgst = round2((amount * sgstRate) / 100);
-      cgstPercent = cgstRate;
-      sgstPercent = sgstRate;
-      taxPercent = round2(cgstRate + sgstRate);
-    } else {
-      igst = round2((amount * igstRate) / 100);
-      igstPercent = igstRate;
-      taxPercent = igstRate;
-    }
-
-    let taxAmount = round2(cgst + sgst + igst);
-    let totalAmount = round2(amount + taxAmount);
-
-    const isZeroRated = shipmentDirection === "EXPORT" && !!request.isZeroRated;
-    const isRcmApplicable =
-      shipmentDirection === "IMPORT" && !!request.isRcmApplicable;
-
-    if (isZeroRated) {
-      cgst = 0;
-      sgst = 0;
-      igst = 0;
-      cgstPercent = 0;
-      sgstPercent = 0;
-      igstPercent = 0;
-      taxAmount = 0;
-      taxPercent = 0;
-      taxName = "IGST (Zero-Rated / LUT)";
-      totalAmount = amount;
-    } else if (isRcmApplicable) {
-      taxName = `${taxName} (RCM - Recipient Liable)`;
-      totalAmount = amount;
-    }
-
-    return {
-      sacHsn: `${taxRate.gstType} ${taxRate.categoryCode}`.trim(),
-      taxableValue: amount,
-      nonTaxableValue: 0,
-      taxName,
-      taxPercent,
-      cgstPercent,
-      sgstPercent,
-      igstPercent,
-      cgst,
-      sgst,
-      igst,
-      taxAmount,
-      totalAmount,
-      placeOfSupplyState: placeOfSupply,
-      isZeroRated,
-      isRcmApplicable,
-      shipmentDirection,
+      taxName: "Out of GST Scope (Non-India Lane)",
     };
   }
+
+  const charge = chargeMaster;
+  if (!charge) {
+    return {
+      ...empty,
+      taxableValue: amount,
+      nonTaxableValue: 0,
+      totalAmount: amount,
+    };
+  }
+
+  const gstRow = charge.taxRows?.find(
+    (t) => t.key?.toLowerCase() === "gst" && t.checked,
+  );
+  if (!gstRow?.categoryCode) {
+    return {
+      ...empty,
+      taxableValue: amount,
+      nonTaxableValue: 0,
+      totalAmount: amount,
+    };
+  }
+
+  const taxRate = (taxRates ?? [])
+    .filter(
+      (t) =>
+        t.status === "Applicable" && t.categoryCode === gstRow.categoryCode,
+    )
+    .sort(
+      (a, b) =>
+        new Date(b.applicableDate).getTime() -
+        new Date(a.applicableDate).getTime(),
+    )[0];
+
+  if (!taxRate) {
+    return {
+      ...empty,
+      taxableValue: amount,
+      nonTaxableValue: 0,
+      totalAmount: amount,
+    };
+  }
+
+  const placeOfSupply = resolvePlaceOfSupplyState(
+    request.polCountryCode,
+    request.podCountryCode,
+    request.polCity,
+    request.podCity,
+    request.polState,
+    request.podState,
+  );
+
+  const polStateResolved =
+    request.polState || resolveStateFromCity(request.polCity);
+
+  const useIntraState =
+    shipmentDirection === "DOMESTIC" &&
+    shouldUseIntraStateTax(polStateResolved, placeOfSupply);
+
+  let cgstRate = taxRate.cgst;
+  const isUT = isLegislatureLessUT(placeOfSupply);
+  let sgstRate = isUT ? taxRate.utgst : taxRate.sgst;
+  let igstRate = taxRate.igst;
+
+const isPureAgentType = gstRow.taxable;
+if (gstRow.override && gstRow.percentage > 0 && !isPureAgentType) {
+  if (useIntraState) {
+    cgstRate = gstRow.percentage / 2;
+    sgstRate = gstRow.percentage / 2;
+    igstRate = 0;
+  } else {
+    igstRate = gstRow.percentage;
+    cgstRate = 0;
+    sgstRate = 0;
+  }
+}
+
+  const liabilityPercent =
+    taxRate.liabilitySupplier && taxRate.liabilitySupplier > 0
+      ? taxRate.liabilitySupplier
+      : 100;
+  const liabilityFactor = liabilityPercent / 100;
+
+  cgstRate = round2(cgstRate * liabilityFactor);
+  sgstRate = round2(sgstRate * liabilityFactor);
+  igstRate = round2(igstRate * liabilityFactor);
+
+  let taxName = "IGST";
+  let cgst = 0;
+  let sgst = 0;
+  let igst = 0;
+  let taxPercent = 0;
+  let cgstPercent = 0;
+  let sgstPercent = 0;
+  let igstPercent = 0;
+
+  if (useIntraState) {
+    taxName = isUT ? "CGST / UTGST" : "CGST / SGST";
+    cgst = round2((amount * cgstRate) / 100);
+    sgst = round2((amount * sgstRate) / 100);
+    cgstPercent = cgstRate;
+    sgstPercent = sgstRate;
+    taxPercent = round2(cgstRate + sgstRate);
+  } else {
+    igst = round2((amount * igstRate) / 100);
+    igstPercent = igstRate;
+    taxPercent = igstRate;
+  }
+
+  let taxAmount = round2(cgst + sgst + igst);
+  let totalAmount = round2(amount + taxAmount);
+
+  const isZeroRated = shipmentDirection === "EXPORT" && !!request.isZeroRated;
+  const isRcmApplicable =
+    shipmentDirection === "IMPORT" && !!request.isRcmApplicable;
+
+  if (isZeroRated) {
+    cgst = 0;
+    sgst = 0;
+    igst = 0;
+    cgstPercent = 0;
+    sgstPercent = 0;
+    igstPercent = 0;
+    taxAmount = 0;
+    taxPercent = 0;
+    taxName = "IGST (Zero-Rated / LUT)";
+    totalAmount = amount;
+  } else if (isRcmApplicable) {
+    taxName = `${taxName} (RCM - Recipient Liable)`;
+    totalAmount = amount;
+  }
+
+  return {
+    sacHsn: `${taxRate.gstType} ${taxRate.categoryCode}`.trim(),
+    taxableValue: amount,
+    nonTaxableValue: 0,
+    taxName,
+    taxPercent,
+    cgstPercent,
+    sgstPercent,
+    igstPercent,
+    cgst,
+    sgst,
+    igst,
+    taxAmount,
+    totalAmount,
+    placeOfSupplyState: placeOfSupply,
+    isZeroRated,
+    isRcmApplicable,
+    shipmentDirection,
+  };
+}
 
   isChargeTaxableByDefault(charge: ChargeDto): boolean {
     const gstRow = charge.taxRows?.find(

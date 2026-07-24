@@ -1219,6 +1219,15 @@ saveCompleteOrganization() {
     return;
   }
 
+  // 🔥 Extract All Unique LOB IDs
+  let allLobIds: number[] = [];
+  this.branchList.forEach(branch => {
+    if (branch.lobIdsList && Array.isArray(branch.lobIdsList)) {
+      allLobIds.push(...branch.lobIdsList);
+    }
+  });
+  const uniqueLobString = [...new Set(allLobIds)].join(',');
+
   // Show loading
   Swal.fire({
     title: 'Saving...',
@@ -1233,7 +1242,8 @@ saveCompleteOrganization() {
     Id: this.selectedOrgId || 0,
     OrgName: this.orgName.trim(),
     Alias: this.alias || '',
-    SelectedRoles: this.selectedRoles.join(',')
+    SelectedRoles: this.selectedRoles.join(','),
+    LineOfBusiness: uniqueLobString // 👈 🔥 Organization Table Mein Pass Kiya
   };
 
   this.http.post(`${environment.apiUrl}/Organization/save`, payload).subscribe({
@@ -1343,6 +1353,26 @@ proceedToSave() {
     return;
   }
 
+  // 🔥 LineOfBusiness Extract Logic: Sabhi branches se LOB IDs collect karo
+  let allLobIds: number[] = [];
+  this.branchList.forEach(branch => {
+    if (branch.lobIdsList && Array.isArray(branch.lobIdsList)) {
+      allLobIds.push(...branch.lobIdsList);
+    } else if (branch.LobIds && typeof branch.LobIds === 'string') {
+      const parsed = branch.LobIds.split(',').map((id: string) => parseInt(id.trim(), 10)).filter((id: number) => !isNaN(id));
+      allLobIds.push(...parsed);
+    }
+  });
+
+  // Current active form selection se bhi check kar lo
+  if (this.selectedLineOfBusiness && this.selectedLineOfBusiness.length > 0) {
+    const currentLobIds = this.selectedLineOfBusiness.map(item => item.id);
+    allLobIds.push(...currentLobIds);
+  }
+
+  // Unique comma-separated string formatting (e.g. "18,1002")
+  const uniqueLobString = [...new Set(allLobIds)].join(',');
+
   // Show loading
   Swal.fire({
     title: 'Saving...',
@@ -1362,7 +1392,8 @@ proceedToSave() {
     Id: this.selectedOrgId || 0,
     OrgName: this.orgName.trim(),
     Alias: this.alias || '',
-    SelectedRoles: this.selectedRoles.join(',')
+    SelectedRoles: this.selectedRoles.join(','),
+    LineOfBusiness: uniqueLobString // 👈 🔥 Organization Table Mein LobIds Pass Ho Raha Hai
   };
 
   const apiUrl = this.isOrgEditMode && this.selectedOrgId

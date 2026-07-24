@@ -23,6 +23,7 @@ type TaxableMode =
   | "Pure Agent Always"
   | "Pure Agent Optional"
   | "Taxable"
+  | "NonTaxable"
   | "Exempt";
 
 interface ApplicableTaxRow {
@@ -176,6 +177,7 @@ export class ChargeMasterComponent implements OnInit {
     "Pure Agent Always",
     "Pure Agent Optional",
     "Taxable",
+    "NonTaxable",
     "Exempt",
   ];
 

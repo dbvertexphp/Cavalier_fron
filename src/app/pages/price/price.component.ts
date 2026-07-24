@@ -1032,6 +1032,7 @@ export class PriceComponent {
     this.quotation.portOfLoading =
       port.name || port.portName || port.PortName || "";
     this.quotation.portOfLoadingCode = port.portCode || "";
+    console.log( this.quotation.portOfLoadingId,this.quotation.portOfLoading,this.quotation.portOfLoadingCode)
     this.showPortOfLoadingDropdown = false;
     this.filteredPortsOfLoading = [];
     this.activePOLIndex = -1;
@@ -1215,7 +1216,7 @@ private getGstPortContext() {
     if (!code) return '';
     return code.split('/')[0].trim(); // removes "/ IN" etc.
   };
-  const polCountry = cleanCountry(pol?.isoCode || pol?.IsoCode || pol?.countryCode || pol?.CountryCode || "");
+  const polCountry = cleanCountry(pol?.isoCode || pol?.IsoCode || pol?.countryCode || pol?.CountryCode ||  "");
   const podCountry = cleanCountry(pod?.isoCode || pod?.IsoCode || pod?.countryCode || pod?.CountryCode || "");
   
   console.log('🔍 GST Port Context:', { polCountry, podCountry, pol, pod });
@@ -1249,6 +1250,7 @@ private getGstPortContext() {
       shipmentDirection: "",
     };
   }
+
 
   applyGstToCostRow(row: any) {
     const amountInr = Number(row.amount) || 0;
@@ -5898,6 +5900,7 @@ private getGstPortContext() {
 
   selectPlaceOfDelivery(place: any) {
     this.quotation.placeOfDelivery = place.name;
+    console.log(this.quotation.placeOfDelivery)
     this.showPlaceOfDeliveryDropdown = false;
   }
 

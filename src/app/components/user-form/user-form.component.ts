@@ -18,7 +18,7 @@ import Swal from 'sweetalert2';
 export class UserFormComponent implements OnInit {
   @ViewChild('deptInput') deptInput!: ElementRef;
   @ViewChild('desigInput') desigInput!: ElementRef;
-
+lineOfBusinessList: any[] = [];
   isImageModalOpen = false;
   selectedImageUrl = '';
   employeeData: any;
@@ -85,6 +85,7 @@ export class UserFormComponent implements OnInit {
       this.loadDropdowns();
       this.getBranches();
       this.loadPermissions();
+      this.loadLineOfBusiness();
     }
 
     // Designation change hone par Department auto-select logic
@@ -193,6 +194,7 @@ export class UserFormComponent implements OnInit {
     this.selectedImageUrl = '';
   }
 
+
   initForm() {
     if (this.isBranchForm) {
       this.userForm = this.fb.group({
@@ -200,6 +202,7 @@ export class UserFormComponent implements OnInit {
         employeeCode: [''],
         hodId: [[]],
         teamId: [[]],
+       lineOfBusiness: [[]],
         companyName: ['Cavalier Logistics'],
         companyAlias: ['CL'],
         branchName: [''],
@@ -420,11 +423,17 @@ export class UserFormComponent implements OnInit {
           formattedDoj = `${parts[2]}-${parts[1]}-${parts[0]}`;
         }
       }
-
+let formattedLobArray: number[] = [];
+    if (Array.isArray(raw.lineOfBusiness)) {
+      formattedLobArray = raw.lineOfBusiness.map((id: any) => Number(id)).filter((id: number) => !isNaN(id));
+    } else if (raw.lineOfBusiness) {
+      formattedLobArray = [Number(raw.lineOfBusiness)].filter((id: number) => !isNaN(id));
+    }
       const finalPayload = {
         ...raw,
         dob: formattedDob,
         dateOfJoining: formattedDoj,
+        lineOfBusiness: formattedLobArray,
         id: this.isEditMode ? this.id : 0,
         EmergencyRelation: raw.emergencyRelationship || raw.EmergencyRelation
       };
@@ -609,7 +618,17 @@ export class UserFormComponent implements OnInit {
       }
     });
   }
-
+loadLineOfBusiness() {
+  this.http.get<any[]>(`${environment.apiUrl}/CompanyService`).subscribe({
+    next: (res) => {
+      if (Array.isArray(res)) {
+        // Sirf unhi services ko render karega jinka status 'Active' hai
+        this.lineOfBusinessList = res.filter(item => item.status === 'Active');
+      }
+    },
+    error: (err) => console.error('❌ Line of Business API Error:', err)
+  });
+}
   onlyNumbers(event: any) {
     const pattern = /[0-9]/;
     const inputChar = String.fromCharCode(event.charCode);
@@ -622,6 +641,7 @@ export class UserFormComponent implements OnInit {
     if (!data) return;
 
     let parsedHodIds: number[] = [];
+   let parsedLobIds: number[] = [];
     let parsedTeamIds: number[] = [];
 
     try {
@@ -641,11 +661,21 @@ export class UserFormComponent implements OnInit {
     } catch (e) {
       parsedTeamIds = [];
     }
+ try {
+    const rawLob = data.lineOfBusiness || data.lineOfBusinessId || data.companyServiceId;
+    if (rawLob) {
+      parsedLobIds = typeof rawLob === 'string' ? JSON.parse(rawLob) : rawLob;
+      parsedLobIds = Array.isArray(parsedLobIds) ? parsedLobIds.map(id => Number(id)) : [Number(parsedLobIds)];
+    }
+  } catch (e) {
+    parsedLobIds = [];
+  }
 
     this.userForm.patchValue({
       ...data,
       hodId: parsedHodIds,
       teamId: parsedTeamIds,
+     lineOfBusiness: parsedLobIds,
       bankBranchName: data.branchNameBank,
       employeeCode: data.empCode || data.employeeCode,
       ctc_Monthly: data.ctC_Monthly || data.ctc_Monthly,
@@ -930,6 +960,83 @@ export class UserFormComponent implements OnInit {
     return currentTeams.includes(teamId);
   }
 
+
+isLobDropdownOpen = false;
+
+toggleLobDropdown() {
+  this.isLobDropdownOpen = !this.isLobDropdownOpen;
+}
+
+onLobCheckboxChange(isChecked: boolean, rawLobId: any) {
+  console.log('--- [LOB CHECKBOX CLICKED] ---');
+  console.log('👉 Checked Status:', isChecked, '| Raw LOB ID:', rawLobId);
+
+  const lobId = Number(rawLobId);
+
+  // 1. Safety Check: If control doesn't exist, create it on the fly
+  if (!this.userForm.contains('lineOfBusiness')) {
+    console.warn('⚠️ "lineOfBusiness" control was missing! Adding dynamically...');
+    this.userForm.addControl('lineOfBusiness', this.fb.control([]));
+  }
+
+  // 2. Get current value safely
+  let currentLobs: any[] = this.userForm.get('lineOfBusiness')?.value || [];
+  if (!Array.isArray(currentLobs)) {
+    currentLobs = [];
+  }
+
+  // 3. Add or Remove ID
+  if (isChecked) {
+    if (!currentLobs.some(id => Number(id) === lobId)) {
+      currentLobs.push(lobId);
+      console.log('✅ Added LOB ID:', lobId);
+    }
+  } else {
+    currentLobs = currentLobs.filter(id => Number(id) !== lobId);
+    console.log('❌ Removed LOB ID:', lobId);
+  }
+
+  // 4. Update Form Control using setControl / patchValue
+  this.userForm.get('lineOfBusiness')?.setValue([...currentLobs]);
+  this.userForm.get('lineOfBusiness')?.markAsDirty();
+  this.userForm.get('lineOfBusiness')?.updateValueAndValidity();
+
+  console.log('👉 Final Control Value:', this.userForm.get('lineOfBusiness')?.value);
+
+  // 5. Force View Refresh
+  this.cdr.detectChanges();
+}
+
+removeLob(rawLobId: any) {
+  const lobId = Number(rawLobId);
+  let currentLobs: any[] = this.userForm.get('lineOfBusiness')?.value || [];
+  if (!Array.isArray(currentLobs)) return;
+
+  const filteredArray = currentLobs.filter(id => Number(id) !== lobId);
+
+  this.userForm.patchValue({
+    lineOfBusiness: [...filteredArray]
+  });
+  this.userForm.get('lineOfBusiness')?.markAsDirty();
+  this.userForm.get('lineOfBusiness')?.updateValueAndValidity();
+  this.cdr.detectChanges();
+}
+
+getLobNameById(rawLobId: any): string {
+  if (!this.lineOfBusinessList || this.lineOfBusinessList.length === 0) {
+    return `LOB (${rawLobId})`;
+  }
+  const lobId = Number(rawLobId);
+  const match = this.lineOfBusinessList.find(lob => Number(lob.id) === lobId);
+  return match ? (match.serviceName || match.name) : `LOB (${rawLobId})`;
+}
+
+isLobSelected(rawLobId: any): boolean {
+  const lobId = Number(rawLobId);
+  const currentLobs: any[] = this.userForm.get('lineOfBusiness')?.value || [];
+  if (!Array.isArray(currentLobs)) return false;
+  return currentLobs.some(id => Number(id) === lobId);
+}
   downloadData(type: string) {
     let dataToDownload = [];
     let fileName = "";

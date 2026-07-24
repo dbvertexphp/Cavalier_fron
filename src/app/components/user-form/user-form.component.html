@@ -214,45 +214,84 @@
     </div>
   </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+ <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
   <div>
-  <label class="font-bold">Mobile*</label>
-  <input 
-    type="tel" 
-    formControlName="mobile" 
-    maxlength="10" 
-    (keypress)="onlyNumbers($event)"
-    class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none"
-    placeholder="Enter 10 digit number"
-  >
+    <label class="font-bold">Mobile*</label>
+    <input 
+      type="tel" 
+      formControlName="mobile" 
+      maxlength="10" 
+      (keypress)="onlyNumbers($event)"
+      class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none"
+      placeholder="Enter 10 digit number"
+    >
+    <div *ngIf="userForm.get('mobile')?.touched && userForm.get('mobile')?.invalid" class="text-red-600 text-xs mt-1">
+      <span *ngIf="userForm.get('mobile')?.errors?.['required']">Mobile number is required.</span>
+      <span *ngIf="userForm.get('mobile')?.errors?.['pattern']">Please enter a valid 10-digit number.</span>
+      <span *ngIf="userForm.get('mobile')?.errors?.['zod']">{{ userForm.get('mobile')?.errors?.['zod'] }}</span>
+    </div>
+  </div>
+
+  <div>
+    <label class="block mb-1 font-medium text-gray-700">Telephone</label>
+    <input 
+      type="text"
+      formControlName="telephone" 
+      maxlength="10"
+      oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+      class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none"
+      placeholder="Enter 10 digit number"
+    >
+  </div>
+
+  <!-- Naya Line of Business Dropdown -->
+  <!-- Multi-select Line of Business Block -->
+<!-- Multi-select Line of Business Section -->
+<div class="space-y-2 relative">
+  <label class="block mb-1 font-medium text-gray-700">Line of Business</label>
+
+  <!-- Selected Badges Display Box -->
+<!-- Selected Badges Display Box -->
+<div class="flex flex-wrap gap-1.5 p-2 border rounded bg-white min-h-[42px] items-center">
+  <!-- Empty message -->
+  <span *ngIf="!userForm.get('lineOfBusiness')?.value || userForm.get('lineOfBusiness')?.value?.length === 0" class="text-gray-400 text-xs pl-1">
+    No Line of Business selected
+  </span>
   
-  <div *ngIf="userForm.get('mobile')?.touched && userForm.get('mobile')?.invalid" class="text-red-600 text-xs mt-1">
-    <span *ngIf="userForm.get('mobile')?.errors?.['required']">
-      Mobile number is required.
-    </span>
-    
-    <span *ngIf="userForm.get('mobile')?.errors?.['pattern']">
-      Please enter a valid 10-digit number.
-    </span>
-
-    <span *ngIf="userForm.get('mobile')?.errors?.['zod']">
-      {{ userForm.get('mobile')?.errors?.['zod'] }}
-    </span>
+  <!-- Badges -->
+  <div *ngFor="let lobId of userForm.get('lineOfBusiness')?.value" class="flex items-center gap-1 bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-1 rounded-full border border-blue-200">
+    <span>{{ getLobNameById(lobId) }}</span>
+    <button type="button" (click)="removeLob(lobId)" class="text-blue-600 hover:text-red-500 font-bold ml-1 text-sm outline-none">&times;</button>
   </div>
 </div>
-    <div>
-  <label class="block mb-1 font-medium text-gray-700">Telephone</label>
-  <input 
-    type="text"
-    formControlName="telephone" 
-    maxlength="10"
-    oninput="this.value = this.value.replace(/[^0-9]/g, '')"
-    class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none"
-    placeholder="Enter 10 digit number"
-  >
-</div>
 
+  <!-- Checkbox Dropdown Trigger Button -->
+  <button 
+    type="button" 
+    (click)="toggleLobDropdown()" 
+    class="w-full border p-2 rounded bg-white text-left text-sm flex justify-between items-center focus:outline-none focus:ring-2 focus:ring-blue-500">
+    <span class="text-gray-600">Select Line of Business Options...</span>
+    <span class="text-xs text-gray-400">▼</span>
+  </button>
+
+  <!-- Checkbox Popup List -->
+  <div *ngIf="isLobDropdownOpen" class="absolute z-50 mt-1 w-full bg-white border rounded shadow-lg max-h-56 overflow-y-auto p-2 space-y-1">
+    <div *ngFor="let lob of lineOfBusinessList" class="flex items-center p-2 hover:bg-blue-50 rounded cursor-pointer">
+      <input 
+        #cb
+        type="checkbox" 
+        [id]="'lob-' + lob.id"
+        [checked]="isLobSelected(lob.id)" 
+        (change)="onLobCheckboxChange(cb.checked, lob.id)"
+        class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer"
+      />
+      <label [for]="'lob-' + lob.id" class="ml-2 text-sm text-gray-700 cursor-pointer w-full select-none">
+        {{ lob.serviceName || lob.name }}
+      </label>
+    </div>
   </div>
+</div>
+</div>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-blue-50/30 p-5 rounded-xl border border-blue-100/50 shadow-sm">
   
  <div class="space-y-1.5">

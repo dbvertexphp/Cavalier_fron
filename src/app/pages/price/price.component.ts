@@ -68,6 +68,7 @@ export interface CostBreakdown {
   isZeroRated?: boolean;
   isRcmApplicable?: boolean;
   shipmentDirection?: string;
+    taxType?: string;   
 }
 interface DimGroup {
   dimString: string;
@@ -1294,66 +1295,34 @@ export class PriceComponent {
     };
   }
 
-  applyGstToCostRow(row: any) {
-    const amountInr = Number(row.amount) || 0;
-    const isTaxable = row.gstStatus === "Taxable";
-    row.isGstApplicable = isTaxable;
-
-    const charge = this.chargeMasterList.find((c) => c.code === row.chargeCode);
-    if (!charge) {
-      console.warn("Charge not found in master list:", row.chargeCode);
-      return;
-    }
-
-    if (!this.taxRatesList || this.taxRatesList.length === 0) {
-      console.warn("Tax rates not loaded yet. Skipping GST calculation.");
-      return;
-    }
-
-    const ctx = this.getGstPortContext();
-    const result = this.gstCalculationService.calculateLineLocal(
-      {
-        chargeCode: row.chargeCode || "",
-        isTaxable,
-        amountInr,
-        ...ctx,
-        isZeroRated: !!row.isZeroRated,
-        isRcmApplicable: !!row.isRcmApplicable,
-      },
-      charge,
-      this.taxRatesList,
-    );
-
-    row.sacHsn = result.sacHsn;
-    row.taxableValue = result.taxableValue;
-    row.nonTaxableValue = result.nonTaxableValue;
-    row.taxName = result.taxName;
-    row.taxPercent = result.taxPercent;
-    row.cgst = result.cgst;
-    row.sgst = result.sgst;
-    row.igst = result.igst;
-    row.cgstPercent = result.cgstPercent; // ✅ NEW
-    row.sgstPercent = result.sgstPercent; // ✅ NEW
-    row.igstPercent = result.igstPercent; // ✅ NEW
-    row.taxAmount = result.taxAmount;
-    row.totalAmount = result.totalAmount;
-    row.shipmentDirection = result.shipmentDirection;
-
-    console.log("GST calculation result:", result);
-  }
-
-
-applyGstToMultiCarrierRow(row: any) {
-  const amountInr = Number(row.totalCost) || 0;
+applyGstToCostRow(row: any) {
+  const amountInr = Number(row.amount) || 0;
   const isTaxable = row.gstStatus === "Taxable";
   row.isGstApplicable = isTaxable;
 
   const charge = this.chargeMasterList.find((c) => c.code === row.chargeCode);
+
+  // ✅ Tax Type column ke liye — Charge Master ki "Taxable" dropdown value
+  const gstRow = charge?.taxRows?.find(
+    (t: any) => t.key?.toLowerCase() === "gst" && t.checked,
+  );
+  row.taxType = gstRow?.taxable;
+
+  if (!charge) {
+    console.warn("Charge not found in master list:", row.chargeCode);
+    return;
+  }
+
+  if (!this.taxRatesList || this.taxRatesList.length === 0) {
+    console.warn("Tax rates not loaded yet. Skipping GST calculation.");
+    return;
+  }
+
   const ctx = this.getGstPortContext();
   const result = this.gstCalculationService.calculateLineLocal(
     {
       chargeCode: row.chargeCode || "",
-      isTaxable,
+taxType: row.taxType,
       amountInr,
       ...ctx,
       isZeroRated: !!row.isZeroRated,
@@ -1368,9 +1337,55 @@ applyGstToMultiCarrierRow(row: any) {
   row.nonTaxableValue = result.nonTaxableValue;
   row.taxName = result.taxName;
   row.taxPercent = result.taxPercent;
-  row.cgstPercent = result.cgstPercent;   // ✅ NEW
-  row.sgstPercent = result.sgstPercent;   // ✅ NEW
-  row.igstPercent = result.igstPercent;   // ✅ NEW
+  row.cgst = result.cgst;
+  row.sgst = result.sgst;
+  row.igst = result.igst;
+  row.cgstPercent = result.cgstPercent;
+  row.sgstPercent = result.sgstPercent;
+  row.igstPercent = result.igstPercent;
+  row.taxAmount = result.taxAmount;
+  row.totalAmount = result.totalAmount;
+  row.shipmentDirection = result.shipmentDirection;
+
+  console.log("GST calculation result:", result);
+}
+
+
+applyGstToMultiCarrierRow(row: any) {
+  const amountInr = Number(row.totalCost) || 0;
+  const isTaxable = row.gstStatus === "Taxable";
+  row.isGstApplicable = isTaxable;
+
+  const charge = this.chargeMasterList.find((c) => c.code === row.chargeCode);
+
+  // ✅ Tax Type column ke liye — Charge Master ki "Taxable" dropdown value
+  const gstRow = charge?.taxRows?.find(
+    (t: any) => t.key?.toLowerCase() === "gst" && t.checked,
+  );
+  row.taxType = gstRow?.taxable;
+
+  const ctx = this.getGstPortContext();
+  const result = this.gstCalculationService.calculateLineLocal(
+    {
+      chargeCode: row.chargeCode || "",
+     taxType: row.taxType,
+      amountInr,
+      ...ctx,
+      isZeroRated: !!row.isZeroRated,
+      isRcmApplicable: !!row.isRcmApplicable,
+    },
+    charge,
+    this.taxRatesList,
+  );
+
+  row.sacHsn = result.sacHsn;
+  row.taxableValue = result.taxableValue;
+  row.nonTaxableValue = result.nonTaxableValue;
+  row.taxName = result.taxName;
+  row.taxPercent = result.taxPercent;
+  row.cgstPercent = result.cgstPercent;
+  row.sgstPercent = result.sgstPercent;
+  row.igstPercent = result.igstPercent;
   row.cgst = result.cgst;
   row.sgst = result.sgst;
   row.igst = result.igst;
@@ -1379,36 +1394,55 @@ applyGstToMultiCarrierRow(row: any) {
   row.shipmentDirection = result.shipmentDirection;
 }
 
-  onCostChargeSelect(row: any, chargeCode: string) {
-    const charge = this.chargeMasterList.find((c) => c.code === chargeCode);
-    row.chargeCode = chargeCode || "";
-    row.chargeName = charge?.name || "";
-    if (charge) {
-      const gstRow = charge.taxRows?.find((t) => t.key === "GST" && t.checked);
-      row.isGstApplicable = !!gstRow && !!gstRow.categoryCode;
-      row.gstStatus = row.isGstApplicable ? "Taxable" : "Non-Taxable";
-    } else {
-      row.gstStatus = "Non-Taxable";
-      row.isGstApplicable = false;
-    }
-    this.applyGstToCostRow(row);
-    this.cdr.detectChanges();
+onCostChargeSelect(row: any, chargeCode: string) {
+  const charge = this.chargeMasterList.find((c) => c.code === chargeCode);
+  row.chargeCode = chargeCode || "";
+  row.chargeName = charge?.name || "";
+
+  // ✅ FIX: taxRows kabhi-kabhi JSON string aata hai backend se — parse karo
+  let taxRowsArr: any[] = [];
+  if (charge?.taxRows) {
+    taxRowsArr = typeof charge.taxRows === "string"
+      ? JSON.parse(charge.taxRows)
+      : charge.taxRows;
   }
 
-  onMultiCarrierChargeSelect(row: any, chargeCode: string) {
-    const charge = this.chargeMasterList.find((c) => c.code === chargeCode);
-    row.chargeCode = chargeCode || "";
-    row.chargeName = charge?.name || "";
-    if (charge) {
-      row.gstStatus = this.gstCalculationService.isChargeTaxableByDefault(
-        charge,
-      )
-        ? "Taxable"
-        : "Non-Taxable";
-    }
-    this.applyGstToMultiCarrierRow(row);
-    this.cdr.detectChanges();
+  const gstRow = taxRowsArr.find(
+    (t: any) => t.key?.toLowerCase() === "gst" && t.checked,
+  );
+
+  row.taxType = gstRow?.taxable;
+  row.isGstApplicable = row.taxType;
+  row.gstStatus = row.isGstApplicable
+
+  this.applyGstToCostRow(row);
+  this.cdr.detectChanges();
+}
+
+onMultiCarrierChargeSelect(row: any, chargeCode: string) {
+  const charge = this.chargeMasterList.find((c) => c.code === chargeCode);
+  row.chargeCode = chargeCode || "";
+  row.chargeName = charge?.name || "";
+
+  // ✅ FIX: taxRows kabhi-kabhi JSON string aata hai backend se — parse karo
+  let taxRowsArr: any[] = [];
+  if (charge?.taxRows) {
+    taxRowsArr = typeof charge.taxRows === "string"
+      ? JSON.parse(charge.taxRows)
+      : charge.taxRows;
   }
+
+  const gstRow = taxRowsArr.find(
+    (t: any) => t.key?.toLowerCase() === "gst" && t.checked,
+  );
+
+  row.taxType = gstRow?.taxable ;
+  row.isGstApplicable = row.taxType ;
+  row.gstStatus = row.isGstApplicable;
+
+  this.applyGstToMultiCarrierRow(row);
+  this.cdr.detectChanges();
+}
 
 
   
@@ -1424,9 +1458,7 @@ applyGstToMultiCarrierRow(row: any) {
 
   normalizeBreakdownRow(row: any) {
     row.gstStatus =
-      row.isGstApplicable || row.gstStatus === "Taxable"
-        ? "Taxable"
-        : "Non-Taxable";
+      row.isGstApplicable || row.gstStatus
     if (!row.chargeCode && row.chargeName) {
       const match = this.chargeMasterList.find(
         (c) => c.name === row.chargeName,
@@ -3993,8 +4025,7 @@ applyGstToMultiCarrierRow(row: any) {
       amount: Number(cb.amount) || 0,
       remark: cb.remark || "",
       chargeCode: cb.chargeCode || null,
-      isGstApplicable:
-        cb.isGstApplicable || cb.gstStatus === "Taxable" || false,
+      taxType: cb.taxType,
       sacHsn: cb.sacHsn || "",
       taxableValue: Number(cb.taxableValue) || 0,
       nonTaxableValue: Number(cb.nonTaxableValue) || 0,
@@ -4030,8 +4061,7 @@ applyGstToMultiCarrierRow(row: any) {
       totalCost: Number(mcb.totalCost) || 0,
       remark: String(mcb.remark || "").trim(),
       chargeCode: mcb.chargeCode || null,
-      isGstApplicable:
-        mcb.isGstApplicable || mcb.gstStatus === "Taxable" || false,
+      taxType: mcb.taxType,
       sacHsn: mcb.sacHsn || "",
       taxableValue: Number(mcb.taxableValue) || 0,
       nonTaxableValue: Number(mcb.nonTaxableValue) || 0,

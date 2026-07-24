@@ -60,6 +60,9 @@ export interface CostBreakdown {
   cgst?: number;
   sgst?: number;
   igst?: number;
+  cgstPercent?: number;
+  sgstPercent?: number;
+  igstPercent?: number;
   taxAmount?: number;
   totalAmount?: number;
   isZeroRated?: boolean;
@@ -1032,7 +1035,11 @@ export class PriceComponent {
     this.quotation.portOfLoading =
       port.name || port.portName || port.PortName || "";
     this.quotation.portOfLoadingCode = port.portCode || "";
-    console.log( this.quotation.portOfLoadingId,this.quotation.portOfLoading,this.quotation.portOfLoadingCode)
+    console.log(
+      this.quotation.portOfLoadingId,
+      this.quotation.portOfLoading,
+      this.quotation.portOfLoadingCode,
+    );
     this.showPortOfLoadingDropdown = false;
     this.filteredPortsOfLoading = [];
     this.activePOLIndex = -1;
@@ -1192,43 +1199,79 @@ export class PriceComponent {
     );
   }
 
-private getBranchState(): string {
-  const branchName = this.quotation?.branchName || "";
-  const branch = (this.branchlist || []).find(
-    (b) =>
-      (b.branchName || b.BranchName || "").toLowerCase() ===
-      branchName.toLowerCase(),
-  );
-  const state = branch?.state || branch?.State || "";
-  console.log('🔍 Branch State resolved:', state);
-  return state;
-}
+  private getBranchState(): string {
+    const branchName = this.quotation?.branchName || "";
+    const branch = (this.branchlist || []).find(
+      (b) =>
+        (b.branchName || b.BranchName || "").toLowerCase() ===
+        branchName.toLowerCase(),
+    );
+    const state = branch?.state || branch?.State || "";
+    console.log("🔍 Branch State resolved:", state);
+    return state;
+  }
 
-private getGstPortContext() {
-  const pol = this.portsOfLoading.find(
-    (p) => Number(p.id) === Number(this.quotation.portOfLoadingId),
-  );
-  const pod = this.portsOfDischarge.find(
-    (p) => Number(p.id) === Number(this.quotation.portOfDischargeId),
-  );
-  // Clean extra characters: extract only first part (e.g., "+91" from "+91 / IN")
-  const cleanCountry = (code: string) => {
-    if (!code) return '';
-    return code.split('/')[0].trim(); // removes "/ IN" etc.
-  };
-  const polCountry = cleanCountry(pol?.isoCode || pol?.IsoCode || pol?.countryCode || pol?.CountryCode ||  "");
-  const podCountry = cleanCountry(pod?.isoCode || pod?.IsoCode || pod?.countryCode || pod?.CountryCode || "");
-  
-  console.log('🔍 GST Port Context:', { polCountry, podCountry, pol, pod });
-  
-  return {
-    polCountryCode: polCountry,
-    podCountryCode: podCountry,
-    polCity: pol?.cityName || pol?.CityName || pol?.name || this.quotation.portOfLoading || "",
-    podCity: pod?.cityName || pod?.CityName || pod?.name || this.quotation.portOfDestination || "",
-    branchState: this.getBranchState(),
-  };
-}
+  private getGstPortContext() {
+    const pol = this.portsOfLoading.find(
+      (p) => Number(p.id) === Number(this.quotation.portOfLoadingId),
+    );
+    const pod = this.portsOfDischarge.find(
+      (p) => Number(p.id) === Number(this.quotation.portOfDischargeId),
+    );
+
+    const cleanCountry = (code: string) => {
+      if (!code) return "";
+      return code.split("/")[0].trim();
+    };
+
+    const polCountry = cleanCountry(
+      pol?.isoCode ||
+        pol?.IsoCode ||
+        pol?.countryCode ||
+        pol?.CountryCode ||
+        "",
+    );
+    const podCountry = cleanCountry(
+      pod?.isoCode ||
+        pod?.IsoCode ||
+        pod?.countryCode ||
+        pod?.CountryCode ||
+        "",
+    );
+
+    // ✅ NEW: PortSetup se seedha state nikalo, city-guess nahi
+    const polState = pol?.stateName || pol?.StateName || "";
+    const podState = pod?.stateName || pod?.StateName || "";
+
+    console.log("🔍 GST Port Context:", {
+      polCountry,
+      podCountry,
+      polState,
+      podState,
+      pol,
+      pod,
+    });
+
+    return {
+      polCountryCode: polCountry,
+      podCountryCode: podCountry,
+      polCity:
+        pol?.cityName ||
+        pol?.CityName ||
+        pol?.name ||
+        this.quotation.portOfLoading ||
+        "",
+      podCity:
+        pod?.cityName ||
+        pod?.CityName ||
+        pod?.name ||
+        this.quotation.portOfDestination ||
+        "",
+      polState, // ✅ NEW
+      podState, // ✅ NEW
+      branchState: this.getBranchState(),
+    };
+  }
 
   private defaultGstFields(): Partial<CostBreakdown> {
     return {
@@ -1250,7 +1293,6 @@ private getGstPortContext() {
       shipmentDirection: "",
     };
   }
-
 
   applyGstToCostRow(row: any) {
     const amountInr = Number(row.amount) || 0;
@@ -1290,6 +1332,9 @@ private getGstPortContext() {
     row.cgst = result.cgst;
     row.sgst = result.sgst;
     row.igst = result.igst;
+    row.cgstPercent = result.cgstPercent; // ✅ NEW
+    row.sgstPercent = result.sgstPercent; // ✅ NEW
+    row.igstPercent = result.igstPercent; // ✅ NEW
     row.taxAmount = result.taxAmount;
     row.totalAmount = result.totalAmount;
     row.shipmentDirection = result.shipmentDirection;
@@ -1297,38 +1342,42 @@ private getGstPortContext() {
     console.log("GST calculation result:", result);
   }
 
-  applyGstToMultiCarrierRow(row: any) {
-    const amountInr = Number(row.totalCost) || 0;
-    const isTaxable = row.gstStatus === "Taxable";
-    row.isGstApplicable = isTaxable;
 
-    const charge = this.chargeMasterList.find((c) => c.code === row.chargeCode);
-    const ctx = this.getGstPortContext();
-    const result = this.gstCalculationService.calculateLineLocal(
-      {
-        chargeCode: row.chargeCode || "",
-        isTaxable,
-        amountInr,
-        ...ctx,
-        isZeroRated: !!row.isZeroRated,
-        isRcmApplicable: !!row.isRcmApplicable,
-      },
-      charge,
-      this.taxRatesList,
-    );
+applyGstToMultiCarrierRow(row: any) {
+  const amountInr = Number(row.totalCost) || 0;
+  const isTaxable = row.gstStatus === "Taxable";
+  row.isGstApplicable = isTaxable;
 
-    row.sacHsn = result.sacHsn;
-    row.taxableValue = result.taxableValue;
-    row.nonTaxableValue = result.nonTaxableValue;
-    row.taxName = result.taxName;
-    row.taxPercent = result.taxPercent;
-    row.cgst = result.cgst;
-    row.sgst = result.sgst;
-    row.igst = result.igst;
-    row.taxAmount = result.taxAmount;
-    row.totalAmount = result.totalAmount;
-    row.shipmentDirection = result.shipmentDirection;
-  }
+  const charge = this.chargeMasterList.find((c) => c.code === row.chargeCode);
+  const ctx = this.getGstPortContext();
+  const result = this.gstCalculationService.calculateLineLocal(
+    {
+      chargeCode: row.chargeCode || "",
+      isTaxable,
+      amountInr,
+      ...ctx,
+      isZeroRated: !!row.isZeroRated,
+      isRcmApplicable: !!row.isRcmApplicable,
+    },
+    charge,
+    this.taxRatesList,
+  );
+
+  row.sacHsn = result.sacHsn;
+  row.taxableValue = result.taxableValue;
+  row.nonTaxableValue = result.nonTaxableValue;
+  row.taxName = result.taxName;
+  row.taxPercent = result.taxPercent;
+  row.cgstPercent = result.cgstPercent;   // ✅ NEW
+  row.sgstPercent = result.sgstPercent;   // ✅ NEW
+  row.igstPercent = result.igstPercent;   // ✅ NEW
+  row.cgst = result.cgst;
+  row.sgst = result.sgst;
+  row.igst = result.igst;
+  row.taxAmount = result.taxAmount;
+  row.totalAmount = result.totalAmount;
+  row.shipmentDirection = result.shipmentDirection;
+}
 
   onCostChargeSelect(row: any, chargeCode: string) {
     const charge = this.chargeMasterList.find((c) => c.code === chargeCode);
@@ -1361,6 +1410,8 @@ private getGstPortContext() {
     this.cdr.detectChanges();
   }
 
+
+  
   onCostGstStatusChange(row: any) {
     this.applyGstToCostRow(row);
     this.cdr.detectChanges();
@@ -1492,9 +1543,9 @@ private getGstPortContext() {
 
   onIncotermChange(event: any) {
     const selectedIncoterm = event.target.value?.toUpperCase().trim();
-    console.log(selectedIncoterm)
+    console.log(selectedIncoterm);
     this.showincoterms = selectedIncoterm;
-   this.cdr.detectChanges();
+    this.cdr.detectChanges();
     if (!selectedIncoterm) return;
 
     this.quotation.incoterm = selectedIncoterm;
@@ -5900,7 +5951,7 @@ private getGstPortContext() {
 
   selectPlaceOfDelivery(place: any) {
     this.quotation.placeOfDelivery = place.name;
-    console.log(this.quotation.placeOfDelivery)
+    console.log(this.quotation.placeOfDelivery);
     this.showPlaceOfDeliveryDropdown = false;
   }
 

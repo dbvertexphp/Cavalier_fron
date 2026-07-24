@@ -2293,7 +2293,7 @@
                   </ul>
                 </div>
               </div>
-              
+
               <!-- Carrier (Code + Name combined search) -->
               <div class="flex items-center text-red-700 font-bold">
                 <label class="w-40">Carrier</label>
@@ -2593,126 +2593,186 @@
             </div>
           </div>
 
-  <div class="overflow-x-auto bg-gray-50 custom-scrollbar shadow-inner rounded-lg">
-  <table class="min-w-[1600px] border-separate border-spacing-0">
-    <thead>
-      <tr class="bg-gray-100 shadow-sm">
-        <!-- Sticky LOB Column -->
-        <th class=" [80px] left-0 z-20 bg-gray-100 px-3 py-4 text-left text-xs font-bold text-gray-600 uppercase border-b border-gray-200 shadow-[2px_0_8px_rgba(0,0,0,0.06)] min-w-[100px]">
-          LOB
-        </th>
-        <!-- Sticky Charge Name Column -->
-        <th class=" left-[100px] z-20 bg-gray-100 px-3 py-4 text-left text-xs font-bold text-gray-600 uppercase border-b border-gray-200 shadow-[2px_0_8px_rgba(0,0,0,0.06)] min-w-[200px]">
-          Charge Name
-        </th>
-        <th class="px-3 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200 min-w-[100px]">Type</th>
-        <th class="px-3 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200 min-w-[90px]">GST</th>
-        <th class="px-3 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200 min-w-[100px]">Chrg. Weight</th>
-        <th class="px-3 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200 min-w-[80px]">Currency</th>
-        <th class="px-3 py-4 text-right text-xs font-bold text-gray-600 uppercase border-b border-gray-200 min-w-[80px]">Rate</th>
-        <th class="px-3 py-4 text-right text-xs font-bold text-gray-600 uppercase border-b border-gray-200 min-w-[80px]">Ex. Rate</th>
-        <th class="px-3 py-4 text-right text-xs font-bold text-[#4a3f3f] bg-amber-50 uppercase border-b border-amber-200 min-w-[100px]">Amount</th>
-        <th class="px-3 py-4 text-center text-xs font-bold text-green-600 uppercase border-b border-green-200 min-w-[100px]">Tax Name</th>
-        <th class="px-3 py-4 text-center text-xs font-bold text-green-600 uppercase border-b border-green-200 min-w-[70px]">Tax %</th>
-        <th class="px-3 py-4 text-right text-xs font-bold text-green-600 uppercase border-b border-green-200 min-w-[100px]">Tax Amt</th>
-        <th class="px-3 py-4 text-right text-xs font-bold text-amber-800 bg-amber-100 uppercase border-b border-amber-300 min-w-[160px]">Total (Incl. GST)</th>
-        <th class="px-3 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200 min-w-[160px]">SAC/HSN</th>
-        <th class="px-3 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200 min-w-[140px]">Remarks</th>
-        <th class="px-3 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200 min-w-[70px]">Action</th>
-      </tr>
-    </thead>
-    <tbody class="divide-y divide-gray-200 bg-white">
-      <tr *ngFor="let row of costRows; let i = index" class="hover:bg-amber-50/30 transition-colors">
-        <!-- Sticky LOB -->
-        <td class="sticky left-0 z-10 bg-white group-hover:bg-amber-50/50 px-3 py-3 border-r border-gray-100 shadow-[2px_0_8px_rgba(0,0,0,0.04)]">
-          <select [(ngModel)]="row.lob"
-            class="w-full bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none">
-            <option *ngFor="let service of companyServices" [value]="service.serviceName">
-              {{ service.serviceName }}
-            </option>
-          </select>
-        </td>
-        <!-- Sticky Charge Name -->
-        <td class="sticky left-[100px] z-10 bg-white group-hover:bg-amber-50/50 px-3 py-3 border-r border-gray-100 shadow-[2px_0_8px_rgba(0,0,0,0.04)]">
-          <select [(ngModel)]="row.chargeCode"
-            (ngModelChange)="onCostChargeSelect(row, $event)"
-            class="w-full bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none">
-            <option value="">-- Select Charge --</option>
-            <option *ngFor="let charge of getFilteredChargeMaster()" [value]="charge.code">
-              {{ charge.name }} ({{ charge.code }})
-            </option>
-          </select>
-        </td>
-        <td class="px-3 py-3">
-          <select [(ngModel)]="row.chargeType"
-            class="w-full text-center bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none">
-            <option value="Prepaid">Prepaid</option>
-            <option value="Collect">Collect</option>
-          </select>
-        </td>
-        <td class="px-3 py-3">
-          <select [(ngModel)]="row.gstStatus"
-            (ngModelChange)="onCostGstStatusChange(row)"
-            class="w-full text-center bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none font-semibold"
-            [class.text-green-600]="row.gstStatus === 'Taxable'"
-            [class.text-gray-600]="row.gstStatus === 'Non-Taxable'">
-            <option value="Non-Taxable">Non-Taxable</option>
-            <option value="Taxable">Taxable</option>
-          </select>
-        </td>
-        <td class="px-3 py-3 text-center text-sm font-medium">
-          {{ quotation.chargeableWeight || 0 }}
-        </td>
-        <td class="px-3 py-3">
-          <input [(ngModel)]="row.currency"
-            [attr.list]="'costCurList' + i"
-            class="w-full text-center bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none uppercase font-semibold text-blue-600">
-          <datalist [id]="'costCurList' + i">
-            <option *ngFor="let c of currencies" [value]="c.value">{{ c.label }}</option>
-          </datalist>
-        </td>
-        <td class="px-3 py-3">
-          <input type="number" [(ngModel)]="row.rate"
-            (input)="calculateCost()"
-            class="w-full text-right bg-transparent border-b border-transparent focus:border-amber-500 text-sm font-semibold py-1 outline-none">
-        </td>
-        <td class="px-3 py-3">
-          <input type="number" [(ngModel)]="row.exchangeRate"
-            (input)="calculateCost()"
-            class="w-full text-right bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none">
-        </td>
-        <td class="px-4 py-3 text-right font-black text-[#4a3f3f] bg-amber-50/50 ">
-          {{ row.amount | number:'1.2-2' }}
-        </td>
-        <td class="px-3 py-3 text-center text-xs text-gray-600 font-semibold">
-          {{ row.taxName || '-' }}
-        </td>
-        <td class="px-3 py-3 text-right text-xs text-gray-700">
-          {{ row.taxPercent || 0 }}%
-        </td>
-        <td class="px-3 py-3 text-right text-xs font-semibold text-green-700">
-          {{ row.taxAmount | number:'1.2-2' }}
-        </td>
-        <td class="px-4 py-3 text-right text-sm font-black text-amber-800 bg-amber-100/60">
-          {{ row.totalAmount | number:'1.2-2' }}
-        </td>
-        <td class="px-3 py-3 text-center text-xs text-gray-500">
-          {{ row.sacHsn || '-' }}
-        </td>
-        <td class="px-4 py-3">
-          <input type="text" [(ngModel)]="row.remark"
-            placeholder="Enter Remark"
-            class="w-full text-center bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none">
-        </td>
-        <td class="px-3 py-3 text-center">
-          <button (click)="removeCostRow(i)" class="text-gray-400 hover:text-red-500">
-            <i class="fa fa-trash-alt"></i>
-          </button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+          <div
+            class="overflow-x-auto bg-gray-50 custom-scrollbar shadow-inner rounded-lg">
+            <table class="min-w-[1600px] border-separate border-spacing-0">
+              <thead>
+                <tr class="bg-gray-100 shadow-sm">
+                  <!-- Sticky LOB Column -->
+                  <th
+                    class=" [80px] left-0 z-20 bg-gray-100 px-3 py-4 text-left text-xs font-bold text-gray-600 uppercase border-b border-gray-200 shadow-[2px_0_8px_rgba(0,0,0,0.06)] min-w-[100px]">
+                    LOB
+                  </th>
+                  <!-- Sticky Charge Name Column -->
+                  <th
+                    class=" left-[100px] z-20 bg-gray-100 px-3 py-4 text-left text-xs font-bold text-gray-600 uppercase border-b border-gray-200 shadow-[2px_0_8px_rgba(0,0,0,0.06)] min-w-[200px]">
+                    Charge Name
+                  </th>
+                  <th
+                    class="px-3 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200 min-w-[100px]">Type</th>
+                  <th
+                    class="px-3 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200 min-w-[90px]">GST</th>
+                  <th
+                    class="px-3 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200 min-w-[100px]">Chrg.
+                    Weight</th>
+                  <th
+                    class="px-3 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200 min-w-[80px]">Currency</th>
+                  <th
+                    class="px-3 py-4 text-right text-xs font-bold text-gray-600 uppercase border-b border-gray-200 min-w-[80px]">Rate</th>
+                  <th
+                    class="px-3 py-4 text-right text-xs font-bold text-gray-600 uppercase border-b border-gray-200 min-w-[80px]">Ex.
+                    Rate</th>
+                  <th
+                    class="px-3 py-4 text-right text-xs font-bold text-[#4a3f3f] bg-amber-50 uppercase border-b border-amber-200 min-w-[100px]">Amount</th>
+                  <th
+                    class="px-3 py-4 text-center text-xs font-bold text-green-600 uppercase border-b border-green-200 min-w-[100px]">Tax
+                    Name</th>
+                  <th
+                    class="px-3 py-4 text-center text-xs font-bold text-green-600 uppercase border-b border-green-200 min-w-[70px]">CGST
+                    %</th>
+                  <th
+                    class="px-3 py-4 text-right text-xs font-bold text-green-600 uppercase border-b border-green-200 min-w-[90px]">CGST
+                    Amt</th>
+                  <th
+                    class="px-3 py-4 text-center text-xs font-bold text-green-600 uppercase border-b border-green-200 min-w-[70px]">SGST
+                    %</th>
+                  <th
+                    class="px-3 py-4 text-right text-xs font-bold text-green-600 uppercase border-b border-green-200 min-w-[90px]">SGST
+                    Amt</th>
+                  <th
+                    class="px-3 py-4 text-center text-xs font-bold text-blue-600 uppercase border-b border-blue-200 min-w-[70px]">IGST
+                    %</th>
+                  <th
+                    class="px-3 py-4 text-right text-xs font-bold text-blue-600 uppercase border-b border-blue-200 min-w-[90px]">IGST
+                    Amt</th>
+                  <th
+                    class="px-3 py-4 text-right text-xs font-bold text-amber-800 bg-amber-100 uppercase border-b border-amber-300 min-w-[160px]">Total
+                    (Incl. GST)</th>
+                  <th
+                    class="px-3 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200 min-w-[160px]">SAC/HSN</th>
+                  <th
+                    class="px-3 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200 min-w-[140px]">Remarks</th>
+                  <th
+                    class="px-3 py-4 text-center text-xs font-bold text-gray-600 uppercase border-b border-gray-200 min-w-[70px]">Action</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200 bg-white">
+                <tr *ngFor="let row of costRows; let i = index"
+                  class="hover:bg-amber-50/30 transition-colors">
+                  <!-- Sticky LOB -->
+                  <td
+                    class="sticky left-0 z-10 bg-white group-hover:bg-amber-50/50 px-3 py-3 border-r border-gray-100 shadow-[2px_0_8px_rgba(0,0,0,0.04)]">
+                    <select [(ngModel)]="row.lob"
+                      class="w-full bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none">
+                      <option *ngFor="let service of companyServices"
+                        [value]="service.serviceName">
+                        {{ service.serviceName }}
+                      </option>
+                    </select>
+                  </td>
+                  <!-- Sticky Charge Name -->
+                  <td
+                    class="sticky left-[100px] z-10 bg-white group-hover:bg-amber-50/50 px-3 py-3 border-r border-gray-100 shadow-[2px_0_8px_rgba(0,0,0,0.04)]">
+                    <select [(ngModel)]="row.chargeCode"
+                      (ngModelChange)="onCostChargeSelect(row, $event)"
+                      class="w-full bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none">
+                      <option value>-- Select Charge --</option>
+                      <option *ngFor="let charge of getFilteredChargeMaster()"
+                        [value]="charge.code">
+                        {{ charge.name }} ({{ charge.code }})
+                      </option>
+                    </select>
+                  </td>
+                  <td class="px-3 py-3">
+                    <select [(ngModel)]="row.chargeType"
+                      class="w-full text-center bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none">
+                      <option value="Prepaid">Prepaid</option>
+                      <option value="Collect">Collect</option>
+                    </select>
+                  </td>
+                  <td class="px-3 py-3">
+                    <select [(ngModel)]="row.gstStatus"
+                      (ngModelChange)="onCostGstStatusChange(row)"
+                      class="w-full text-center bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none font-semibold"
+                      [class.text-green-600]="row.gstStatus === 'Taxable'"
+                      [class.text-gray-600]="row.gstStatus === 'Non-Taxable'">
+                      <option value="Non-Taxable">Non-Taxable</option>
+                      <option value="Taxable">Taxable</option>
+                    </select>
+                  </td>
+                  <td class="px-3 py-3 text-center text-sm font-medium">
+                    {{ quotation.chargeableWeight || 0 }}
+                  </td>
+                  <td class="px-3 py-3">
+                    <input [(ngModel)]="row.currency"
+                      [attr.list]="'costCurList' + i"
+                      class="w-full text-center bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none uppercase font-semibold text-blue-600">
+                    <datalist [id]="'costCurList' + i">
+                      <option *ngFor="let c of currencies" [value]="c.value">{{
+                        c.label }}</option>
+                    </datalist>
+                  </td>
+                  <td class="px-3 py-3">
+                    <input type="number" [(ngModel)]="row.rate"
+                      (input)="calculateCost()"
+                      class="w-full text-right bg-transparent border-b border-transparent focus:border-amber-500 text-sm font-semibold py-1 outline-none">
+                  </td>
+                  <td class="px-3 py-3">
+                    <input type="number" [(ngModel)]="row.exchangeRate"
+                      (input)="calculateCost()"
+                      class="w-full text-right bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none">
+                  </td>
+                  <td
+                    class="px-4 py-3 text-right font-black text-[#4a3f3f] bg-amber-50/50 ">
+                    {{ row.amount | number:'1.2-2' }}
+                  </td>
+                  <td
+                    class="px-3 py-3 text-center text-xs text-gray-600 font-semibold">
+                    {{ row.taxName || '-' }}
+                  </td>
+                  <td class="px-3 py-3 text-center text-xs text-gray-700">
+                    {{ row.cgstPercent || 0 }}%
+                  </td>
+                  <td
+                    class="px-3 py-3 text-right text-xs font-semibold text-green-700">
+                    {{ row.cgst | number:'1.2-2' }}
+                  </td>
+                  <td class="px-3 py-3 text-center text-xs text-gray-700">
+                    {{ row.sgstPercent || 0 }}%
+                  </td>
+                  <td
+                    class="px-3 py-3 text-right text-xs font-semibold text-green-700">
+                    {{ row.sgst | number:'1.2-2' }}
+                  </td>
+                  <td class="px-3 py-3 text-center text-xs text-blue-700">
+                    {{ row.igstPercent || 0 }}%
+                  </td>
+                  <td
+                    class="px-3 py-3 text-right text-xs font-semibold text-blue-700">
+                    {{ row.igst | number:'1.2-2' }}
+                  </td>
+                  <td
+                    class="px-4 py-3 text-right text-sm font-black text-amber-800 bg-amber-100/60">
+                    {{ row.totalAmount | number:'1.2-2' }}
+                  </td>
+                  <td class="px-3 py-3 text-center text-xs text-gray-500">
+                    {{ row.sacHsn || '-' }}
+                  </td>
+                  <td class="px-4 py-3">
+                    <input type="text" [(ngModel)]="row.remark"
+                      placeholder="Enter Remark"
+                      class="w-full text-center bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none">
+                  </td>
+                  <td class="px-3 py-3 text-center">
+                    <button (click)="removeCostRow(i)"
+                      class="text-gray-400 hover:text-red-500">
+                      <i class="fa fa-trash-alt"></i>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
           <div
             class="bg-gray-50 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4 border-t border-gray-200">
@@ -2722,6 +2782,7 @@
         <!-- ========================================================================================== -->
         <!-- 2. INDIRECT TABLE: MULTI-CARRIER BREAKDOWN -->
         <!-- ========================================================================================== -->
+
         <div *ngIf="quotation.isIndirect"
           class="mt-8 border border-gray-200 rounded-xl shadow-xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-4 duration-500 bg-white">
 
@@ -2783,10 +2844,22 @@
                       class="px-4 py-4 bg-green-50 border-b border-green-200 text-green-700">Tax
                       Name</th>
                     <th
-                      class="px-4 py-4 bg-green-50 border-b border-green-200 text-green-700">Tax
+                      class="px-4 py-4 bg-green-50 border-b border-green-200 text-green-700">CGST
                       %</th>
                     <th
-                      class="px-4 py-4 bg-green-50 border-b border-green-200 text-green-700">Tax
+                      class="px-4 py-4 bg-green-50 border-b border-green-200 text-green-700">CGST
+                      Amt</th>
+                    <th
+                      class="px-4 py-4 bg-green-50 border-b border-green-200 text-green-700">SGST
+                      %</th>
+                    <th
+                      class="px-4 py-4 bg-green-50 border-b border-green-200 text-green-700">SGST
+                      Amt</th>
+                    <th
+                      class="px-4 py-4 bg-blue-50 border-b border-blue-200 text-blue-700">IGST
+                      %</th>
+                    <th
+                      class="px-4 py-4 bg-blue-50 border-b border-blue-200 text-blue-700">IGST
                       Amt</th>
                     <th
                       class="px-4 py-4 bg-amber-200 text-[#4a3f3f] border-b border-amber-300 font-black">Total
@@ -2802,8 +2875,7 @@
 
                     <td
                       class="sticky left-0 z-20 bg-white group-hover:bg-amber-50/50 px-3 py-2.5 border-r shadow-sm">
-                      <select
-                        [(ngModel)]="m.forwarder"
+                      <select [(ngModel)]="m.forwarder"
                         (ngModelChange)="onForwarderSelectChange($event, i)"
                         class="w-36 border-b border-transparent focus:border-[#4a3f3f] outline-none text-xs font-bold uppercase bg-transparent">
                         <option value>-- Select Agent --</option>
@@ -2824,16 +2896,15 @@
                       <select [(ngModel)]="m.lob"
                         class="w-32 bg-transparent border-b border-transparent focus:border-amber-500 outline-none font-medium">
                         <option *ngFor="let service of companyServices"
-                          [value]="service.serviceName"> {{ service.serviceName
+                          [value]="service.serviceName">{{ service.serviceName
                           }}</option>
                       </select>
                     </td>
 
                     <td class="px-2 py-2">
-                      <select
-                        [(ngModel)]="m.chargeCode"
+                      <select [(ngModel)]="m.chargeCode"
                         (ngModelChange)="onMultiCarrierChargeSelect(m, $event)"
-                        class="w-36 bg-transparent border-b border-transparent focus:border-amber-500 outline-none ">
+                        class="w-36 bg-transparent border-b border-transparent focus:border-amber-500 outline-none">
                         <option value>-- Select Charge --</option>
                         <option *ngFor="let charge of getFilteredChargeMaster()"
                           [value]="charge.code">
@@ -2850,10 +2921,9 @@
                       </select>
                     </td>
 
-                    <!-- GST Status Column -->
+                    <!-- GST Status -->
                     <td class="px-2 py-2">
-                      <select
-                        [(ngModel)]="m.gstStatus"
+                      <select [(ngModel)]="m.gstStatus"
                         (ngModelChange)="onMultiCarrierGstStatusChange(m)"
                         class="w-24 text-center bg-transparent border-b border-transparent focus:border-amber-500 outline-none font-semibold text-xs"
                         [class.text-green-600]="m.gstStatus === 'Taxable'"
@@ -2874,12 +2944,11 @@
                         placeholder="INC">
                     </td>
 
-                    <!-- Airline Dropdown (Simple Select) -->
+                    <!-- Airline -->
                     <td class="px-2 py-2">
-                      <select
-                        [(ngModel)]="m.airline"
+                      <select [(ngModel)]="m.airline"
                         (ngModelChange)="onAirlineSelectChange($event, i)"
-                        class="w-32 text-center bg-transparent border-b border-transparent focus:border-amber-500 outline-none  font-medium uppercase">
+                        class="w-32 text-center bg-transparent border-b border-transparent focus:border-amber-500 outline-none font-medium uppercase">
                         <option value>-- Select Airline --</option>
                         <option *ngFor="let a of airlineList"
                           [value]="a.airlineName || a.name">
@@ -2887,12 +2956,14 @@
                         </option>
                       </select>
                     </td>
+
                     <td class="px-2 py-2">
                       <input #cutoffPicker type="datetime-local"
                         [(ngModel)]="m.cutoff"
                         (click)="openCalendar(cutoffPicker)"
                         class="outline-none bg-gray-50 border border-gray-200 rounded px-1 py-0.5 cursor-pointer text-xs w-full">
                     </td>
+
                     <td class="px-2 py-2">
                       <input #rowDatePicker type="date" [(ngModel)]="m.schedule"
                         (click)="openCalendar(rowDatePicker)"
@@ -2921,40 +2992,61 @@
                         class="w-16 text-right bg-transparent border-b border-transparent focus:border-amber-500 outline-none">
                     </td>
 
+                    <!-- Total Cost -->
                     <td
-                      class="px-4 py-2 text-right font-black text-[#4a3f3f] bg-amber-50  border-l border-r border-amber-200">
+                      class="px-4 py-2 text-right font-black text-[#4a3f3f] bg-amber-50 border-l border-r border-amber-200">
                       {{ (m.totalCost || 0) | number:'1.2-2' }}
                     </td>
 
-                    <!-- GST Columns -->
+                    <!-- ✅ GST COLUMNS - Correct order and bindings -->
                     <td
-                      class="px-3 py-2 text-center text-xs text-gray-600 font-semibold bg-green-50/30">
+                      class="px-3 py-2 text-center text-xs font-semibold text-green-700 bg-green-50/30">
                       {{ m.taxName || '-' }}
                     </td>
                     <td
-                      class="px-3 py-2 text-right text-xs text-gray-700 bg-green-50/30">
-                      {{ m.taxPercent || 0 }}%
+                      class="px-3 py-2 text-center text-xs font-bold text-green-700 bg-green-50/30">
+                      {{ (m.cgstPercent || 0) | number:'1.2-2' }}%
                     </td>
                     <td
-                      class="px-3 py-2 text-right text-xs font-semibold text-green-700 bg-green-50/30">
-                      {{ m.taxAmount | number:'1.2-2' }}
+                      class="px-3 py-2 text-right text-xs font-bold text-green-700 bg-green-50/30">
+                      {{ (m.cgst || 0) | number:'1.2-2' }}
+                    </td>
+                    <td
+                      class="px-3 py-2 text-center text-xs font-bold text-green-700 bg-green-50/30">
+                      {{ (m.sgstPercent || 0) | number:'1.2-2' }}%
+                    </td>
+                    <td
+                      class="px-3 py-2 text-right text-xs font-bold text-green-700 bg-green-50/30">
+                      {{ (m.sgst || 0) | number:'1.2-2' }}
+                    </td>
+                    <td
+                      class="px-3 py-2 text-center text-xs font-bold text-blue-700 bg-blue-50/30">
+                      {{ (m.igstPercent || 0) | number:'1.2-2' }}%
+                    </td>
+                    <td
+                      class="px-3 py-2 text-right text-xs font-bold text-blue-700 bg-blue-50/30">
+                      {{ (m.igst || 0) | number:'1.2-2' }}
                     </td>
 
+                    <!-- Total Incl GST -->
                     <td
                       class="px-4 py-2 text-right font-black text-[#4a3f3f] bg-amber-100 border-l border-r border-amber-300">
-                      {{ (m.totalAmount || m.totalCost) | number:'1.2-2' }}
+                      {{ (m.totalAmount || m.totalCost || 0) | number:'1.2-2' }}
                     </td>
 
+                    <!-- SAC/HSN -->
                     <td class="px-3 py-2 text-center text-xs text-gray-500">
                       {{ m.sacHsn || '-' }}
                     </td>
 
-                    <td class="px-4 py-2 text-right">
+                    <!-- Remarks -->
+                    <td class="px-4 py-2">
                       <input type="text" [(ngModel)]="m.remark"
                         placeholder="Enter Remark"
-                        class="w-full text-right bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none">
+                        class="w-full bg-transparent border-b border-transparent focus:border-amber-500 text-sm py-1 outline-none">
                     </td>
 
+                    <!-- Action -->
                     <td class="px-3 py-2 text-center">
                       <button (click)="removeMultiCarrierRow(i)"
                         class="text-red-400 hover:text-red-600 transition-colors">
@@ -2979,6 +3071,7 @@
               integrated pricing structures across all multi-carrier lines.</p>
           </div>
         </div>
+
         <div
           *ngIf="isFormOpen"
           class="bg-white border shadow-sm rounded-sm mb-6">
@@ -3015,6 +3108,7 @@
             </button>
           </div>
         </div>
+
         <div class="main-content-area">
           <div
             *ngIf="isPreviewMode"
@@ -3263,6 +3357,7 @@
             </div>
           </div>
         </div>
+
       </div>
     </div>
   </div>
@@ -3311,10 +3406,22 @@
                 class="border p-2 text-center min-w-[90px] bg-green-50 text-green-700">Tax
                 Name</th>
               <th
-                class="border p-2 text-center min-w-[60px] bg-green-50 text-green-700">Tax
+                class="border p-2 text-center min-w-[60px] bg-green-50 text-green-700">CGST
                 %</th>
               <th
-                class="border p-2 text-right min-w-[100px] bg-green-50 text-green-700">Tax
+                class="border p-2 text-right min-w-[90px] bg-green-50 text-green-700">CGST
+                Amt</th>
+              <th
+                class="border p-2 text-center min-w-[60px] bg-green-50 text-green-700">SGST
+                %</th>
+              <th
+                class="border p-2 text-right min-w-[90px] bg-green-50 text-green-700">SGST
+                Amt</th>
+              <th
+                class="border p-2 text-center min-w-[60px] bg-blue-50 text-blue-700">IGST
+                %</th>
+              <th
+                class="border p-2 text-right min-w-[90px] bg-blue-50 text-blue-700">IGST
                 Amt</th>
               <th
                 class="border p-2 text-right min-w-[110px] bg-amber-100 text-[#4a3f3f]">Total
@@ -3372,7 +3479,7 @@
                 </select>
               </td>
               <td class=" border p-1 text-center">
-               {{ quotation.chargeableWeight || 0 }}
+                {{ quotation.chargeableWeight || 0 }}
               </td>
               <td class="border p-1">
                 <input
@@ -3412,19 +3519,40 @@
                   class="w-full outline-none p-1 bg-transparent text-right" />
               </td>
 
-              <td class="border p-1 text-center bg-green-50 text-[10px] font-semibold text-green-700">
+              <td
+                class="border p-1 text-center bg-green-50 text-[10px] font-semibold text-green-700">
                 {{ c.taxName || '-' }}
               </td>
-              <td class="border p-1 text-center bg-green-50 text-[10px] text-green-700">
-                {{ c.taxPercent || 0 }}%
+              <td
+                class="border p-1 text-center bg-green-50 text-[10px] text-green-700">
+                {{ c.cgstPercent || 0 }}%
               </td>
-              <td class="border p-1 text-right bg-green-50 text-[10px] font-semibold text-green-700">
-                {{ c.taxAmount | number:'1.2-2' }}
+              <td
+                class="border p-1 text-right bg-green-50 text-[10px] font-semibold text-green-700">
+                {{ c.cgst | number:'1.2-2' }}
               </td>
-              <td class="border p-1 text-right bg-amber-100 font-black text-[#4a3f3f]">
+              <td
+                class="border p-1 text-center bg-green-50 text-[10px] text-green-700">
+                {{ c.sgstPercent || 0 }}%
+              </td>
+              <td
+                class="border p-1 text-right bg-green-50 text-[10px] font-semibold text-green-700">
+                {{ c.sgst | number:'1.2-2' }}
+              </td>
+              <td
+                class="border p-1 text-center bg-blue-50 text-[10px] text-blue-700">
+                {{ c.igstPercent || 0 }}%
+              </td>
+              <td
+                class="border p-1 text-right bg-blue-50 text-[10px] font-semibold text-blue-700">
+                {{ c.igst | number:'1.2-2' }}
+              </td>
+              <td
+                class="border p-1 text-right bg-amber-100 font-black text-[#4a3f3f]">
                 {{ c.totalAmount | number:'1.2-2' }}
               </td>
-              <td class="border p-1 text-center bg-green-50 text-[10px] text-gray-600">
+              <td
+                class="border p-1 text-center bg-green-50 text-[10px] text-gray-600">
                 {{ c.sacHsn || '-' }}
               </td>
 
@@ -3499,6 +3627,9 @@
               <th class="border p-2 min-w-[60px]">Currency</th>
               <th class="border p-2 min-w-[110px] bg-blue-50">Chrg.
                 Weight </th>
+
+              <th class="border p-2 min-w-[60px]">Rate</th>
+              <th class="border p-2 min-w-[60px]">Ex. Rate</th>
               <th class="border p-2 min-w-[60px]">FSC/ISS</th>
               <th class="border p-2 min-w-[100px]">Airline</th>
               <th class="border p-2 min-w-[80px]">Direct/ Indirect</th>
@@ -3509,16 +3640,28 @@
               <th class="border p-2 min-w-[70px]">CC fee</th>
               <th class="border p-2 min-w-[100px] bg-red-100 text-red-800">Cost
                 (Total)</th>
+              <th
+                class="border p-2 min-w-[70px] bg-green-50 text-green-700">Tax
+                Name</th>
 
-                     <th
-                      class="border p-2 min-w-[70px] bg-green-50 text-green-700">Tax
-                      Name</th>
-                   
-              <th class="border p-2 min-w-[70px] bg-green-50 text-green-700">Tax
+              <th
+                class="border p-2 min-w-[60px] bg-green-50 text-green-700">CGST
                 %</th>
-              <th class="border p-2 min-w-[90px] bg-green-50 text-green-700">Tax
+              <th
+                class="border p-2 min-w-[80px] bg-green-50 text-green-700">CGST
                 Amt</th>
-              <th class="border p-2 min-w-[110px] bg-amber-100 text-[#4a3f3f]">Total
+              <th
+                class="border p-2 min-w-[60px] bg-green-50 text-green-700">SGST
+                %</th>
+              <th
+                class="border p-2 min-w-[80px] bg-green-50 text-green-700">SGST
+                Amt</th>
+              <th class="border p-2 min-w-[60px] bg-blue-50 text-blue-700">IGST
+                %</th>
+              <th class="border p-2 min-w-[80px] bg-blue-50 text-blue-700">IGST
+                Amt</th>
+              <th
+                class="border p-2 min-w-[110px] bg-amber-100 text-[#4a3f3f]">Total
                 (Incl. GST)</th>
               <th class="border p-2 min-w-[180px]">REMARK</th>
               <th class="border p-2 w-[30px] bg-gray-50"></th>
@@ -3555,13 +3698,17 @@
                 </select> </td>
 
               <td class="border p-1">
-                <select [(ngModel)]="m.chargeName"
+                <select
+                  [(ngModel)]="m.chargeCode"
+                  (ngModelChange)="onMultiCarrierChargeSelect(m, $event)"
                   class="w-36 bg-transparent border-b border-transparent focus:border-amber-500 outline-none ">
                   <option value>-- Select Charge Name --</option>
-                  <option *ngFor="let c of chargesList" [value]="c.name">
-                    {{ c.name }}
+                  <option *ngFor="let charge of getFilteredChargeMaster()"
+                    [value]="charge.code">
+                    {{ charge.name }} ({{ charge.code }})
                   </option>
-                </select> </td>
+                </select>
+              </td>
 
               <!-- GST Status -->
               <td class="border p-1">
@@ -3585,9 +3732,21 @@
                 </datalist>
               </td>
 
+              <td class="border p-1 text-center">
+                <input type="number" [(ngModel)]="m.rate"
+                  (input)="calculateMasterIndirectTotal(i)"
+                  class="w-16 text-right font-semibold bg-transparent border-b border-transparent focus:border-amber-500 outline-none">
+              </td>
+
+              <td class="border p-1 text-center">
+                <input type="number" [(ngModel)]="m.exchangeRate"
+                  (input)="calculateMasterIndirectTotal(i)"
+                  class="w-16 text-right bg-transparent border-b border-transparent focus:border-amber-500 outline-none">
+              </td>
+
               <!-- Air Freight +500 KGS -->
               <td
-                class="px-2 py-2 bg-blue-50/30 text-center border-b font-bold text-blue-900">
+                class="border p-1  bg-blue-50/30 text-center border-b font-bold text-blue-900">
                 {{ quotation.chargeableWeight || 0 }}
               </td>
               <!-- FSC/ISS -->
@@ -3653,21 +3812,40 @@
                 {{ m.totalCost | number:'1.2-2' }}
               </td>
 
-                 <!-- GST Columns -->
-                    <td
-                      class="border p-1 text-center bg-green-50 text-[9px] text-green-700">
-                      {{ m.taxName || '-' }}
-                    </td>
-              <!-- Tax % -->
-              <td class="border p-1 text-center bg-green-50 text-[9px] text-green-700">
-                {{ m.taxPercent || 0 }}%
+              <!-- GST Columns -->
+              <!-- GST Columns -->
+              <td
+                class="border p-1 text-center bg-green-50 text-[9px] text-green-700">
+                {{ m.taxName || '-' }}
               </td>
-              <!-- Tax Amt -->
-              <td class="border p-1 text-right bg-green-50 text-[9px] font-semibold text-green-700">
-                {{ m.taxAmount | number:'1.2-2' }}
+              <td
+                class="border p-1 text-center bg-green-50 text-[9px] text-green-700">
+                {{ m.cgstPercent || 0 }}%
               </td>
+              <td
+                class="border p-1 text-right bg-green-50 text-[9px] font-semibold text-green-700">
+                {{ m.cgst | number:'1.2-2' }}
+              </td>
+              <td
+                class="border p-1 text-center bg-green-50 text-[9px] text-green-700">
+                {{ m.sgstPercent || 0 }}%
+              </td>
+              <td
+                class="border p-1 text-right bg-green-50 text-[9px] font-semibold text-green-700">
+                {{ m.sgst | number:'1.2-2' }}
+              </td>
+              <td
+                class="border p-1 text-center bg-blue-50 text-[9px] text-blue-700">
+                {{ m.igstPercent || 0 }}%
+              </td>
+              <td
+                class="border p-1 text-right bg-blue-50 text-[9px] font-semibold text-blue-700">
+                {{ m.igst | number:'1.2-2' }}
+              </td>
+
               <!-- Total Incl GST -->
-              <td class="border p-1 text-right bg-amber-100 font-black text-[#4a3f3f]">
+              <td
+                class="border p-1 text-right bg-amber-100 font-black text-[#4a3f3f]">
                 {{ (m.totalAmount || m.totalCost) | number:'1.2-2' }}
               </td>
               <!-- REMARK -->

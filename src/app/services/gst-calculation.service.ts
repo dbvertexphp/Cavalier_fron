@@ -13,6 +13,8 @@ export interface GstLineRequest {
   podCountryCode: string;
   polCity: string;
   podCity: string;
+  polState?: string;
+  podState?: string;
   branchState: string;
   isZeroRated?: boolean;
   isRcmApplicable?: boolean;
@@ -24,6 +26,9 @@ export interface GstLineResult {
   nonTaxableValue: number;
   taxName: string;
   taxPercent: number;
+  cgstPercent: number;
+  sgstPercent: number;
+  igstPercent: number;
   cgst: number;
   sgst: number;
   igst: number;
@@ -33,6 +38,28 @@ export interface GstLineResult {
   isZeroRated: boolean;
   isRcmApplicable: boolean;
   shipmentDirection: "DOMESTIC" | "EXPORT" | "IMPORT" | "OTHER";
+}
+
+
+const LEGISLATURE_LESS_UTS = new Set(
+  [
+    "Chandigarh",
+    "Lakshadweep",
+    "Daman and Diu",
+    "Daman & Diu",
+    "Dadra and Nagar Haveli",
+    "Dadra & Nagar Haveli",
+    "Dadra and Nagar Haveli and Daman and Diu",
+    "Andaman and Nicobar Islands",
+    "Andaman & Nicobar Islands",
+    "Andaman and Nicobar",
+    "Ladakh",
+  ].map((s) => normalizeState(s)),
+);
+
+function isLegislatureLessUT(state: string): boolean {
+  if (!state) return false;
+  return LEGISLATURE_LESS_UTS.has(normalizeState(state));
 }
 
 const CITY_TO_STATE: Record<string, string> = {
@@ -107,7 +134,7 @@ export class GstCalculationService {
       chargeMaster,
       taxRates,
     });
-    
+
     const amount = round2(request.amountInr || 0);
 
     const polIndia = isIndia(request.polCountryCode);
@@ -120,6 +147,9 @@ export class GstCalculationService {
       nonTaxableValue: amount,
       taxName: "",
       taxPercent: 0,
+      cgstPercent: 0,
+      sgstPercent: 0,
+      igstPercent: 0,
       cgst: 0,
       sgst: 0,
       igst: 0,
@@ -137,7 +167,6 @@ export class GstCalculationService {
     // ✅ WORLDWIDE RULE: Indian GST (CGST/SGST/IGST) only applies when India is
     // POL or POD. Any lane not touching India (e.g. Singapore→UAE, USA→Germany)
     // is treated as OUT OF SCOPE for Indian GST — clean pass-through, no tax.
-    // This keeps foreign-to-foreign shipments from ever getting wrong Indian tax.
     if (shipmentDirection === "OTHER") {
       return {
         ...empty,
@@ -195,15 +224,23 @@ export class GstCalculationService {
       request.podCountryCode,
       request.polCity,
       request.podCity,
+      request.polState,
+      request.podState,
     );
+
+    // ✅ Seedha polState vs podState (placeOfSupply) compare, branchState use nahi
+    const polStateResolved =
+      request.polState || resolveStateFromCity(request.polCity);
 
     const useIntraState =
       shipmentDirection === "DOMESTIC" &&
-      shouldUseIntraStateTax(request.branchState, placeOfSupply);
+      shouldUseIntraStateTax(polStateResolved, placeOfSupply);
 
-    let cgstRate = taxRate.cgst;
-    let sgstRate = taxRate.sgst + taxRate.utgst;
-    let igstRate = taxRate.igst;
+let cgstRate = taxRate.cgst;
+// ✅ FIX: UTGST sirf legislature-less Union Territories me lagta hai
+const isUT = isLegislatureLessUT(placeOfSupply);
+let sgstRate = isUT ? taxRate.utgst : taxRate.sgst;
+let igstRate = taxRate.igst;
 
     if (gstRow.override && gstRow.percentage > 0) {
       if (useIntraState) {
@@ -232,14 +269,20 @@ export class GstCalculationService {
     let sgst = 0;
     let igst = 0;
     let taxPercent = 0;
+    let cgstPercent = 0;
+    let sgstPercent = 0;
+    let igstPercent = 0;
 
     if (useIntraState) {
-      taxName = taxRate.utgst > 0 ? "CGST / UTGST" : "CGST / SGST";
+       taxName = isUT ? "CGST / UTGST" : "CGST / SGST";
       cgst = round2((amount * cgstRate) / 100);
       sgst = round2((amount * sgstRate) / 100);
+      cgstPercent = cgstRate;
+      sgstPercent = sgstRate;
       taxPercent = round2(cgstRate + sgstRate);
     } else {
       igst = round2((amount * igstRate) / 100);
+      igstPercent = igstRate;
       taxPercent = igstRate;
     }
 
@@ -254,6 +297,9 @@ export class GstCalculationService {
       cgst = 0;
       sgst = 0;
       igst = 0;
+      cgstPercent = 0;
+      sgstPercent = 0;
+      igstPercent = 0;
       taxAmount = 0;
       taxPercent = 0;
       taxName = "IGST (Zero-Rated / LUT)";
@@ -269,6 +315,9 @@ export class GstCalculationService {
       nonTaxableValue: 0,
       taxName,
       taxPercent,
+      cgstPercent,
+      sgstPercent,
+      igstPercent,
       cgst,
       sgst,
       igst,
@@ -297,12 +346,12 @@ function round2(n: number): number {
 }
 
 function isIndia(codeOrName: string): boolean {
-  const v = (codeOrName || '').trim();
+  const v = (codeOrName || "").trim();
   if (!v) return false;
   const upper = v.toUpperCase();
-  if (upper === 'IN' || upper === 'IND' || upper === 'INDIA') return true;
-  if (upper.includes('+91')) return true;
-  if (upper.includes('IN') && v.length <= 5) return true;
+  if (upper === "IN" || upper === "IND" || upper === "INDIA") return true;
+  if (upper.includes("+91")) return true;
+  if (upper.includes("IN") && v.length <= 5) return true;
   return false;
 }
 
@@ -331,23 +380,27 @@ function resolvePlaceOfSupplyState(
   podCountry: string,
   polCity: string,
   podCity: string,
+  polState?: string,
+  podState?: string,
 ): string {
   const polIndia = isIndia(polCountry);
   const podIndia = isIndia(podCountry);
 
-  if (polIndia && !podIndia) return resolveStateFromCity(polCity);
-  if (!polIndia && podIndia) return resolveStateFromCity(podCity);
-  if (polIndia && podIndia) return resolveStateFromCity(podCity);
+  if (polIndia && !podIndia) return polState || resolveStateFromCity(polCity);
+  if (!polIndia && podIndia) return podState || resolveStateFromCity(podCity);
+  if (polIndia && podIndia) return podState || resolveStateFromCity(podCity);
 
-  return resolveStateFromCity(podCity) || resolveStateFromCity(polCity);
+  return (
+    podState ||
+    resolveStateFromCity(podCity) ||
+    polState ||
+    resolveStateFromCity(polCity)
+  );
 }
 
-function shouldUseIntraStateTax(
-  branchState: string,
-  placeOfSupplyState: string,
-): boolean {
-  if (!branchState || !placeOfSupplyState) return false;
-  return normalizeState(branchState) === normalizeState(placeOfSupplyState);
+function shouldUseIntraStateTax(polState: string, podState: string): boolean {
+  if (!polState || !podState) return false;
+  return normalizeState(polState) === normalizeState(podState);
 }
 
 function normalizeState(state: string): string {
